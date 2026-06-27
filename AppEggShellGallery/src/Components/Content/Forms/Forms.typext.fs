@@ -20,7 +20,7 @@ type Profile = {
 }
 
 
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base.Types
 type PickerItem<'T> = LibClient.Components.Legacy.Input.Picker.PickerItem<'T>
 
 [<RequireQualifiedAccess>]

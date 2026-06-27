@@ -4,6 +4,7 @@ module AppEggShellGallery.Components.Content_FloatingActionButton
 open Fable.React
 open LibClient
 open LibClient.Components
+open LibClient.Components.FloatingActionButton
 open LibClient.Icons
 open AppEggShellGallery.Actions
 
@@ -141,7 +142,8 @@ LC.FloatingActionButton(
                                 element {
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        LC.Text """
+                                        children = [|
+                                            LC.Text """
 LC.FloatingActionButton(
     icon = Icon.Report,
     state = PropStateFactory.MakeLowLevel (Actionable greet),
@@ -155,6 +157,7 @@ LC.FloatingActionButton(
         },
     testId = "fab-report-themed"
 )"""
+                                        |]
                                     )
                                 }
                             )

@@ -58,7 +58,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
             )
 
             #if DEBUG
-            LibClient.UiActionLog.installGlobalHook (Fable.Core.JS.globalThis) "AppEggShellGallery"
+            LibClient.UiActionLog.installGlobalHook Browser.Dom.window "AppEggShellGallery"
             #endif
 
             #if EGGSHELL_PLATFORM_IS_WEB

@@ -19,18 +19,13 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Carousel" AppEggShellGallery.Components.Content.CarouselRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ColorVariants" AppEggShellGallery.Components.Content.ColorVariantsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ContextMenu" AppEggShellGallery.Components.Content.ContextMenuRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.DateSelector" AppEggShellGallery.Components.Content.DateSelectorRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Dialogs" AppEggShellGallery.Components.Content.DialogsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ErrorBoundary" AppEggShellGallery.Components.Content.ErrorBoundaryRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.FloatingActionButton" AppEggShellGallery.Components.Content.FloatingActionButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Forms" AppEggShellGallery.Components.Content.FormsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Icon" AppEggShellGallery.Components.Content.IconRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.IconButton" AppEggShellGallery.Components.Content.IconButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Icons" AppEggShellGallery.Components.Content.IconsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.IconWithBadge" AppEggShellGallery.Components.Content.IconWithBadgeRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.InfoMessage" AppEggShellGallery.Components.Content.InfoMessageRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.Checkbox" AppEggShellGallery.Components.Content.Input.CheckboxRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.ChoiceList" AppEggShellGallery.Components.Content.Input.ChoiceListRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.Date" AppEggShellGallery.Components.Content.Input.DateRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.EmailAddress" AppEggShellGallery.Components.Content.Input.EmailAddressRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.PhoneNumber" AppEggShellGallery.Components.Content.Input.PhoneNumberRender.render
@@ -38,7 +33,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.Quantity" AppEggShellGallery.Components.Content.Input.QuantityRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Input.Text" AppEggShellGallery.Components.Content.Input.TextRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ItemList" AppEggShellGallery.Components.Content.ItemListRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Nav.Bottom" AppEggShellGallery.Components.Content.Nav.BottomRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Pre" AppEggShellGallery.Components.Content.PreRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Scrim" AppEggShellGallery.Components.Content.ScrimRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Stars" AppEggShellGallery.Components.Content.StarsRender.render
@@ -82,18 +76,13 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Carousel", AppEggShellGallery.Components.Content.CarouselStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ColorVariants", AppEggShellGallery.Components.Content.ColorVariantsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ContextMenu", AppEggShellGallery.Components.Content.ContextMenuStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.DateSelector", AppEggShellGallery.Components.Content.DateSelectorStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Dialogs", AppEggShellGallery.Components.Content.DialogsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ErrorBoundary", AppEggShellGallery.Components.Content.ErrorBoundaryStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.FloatingActionButton", AppEggShellGallery.Components.Content.FloatingActionButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Forms", AppEggShellGallery.Components.Content.FormsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Icon", AppEggShellGallery.Components.Content.IconStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.IconButton", AppEggShellGallery.Components.Content.IconButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Icons", AppEggShellGallery.Components.Content.IconsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.IconWithBadge", AppEggShellGallery.Components.Content.IconWithBadgeStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.InfoMessage", AppEggShellGallery.Components.Content.InfoMessageStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.Checkbox", AppEggShellGallery.Components.Content.Input.CheckboxStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.ChoiceList", AppEggShellGallery.Components.Content.Input.ChoiceListStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.Date", AppEggShellGallery.Components.Content.Input.DateStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.EmailAddress", AppEggShellGallery.Components.Content.Input.EmailAddressStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.PhoneNumber", AppEggShellGallery.Components.Content.Input.PhoneNumberStyles.styles)
@@ -101,7 +90,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.Quantity", AppEggShellGallery.Components.Content.Input.QuantityStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Input.Text", AppEggShellGallery.Components.Content.Input.TextStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ItemList", AppEggShellGallery.Components.Content.ItemListStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Nav.Bottom", AppEggShellGallery.Components.Content.Nav.BottomStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Pre", AppEggShellGallery.Components.Content.PreStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Scrim", AppEggShellGallery.Components.Content.ScrimStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Stars", AppEggShellGallery.Components.Content.StarsStyles.styles)

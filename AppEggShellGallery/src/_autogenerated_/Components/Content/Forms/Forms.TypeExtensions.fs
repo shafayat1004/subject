@@ -1,7 +1,7 @@
 namespace AppEggShellGallery.Components
 
 open LibClient
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base.Types
 open AppEggShellGallery.Components.Content.Forms
 open Fable.Core.JsInterop
 

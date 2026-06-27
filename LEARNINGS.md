@@ -627,6 +627,12 @@ consumers together** as one build-green change:
 - module named with underscores: `module LibClient.Components.Sidebar_Base` (NOT `Sidebar.Base`, avoids
   clashing with the `LC.Sidebar` type);
 - declare via `type LibClient.Components.Constructors.LC.Sidebar with [<Component>] static member Base(...)`.
+- **Cross-project autogen:** dotted module names like `Form.Base` or `AppShell.Content` also hide the
+  `[<Component>]` static member from *other* assemblies (gallery/LibUiAdmin autogen sees only `Context`,
+  not `Content`; `Form.Base` call fails). Rename to `Form_Base`, `AppShell_Content` (same rule as
+  `AppShell_Context`). Public API stays `LC.Form.Base` / `LC.AppShell.Content`; only the F# module name changes.
+- **`Fable.Core.JS.globalThis` is unavailable** in our Fable v4 setup; use `Browser.Dom.window` for
+  `UiActionLog.installGlobalHook`.
 
 **Converted so far:**
 - `LibClient/src/Components/Tabs/Tabs.fs` ✅ (clean leaf)

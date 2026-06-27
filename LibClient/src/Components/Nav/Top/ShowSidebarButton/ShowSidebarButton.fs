@@ -27,12 +27,12 @@ type LibClient.Components.Constructors.LC.Nav.Top with
             match badge with
             | Some badge ->
                 LC.Nav.Top.Item(
-                    state = Nav.Top.Item.State.Actionable AppShell.Content.toggleSidebarVisibility,
+                    state = Nav.Top.Item.State.Actionable AppShell_Content.toggleSidebarVisibility,
                     style = Nav.Top.Item.Style.With(icon = icon, badge = badge)
                 )
             | None ->
                 LC.Nav.Top.Item(
-                    state = Nav.Top.Item.State.Actionable (AppShell.Content.setSidebarVisibility true),
+                    state = Nav.Top.Item.State.Actionable (AppShell_Content.setSidebarVisibility true),
                     style = Nav.Top.Item.iconOnly icon
                 )
 

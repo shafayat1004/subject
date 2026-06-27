@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 open LibClient.Components
-open LibClient.Components.Form.Base
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base
+open LibClient.Components.Form_Base.Types
 open LibClient.Services.Subscription
 
 open ReactXP.Components

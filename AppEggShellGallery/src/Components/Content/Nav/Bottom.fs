@@ -8,6 +8,7 @@ open LibClient.Responsive
 open ReactXP.Styles
 
 open AppEggShellGallery.Icons
+open AppEggShellGallery.Actions
 
 type Ui.Content.Nav with
     [<Component>]
@@ -45,7 +46,7 @@ type Ui.Content.Nav with
                                                     )
                                                     LC.Nav.Bottom.Button (
                                                         label = "Cart",
-                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable Actions.greet),
+                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable AppEggShellGallery.Actions.greet),
                                                         icon = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
                                                         badge = Nav.Bottom.Button.Count 3
                                                     )
@@ -62,7 +63,7 @@ type Ui.Content.Nav with
                                                     )
                                                     LC.Nav.Bottom.Button (
                                                         label = "Cart",
-                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable Actions.greet),
+                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable AppEggShellGallery.Actions.greet),
                                                         icon = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
                                                         badge = Nav.Bottom.Button.Count 3
                                                     )
@@ -86,7 +87,7 @@ type Ui.Content.Nav with
                                                     )
                                                     LC.Nav.Bottom.Button (
                                                         label = "Cart",
-                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable Actions.greet),
+                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable AppEggShellGallery.Actions.greet),
                                                         icon = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
                                                         badge = Nav.Bottom.Button.Count 3
                                                     )
@@ -103,7 +104,7 @@ type Ui.Content.Nav with
                                                     )
                                                     LC.Nav.Bottom.Button (
                                                         label = "Cart",
-                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable Actions.greet),
+                                                        state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable AppEggShellGallery.Actions.greet),
                                                         icon = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
                                                         badge = Nav.Bottom.Button.Count 3
                                                     )

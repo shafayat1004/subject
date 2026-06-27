@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module LibClient.Components.Form.Base
+module LibClient.Components.Form_Base
 
 open Fable.React
 

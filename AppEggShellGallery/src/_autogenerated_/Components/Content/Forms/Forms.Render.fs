@@ -41,7 +41,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
     let __parentFQN = None
     let __parentFQN = Some "AppEggShellGallery.Components.ComponentContent"
     AppEggShellGallery.Components.Constructors.Ui.ComponentContent(
-        props = (AppEggShellGallery.Components.ComponentContent.ForFullyQualifiedName "LibClient.Components.Form.Base"),
+        props = (AppEggShellGallery.Components.ComponentContent.ForFullyQualifiedName "LibClient.Components.Form_Base"),
         displayName = ("Forms"),
         notes =
                 (castAsElementAckingKeysWarning [|
@@ -90,7 +90,7 @@ type Profile = {
 }
 
 
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base.Types
 type PickerItem<'T> = LibClient.Components.Form.Legacy.Input.Picker.PickerItem<'T>
 
 [<RequireQualifiedAccess>]
@@ -196,12 +196,12 @@ member _.Submit (profile: Profile) () : UDActionResult = async {
                             ),
                         visuals =
                                 (castAsElementAckingKeysWarning [|
-                                    let __parentFQN = Some "LibClient.Components.Form.Base"
+                                    let __parentFQN = Some "LibClient.Components.Form_Base"
                                     LibClient.Components.Constructors.LC.Form.Base(
                                         submit = (actions.Submit),
-                                        accumulator = (LibClient.Components.Form.Base.ManageInternallyInitializingWith Acc.Initial),
+                                        accumulator = (LibClient.Components.Form_Base.ManageInternallyInitializingWith Acc.Initial),
                                         content =
-                                            (fun (form: LibClient.Components.Form.Base.FormHandle<Field, Acc, Profile>) ->
+                                            (fun (form: LibClient.Components.Form_Base.FormHandle<Field, Acc, Profile>) ->
                                                     (castAsElementAckingKeysWarning [|
                                                         let __parentFQN = Some "LibClient.Components.Input.Text"
                                                         LibClient.Components.Constructors.LC.Input.Text(
@@ -232,7 +232,7 @@ member _.Submit (profile: Profile) () : UDActionResult = async {
                                                             validity = (form.FieldValidity Field.WantsSpam),
                                                             onChange = (fun value -> form.UpdateAcc ( fun acc -> { acc with WantsSpam = value})),
                                                             value = (Some form.Acc.WantsSpam),
-                                                            label = (LibClient.Components.Input.Checkbox.String "Subscribe to email")
+                                                            label = (LibClient.Components.Input.Label.String "Subscribe to email")
                                                         )
                                                         let __parentFQN = Some "LibClient.Components.Buttons"
                                                         LibClient.Components.Constructors.LC.Buttons(

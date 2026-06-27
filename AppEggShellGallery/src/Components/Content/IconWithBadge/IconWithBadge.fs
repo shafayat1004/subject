@@ -4,7 +4,9 @@ module AppEggShellGallery.Components.Content_IconWithBadge
 open Fable.React
 open LibClient
 open LibClient.Components
+open LibClient.Components.IconWithBadge
 open ReactXP.Styles
+open AppEggShellGallery.Icons
 
 module private SampleThemes =
     let custom (theme: LC.IconWithBadge.Theme) : LC.IconWithBadge.Theme =
@@ -29,7 +31,7 @@ type Ui.Content with
                     Ui.ComponentSample(
                         visuals =
                             element {
-                                LC.IconWithBadge(icon = Icon.ShoppingCart, badge = LC.IconWithBadge.Count 4)
+                                LC.IconWithBadge(icon = Icon.ShoppingCart, badge = Count 4)
                             },
                         code =
                             ComponentSample.SingleBlock(
@@ -37,14 +39,14 @@ type Ui.Content with
                                 LC.Text """
 LC.IconWithBadge(
     icon = Icon.ShoppingCart,
-    badge = LC.IconWithBadge.Count 4
+    badge = Count 4
 )"""
                             )
                     )
                     Ui.ComponentSample(
                         visuals =
                             element {
-                                LC.IconWithBadge(icon = Icon.Home, badge = LC.IconWithBadge.Text "Summer Sale!")
+                                LC.IconWithBadge(icon = Icon.Home, badge = Text "Summer Sale!")
                             },
                         code =
                             ComponentSample.SingleBlock(
@@ -52,7 +54,7 @@ LC.IconWithBadge(
                                 LC.Text """
 LC.IconWithBadge(
     icon = Icon.Home,
-    badge = LC.IconWithBadge.Text "Summer Sale!"
+    badge = Text "Summer Sale!"
 )"""
                             )
                     )
@@ -64,7 +66,7 @@ LC.IconWithBadge(
                             element {
                                 LC.IconWithBadge(
                                     icon = Icon.ShoppingCart,
-                                    badge = LC.IconWithBadge.Count 9,
+                                    badge = Count 9,
                                     theme = SampleThemes.custom
                                 )
                             },
@@ -74,7 +76,7 @@ LC.IconWithBadge(
                                     LC.Text """
 LC.IconWithBadge(
     icon = Icon.ShoppingCart,
-    badge = LC.IconWithBadge.Count 9,
+    badge = Count 9,
     theme = fun theme -> { theme with IconColor = Color.Black; IconSize = 26; Badge = { theme.Badge with FontSize = 22; FontColor = Color.Black } }
 )"""
                                     LC.Text(

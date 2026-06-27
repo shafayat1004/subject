@@ -13,7 +13,7 @@ type LibClient.Components.Constructors.LC.Legacy.TopNav with
         xLegacyStyles |> ignore
         let button =
             LC.Legacy.TopNav.IconButton(
-                state = LC.Legacy.TopNav.IconButtonTypes.Actionable (AppShell.Content.setSidebarVisibility true),
+                state = LC.Legacy.TopNav.IconButtonTypes.Actionable (AppShell_Content.setSidebarVisibility true),
                 icon  = Icon.Menu
             )
         LC.Responsive(

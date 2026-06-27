@@ -58,9 +58,9 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.A
                         )
                         (
                             let maybeRoute = maybeNavigationFrame |> Option.map NavigationFrame.route
-                            let __parentFQN = Some "LibClient.Components.AppShell.Content"
+                            let __parentFQN = Some "LibClient.Components.AppShell_Content"
                             LibClient.Components.Constructors.LC.AppShell.Content(
-                                desktopSidebarStyle = (LibClient.Components.AppShell.Content.Fixed),
+                                desktopSidebarStyle = (LibClient.Components.AppShell_Content.Fixed),
                                 content =
                                         (castAsElementAckingKeysWarning [|
                                             match (maybeRoute) with

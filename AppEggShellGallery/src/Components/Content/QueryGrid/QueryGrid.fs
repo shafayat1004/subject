@@ -4,7 +4,7 @@ module AppEggShellGallery.Components.Content_QueryGrid
 open Fable.React
 open LibClient
 open LibClient.Components
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base.Types
 open LibUiAdmin.Components
 open AppEggShellGallery.Components
 open AppEggShellGallery.Components.ComponentSample
@@ -136,7 +136,7 @@ type Ui.Content with
                                                         [| LC.Text """
 // This is run-of-the-mill form definition: a DU of fields, the result type that
 // a successfully validated form produces (Query), and an accumulator (Acc) that
-// implements AbstractAcc (from LibClient.Components.Form.Base.Types).
+// implements AbstractAcc (from LibClient.Components.Form_Base.Types).
 // (you can stub this out in VSCode using the `formacc` snippet)
 [<RequireQualifiedAccess>]
 type Field =

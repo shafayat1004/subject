@@ -44,7 +44,7 @@ type Ui.App with
         let maybeRoute = maybeNavigationFrame |> Option.map NavigationFrame.route
 
         LC.AppShell.Content (
-            desktopSidebarStyle = AppShell.Content.DesktopSidebarStyle.Fixed,
+            desktopSidebarStyle = AppShell_Content.DesktopSidebarStyle.Fixed,
             sidebar             = Ui.Sidebar maybeRoute,
             topNav              = Ui.Nav.Top maybeRoute,
             onError             = LC.AppShell.TopLevelErrorMessage,

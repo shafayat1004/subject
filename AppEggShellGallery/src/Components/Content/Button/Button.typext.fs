@@ -35,6 +35,8 @@ module SampleThemes =
             BackgroundColor = Color.DevGreen
         }
 
+    let badgeGreenLegacy = badgeGreen
+
 type Props = (* GenerateMakeFunction *) {
     key: string option // defaultWithAutoWrap JsUndefined
 }

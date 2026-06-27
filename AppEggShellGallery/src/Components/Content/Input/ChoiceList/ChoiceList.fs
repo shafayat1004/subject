@@ -24,9 +24,9 @@ type private Helpers =
     [<Component>]
     static member FruitItemsWithChildren (group: Group<Fruit>) : ReactElement =
         element {
-            LC.Input.ChoiceListItem(group = group, value = Fruit.Mango)  (LC.UiText "Mango")
-            LC.Input.ChoiceListItem(group = group, value = Fruit.Peach)  (LC.UiText "Peach")
-            LC.Input.ChoiceListItem(group = group, value = Fruit.Banana) (LC.UiText "Banana")
+            LC.Input.ChoiceListItem(group = group, value = Fruit.Mango,  children = [| LC.UiText "Mango" |])
+            LC.Input.ChoiceListItem(group = group, value = Fruit.Peach,  children = [| LC.UiText "Peach" |])
+            LC.Input.ChoiceListItem(group = group, value = Fruit.Banana, children = [| LC.UiText "Banana" |])
         }
 
     [<Component>]

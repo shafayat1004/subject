@@ -6,8 +6,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Components.Dialog
-open LibClient.Components.Form.Base
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base
+open LibClient.Components.Form_Base.Types
 open LibClient.Dialogs
 
 open ReactXP.Components

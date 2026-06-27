@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module LibClient.Components.AppShell.Content
+module LibClient.Components.AppShell_Content
 
 open System
 

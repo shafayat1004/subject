@@ -4,6 +4,7 @@ module AppEggShellGallery.Components.Content_Draggable
 open Fable.React
 open LibClient
 open LibClient.Components
+open AppEggShellGallery.LocalImages
 
 type Ui.Content with
     [<Component>]

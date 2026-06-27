@@ -6,7 +6,7 @@ open LibClient
 open LibClient.Components
 open LibClient.Dialogs
 open Fable.React
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base.Types
 open ReactXP.Styles
 
 type Parameters<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError
@@ -110,7 +110,7 @@ type SubjectAction<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'E
             heading = $"{this.props.Parameters.Service.LifeCycleKey.LocalLifeCycleName} Action",
             body = asFragment [
                 LC.Form.Base (
-                    accumulator = LibClient.Components.Form.Base.Accumulator.ManageInternallyInitializingWith (Acc.Initial this.props.Parameters.Encoder),
+                    accumulator = LibClient.Components.Form_Base.Accumulator.ManageInternallyInitializingWith (Acc.Initial this.props.Parameters.Encoder),
                     submit      = submit this.props.Parameters.Service this.Actions.TryCancel this.props.Parameters.Id,
                     key         = $"{this.state.estate.AddCount}",
                     content     = (fun form -> element {
