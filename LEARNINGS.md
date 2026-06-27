@@ -662,6 +662,6 @@ All build green via `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"`
   when needed; native still rendered `dom.table` (broken on RN). Gallery never used `col-w-*`.
 - **Fix:** Native uses flex rows with fixed column widths via `GridCell` `widthUnits`
   (20px base, same convention as old `col-w-*`). Row dividers and `#666` text mirror
-  `la-table`. Web stays plain `dom.td` + global `la-table` CSS. Styling lives in
-  modern `Grid.fs` / `GridCell.fs` only; the old `Grid.styles.fs` was read for reference,
-  not re-integrated.
+  `la-table`. Web stays plain `dom.td` + global `la-table` CSS from `LibUiAdmin.Styles`
+  (imported explicitly in `Grid.fs`; was previously pulled in via legacy Grid.styles
+  FixmeCrappyStyleSharing). Styling lives in modern `Grid.fs` / `GridCell.fs` only.

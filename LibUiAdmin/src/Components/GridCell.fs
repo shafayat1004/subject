@@ -43,19 +43,20 @@ module GridCellStyles =
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let cell (widthUnits: int) (isFirstColumn: bool) =
-        makeViewStyles {
-            width (colWidthPx widthUnits)
-            flexGrow 0
-            flexShrink 0
-            paddingHorizontal 10
-            paddingVertical 20
-            JustifyContent.Center
-            if isFirstColumn then paddingLeft 30
-        }
+    let cell =
+        ViewStyles.Memoize (fun (widthUnits: int) (isFirstColumn: bool) ->
+            makeViewStyles {
+                width (colWidthPx widthUnits)
+                flexGrow 0
+                flexShrink 0
+                paddingHorizontal 10
+                paddingVertical 20
+                JustifyContent.Center
+                if isFirstColumn then paddingLeft 30
+            })
 
 type UiAdmin with
-    /// Cross-platform table cell: `dom.td` on web (styled by `table.la-table` + `col-w-*`), flex column on native.
+    /// Cross-platform table cell: `dom.td` on web (styled by `table.la-table`), flex column on native.
     [<Component>]
     static member GridCell (
             children:           ReactElements,
@@ -65,11 +66,10 @@ type UiAdmin with
             ?isFirstColumn:      bool,
             ?key:                string
         ) : ReactElement =
-        key |> ignore
-
         let columnIndex = defaultArg columnIndex 0
         let widthUnits = resolveWidthUnits columnIndex widthUnits
         let isFirstColumn = defaultArg isFirstColumn (columnIndex = 0)
+        let cellKey = key |> Option.defaultValue (string columnIndex)
 
         #if EGGSHELL_PLATFORM_IS_WEB
         let classes =
@@ -77,10 +77,14 @@ type UiAdmin with
             | Some c when c <> "" -> c
             | _                   -> null
 
-        dom.td [ if not (isNull classes) then ClassName classes ] children
+        dom.td [
+            Key cellKey
+            if not (isNull classes) then ClassName classes
+        ] children
         #else
         ignore className
         RX.View(
+            key = cellKey,
             styles = [| Styles.cell widthUnits isFirstColumn |],
             children = children
         )

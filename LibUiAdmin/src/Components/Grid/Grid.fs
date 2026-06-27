@@ -92,13 +92,14 @@ module private Styles =
             widthPercent 100
         }
 
-    let nativeTableBody (tableWidth: int) =
-        makeViewStyles {
-            FlexDirection.Column
-            AlignSelf.FlexStart
-            width tableWidth
-            minWidth tableWidth
-        }
+    let nativeTableBody =
+        ViewStyles.Memoize (fun (tableWidth: int) ->
+            makeViewStyles {
+                FlexDirection.Column
+                AlignSelf.FlexStart
+                width tableWidth
+                minWidth tableWidth
+            })
 
     let row =
         makeViewStyles {
@@ -314,6 +315,10 @@ module NativeGrid =
 
 #if EGGSHELL_PLATFORM_IS_WEB
 do
+    // Legacy Grid.styles pulled LibUiAdmin.Styles in via FixmeCrappyStyleSharing.
+    // Modern Grid must import it so table.la-table CSS is injected on web.
+    LibUiAdmin.Styles.styles.Force() |> ignore
+
     ReactXP.LegacyStyles.Css.addCss """
 .row {
     position: relative
