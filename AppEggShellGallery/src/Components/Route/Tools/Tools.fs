@@ -31,11 +31,11 @@ type Ui.Route with
                                     Showdown.MarkdownViewer(
                                         source = MarkdownViewer.Code "## RenderDSL scope snippets"
                                     )
-                                    Ui.Snippets(scope = One "renderdsl")
+                                    Ui.Snippets(scope = Scope.One "renderdsl")
                                     Showdown.MarkdownViewer(
                                         source = MarkdownViewer.Code "## F# scope snippets"
                                     )
-                                    Ui.Snippets(scope = One "fsharp")
+                                    Ui.Snippets(scope = Scope.One "fsharp")
                                 }
                         |]
                     )

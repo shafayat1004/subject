@@ -2,10 +2,6 @@
 module AppEggShellGallery.ComponentRegistration
 
 let registerAllTheThings () : unit =
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariant.Base" AppEggShellGallery.Components.ColorVariant.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariant.ColorBlock" AppEggShellGallery.Components.ColorVariant.ColorBlockRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariants" AppEggShellGallery.Components.ColorVariantsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.AsyncData" AppEggShellGallery.Components.Content.AsyncDataRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Avatar" AppEggShellGallery.Components.Content.AvatarRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Button" AppEggShellGallery.Components.Content.ButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Buttons" AppEggShellGallery.Components.Content.ButtonsRender.render
@@ -14,7 +10,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ContextMenu" AppEggShellGallery.Components.Content.ContextMenuRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Dialogs" AppEggShellGallery.Components.Content.DialogsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ErrorBoundary" AppEggShellGallery.Components.Content.ErrorBoundaryRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Forms" AppEggShellGallery.Components.Content.FormsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Icon" AppEggShellGallery.Components.Content.IconRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.IconButton" AppEggShellGallery.Components.Content.IconButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Icons" AppEggShellGallery.Components.Content.IconsRender.render
@@ -40,11 +35,7 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Timestamp" AppEggShellGallery.Components.Content.TimestampRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ToggleButtons" AppEggShellGallery.Components.Content.ToggleButtonsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.WithSortAndFilter" AppEggShellGallery.Components.Content.WithSortAndFilterRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Snippets" AppEggShellGallery.Components.SnippetsRender.render
 
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ColorVariant.Base", AppEggShellGallery.Components.ColorVariant.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ColorVariants", AppEggShellGallery.Components.ColorVariantsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.AsyncData", AppEggShellGallery.Components.Content.AsyncDataStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Avatar", AppEggShellGallery.Components.Content.AvatarStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Buttons", AppEggShellGallery.Components.Content.ButtonsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Carousel", AppEggShellGallery.Components.Content.CarouselStyles.styles)
@@ -52,7 +43,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ContextMenu", AppEggShellGallery.Components.Content.ContextMenuStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Dialogs", AppEggShellGallery.Components.Content.DialogsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ErrorBoundary", AppEggShellGallery.Components.Content.ErrorBoundaryStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Forms", AppEggShellGallery.Components.Content.FormsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Icon", AppEggShellGallery.Components.Content.IconStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.IconButton", AppEggShellGallery.Components.Content.IconButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Icons", AppEggShellGallery.Components.Content.IconsStyles.styles)
@@ -77,4 +67,3 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.TimeSpan", AppEggShellGallery.Components.Content.TimeSpanStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ToggleButtons", AppEggShellGallery.Components.Content.ToggleButtonsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.WithSortAndFilter", AppEggShellGallery.Components.Content.WithSortAndFilterStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Snippets", AppEggShellGallery.Components.SnippetsStyles.styles)
