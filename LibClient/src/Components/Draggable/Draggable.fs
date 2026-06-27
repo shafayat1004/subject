@@ -212,7 +212,7 @@ type LibClient.Components.Constructors.LC with
             ?up:              DragTarget,
             ?down:            DragTarget,
             ?onChange:        Change -> unit,
-            ?ref:             LibClient.JsInterop.JsNullable<IDraggableRef> -> unit,
+            ?draggableRef:    LibClient.JsInterop.JsNullable<IDraggableRef> -> unit,
             ?testId:          string,
             ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
             ?key:             string
@@ -373,16 +373,16 @@ type LibClient.Components.Constructors.LC with
 
         Hooks.useEffectDisposableFn(
             (fun () ->
-                ref |> Option.sideEffect (fun refCallback ->
+                draggableRef |> Option.sideEffect (fun refCallback ->
                     refCallback (selfRef :> obj :?> LibClient.JsInterop.JsNullable<IDraggableRef>)
                 )
             ),
             (fun () ->
-                ref |> Option.sideEffect (fun refCallback ->
+                draggableRef |> Option.sideEffect (fun refCallback ->
                     refCallback (null :> obj :?> LibClient.JsInterop.JsNullable<IDraggableRef>)
                 )
             ),
-            [| ref :> obj |]
+            [| draggableRef :> obj |]
         )
 
         let legacyGestureViewStyles : array<ViewStyles> =

@@ -29,7 +29,7 @@ type Ui.Content with
                                     fun (bindRef, maybeRef: Option<LibClient.Components.Draggable.IDraggableRef>) ->
                                         element {
                                             LC.Draggable(
-                                                ref = bindRef,
+                                                draggableRef = bindRef,
                                                 testId = "gallery-draggable",
                                                 left =
                                                     {|
@@ -118,7 +118,7 @@ LC.With.Ref(
     ``with`` = fun (bindRef, maybeRef) ->
         element {
             LC.Draggable(
-                ref = bindRef,
+                draggableRef = bindRef,
                 testId = "gallery-draggable",
                 left = {| ForwardThreshold = 50; Offset = 100; BackwardThreshold = 20 |},
                 right = {| ForwardThreshold = 100; Offset = 200; BackwardThreshold = 20 |},

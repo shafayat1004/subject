@@ -15,7 +15,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module DraggableTypeExtensions =
     type LibClient.Components.Constructors.LC with
-        static member Draggable(?children: ReactChildrenProp, ?baseOffset: int * int, ?left: DragTarget, ?right: DragTarget, ?up: DragTarget, ?down: DragTarget, ?onChange: (Change -> unit), ?key: string, ?ref: (LibClient.JsInterop.JsNullable<IDraggableRef> -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Draggable(?children: ReactChildrenProp, ?baseOffset: int * int, ?left: DragTarget, ?right: DragTarget, ?up: DragTarget, ?down: DragTarget, ?onChange: (Change -> unit), ?key: string, ?draggableRef: (LibClient.JsInterop.JsNullable<IDraggableRef> -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     BaseOffset = defaultArg baseOffset ((0, 0))
@@ -25,7 +25,7 @@ module DraggableTypeExtensions =
                     Down = down |> Option.orElse (None)
                     OnChange = onChange |> Option.orElse (None)
                     key = key |> Option.orElse (JsUndefined)
-                    ref = ref |> Option.orElse (JsUndefined)
+                    draggableRef = draggableRef |> Option.orElse (JsUndefined)
                 }
             match xLegacyStyles with
             | Option.None | Option.Some [] -> ()

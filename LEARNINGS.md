@@ -836,3 +836,13 @@ same change. Do not leave `FooStyles.Theme.Customize` in `DefaultComponentsTheme
 **Examples done:** `Button` (ContextMenu Dialog `ButtonThemes`, Nav.Bottom.Button → `BadgeStyles`,
 gallery `SampleThemes`), `Nav.Top.Item` (BackButton `toItemTheme`, ShowSidebarButton stripped of
 `ShowSidebarButtonStyles` / `xLegacyStyles`, gallery Top uses `?theme` for icon vertical adjust).
+
+## 2026-06-28 — `[<Component>]` must not use `ref` as a prop name (React 18)
+
+React 18 treats `ref` as a special prop on function/memo components: `createElement(Foo, { ref: cb })`
+does **not** pass `cb` to `props.ref` (React warns and returns `undefined`). Symptom: `LC.With.Ref` +
+`LC.Draggable(ref = bindRef)` leaves `maybeRef` permanently `None`; programmatic Move/Reset buttons stay
+`Disabled` (opacity 0.5). Swipe still works (no ref needed).
+
+**Fix:** use a non-reserved name, e.g. `draggableRef` on `LC.Draggable` (same pattern as
+`scrollViewRef` on `LC.ScrollView`). After LibClient changes, restart or wait for `dev-web` Fable watch.

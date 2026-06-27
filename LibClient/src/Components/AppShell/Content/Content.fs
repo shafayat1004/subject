@@ -274,7 +274,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                     styles = [| Styles.scrim |]
                                 )
                                 LC.Draggable(
-                                    ref = refSidebarDraggable,
+                                    draggableRef = refSidebarDraggable,
                                     onChange = Actions.onSidebarDraggableChange isSidebarScrimVisibleHook,
                                     baseOffset = (-width + 10, 0),
                                     right = {| ForwardThreshold = 30; Offset = width - 10; BackwardThreshold = 50 |},

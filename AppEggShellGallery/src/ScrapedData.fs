@@ -713,7 +713,7 @@ module Props =
                     ],
                     [
                         "WithDefaultAutoWrapSome",
-                        "ref",
+                        "DraggableRef",
                         "(LibClient.JsInterop.JsNullable<IDraggableRef> -> unit)",
                         "JsUndefined"
                     ]
