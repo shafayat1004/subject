@@ -45,18 +45,20 @@ type Acc = {
         }
 
 module private Sample =
+    let columnWidths = Content_Grid.Demo.ColumnWidths.word
+
     let headers =
         element {
-            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Character Count") |]
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Unique Character Count") |]
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = columnWidths.[0], isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = columnWidths.[1], children = [| LC.HeaderCell(label = "Character Count") |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = columnWidths.[2], children = [| LC.HeaderCell(label = "Unique Character Count") |])
         }
 
     let makeRow (word: string, _, _refresh) =
         element {
-            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.Text word |])
-            UiAdmin.GridCell [| LC.Text (string word.Length) |]
-            UiAdmin.GridCell [| LC.Text (string (Content_Grid.Demo.uniqueCharacterCount word)) |]
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = columnWidths.[0], isFirstColumn = true, children = [| LC.Text (word, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = columnWidths.[1], children = [| LC.Text (string word.Length, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = columnWidths.[2], children = [| LC.Text (string (Content_Grid.Demo.uniqueCharacterCount word), styles = [| GridCellStyles.text |]) |])
         }
 
     let queryForm (form: FormHandle<Field, Acc, Query>) =
@@ -103,7 +105,8 @@ module private QueryGridDemo =
             initialQueryAcc = Acc.Empty,
             headers = Sample.headers,
             row = Sample.makeRow,
-            queryForm = Sample.queryForm
+            queryForm = Sample.queryForm,
+            nativeColumnWidthUnits = Sample.columnWidths
         )
 
 type Ui.Content with

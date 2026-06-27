@@ -16,6 +16,12 @@ module dom = Fable.React.Standard
 module Demo =
     type RowData = string * string * string * int
 
+    /// Native column widths in 20px units (from legacy `col-w-*` convention).
+    [<RequireQualifiedAccess>]
+    module ColumnWidths =
+        let word = [14; 7; 9]
+        let fruit = [10; 6; 10; 4]
+
     let fruit: seq<RowData> =
         [
             ("Mango", "Orange", "Sweet", 15)
@@ -48,46 +54,50 @@ module Demo =
 module private Samples =
     let wordHeaders =
         element {
-            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Character Count") |]
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Unique Character Count") |]
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.word.[0], isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.word.[1], children = [| LC.HeaderCell(label = "Character Count") |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.word.[2], children = [| LC.HeaderCell(label = "Unique Character Count") |])
         }
 
     let makeWordRow (word: string) =
         element {
-            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.Text word |])
-            UiAdmin.GridCell [| LC.Text (string word.Length) |]
-            UiAdmin.GridCell [| LC.Text (string (Demo.uniqueCharacterCount word)) |]
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.word.[0], isFirstColumn = true, children = [| LC.Text (word, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.word.[1], children = [| LC.Text (string word.Length, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.word.[2], children = [| LC.Text (string (Demo.uniqueCharacterCount word), styles = [| GridCellStyles.text |]) |])
         }
 
     let fruitHeaders =
         element {
-            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.HeaderCell(label = "Name") |])
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Color") |]
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Taste") |]
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Price") |]
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.fruit.[0], isFirstColumn = true, children = [| LC.HeaderCell(label = "Name") |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.fruit.[1], children = [| LC.HeaderCell(label = "Color") |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.fruit.[2], children = [| LC.HeaderCell(label = "Taste") |])
+            UiAdmin.GridCell (columnIndex = 3, widthUnits = Demo.ColumnWidths.fruit.[3], children = [| LC.HeaderCell(label = "Price") |])
         }
 
     let makeFruitRow ((name, color, taste, price): Demo.RowData) =
         element {
-            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.Text name |])
-            UiAdmin.GridCell [| LC.Text color |]
-            UiAdmin.GridCell [| LC.Text taste |]
-            UiAdmin.GridCell [| LC.Text (string price) |]
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.fruit.[0], isFirstColumn = true, children = [| LC.Text (name, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.fruit.[1], children = [| LC.Text (color, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.fruit.[2], children = [| LC.Text (taste, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 3, widthUnits = Demo.ColumnWidths.fruit.[3], children = [| LC.Text (string price, styles = [| GridCellStyles.text |]) |])
         }
 
     let staticRows =
         lazy (
-            [
-                ("Mango", "Orange", "Sweet", 15)
-                ("Kiwi", "Green", "Sweet and sour", 12)
-                ("Lemon", "Yellow", "Sour", 8)
-                ("Apple", "Green", "Sweet", 11)
-            ]
+            let rows =
+                [
+                    ("Mango", "Orange", "Sweet", 15)
+                    ("Kiwi", "Green", "Sweet and sour", 12)
+                    ("Lemon", "Yellow", "Sour", 8)
+                    ("Apple", "Green", "Sweet", 11)
+                ]
+            let lastIndex = rows.Length - 1
+
+            rows
             |> List.mapi (fun index row ->
-                UiAdmin.GridRow (index, makeFruitRow row)
+                UiAdmin.GridRow (index, makeFruitRow row, showBottomBorder = (index < lastIndex))
             )
-            |> Array.ofList
+            |> List.toArray
             |> castAsElement
         )
 
@@ -129,7 +139,8 @@ module private PaginatedWordsDemo =
 
         UiAdmin.Grid(
             input = LibUiAdmin.Components.Grid.Paginated(currentPageHook.current, Samples.makeWordRow, None),
-            headers = Samples.wordHeaders
+            headers = Samples.wordHeaders,
+            nativeColumnWidthUnits = Demo.ColumnWidths.word
         )
 
 type Ui.Content with
@@ -183,7 +194,8 @@ UiAdmin.Grid(
                         visuals =
                             UiAdmin.Grid(
                                 input = LibUiAdmin.Components.Grid.Everything(Available Demo.fruit, Samples.makeFruitRow, None),
-                                headers = Samples.fruitHeaders
+                                headers = Samples.fruitHeaders,
+                                nativeColumnWidthUnits = Demo.ColumnWidths.fruit
                             ),
                         code =
                             ComponentSample.Children(
@@ -209,7 +221,8 @@ UiAdmin.Grid(
                         visuals =
                             UiAdmin.Grid(
                                 input = LibUiAdmin.Components.Grid.Static(Samples.staticRows.Value, None),
-                                headers = Samples.fruitHeaders
+                                headers = Samples.fruitHeaders,
+                                nativeColumnWidthUnits = Demo.ColumnWidths.fruit
                             ),
                         code =
                             ComponentSample.singleBlock Render (

@@ -86,19 +86,32 @@ module private Styles =
     let headers =
         makeViewStyles {
             FlexDirection.Row
-            AlignItems.Stretch
+            AlignItems.Center
             AlignSelf.Stretch
             Overflow.Visible
             widthPercent 100
         }
 
+    let nativeTableBody (tableWidth: int) =
+        makeViewStyles {
+            FlexDirection.Column
+            AlignSelf.FlexStart
+            width tableWidth
+            minWidth tableWidth
+        }
+
     let row =
         makeViewStyles {
             FlexDirection.Row
-            AlignItems.Stretch
+            AlignItems.Center
             AlignSelf.Stretch
             Overflow.Visible
             widthPercent 100
+        }
+
+    let rowDivider =
+        makeViewStyles {
+            borderBottom 1 (Color.Grey "cc")
         }
 
     let rowAlt =
@@ -110,15 +123,6 @@ module private Styles =
         makeViewStyles {
             Overflow.Visible
             minHeight 100
-        }
-
-    /// Vertical stack for header + body inside a horizontal ScrollView (RN lays fragment
-    /// children out in a row when the scroll view is horizontal).
-    let nativeTableBody =
-        makeViewStyles {
-            FlexDirection.Column
-            AlignSelf.FlexStart
-            minWidth 320
         }
 
     let emptyMessage =
@@ -253,15 +257,15 @@ module NativeGrid =
         match headersRaw, headers with
         | _, Some raw ->
             let cells = unwrapFragmentChildren raw
-            RX.View (styles = [| Styles.headers |], children = cells)
+            RX.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
         | Some h, None ->
             let cells = unwrapFragmentChildren h
-            RX.View (styles = [| Styles.headers |], children = cells)
+            RX.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
         | None, None   -> noElement
 
-    let staticBody (headers: ReactElement) (rows: ReactElement) : ReactElement =
+    let staticBody (tableWidth: int) (headers: ReactElement) (rows: ReactElement) : ReactElement =
         RX.View (
-            styles = [| Styles.nativeTableBody |],
+            styles = [| Styles.nativeTableBody tableWidth |],
             children = [|
                 if headers <> noElement then headers
                 RX.View (styles = [| Styles.rows |], children = [| rows |])
@@ -269,16 +273,20 @@ module NativeGrid =
         )
 
     let desktopRows<'T> (items: seq<'T>) (makeDesktopRow: 'T -> ReactElement) (itemKey: Option<'T -> string>) : ReactElement =
+        let itemsList = items |> Seq.toList
+        let lastIndex = itemsList.Length - 1
+
         RX.View (
             styles = [| Styles.rows |],
             children =
-                (items
-                |> Seq.mapi (fun index item ->
+                (itemsList
+                |> List.mapi (fun index item ->
                     let rowStyles =
-                        if index % 2 = 0 then
-                            [| Styles.row; Styles.rowAlt |]
-                        else
-                            [| Styles.row |]
+                        [|
+                            if index % 2 = 0 then Styles.rowAlt
+                            Styles.row
+                            if index < lastIndex then Styles.rowDivider
+                        |]
 
                     let rowContent = makeDesktopRow item
                     let cells = unwrapFragmentChildren rowContent
@@ -289,12 +297,12 @@ module NativeGrid =
                         children = cells
                     )
                 )
-                |> Seq.toArray)
+                |> List.toArray)
         )
 
-    let tableBody (headerRow: ReactElement) (bodyRows: ReactElement) : ReactElement =
+    let tableBody (tableWidth: int) (headerRow: ReactElement) (bodyRows: ReactElement) : ReactElement =
         RX.View (
-            styles = [| Styles.nativeTableBody |],
+            styles = [| Styles.nativeTableBody tableWidth |],
             children =
                 [|
                     if headerRow <> noElement then headerRow
@@ -352,8 +360,9 @@ module private Helpers =
 type UiAdmin with
     /// Cross-platform table row: `dom.tr` on web, horizontal flex `RX.View` on native.
     [<Component>]
-    static member GridRow (index: int, children: ReactElement, ?key: string, ?itemKey: string) : ReactElement =
+    static member GridRow (index: int, children: ReactElement, ?showBottomBorder: bool, ?key: string, ?itemKey: string) : ReactElement =
         let rowKey = key |> Option.orElse (itemKey |> Option.map id) |> Option.defaultValue (string index)
+        let showBottomBorder = defaultArg showBottomBorder true
 
         #if EGGSHELL_PLATFORM_IS_WEB
         dom.tr
@@ -365,10 +374,11 @@ type UiAdmin with
         #else
         let cells = NativeGrid.unwrapFragmentChildren children
         let rowStyles =
-            if index % 2 = 0 then
-                [| Styles.row; Styles.rowAlt |]
-            else
-                [| Styles.row |]
+            [|
+                if index % 2 = 0 then Styles.rowAlt
+                Styles.row
+                if showBottomBorder then Styles.rowDivider
+            |]
 
         RX.View(
             key = rowKey,
@@ -386,6 +396,7 @@ type UiAdmin with
             ?headers:                ReactElement,
             ?headersRaw:             ReactElement,
             ?itemKey:                ('T -> string),
+            ?nativeColumnWidthUnits: List<int>,
             ?key:                    string,
             ?xLegacyStyles:          List<ReactXP.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
@@ -401,6 +412,11 @@ type UiAdmin with
         let headers = headers |> Option.orElse None
         let headersRaw = headersRaw |> Option.orElse None
         let itemKey = itemKey |> Option.orElse None
+
+        let nativeTableWidth =
+            nativeColumnWidthUnits
+            |> Option.map GridCellLayout.tableWidthFromUnits
+            |> Option.defaultValue GridCellLayout.defaultThreeColumnTableWidth
 
         let jumpToPageState = Hooks.useState LibClient.Components.Input.PositiveInteger.empty
 
@@ -627,7 +643,7 @@ type UiAdmin with
                         dom.tbody [ ClassName "rows" ] [| rows |]
                     |]
                     #else
-                    NativeGrid.staticBody maybeHeaderElement rows
+                    NativeGrid.staticBody nativeTableWidth maybeHeaderElement rows
                     #endif
 
             | Everything (asyncItems, makeDesktopRow, maybeMakeHandheldRow)
@@ -684,6 +700,7 @@ type UiAdmin with
                                     |]
                                     #else
                                     NativeGrid.tableBody
+                                        nativeTableWidth
                                         maybeHeaderElement
                                         (NativeGrid.desktopRows items makeDesktopRow itemKey)
                                     #endif
@@ -731,8 +748,6 @@ type UiAdmin with
 
         gridView false
         #else
-        // Nested vertical ScrollView + flex 1 collapses to zero height on RN; use desktop-style
-        // nav (matches web gallery) and a single horizontal scroll for the body.
         let navRow = renderNavRow false
 
         RX.View (
@@ -740,9 +755,15 @@ type UiAdmin with
             children = [|
                 navRow
                 RX.ScrollView (
-                    horizontal = true,
-                    styles = [| Styles.scrollViewHorizontal; Styles.nativeGridBodyScroll |],
-                    children = [| renderGridBody false |]
+                    scrollEnabled = handleVerticalScrolling,
+                    styles = [| Styles.scrollViewVertical |],
+                    children = [|
+                        RX.ScrollView (
+                            horizontal = true,
+                            styles = [| Styles.scrollViewHorizontal; Styles.nativeGridBodyScroll |],
+                            children = [| renderGridBody false |]
+                        )
+                    |]
                 )
                 navRow
             |]

@@ -653,3 +653,15 @@ All build green via `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"`
 - **Fix:** Wrap native header + body in `RX.View` with `FlexDirection.Column` (`nativeTableBody`).
   Restore cell padding/borders on `UiAdmin.GridCell` to mirror `la-table` (20/10px, bottom
   border, optional `isFirstColumn` for 30px left padding). Add `UiAdmin.GridRow` for static rows.
+
+### 2026-06-27 — Native Grid column alignment (legacy `col-w-*` widths)
+
+- **Symptom:** Native grid headers/rows still misaligned vs web; padding looked wrong.
+- **Old behavior (git `49b9718`):** Web used `table.la-table` + plain `dom.td` (auto column
+  widths). `Grid.styles.fs` registered `col-w-1`..`col-w-20` (20px units) for explicit widths
+  when needed; native still rendered `dom.table` (broken on RN). Gallery never used `col-w-*`.
+- **Fix:** Native uses flex rows with fixed column widths via `GridCell` `widthUnits`
+  (20px base, same convention as old `col-w-*`). Row dividers and `#666` text mirror
+  `la-table`. Web stays plain `dom.td` + global `la-table` CSS. Styling lives in
+  modern `Grid.fs` / `GridCell.fs` only; the old `Grid.styles.fs` was read for reference,
+  not re-integrated.
