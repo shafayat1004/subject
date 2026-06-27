@@ -781,21 +781,21 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         }
     )
 
-    LibClient.Components.Input.WeeklyCalendarStyles.Theme.All({
+    Themes.Set<LC.Input.WeeklyCalendar.Theme> {
         DayOfWeekText       = neutral.Main
         DateTextUnavailable = neutral.B200
         DateTextAvailable   = primary.Main
         DateTextSelected    = Color.White
         Circle              = secondary.Main
         InvalidReason       = caution.Main
-    })
+    }
 
     Themes.Set<LC.ItemList.Theme> { SeeAll = { Height = 50; MarginVertical = 0 } }
 
-    LibClient.Components.Input.NamedFileStyles.Theme.All(
-        invalidColor        = Color.DevRed,
-        dropZoneBorderColor = primary.B200
-    )
+    Themes.Set<LC.Input.NamedFile.Theme> {
+        InvalidColor        = Color.DevRed
+        DropZoneBorderColor = primary.B200
+    }
 
 module ApplyTheme =
     let primaryPrimary (scheme: ColorScheme) : unit =

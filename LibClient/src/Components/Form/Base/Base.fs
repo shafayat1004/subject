@@ -282,7 +282,7 @@ module private Actions =
     let showValidationErrors<'Acc> (estateHook: IStateHook<Estate<'Acc>>) (value: bool) : unit =
         estateHook.update (fun estate -> { estate with ShouldShowValidationErrors = value })
 
-type Constructors.LC.Form with
+type LibClient.Components.Constructors.LC.Form with
     [<Component>]
     static member Base<'Field, 'Acc, 'Acced when 'Field: comparison and 'Acc :> AbstractAcc<'Field, 'Acced>>(
             accumulator:           Accumulator<'Acc>,

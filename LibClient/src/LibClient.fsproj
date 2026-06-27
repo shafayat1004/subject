@@ -382,6 +382,7 @@
 
     <Compile Include="Components/Input/WeeklyCalendar/WeeklyCalendar.fs" />
 
+
     <Compile Include="Components/TextInputWithIcon.fs" />
 
     <Compile Include="Components/Input/File/File.fs" />
@@ -423,6 +424,7 @@
     <Compile Include="Components/Avatar.fs" />
 
     <Compile Include="Components/Form/Base/Base.fs" />
+    <Compile Include="Components/Form/Base/FormBaseInterop.fs" />
 
     <Compile Include="Components/Section/Padded/Padded.fs" />
 

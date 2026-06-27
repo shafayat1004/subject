@@ -214,7 +214,7 @@ module Input_FileComponent =
                                     onInitialize = onInputInitialize,
                                     ``with`` = fun (bindRef, maybeFileInputElement) ->
                                         [|
-                                            FRS.input [ FRP.Type "file"; FRP.Multiple true; FRP.Hidden true; FRP.Ref bindRef; FRP.Accept acceptValue ] [||]
+                                            FRS.input [ FRP.Type "file"; FRP.Multiple true; FRP.Hidden true; FRP.Ref bindRef; FRP.Accept acceptValue ]
                                             LC.Button(
                                                 label = "Select File",
                                                 state = LibClient.Components.Button.PropStateFactory.MakeLowLevel (

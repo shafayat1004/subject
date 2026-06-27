@@ -229,7 +229,7 @@ module Input_NamedFileComponent =
                             FRS.div [ Ref bindDivRef; Style [ CSSProp.Width "100%"; CSSProp.Height "100%" ] ] [|
                                 LC.With.RefDom(onInitialize = onInputInitialize, ``with`` = fun (bindRef, maybeFileInputElement) ->
                                     [|
-                                        FRS.input [ FRP.Type "file"; FRP.Multiple true; FRP.Hidden true; FRP.Ref bindRef; FRP.Accept acceptValue ] [||]
+                                        FRS.input [ FRP.Type "file"; FRP.Multiple true; FRP.Hidden true; FRP.Ref bindRef; FRP.Accept acceptValue ]
                                         LC.Buttons(align = Align.Center, children = [|
                                             LC.Button(label = "Select File", styles = [| Styles.selectFile |],
                                                 state = LibClient.Components.Button.PropStateFactory.MakeLowLevel (

@@ -5,6 +5,18 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-28 — File/NamedFile FRS.input and parallel deploy
+
+**`FRS.input` takes one argument** (props list only), not `FRS.input props [||]` — second array caused FS0003 "not a function".
+
+**Do not name RefDom callback params `input`** when calling `FRS.input` in the same scope — F# parses `FRS.input` as `(FRS.) input`. Use `maybeFileInputElement`; RefDom's second tuple value is already `Option<Element>`.
+
+**`Browser.Types.File` vs `HttpFile`:** helper params named `files`/`value` without type annotations can infer `HttpFile`; annotate `(browserFiles: seq<Browser.Types.File>)` and `(value: list<LibLifeCycleNamedFile>)`.
+
+**Parallel agents + `build-lib` revert fsproj/render trio** while another agent writes `Foo.fs`. Staging sources under `/tmp` then one Python copy+patch+`dotnet build` avoids the race.
+
+---
+
 ## 2026-06-27 — Do not patch `.render`; convert to pure F#
 
 During a11y/Pressable work, editing `Button.render`, `Nav.Top.Item.render`, and gallery `Sidebar.render`

@@ -20,23 +20,25 @@ let private fixedTopBlades (maybeCurrentRoute: Option<Route>) (currentRoute: Act
         if route = currentRoute then SI.Selected else SI.Actionable (show route)
 
     LC.Responsive(
-        desktop = fun _ -> noElement,
-        handheld = fun _ ->
-            castAsElement [|
-                LC.Sidebar.Item(label = "Docs",       testId = "sidebar-blade-docs",       state = itemState (Docs "index.md"))
-                LC.Sidebar.Item(label = "Tools",      testId = "sidebar-blade-tools",      state = itemState (Tools "tools/index.md"))
-                LC.Sidebar.Item(label = "Components", testId = "sidebar-blade-components", state = itemState (Components Index))
-                LC.Sidebar.Item(label = "How To",     testId = "sidebar-blade-how-to",     state = itemState (HowTo (HowToItem.Markdown "how-to/index.md")))
-                LC.Sidebar.Item(label = "Design",     testId = "sidebar-blade-design",     state = itemState (Design (DesignItem.Markdown "design/index.md")))
-            |]
+        desktop = (fun _ -> noElement),
+        handheld =
+            (fun _ ->
+                castAsElement [|
+                    LC.Sidebar.Item(label = "Docs",       testId = "sidebar-blade-docs",       state = itemState (Docs "index.md"))
+                    LC.Sidebar.Item(label = "Tools",      testId = "sidebar-blade-tools",      state = itemState (Tools "tools/index.md"))
+                    LC.Sidebar.Item(label = "Components", testId = "sidebar-blade-components", state = itemState (Components Index))
+                    LC.Sidebar.Item(label = "How To",     testId = "sidebar-blade-how-to",     state = itemState (HowTo (HowToItem.Markdown "how-to/index.md")))
+                    LC.Sidebar.Item(label = "Design",     testId = "sidebar-blade-design",     state = itemState (Design (DesignItem.Markdown "design/index.md")))
+                |]
+            )
     )
 
 let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: ActualRoute) (maybeFixedTop: ReactElement) (close: ReactEvent.Action -> unit) : ReactElement =
     match currentRoute with
     | Home | TinyGuid ->
         LC.Responsive(
-            desktop = fun _ -> noElement,
-            handheld = fun _ -> LC.Sidebar.Base(fixedTop = maybeFixedTop)
+            desktop = (fun _ -> noElement),
+            handheld = (fun _ -> LC.Sidebar.Base(fixedTop = maybeFixedTop))
         )
 
     | Docs url ->

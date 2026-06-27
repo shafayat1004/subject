@@ -13,7 +13,7 @@ type private Helpers =
 
         LC.Input.Checkbox(
             value = value.current,
-            onChange = (fun checked -> value.update (Some checked)),
+            onChange = (fun isChecked -> value.update (Some isChecked)),
             validity = Valid,
             accessibilityLabel = "Children-based Label",
             testId = "input-checkbox-children-based-label",
@@ -27,7 +27,7 @@ type private Helpers =
         LC.Input.Checkbox(
             label = String "I want fries with that",
             value = value.current,
-            onChange = (fun checked -> value.update (Some checked)),
+            onChange = (fun isChecked -> value.update (Some isChecked)),
             validity = Invalid "Required",
             testId = "input-checkbox-i-want-fries-with-that"
         )
