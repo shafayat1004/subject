@@ -135,6 +135,7 @@ module Nav_Top_Item =
     module private Styles =
         let item (sizes: ScreenSizes) (state: State) (colors: AppearanceColors) =
             makeViewStyles {
+                Position.Relative
                 paddingHorizontal 10
                 JustifyContent.SpaceAround
                 AlignItems.Center

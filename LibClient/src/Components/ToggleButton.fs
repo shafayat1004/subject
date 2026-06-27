@@ -130,6 +130,7 @@ type LibClient.Components.Constructors.LC with
             styles =
                 [|
                     Styles.viewTheme theTheme isSelected
+                    makeViewStyles { Position.Relative }
 
                     match position with
                     | Position.First -> Styles.firstView

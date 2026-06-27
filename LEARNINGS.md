@@ -5,7 +5,13 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-28 — File/NamedFile FRS.input and parallel deploy
+## 2026-06-28 — `LC.Pressable` overlay hit targets (zero-width buttons)
+
+When `overlay=true` with **no children**, the overlay wrapper used `flex 1` as a sibling of visible content inside a non-flex parent. Hit targets collapsed to **width 0** (nav items, toggle buttons, logo TapCapture): labels looked fine but clicks did nothing.
+
+**Fix:** `Pressable` no-children overlay → `Position.Absolute; trbl 0`. Parent containers that host overlay siblings need `Position.Relative` (e.g. `Nav.Top.Item` item style, `ToggleButton` cell, `Button` viewBase, gallery TopNav logo). After LibClient changes, **restart `eggshell dev-web`** (or delete stale `LibStandard/.build/web/fable/.../Pressable.js` + rebuild) so webpack picks up Fable output.
+
+---
 
 **`FRS.input` takes one argument** (props list only), not `FRS.input props [||]` — second array caused FS0003 "not a function".
 
@@ -269,7 +275,21 @@ the actual render code above/around the string.
 
 ---
 
-## 2026-06-27 — Gallery now BUILDS & RUNS (Opus): orphan `.render`, Fable stack overflow (fixed), conversion-caller breakages, dev-web ops
+## 2026-06-28 — Gallery app infrastructure converted to pure F#
+
+All **gallery shell** components (not LibClient demo pages) are now pure F# `[<Component>]` — no render DSL:
+
+- **Layout / chrome:** App, AppContext, TopNav, Sidebar (was already F#), With.Navigation
+- **Content framework:** ComponentContent, ComponentContentHeading, ComponentSample, ComponentSampleGroup, ComponentProps, ScrapedComponentProps, Code
+- **Routes:** Home, Docs, Tools, Components, Design, HowTo, Legacy, Subject, Settings, TinyGuid
+- **Supporting:** Snippets, ColorVariant/Base, ColorVariant/ColorBlock, ColorVariants
+
+**Still render DSL:** `Components/Content/*` demo pages (Button, Forms was converted, Picker, Dialogs, etc.) — convert as matching LibClient components are retired per MODERNIZATION_PLAN.
+
+**Fable gotcha:** `eggshell test-build` regenerates autogen from any remaining `.render`; Forms gallery page had to become pure F# (`Forms.fs` calling `LC.Form.Base` via `Form_Base` module) or test-build breaks every time.
+
+**Tools.fs:** `Ui.Snippets(scope = Scope.One "...")` — bare `One` is ambiguous outside the Snippets module.
+
 
 Reviewed Sonnet's "sonnet run" commit and drove a full `eggshell dev-web` of AppEggShellGallery to green
 (webpack "compiled successfully", dev server up). The path there surfaced a chain of issues — all below.

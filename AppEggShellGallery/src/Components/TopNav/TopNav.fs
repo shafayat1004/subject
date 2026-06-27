@@ -18,6 +18,7 @@ module NavTopItem = LibClient.Components.Nav.Top.Item
 module private Styles =
     let logo =
         makeViewStyles {
+            Position.Relative
             marginRight 20
             paddingTop  5
         }

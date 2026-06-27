@@ -15,7 +15,12 @@ module private Styles =
     let overlayContainer =
         makeViewStyles {
             Position.Relative
-            flex 1
+        }
+
+    let overlayFill =
+        makeViewStyles {
+            Position.Absolute
+            trbl 0 0 0 0
         }
 
     let overlayButton =
@@ -155,15 +160,33 @@ type private PressableComponent(initialProps: Props) =
         let children = props.MaybeChildren |> Option.defaultValue [||]
 
         if props.Overlay then
-            RX.View(
-                styles = [| Styles.overlayContainer; yield! (props.MaybeStyles |> Option.defaultValue [||]) |],
-                children =
-                    [|
-                        yield! children
-                        if not props.Disabled then
-                            this.RenderButton (buttonStyles props) [||]
-                    |]
-            )
+            if Array.isEmpty children then
+                RX.View(
+                    styles =
+                        [|
+                            Styles.overlayFill
+                            yield! (props.MaybeStyles |> Option.defaultValue [||])
+                        |],
+                    children =
+                        [|
+                            if not props.Disabled then
+                                this.RenderButton (buttonStyles props) [||]
+                        |]
+                )
+            else
+                RX.View(
+                    styles =
+                        [|
+                            Styles.overlayContainer
+                            yield! (props.MaybeStyles |> Option.defaultValue [||])
+                        |],
+                    children =
+                        [|
+                            yield! children
+                            if not props.Disabled then
+                                this.RenderButton (buttonStyles props) [||]
+                        |]
+                )
         else
             this.RenderButton (buttonStyles props) children
 

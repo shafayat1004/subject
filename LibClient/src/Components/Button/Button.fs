@@ -97,6 +97,7 @@ let private isTertiary (level: Level) =
 module private Styles =
     let viewBase (screenSize: ScreenSize) (theme: Theme) (level: Level) (state: ButtonLowLevelState) (appearance: Appearance) =
         makeViewStyles {
+            Position.Relative
             FlexDirection.Column
             JustifyContent.Center
             AlignItems.Center
