@@ -418,7 +418,9 @@ AppEggShellGallery/audit-android/interactive/<ISO-timestamp>/
     summary.md
 ```
 
-Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). On connect, the runner waits until the gallery UI is visible (sidebar menu `testId`, "EggShell" heading, or sidebar section labels), not just until the Activity is foreground. It also detects Metro load failures ("Unable to load script", etc.). Use `--launch-timeout-ms=180000` on cold starts if needed.
+Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). On connect, the runner waits until the gallery UI is visible (sidebar menu `testId`, or sidebar section labels), not just until the Activity is foreground. It also detects Metro load failures ("Unable to load script", etc.). Use `--launch-timeout-ms=180000` on cold starts if needed.
+
+**Handheld sidebar behavior (important for Appium nav):** The gallery uses `AppShell.Content` + `LC.Draggable` — a drawer that slides in from the left. `LC.Sidebar.WithClose` wraps all items: every tap runs `nav.Go(...); close e`, so the drawer **always retracts** after selecting a blade. Fixed-top row (Docs / Tools / Components / …) switches route sections; the long component list scrolls inside `ScrollableMiddle` only. The audit opens the drawer before each component, enters the Components blade, swipe-scrolls the middle list (scoped to the 300px drawer — not the main content scroll view), taps the item, then waits for the drawer to close.
 
 ### Android vs web differences
 

@@ -33,7 +33,7 @@ async function elementRect(el) {
 /**
  * @param {import('webdriverio').Element} el
  */
-async function clickElement(el) {
+export async function clickNativeElement(el) {
   try {
     const clickable = await el.$$('android=new UiSelector().clickable(true)');
     if (clickable.length) {
@@ -241,7 +241,7 @@ class AndroidLocator {
     const el = await this._firstEl();
     if (!el) throw new Error(`No element to click: ${this.selector}`);
     await el.waitForDisplayed({ timeout: opts.timeout ?? 5000 }).catch(() => {});
-    await clickElement(el);
+    await clickNativeElement(el);
   }
 
   /** @param {string} value @param {{ timeout?: number }} [opts] */
@@ -510,7 +510,7 @@ export class AndroidPage {
       }
     }
     if (best) {
-      await clickElement(best);
+      await clickNativeElement(best);
       log('tapped sidebar menu (top-nav rightmost clickable fallback)');
       await this.waitForTimeout(500);
       return true;
