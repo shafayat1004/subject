@@ -82,7 +82,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ComponentSampleGroup", AppEggShellGallery.Components.ComponentSampleGroupStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.AsyncData", AppEggShellGallery.Components.Content.AsyncDataStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Avatar", AppEggShellGallery.Components.Content.AvatarStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Button", AppEggShellGallery.Components.Content.ButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Buttons", AppEggShellGallery.Components.Content.ButtonsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Carousel", AppEggShellGallery.Components.Content.CarouselStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ColorVariants", AppEggShellGallery.Components.Content.ColorVariantsStyles.styles)

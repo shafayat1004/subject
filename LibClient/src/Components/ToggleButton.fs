@@ -4,6 +4,7 @@ module LibClient.Components.ToggleButton
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Icons
 
 open ReactXP.Components
@@ -113,7 +114,6 @@ type LibClient.Components.Constructors.LC with
             value: 'T,
             group: ToggleButtons.Group<'T>,
             ?position: Position,
-            ?pointerState: LC.Pointer.State.PointerState,
             ?theme: Theme -> Theme,
             ?styles : array<ViewStyles>,
             ?key: string
@@ -170,9 +170,13 @@ type LibClient.Components.Constructors.LC with
                             }
                     )
 
-                    LC.TapCapture(
-                        onPress = group.Toggle value,
-                        ?pointerState = pointerState
+                    LC.Pressable(
+                        group.Toggle value,
+                        ?label = maybeLabel,
+                        role = AccessibilityRole.ToggleButton,
+                        state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                        overlay = true,
+                        componentName = "LC.ToggleButton"
                     )
                 }
         )

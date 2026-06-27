@@ -4,6 +4,7 @@ open LibClient
 open LibLang
 open LibClient.Dialogs
 open LibClient.ContextMenus.Types
+open LibClient.Components.Button
 open LibClient.Components.ContextMenu.Dialog
 open Fable.Core.JsInterop
 

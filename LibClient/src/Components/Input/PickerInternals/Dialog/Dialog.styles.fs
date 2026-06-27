@@ -9,13 +9,9 @@ module Styles =
             Overflow.VisibleForScrolling
         }
 
-open ReactXP.LegacyStyles
-
-module Button       = LibClient.Components.Button
-module ButtonStyles = LibClient.Components.ButtonStyles
-
 open LibClient.Input
 open LibClient.Responsive
+open ReactXP.LegacyStyles
 
 let styles = lazy (compile [
     "text-input" => [
@@ -57,22 +53,6 @@ let styles = lazy (compile [
             fontSize 16
         ]
     ]
-
-    "button-normal" ==> ButtonStyles.Theme.One (
-         Button.Level.Primary,
-         ButtonLowLevelState.Actionable ignore,
-         theTextColor       = Color.Hex "#004eff",
-         theBorderColor     = Color.White,
-         theBackgroundColor = Color.White
-    )
-
-    "button-normal && selected" ==> ButtonStyles.Theme.One (
-         Button.Level.Primary,
-         ButtonLowLevelState.Actionable ignore,
-         theTextColor       = Color.Grey "59",
-         theBorderColor     = Color.White,
-         theBackgroundColor = Color.White
-    )
 
     "activity-indicator-block" => [
         FlexDirection.Row

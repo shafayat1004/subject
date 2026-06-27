@@ -4,7 +4,6 @@ module LibClient.ComponentRegistration
 let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.AppShell.Content" LibClient.Components.AppShell.ContentRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Badge" LibClient.Components.BadgeRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Button" LibClient.Components.ButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.ContextMenu.Dialog" LibClient.Components.ContextMenu.DialogRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.ContextMenu.Popup" LibClient.Components.ContextMenu.PopupRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.DateSelector" LibClient.Components.DateSelectorRender.render
@@ -43,12 +42,9 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Bottom.Button" LibClient.Components.Nav.Bottom.ButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Bottom.Item" LibClient.Components.Nav.Bottom.ItemRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Top.Base" LibClient.Components.Nav.Top.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Top.Item" LibClient.Components.Nav.Top.ItemRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Sidebar.Item" LibClient.Components.Sidebar.ItemRender.render
 
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.AppShell.Content", LibClient.Components.AppShell.ContentStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Badge", LibClient.Components.BadgeStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Button", LibClient.Components.ButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.ContextMenu.Dialog", LibClient.Components.ContextMenu.DialogStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.ContextMenu.Popup", LibClient.Components.ContextMenu.PopupStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.DateSelector", LibClient.Components.DateSelectorStyles.styles)
@@ -86,5 +82,3 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Bottom.Button", LibClient.Components.Nav.Bottom.ButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Bottom.Item", LibClient.Components.Nav.Bottom.ItemStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Top.Base", LibClient.Components.Nav.Top.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Top.Item", LibClient.Components.Nav.Top.ItemStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Sidebar.Item", LibClient.Components.Sidebar.ItemStyles.styles)

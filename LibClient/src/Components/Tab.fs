@@ -4,6 +4,7 @@ module LibClient.Components.Tab
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
 open ReactXP.Components
 open ReactXP.Styles
@@ -97,8 +98,12 @@ type LibClient.Components.Constructors.LC with
 
                     match state with
                     | Unselected onPress ->
-                        LC.TapCapture(
-                            onPress = onPress
+                        LC.Pressable(
+                            onPress = onPress,
+                            label = label,
+                            role = AccessibilityRole.Tab,
+                            overlay = true,
+                            componentName = "LC.Tab"
                         )
                     | _ ->
                         noElement

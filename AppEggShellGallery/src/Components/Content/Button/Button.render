@@ -1,4 +1,4 @@
-<ComponentContent DisplayName='"Button"' IsResponsive='true' Props='~ForFullyQualifiedName "LibClient.Components.Button"'>
+<ComponentContent DisplayName='"Button"' IsResponsive='true' Props='~ForFullyQualifiedName "LibClient.Components.Button"' rt-open='AppEggShellGallery.Components.Content.Button'>
     <rt-prop name='Notes'>
         Every LC.Button component below is wrapped with LC.Buttons to prevent it from expanding to full width.
         This is not shown in code samples for simplicity.
@@ -28,7 +28,7 @@
                 <rt-prop name='Visuals'>
                     <LC.Buttons rt-fs='true'>
                         <LC.Button
-                         class='button-with-badge'
+                         xLegacyStyles='SampleThemes.badgeGreenLegacy'
                          Icon='~Icon.Left Icon.ShoppingCart'
                          Label='"Cart"'
                          Badge='~Count 3'
@@ -369,7 +369,7 @@
             <rt-prop name='Visuals'>
                 <LC.Buttons rt-fs='true'>
                     <LC.Button
-                     class='caution'
+                     theme='SampleThemes.caution'
                      Label='"Submit"'
                      Level='~Cautionary'
                      State='^LowLevel (~Actionable Actions.greet)'/>
@@ -378,20 +378,20 @@
             <rt-prop name='Code |> ~Children'>
                 <Code Language='~Render'><![CDATA[
                     <LC.Button
-                     class='caution'
+                     theme='SampleThemes.caution'
                      Label='"Submit"'
                      Level='~Cautionary'
                      State='^LowLevel (~Actionable Actions.greet)'/>
                 ]]></Code>
-                <Code Language='~Fsharp' Heading='"Styles"'><![CDATA[
-                    "caution" ==>
-                    LibClient.Components.ButtonStyles.Theme.One (
-                        level              = LibClient.Components.Button.Cautionary,
-                        state              = LibClient.Components.Button.State.Actionable ignore,
-                        theTextColor       = Color.Black,
-                        theBorderColor     = Color.White,
-                        theBackgroundColor = Color.DevOrange
-                    )
+                <Code Language='~Fsharp' Heading='"Theme"'><![CDATA[
+                    let caution (theme: LC.Button.Theme) =
+                        { theme with
+                            Cautionary = {
+                                Actionable = { TextColor = Color.Black; BorderColor = Color.White; BackgroundColor = Color.DevOrange; FontWeight = RulesRestricted.FontWeight.Normal }
+                                Disabled   = { TextColor = Color.Black; BorderColor = Color.White; BackgroundColor = Color.DevOrange; FontWeight = RulesRestricted.FontWeight.Normal }
+                                InProgress = { TextColor = Color.Black; BorderColor = Color.White; BackgroundColor = Color.DevOrange; FontWeight = RulesRestricted.FontWeight.Normal }
+                            }
+                        }
                 ]]></Code>
             </rt-prop>
         </ComponentSample>
@@ -400,7 +400,7 @@
             <rt-prop name='Visuals'>
                 <LC.Buttons rt-fs='true'>
                     <LC.Button
-                     class='btn-small'
+                     theme='SampleThemes.small'
                      Icon='~Icon.Right Icon.Home'
                      Label='"Submit"'
                      State='^LowLevel (~Actionable Actions.greet)'/>
@@ -409,13 +409,14 @@
             <rt-prop name='Code |> ~Children'>
                 <Code Language='~Render'><![CDATA[
                     <LC.Button
-                     class='btn-small'
+                     theme='SampleThemes.small'
                      Icon='~Icon.Right Icon.Home'
                      Label='"Submit"'
                      State='^LowLevel (~Actionable Actions.greet)'/>
                 ]]></Code>
-                <Code Language='~Fsharp' Heading='"Styles"'><![CDATA[
-                    "btn-small" ==> LibClient.Components.ButtonStyles.Theme.IconSize 15
+                <Code Language='~Fsharp' Heading='"Theme"'><![CDATA[
+                    let small (theme: LC.Button.Theme) =
+                        { theme with IconSize = 15 }
                 ]]></Code>
             </rt-prop>
         </ComponentSample>

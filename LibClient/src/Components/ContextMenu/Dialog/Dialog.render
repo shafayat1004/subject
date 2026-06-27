@@ -1,4 +1,4 @@
-<rt-root rt-open='LibClient; LibClient.ContextMenus.Types'>
+<rt-root rt-open='LibClient; LibClient.ContextMenus.Types; LibClient.Components.ContextMenu.Dialog'>
     <LC.Dialog.Base
      ContentPosition='~Free'
      CanClose='~When ([~OnEscape; ~OnBackground], actions.TryCancel)'>
@@ -13,16 +13,26 @@
                             <div><text class='heading'>{text}</text></div>
                         </rt-case>
                         <rt-case is='InternalButton (label, isSelected, onPress)'>
-                            <LC.Button
-                             class='button button-normal'
-                             rt-class='selected := isSelected'
-                             Level='~Primary'
-                             Label='label'
-                             State='^LowLevel (~Actionable (fun e -> (actions.TryCancel e; onPress e)))'/>
+                            <rt-match what='isSelected'>
+                                <rt-case is='true'>
+                                    <LC.Button
+                                     theme='ButtonThemes.normalSelected'
+                                     Level='~Primary'
+                                     Label='label'
+                                     State='^LowLevel (~Actionable (fun e -> (actions.TryCancel e; onPress e)))'/>
+                                </rt-case>
+                                <rt-case is='false'>
+                                    <LC.Button
+                                     theme='ButtonThemes.normal'
+                                     Level='~Primary'
+                                     Label='label'
+                                     State='^LowLevel (~Actionable (fun e -> (actions.TryCancel e; onPress e)))'/>
+                                </rt-case>
+                            </rt-match>
                         </rt-case>
                         <rt-case is='ButtonCautionary (label, onPress)'>
                             <LC.Button
-                             class='button button-cautionary'
+                             theme='ButtonThemes.cautionary'
                              Level='~Cautionary'
                              Label='label'
                              State='^LowLevel (~Actionable (fun e -> (actions.TryCancel e; onPress e)))'/>

@@ -3,6 +3,7 @@ module LibClient.Components.ImageCard
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open ReactXP.Components
 open ReactXP.Styles
 // NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones
@@ -149,8 +150,20 @@ type LibClient.Components.Constructors.LC with
 
                                 // Tap handler rendered as a sibling overlay when onPress is provided.
                                 match onPress with
-                                | Some f -> LC.TapCapture(onPress = f)
-                                | None   -> ()
+                                | Some f ->
+                                    let a11yLabel =
+                                        match label with
+                                        | Some (Label.Text (text, _)) -> text
+                                        | Some (Label.Children _) -> "Image"
+                                        | None -> "Open image"
+                                    LC.Pressable(
+                                        onPress = f,
+                                        label = a11yLabel,
+                                        role = AccessibilityRole.Button,
+                                        overlay = true,
+                                        componentName = "LC.ImageCard"
+                                    )
+                                | None -> ()
                             |]
                     )
         )

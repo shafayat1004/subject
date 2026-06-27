@@ -24,10 +24,6 @@ module private Styles =
         color Color.DevRed
     }
 
-    let adjustIcon =
-        LibClient.Components.Nav.Top.ItemStyles.Theme.IconVerticalPositionAdjustment 10
-        |> legacyTheme
-
 type Ui.Content.Nav with
     [<Component>]
     static member Test () : ReactElement =
@@ -204,7 +200,7 @@ type Ui.Content.Nav with
                                                     LC.Nav.Top.Item (style = Nav.Top.Item.labelOnly "Blog",                                                                   state = Nav.Top.Item.Disabled)
                                                     LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly  Icon.MagnifyingGlass,                                                     state = Nav.Top.Item.Actionable ignore)
                                                     LC.Nav.Top.Item (style = Nav.Top.Item.Style.With(label = "Cart", icon = Icon.ShoppingCart, badge = Nav.Top.Item.Count 3), state = Nav.Top.Item.Actionable ignore)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly Icon.X,                                                                    state = Nav.Top.Item.Actionable ignore, xLegacyStyles = Styles.adjustIcon)
+                                                    LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly Icon.X, state = Nav.Top.Item.Actionable ignore, theme = (fun t -> { t with IconVerticalAdjust = 10 }))
                                                     LC.Nav.Top.Heading ("Heading", styles = [|Styles.heading|])
                                                 },
                                                 handheld = fun _ -> element {
@@ -227,7 +223,7 @@ type Ui.Content.Nav with
                                                     LC.Nav.Top.Item (style = Nav.Top.Item.labelOnly "Blog",                                                                   state = Nav.Top.Item.Disabled)
                                                     LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly  Icon.MagnifyingGlass,                                                     state = Nav.Top.Item.Actionable ignore)
                                                     LC.Nav.Top.Item (style = Nav.Top.Item.Style.With(label = "Cart", icon = Icon.ShoppingCart, badge = Nav.Top.Item.Count 3), state = Nav.Top.Item.Actionable ignore)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly Icon.X,                                                                    state = Nav.Top.Item.Actionable ignore, xLegacyStyles = Styles.adjustIcon)
+                                                    LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly Icon.X, state = Nav.Top.Item.Actionable ignore, theme = (fun t -> { t with IconVerticalAdjust = 10 }))
                                                     LC.Nav.Top.Heading ("Heading", styles = [|Styles.heading|])
                                                 },
                                                 handheld = fun _ -> element {
@@ -243,10 +239,6 @@ type Ui.Content.Nav with
                                                 let heading = makeTextStyles {
                                                     color Color.DevRed
                                                 }
-
-                                                let adjustIcon =
-                                                    LibClient.Components.Nav.Top.ItemStyles.Theme.IconVerticalPositionAdjustment 10
-                                                    |> legacyTheme
                             """)
                         )
                     })

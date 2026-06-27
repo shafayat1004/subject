@@ -10,12 +10,19 @@ type (* class to enable named parameters *) Theme() =
     static member Customize = makeCustomize("LibClient.Components.Nav.Bottom.Button", baseStyles)
 
     static member BadgeColor (badgeColor: Color) : Styles =
-        let blocks: List<ISheetBuildingBlock> =
+        let badgeSheet =
+            let blocks : List<ISheetBuildingBlock> =
+                [
+                    "badge" ==> LibClient.Components.BadgeStyles.Theme.One (14, RulesRestricted.FontWeight.Bold, Color.White, badgeColor)
+                ]
+            blocks |> makeSheet
+
+        let blocks : List<ISheetBuildingBlock> =
             [
-                "button" ==> LibClient.Components.ButtonStyles.Theme.BadgeColor(badgeColor)
+                "button" ==> badgeSheet
             ]
         blocks |> makeSheet
         
 let styles = lazy (compile (List.concat [
     baseStyles.Value
-]))        
+]))

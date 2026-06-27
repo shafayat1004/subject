@@ -37,24 +37,45 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         theFontWeight      = RulesRestricted.FontWeight.Normal
     )
 
-    ButtonStyles.Theme.Customize [
-        //                                                                   theTextColor    theBorderColor     theBackgroundColor
-        (ButtonStyles.Theme.Part(Button.Level.Primary,    Actionable ignore, Color.White,    secondary.Main,    secondary.Main))
-        (ButtonStyles.Theme.Part(Button.Level.Primary,    Disabled,          Color.White,    secondary.Main,    secondary.Main))
-        (ButtonStyles.Theme.Part(Button.Level.Primary,    InProgress,        Color.White,    secondary.Main,    secondary.Main))
-
-        (ButtonStyles.Theme.Part(Button.Level.Secondary,  Actionable ignore, secondary.Main, secondary.Main,    Color.White))
-        (ButtonStyles.Theme.Part(Button.Level.Secondary,  Disabled,          secondary.Main, secondary.Main,    Color.White))
-        (ButtonStyles.Theme.Part(Button.Level.Secondary,  InProgress,        secondary.Main, secondary.Main,    Color.White))
-
-        (ButtonStyles.Theme.Part(Button.Level.Tertiary,   Actionable ignore, secondary.Main, Color.Transparent, Color.Transparent))
-        (ButtonStyles.Theme.Part(Button.Level.Tertiary,   Disabled,          secondary.Main, Color.Transparent, Color.Transparent))
-        (ButtonStyles.Theme.Part(Button.Level.Tertiary,   InProgress,        secondary.Main, Color.Transparent, Color.Transparent))
-
-        (ButtonStyles.Theme.Part(Button.Level.Cautionary, Actionable ignore, Color.White,    caution.Main,       caution.Main))
-        (ButtonStyles.Theme.Part(Button.Level.Cautionary, Disabled,          Color.White,    caution.Main,       caution.Main))
-        (ButtonStyles.Theme.Part(Button.Level.Cautionary, InProgress,        Color.White,    caution.Main,       caution.Main))
-    ]
+    Themes.Set<LC.Button.Theme>(
+        {
+            IconSize         = defaultIconSize
+            DesktopLabelFontSize  = 20
+            HandheldLabelFontSize = 14
+            DesktopHeight    = 46
+            HandheldHeight   = 38
+            Primary = {
+                Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+            }
+            Secondary = {
+                Actionable = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+            }
+            PrimaryB = {
+                Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+            }
+            SecondaryB = {
+                Actionable = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+            }
+            Tertiary = {
+                Actionable = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+            }
+            Cautionary = {
+                Actionable = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+            }
+        }
+    )
 
     DateSelectorStyles.Theme.All(
         headerBackgroundColor       = primary.Main,
@@ -390,29 +411,70 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         }
     )
 
-    Sidebar.ItemStyles.Theme.Customize [
-        (Sidebar.ItemStyles.Theme.Static(iconSize = 24, theFontSize = 16))
-        (Sidebar.ItemStyles.Theme.Part(Sidebar.Item.State.Actionable ignore,
-            baseColors      = { Label = neutral.Main; LabelWeight = RFontWeight.Normal; Background = Color.White;  Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; },
-            hoveredColors   = { Label = neutral.Main; LabelWeight = RFontWeight.Normal; Background = primary.B050; Border = Color.Transparent; LeftIcon = primary.MainMinus2; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; },
-            depressedColors = { Label = neutral.Main; LabelWeight = RFontWeight.Normal; Background = Color.White;  Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; }
-        ))
-        (Sidebar.ItemStyles.Theme.Part(Sidebar.Item.State.Selected,
-            baseColors      = { Label = neutral.B700; LabelWeight = RFontWeight.Bold; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; },
-            hoveredColors   = { Label = neutral.B700; LabelWeight = RFontWeight.Bold; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; },
-            depressedColors = { Label = neutral.B700; LabelWeight = RFontWeight.Bold; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; }
-        ))
-        (Sidebar.ItemStyles.Theme.Part(Sidebar.Item.State.Disabled,
-            baseColors      = { Label = neutral.B200; LabelWeight = RFontWeight.Normal; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White; },
-            hoveredColors   = { Label = neutral.B200; LabelWeight = RFontWeight.Normal; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White; },
-            depressedColors = { Label = neutral.B200; LabelWeight = RFontWeight.Normal; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White; }
-        ))
-        (Sidebar.ItemStyles.Theme.Part(Sidebar.Item.State.InProgress,
-            baseColors      = { Label = neutral.B200; LabelWeight = RFontWeight.Normal; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; },
-            hoveredColors   = { Label = neutral.B200; LabelWeight = RFontWeight.Normal; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; },
-            depressedColors = { Label = neutral.B200; LabelWeight = RFontWeight.Normal; Background = Color.White; Border = Color.Transparent; LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White; }
-        ))
-    ]
+    Themes.Set<LC.Sidebar.Item.Theme>(
+        {
+            IconFontSize  = 24
+            LabelFontSize = 16
+            BadgeFontSize = 16
+            ItemHeight    = 42
+            Actionable = {
+                Base = {
+                    Label = neutral.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+                Hovered = {
+                    Label = neutral.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = primary.B050; Border = Color.Transparent
+                    LeftIcon = primary.MainMinus2; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+                Depressed = {
+                    Label = neutral.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+            }
+            Selected = {
+                Base = {
+                    Label = neutral.B700; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+                Hovered = {
+                    Label = neutral.B700; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+                Depressed = {
+                    Label = neutral.B700; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+            }
+            Disabled = {
+                Base = {
+                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
+                }
+                Hovered = {
+                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
+                }
+                Depressed = {
+                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
+                }
+            }
+            InProgress = {
+                Base = {
+                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+                Hovered = {
+                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+                Depressed = {
+                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
+                }
+            }
+        }
+    )
 
     Themes.Set<LC.AppGlobalStatus.Theme> {
         BackgroundColor = caution.Main
@@ -434,37 +496,104 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         theColor = Color.White
     )
 
-    Nav.Top.ItemStyles.Theme.Customize [
-        Nav.Top.ItemStyles.Theme.Size(function
-            | ScreenSize.Desktop  -> { IconSize = 24; FontSize = 16; Height = 72; MaxWidth = None; BadgeFontSize = 14; BadgeTop = -10; BadgeLeft = -10 }
-            | ScreenSize.Handheld -> { IconSize = 20; FontSize = 14; Height = 42; MaxWidth = None; BadgeFontSize = 12; BadgeTop = -6;  BadgeLeft = -10 }
-        )
-        (Nav.Top.ItemStyles.Theme.Part(Nav.Top.Item.State.Actionable ignore,
-            baseColors      = { Label = primary.B050; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            hoveredColors   = { Label = primary.Main; LabelWeight = RFontWeight.Normal; Background = primary.B050; Border = primary.MainMinus2; Icon = primary.Main; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            depressedColors = { Label = primary.B050; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; }
-        ))
-        (Nav.Top.ItemStyles.Theme.Part(Nav.Top.Item.State.Selected,
-            baseColors      = { Label = primary.B050; LabelWeight = RFontWeight.Bold; Background = primary.Main; Border = primary.B050; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            hoveredColors   = { Label = primary.B050; LabelWeight = RFontWeight.Bold; Background = primary.Main; Border = primary.B050; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            depressedColors = { Label = primary.B050; LabelWeight = RFontWeight.Bold; Background = primary.Main; Border = primary.B050; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; }
-        ))
-        (Nav.Top.ItemStyles.Theme.Part(Nav.Top.Item.State.SelectedActionable ignore,
-            baseColors      = { Label = primary.B050; LabelWeight = RFontWeight.Bold; Background = primary.Main; Border = primary.B050; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            hoveredColors   = { Label = primary.B050; LabelWeight = RFontWeight.Bold; Background = primary.Main; Border = primary.B050; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            depressedColors = { Label = primary.B050; LabelWeight = RFontWeight.Bold; Background = primary.Main; Border = primary.B050; Icon = primary.B050; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; }
-        ))
-        (Nav.Top.ItemStyles.Theme.Part(Nav.Top.Item.State.Disabled,
-            baseColors      = { Label = primary.MainMinus2; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            hoveredColors   = { Label = primary.MainMinus2; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            depressedColors = { Label = primary.MainMinus2; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; }
-        ))
-        (Nav.Top.ItemStyles.Theme.Part(Nav.Top.Item.State.InProgress,
-            baseColors      = { Label = Color.Transparent; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            hoveredColors   = { Label = Color.Transparent; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; },
-            depressedColors = { Label = Color.Transparent; LabelWeight = RFontWeight.Normal; Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent; BadgeFontWeight = RulesRestricted.FontWeight.Bold; BadgeFontColor = Color.White; BadgeBackgroundColor = Color.DevRed; }
-        ))
-    ]
+    Themes.Set<LC.Nav.Top.Item.Theme>(
+        {
+            IconVerticalAdjust = 10
+            Desktop = {
+                IconFontSize = 24; LabelFontSize = 16; Height = 72
+                BadgeFontSize = 14; BadgeTop = -10; BadgeLeft = -10
+            }
+            Handheld = {
+                IconFontSize = 20; LabelFontSize = 14; Height = 42
+                BadgeFontSize = 12; BadgeTop = -6; BadgeLeft = -10
+            }
+            Actionable = {
+                Base = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Hovered = {
+                    Label = primary.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Depressed = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+            }
+            Selected = {
+                Base = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Hovered = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Depressed = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+            }
+            SelectedActionable = {
+                Base = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Hovered = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Depressed = {
+                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+            }
+            Disabled = {
+                Base = {
+                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Hovered = {
+                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Depressed = {
+                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+            }
+            InProgress = {
+                Base = {
+                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Hovered = {
+                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+                Depressed = {
+                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                }
+            }
+        }
+    )
 
     Nav.Bottom.BaseStyles.Theme.All(
         screenSizeToSizes = (function

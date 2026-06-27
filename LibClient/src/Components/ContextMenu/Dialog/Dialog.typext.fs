@@ -4,6 +4,33 @@ open LibLang
 open LibClient
 open LibClient.Dialogs
 open LibClient.ContextMenus.Types
+open LibClient.Components
+open LC.Button
+
+module ButtonThemes =
+    let private appearance textColor borderColor backgroundColor : Appearance =
+        {
+            TextColor       = textColor
+            BorderColor     = borderColor
+            BackgroundColor = backgroundColor
+            FontWeight      = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+        }
+
+    let private stateAppearance textColor borderColor backgroundColor : StateAppearance =
+        {
+            Actionable = appearance textColor borderColor backgroundColor
+            Disabled   = appearance textColor borderColor backgroundColor
+            InProgress = appearance textColor borderColor backgroundColor
+        }
+
+    let normal (theme: LC.Button.Theme) : LC.Button.Theme =
+        { theme with Primary = stateAppearance (Color.Hex "#004eff") Color.White Color.White }
+
+    let normalSelected (theme: LC.Button.Theme) : LC.Button.Theme =
+        { theme with Primary = stateAppearance (Color.Grey "59") Color.White Color.White }
+
+    let cautionary (theme: LC.Button.Theme) : LC.Button.Theme =
+        { theme with Cautionary = stateAppearance Color.DevRed Color.White Color.White }
 
 type Parameters = {
     Items: List<ContextMenuItem>

@@ -6,6 +6,7 @@ open ReactXP.Components
 open ReactXP.Styles
 open LibClient.Components
 open LibClient
+open LibClient.Accessibility
 open ReactXP.Styles.RulesRestricted
 
 module LC =
@@ -111,6 +112,8 @@ type LC with
     static member Card (
         children:     array<ReactElement>,
         ?onPress:     (ReactEvent.Action -> unit),
+        ?label:        string,
+        ?testId:       string,
         ?theme:       Theme -> Theme,
         ?outerStyles: array<ViewStyles>,
         ?key:         string
@@ -149,9 +152,14 @@ type LC with
                             children = children,
                             styles   = [| Styles.contentContainer theTheme |]
                         )
-                        LC.TapCapture (
+                        LC.Pressable (
                             onPress      = onPress,
-                            pointerState = pointerState
+                            label        = defaultArg label "Open",
+                            ?testId      = testId,
+                            role         = AccessibilityRole.Button,
+                            overlay      = true,
+                            pointerState = pointerState,
+                            componentName = "LC.Card"
                         )
                     |]
                 )

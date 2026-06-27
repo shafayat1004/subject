@@ -1,0 +1,298 @@
+namespace LibClient.Components.Sidebar
+
+open LibClient
+
+module Item =
+    type State =
+    | Actionable of OnPress: (ReactEvent.Action -> unit)
+    | InProgress
+    | Disabled
+    | Selected
+    with
+        member this.Name : string =
+            unionCaseName this
+
+    type [<RequireQualifiedAccess>] Right =
+    | Badge of PositiveInteger
+    | Icon  of Icons.IconConstructor
+    | NoElement
+
+namespace LibClient.Components
+
+open Fable.React
+
+open LibClient
+open LibClient.Accessibility
+
+open ReactXP.Components
+open ReactXP.Styles
+
+open Sidebar.Item
+
+[<AutoOpen>]
+module Sidebar_Item =
+
+    module LC =
+        module Sidebar =
+            module Item =
+                type Colors = {
+                    Label:           Color
+                    LabelWeight:     ReactXP.Styles.RulesRestricted.FontWeight
+                    Background:      Color
+                    Border:          Color
+                    LeftIcon:        Color
+                    RightIcon:       Color
+                    BadgeBackground: Color
+                    BadgeText:       Color
+                }
+
+                type InteractionColors = {
+                    Base:      Colors
+                    Hovered:   Colors
+                    Depressed: Colors
+                }
+
+                type Theme = {
+                    IconFontSize:  int
+                    LabelFontSize: int
+                    BadgeFontSize: int
+                    ItemHeight:    int
+                    Actionable:    InteractionColors
+                    Selected:      InteractionColors
+                    Disabled:      InteractionColors
+                    InProgress:    InteractionColors
+                }
+
+    open LC.Sidebar.Item
+
+    let private pickColors (interaction: InteractionColors) (pointerState: LC.Pointer.State.PointerState) =
+        if pointerState.IsDepressed then
+            interaction.Depressed
+        elif pointerState.IsHovered then
+            interaction.Hovered
+        else
+            interaction.Base
+
+    let private interactionForState (theme: Theme) (state: State) =
+        match state with
+        | Actionable _ -> theme.Actionable
+        | Selected     -> theme.Selected
+        | Disabled     -> theme.Disabled
+        | InProgress   -> theme.InProgress
+
+    let private itemA11yState (state: State) (isSelected: bool) =
+        match state with
+        | Selected   -> AccessibilityStateRecord.selected true
+        | Disabled   -> AccessibilityStateRecord.disabled true
+        | InProgress -> AccessibilityStateRecord.busy true
+        | Actionable _ ->
+            { AccessibilityStateRecord.empty with Selected = Some isSelected }
+
+    let private itemTestId (label: string) (testId: string option) =
+        testId |> Option.orElse (Some (A11ySlug.testId "sidebar-item" label))
+
+    let private badgeText (count: PositiveInteger) =
+        if count <= PositiveInteger.ofLiteral 99 then
+            string count
+        else
+            "99+"
+
+    [<RequireQualifiedAccess>]
+    module private Styles =
+        let item (theme: Theme) (colors: Colors) =
+            makeViewStyles {
+                FlexDirection.Row
+                flex              1
+                height            theme.ItemHeight
+                paddingHorizontal 18
+                borderColor       colors.Border
+                backgroundColor   colors.Background
+            }
+
+        let left =
+            makeViewStyles {
+                AlignItems.Center
+                JustifyContent.Center
+                flex        0
+                width       32
+                marginRight 10
+            }
+
+        let middle =
+            makeViewStyles {
+                flex 1
+                FlexDirection.Row
+                AlignItems.Center
+            }
+
+        let right =
+            makeViewStyles {
+                AlignItems.Center
+                JustifyContent.Center
+                flex 0
+            }
+
+        let iconText (theme: Theme) (iconColor: Color) =
+            makeTextStyles {
+                fontSize theme.IconFontSize
+                color    iconColor
+            }
+
+        let labelText (theme: Theme) (colors: Colors) =
+            makeTextStyles {
+                fontSize theme.LabelFontSize
+                color    colors.Label
+                RulesRestricted.fontWeight colors.LabelWeight
+            }
+
+        let badgeContainer (colors: Colors) =
+            makeViewStyles {
+                AlignItems.Center
+                JustifyContent.Center
+                flex              0
+                height            28
+                minWidth          28
+                paddingHorizontal 8
+                borderRadius      14
+                backgroundColor   colors.BadgeBackground
+            }
+
+        let badgeTextStyle (theme: Theme) (colors: Colors) =
+            makeTextStyles {
+                fontSize theme.BadgeFontSize
+                color colors.BadgeText
+            }
+
+    type Constructors.LC.Sidebar with
+        [<Component>]
+        static member Item(
+                label: string,
+                state: State,
+                ?children: ReactChildrenProp,
+                ?leftIcon: Icons.IconConstructor,
+                ?right: Right,
+                ?styles: array<ViewStyles>,
+                ?testId: string,
+                ?theme: Theme -> Theme,
+                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?key: string
+            ) : ReactElement =
+            key |> ignore
+            children |> ignore
+
+            let theTheme = Themes.GetMaybeUpdatedWith theme
+            let isSelected = match state with | Selected -> true | _ -> false
+
+            let legacyViewStyles : array<ViewStyles> =
+                match xLegacyStyles with
+                | Some legacyStyles ->
+                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                    | []     -> [||]
+                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | None -> [||]
+
+            let onPress =
+                match state with
+                | Actionable onPress -> Some onPress
+                | _                  -> None
+
+            LC.Pointer.State(
+                fun pointerState ->
+                    let colors =
+                        pickColors (interactionForState theTheme state) pointerState
+
+                    RX.View(
+                        styles =
+                            [|
+                                Styles.item theTheme colors
+                                yield! legacyViewStyles
+                                yield! (styles |> Option.defaultValue [||])
+                            |],
+                        children =
+                            elements {
+                                match leftIcon with
+                                | Some icon ->
+                                    RX.View(
+                                        styles = [| Styles.left |],
+                                        children =
+                                            elements {
+                                                LC.Icon(
+                                                    icon = icon,
+                                                    styles = [| Styles.iconText theTheme colors.LeftIcon |]
+                                                )
+                                            }
+                                    )
+                                | None ->
+                                    noElement
+
+                                RX.View(
+                                    styles = [| Styles.middle |],
+                                    children =
+                                        elements {
+                                            LC.UiText(
+                                                value = label,
+                                                selectable = true,
+                                                styles = [| Styles.labelText theTheme colors |]
+                                            )
+                                        }
+                                )
+
+                                match state with
+                                | InProgress ->
+                                    RX.View(
+                                        styles = [| Styles.right |],
+                                        children =
+                                            elements {
+                                                RX.ActivityIndicator(color = "#aaaaaa", size = Size.Small)
+                                            }
+                                    )
+                                | _ ->
+                                    match right with
+                                    | Some (Right.Badge count) ->
+                                        RX.View(
+                                            styles = [| Styles.right |],
+                                            children =
+                                                elements {
+                                                    RX.View(
+                                                        styles = [| Styles.badgeContainer colors |],
+                                                        children =
+                                                            elements {
+                                                                LC.UiText(
+                                                                    value = badgeText count,
+                                                                    styles = [| Styles.badgeTextStyle theTheme colors |]
+                                                                )
+                                                            }
+                                                    )
+                                                }
+                                        )
+                                    | Some (Right.Icon icon) ->
+                                        RX.View(
+                                            styles = [| Styles.right |],
+                                            children =
+                                                elements {
+                                                    LC.Icon(
+                                                        icon = icon,
+                                                        styles = [| Styles.iconText theTheme colors.RightIcon |]
+                                                    )
+                                                }
+                                        )
+                                    | Some Right.NoElement | None ->
+                                        noElement
+
+                                match onPress with
+                                | Some onPress ->
+                                    LC.Pressable(
+                                        onPress = onPress,
+                                        label = label,
+                                        role = AccessibilityRole.MenuItem,
+                                        state = itemA11yState state isSelected,
+                                        testId = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "sidebar-item" label)),
+                                        overlay = true,
+                                        pointerState = pointerState,
+                                        componentName = "LC.Sidebar.Item"
+                                    )
+                                | None ->
+                                    noElement
+                            }
+                    )
+            )

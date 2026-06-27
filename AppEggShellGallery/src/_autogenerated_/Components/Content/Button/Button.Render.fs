@@ -30,7 +30,7 @@ open AppEggShellGallery.AppServices
 open AppEggShellGallery
 
 open AppEggShellGallery.Components.Content.Button
-
+open AppEggShellGallery.Components.Content.Button
 
 
 let render(children: array<ReactElement>, props: AppEggShellGallery.Components.Content.Button.Props, estate: AppEggShellGallery.Components.Content.Button.Estate, pstate: AppEggShellGallery.Components.Content.Button.Pstate, actions: AppEggShellGallery.Components.Content.Button.Actions, __componentStyles: ReactXP.LegacyStyles.RuntimeStyles) : Fable.React.ReactElement =
@@ -120,14 +120,12 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                         children =
                                                             [|
                                                                 let __parentFQN = Some "LibClient.Components.Button"
-                                                                let __currClass = "button-with-badge"
-                                                                let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
                                                                 LibClient.Components.Constructors.LC.Button(
                                                                     state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable Actions.greet)),
                                                                     badge = (LibClient.Components.Button.Count 3),
                                                                     label = ("Cart"),
                                                                     icon = (LibClient.Components.Button.Icon.Left Icon.ShoppingCart),
-                                                                    ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None)
+                                                                    xLegacyStyles = (SampleThemes.badgeGreenLegacy)
                                                                 )
                                                             |]
                                                     )
@@ -788,7 +786,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                         [|
                                                             @"
                     <LC.Button
-                     class='caution'
+                     theme='SampleThemes.caution'
                      Label='""Submit""'
                      Level='~Cautionary'
                      State='^LowLevel (~Actionable Actions.greet)'/>
@@ -798,19 +796,19 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                 )
                                                 let __parentFQN = Some "AppEggShellGallery.Components.Code"
                                                 AppEggShellGallery.Components.Constructors.Ui.Code(
-                                                    heading = ("Styles"),
+                                                    heading = ("Theme"),
                                                     language = (AppEggShellGallery.Components.Code.Fsharp),
                                                     children =
                                                         [|
                                                             @"
-                    ""caution"" ==>
-                    LibClient.Components.ButtonStyles.Theme.One (
-                        level              = LibClient.Components.Button.Cautionary,
-                        state              = LibClient.Components.Button.State.Actionable ignore,
-                        theTextColor       = Color.Black,
-                        theBorderColor     = Color.White,
-                        theBackgroundColor = Color.DevOrange
-                    )
+                    let caution (theme: LC.Button.Theme) =
+                        { theme with
+                            Cautionary = {
+                                Actionable = { TextColor = Color.Black; BorderColor = Color.White; BackgroundColor = Color.DevOrange; FontWeight = RulesRestricted.FontWeight.Normal }
+                                Disabled   = { TextColor = Color.Black; BorderColor = Color.White; BackgroundColor = Color.DevOrange; FontWeight = RulesRestricted.FontWeight.Normal }
+                                InProgress = { TextColor = Color.Black; BorderColor = Color.White; BackgroundColor = Color.DevOrange; FontWeight = RulesRestricted.FontWeight.Normal }
+                            }
+                        }
                 "
                                                             |> makeTextNode2 __parentFQN
                                                         |]
@@ -825,13 +823,11 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                         children =
                                             [|
                                                 let __parentFQN = Some "LibClient.Components.Button"
-                                                let __currClass = "caution"
-                                                let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
                                                 LibClient.Components.Constructors.LC.Button(
                                                     state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable Actions.greet)),
                                                     level = (LibClient.Components.Button.Cautionary),
                                                     label = ("Submit"),
-                                                    ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None)
+                                                    theme = (SampleThemes.caution)
                                                 )
                                             |]
                                     )
@@ -851,7 +847,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                         [|
                                                             @"
                     <LC.Button
-                     class='btn-small'
+                     theme='SampleThemes.small'
                      Icon='~Icon.Right Icon.Home'
                      Label='""Submit""'
                      State='^LowLevel (~Actionable Actions.greet)'/>
@@ -861,12 +857,13 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                 )
                                                 let __parentFQN = Some "AppEggShellGallery.Components.Code"
                                                 AppEggShellGallery.Components.Constructors.Ui.Code(
-                                                    heading = ("Styles"),
+                                                    heading = ("Theme"),
                                                     language = (AppEggShellGallery.Components.Code.Fsharp),
                                                     children =
                                                         [|
                                                             @"
-                    ""btn-small"" ==> LibClient.Components.ButtonStyles.Theme.IconSize 15
+                    let small (theme: LC.Button.Theme) =
+                        { theme with IconSize = 15 }
                 "
                                                             |> makeTextNode2 __parentFQN
                                                         |]
@@ -881,13 +878,11 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                         children =
                                             [|
                                                 let __parentFQN = Some "LibClient.Components.Button"
-                                                let __currClass = "btn-small"
-                                                let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
                                                 LibClient.Components.Constructors.LC.Button(
                                                     state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable Actions.greet)),
                                                     label = ("Submit"),
                                                     icon = (LibClient.Components.Button.Icon.Right Icon.Home),
-                                                    ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None)
+                                                    theme = (SampleThemes.small)
                                                 )
                                             |]
                                     )

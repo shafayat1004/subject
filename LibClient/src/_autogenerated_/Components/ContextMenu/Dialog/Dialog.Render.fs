@@ -20,6 +20,7 @@ open LibClient.Responsive
 open LibClient.Components.ContextMenu.Dialog
 open LibClient
 open LibClient.ContextMenus.Types
+open LibClient.Components.ContextMenu.Dialog
 
 
 let render(children: array<ReactElement>, props: LibClient.Components.ContextMenu.Dialog.Props, estate: LibClient.Components.ContextMenu.Dialog.Estate, pstate: LibClient.Components.ContextMenu.Dialog.Pstate, actions: LibClient.Components.ContextMenu.Dialog.Actions, __componentStyles: ReactXP.LegacyStyles.RuntimeStyles) : Fable.React.ReactElement =
@@ -86,26 +87,37 @@ let render(children: array<ReactElement>, props: LibClient.Components.ContextMen
                                                             |]
                                                         | InternalButton (label, isSelected, onPress) ->
                                                             [|
-                                                                let __parentFQN = Some "LibClient.Components.Button"
-                                                                let __currClass = "button button-normal" + System.String.Format(" {0}", (if (isSelected) then "selected" else ""))
-                                                                let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
-                                                                LibClient.Components.Constructors.LC.Button(
-                                                                    state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable (fun e -> (actions.TryCancel e; onPress e)))),
-                                                                    label = (label),
-                                                                    level = (LibClient.Components.Button.Primary),
-                                                                    ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None)
-                                                                )
+                                                                match (isSelected) with
+                                                                | true ->
+                                                                    [|
+                                                                        let __parentFQN = Some "LibClient.Components.Button"
+                                                                        LibClient.Components.Constructors.LC.Button(
+                                                                            state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable (fun e -> (actions.TryCancel e; onPress e)))),
+                                                                            label = (label),
+                                                                            level = (LibClient.Components.Button.Primary),
+                                                                            theme = (ButtonThemes.normalSelected)
+                                                                        )
+                                                                    |]
+                                                                | false ->
+                                                                    [|
+                                                                        let __parentFQN = Some "LibClient.Components.Button"
+                                                                        LibClient.Components.Constructors.LC.Button(
+                                                                            state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable (fun e -> (actions.TryCancel e; onPress e)))),
+                                                                            label = (label),
+                                                                            level = (LibClient.Components.Button.Primary),
+                                                                            theme = (ButtonThemes.normal)
+                                                                        )
+                                                                    |]
+                                                                |> castAsElementAckingKeysWarning
                                                             |]
                                                         | ButtonCautionary (label, onPress) ->
                                                             [|
                                                                 let __parentFQN = Some "LibClient.Components.Button"
-                                                                let __currClass = "button button-cautionary"
-                                                                let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
                                                                 LibClient.Components.Constructors.LC.Button(
                                                                     state = (LibClient.Components.Button.PropStateFactory.MakeLowLevel (LibClient.Components.Button.Actionable (fun e -> (actions.TryCancel e; onPress e)))),
                                                                     label = (label),
                                                                     level = (LibClient.Components.Button.Cautionary),
-                                                                    ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None)
+                                                                    theme = (ButtonThemes.cautionary)
                                                                 )
                                                             |]
                                                         |> castAsElementAckingKeysWarning
