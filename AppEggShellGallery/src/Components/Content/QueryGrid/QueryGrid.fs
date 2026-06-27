@@ -130,10 +130,56 @@ type Ui.Content with
                                         language = Fsharp,
                                         children =
                                             [| LC.Text """
-// Form types: Field DU, Query result, Acc implementing AbstractAcc
-type Field = | Substring | MinLength
-type Query = { Substring: string; MinLength: Option<PositiveInteger> }
-type Acc = { ... } with interface AbstractAcc<Field, Query> with ...
+// This is run-of-the-mill form definition: a DU of fields, the result type that
+// a successfully validated form produces (Query), and an accumulator (Acc) that
+// implements AbstractAcc (from LibClient.Components.Form.Base.Types).
+// (you can stub this out in VSCode using the `formacc` snippet)
+[<RequireQualifiedAccess>]
+type Field =
+| Substring
+| MinLength
+
+type Query = {
+    Substring: string
+    MinLength: Option<PositiveInteger>
+} with
+    // this predicate is the only non-standard thing here, it's a helper
+    // method that we use inside executeQuery below
+    member this.Predicate (candidate: string) : bool =
+        if candidate.Contains this.Substring then
+            match this.MinLength with
+            | Some minLength -> candidate.Length >= minLength.Value
+            | None           -> true
+        else
+            false
+
+type Acc = {
+    Substring: Option<NonemptyString>
+    MinLength: LibClient.Components.Input.PositiveInteger.Value
+} with
+    static member Empty : Acc = { Substring = None; MinLength = LibClient.Components.Input.PositiveInteger.empty }
+
+    interface AbstractAcc<Field, Query> with
+        member this.Validate () : Result<Query, ValidationErrors<Field>> = ...
+""" |]
+                                    )
+                                    Ui.Code(
+                                        language = Fsharp,
+                                        children =
+                                            [| LC.Text """
+// This code is essentially emulating a backend server that processes the query.
+let executeQuery (queryPage: QueryPage<Query>) =
+    async {
+        do! Async.Sleep 1000
+        let query = queryPage.Query
+        return
+            words
+            |> List.filter query.Predicate
+            |> skipAtMost ((queryPage.PageNumber.Value - 1) * queryPage.PageSize.Value)
+            |> takeAtMost queryPage.PageSize.Value
+            |> Seq.ofList
+            |> Available
+    }
 """ |]
                                     )
                                     Ui.Code(
@@ -148,7 +194,7 @@ UiAdmin.QueryGrid(
     onPageChange = pageHook.update,
     initialQueryAcc = Acc.Empty,
     headers = headers,
-    row = makeRow,
+    row = makeRow, // 'Item * Option<QueryPage<'Query>> * (unit -> unit) -> ReactElement
     queryForm = queryForm
 )
 """ |]
