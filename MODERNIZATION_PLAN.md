@@ -257,9 +257,9 @@ Two different trees share names like `Button`:
 | What you open | Path | Status |
 |---------------|------|--------|
 | **Framework component** (what apps import as `LC.Button`) | `LibClient/src/Components/Button/Button.fs` | **Converted** — pure F# `[<Component>]`, Pressable, themes |
-| **Gallery showcase page** (docs/samples for that component) | `AppEggShellGallery/src/Components/Content/Button/Button.render` | **Still render DSL** — samples show Render XML in code blocks |
+| **Gallery showcase page** (docs/samples for that component) | `AppEggShellGallery/src/Components/Content/Button/Button.fs` | **Converted** — pure F# page, F# code samples |
 
-Same pattern for many components: LibClient may already be pure F# while the matching gallery **Content** page is still `.render` + `.typext.fs` until explicitly converted (Rule 10). `ComponentRegistration.fs` in the gallery lists only the **33** showcase pages still on render DSL.
+All **69** gallery Content showcase pages are now pure F# (`type Ui.Content with [<Component>]`). `ComponentRegistration.fs` in the gallery has **zero** `RegisterRender` entries. LibClient may still be render DSL for a few twins (Input.Text, Picker) while the gallery page is already F# calling `LC.*`.
 
 ### 5.1 LibClient render DSL remaining
 
@@ -274,7 +274,7 @@ Same pattern for many components: LibClient may already be pure F# while the mat
 
 Everything else under `LibClient/src/Components/` is pure F# or lives outside the render compiler (ReactXP bindings, etc.). Confirm, Prompt, Shell, Form/Base, Draggable, Badge, Nav, AppShell/Content, most inputs, and **Button** are converted.
 
-**Next LibClient cluster to retire:** Input.Text + Picker internals (highest fan-out for forms/gallery Input.* pages still on render DSL).
+**Next LibClient cluster to retire:** Input.Text + Picker internals (gallery Input.Text/Picker showcase pages are already pure F#; framework twins still render DSL).
 
 ### 5.2 LibClient converted to pure F# `[<Component>]` (representative)
 
@@ -312,19 +312,18 @@ Everything else under `LibClient/src/Components/` is pure F# or lives outside th
 
 | State | Count | Code samples in UI |
 |-------|------:|--------------------|
-| **Pure F# page** (`Content/.../Foo.fs`) | **36** | F# (`ComponentSample.Fsharp`) |
-| **Still render DSL** (`Content/.../Foo.render`) | **33** | Render DSL (`ComponentSample.Render`) — expected until page converted |
+| **Pure F# page** (`Content/.../Foo.fs`) | **69** | F# (`ComponentSample.Fsharp`) |
+| **Still render DSL** (`Content/.../Foo.render`) | **0** | — |
 
-**36 converted showcase pages:** AnimatableImage, AnimatableText, AnimatableTextInput, AnimatableView, AsyncData, Card, DateSelector, Draggable, Executor.AlertErrors, FloatingActionButton, Forms, Grid, Heading, IconWithBadge, ImageCard, LabelledFormField, Nav.Bottom, Nav.Top, QueryGrid, Section.Padded, Sidebar, Tabs, TouchableOpacity, With.DataFlowControl, Input.{Checkbox, ChoiceList, DayOfTheWeek, Decimal, Duration, File, Image, LocalTime, PositiveDecimal, PositiveInteger, UnsignedDecimal, UnsignedInteger}
-
-**33 still render DSL (gallery `ComponentRegistration.fs`):** Avatar, Button, Buttons, Carousel, ColorVariants, ContextMenu, Dialogs, ErrorBoundary, Icon, IconButton, Icons, InfoMessage, ItemList, Pre, Scrim, Stars, Tag, TextButton, Thumb, Thumbs, TimeSpan, Timestamp, ToggleButtons, WithSortAndFilter, Input.{Date, EmailAddress, PhoneNumber, Picker, Quantity, Text}, ThirdParty.{Map, Recharts, ToolWindowContent}
+**Batch converted (2026-06-28):** all remaining 33 pages — Avatar, Button, Buttons, Carousel, ColorVariants, ContextMenu, Dialogs, ErrorBoundary, Icon, IconButton, Icons, InfoMessage, ItemList, Pre, Scrim, Stars, Tag, TextButton, Thumb, Thumbs, TimeSpan, Timestamp, ToggleButtons, WithSortAndFilter, Input.{Date, EmailAddress, PhoneNumber, Picker, Quantity, Text}, ThirdParty.{Map, Recharts, ToolWindowContent}. Stateful pages use `Hooks.useState`; theme samples preserved where present (Avatar, Stars, Button).
 
 **Recent gallery work (2026-06-28):**
 
+- **All Content showcase pages** converted to pure F#; zero `.render` under `AppEggShellGallery/`
 - `GalleryHeadings.fs` — explicit heading font sizes (Props/Samples 24px, sample titles 14px); fixes nested `LC.Text` in `LC.Heading` ignoring level styles on web
 - `GallerySampleImages.fs` — fixed-size `ImageCard` demos (Draggable, ImageCard) where parent layout had zero height
 - Enriched sparse converted pages (Card, ImageCard, Tabs, LabelledFormField, Animatable*, TouchableOpacity, DataFlowControl, AlertErrors, Input.* samples)
-- Carousel.render — local `/images/wlop*.jpg` instead of dead example.com URLs
+- Carousel — local `/images/wlop*.jpg` instead of dead example.com URLs
 
 | Area | State |
 |------|--------|
@@ -349,18 +348,17 @@ Everything else under `LibClient/src/Components/` is pure F# or lives outside th
 | 3 | Gallery testIds + route/action logging | Mostly done |
 | 4 | Audit harness testId-first | Partial (scripts exist; full validation pending) |
 | — | End-to-end caller upgrade (no legacy shims) | Done for Button + Nav.Top.Item |
-| — | Goal A bulk `.render` retirement | **LibClient ~95%** (9 render files); **gallery showcase ~52%** (36/69 pages) |
+| — | Goal A bulk `.render` retirement | **LibClient ~95%** (9 render files); **gallery showcase 100%** (69/69 pages) |
 
 ---
 
 ## 6. Recommended sequencing (next work)
 
-1. **LibClient last cluster:** Input.Text + Picker internals + Dialog.Base + ContextMenu.Dialog (9 files — unblocks gallery Input.Text/Picker/Dialogs showcase conversion).
-2. **Gallery mirrors:** convert remaining **33** Content `.render` pages when touching LibClient twins; each conversion → pure F# page + F# code samples + delete `.render`/`.typext.fs`/autogen together.
-3. **Gallery batch candidates (high visibility, LibClient already F#):** Button, IconButton, TextButton, ToggleButtons, Dialogs, Scrim, Carousel, ItemList, …
-4. **TapCapture sweep:** each conversion should finish with Pressable; grep `LC.TapCapture` until zero, delete shim.
-5. **Automation:** run interactive Android audit with testId nav; extend assertions to use `uiSnapshot()` where possible.
-6. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
+1. **LibClient last cluster:** Input.Text + Picker internals + Dialog.Base + ContextMenu.Dialog (9 files).
+2. **Gallery mirrors:** done — all Content showcase pages are pure F#; keep new/changed components mirrored when converting LibClient twins.
+3. **TapCapture sweep:** each conversion should finish with Pressable; grep `LC.TapCapture` until zero, delete shim.
+4. **Automation:** run interactive Android audit with testId nav; extend assertions to use `uiSnapshot()` where possible.
+5. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
 
 ---
 

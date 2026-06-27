@@ -846,3 +846,22 @@ does **not** pass `cb` to `props.ref` (React warns and returns `undefined`). Sym
 
 **Fix:** use a non-reserved name, e.g. `draggableRef` on `LC.Draggable` (same pattern as
 `scrollViewRef` on `LC.ScrollView`). After LibClient changes, restart or wait for `dev-web` Fable watch.
+
+## 2026-06-28 — Gallery Content showcase batch conversion (33 pages → pure F#)
+
+All **69** gallery Content pages are now single `Foo.fs` files with `[<Component>]` on
+`type Ui.Content` (or nested `Ui.Content.Input` / `Ui.Content.ThirdParty`). Zero `.render` under
+`AppEggShellGallery/`; `ComponentRegistration.fs` has no `RegisterRender`.
+
+**Recipe (confirmed at scale):**
+1. Port samples from autogen `Foo.Render.fs`; code blocks use `ComponentSample.Fsharp` only.
+2. Stateful demos: `Hooks.useState` (ErrorBoundary, Scrim, Dialogs, ToggleButtons, Input.*).
+3. Replace fsproj block (typext/styles/autogen) with one `Foo.fs`; **delete** legacy files from disk.
+4. Run `../eggshell test-build` from `AppEggShellGallery/`.
+
+**Gotchas:**
+- **Name clash:** `Button.Icon.Left` vs `LC.Buttons.Left` — qualify `LibClient.Components.Buttons.Left`.
+- **ThirdParty Map:** F# `Map` shadowing — use `ThirdParty.Map.Components.Constructors.Map.Base(...)`;
+  multi-line `position = (...)` must be parenthesized or F# parses a top-level binding.
+- **Gallery pages can lead LibClient:** Input.Text/Picker showcase pages are pure F# while framework
+  twins remain render DSL; samples call `LC.Input.Text` / `LC.Input.Picker` as usual.
