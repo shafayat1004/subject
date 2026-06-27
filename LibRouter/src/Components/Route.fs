@@ -157,53 +157,57 @@ type LR with
 
                                     | _, None ->
                                         LC.With.Ref
-                                            (fun (bindScrollView, maybeScrollView) -> element {
-                                                LC.ScrollView (
-                                                    restoreScroll = restoreScroll,
-                                                    scroll        = scroll,
-                                                    ref           = bindScrollView,
-                                                    children      = [|
-                                                        RX.View (styles = [| Styles.scroll_view_no_footer |], children = [|
-                                                            RX.View (styles = [| Styles.content_container |], children = [|
-                                                                RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                            (fun (bindScrollView, maybeScrollView) ->
+                                                element {
+                                                    LC.ScrollView (
+                                                        restoreScroll = restoreScroll,
+                                                        scroll        = scroll,
+                                                        scrollViewRef = bindScrollView,
+                                                        children      = [|
+                                                            RX.View (styles = [| Styles.scroll_view_no_footer |], children = [|
+                                                                RX.View (styles = [| Styles.content_container |], children = [|
+                                                                    RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                                                |])
                                                             |])
-                                                        |])
-                                                    |]
-                                                )
-                                                if (scroll = Vertical || scroll = Both) then
-                                                    maybeScrollView
-                                                    |> Option.map goToTopButtonBlock
-                                                    |> Option.getOrElse nothing
-                                                else nothing
-                                            })
+                                                        |]
+                                                    )
+
+                                                    if (scroll = Vertical || scroll = Both) then
+                                                        maybeScrollView
+                                                        |> Option.map goToTopButtonBlock
+                                                        |> Option.getOrElse nothing
+                                                    else nothing
+                                                })
 
                                     | _, Some footer ->
                                         LC.With.Layout
                                             (fun (onLayoutOption, maybeLayout) ->
                                                 LC.With.Ref
-                                                    (fun (bindScrollView, maybeScrollView) -> element {
-                                                        LC.ScrollView(
-                                                            restoreScroll = restoreScroll,
-                                                            ?onScroll     = onScroll,
-                                                            ?onLayout     = onLayoutOption,
-                                                            scroll        = scroll,
-                                                            ref           = bindScrollView,
-                                                            children      = [|
-                                                                RX.View (styles = [| Styles.scroll_view_with_footer; makeViewStyles { maybeLayout |> Option.map (fun l -> minHeight l.Height) |> Option.getOrElse (height 0) } |] ,children = [|
-                                                                    RX.View ( styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
-                                                                        RX.View (styles = [| Styles.content contentWidth |] ,children = children)
+                                                    (fun (bindScrollView, maybeScrollView) ->
+                                                        element {
+                                                            LC.ScrollView (
+                                                                restoreScroll = restoreScroll,
+                                                                ?onScroll     = onScroll,
+                                                                ?onLayout     = onLayoutOption,
+                                                                scroll        = scroll,
+                                                                scrollViewRef = bindScrollView,
+                                                                children      = [|
+                                                                    RX.View (styles = [| Styles.scroll_view_with_footer; makeViewStyles { maybeLayout |> Option.map (fun l -> minHeight l.Height) |> Option.getOrElse (height 0) } |], children = [|
+                                                                        RX.View (styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
+                                                                            RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                                                        |])
+
+                                                                        RX.View (styles = [| Styles.scroll_view_footer |], children = [| footer |])
                                                                     |])
+                                                                |]
+                                                            )
 
-                                                                    RX.View (styles = [| Styles.scroll_view_footer |], children = [| footer |])
-                                                                |])
-                                                        |])
-
-                                                        if (scroll = Vertical || scroll = Both) then
-                                                            maybeScrollView
-                                                            |> Option.map goToTopButtonBlock
-                                                            |> Option.getOrElse nothing
-                                                        else nothing
-                                                    })
+                                                            if (scroll = Vertical || scroll = Both) then
+                                                                maybeScrollView
+                                                                |> Option.map goToTopButtonBlock
+                                                                |> Option.getOrElse nothing
+                                                            else nothing
+                                                        })
                                             )
                                     
                                     bottomElement

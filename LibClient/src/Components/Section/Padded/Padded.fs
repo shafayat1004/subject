@@ -15,12 +15,15 @@ open ReactXP.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let view (screenSize: ScreenSize) =
-        makeViewStyles {
-            match screenSize with
-            | ScreenSize.Desktop  -> padding 24
-            | ScreenSize.Handheld -> padding 16
-        }
+    let view =
+        ViewStyles.Memoize(
+            fun (screenSize: ScreenSize) ->
+                makeViewStyles {
+                    match screenSize with
+                    | ScreenSize.Desktop  -> padding 24
+                    | ScreenSize.Handheld -> padding 16
+                }
+        )
 
 type LibClient.Components.Constructors.LC.Section with
     [<Component>]

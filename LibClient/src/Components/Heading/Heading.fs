@@ -90,22 +90,25 @@ module HeadingStyles =
 // ---------------------------------------------------------------------------
 [<RequireQualifiedAccess>]
 module private Styles =
-    let text (screenSize: ScreenSize) (level: Level) =
-        makeTextStyles {
-            color (Color.Grey "45")
-            fontSize (
-                match screenSize, level with
-                | ScreenSize.Desktop,  Level.Primary   -> 36
-                | ScreenSize.Desktop,  Level.Secondary -> 24
-                | ScreenSize.Desktop,  Level.Tertiary  -> 14
-                | ScreenSize.Handheld, Level.Primary   -> 18
-                | ScreenSize.Handheld, Level.Secondary -> 16
-                | ScreenSize.Handheld, Level.Tertiary  -> 14
-            )
-            match screenSize with
-            | ScreenSize.Handheld -> FontWeight.W700
-            | ScreenSize.Desktop  -> ()
-        }
+    let text =
+        TextStyles.Memoize(
+            fun (screenSize: ScreenSize) (level: Level) ->
+                makeTextStyles {
+                    color (Color.Grey "45")
+                    fontSize (
+                        match screenSize, level with
+                        | ScreenSize.Desktop,  Level.Primary   -> 36
+                        | ScreenSize.Desktop,  Level.Secondary -> 24
+                        | ScreenSize.Desktop,  Level.Tertiary  -> 14
+                        | ScreenSize.Handheld, Level.Primary   -> 18
+                        | ScreenSize.Handheld, Level.Secondary -> 16
+                        | ScreenSize.Handheld, Level.Tertiary  -> 14
+                    )
+                    match screenSize with
+                    | ScreenSize.Handheld -> FontWeight.W700
+                    | ScreenSize.Desktop  -> ()
+                }
+        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]

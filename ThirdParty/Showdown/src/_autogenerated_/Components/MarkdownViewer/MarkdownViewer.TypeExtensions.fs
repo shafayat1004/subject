@@ -13,13 +13,14 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module MarkdownViewerTypeExtensions =
     type ThirdParty.Showdown.Components.Constructors.Showdown with
-        static member MarkdownViewer(source: Source, ?children: ReactChildrenProp, ?showdownConverter: obj, ?globalLinkHandler: string, ?imageUrlTransformer: (Source -> string -> string), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member MarkdownViewer(source: Source, ?children: ReactChildrenProp, ?showdownConverter: obj, ?globalLinkHandler: string, ?imageUrlTransformer: (Source -> string -> string), ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Source = source
                     ShowdownConverter = defaultArg showdownConverter (ThirdParty.Showdown.Components.MarkdownViewer.defaultShowdownConverter)
                     GlobalLinkHandler = globalLinkHandler |> Option.orElse (None)
                     ImageUrlTransformer = imageUrlTransformer |> Option.orElse (None)
+                    key = key |> Option.orElse (None)
                 }
             match xLegacyStyles with
             | Option.None | Option.Some [] -> ()

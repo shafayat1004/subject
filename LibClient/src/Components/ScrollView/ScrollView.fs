@@ -2,7 +2,7 @@
 // to a pure-F# [<Component>] function. The component is genuinely stateful: it tracks scroll
 // position and content size via Hooks.useRef, stores measurements across unmount/remount cycles
 // in a module-level mutable Map (matching the old `static let mutable measurementStorage`), and
-// implements IScrollViewComponentRef for callers that pass a `ref` callback.
+// implements IScrollViewComponentRef for callers that pass a `scrollViewRef` callback.
 [<AutoOpen>]
 module LibClient.Components.ScrollView
 
@@ -82,7 +82,7 @@ type LibClient.Components.Constructors.LC with
             ?showsHorizontalScrollIndicatorOnNative: bool,
             ?showsVerticalScrollIndicatorOnNative:   bool,
             ?styles:                                array<ViewStyles>,
-            ?ref:                                   JsNullable<IScrollViewComponentRef> -> unit,
+            ?scrollViewRef:                         JsNullable<IScrollViewComponentRef> -> unit,
             ?key:                                   string
         ) : ReactElement =
         ignore key
@@ -114,15 +114,15 @@ type LibClient.Components.Constructors.LC with
                 [||]
             )
 
-        // Notify caller's ref callback whenever the inner scroll view ref is (re)bound.
+        // Notify caller's callback whenever the inner scroll view ref is (re)bound.
         // We call it once on mount with the stable selfRef object.
         Hooks.useEffect (
             (fun () ->
-                ref |> Option.sideEffect (fun refCallback ->
+                scrollViewRef |> Option.sideEffect (fun refCallback ->
                     refCallback (selfRef :> obj :?> JsNullable<IScrollViewComponentRef>)
                 )
             ),
-            [| ref :> obj |]
+            [| scrollViewRef :> obj |]
         )
 
         // Stable inner-ref callback — captures maybeScrollViewRef.

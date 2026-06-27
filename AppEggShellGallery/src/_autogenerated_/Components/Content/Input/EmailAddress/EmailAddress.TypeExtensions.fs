@@ -1,7 +1,7 @@
 namespace AppEggShellGallery.Components
 
 open LibClient
-open LibClient.Components.Input_EmailAddress
+open LibClient.Components
 open AppEggShellGallery.Components.Content.Input.EmailAddress
 open Fable.Core.JsInterop
 

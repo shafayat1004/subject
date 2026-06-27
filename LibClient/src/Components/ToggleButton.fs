@@ -77,16 +77,19 @@ module private Styles =
             borderBottomRightRadius 5
         }
 
-    let iconTheme =
-        TextStyles.Memoize(
-            fun (theme: Theme) (isSelected: bool) ->
-                let colorTheme = theme.ColorTheme isSelected
+    let whiteIcon =
+        makeTextStyles {
+            fontSize 20
+            color Color.White
+        }
 
-                makeTextStyles {
-                    fontSize 20
-                    color colorTheme.TextColor
-                }
-        )
+    let whiteLabel =
+        makeTextStyles {
+            color Color.White
+        }
+
+    let iconTheme =
+        fun (_theme: Theme) (_isSelected: bool) -> whiteIcon
 
     let leftIcon =
         makeViewStyles {
@@ -101,14 +104,7 @@ module private Styles =
         }
 
     let labelTheme =
-        TextStyles.Memoize(
-            fun (theme: Theme) (isSelected: bool) ->
-                let colorTheme = theme.ColorTheme isSelected
-
-                makeTextStyles {
-                    color colorTheme.TextColor
-                }
-        )
+        fun (_theme: Theme) (_isSelected: bool) -> whiteLabel
 
 type LibClient.Components.Constructors.LC with
     [<Component>]

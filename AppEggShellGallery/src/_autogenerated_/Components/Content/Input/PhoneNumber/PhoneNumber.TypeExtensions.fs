@@ -1,7 +1,7 @@
 namespace AppEggShellGallery.Components
 
 open LibClient
-open LibClient.Components.Input_PhoneNumber
+open LibClient.Components
 open AppEggShellGallery.Components.Content.Input.PhoneNumber
 open Fable.Core.JsInterop
 

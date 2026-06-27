@@ -123,7 +123,7 @@ let render(children: array<ReactElement>, props: ThirdParty.Map.Components.Nativ
                                                 )
                                             |]
                                     )
-                                    (*
+                                    (* 
         This was an hack implemented by previous developers
         Added a image marker and manually center this with styling.
         This is already in production and apps use this

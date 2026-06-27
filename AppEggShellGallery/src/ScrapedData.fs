@@ -6651,6 +6651,7 @@ module Icons =
     ("Submit", Icon.Submit)
     ("Tag", Icon.Tag)
     ("Tags", Icon.Tags)
+    ("Taka", Icon.Taka)
     ("Ticket", Icon.Ticket)
     ("TwoSheets", Icon.TwoSheets)
     ("X", Icon.X)

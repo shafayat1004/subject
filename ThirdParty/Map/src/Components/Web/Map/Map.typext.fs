@@ -749,7 +749,10 @@ type Map(_initialProps) as this =
             let infoWindow =
                 createNew googleMapsApi?maps?InfoWindow (
                     createObj [
-                        "position"      ==> ("lat" ==> 23.44; "lon" ==> 90.44)
+                        "position"      ==> createObj [
+                            "lat" ==> 23.44
+                            "lon" ==> 90.44
+                        ]
                         "headerContent" ==> "Coordinates"
                     ]
                 )

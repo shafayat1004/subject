@@ -25,12 +25,15 @@ open LC.Sidebar.Heading
 module private Styles =
     let view = makeViewStyles { marginHorizontal 18; marginVertical 18 }
 
-    let text (theme: Theme) (level: Level) =
-        let (textColor, fontSz) =
-            match level with
-            | Primary   -> (theme.PrimaryTextColor,   theme.PrimaryFontSize)
-            | Secondary -> (theme.SecondaryTextColor, theme.SecondaryFontSize)
-        makeTextStyles { color textColor; fontSize fontSz }
+    let text =
+        TextStyles.Memoize(
+            fun (theme: Theme) (level: Level) ->
+                let (textColor, fontSz) =
+                    match level with
+                    | Primary   -> (theme.PrimaryTextColor,   theme.PrimaryFontSize)
+                    | Secondary -> (theme.SecondaryTextColor, theme.SecondaryFontSize)
+                makeTextStyles { color textColor; fontSize fontSz }
+        )
 
 type LibClient.Components.Constructors.LC.Sidebar with
     [<Component>]

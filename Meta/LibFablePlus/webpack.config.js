@@ -28,24 +28,24 @@ const commonConfig = {
     resolve: {
         modules: [
             "node_modules",
-            path.join(findDirUpwards("LibClient"),                         "node_modules"),
-            path.join(findDirUpwards("LibRouter"),                         "node_modules"),
-            path.join(findDirUpwards("LibUiSubject"),                      "node_modules"),
-            path.join(findDirUpwards("LibUiIdentityAuth"),                 "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "ImagePicker",         "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "Map",                 "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "FacebookPixel",       "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "Mapview",             "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "ReactNativeCodePush", "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "Recharts",            "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "Showdown",            "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "Something",           "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "SyntaxHighlighter",   "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "GoogleAnalytics",     "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "ReCaptcha",           "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "QRCode",              "node_modules"),
-            path.join(findDirUpwards("ThirdParty"), "ReactLeafletOsmMap",  "node_modules"),
-        ]
+            safeJoin(findDirUpwards("LibClient"),                         "node_modules"),
+            safeJoin(findDirUpwards("LibRouter"),                         "node_modules"),
+            safeJoin(findDirUpwards("LibUiSubject"),                      "node_modules"),
+            safeJoin(findDirUpwards("LibUiIdentityAuth"),                 "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "ImagePicker",         "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "Map",                 "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "FacebookPixel",       "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "Mapview",             "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "ReactNativeCodePush", "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "Recharts",            "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "Showdown",            "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "Something",           "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "SyntaxHighlighter",   "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "GoogleAnalytics",     "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "ReCaptcha",           "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "QRCode",              "node_modules"),
+            safeJoin(findDirUpwards("ThirdParty"), "ReactLeafletOsmMap",  "node_modules"),
+        ].filter(Boolean)
     },
     module: {
         rules: [
@@ -143,8 +143,14 @@ if (isDev) {
     };
 }
 
+function safeJoin(base, ...rest) {
+    return base != null ? path.join(base, ...rest) : null;
+}
+
 function findDirUpwards(targetDir, baseDir) {
-    const parentDir = path.join(baseDir || PROJECT_PATH, "..");
+    const currentDir = baseDir || PROJECT_PATH;
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) return null; // reached filesystem root
     const dir = path.join(parentDir, targetDir);
     return fs.existsSync(dir) ? dir : findDirUpwards(targetDir, parentDir);
 }

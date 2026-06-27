@@ -45,7 +45,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
         displayName = ("Grid"),
         notes =
                 (castAsElementAckingKeysWarning [|
-                    makeTextNode2 __parentFQN "The grid is currently fairly basic, we're building it out as we go.\n Also see QueryGrid and\n        WithSortAndFilter for additional options."
+                    makeTextNode2 __parentFQN "The grid is currently fairly basic, we're building it out as we go. If you have needs that\n        are currently not supported, tell Anton and we'll make it happen. Also see QueryGrid and\n        WithSortAndFilter for additional options."
                 |]),
         samples =
                 (castAsElementAckingKeysWarning [|

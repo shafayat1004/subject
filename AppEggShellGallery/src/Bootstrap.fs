@@ -48,6 +48,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
             // let initialPstoreData = serizlied data
             let initialPstoreData = Map.empty
             let pstore = InitializePersistentStore initialPstoreData
+            pstore |> ignore
 
             let element = App.Make { PstoreKey = "app" } [||]
 
@@ -63,7 +64,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
                     "pstore"                  ==> pstore
                     "setTapCaptureVisibility" ==> LibClient.Components.TapCaptureDebugVisibility.setVisibleForDebug
                 ]
-            Browser.Dom.window?chaldal?AppEggShellGallery?test <- consoleTestBindings
+            Browser.Dom.window?eggshell?AppEggShellGallery?test <- consoleTestBindings
             #endif
 
             element
@@ -84,8 +85,8 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
 open Fable.Core
 [<Global>]
-let private chaldal: obj = jsNative
-chaldal?AppEggShellGallery?configSourceOverrides
+let private eggshell: obj = jsNative
+eggshell?AppEggShellGallery?configSourceOverrides
 |> ConfigSource.Base.withOverrides
 |> Config.tryOfSource
 |> init

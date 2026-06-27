@@ -25,6 +25,7 @@ type Props = (* GenerateMakeFunction *) {
     GlobalLinkHandler:   string option                       // defaultWithAutoWrap None
     ImageUrlTransformer: (Source -> string -> string) option // defaultWithAutoWrap None
     ShowdownConverter:   obj                                 // default ThirdParty.Showdown.Components.MarkdownViewer.defaultShowdownConverter
+    key:                 string option                       // defaultWithAutoWrap None
 }
 
 type Estate = {
