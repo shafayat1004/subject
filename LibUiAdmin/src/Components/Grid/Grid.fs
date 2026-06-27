@@ -86,15 +86,19 @@ module private Styles =
     let headers =
         makeViewStyles {
             FlexDirection.Row
-            Overflow.Visible
             AlignItems.Stretch
+            AlignSelf.Stretch
+            Overflow.Visible
+            widthPercent 100
         }
 
     let row =
         makeViewStyles {
             FlexDirection.Row
             AlignItems.Stretch
+            AlignSelf.Stretch
             Overflow.Visible
+            widthPercent 100
         }
 
     let rowAlt =
@@ -106,6 +110,15 @@ module private Styles =
         makeViewStyles {
             Overflow.Visible
             minHeight 100
+        }
+
+    /// Vertical stack for header + body inside a horizontal ScrollView (RN lays fragment
+    /// children out in a row when the scroll view is horizontal).
+    let nativeTableBody =
+        makeViewStyles {
+            FlexDirection.Column
+            AlignSelf.FlexStart
+            minWidth 320
         }
 
     let emptyMessage =
@@ -230,11 +243,11 @@ module private Styles =
         }
 
 #if !EGGSHELL_PLATFORM_IS_WEB
-module private NativeGrid =
+module NativeGrid =
     /// `element { ... }` produces a React fragment; RN flex rows need direct cell children.
     /// IIFE Emit — assign to a `let` before passing to RX.View (never inline into `children`).
     [<Emit("(function (el) { var c = el && el.props && el.props.children; if (c == null) return [el]; if (Array.isArray(c)) return c; return [c]; })($0)")>]
-    let private unwrapFragmentChildren (content: ReactElement) : ReactElements = jsNative
+    let unwrapFragmentChildren (content: ReactElement) : ReactElements = jsNative
 
     let headers (headers: ReactElement option) (headersRaw: ReactElement option) : ReactElement =
         match headersRaw, headers with
@@ -248,10 +261,10 @@ module private NativeGrid =
 
     let staticBody (headers: ReactElement) (rows: ReactElement) : ReactElement =
         RX.View (
-            styles = [| Styles.rows |],
+            styles = [| Styles.nativeTableBody |],
             children = [|
                 if headers <> noElement then headers
-                rows
+                RX.View (styles = [| Styles.rows |], children = [| rows |])
             |]
         )
 
@@ -277,6 +290,16 @@ module private NativeGrid =
                     )
                 )
                 |> Seq.toArray)
+        )
+
+    let tableBody (headerRow: ReactElement) (bodyRows: ReactElement) : ReactElement =
+        RX.View (
+            styles = [| Styles.nativeTableBody |],
+            children =
+                [|
+                    if headerRow <> noElement then headerRow
+                    bodyRows
+                |]
         )
 
 #endif
@@ -327,6 +350,33 @@ module private Helpers =
         #endif
 
 type UiAdmin with
+    /// Cross-platform table row: `dom.tr` on web, horizontal flex `RX.View` on native.
+    [<Component>]
+    static member GridRow (index: int, children: ReactElement, ?key: string, ?itemKey: string) : ReactElement =
+        let rowKey = key |> Option.orElse (itemKey |> Option.map id) |> Option.defaultValue (string index)
+
+        #if EGGSHELL_PLATFORM_IS_WEB
+        dom.tr
+            [|
+                unbox ("key", rowKey)
+                ClassName ("row" + (if index % 2 = 0 then " row-alt" else ""))
+            |]
+            [| children |]
+        #else
+        let cells = NativeGrid.unwrapFragmentChildren children
+        let rowStyles =
+            if index % 2 = 0 then
+                [| Styles.row; Styles.rowAlt |]
+            else
+                [| Styles.row |]
+
+        RX.View(
+            key = rowKey,
+            styles = rowStyles,
+            children = cells
+        )
+        #endif
+
     [<Component>]
     static member Grid<'T> (
             input:                   Input<'T>,
@@ -633,10 +683,9 @@ type UiAdmin with
                                         )
                                     |]
                                     #else
-                                    element {
+                                    NativeGrid.tableBody
                                         maybeHeaderElement
-                                        NativeGrid.desktopRows items makeDesktopRow itemKey
-                                    }
+                                        (NativeGrid.desktopRows items makeDesktopRow itemKey)
                                     #endif
                         ),
                     whenFailed =

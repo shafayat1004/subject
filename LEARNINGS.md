@@ -642,3 +642,14 @@ All build green via `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"`
   render/fsharp samples, so gallery Code avoids SyntaxHighlighter on web for now. SyntaxHighlighter
   `Make` was rewritten to use direct `createElement` (no `wrapComponentTransformingProps`) for other
   callers.
+
+### 2026-06-27 — Native Grid header beside body (layout + padding)
+
+- **Symptom:** On Android, grid headers appeared in a column on the left while row data
+  sat on the right; cells lacked the padding from web `table.la-table` CSS.
+- **Cause:** Native paginated/everything grid returned `element { header; rows }` (React
+  fragment) as the sole child of a **horizontal** `ScrollView`. RN laid fragment siblings
+  out in a row, so header and body sat side-by-side.
+- **Fix:** Wrap native header + body in `RX.View` with `FlexDirection.Column` (`nativeTableBody`).
+  Restore cell padding/borders on `UiAdmin.GridCell` to mirror `la-table` (20/10px, bottom
+  border, optional `isFirstColumn` for 30px left padding). Add `UiAdmin.GridRow` for static rows.

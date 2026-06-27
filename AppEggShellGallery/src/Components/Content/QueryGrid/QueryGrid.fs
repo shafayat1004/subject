@@ -47,14 +47,14 @@ type Acc = {
 module private Sample =
     let headers =
         element {
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Word") |]
+            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
             UiAdmin.GridCell [| LC.HeaderCell(label = "Character Count") |]
             UiAdmin.GridCell [| LC.HeaderCell(label = "Unique Character Count") |]
         }
 
     let makeRow (word: string, _, _refresh) =
         element {
-            UiAdmin.GridCell [| LC.Text word |]
+            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.Text word |])
             UiAdmin.GridCell [| LC.Text (string word.Length) |]
             UiAdmin.GridCell [| LC.Text (string (Content_Grid.Demo.uniqueCharacterCount word)) |]
         }

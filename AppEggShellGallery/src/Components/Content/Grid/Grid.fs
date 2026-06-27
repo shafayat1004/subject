@@ -48,21 +48,21 @@ module Demo =
 module private Samples =
     let wordHeaders =
         element {
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Word") |]
+            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
             UiAdmin.GridCell [| LC.HeaderCell(label = "Character Count") |]
             UiAdmin.GridCell [| LC.HeaderCell(label = "Unique Character Count") |]
         }
 
     let makeWordRow (word: string) =
         element {
-            UiAdmin.GridCell [| LC.Text word |]
+            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.Text word |])
             UiAdmin.GridCell [| LC.Text (string word.Length) |]
             UiAdmin.GridCell [| LC.Text (string (Demo.uniqueCharacterCount word)) |]
         }
 
     let fruitHeaders =
         element {
-            UiAdmin.GridCell [| LC.HeaderCell(label = "Name") |]
+            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.HeaderCell(label = "Name") |])
             UiAdmin.GridCell [| LC.HeaderCell(label = "Color") |]
             UiAdmin.GridCell [| LC.HeaderCell(label = "Taste") |]
             UiAdmin.GridCell [| LC.HeaderCell(label = "Price") |]
@@ -70,7 +70,7 @@ module private Samples =
 
     let makeFruitRow ((name, color, taste, price): Demo.RowData) =
         element {
-            UiAdmin.GridCell [| LC.Text name |]
+            UiAdmin.GridCell (isFirstColumn = true, children = [| LC.Text name |])
             UiAdmin.GridCell [| LC.Text color |]
             UiAdmin.GridCell [| LC.Text taste |]
             UiAdmin.GridCell [| LC.Text (string price) |]
@@ -84,19 +84,8 @@ module private Samples =
                 ("Lemon", "Yellow", "Sour", 8)
                 ("Apple", "Green", "Sweet", 11)
             ]
-            |> List.mapi (fun index (name, color, taste, price) ->
-                let cells =
-                    element {
-                        UiAdmin.GridCell [| LC.Text name |]
-                        UiAdmin.GridCell [| LC.Text color |]
-                        UiAdmin.GridCell [| LC.Text taste |]
-                        UiAdmin.GridCell [| LC.Text (string price) |]
-                    }
-                #if EGGSHELL_PLATFORM_IS_WEB
-                dom.tr [ unbox ("key", string index) ] [| cells |]
-                #else
-                RX.View(key = string index, children = [| cells |])
-                #endif
+            |> List.mapi (fun index row ->
+                UiAdmin.GridRow (index, makeFruitRow row)
             )
             |> Array.ofList
             |> castAsElement
