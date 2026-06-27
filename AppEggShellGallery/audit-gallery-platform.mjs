@@ -10,9 +10,8 @@ export const PLATFORM = {
 export const WEB_SAMPLE_CELL_SELECTOR =
   '.aesg-ContentComponent-table td.vertical-align-middle, .aesg-ContentComponent-table td.vertical-align-top';
 
-/** Native samples live in a horizontal ScrollView (see ComponentContent.render). */
-export const ANDROID_SAMPLE_CELL_SELECTOR =
-  'android=new UiSelector().className("android.widget.HorizontalScrollView")';
+/** React Native testId on ComponentSample visuals wrapper (RX.View.testId → testID). */
+export const ANDROID_SAMPLE_CELL_SELECTOR = '~aesg-sample-visuals';
 
 /**
  * @param {'web' | 'android'} platform

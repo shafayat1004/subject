@@ -178,7 +178,10 @@ async function auditPass(page, logcat, passIndex) {
     await logcat.clearBuffer();
 
     try {
-      await navigateToComponent(page, name, { pauseMs });
+      await navigateToComponent(page, name, {
+        pauseMs,
+        log: (msg) => appendFileSync(interactionsLogPath, `[${ts()}] ${name}: ${msg}\n`),
+      });
       if (slowMo > 0) await page.waitForTimeout(slowMo);
 
       try {
@@ -317,7 +320,11 @@ console.log(`  Output:   ${outRoot}`);
 
 await assertAdbReady();
 
-const page = await connectAndroidPage({ appiumHost, appiumPort });
+const page = await connectAndroidPage({
+  appiumHost,
+  appiumPort,
+  log: (msg) => console.log(`  [connect] ${msg}`),
+});
 const logcat = new LogcatCapture({ passDir: join(outRoot, 'pass-0') });
 logcat.start();
 

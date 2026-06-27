@@ -46,7 +46,10 @@ async function auditComponent(page, logcat, name) {
   await logcat.clearBuffer();
 
   try {
-    await navigateToComponent(page, name, { pauseMs });
+    await navigateToComponent(page, name, {
+      pauseMs,
+      log: (msg) => console.log(`  [${name}] ${msg}`),
+    });
 
     if (name === 'QueryGrid') {
       const submit = page.getByText('Submit', { exact: true });
@@ -96,7 +99,11 @@ console.log(`  Output: ${outDir}\n`);
 
 await assertAdbReady();
 
-const page = await connectAndroidPage({ appiumHost, appiumPort });
+const page = await connectAndroidPage({
+  appiumHost,
+  appiumPort,
+  log: (msg) => console.log(`  [connect] ${msg}`),
+});
 const logcat = new LogcatCapture({ passDir: outDir });
 logcat.start();
 

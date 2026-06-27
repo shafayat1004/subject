@@ -4,6 +4,7 @@
  */
 
 import { remote } from 'webdriverio';
+import { spawn } from 'child_process';
 import { ANDROID_APP } from './audit-gallery-platform.mjs';
 
 function escapeUi(text) {
@@ -391,9 +392,7 @@ export class AndroidPage {
   }
 
   async scrollSampleTable() {
-    const samples = this.locator(
-      'android=new UiSelector().className("android.widget.HorizontalScrollView")'
-    );
+    const samples = this.locator('~aesg-sample-visuals');
     const n = await samples.count();
     for (let i = 0; i < n; i++) {
       try {
@@ -424,6 +423,80 @@ export class AndroidPage {
 }
 
 /**
+ * @param {AndroidPage} page
+ */
+export async function getForegroundPackage(page) {
+  try {
+    return await page.driver.getCurrentPackage();
+  } catch {
+    return null;
+  }
+}
+
+function adbLaunchGallery() {
+  return new Promise((resolve, reject) => {
+    const p = spawn('adb', [
+      'shell',
+      'am',
+      'start',
+      '-n',
+      `${ANDROID_APP.package}/${ANDROID_APP.activity}`,
+      '-a',
+      'android.intent.action.MAIN',
+      '-c',
+      'android.intent.category.LAUNCHER',
+    ]);
+    p.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`adb am start exited ${code}`));
+    });
+    p.on('error', reject);
+  });
+}
+
+/**
+ * Bring the EggShell Gallery app to the foreground before navigation/interaction.
+ * Uses Appium activateApp, then adb am start if the package is still wrong.
+ * @param {AndroidPage} page
+ * @param {(msg: string) => void} [log]
+ */
+export async function ensureGalleryAppForeground(page, log = () => {}) {
+  const expected = ANDROID_APP.package;
+  let current = await getForegroundPackage(page);
+  if (current === expected) {
+    log('app already in foreground');
+    return;
+  }
+
+  log(`foreground is ${current ?? 'unknown'}, activating ${expected}`);
+
+  try {
+    await page.driver.activateApp(expected);
+    await page.waitForTimeout(600);
+  } catch (e) {
+    log(`activateApp failed (${e.message}), trying adb am start`);
+    await adbLaunchGallery().catch((err) => {
+      log(`adb am start failed: ${err.message}`);
+    });
+    await page.waitForTimeout(800);
+  }
+
+  current = await getForegroundPackage(page);
+  if (current !== expected) {
+    await adbLaunchGallery().catch(() => {});
+    await page.waitForTimeout(800);
+    current = await getForegroundPackage(page);
+  }
+
+  if (current !== expected) {
+    throw new Error(
+      `Gallery app not in foreground (expected ${expected}, got ${current ?? 'unknown'})`
+    );
+  }
+  log('gallery app in foreground');
+}
+
+/**
  * Connect to Appium and attach to the gallery app.
  * @param {{ appiumHost?: string, appiumPort?: number, deviceName?: string, noReset?: boolean }} [options]
  */
@@ -445,9 +518,15 @@ export async function connectAndroidPage(options = {}) {
       'appium:autoGrantPermissions': true,
       'appium:newCommandTimeout': 600,
       'appium:disableWindowAnimation': true,
+      'appium:appWaitActivity': ANDROID_APP.activity,
+      'appium:appWaitDuration': 30000,
     },
   });
-  return new AndroidPage(driver);
+  const page = new AndroidPage(driver);
+  await ensureGalleryAppForeground(page, (msg) => {
+    if (options.log) options.log(msg);
+  });
+  return page;
 }
 
 /** @param {AndroidPage} page */

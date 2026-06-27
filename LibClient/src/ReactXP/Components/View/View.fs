@@ -52,6 +52,7 @@ type ReactXP.Components.Constructors.RX with
         ?arbitrateFocus:                   FocusArbitrator,
         ?importantForLayout:               bool,
         ?id:                               string,
+        ?testId:                           string,
         ?ariaLabelledBy:                   string,
         ?ariaRoleDescription:              string,
         ?accessibilityLiveRegion:          AccessibilityLiveRegion,
@@ -110,6 +111,7 @@ type ReactXP.Components.Constructors.RX with
         __props?arbitrateFocus                   <- arbitrateFocus
         __props?importantForLayout               <- importantForLayout
         __props?id                               <- id
+        __props?testId                           <- testId
         __props?ariaLabelledBy                   <- ariaLabelledBy
         __props?ariaRoleDescription              <- ariaRoleDescription
         __props?accessibilityLiveRegion          <- accessibilityLiveRegion

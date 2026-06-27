@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { ensureGalleryAppForeground } from './audit-gallery-android-driver.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SIDEBAR_PATH = join(ROOT, 'src/Components/Sidebar/SidebarContent.fs');
@@ -84,9 +85,7 @@ export async function ensureComponentsSection(page) {
   const onList =
     (await page.getByText('Components Introduction', { exact: true }).count()) > 0 ||
     (await page.getByText('Layout', { exact: true }).count()) > 0 ||
-    (await page
-      .locator('android=new UiSelector().className("android.widget.HorizontalScrollView")')
-      .count()) > 0;
+    (await page.locator('~aesg-sample-visuals').count()) > 0;
   if (onList) return;
 
   const componentsNav = page.getByText('Components', { exact: true });
@@ -115,15 +114,17 @@ export async function scrollSidebarToLabel(page, label) {
  * Navigate to a gallery component page via the native sidebar.
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  * @param {string} componentName
- * @param {{ pauseMs?: number }} [options]
+ * @param {{ pauseMs?: number, log?: (msg: string) => void }} [options]
  */
 export async function navigateToComponent(page, componentName, options = {}) {
   const pauseMs = options.pauseMs ?? 800;
+  const log = options.log ?? (() => {});
   const label = sidebarLabelFor(componentName);
   if (!label) {
     throw new Error(`No sidebar label mapped for component "${componentName}"`);
   }
 
+  await ensureGalleryAppForeground(page, log);
   await ensureComponentsSection(page);
   await scrollSidebarToLabel(page, label);
 
@@ -134,11 +135,9 @@ export async function navigateToComponent(page, componentName, options = {}) {
   await item.first().click({ timeout: 10000 });
   await page.waitForTimeout(pauseMs);
 
-  // Wait for samples scroll region (Index may have none).
+  // Wait for sample visuals (Index may have none).
   if (componentName !== 'Index') {
-    const samples = page.locator(
-      'android=new UiSelector().className("android.widget.HorizontalScrollView")'
-    );
+    const samples = page.locator('~aesg-sample-visuals');
     const deadline = Date.now() + 30000;
     while (Date.now() < deadline) {
       if ((await samples.count()) > 0) return;

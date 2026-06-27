@@ -346,7 +346,7 @@ Mirrors the web Playwright audit: same interaction recipes (`audit-gallery-inter
 
 ### Prerequisites
 
-1. **Native bundle** (no special testIDs required):
+1. **Native bundle** (includes `testId` on sample wrappers — rebuild after pulling LibClient change):
    ```bash
    cd AppEggShellGallery
    ../eggshell dev-native
@@ -360,12 +360,14 @@ Mirrors the web Playwright audit: same interaction recipes (`audit-gallery-inter
    ```bash
    npx react-native run-android
    ```
-4. **Appium 2** (UiAutomator2):
+4. **Appium 2** (UiAutomator2) — installed locally in this project:
    ```bash
-   npm install -g appium
-   appium driver install uiautomator2
-   appium
+   cd AppEggShellGallery
+   npm install
+   npm run appium:setup          # once: installs uiautomator2@2.45.1 (Appium 2 compatible)
+   npm run appium                # start server on :4723
    ```
+   Or without npm scripts: `npx appium` / `npx appium driver install uiautomator2`
 5. **adb device** connected (`adb devices` shows `device`).
 
 ### Run
@@ -415,14 +417,14 @@ AppEggShellGallery/audit-android/interactive/<ISO-timestamp>/
     summary.md
 ```
 
-Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). Sample cells are scoped to the native horizontal samples `ScrollView` (one region per page; multi-column pages are not split into separate cells yet).
+Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). Before each page, the runner calls `ensureGalleryAppForeground` (`activateApp` + adb fallback) so the gallery is focused even if another app was on screen.
 
 ### Android vs web differences
 
 | Area | Web | Android |
 |------|-----|---------|
 | Navigation | URL `/Desktop/Components/...` | Sidebar tap |
-| Sample scope | `.aesg-ContentComponent-table td...` | Horizontal samples `ScrollView` |
+| Sample scope | `.aesg-ContentComponent-table td...` | `~aesg-sample-visuals` |
 | Labels/buttons | `[data-text-as-pseudo-element]` | Native `TextView` text |
 | Console | Playwright `page.on('console')` | `adb logcat` (ReactNativeJS) |
 | File inputs | `setInputFiles` on hidden input | Skipped (OS picker) |

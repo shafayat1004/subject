@@ -13,7 +13,7 @@
                 vertical-align-top        := props.VerticalAlignment = VerticalAlignment.Top;
                 layout-code-below-samples := props.Layout            = Layout.CodeBelowSamples;
             '>
-                <div class='visuals'>
+                <div class='visuals' testId='"aesg-sample-visuals"'>
                     <LC.With.Context Context='AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext' rt-with='sampleVisualsScreenSize: ScreenSize'>
                         <LC.ForceContext rt-fs='true' Context='screenSizeContext' Value='sampleVisualsScreenSize'>
                             {=props.Visuals}
@@ -46,7 +46,9 @@
         </dom.tr>
     <rt-sharp value='else' />
         <LC.Heading class='heading' Level='~Tertiary' rt-mapo='heading := props.Heading'>{heading}</LC.Heading>
-        {=props.Visuals}
+        <div testId='"aesg-sample-visuals"'>
+            {=props.Visuals}
+        </div>
         <div class='code-and-notes'>
             <div class='code'>
                 <rt-match what='props.Code'>

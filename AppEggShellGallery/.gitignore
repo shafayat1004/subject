@@ -30,6 +30,13 @@ configSourceOverrides.native.js
 # iOS libraries and dependencies
 ios/Pods/
 
+# Fable native dev emits JS beside .fs sources (Metro uses .build/native/commonjs/ instead)
+**/*.fs.js
+
+# Android gallery audit output
+audit-android/interactive/
+audit-android/local/
+
 # Playwright gallery audit output
 audit-browser/interactive/
 audit-browser/local/
