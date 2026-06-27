@@ -54,6 +54,17 @@ type private HelperComponents =
                 |]
         )
 
+type private FailureProps = {
+    Error: AsyncDataFailure
+}
+
+type private ThrowAsyncDataFailure(initialProps: FailureProps) as this =
+    inherit Fable.React.Component<FailureProps, unit>(initialProps)
+
+    override _.render() =
+        raise (AsyncDataException this.props.Error)
+        noElement
+
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member AsyncData<'T>(
@@ -136,7 +147,7 @@ type LibClient.Components.Constructors.LC with
                 match whenFailed, whenElse with
                 | None, None ->
                     // error boundaries up the tree should catch this and deal with it as appropriate
-                    raise (AsyncDataException error)
+                    Fable.React.Helpers.ofType<ThrowAsyncDataFailure, FailureProps, unit> { Error = error } Seq.empty
                 | Some whenFailed, _ ->
                     error |> whenFailed |> wrapWithStableKey
                 | None, Some whenElse ->

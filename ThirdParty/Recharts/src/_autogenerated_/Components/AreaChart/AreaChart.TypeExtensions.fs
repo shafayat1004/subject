@@ -3,6 +3,8 @@ namespace ThirdParty.Recharts.Components
 open LibClient
 open LibClient.JsInterop
 open Fable.Core
+open Fable.React
+open Fable.React.Props
 open ThirdParty.Recharts.Components.Shared
 open ThirdParty.Recharts.Components.AreaChart
 open Fable.Core.JsInterop

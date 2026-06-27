@@ -120,16 +120,20 @@ type Ui.Content with
                     "QueryGrid is a paginated Grid that is type parametrized by 'Query, taking as props a chunk of UI through which the user inputs the query, and a query execution function.",
             samples =
                 element {
-                    Ui.ComponentSample(
-                        verticalAlignment = VerticalAlignment.Top,
-                        visuals = QueryGridDemo.Render(),
-                        code =
-                            ComponentSample.Children(
-                                element {
-                                    Ui.Code(
-                                        language = Fsharp,
-                                        children =
-                                            [| LC.Text """
+                    LC.Fragment(
+                        key = "query-grid-demo",
+                        children =
+                            [|
+                                Ui.ComponentSample(
+                                    verticalAlignment = VerticalAlignment.Top,
+                                    visuals = QueryGridDemo.Render(),
+                                    code =
+                                        ComponentSample.Children(
+                                            element {
+                                                Ui.Code(
+                                                    language = Fsharp,
+                                                    children =
+                                                        [| LC.Text """
 // This is run-of-the-mill form definition: a DU of fields, the result type that
 // a successfully validated form produces (Query), and an accumulator (Acc) that
 // implements AbstractAcc (from LibClient.Components.Form.Base.Types).
@@ -162,11 +166,11 @@ type Acc = {
     interface AbstractAcc<Field, Query> with
         member this.Validate () : Result<Query, ValidationErrors<Field>> = ...
 """ |]
-                                    )
-                                    Ui.Code(
-                                        language = Fsharp,
-                                        children =
-                                            [| LC.Text """
+                                                )
+                                                Ui.Code(
+                                                    language = Fsharp,
+                                                    children =
+                                                        [| LC.Text """
 // This code is essentially emulating a backend server that processes the query.
 let executeQuery (queryPage: QueryPage<Query>) =
     async {
@@ -181,11 +185,11 @@ let executeQuery (queryPage: QueryPage<Query>) =
             |> Available
     }
 """ |]
-                                    )
-                                    Ui.Code(
-                                        language = Fsharp,
-                                        children =
-                                            [| LC.Text """
+                                                )
+                                                Ui.Code(
+                                                    language = Fsharp,
+                                                    children =
+                                                        [| LC.Text """
 let pageHook = Hooks.useState (Page.BlankPage (PositiveInteger.ofLiteral 10))
 
 UiAdmin.QueryGrid(
@@ -198,9 +202,11 @@ UiAdmin.QueryGrid(
     queryForm = queryForm
 )
 """ |]
-                                    )
-                                }
-                            )
+                                                )
+                                            }
+                                        )
+                                )
+                            |]
                     )
                 }
         )

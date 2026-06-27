@@ -97,7 +97,7 @@ module private Samples =
 
             rows
             |> List.mapi (fun index row ->
-                UiAdmin.GridRow (index, makeFruitRow row, showBottomBorder = (index < lastIndex))
+                UiAdmin.GridRow (index, makeFruitRow row, showBottomBorder = (index < lastIndex), key = string index)
             )
             |> List.toArray
             |> castAsElement
@@ -141,7 +141,8 @@ module private PaginatedWordsDemo =
 
         UiAdmin.Grid(
             input = LibUiAdmin.Components.Grid.Paginated(currentPageHook.current, Samples.makeWordRow, None),
-            headers = Samples.wordHeaders
+            headers = Samples.wordHeaders,
+            itemKey = id
         )
 
 type Ui.Content with
@@ -155,8 +156,12 @@ type Ui.Content with
                     "The grid is currently fairly basic, we're building it out as we go. If you have needs that are currently not supported, tell Anton and we'll make it happen. Also see QueryGrid and WithSortAndFilter for additional options.",
             samples =
                 element {
-                    Ui.ComponentSample(
-                        heading = "Dynamic asynchronous rows, paginated",
+                    LC.Fragment(
+                        key = "dynamic-paginated",
+                        children =
+                            [|
+                                Ui.ComponentSample(
+                                    heading = "Dynamic asynchronous rows, paginated",
                         verticalAlignment = VerticalAlignment.Top,
                         visuals = PaginatedWordsDemo.Render(),
                         code =
@@ -187,10 +192,16 @@ UiAdmin.Grid(
                                     )
                                 }
                             )
+                                )
+                            |]
                     )
 
-                    Ui.ComponentSample(
-                        heading = "Dynamic asynchronous rows, displayed in full",
+                    LC.Fragment(
+                        key = "dynamic-full",
+                        children =
+                            [|
+                                Ui.ComponentSample(
+                                    heading = "Dynamic asynchronous rows, displayed in full",
                         verticalAlignment = VerticalAlignment.Top,
                         visuals =
                             UiAdmin.Grid(
@@ -213,10 +224,16 @@ UiAdmin.Grid(
                                     )
                                 }
                             )
+                                )
+                            |]
                     )
 
-                    Ui.ComponentSample(
-                        heading = "Static, hardcoded rows",
+                    LC.Fragment(
+                        key = "static",
+                        children =
+                            [|
+                                Ui.ComponentSample(
+                                    heading = "Static, hardcoded rows",
                         verticalAlignment = VerticalAlignment.Top,
                         visuals =
                             UiAdmin.Grid(
@@ -232,6 +249,8 @@ UiAdmin.Grid(
 )
 """
                             )
+                                )
+                                |]
                     )
                 }
         )

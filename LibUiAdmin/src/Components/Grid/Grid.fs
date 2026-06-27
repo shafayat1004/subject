@@ -252,12 +252,15 @@ module private Styles =
                 }
         }
 
+module private FragmentHelpers =
+    /// `element { ... }` produces a React fragment; table rows need direct cell/row children.
+    [<Emit("(function (el) { var c = el && el.props && el.props.children; if (c == null) return [el]; if (Array.isArray(c)) return c; return [c]; })($0)")>]
+    let unwrapFragmentChildren (content: ReactElement) : ReactElements = jsNative
+
 #if !EGGSHELL_PLATFORM_IS_WEB
 module NativeGrid =
     /// `element { ... }` produces a React fragment; RN flex rows need direct cell children.
-    /// IIFE Emit — assign to a `let` before passing to RX.View (never inline into `children`).
-    [<Emit("(function (el) { var c = el && el.props && el.props.children; if (c == null) return [el]; if (Array.isArray(c)) return c; return [c]; })($0)")>]
-    let unwrapFragmentChildren (content: ReactElement) : ReactElements = jsNative
+    let unwrapFragmentChildren = FragmentHelpers.unwrapFragmentChildren
 
     let headers (headers: ReactElement option) (headersRaw: ReactElement option) : ReactElement =
         match headersRaw, headers with
@@ -354,13 +357,14 @@ module private Helpers =
 
     let maybeHeaders (headers: ReactElement option) (headersRaw: ReactElement option) : ReactElement =
         #if EGGSHELL_PLATFORM_IS_WEB
+        let headerRow (cells: ReactElement) : ReactElement =
+            dom.tr [] (FragmentHelpers.unwrapFragmentChildren cells)
+
         match headersRaw, headers with
         | _, Some raw ->
-            dom.thead [ ClassName "headers" ] [| raw |]
+            dom.thead [ ClassName "headers" ] [| headerRow raw |]
         | Some h, None ->
-            dom.thead [ ClassName "headers" ] [|
-                dom.tr [] [| h |]
-            |]
+            dom.thead [ ClassName "headers" ] [| headerRow h |]
         | None, None ->
             noElement
         #else
@@ -380,7 +384,7 @@ type UiAdmin with
                 unbox ("key", rowKey)
                 ClassName ("row" + (if index % 2 = 0 then " row-alt" else ""))
             |]
-            [| children |]
+            (FragmentHelpers.unwrapFragmentChildren children)
         #else
         let cells = NativeGrid.unwrapFragmentChildren children
         let rowStyles =
@@ -644,7 +648,7 @@ type UiAdmin with
                     #if EGGSHELL_PLATFORM_IS_WEB
                     dom.table [ ClassName "la-table" ] [|
                         maybeHeaderElement
-                        dom.tbody [ ClassName "rows" ] [| rows |]
+                        dom.tbody [ ClassName "rows" ] (FragmentHelpers.unwrapFragmentChildren rows)
                     |]
                     #else
                     NativeGrid.staticBody maybeHeaderElement rows
@@ -697,7 +701,7 @@ type UiAdmin with
                                                         unbox ("key", itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index))
                                                         ClassName ("row" + (if index % 2 = 0 then " row-alt" else ""))
                                                     |]
-                                                    [| makeDesktopRow item |]
+                                                    (FragmentHelpers.unwrapFragmentChildren (makeDesktopRow item))
                                             )
                                             |> Seq.toArray
                                         )

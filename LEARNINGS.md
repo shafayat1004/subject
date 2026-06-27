@@ -5,6 +5,22 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-27 — Gallery console audit fixes (Grid, Recharts, Map, AsyncData)
+
+**Grid web:** `headers` prop passes a fragment of `GridCell` (`dom.td`) children; `maybeHeaders` must wrap them in `dom.tr` and unwrap fragments (same as body rows). Shared helper: `FragmentHelpers.unwrapFragmentChildren`.
+
+**GridCell native style-leak:** `ViewStyles.Memoize` still re-allocated on re-render (fast-memoize tuple keying); use a module-level `Dictionary<string, ViewStyles>` keyed by `width-total-firstCol`.
+
+**Recharts `useRef` null:** ThirdParty/Recharts ships a nested `react` copy; webpack must alias `react` and `react-dom` to `LibClient/node_modules` (`Meta/LibFablePlus/webpack.config.js`). Also fix `ResponsiveContainer` / `AreaChart` `Make`: pass `children` as the third arg to `createElement`, not via `props?children`.
+
+**Map `setPosition` lat errors:** (1) Centered markers: guard `getCenter()` until lat/lng are valid; listen on `idle` too. (2) `MapPosition.Auto` with no markers/shapes: `fitBounds` on empty bounds → bad center; fall back to `dhakaLatLng`. (3) InfoWindow template used `"lon"` instead of `"lng"`.
+
+**AsyncData gallery pageerrors:** mount-time `Failed` without `WhenFailed` throws `AsyncDataException` that Playwright reports even inside `ErrorBoundary`. Pure-F# gallery page (`AsyncData.fs`) uses button-triggered failure demo instead.
+
+**ErrorBoundary:** add `getDerivedStateFromError` so render-phase errors update state synchronously (React 18).
+
+---
+
 ## 2026-06-27 — Gallery `Code` / SyntaxHighlighter crash on web
 
 **Symptom:** IconButton (and other component gallery pages) throw `Objects are not valid as a React child` inside `<SyntaxHighlighter>`. Console also shows missing-key warnings in `ComponentContent` / `ComponentSample` (benign).

@@ -6,6 +6,8 @@ open LibClient
 open LibClient.JsInterop
 
 open Fable.Core
+open Fable.React
+open Fable.React.Props
 
 open ThirdParty.Recharts.Components.Shared
 
@@ -31,22 +33,21 @@ type Props = (* GenerateMakeFunction *) {
 
 }
 
-let private AreaChart: obj = JsInterop.import "AreaChart" "recharts"
-let Make =
-    LibClient.ThirdParty.wrapComponentTransformingProps<Props>
-        AreaChart
-        (fun (props: Props) ->
-            createObjWithOptionalValues [
-                "children"     ==!> props?children // TODO check that removing unpackAsFragment doesn't break it
-                "layout"       ==?> props.Layout
-                "width"        ==?> props.Width
-                "height"       ==?> props.Height
-                "data"         ==?> props.Data
-                "margin"       ==?> (props.Margin |> Option.map (fun v -> v.ToJS))
-                "stackOffset"  ==?> props.StackOffset
-                "onClick"      ==?> props.OnClick
-                "onMouseEnter" ==?> props.OnMouseEnter
-                "onMouseMove"  ==?> props.OnMouseMove
-                "onMouseLeave" ==?> props.OnMouseLeave
-            ]
-        )
+let private AreaChartRaw: obj = JsInterop.import "AreaChart" "recharts"
+let Make (props: Props) (children: array<Fable.React.ReactElement>) =
+    Fable.React.ReactBindings.React.createElement(
+        AreaChartRaw,
+        (createObjWithOptionalValues [
+            "layout"       ==?> props.Layout
+            "width"        ==?> props.Width
+            "height"       ==?> props.Height
+            "data"         ==?> props.Data
+            "margin"       ==?> (props.Margin |> Option.map (fun v -> v.ToJS))
+            "stackOffset"  ==?> props.StackOffset
+            "onClick"      ==?> props.OnClick
+            "onMouseEnter" ==?> props.OnMouseEnter
+            "onMouseMove"  ==?> props.OnMouseMove
+            "onMouseLeave" ==?> props.OnMouseLeave
+        ]),
+        LibClient.ThirdParty.fixPotentiallySingleChild children
+    )

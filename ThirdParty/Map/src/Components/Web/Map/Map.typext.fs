@@ -481,14 +481,20 @@ type Map(_initialProps) as this =
             let centerMarker () =
                 let latLng = map?getCenter()
 
-                if latLng = JsUndefined then failwith "Attempting to center marker but map has no center defined"
+                if latLng <> JsUndefined then
+                    let lat = latLng?lat()
+                    let lng = latLng?lng()
 
-                jsMarker.Value?setPosition(latLng)
+                    if not (System.Double.IsNaN lat) && not (System.Double.IsNaN lng) then
+                        jsMarker.Value?setPosition(latLng)
 
             centerMarker ()
 
-            let listener = googleMaps.Api?maps?event?addDomListener(map, "center_changed", (fun () -> centerMarker ()))
+            let listener = googleMaps.Api?maps?event?addListener(map, "center_changed", (fun () -> centerMarker ()))
             this.RunOnUnmount(fun () -> googleMaps.Api?maps?event?removeListener(listener))
+
+            let idleListener = googleMaps.Api?maps?event?addListener(map, "idle", (fun () -> centerMarker ()))
+            this.RunOnUnmount(fun () -> googleMaps.Api?maps?event?removeListener(idleListener))
 
         match marker.ZIndex with
         | Some zIndex -> jsMarker.Value?setZIndex(zIndex)
@@ -751,7 +757,7 @@ type Map(_initialProps) as this =
                     createObj [
                         "position"      ==> createObj [
                             "lat" ==> 23.44
-                            "lon" ==> 90.44
+                            "lng" ==> 90.44
                         ]
                         "headerContent" ==> "Coordinates"
                     ]
@@ -952,21 +958,27 @@ type Map(_initialProps) as this =
             )
 
             if googleMaps.Map?getCenter() = JsUndefined && props.Position = MapPosition.Auto then
-                // No center set yet and we want to set automatically
-                let bounds = createNew googleMaps.Api?maps?LatLngBounds ()
+                let hasMarkers = existingJsMarkers.Count > 0
+                let hasShapes = existingJsShapes.Count > 0
 
-                // Use all added markers to extend the bounds...
-                existingJsMarkers.Values
-                |> Seq.iter (fun jsMarker -> bounds?extend(jsMarker.Value?getPosition()))
+                if hasMarkers || hasShapes then
+                    // No center set yet and we want to set automatically
+                    let bounds = createNew googleMaps.Api?maps?LatLngBounds ()
 
-                // ...and all shapes
-                existingJsShapes.Values
-                |> Seq.iter (fun jsShape -> jsShape.GetBoundaryPoints() |> Array.iter (fun point ->
-                    bounds?extend(point))
-                )
+                    // Use all added markers to extend the bounds...
+                    existingJsMarkers.Values
+                    |> Seq.iter (fun jsMarker -> bounds?extend(jsMarker.Value?getPosition()))
 
-                googleMaps.Map?fitBounds(bounds)
-                googleMaps.Map?panToBounds(bounds)
+                    // ...and all shapes
+                    existingJsShapes.Values
+                    |> Seq.iter (fun jsShape -> jsShape.GetBoundaryPoints() |> Array.iter (fun point ->
+                        bounds?extend(point))
+                    )
+
+                    googleMaps.Map?fitBounds(bounds)
+                    googleMaps.Map?panToBounds(bounds)
+                else
+                    googleMaps.Map?setCenter(ThirdParty.Map.Types.dhakaLatLng |> LatLng.toJs)
 
                 // TODO: update OnCenterChanged listener, if any
 

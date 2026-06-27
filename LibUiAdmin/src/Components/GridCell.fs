@@ -51,21 +51,29 @@ module GridCellStyles =
 
 [<RequireQualifiedAccess>]
 module private Styles =
+    let private cellStylesCache = System.Collections.Generic.Dictionary<string, ViewStyles>()
+
     /// Fixed column width as a row-percentage (same on every row, like HTML table columns).
-    let cell =
-        ViewStyles.Memoize (fun (widthUnits: int) (totalUnits: int) (isFirstColumn: bool) ->
-            makeViewStyles {
-                widthPercent (columnWidthPercent widthUnits totalUnits)
-                flexGrow 0
-                flexShrink 0
-                FlexDirection.Row
-                AlignItems.Center
-                JustifyContent.FlexStart
-                Overflow.Hidden
-                paddingHorizontal 10
-                paddingVertical 20
-                if isFirstColumn then paddingLeft 30
-            })
+    let cell (widthUnits: int) (totalUnits: int) (isFirstColumn: bool) : ViewStyles =
+        let key = sprintf "%i-%i-%b" widthUnits totalUnits isFirstColumn
+        match cellStylesCache.TryGetValue key with
+        | true, styles -> styles
+        | false, _ ->
+            let styles =
+                makeViewStyles {
+                    widthPercent (columnWidthPercent widthUnits totalUnits)
+                    flexGrow 0
+                    flexShrink 0
+                    FlexDirection.Row
+                    AlignItems.Center
+                    JustifyContent.FlexStart
+                    Overflow.Hidden
+                    paddingHorizontal 10
+                    paddingVertical 20
+                    if isFirstColumn then paddingLeft 30
+                }
+            cellStylesCache.[key] <- styles
+            styles
 
     let cellContent =
         makeViewStyles {
@@ -94,6 +102,9 @@ type UiAdmin with
         let cellKey = key |> Option.defaultValue (string columnIndex)
 
         #if EGGSHELL_PLATFORM_IS_WEB
+        ignore widthUnits
+        ignore totalUnits
+        ignore isFirstColumn
         let classes =
             match className with
             | Some c when c <> "" -> c

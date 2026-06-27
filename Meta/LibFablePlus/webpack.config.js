@@ -16,6 +16,8 @@ console.log(`Bundle entry path is: ${BUNDLE_ENTRY_PATH}`);
 console.log(`Bundle output path is: ${BUNDLE_OUTPUT_PATH}`);
 console.log(`Tool path is: ${TOOL_PATH}`);
 
+const libClientNodeModules = safeJoin(findDirUpwards("LibClient"), "node_modules");
+
 const commonConfig = {
     // Do we want source maps in production? If so, move the source-map-loader from dev to common config.
     devtool: isDev ? "eval-source-map" : false,
@@ -26,6 +28,11 @@ const commonConfig = {
         filename: isDev ? "bundle.js" : "bundle.[hash].js",
     },
     resolve: {
+        alias: {
+            // ThirdParty libs (e.g. recharts) ship nested react copies; force a single instance.
+            react:     libClientNodeModules ? path.join(libClientNodeModules, "react")     : "react",
+            "react-dom": libClientNodeModules ? path.join(libClientNodeModules, "react-dom") : "react-dom",
+        },
         modules: [
             "node_modules",
             safeJoin(findDirUpwards("LibClient"),                         "node_modules"),

@@ -4,6 +4,8 @@ open LibClient
 open LibClient.JsInterop
 open Fable.Core
 open Fable.Core.JsInterop
+open Fable.React
+open Fable.React.Props
 open ThirdParty.Recharts.Components.Shared
 open ThirdParty.Recharts.Components.ResponsiveContainer
 open Fable.Core.JsInterop
