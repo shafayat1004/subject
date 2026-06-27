@@ -8,6 +8,18 @@ open LibClient.Components.Input
 
 type private Helpers =
     [<Component>]
+    static member BasicLabelSample() : ReactElement =
+        let value = Hooks.useState (Some false)
+
+        LC.Input.Checkbox(
+            label = String "Accept terms",
+            value = value.current,
+            onChange = (fun isChecked -> value.update (Some isChecked)),
+            validity = Valid,
+            testId = "input-checkbox-accept-terms"
+        )
+
+    [<Component>]
     static member ChildrenLabelSample() : ReactElement =
         let value = Hooks.useState (Some true)
 
@@ -45,6 +57,22 @@ type Ui.Content.Input with
                         heading = "Basics",
                         samples =
                             element {
+                                Ui.ComponentSample(
+                                    visuals = Helpers.BasicLabelSample(),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+LC.Input.Checkbox(
+    label = String "Accept terms",
+    value = value,
+    onChange = setValue,
+    validity = Valid,
+    testId = "input-checkbox-accept-terms"
+)"""
+                                        )
+                                )
+
                                 Ui.ComponentSample(
                                     visuals = Helpers.ChildrenLabelSample(),
                                     code =

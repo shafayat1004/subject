@@ -26,7 +26,8 @@ type Ui.Content.Input with
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
-                        heading = "Modes",
+                        heading = "Basics",
+                        notes = LC.Text "Duration input uses separate numeric fields for hours and minutes. Hours must be between 0 and 23; minutes between 0 and 59. Pass shouldDisplayDays to add an optional days field. A complete duration is available in Value.Result only when all required fields are filled and valid.",
                         samples = (
                             element {
                                 Ui.ComponentSample(

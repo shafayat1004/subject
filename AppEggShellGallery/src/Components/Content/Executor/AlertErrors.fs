@@ -13,42 +13,62 @@ let failAsynchronously (): Async<Result<unit, UDActionErrorMessage>> =
 
 type Ui.Content.Executor with
     [<Component>]
-    static member AlertErrors () : ReactElement =
-        Ui.ComponentContent (
+    static member AlertErrors() : ReactElement =
+        Ui.ComponentContent(
             displayName = "AlertErrors",
-            isResponsive = false,
-            samples = (
+            props =
+                ComponentContent.ForFullyQualifiedName
+                    "LibClient.Components.Executor.AlertErrors",
+            samples =
                 element {
                     Ui.ComponentSampleGroup(
-                        samples = (
+                        samples =
                             element {
                                 Ui.ComponentSample(
                                     heading = "Basic",
-                                    visuals = (
+                                    visuals =
                                         LC.Executor.AlertErrors(
                                             ``with`` =
-                                                (fun makeExecutor ->
+                                                fun makeExecutor ->
                                                     element {
                                                         LC.Text "Press the button below to asynchronously fail an operation."
+
                                                         LC.Button(
                                                             label = "Fail Asynchronously",
                                                             state =
-                                                                ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (fun _ ->
-                                                                    let executor = makeExecutor "some key"
-                                                                    executor.MaybeExecute failAsynchronously)
+                                                                ButtonHighLevelState.LowLevel(
+                                                                    ButtonLowLevelState.Actionable(
+                                                                        fun _ ->
+                                                                            let executor = makeExecutor "some key"
+                                                                            executor.MaybeExecute failAsynchronously
+                                                                    )
                                                                 )
                                                         )
                                                     }
-                                                )
+                                        ),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+LC.Executor.AlertErrors(
+    ``with`` = fun makeExecutor ->
+        element {
+            LC.Text "Press the button below to asynchronously fail an operation."
+            LC.Button(
+                label = "Fail Asynchronously",
+                state = ButtonHighLevelState.LowLevel (
+                    ButtonLowLevelState.Actionable (fun _ ->
+                        let executor = makeExecutor "some key"
+                        executor.MaybeExecute failAsynchronously
+                    )
+                )
+            )
+        }
+)
+"""
                                         )
-                                    ),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
                                 )
                             }
-                        )
                     )
                 }
-            )
         )
-
-

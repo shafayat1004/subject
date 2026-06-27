@@ -43,6 +43,48 @@ module private Module_LibClient_Disposables_CompositeDisposable =
         )
 
 
+module private Module_LibClient_Accessibility_AccessibilityRole =
+
+    [<Component>]
+    let content () : ReactElement =
+        Ui.ComponentContent (
+            displayName = "T:LibClient.Accessibility.AccessibilityRole",
+            
+            notes       = LC.Text """Matches ReactXP Types.AccessibilityRole (priority-ordered enum values).""",
+            samples     = element {
+                LC.Text "No examples"
+            }
+        )
+
+
+module private Module_LibClient_Accessibility =
+
+    [<Component>]
+    let content () : ReactElement =
+        Ui.ComponentContent (
+            displayName = "T:LibClient.Accessibility",
+            
+            notes       = LC.Text """Cross-platform accessibility types aligned with @chaldal/reactxp CommonAccessibilityProps.""",
+            samples     = element {
+                LC.Text "No examples"
+            }
+        )
+
+
+module private Module_LibClient_UiActionLog =
+
+    [<Component>]
+    let content () : ReactElement =
+        Ui.ComponentContent (
+            displayName = "T:LibClient.UiActionLog",
+            
+            notes       = LC.Text """Dev-only structured UI action log and interactive registry for automation/AI snapshots.""",
+            samples     = element {
+                LC.Text "No examples"
+            }
+        )
+
+
 module private Module_Fragment =
 
     [<Component>]
@@ -973,6 +1015,15 @@ type Ui.XmlDocsContent.LC with
 
     static member LibClient_Disposables_CompositeDisposable () : ReactElement =
         Module_LibClient_Disposables_CompositeDisposable.content ()
+
+    static member LibClient_Accessibility_AccessibilityRole () : ReactElement =
+        Module_LibClient_Accessibility_AccessibilityRole.content ()
+
+    static member LibClient_Accessibility () : ReactElement =
+        Module_LibClient_Accessibility.content ()
+
+    static member LibClient_UiActionLog () : ReactElement =
+        Module_LibClient_UiActionLog.content ()
 
     static member Fragment () : ReactElement =
         Module_Fragment.content ()

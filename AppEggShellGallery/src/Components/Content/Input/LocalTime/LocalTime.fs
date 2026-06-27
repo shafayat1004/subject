@@ -26,7 +26,8 @@ type Ui.Content.Input with
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
-                        heading = "Modes",
+                        heading = "Basics",
+                        notes = LC.Text "LocalTime input uses 12-hour format: separate hour (1–12) and minute (0–59) fields with an AM/PM picker. A complete time is available in Value.Result only when both fields are filled and valid.",
                         samples = (
                             element {
                                 Ui.ComponentSample(

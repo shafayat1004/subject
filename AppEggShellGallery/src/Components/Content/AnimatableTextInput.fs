@@ -61,6 +61,38 @@ type Ui.Content with
         Ui.ComponentContent (
             displayName = "AnimatableTextInput",
             isResponsive = false,
+            props = ComponentContent.Manual (
+                Ui.ComponentProps (data = {
+                    Fields = (Choice2Of2 [
+                        {
+                            Name = "value"
+                            Type = "string"
+                            Default = None
+                            Description = None
+                        }
+                        {
+                            Name = "placeholder"
+                            Type = "string"
+                            Default = None
+                            Description = None
+                        }
+                        {
+                            Name = "onChangeText"
+                            Type = "string -> unit"
+                            Default = None
+                            Description = None
+                        }
+                        {
+                            Name = "styles"
+                            Type = "array<AnimatableTextInputStyles>"
+                            Default = None
+                            Description = Some "Input styles with animated properties (fontSize, color, etc.) via makeAnimatableTextInputStyles"
+                        }
+                    ])
+                    MaybeScrapeErrors = None
+                })
+            ),
+            notes = LC.Text """RX.AnimatableTextInput is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated input styles.""",
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
@@ -69,7 +101,22 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Basic",
                                     visuals = Helpers.Basic(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+let animatedValue = Hooks.useRef (AnimatedValue.Create 32.0)
+let text = Hooks.useState "My name"
+
+RX.AnimatableTextInput(
+    value = text.current,
+    placeholder = "Name",
+    onChangeText = text.update,
+    styles = [| makeAnimatableTextInputStyles {
+        color Color.DevRed
+        animatedFontSize (AnimatableValue.Value animatedValue.current)
+    } |]
+)
+
+Animation.Timing(animatedValue.current, 8.0, TimeSpan.FromSeconds 1).Start(...)
+""")
                                 )
                             }
                         )

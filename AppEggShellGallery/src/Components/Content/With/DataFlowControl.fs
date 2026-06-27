@@ -9,44 +9,67 @@ open LibClient.Components
 
 type Ui.Content.With with
     [<Component>]
-    static member DataFlowControl () : ReactElement =
+    static member DataFlowControl() : ReactElement =
         let deferred = Hooks.useState (Deferred<unit>())
 
-        Ui.ComponentContent (
+        Ui.ComponentContent(
             displayName = "DataFlowControl",
-            isResponsive = false,
-            samples = (
+            props =
+                ComponentContent.ForFullyQualifiedName
+                    "LibClient.Components.With.DataFlowControl",
+            notes =
+                element {
+                    LC.Text "PropagateImmediately: new data reaches the child render function right away."
+                    LC.Text "Block: new data is received but not propagated; the child keeps showing the last propagated value."
+                    LC.Text "PropagateWhenConfirmed: a confirmation prompt appears when new data differs from what the child currently shows."
+                    LC.Text "PropagateWhenResolved: propagation waits until the supplied Deferred resolves (e.g. after an async action completes)."
+                },
+            samples =
                 element {
                     Ui.ComponentSampleGroup(
-                        samples = (
+                        samples =
                             element {
                                 Ui.ComponentSample(
                                     heading = "Immediate Propagation",
-                                    visuals = (
+                                    visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds(5),
+                                            updateFrequency = TimeSpan.FromSeconds 5,
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
                                                         data = now,
-                                                        dataFlowPolicy = LC.With.DataFlowControlTypes.DataFlowPolicy.PropagateImmediately,
+                                                        dataFlowPolicy =
+                                                            LC.With.DataFlowControlTypes.DataFlowPolicy.PropagateImmediately,
                                                         ``with`` =
                                                             fun data ->
                                                                 element {
                                                                     LC.Text "Data:"
-                                                                    LC.Timestamp (UniDateTime.Of data)
+                                                                    LC.Timestamp(UniDateTime.Of data)
                                                                 }
                                                     )
+                                        ),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+LC.With.DataFlowControl(
+    data = now,
+    dataFlowPolicy = DataFlowPolicy.PropagateImmediately,
+    ``with`` = fun data ->
+        element {
+            LC.Text "Data:"
+            LC.Timestamp (UniDateTime.Of data)
+        }
+)
+"""
                                         )
-                                    ),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Blocked Propagation",
-                                    visuals = (
+                                    visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds(5),
+                                            updateFrequency = TimeSpan.FromSeconds 5,
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
@@ -56,70 +79,115 @@ type Ui.Content.With with
                                                             fun data ->
                                                                 element {
                                                                     LC.Text "Data:"
-                                                                    LC.Timestamp (UniDateTime.Of data)
+                                                                    LC.Timestamp(UniDateTime.Of data)
                                                                 }
                                                     )
+                                        ),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+LC.With.DataFlowControl(
+    data = now,
+    dataFlowPolicy = DataFlowPolicy.Block,
+    ``with`` = fun data ->
+        element {
+            LC.Text "Data:"
+            LC.Timestamp (UniDateTime.Of data)
+        }
+)
+"""
                                         )
-                                    ),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Confirmed Propagation",
-                                    visuals = (
+                                    visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds(5),
+                                            updateFrequency = TimeSpan.FromSeconds 5,
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
                                                         data = now,
-                                                        dataFlowPolicy = LC.With.DataFlowControlTypes.DataFlowPolicy.PropagateWhenConfirmed ("Please confirm the propagation", "Confirm"),
+                                                        dataFlowPolicy =
+                                                            LC.With.DataFlowControlTypes.DataFlowPolicy.PropagateWhenConfirmed (
+                                                                "Please confirm the propagation",
+                                                                "Confirm"
+                                                            ),
                                                         ``with`` =
                                                             fun data ->
                                                                 element {
                                                                     LC.Text "Data:"
-                                                                    LC.Timestamp (UniDateTime.Of data)
+                                                                    LC.Timestamp(UniDateTime.Of data)
                                                                 }
                                                     )
+                                        ),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+LC.With.DataFlowControl(
+    data = now,
+    dataFlowPolicy = DataFlowPolicy.PropagateWhenConfirmed (
+        "Please confirm the propagation",
+        "Confirm"
+    ),
+    ``with`` = fun data -> ...
+)
+"""
                                         )
-                                    ),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Resolved Propagation",
-                                    visuals = (
+                                    visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds(5),
+                                            updateFrequency = TimeSpan.FromSeconds 5,
                                             ``with`` =
                                                 fun now ->
                                                     element {
                                                         LC.With.DataFlowControl(
                                                             data = now,
-                                                            dataFlowPolicy = LC.With.DataFlowControlTypes.DataFlowPolicy.PropagateWhenResolved deferred.current,
+                                                            dataFlowPolicy =
+                                                                LC.With.DataFlowControlTypes.DataFlowPolicy.PropagateWhenResolved deferred.current,
                                                             ``with`` =
                                                                 fun data ->
                                                                     element {
                                                                         LC.Text "Data:"
-                                                                        LC.Timestamp (UniDateTime.Of data)
+                                                                        LC.Timestamp(UniDateTime.Of data)
                                                                     }
                                                         )
 
                                                         if deferred.current.IsPending then
                                                             LC.Button(
                                                                 "Tap to resolve",
-                                                                state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (fun _ -> deferred.current.Resolve()))
+                                                                state =
+                                                                    ButtonHighLevelState.LowLevel(
+                                                                        ButtonLowLevelState.Actionable(
+                                                                            fun _ -> deferred.current.Resolve()
+                                                                        )
+                                                                    )
                                                             )
                                                     }
+                                        ),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+let deferred = Hooks.useState (Deferred<unit>())
+
+LC.With.DataFlowControl(
+    data = now,
+    dataFlowPolicy = DataFlowPolicy.PropagateWhenResolved deferred.current,
+    ``with`` = fun data -> ...
+)
+
+if deferred.current.IsPending then
+    LC.Button("Tap to resolve", state = ... deferred.current.Resolve())
+"""
                                         )
-                                    ),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
                                 )
                             }
-                        )
                     )
                 }
-            )
         )
-
-
