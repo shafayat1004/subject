@@ -58,3 +58,4 @@ UpgradeLog.htm
 CodecValidationWorkSpace/
 charts/**/*.tgz
 Chart.lock
+.metals/metals.lock.db

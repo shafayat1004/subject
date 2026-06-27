@@ -25,9 +25,31 @@ AppEggShellGallery **`./gradlew assembleDebug`** now succeeds on RN **0.76.5** /
 **Scaffolding template sync:**
 - Android gradle files, Kotlin `MainApplication.kt`/`MainActivity.kt`, metro `mergeConfig(getDefaultConfig(...))`, `react-native.config.js` with CodePush `sourceDir`, gradle-wrapper **8.10.2**, `enableJetifier=false`, Hermes on.
 
-**Still deferred:** iOS Podfile/project refresh for RN 0.76 (not validated this session).
+**Still deferred:** iOS simulator run blocked on this machine (see iOS entry below).
 
 **Emulator dev workflow (validated 2026-06-27):** `assembleDebug` + install is not enough. Need concurrently: (1) `eggshell dev-native` (Fable → `.build/native/commonjs`), (2) `npx react-native start` on `:8081`, (3) `configSourceOverrides.native.js` (from template; gitignored), (4) `adb reverse tcp:8081 tcp:8081`. Metro `extraNodeModules` must include `@react-native-community/netinfo`, `react-native-svg`, etc. (not just `react-native.config.js` roots). If `copyStaticFiles` produces corrupt PNGs under `.build/native/assets`, recopy from `images/` (symlink target). Success signal in logcat: `Running "RXApp"`.
+
+---
+
+## 2026-06-27 — iOS scaffold for AppEggShellGallery (RN 0.76.5)
+
+The gallery had **no `ios/` directory at all** (only Android was in repo). Created from RN **0.76.5** CLI template, configured for this app:
+
+- Target/scheme: `AppEggshellGallery`
+- Bundle ID: `com.eggshell.appgallery` (matches Android)
+- RN module name: `RXApp` (matches `MainActivity.kt`)
+- Display name: `Egg Shell Gallery`
+- **Podfile:** `platform :ios, '15.5'` (CodePush 9.x requires ≥15.5), `$RNFirebaseAnalyticsWithoutAdIdSupport = true`, `use_modular_headers!` (Firebase static libs)
+- **`pod install` green** — 97 pods (Hermes, CodePush, RNFB, maps 1.20.1, svg 15.11.2, etc.)
+- **`eggshell build-native` green**
+
+**Simulator run blocked here:** Xcode **26.5** SDK requires **iOS 26.5 Simulator** runtime; machine only has 18.2 + 26.2 runtimes. `xcodebuild -downloadPlatform iOS` fails with **Insufficient space (needs ~8.5 GB, ~6.4 GB free)**. Until runtime is installed (or disk freed), `xcodebuild` / `run-ios` show zero eligible simulator destinations.
+
+**Update 2026-06-27:** Deleted old iOS **18.2** + **26.2** runtimes (~31 GB freed), downloaded **iOS 26.5 Simulator (23F77)** successfully. `xcodebuild -showdestinations` now lists iPhone 17 Pro / iPad simulators on OS 26.5. Ready for `run-ios` / gallery iOS build test.
+
+**iOS dev workflow (once simulator runtime available):** same as Android but without `adb reverse`: (1) `eggshell dev-native`, (2) `npx react-native start --port 8081`, (3) `configSourceOverrides.native.js`, (4) `npx react-native run-ios` or open `ios/AppEggshellGallery.xcworkspace`. Use `.xcworkspace`, not `.xcodeproj`.
+
+**Still TODO for iOS:** `GoogleService-Info.plist` (Firebase; Android has `google-services.json`), scaffolding `ios/` template for `eggshell create-app`, physical-device test after installing iOS 26.5 **device** support in Xcode Components.
 
 **Android logcat flood (ReactXP + React 18):** ~1,600 `legacy childContextTypes/contextTypes` warnings from ReactXP `View`/`Text`/`Button`, each printing ~15 stack lines → 100k+ `W ReactNativeJS` lines. React Native's renderer emits these via **`console.error`**, not `console.warn`; `LogBox.ignoreLogs` alone does not suppress adb output. Fix: filter both `console.warn` and `console.error` in app `index.js` (patterns + `/^\s+in /` for component stacks). Also filter noisy `LC.Icon` legacy-styles warnings in gallery. Long-term fix is ReactXP/context migration (goal H later).
 

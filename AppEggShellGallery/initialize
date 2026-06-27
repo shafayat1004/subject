@@ -14,6 +14,11 @@ if [ ! -f android/app/debug.keystore ]; then
     -dname "CN=Android Debug,O=Android,C=US"
 fi
 
+# iOS CocoaPods (RN 0.76; requires iOS 15.5+ for CodePush)
+if [ -d ios ] && command -v pod >/dev/null 2>&1; then
+  (cd ios && pod install)
+fi
+
 # deleting for idempotency
 rm -rf ./fsharplint.json
 rm -rf .vscode/renderdsl.code-snippets
