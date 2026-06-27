@@ -5,6 +5,7 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open AppEggShellGallery.LocalImages
+open AppEggShellGallery
 
 type Ui.Content with
     [<Component>]
@@ -14,9 +15,14 @@ type Ui.Content with
             props =
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.Draggable",
+            notes = LC.Text "Draggable wraps content that can be swiped or programmatically moved via a ref. Thresholds and offsets control how far each swipe moves the element.",
             samples =
                 element {
-                    Ui.ComponentSample(
+                    Ui.ComponentSampleGroup(
+                        heading = "Swipe and programmatic control",
+                        samples =
+                            element {
+                                Ui.ComponentSample(
                         visuals =
                             LC.With.Ref(
                                 ``with`` =
@@ -52,7 +58,10 @@ type Ui.Content with
                                                 baseOffset = (50, 20),
                                                 children =
                                                     elements {
-                                                        LC.ImageCard(source = localImage "/images/wlop4.jpg")
+                                                        LC.ImageCard(
+                                                            source = localImage "/images/wlop4.jpg",
+                                                            styles = [| sampleImageCardStyles |]
+                                                        )
                                                     }
                                             )
 
@@ -117,7 +126,10 @@ LC.With.Ref(
                 down = {| ForwardThreshold = 20; Offset = 200; BackwardThreshold = 20 |},
                 baseOffset = (50, 20),
                 children = elements {
-                    LC.ImageCard(source = localImage "/images/wlop4.jpg")
+                    LC.ImageCard(
+                        source = localImage "/images/wlop4.jpg",
+                        styles = [| sampleImageCardStyles |]
+                    )
                 }
             )
             // Move Left / Reset / Move Right buttons use maybeRef.SetPosition ...
@@ -125,6 +137,8 @@ LC.With.Ref(
 )
 """
                             )
+                                )
+                            }
                     )
                 }
         )

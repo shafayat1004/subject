@@ -31,48 +31,63 @@ type Ui.Content.Input with
         Ui.ComponentContent (
             displayName = "Input.Image",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Image",
+            notes = LC.Text "Input.Image wraps Input.File with image preview thumbs. Use maxFileCount and maxFileSize to constrain uploads, same as Input.File.",
             samples =
                 element {
-                    Ui.ComponentSample(
-                        visuals = Helpers.Sample(),
-                        code =
-                            ComponentSample.SingleBlock (
-                                ComponentSample.Fsharp,
-                                LC.Text """
+                    Ui.ComponentSampleGroup(
+                        heading = "Basics",
+                        samples =
+                            element {
+                                Ui.ComponentSample(
+                                    visuals = Helpers.Sample(),
+                                    code =
+                                        ComponentSample.SingleBlock (
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
 LC.Input.Image(
     onChange = onChange,
     value    = files,
     validity = validity
 )"""
-                            )
+                                        )
+                                )
+                            }
                     )
 
-                    Ui.ComponentSample(
-                        visuals = Helpers.Sample(maxFileCount = PositiveInteger.ofLiteral 1, maxFileSize = 5<MB>),
-                        code =
-                            ComponentSample.SingleBlock (
-                                ComponentSample.Fsharp,
-                                LC.Text """
+                    Ui.ComponentSampleGroup(
+                        heading = "Upload limits",
+                        samples =
+                            element {
+                                Ui.ComponentSample(
+                                    heading = "Max 1 file, 5 MB each",
+                                    visuals = Helpers.Sample(maxFileCount = PositiveInteger.ofLiteral 1, maxFileSize = 5<MB>),
+                                    code =
+                                        ComponentSample.SingleBlock (
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
 LC.Input.Image(
     onChange     = onChange,
     maxFileCount = PositiveInteger.ofLiteral 1,
     maxFileSize  = mBToKB 5<MB>
 )"""
-                            )
-                    )
+                                        )
+                                )
 
-                    Ui.ComponentSample(
-                        visuals = Helpers.Sample(maxFileCount = PositiveInteger.ofLiteral 4, maxFileSize = 5<MB>),
-                        code =
-                            ComponentSample.SingleBlock (
-                                ComponentSample.Fsharp,
-                                LC.Text """
+                                Ui.ComponentSample(
+                                    heading = "Max 4 files, 5 MB each",
+                                    visuals = Helpers.Sample(maxFileCount = PositiveInteger.ofLiteral 4, maxFileSize = 5<MB>),
+                                    code =
+                                        ComponentSample.SingleBlock (
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
 LC.Input.Image(
     onChange     = onChange,
     maxFileCount = PositiveInteger.ofLiteral 4,
     maxFileSize  = mBToKB 5<MB>
 )"""
-                            )
+                                        )
+                                )
+                            }
                     )
                 }
         )

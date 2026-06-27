@@ -11,9 +11,11 @@ type Ui.Content.Section with
         Ui.ComponentContent (
             displayName = "Section.Padded",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Section.Padded",
+            notes = LC.Text "Section.Padded adds horizontal and vertical padding around its children. Content outside the section keeps the default layout spacing for comparison.",
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
+                        heading = "Basics",
                         samples = (
                             element {
                                 Ui.ComponentSample(

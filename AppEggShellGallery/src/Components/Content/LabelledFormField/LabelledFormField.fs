@@ -73,6 +73,7 @@ type Ui.Content with
             props =
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.LabelledFormField",
+            notes = LC.Text "LabelledFormField lays out a label beside (desktop) or above (handheld) a form control. Pass theme to customize label width and color.",
             samples =
                 element {
                     Ui.ComponentSampleGroup(

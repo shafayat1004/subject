@@ -27,11 +27,6 @@ module private Styles =
             marginBottom 10
         }
 
-    let headingSecondaryText =
-        makeTextStyles {
-            color (Color.Grey "66")
-        }
-
 do
     ReactXP.LegacyStyles.Css.addCss """
 
@@ -46,25 +41,19 @@ do
 
 """
 
-let private secondaryHeading (label: string) =
+let private sectionHeading (label: string) =
     RX.View(
         styles = [| Styles.headingSecondary |],
         children =
             [|
-                LC.Heading(
-                    level = Heading.Secondary,
-                    children =
-                        [|
-                            LC.Text(label, styles = [| Styles.headingSecondaryText |])
-                        |]
-                )
+                AppEggShellGallery.Components.GalleryHeadings.secondaryHeading label
             |]
     )
 
 let private renderPropsSection (propsConfig: PropsConfig) =
     castAsElementAckingKeysWarning
         [|
-            secondaryHeading "Props"
+            sectionHeading "Props"
             match propsConfig with
             | Manual children ->
                 children
@@ -114,7 +103,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                     if notes <> noElement then
                         castAsElementAckingKeysWarning
                             [|
-                                secondaryHeading "Notes"
+                                sectionHeading "Notes"
                                 RX.View(children = [| notes |])
                             |]
                     else
@@ -124,7 +113,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                     |> Option.map renderPropsSection
                     |> Option.defaultValue noElement
 
-                    secondaryHeading "Samples"
+                    sectionHeading "Samples"
 
                     RX.ScrollView(
                         horizontal = true,
@@ -135,7 +124,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                                 if themeSamples <> noElement then
                                     castAsElementAckingKeysWarning
                                         [|
-                                            secondaryHeading "Theme"
+                                            sectionHeading "Theme"
                                             renderSamplesTable themeSamples
                                         |]
                                 else

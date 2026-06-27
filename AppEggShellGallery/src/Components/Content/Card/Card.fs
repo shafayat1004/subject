@@ -12,9 +12,11 @@ type Ui.Content with
         Ui.ComponentContent (
             displayName = "Card",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Legacy.Card",
+            notes = LC.Text "Legacy.Card wraps content in a bordered container. Use style for shadow vs flat appearance; pass onPress to make the whole card tappable.",
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
+                        heading = "Shadowed",
                         samples = (
                             element {
                                 Ui.ComponentSample(
@@ -28,7 +30,14 @@ LC.Legacy.Card(
     style = Card.Style.Shadowed
 )""")
                                 )
+                            }
+                        )
+                    )
 
+                    Ui.ComponentSampleGroup(
+                        heading = "Flat",
+                        samples = (
+                            element {
                                 Ui.ComponentSample(
                                     visuals = LC.Legacy.Card(
                                         children = [| LC.Text "This is a flat card with some text" |],
@@ -40,7 +49,14 @@ LC.Legacy.Card(
     style = Card.Style.Flat
 )""")
                                 )
+                            }
+                        )
+                    )
 
+                    Ui.ComponentSampleGroup(
+                        heading = "Pressable",
+                        samples = (
+                            element {
                                 Ui.ComponentSample(
                                     visuals = LC.Legacy.Card(
                                         children = [| LC.Text "This is a card that you can press" |],

@@ -5,7 +5,6 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Components.IconWithBadge
-open ReactXP.Styles
 open AppEggShellGallery.Icons
 
 module private SampleThemes =
@@ -26,37 +25,47 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "IconWithBadge",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconWithBadge",
+            notes = LC.Text "IconWithBadge overlays a count or text badge on an icon. Use theme to customize icon and badge styling.",
             samples =
                 element {
-                    Ui.ComponentSample(
-                        visuals =
+                    Ui.ComponentSampleGroup(
+                        heading = "Badge types",
+                        samples =
                             element {
-                                LC.IconWithBadge(icon = Icon.ShoppingCart, badge = Count 4)
-                            },
-                        code =
-                            ComponentSample.SingleBlock(
-                                ComponentSample.Fsharp,
-                                LC.Text """
+                                Ui.ComponentSample(
+                                    heading = "Count badge",
+                                    visuals =
+                                        element {
+                                            LC.IconWithBadge(icon = Icon.ShoppingCart, badge = Count 4)
+                                        },
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
 LC.IconWithBadge(
     icon = Icon.ShoppingCart,
     badge = Count 4
 )"""
-                            )
-                    )
-                    Ui.ComponentSample(
-                        visuals =
-                            element {
-                                LC.IconWithBadge(icon = Icon.Home, badge = Text "Summer Sale!")
-                            },
-                        code =
-                            ComponentSample.SingleBlock(
-                                ComponentSample.Fsharp,
-                                LC.Text """
+                                        )
+                                )
+
+                                Ui.ComponentSample(
+                                    heading = "Text badge",
+                                    visuals =
+                                        element {
+                                            LC.IconWithBadge(icon = Icon.Home, badge = Text "Summer Sale!")
+                                        },
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
 LC.IconWithBadge(
     icon = Icon.Home,
     badge = Text "Summer Sale!"
 )"""
-                            )
+                                        )
+                                )
+                            }
                     )
                 },
             themeSamples =
@@ -73,24 +82,29 @@ LC.IconWithBadge(
                         code =
                             ComponentSample.Children(
                                 element {
-                                    LC.Text """
+                                    Ui.Code(
+                                        language = ComponentSample.Fsharp,
+                                        children =
+                                            [| LC.Text """
 LC.IconWithBadge(
     icon = Icon.ShoppingCart,
     badge = Count 9,
-    theme = fun theme -> { theme with IconColor = Color.Black; IconSize = 26; Badge = { theme.Badge with FontSize = 22; FontColor = Color.Black } }
-)"""
-                                    LC.Text(
-                                        "Styles",
-                                        styles = [| makeTextStyles { FontWeight.W700 } |]
+    theme = SampleThemes.custom
+)""" |]
                                     )
-                                    LC.Text """
+                                    Ui.Code(
+                                        language = ComponentSample.Fsharp,
+                                        heading = "Theme",
+                                        children =
+                                            [| LC.Text """
 theme = fun theme ->
     { theme with
         IconColor = Color.Black
         IconSize  = 26
         Badge = { theme.Badge with FontSize = 22; FontColor = Color.Black }
     }
-"""
+""" |]
+                                    )
                                 }
                             )
                     )

@@ -153,11 +153,11 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                 <LC.Carousel
                  styles='[| CarouselStyles.Styles.carousel |]'
                  rt-let='urls := [
-                    ""https://example.com/Picture?pictureId=64292""
-                    ""https://example.com/Picture?pictureId=23157""
-                    ""https://example.com/Picture?pictureId=31723""
-                    ""https://example.com/Picture?pictureId=28589""
-                    ""https://example.com/Picture?pictureId=26171""
+                    ""/images/wlop1.jpg""
+                    ""/images/wlop2.jpg""
+                    ""/images/wlop3.jpg""
+                    ""/images/wlop4.jpg""
+                    ""/images/yuumei1.jpg""
                  ]'
                  Count='urls.Length |> PositiveInteger.ofIntUnsafe (* ok because hardcoded list *)'
                  RequestFocusOnMount='true'
@@ -166,7 +166,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                         <div onLayoutOption='onLayoutOption'>
                             <RX.Image
                              class='image'
-                             Source='~ofUrl (urls.[index])'
+                             Source='localImage urls.[index]'
                              ResizeMode='~Cover'
                              Size='~FromParentLayout maybeLayout'/>
                         </div>
@@ -201,11 +201,11 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                     (
                                         let urls = (
                                             [
-                                                                "https://example.com/Picture?pictureId=64292"
-                                                                "https://example.com/Picture?pictureId=23157"
-                                                                "https://example.com/Picture?pictureId=31723"
-                                                                "https://example.com/Picture?pictureId=28589"
-                                                                "https://example.com/Picture?pictureId=26171"
+                                                                "/images/wlop1.jpg"
+                                                                "/images/wlop2.jpg"
+                                                                "/images/wlop3.jpg"
+                                                                "/images/wlop4.jpg"
+                                                                "/images/yuumei1.jpg"
                                                              ]
                                         )
                                         let __parentFQN = Some "LibClient.Components.Carousel"
@@ -233,7 +233,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                                                             ReactXP.Components.Constructors.RX.Image(
                                                                                                 size = (ReactXP.Components.Image.FromParentLayout maybeLayout),
                                                                                                 resizeMode = (ReactXP.Components.Image.Cover),
-                                                                                                source = (ReactXP.Components.Image.ofUrl (urls.[index])),
+                                                                                                source = (localImage urls.[index]),
                                                                                                 ?styles = (if (not __currStyles.IsEmpty) then (ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent "ReactXP.Components.Image" __currStyles |> Some) else None)
                                                                                             )
                                                                                         |]

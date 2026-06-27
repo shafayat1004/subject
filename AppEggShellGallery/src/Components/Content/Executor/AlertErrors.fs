@@ -19,6 +19,7 @@ type Ui.Content.Executor with
             props =
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.Executor.AlertErrors",
+            notes = LC.Text "Executor.AlertErrors wraps async operations and shows an alert when they fail. Pass makeExecutor from the with callback to run keyed operations.",
             samples =
                 element {
                     Ui.ComponentSampleGroup(

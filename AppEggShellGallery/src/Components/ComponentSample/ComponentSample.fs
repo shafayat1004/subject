@@ -163,10 +163,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                             dom.td
                                 [ ColSpan 2 ]
                                 [|
-                                    LC.Heading(
-                                        level = Heading.Tertiary,
-                                        children = [| LC.Text headingText |]
-                                    )
+                                    tertiaryHeading headingText
                                 |]
                         |]
                 )
@@ -192,10 +189,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             [|
                 heading
                 |> Option.map (fun headingText ->
-                    LC.Heading(
-                        level = Heading.Tertiary,
-                        children = [| LC.Text headingText |]
-                    )
+                    tertiaryHeading headingText
                 )
                 |> Option.defaultValue noElement
 

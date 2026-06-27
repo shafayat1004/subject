@@ -47,6 +47,7 @@
     <Compile Include="Colors.fs" />
     <Compile Include="Icons.fs" />
     <Compile Include="LocalImagesRegistration.fs" />
+    <Compile Include="GallerySampleImages.fs" />
     <Compile Include="Actions.fs" />
     <Compile Include="SampleVisualsScreenSize.fs" />
     <Compile Include="RenderHelpers.fs" />
@@ -64,6 +65,8 @@
     <Compile Include="Components/ScrapedComponentProps/ScrapedComponentProps.fs" />
 
     <Compile Include="Components/ComponentContentHeading/ComponentContentHeading.fs" />
+
+    <Compile Include="Components/GalleryHeadings/GalleryHeadings.fs" />
 
     <Compile Include="Components/ComponentContent/ComponentContent.fs" />
 

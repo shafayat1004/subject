@@ -20,6 +20,7 @@ type Ui.Content with
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
+                        heading = "Levels",
                         samples = (
                             element {
                                 Ui.ComponentSample(
