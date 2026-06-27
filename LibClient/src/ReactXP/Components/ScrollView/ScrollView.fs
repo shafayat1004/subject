@@ -67,6 +67,7 @@ type ReactXP.Components.Constructors.RX with
         ?scrollIndicatorInsets:          ScrollIndicatorInsets,
         ?tabNavigation:                  TabNavigation,
         ?ref:                            LibClient.JsInterop.JsNullable<IScrollViewRef> -> unit,
+        ?testId:                         string,
         ?styles:                         array<ReactXP.Styles.FSharpDialect.ScrollViewStyles>,
         ?xLegacyStyles:                  List<ReactXP.LegacyStyles.RuntimeStyles>
         // need to add these when we deal with animations
@@ -99,6 +100,7 @@ type ReactXP.Components.Constructors.RX with
         __props?scrollIndicatorInsets          <- scrollIndicatorInsets
         __props?tabNavigation                  <- tabNavigation
         __props?ref                            <- ref
+        __props?testId                         <- testId
         __props?style                          <- styles
 
         match xLegacyStyles with

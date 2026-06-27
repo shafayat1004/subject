@@ -1,16 +1,13 @@
 /**
- * Native gallery navigation via the handheld sidebar drawer.
+ * Native gallery navigation via the handheld sidebar drawer (testId-first).
  *
- * Source-of-truth behavior (LibClient + AppEggShellGallery Sidebar.render):
- * - Handheld sidebar is an off-screen Draggable drawer (AppShell.Content + LC.Draggable).
- * - LC.Sidebar.WithClose wraps nav: every item press runs `nav.Go(...); close e` where
- *   close = setSidebarVisibility false — the drawer retracts after each blade tap.
- * - Fixed top (handheld): Docs | Tools | Components | How To | Design — route blades.
- * - ScrollableMiddle: long item list for the active blade (componentsItems when on Components).
- * - Sidebar.Base is 300px wide (VerticallyScrollable: fixed top + ScrollView middle + fixed bottom).
+ * Stable testIds (LibClient + AppEggShellGallery):
+ * - eggshell-sidebar-menu — open drawer
+ * - sidebar-blade-{docs|tools|components|how-to|design} — fixed-top blades
+ * - sidebar-component-{ComponentItemCase} — components scroll list
+ * - sidebar-scroll-middle — middle ScrollView
  *
- * Audit nav must: open drawer → enter Components blade → scroll middle list → tap item →
- * wait for drawer close + content load. Never assume the drawer stays open between pages.
+ * Drawer retracts after every item tap (LC.Sidebar.WithClose).
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -21,12 +18,12 @@ import {
   waitForGalleryAppReady,
   isGalleryUiVisible,
   clickNativeElement,
+  testIdSelector,
 } from './audit-gallery-android-driver.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SIDEBAR_PATH = join(ROOT, 'src/Components/Sidebar/SidebarContent.fs');
 
-/** LC.Sidebar.Base width on native (LibClient Sidebar/Base.fs). */
 const DRAWER_WIDTH_PX = 300;
 const DRAWER_OPEN_MAX_X = 400;
 
@@ -34,8 +31,11 @@ const DRAWER_OPEN_MAX_X = 400;
 let labelCache = null;
 /** @type {string[] | null} */
 let orderCache = null;
-/** Last componentsItems index reached (for directional scroll). */
 let lastDrawerListIndex = 0;
+
+export function componentTestId(componentName) {
+  return `sidebar-component-${componentName}`;
+}
 
 function escapeUi(text) {
   return String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -46,7 +46,7 @@ function uiExactText(text) {
 }
 
 /**
- * @returns {Map<string, string>}
+ * @returns {Map<string, string>} ComponentItem case name → sidebar label
  */
 export function componentSidebarLabels() {
   if (labelCache) return labelCache;
@@ -55,9 +55,7 @@ export function componentSidebarLabels() {
   }
   const text = readFileSync(SIDEBAR_PATH, 'utf8');
   const map = new Map();
-  for (const m of text.matchAll(
-    /LC\.Sidebar\.Item\s*\(\s*label\s*=\s*"([^"]+)"[\s\S]*?state\s*=\s*itemState\s+(?:ComponentItem\.)?(\w+)/g
-  )) {
+  for (const m of text.matchAll(/compItem(?:Icon)?\s+"([^"]+)"\s+(?:ComponentItem\.)?(\w+)/g)) {
     map.set(m[2], m[1]);
   }
   map.set('Index', 'Components Introduction');
@@ -66,7 +64,7 @@ export function componentSidebarLabels() {
 }
 
 /**
- * Ordered sidebar labels from `componentsItems` in SidebarContent.fs.
+ * Ordered ComponentItem case names from componentsItems.
  * @returns {string[]}
  */
 export function componentSidebarOrder() {
@@ -75,7 +73,9 @@ export function componentSidebarOrder() {
   const text = readFileSync(SIDEBAR_PATH, 'utf8');
   const block = text.match(/let componentsItems[\s\S]*?\|\]/);
   if (!block) return [];
-  orderCache = [...block[0].matchAll(/label\s*=\s*"([^"]+)"/g)].map((m) => m[1]);
+  orderCache = [...block[0].matchAll(/compItem(?:Icon)?\s+"[^"]+"\s+(?:ComponentItem\.)?(\w+)/g)].map(
+    (m) => m[1]
+  );
   return orderCache;
 }
 
@@ -96,16 +96,23 @@ async function elementInDrawer(el) {
 }
 
 /**
- * Handheld drawer is open when fixed-top blade labels sit on-screen (x in [0, 400)).
- * Off-screen drawer nodes may still exist in the a11y tree with negative x — ignore those.
+ * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
+ * @param {string} testId
+ */
+async function findDrawerTestId(page, testId) {
+  const els = await page.driver.$$(testIdSelector(testId));
+  for (const el of els) {
+    if (await elementInDrawer(el)) return el;
+  }
+  return null;
+}
+
+/**
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  */
 export async function isSidebarDrawerOpen(page) {
-  for (const anchor of ['Docs', 'Tools', 'How To', 'Design']) {
-    const els = await page.driver.$$(uiExactText(anchor));
-    for (const el of els) {
-      if (await elementInDrawer(el)) return true;
-    }
+  for (const id of ['sidebar-blade-docs', 'sidebar-blade-components', 'sidebar-blade-tools']) {
+    if (await findDrawerTestId(page, id)) return true;
   }
   return false;
 }
@@ -120,20 +127,18 @@ export async function isSidebarOpen(page) {
  */
 async function getDrawerBounds(page) {
   const { width, height } = await page.getWindowSize();
-  for (const anchor of ['Docs', 'Tools', 'Components', 'How To']) {
-    const els = await page.driver.$$(uiExactText(anchor));
-    for (const el of els) {
-      if (await elementInDrawer(el)) {
-        const loc = await el.getLocation();
-        return {
-          x: loc.x,
-          y: 0,
-          width: DRAWER_WIDTH_PX,
-          height,
-          swipeTop: Math.round(height * 0.28),
-          swipeBottom: Math.round(height * 0.82),
-        };
-      }
+  for (const id of ['sidebar-blade-components', 'sidebar-blade-docs', 'sidebar-blade-tools']) {
+    const el = await findDrawerTestId(page, id);
+    if (el) {
+      const loc = await el.getLocation();
+      return {
+        x: loc.x,
+        y: 0,
+        width: DRAWER_WIDTH_PX,
+        height,
+        swipeTop: Math.round(height * 0.28),
+        swipeBottom: Math.round(height * 0.82),
+      };
     }
   }
   return {
@@ -147,7 +152,6 @@ async function getDrawerBounds(page) {
 }
 
 /**
- * Find a text node inside the open drawer (ignores duplicate labels in main content).
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  * @param {string} label
  */
@@ -177,7 +181,6 @@ async function swipeDrawerList(page, bounds, direction) {
 }
 
 /**
- * Open the handheld drawer via the top-nav menu (never edge-swipe — OS back gesture).
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  * @param {(msg: string) => void} [log]
  */
@@ -202,10 +205,7 @@ export async function openSidebarDrawer(page, log = () => {}) {
     if (await isSidebarDrawerOpen(page)) return;
   }
 
-  throw new Error(
-    'Could not open sidebar drawer — tap the top-nav menu (☰). ' +
-      'Edge swipe is not used (Android system back).'
-  );
+  throw new Error('Could not open sidebar drawer via ~eggshell-sidebar-menu');
 }
 
 /** @deprecated use openSidebarDrawer */
@@ -214,25 +214,30 @@ export async function openSidebarIfNeeded(page, log = () => {}) {
 }
 
 /**
- * Tap the fixed-top "Components" blade so componentsItems scroll list is shown.
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  * @param {(msg: string) => void} [log]
  */
 export async function ensureComponentsBlade(page, log = () => {}) {
   await openSidebarDrawer(page, log);
 
-  if (await findDrawerText(page, 'Components Introduction')) return;
-  if (await findDrawerText(page, 'Layout')) return;
+  if (await findDrawerTestId(page, componentTestId('Index'))) return;
+  if (await findDrawerTestId(page, componentTestId('Layout_Row'))) return;
 
-  const els = await page.driver.$$(uiExactText('Components'));
-  for (const el of els) {
-    if (await elementInDrawer(el)) {
-      await clickNativeElement(el);
-      await page.waitForTimeout(600);
-      log('entered Components blade (fixed top)');
-      lastDrawerListIndex = 0;
-      return;
-    }
+  const blade = page.locator('~sidebar-blade-components');
+  if (await blade.count()) {
+    await blade.first().click({ timeout: 5000 });
+    await page.waitForTimeout(600);
+    log('entered Components blade (~sidebar-blade-components)');
+    lastDrawerListIndex = 0;
+    return;
+  }
+
+  const el = await findDrawerText(page, 'Components');
+  if (el) {
+    await clickNativeElement(el);
+    await page.waitForTimeout(600);
+    log('entered Components blade (text fallback)');
+    lastDrawerListIndex = 0;
   }
 }
 
@@ -242,65 +247,73 @@ export async function ensureComponentsSection(page, log = () => {}) {
 }
 
 /**
- * Scroll the Components middle list until `label` is visible in the drawer.
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
- * @param {string} label
+ * @param {string} componentName
  * @param {(msg: string) => void} [log]
  */
-export async function scrollDrawerToLabel(page, label, log = () => {}) {
-  if (await findDrawerText(page, label)) return;
+export async function scrollDrawerToComponent(page, componentName, log = () => {}) {
+  const testId = componentTestId(componentName);
+  if (await findDrawerTestId(page, testId)) return;
 
   const order = componentSidebarOrder();
-  const targetIdx = order.indexOf(label);
+  const targetIdx = order.indexOf(componentName);
   if (targetIdx < 0) {
-    throw new Error(`Sidebar label "${label}" not in componentsItems order`);
+    throw new Error(`Component "${componentName}" not in componentsItems order`);
   }
 
   const bounds = await getDrawerBounds(page);
 
   if (targetIdx < lastDrawerListIndex) {
-    log(`scroll drawer to top (target ${label} is above last position)`);
+    log(`scroll drawer to top (target ${componentName} is above last position)`);
     for (let i = 0; i < 30; i++) {
-      if (await findDrawerText(page, label)) {
+      if (await findDrawerTestId(page, testId)) {
         lastDrawerListIndex = targetIdx;
         return;
       }
-      if (await findDrawerText(page, 'Components Introduction')) break;
+      if (await findDrawerTestId(page, componentTestId('Index'))) break;
       await swipeDrawerList(page, bounds, 'up');
     }
     lastDrawerListIndex = 0;
   }
 
   let steps = Math.max(0, targetIdx - lastDrawerListIndex);
-  log(`scroll drawer toward "${label}" (~${steps} steps from index ${lastDrawerListIndex})`);
+  log(`scroll drawer toward ~${testId} (~${steps} steps from index ${lastDrawerListIndex})`);
   for (let i = 0; i < steps + 12; i++) {
-    if (await findDrawerText(page, label)) {
+    if (await findDrawerTestId(page, testId)) {
       lastDrawerListIndex = targetIdx;
       return;
     }
     await swipeDrawerList(page, bounds, 'down');
   }
 
-  throw new Error(`Could not scroll drawer to "${label}"`);
+  throw new Error(`Could not scroll drawer to ~${testId}`);
 }
 
-/** @deprecated use scrollDrawerToLabel */
+/** @deprecated use scrollDrawerToComponent */
+export async function scrollDrawerToLabel(page, label, log = () => {}) {
+  const order = componentSidebarOrder();
+  const labels = componentSidebarLabels();
+  const componentName = order.find((name) => labels.get(name) === label);
+  if (!componentName) throw new Error(`No component for label "${label}"`);
+  return scrollDrawerToComponent(page, componentName, log);
+}
+
+/** @deprecated */
 export async function scrollSidebarToLabel(page, label) {
   return scrollDrawerToLabel(page, label);
 }
 
 /**
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
- * @param {string} label
+ * @param {string} testId
  */
-async function clickDrawerLabel(page, label) {
-  const el = await findDrawerText(page, label);
-  if (!el) throw new Error(`Drawer item "${label}" not visible to tap`);
+async function clickDrawerTestId(page, testId) {
+  const el = await findDrawerTestId(page, testId);
+  if (!el) throw new Error(`Drawer item ~${testId} not visible to tap`);
   await clickNativeElement(el);
 }
 
 /**
- * Wait for drawer retract after item tap (WithClose always runs close e).
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  * @param {number} [timeoutMs]
  */
@@ -313,7 +326,6 @@ async function waitForDrawerClosed(page, timeoutMs = 6000) {
 }
 
 /**
- * Navigate to a gallery component page via the native sidebar drawer.
  * @param {import('./audit-gallery-android-driver.mjs').AndroidPage} page
  * @param {string} componentName
  * @param {{ pauseMs?: number, readyTimeoutMs?: number, log?: (msg: string) => void }} [options]
@@ -321,10 +333,6 @@ async function waitForDrawerClosed(page, timeoutMs = 6000) {
 export async function navigateToComponent(page, componentName, options = {}) {
   const pauseMs = options.pauseMs ?? 800;
   const log = options.log ?? (() => {});
-  const label = sidebarLabelFor(componentName);
-  if (!label) {
-    throw new Error(`No sidebar label mapped for component "${componentName}"`);
-  }
 
   await ensureGalleryAppForeground(page, log);
   if (!(await isGalleryUiVisible(page))) {
@@ -332,8 +340,8 @@ export async function navigateToComponent(page, componentName, options = {}) {
   }
 
   await ensureComponentsBlade(page, log);
-  await scrollDrawerToLabel(page, label, log);
-  await clickDrawerLabel(page, label);
+  await scrollDrawerToComponent(page, componentName, log);
+  await clickDrawerTestId(page, componentTestId(componentName));
   await waitForDrawerClosed(page);
   await page.waitForTimeout(pauseMs);
 

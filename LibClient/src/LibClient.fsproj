@@ -46,6 +46,9 @@
     <Compile Include="AsyncHelpers.fs" />
     <Compile Include="AsyncSerialExecutor.fs" />
     <Compile Include="EventBus.fs" />
+    <Compile Include="Accessibility.fs" />
+    <Compile Include="AccessibilityHelpers.fs" />
+    <Compile Include="UiActionLog.fs" />
     <Compile Include="NetworkState.fs" />
     <Compile Include="Services/Subscription.fs" />
     <Compile Include="Services/EntityService/EntityService.fs" />
@@ -159,6 +162,8 @@
 
     <Compile Include="Components/Icon.fs" />
     <Compile Include="Components/Pointer/State.fs" />
+    <Compile Include="Components/Pressable.fs" />
+    <Compile Include="Components/LiveRegion.fs" />
     <Compile Include="Components/TapCapture.fs" />
 
     <Compile Include="Components/Stencil.fs" />

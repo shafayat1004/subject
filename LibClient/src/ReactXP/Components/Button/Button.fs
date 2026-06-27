@@ -32,6 +32,14 @@ type ReactXP.Components.Constructors.RX with
         ?activeOpacity:                float,
         ?underlayColor:                string,
         ?id:                           string,
+        ?testId:                       string,
+        ?accessibilityLabel:           string,
+        ?accessibilityRole:            LibClient.Accessibility.AccessibilityRole,
+        ?accessibilityState:           obj,
+        ?accessibilityId:              string,
+        ?importantForAccessibility:    LibClient.Accessibility.ImportantForAccessibility,
+        ?accessibilityActions:         string array,
+        ?onAccessibilityAction:        Event -> unit,
         ?ariaControls:                 string,
         ?styles:                       array<ReactXP.Styles.FSharpDialect.ViewStyles>,
         ?xLegacyStyles:                List<ReactXP.LegacyStyles.RuntimeStyles>
@@ -58,6 +66,14 @@ type ReactXP.Components.Constructors.RX with
         __props?activeOpacity                <- activeOpacity
         __props?underlayColor                <- underlayColor
         __props?id                           <- id
+        __props?testId                       <- testId
+        __props?accessibilityLabel           <- accessibilityLabel
+        __props?accessibilityRole            <- accessibilityRole
+        __props?accessibilityState           <- accessibilityState
+        __props?accessibilityId              <- accessibilityId
+        __props?importantForAccessibility    <- importantForAccessibility
+        __props?accessibilityActions         <- accessibilityActions
+        __props?onAccessibilityAction        <- onAccessibilityAction
         __props?ariaControls                 <- ariaControls
         __props?style                        <- styles
 

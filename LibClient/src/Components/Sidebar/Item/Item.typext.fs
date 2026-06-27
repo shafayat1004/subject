@@ -23,6 +23,7 @@ type Props = (* GenerateMakeFunction *) {
     Right:      Right                 option // defaultWithAutoWrap None
     State:      State
     styles:     array<ViewStyles> option // defaultWithAutoWrap None
+    TestId:     string option // defaultWithAutoWrap None
 }
 
 type Item(_initialProps) =

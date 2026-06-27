@@ -42,6 +42,7 @@ type LibClient.Components.Constructors.LC.Sidebar with
             ?fixedTop         = fixedTop,
             ?scrollableMiddle = scrollableMiddle,
             ?fixedBottom      = fixedBottom,
+            middleTestId      = "sidebar-scroll-middle",
             styles            = [| Styles.view; yield! (defaultArg styles [||]) |],
             topStyles         = [| Styles.topSection |],
             bottomStyles      = [| Styles.bottomSection |]

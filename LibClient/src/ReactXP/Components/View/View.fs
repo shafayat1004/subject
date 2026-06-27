@@ -53,6 +53,13 @@ type ReactXP.Components.Constructors.RX with
         ?importantForLayout:               bool,
         ?id:                               string,
         ?testId:                           string,
+        ?accessibilityLabel:               string,
+        ?accessibilityRole:                LibClient.Accessibility.AccessibilityRole,
+        ?accessibilityState:               obj,
+        ?accessibilityId:                  string,
+        ?importantForAccessibility:        LibClient.Accessibility.ImportantForAccessibility,
+        ?accessibilityActions:             string array,
+        ?onAccessibilityAction:            Event -> unit,
         ?ariaLabelledBy:                   string,
         ?ariaRoleDescription:              string,
         ?accessibilityLiveRegion:          AccessibilityLiveRegion,
@@ -112,6 +119,13 @@ type ReactXP.Components.Constructors.RX with
         __props?importantForLayout               <- importantForLayout
         __props?id                               <- id
         __props?testId                           <- testId
+        __props?accessibilityLabel               <- accessibilityLabel
+        __props?accessibilityRole                <- accessibilityRole
+        __props?accessibilityState               <- accessibilityState
+        __props?accessibilityId                  <- accessibilityId
+        __props?importantForAccessibility        <- importantForAccessibility
+        __props?accessibilityActions             <- accessibilityActions
+        __props?onAccessibilityAction            <- onAccessibilityAction
         __props?ariaLabelledBy                   <- ariaLabelledBy
         __props?ariaRoleDescription              <- ariaRoleDescription
         __props?accessibilityLiveRegion          <- accessibilityLiveRegion

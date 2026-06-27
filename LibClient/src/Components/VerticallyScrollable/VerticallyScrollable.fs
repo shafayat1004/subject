@@ -25,6 +25,7 @@ type LibClient.Components.Constructors.LC with
             ?fixedTop:         ReactElement,
             ?scrollableMiddle: ReactElement,
             ?fixedBottom:      ReactElement,
+            ?middleTestId:     string,
             ?styles:           array<ViewStyles>,
             ?topStyles:        array<ViewStyles>,
             ?middleStyles:     array<ScrollViewStyles>,
@@ -56,7 +57,7 @@ type LibClient.Components.Constructors.LC with
                      | None    -> noElement)
 
                     (match scrollableMiddle with
-                     | Some el -> RX.ScrollView(vertical = true, styles = [| Styles.middle; yield! (defaultArg middleStyles [||]) |], children = [| el |])
+                     | Some el -> RX.ScrollView(?testId = middleTestId, vertical = true, styles = [| Styles.middle; yield! (defaultArg middleStyles [||]) |], children = [| el |])
                      | None    -> noElement)
 
                     (match fixedBottom with

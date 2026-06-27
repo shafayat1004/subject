@@ -14,6 +14,7 @@ let makeRenderFn () : Props -> ReactElement =
         if maybeLastUrl <> Some location.Url then
             maybeLastUrl <- Some location.Url
             Telemetry.TrackScreenView location.Url Map.empty
+            LibClient.UiActionLog.setCurrentRoute location.Url
         noElement
 
 let Make : MakeFnComponent<Props> =

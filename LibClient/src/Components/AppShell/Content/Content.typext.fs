@@ -34,6 +34,13 @@ type SidebarVisibilityEvent =
 let private sidebarVisibilityQueue: LibClient.EventBus.Queue<SidebarVisibilityEvent> = LibClient.EventBus.Queue "sidebarVisibility"
 
 let setSidebarVisibility (isVisible: bool) (e: ReactEvent.Action) : unit =
+    LibClient.UiActionLog.record {
+        Kind = if isVisible then LibClient.UiActionLog.UiActionKind.SidebarOpen else LibClient.UiActionLog.UiActionKind.SidebarClose
+        TestId = Some "eggshell-sidebar-menu"
+        Label = Some (if isVisible then "Open sidebar" else "Close sidebar")
+        ComponentName = Some "LC.AppShell.Content"
+        Detail = Map.empty
+    }
     SidebarVisibilityEvent.Set (isVisible, e)
     |> LibClient.ServiceInstances.services().EventBus.Broadcast sidebarVisibilityQueue
 

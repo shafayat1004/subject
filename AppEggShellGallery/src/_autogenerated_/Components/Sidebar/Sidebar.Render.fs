@@ -75,26 +75,31 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.S
                                                                                         let __parentFQN = Some "LibClient.Components.Sidebar.Item"
                                                                                         LibClient.Components.Constructors.LC.Sidebar.Item(
                                                                                             state = (itemState (Docs "index.md")                               ),
+                                                                                            testId = ("sidebar-blade-docs"),
                                                                                             label = ("Docs")
                                                                                         )
                                                                                         let __parentFQN = Some "LibClient.Components.Sidebar.Item"
                                                                                         LibClient.Components.Constructors.LC.Sidebar.Item(
                                                                                             state = (itemState (Tools "tools/index.md")                        ),
+                                                                                            testId = ("sidebar-blade-tools"),
                                                                                             label = ("Tools")
                                                                                         )
                                                                                         let __parentFQN = Some "LibClient.Components.Sidebar.Item"
                                                                                         LibClient.Components.Constructors.LC.Sidebar.Item(
                                                                                             state = (itemState (Components Index)                              ),
+                                                                                            testId = ("sidebar-blade-components"),
                                                                                             label = ("Components")
                                                                                         )
                                                                                         let __parentFQN = Some "LibClient.Components.Sidebar.Item"
                                                                                         LibClient.Components.Constructors.LC.Sidebar.Item(
                                                                                             state = (itemState (HowTo (HowToItem.Markdown "how-to/index.md"))  ),
+                                                                                            testId = ("sidebar-blade-how-to"),
                                                                                             label = ("How To")
                                                                                         )
                                                                                         let __parentFQN = Some "LibClient.Components.Sidebar.Item"
                                                                                         LibClient.Components.Constructors.LC.Sidebar.Item(
                                                                                             state = (itemState (Design (DesignItem.Markdown "design/index.md"))),
+                                                                                            testId = ("sidebar-blade-design"),
                                                                                             label = ("Design")
                                                                                         )
                                                                                     |])

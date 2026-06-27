@@ -57,6 +57,10 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
                 Ui.AppContext (children = [|rootView|])
             )
 
+            #if DEBUG
+            LibClient.UiActionLog.installGlobalHook (Fable.Core.JS.globalThis) "AppEggShellGallery"
+            #endif
+
             #if EGGSHELL_PLATFORM_IS_WEB
             let consoleTestBindings =
                 createObj [

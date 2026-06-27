@@ -9,11 +9,11 @@
                          itemState := fun route -> if route = currentRoute then LibClient.Components.Sidebar.Item.Selected else LibClient.Components.Sidebar.Item.Actionable (show route);
                      '>
                         <rt-prop name='Handheld(_screenSize)'>
-                            <LC.Sidebar.Item Label='"Docs"'       State='itemState (Docs "index.md")                               '/>
-                            <LC.Sidebar.Item Label='"Tools"'      State='itemState (Tools "tools/index.md")                        '/>
-                            <LC.Sidebar.Item Label='"Components"' State='itemState (Components Index)                              '/>
-                            <LC.Sidebar.Item Label='"How To"'     State='itemState (HowTo (HowToItem.Markdown "how-to/index.md"))  '/>
-                            <LC.Sidebar.Item Label='"Design"'     State='itemState (Design (DesignItem.Markdown "design/index.md"))'/>
+                            <LC.Sidebar.Item Label='"Docs"'       TestId='"sidebar-blade-docs"'       State='itemState (Docs "index.md")                               '/>
+                            <LC.Sidebar.Item Label='"Tools"'      TestId='"sidebar-blade-tools"'      State='itemState (Tools "tools/index.md")                        '/>
+                            <LC.Sidebar.Item Label='"Components"' TestId='"sidebar-blade-components"' State='itemState (Components Index)                              '/>
+                            <LC.Sidebar.Item Label='"How To"'     TestId='"sidebar-blade-how-to"'     State='itemState (HowTo (HowToItem.Markdown "how-to/index.md"))  '/>
+                            <LC.Sidebar.Item Label='"Design"'     TestId='"sidebar-blade-design"'     State='itemState (Design (DesignItem.Markdown "design/index.md"))'/>
                         </rt-prop>
                         <rt-prop name='Desktop(_screenSize)'>{=noElement}</rt-prop>
                     </LC.Responsive>

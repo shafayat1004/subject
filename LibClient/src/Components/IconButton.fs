@@ -5,6 +5,7 @@ open Fable.React
 
 open LibClient
 open LibClient.Icons
+open LibClient.Accessibility
 
 open ReactXP.Components
 open ReactXP.Styles
@@ -104,6 +105,8 @@ type LibClient.Components.Constructors.LC with
     static member IconButton(
             state: ButtonHighLevelState,
             icon: IconConstructor,
+            ?label: string,
+            ?testId: string,
             ?styles: array<ViewStyles>,
             ?theme: Theme -> Theme,
             ?key: string
@@ -112,6 +115,7 @@ type LibClient.Components.Constructors.LC with
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let lowLevelState = state.ToLowLevel
+        let a11yLabel = defaultArg label "Icon button"
 
         LC.Pointer.State(
             fun pointerState ->
@@ -148,10 +152,15 @@ type LibClient.Components.Constructors.LC with
 
                                 match lowLevelState with
                                 | Actionable onPress ->
-                                    LC.TapCapture(
-                                        styles = [| Styles.tapCaptureTheme theTheme lowLevelState |],
+                                    LC.Pressable(
                                         onPress = onPress,
-                                        pointerState = pointerState
+                                        label = a11yLabel,
+                                        ?testId = testId,
+                                        role = AccessibilityRole.Button,
+                                        overlay = true,
+                                        pointerState = pointerState,
+                                        ?styles = (Some [| Styles.tapCaptureTheme theTheme lowLevelState |]),
+                                        componentName = "LC.IconButton"
                                     )
                                 | _ ->
                                     noElement
