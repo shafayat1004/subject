@@ -418,7 +418,21 @@ AppEggShellGallery/audit-android/interactive/<ISO-timestamp>/
     summary.md
 ```
 
-Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). On connect, the runner waits until the gallery UI is visible (sidebar menu `testId`, or sidebar section labels), not just until the Activity is foreground. It also detects Metro load failures ("Unable to load script", etc.). Use `--launch-timeout-ms=180000` on cold starts if needed.
+Navigation uses **stable testIds** (see [`LibClient/ACCESSIBILITY.md`](../LibClient/ACCESSIBILITY.md)):
+
+| testId | Purpose |
+|--------|---------|
+| `eggshell-sidebar-menu` | Open handheld drawer |
+| `sidebar-blade-components` | Enter Components blade |
+| `sidebar-component-{CaseName}` | Tap component (e.g. `sidebar-component-IconButton`) |
+| `sidebar-scroll-middle` | Middle scroll container |
+| `aesg-sample-visuals` | Loaded component sample wrapper |
+
+Flow: open menu → tap Components blade → swipe-scroll middle list → tap `~sidebar-component-*` → wait for drawer close. Text-label matching is fallback only.
+
+On connect, the runner waits until the gallery UI is visible (sidebar menu `testId`), not just until the Activity is foreground. It also detects Metro load failures ("Unable to load script", etc.). Use `--launch-timeout-ms=180000` on cold starts if needed.
+
+**Dev observability (DEBUG builds):** `window.__eggshell.AppEggShellGallery.uiLog()` and `.uiSnapshot()` expose recent actions and visible interactives for automation debugging.
 
 **Handheld sidebar behavior (important for Appium nav):** The gallery uses `AppShell.Content` + `LC.Draggable` — a drawer that slides in from the left. `LC.Sidebar.WithClose` wraps all items: every tap runs `nav.Go(...); close e`, so the drawer **always retracts** after selecting a blade. Fixed-top row (Docs / Tools / Components / …) switches route sections; the long component list scrolls inside `ScrollableMiddle` only. The audit opens the drawer before each component, enters the Components blade, swipe-scrolls the middle list (scoped to the 300px drawer — not the main content scroll view), taps the item, then waits for the drawer to close.
 
@@ -426,7 +440,7 @@ Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `
 
 | Area | Web | Android |
 |------|-----|---------|
-| Navigation | URL `/Desktop/Components/...` | Sidebar tap |
+| Navigation | URL `/Desktop/Components/...` | testId sidebar (`~sidebar-component-*`) |
 | Sample scope | `.aesg-ContentComponent-table td...` | `~aesg-sample-visuals` (driver maps `~` → Android `resource-id`) |
 | Labels/buttons | `[data-text-as-pseudo-element]` | Native `TextView` text |
 | Console | Playwright `page.on('console')` | `adb logcat` (ReactNativeJS) |

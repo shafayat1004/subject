@@ -377,6 +377,7 @@ type LibClient.Components.Constructors.LC with
                                                     match maybePreviousIndex with
                                                     | Some previousIndex ->
                                                         LC.IconButton(
+                                                            label = "Previous",
                                                             styles = iconStyles,
                                                             theme  = Styles.iconButtonTheme theTheme,
                                                             icon   = Icon.ChevronLeft,
@@ -442,6 +443,7 @@ type LibClient.Components.Constructors.LC with
                                                     match maybeNextIndex with
                                                     | Some nextIndex ->
                                                         LC.IconButton(
+                                                            label = "Next",
                                                             styles = iconStyles,
                                                             theme  = Styles.iconButtonTheme theTheme,
                                                             icon   = Icon.ChevronRight,

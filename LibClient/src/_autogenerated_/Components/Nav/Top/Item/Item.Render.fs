@@ -354,6 +354,7 @@ let render(children: array<ReactElement>, props: LibClient.Components.Nav.Top.It
                                                                             let __parentFQN = Some "LibClient.Components.TapCapture"
                                                                             LibClient.Components.Constructors.LC.TapCapture(
                                                                                 pointerState = (pointerState),
+                                                                                label = (match props.Style with Style.Internal (Some l, _, _) -> l | Style.Internal (None, Some _, _) -> "Menu" | _ -> "Menu item"),
                                                                                 onPress = (onPress)
                                                                             )
                                                                         )

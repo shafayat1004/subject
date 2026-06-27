@@ -185,6 +185,7 @@ type LibClient.Components.Constructors.LC.Input with
 
         let inputSuffix =
             LC.IconButton(
+                label = "Open calendar",
                 theme = Styles.iconButtonTheme theTheme,
                 styles = [| Styles.iconButton theTheme |],
                 icon = Icon.Calendar,

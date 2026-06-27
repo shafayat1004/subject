@@ -136,6 +136,7 @@ type LibClient.Components.Constructors.LC.Input with
                                                 match (quantity - 1, onChange) with
                                                 | (None, CanRemove onChange) ->
                                                     LC.IconButton(
+                                                        label = "Remove",
                                                         theme = Styles.iconButtonTheme theTheme isInvalid true,
                                                         icon = Icon.GarbageBin,
                                                         state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange None))
@@ -144,6 +145,7 @@ type LibClient.Components.Constructors.LC.Input with
                                                     noElement
                                                 | (Some decremented, onChange) ->
                                                     LC.IconButton(
+                                                        label = "Decrease",
                                                         theme = Styles.iconButtonTheme theTheme isInvalid false,
                                                         icon = Icon.Minus,
                                                         state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange.Call decremented))
@@ -189,6 +191,7 @@ type LibClient.Components.Constructors.LC.Input with
                                             match maybeIncremented with
                                             | Some incremented ->
                                                 LC.IconButton(
+                                                    label = "Increase",
                                                     theme = Styles.iconButtonTheme theTheme isInvalid false,
                                                     icon = Icon.Plus,
                                                     state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange.Call incremented))

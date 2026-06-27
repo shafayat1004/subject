@@ -71,6 +71,7 @@
                 <LC.TapCapture rt-fs='true'
                  rt-mapo='onPress := match props.State with | State.Actionable onPress | State.SelectedActionable onPress -> Some onPress | _ -> None'
                  OnPress='onPress'
+                 Label='match props.Style with Style.Internal (Some l, _, _) -> l | Style.Internal (None, Some _, _) -> "Menu" | _ -> "Menu item"'
                  PointerState='pointerState'/>
             </div>
         </rt-block>

@@ -34,6 +34,7 @@
             <LC.TapCapture rt-fs='true'
              rt-mapo='onPress := match state with | Actionable onPress -> Some onPress | _ -> None'
              OnPress='onPress'
+             Label='props.Label'
              PointerState='pointerState'/>
         </div>
     </LC.Pointer.State>

@@ -4,6 +4,7 @@ module LibClient.Components.TextButton
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
 open ReactXP.Components
 open ReactXP.Styles
@@ -142,9 +143,13 @@ type LibClient.Components.Constructors.LC with
 
                     match lowLevelState with
                     | Actionable onPress ->
-                        LC.TapCapture(
+                        LC.Pressable(
+                            onPress = onPress,
+                            label = label,
+                            role = AccessibilityRole.Button,
+                            overlay = true,
                             styles = [| Styles.tapCapture |],
-                            onPress = onPress
+                            componentName = "LC.TextButton"
                         )
                     | _ ->
                         noElement

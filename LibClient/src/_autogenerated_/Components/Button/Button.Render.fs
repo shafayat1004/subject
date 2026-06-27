@@ -170,6 +170,7 @@ let render(children: array<ReactElement>, props: LibClient.Components.Button.Pro
                                                                         let __parentFQN = Some "LibClient.Components.TapCapture"
                                                                         LibClient.Components.Constructors.LC.TapCapture(
                                                                             pointerState = (pointerState),
+                                                                            label = (props.Label),
                                                                             onPress = (onPress)
                                                                         )
                                                                     )

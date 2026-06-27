@@ -184,6 +184,7 @@ type private Helpers =
                                             ?size = size
                                         )
                                         LC.IconButton(
+                                            label = "Close",
                                             styles = [| Styles.closeButton |],
                                             theme = Styles.closeButtonTheme,
                                             icon = Icon.X,

@@ -37,6 +37,7 @@ type LibClient.Components.Constructors.LC.Legacy.TopNav with
     static member IconButton(
             state: State,
             icon: LibClient.Icons.IconConstructor,
+            ?label: string,
             ?theme: Theme -> Theme,
             ?styles: array<ViewStyles>,
             ?key: string) : ReactElement =
@@ -47,6 +48,7 @@ type LibClient.Components.Constructors.LC.Legacy.TopNav with
         LC.IconButton(
             styles = (styles |> Option.defaultValue [||]),
             icon = icon,
+            ?label = label,
             state = ButtonHighLevelState.LowLevel state,
             theme = Styles.iconButtonTheme theTheme
         )
