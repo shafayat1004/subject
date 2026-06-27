@@ -1,6 +1,7 @@
 module LibClient.Components.Legacy.SidebarTheme
 
-open ReactXP.Styles
+open LibClient
+open LibClient.Components
 
 type (* class to enable named parameters *) Theme() =
     static member All
@@ -18,20 +19,24 @@ type (* class to enable named parameters *) Theme() =
             countTextColor:                   Color
         ) : unit =
 
-        LibClient.Components.Legacy.Sidebar.ItemStyles.Theme.All (
-            primaryBackgroundColor           = primaryBackgroundColor,
-            primaryTextColor                 = primaryTextColor,
-            primarySelectedBackgroundColor   = primarySelectedBackgroundColor,
-            primarySelectedTextColor         = primarySelectedTextColor,
-            secondaryBackgroundColor         = secondaryBackgroundColor,
-            secondaryTextColor               = secondaryTextColor,
-            secondarySelectedBackgroundColor = secondarySelectedBackgroundColor,
-            secondarySelectedTextColor       = secondarySelectedTextColor,
-            bottomBorderColor                = bottomBorderColor,
-            countBackgroundColor             = countBackgroundColor,
-            countTextColor                   = countTextColor
+        Themes.Set<LC.Legacy.Sidebar.Item.Theme>(
+            {
+                PrimaryBackgroundColor           = primaryBackgroundColor
+                PrimaryTextColor                 = primaryTextColor
+                PrimarySelectedBackgroundColor   = primarySelectedBackgroundColor
+                PrimarySelectedTextColor         = primarySelectedTextColor
+                SecondaryBackgroundColor         = secondaryBackgroundColor
+                SecondaryTextColor               = secondaryTextColor
+                SecondarySelectedBackgroundColor = secondarySelectedBackgroundColor
+                SecondarySelectedTextColor       = secondarySelectedTextColor
+                BottomBorderColor                = bottomBorderColor
+                CountBackgroundColor             = countBackgroundColor
+                CountTextColor                   = countTextColor
+            }
         )
 
-        LibClient.Components.Legacy.Sidebar.FillerStyles.Theme.All (
-            bottomBorderColor = bottomBorderColor
+        Themes.Set<LC.Legacy.Sidebar.Filler.Theme>(
+            {
+                BottomBorderColor = bottomBorderColor
+            }
         )

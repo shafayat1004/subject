@@ -28,7 +28,7 @@
                 <rt-prop name='Visuals'>
                     <LC.Buttons rt-fs='true'>
                         <LC.Button
-                         xLegacyStyles='SampleThemes.badgeGreenLegacy'
+                         badgeTheme='SampleThemes.badgeGreen'
                          Icon='~Icon.Left Icon.ShoppingCart'
                          Label='"Cart"'
                          Badge='~Count 3'

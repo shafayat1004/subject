@@ -9,6 +9,7 @@ open ReactXP.Styles
 open ReactXP.Types
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 
 type PaginatedVirtualListItem<'Item> = {
@@ -255,7 +256,13 @@ type private Helpers =
                             RX.View (styles = [| Styles.retryButtonContainer |], children = [|
                                 LC.Text ("Retry", styles  = [| Styles.retryButtonText |])
 
-                                LC.TapCapture (onPress = (fun _ -> retry () |> startSafely))
+                                LC.Pressable (
+                                    onPress = (fun _ -> retry () |> startSafely),
+                                    label = "Retry",
+                                    role = AccessibilityRole.Button,
+                                    overlay = true,
+                                    componentName = "LC.PaginatedVirtualListView"
+                                )
                             |])
                         |])
                     }

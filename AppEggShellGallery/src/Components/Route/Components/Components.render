@@ -48,6 +48,7 @@
                 <rt-case is='Input_UnsignedDecimal'       ><Content.Input.UnsignedDecimal /></rt-case>
                 <rt-case is='Input_Text'                  ><Content.Input.Text            /></rt-case>
                 <rt-case is='ItemList'                    ><Content.ItemList              /></rt-case>
+                <rt-case is='LabelledFormField'           ><Content.LabelledFormField     /></rt-case>
                 <rt-case is='Input_Picker'                ><Content.Input.Picker          /></rt-case>
                 <rt-case is='InProgress'                  ><XmlDocsContent.LC.InProgress  rt-fs='true'/></rt-case>
                 <rt-case is='Layout_Row'                  ><XmlDocsContent.LC.Row         rt-fs='true'/></rt-case>

@@ -43,6 +43,7 @@ namespace LibClient.Components
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open ReactXP.Components
 open ReactXP.Styles
 
@@ -51,25 +52,22 @@ open ReactXP.Styles
 
 open LibClient.Components.Input.DayOfTheWeek
 
-// The Theme type is nested under `module LC = module Input = module DayOfTheWeek` so that
-// DefaultComponentsTheme.fs can reference it as `LC.Input.DayOfTheWeek.Theme` (matching the
-// pattern used by LC.Input.DateTypes.Theme, LC.Input.EmailAddressTypes.Theme etc.)
-module LC =
-    module Input =
-        module DayOfTheWeek =
-            type Theme = {
-                UnselectedTextColor:       Color
-                UnselectedBackgroundColor: Color
-                SelectedTextColor:         Color
-                SelectedBackgroundColor:   Color
-                LabelColor:                Color
-                InvalidColor:              Color
-            }
-
-open LC.Input.DayOfTheWeek
-
 [<AutoOpen>]
 module Input_DayOfTheWeek =
+
+    module LC =
+        module Input =
+            module DayOfTheWeek =
+                type Theme = {
+                    UnselectedTextColor:       Color
+                    UnselectedBackgroundColor: Color
+                    SelectedTextColor:         Color
+                    SelectedBackgroundColor:   Color
+                    LabelColor:                Color
+                    InvalidColor:              Color
+                }
+
+    open LC.Input.DayOfTheWeek
 
     [<RequireQualifiedAccess>]
     module private Styles =
@@ -201,6 +199,7 @@ module Input_DayOfTheWeek =
                                             [|
                                                 for day in LibClient.Components.Input.DayOfTheWeek.days do
                                                     let isSelected = mode.IsSelected day
+                                                    let dayLabel = day.ToString()
                                                     RX.View(
                                                         styles =
                                                             [|
@@ -219,7 +218,15 @@ module Input_DayOfTheWeek =
                                                                             else               Styles.dayLabelUnselected theTheme
                                                                         |]
                                                                 )
-                                                                LC.TapCapture(onPress = mode.OnPress day)
+                                                                LC.Pressable(
+                                                                    onPress = mode.OnPress day,
+                                                                    label = dayLabel,
+                                                                    testId = A11ySlug.testId "day-of-week" dayLabel,
+                                                                    role = AccessibilityRole.Button,
+                                                                    state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                                                                    overlay = true,
+                                                                    componentName = "LC.Input.DayOfTheWeek"
+                                                                )
                                                             |]
                                                     )
                                             |]

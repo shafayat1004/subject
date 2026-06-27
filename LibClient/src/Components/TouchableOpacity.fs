@@ -4,6 +4,7 @@ module LibClient.Components.TouchableOpacity
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
 open ReactXP.Styles
 open ReactXP.Components
@@ -15,10 +16,6 @@ module private Styles =
             padding 15
             margin -15
         }
-    let onPressOpacity =
-        makeViewStyles {
-            opacity 0.6
-        }
 
 type LibClient.Components.Constructors.LC with
     static member TouchableOpacity (
@@ -29,32 +26,26 @@ type LibClient.Components.Constructors.LC with
             ?onPressIn: Browser.Types.PointerEvent -> unit,
             ?onPressOut: Browser.Types.PointerEvent -> unit,
             ?pointerState: LC.Pointer.State.PointerState,
+            ?label: string,
             ?styles: array<ViewStyles>,
             ?key: string) : ReactElement =
-        
-        let isPressed: IStateHook<bool> = Hooks.useState false
-        
-        let TouchableOpacityOnPressIn = fun e ->
-            isPressed.update true
-            onPressIn |> Option.sideEffect (fun pressIn -> pressIn e)
-            
-        let TouchableOpacityOnPressOut = fun e ->
-            isPressed.update false
-            onPressOut |> Option.sideEffect (fun pressOut -> pressOut e)
-                
-        
+        onHoverStart |> ignore
+        onHoverEnd |> ignore
+        onPressIn |> ignore
+        onPressOut |> ignore
+
         RX.View(
-            styles = [| Styles.container; if isPressed.current = true then Styles.onPressOpacity|],
+            styles = [| Styles.container |],
             children = elements {
                 children
-                LC.TapCapture (
-                    onPress = onPress, 
-                    ?onHoverStart = onHoverStart, 
-                    ?onHoverEnd = onHoverEnd, 
-                    ?onPressIn = Some TouchableOpacityOnPressIn, 
-                    ?onPressOut = Some TouchableOpacityOnPressOut, 
-                    ?pointerState = pointerState, 
-                    ?styles = styles, 
+                LC.Pressable (
+                    onPress = onPress,
+                    label = defaultArg label "Button",
+                    role = AccessibilityRole.Button,
+                    overlay = true,
+                    ?pointerState = pointerState,
+                    ?styles = styles,
+                    componentName = "LC.TouchableOpacity",
                     ?key = key
                 )
             }

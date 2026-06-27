@@ -6,6 +6,7 @@ open Fable.React
 open LibClient.Responsive
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Components.ScrollView
 
@@ -262,7 +263,13 @@ type LibClient.Components.Constructors.LC with
                                                             RX.View (styles = [| Styles.retryButtonContainer |], children = [|
                                                                 LC.Text ("Retry", styles  = [| Styles.retryButtonText |])
         
-                                                                LC.TapCapture (onPress = (fun _ ->loadNextPage ()|> startSafely))
+                                                                LC.Pressable (
+                                                                    onPress = (fun _ -> loadNextPage () |> startSafely),
+                                                                    label = "Retry",
+                                                                    role = AccessibilityRole.Button,
+                                                                    overlay = true,
+                                                                    componentName = "LC.PaginatedScrollView"
+                                                                )
                                                             |])
                                                         }
                                                     | EndReached -> LC.Text ("-x-", styles = [| Styles.bottomReached |])

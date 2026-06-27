@@ -1,4 +1,4 @@
-// Sidebar nav item lists, factored out of Sidebar.render.
+// Sidebar nav item lists, factored out of the gallery Sidebar shell.
 //
 // The render DSL compiles a component's whole template into ONE `render` member.
 // Sidebar's template carries ~250 nested Sidebar.Item/Divider/Heading elements
@@ -246,7 +246,7 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "FormFieldsDivider",                  right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "HandheldListItem",                   right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "HeaderCell",                         right = icon, state = SI.State.Disabled)
-        LC.Sidebar.Item(label = "LabelledFormField",                  right = icon, state = SI.State.Disabled)
+        compItemIcon "LabelledFormField" LabelledFormField itemState
         LC.Sidebar.Item(label = "LabelledValue",                      right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "Popup",                              right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "Route",                              right = icon, state = SI.State.Disabled)

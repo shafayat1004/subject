@@ -4,6 +4,7 @@ module LibClient.Components.Tag
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Responsive
 
 open ReactXP.Components
@@ -192,10 +193,14 @@ type LibClient.Components.Constructors.LC with
 
                                     match state with
                                     | State.Actionable onPress ->
-                                        LC.TapCapture(
+                                        LC.Pressable(
                                             key = "tap capture",
+                                            onPress = onPress,
+                                            label = text,
+                                            role = AccessibilityRole.Button,
+                                            overlay = true,
                                             pointerState = pointerState,
-                                            onPress = onPress
+                                            componentName = "LC.Tag"
                                         )
                                     | State.InProgress ->
                                         RX.View(

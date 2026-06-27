@@ -7,6 +7,7 @@ open ReactXP.Styles
 open ReactXP.Components
 open LibClient.Components
 open LibClient
+open LibClient.Accessibility
 
 module LC =
     module ThumbCard =
@@ -61,8 +62,12 @@ type private Helpers =
 
                                 match onPress with
                                 | Some onPress ->
-                                    LC.TapCapture(
-                                        onPress = onPress
+                                    LC.Pressable(
+                                        onPress = onPress,
+                                        label = "Open image",
+                                        role = AccessibilityRole.Button,
+                                        overlay = true,
+                                        componentName = "LC.ThumbCard"
                                     )
                                 | None ->
                                     noElement

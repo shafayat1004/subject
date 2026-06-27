@@ -28,14 +28,12 @@ module SampleThemes =
     let small (theme: LC.Button.Theme) : LC.Button.Theme =
         { theme with IconSize = 15 }
 
-    let badgeGreenLegacy : List<ReactXP.LegacyStyles.RuntimeStyles> =
-        let blocks : List<ISheetBuildingBlock> =
-            [
-                "badge" ==> LibClient.Components.BadgeStyles.Theme.One (14, ReactXP.LegacyStyles.RulesRestricted.FontWeight.Bold, Color.White, Color.DevGreen)
-            ]
-        blocks
-        |> ReactXP.LegacyStyles.Designtime.makeSheet
-        |> legacyTheme
+    let badgeGreen (theme: LC.Badge.Theme) : LC.Badge.Theme =
+        { theme with
+            FontWeight      = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+            FontColor       = Color.White
+            BackgroundColor = Color.DevGreen
+        }
 
 type Props = (* GenerateMakeFunction *) {
     key: string option // defaultWithAutoWrap JsUndefined

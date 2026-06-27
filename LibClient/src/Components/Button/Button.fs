@@ -193,8 +193,10 @@ type LibClient.Components.Constructors.LC with
             ?badge: Badge,
             ?styles: array<ViewStyles>,
             ?contentContainerStyles: array<ViewStyles>,
+            ?testId: string,
             ?key: string,
             ?theme: Theme -> Theme,
+            ?badgeTheme: LC.Badge.Theme -> LC.Badge.Theme,
             ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
@@ -203,6 +205,7 @@ type LibClient.Components.Constructors.LC with
         let level = defaultArg level Primary
         let icon = defaultArg icon No
         let theTheme = Themes.GetMaybeUpdatedWith theme
+        let theBadgeTheme = Themes.GetMaybeUpdatedWith badgeTheme
         let lowLevelState = state.ToLowLevel
         let appearance = stateAppearance (levelAppearance theTheme level) lowLevelState
 
@@ -280,7 +283,10 @@ type LibClient.Components.Constructors.LC with
                                                             styles = [| Styles.badge |],
                                                             children =
                                                                 elements {
-                                                                    LC.Badge(badge = badge)
+                                                                    LC.Badge(
+                                                                        badge = badge,
+                                                                        theme = fun _ -> theBadgeTheme
+                                                                    )
                                                                 }
                                                         )
                                                     | None ->
@@ -309,6 +315,7 @@ type LibClient.Components.Constructors.LC with
                                                 onPress = onPress,
                                                 label = label,
                                                 role = AccessibilityRole.Button,
+                                                ?testId = testId,
                                                 overlay = true,
                                                 pointerState = pointerState,
                                                 componentName = "LC.Button"

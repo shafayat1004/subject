@@ -4,6 +4,7 @@ module LibClient.Components.AppleAppStoreButton
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.LocalImages
 
 open ReactXP.Styles
@@ -45,8 +46,13 @@ type LibClient.Components.Constructors.LC with
                                 size = Size.FromStyles
                             )
 
-                            LC.TapCapture(
-                                onPress = onPress
+                            LC.Pressable(
+                                onPress = onPress,
+                                label = "Download on the App Store",
+                                testId = "apple-app-store-button",
+                                role = AccessibilityRole.Link,
+                                overlay = true,
+                                componentName = "LC.AppleAppStoreButton"
                             )
                         }
                 )

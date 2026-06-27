@@ -19,6 +19,7 @@ namespace LibClient.Components
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components.Legacy
 open ReactXP.Components
 open ReactXP.Styles
@@ -63,6 +64,7 @@ module Legacy_Card =
                 ?style:         Card.Style,
                 ?theme:         Card.Theme -> Card.Theme,
                 ?onPress:       (ReactEvent.Action -> unit),
+                ?label:         string,
                 ?styles:        array<ViewStyles>,
                 ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
                 ?key:           string
@@ -76,7 +78,14 @@ module Legacy_Card =
                 children = [|
                     yield! children
                     match onPress with
-                    | Some f -> LC.TapCapture(onPress = f)
+                    | Some f ->
+                        LC.Pressable(
+                            onPress = f,
+                            label = defaultArg label "Open",
+                            role = AccessibilityRole.Button,
+                            overlay = true,
+                            componentName = "LC.Legacy.Card"
+                        )
                     | None   -> ()
                 |]
             )

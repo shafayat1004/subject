@@ -6,6 +6,7 @@ open System
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
 open ReactXP.Styles
 open ReactXP.Styles.Animation
@@ -103,8 +104,12 @@ type LibClient.Components.Constructors.LC with
                         let child =
                             match onPress with
                             | Some onPress ->
-                                LC.TapCapture(
-                                    onPress = onPress
+                                LC.Pressable(
+                                    onPress = onPress,
+                                    label = "Dismiss",
+                                    role = AccessibilityRole.Button,
+                                    overlay = true,
+                                    componentName = "LC.Scrim"
                                 )
                             | None ->
                                 noElement

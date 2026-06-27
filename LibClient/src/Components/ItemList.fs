@@ -5,6 +5,7 @@ open Fable.React
 
 open LibClient
 open LibClient.Icons
+open LibClient.Accessibility
 open LibClient.Components
 
 open ReactXP.Styles
@@ -49,7 +50,14 @@ type private Helpers =
                 RX.View (styles = [|HelperStyles.Label|], children = (elements {
                     LC.Text "See All"
                 }))
-                LC.TapCapture (onPress = handler)
+                LC.Pressable (
+                    onPress = handler,
+                    label = "See All",
+                    testId = A11ySlug.testId "item-list" "See All",
+                    role = AccessibilityRole.Button,
+                    overlay = true,
+                    componentName = "LC.ItemList"
+                )
             }))
         | SeeAll.Children children ->
             children

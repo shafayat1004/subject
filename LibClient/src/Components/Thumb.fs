@@ -4,6 +4,7 @@ module LibClient.Components.Thumb
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Services.ImageService
 
 open ReactXP.Components
@@ -137,7 +138,17 @@ type LibClient.Components.Constructors.LC with
                                     size       = Size.FromParentLayout maybeLayout
                                 )
 
-                                onPress |> Option.map LC.TapCapture
+                                match onPress with
+                                | Some onPress ->
+                                    LC.Pressable(
+                                        onPress = onPress,
+                                        label = "Select thumbnail",
+                                        role = AccessibilityRole.Button,
+                                        overlay = true,
+                                        componentName = "LC.Thumb"
+                                    )
+                                | None ->
+                                    noElement
                             }
                     )
         )

@@ -2,7 +2,7 @@ namespace LibClient.ContextMenus
 
 open Fable.Core.JsInterop
 open LibClient
-open LibClient.Components
+open LibClient.Components.ContextMenu.Popup
 open LibClient.ContextMenus.Types
 open LibClient.Responsive
 
@@ -25,16 +25,10 @@ type ContextMenu =
     static member private OpenDesktop (items: List<ContextMenuItem>) (maybeAnchor: Option<Fable.React.ReactElement>) (e: ReactEvent.Action) (onClose: unit -> unit) : unit =
         let id = sprintf "popup-%i" (System.Random().Next())
 
-        let contextMenuPopup =
-            LibClient.Components.ContextMenu.Popup.Make
-                {
-                    Items        = items
-                    Hide         =
-                        fun () ->
-                            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(id)
-                    OpeningEvent = e
-                }
-                [||]
+        let hide () =
+            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(id)
+
+        let contextMenuPopup = makeContextMenuPopup items hide e
 
         let options = createObj [
             "getAnchor"   ==> fun () -> maybeAnchor |> Option.getOrElseRaise (exn "Need an anchor react element for context menus; no time to fix now")

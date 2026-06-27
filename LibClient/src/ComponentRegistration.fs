@@ -2,29 +2,10 @@
 module LibClient.ComponentRegistration
 
 let registerAllTheThings () : unit =
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.AppShell.Content" LibClient.Components.AppShell.ContentRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Badge" LibClient.Components.BadgeRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.ContextMenu.Dialog" LibClient.Components.ContextMenu.DialogRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.ContextMenu.Popup" LibClient.Components.ContextMenu.PopupRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.DateSelector" LibClient.Components.DateSelectorRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Base" LibClient.Components.Dialog.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Confirm" LibClient.Components.Dialog.ConfirmRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Prompt" LibClient.Components.Dialog.PromptRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Shell.FullScreen" LibClient.Components.Dialog.Shell.FullScreenRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Shell.WhiteRounded.Base" LibClient.Components.Dialog.Shell.WhiteRounded.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Shell.WhiteRounded.Raw" LibClient.Components.Dialog.Shell.WhiteRounded.RawRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Dialog.Shell.WhiteRounded.Standard" LibClient.Components.Dialog.Shell.WhiteRounded.StandardRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Draggable" LibClient.Components.DraggableRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.FloatingActionButton" LibClient.Components.FloatingActionButtonRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Form.Base" LibClient.Components.Form.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.IconWithBadge" LibClient.Components.IconWithBadgeRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.Checkbox" LibClient.Components.Input.CheckboxRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.ChoiceList" LibClient.Components.Input.ChoiceListRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.ChoiceListItem" LibClient.Components.Input.ChoiceListItemRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.File" LibClient.Components.Input.FileRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.Image" LibClient.Components.Input.ImageRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.NamedFile" LibClient.Components.Input.NamedFileRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.ParsedText" LibClient.Components.Input.ParsedTextRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.Picker" LibClient.Components.Input.PickerRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.PickerInternals.Base" LibClient.Components.Input.PickerInternals.BaseRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.PickerInternals.Dialog" LibClient.Components.Input.PickerInternals.DialogRender.render
@@ -32,53 +13,16 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.PickerInternals.Popup" LibClient.Components.Input.PickerInternals.PopupRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.Text" LibClient.Components.Input.TextRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Input.WeeklyCalendar" LibClient.Components.Input.WeeklyCalendarRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.LabelledFormField" LibClient.Components.LabelledFormFieldRender.render
     LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Legacy.Input.Picker" LibClient.Components.Legacy.Input.PickerRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Legacy.Input.PositiveInteger" LibClient.Components.Legacy.Input.PositiveIntegerRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Legacy.Sidebar.Filler" LibClient.Components.Legacy.Sidebar.FillerRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Legacy.Sidebar.Item" LibClient.Components.Legacy.Sidebar.ItemRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Legacy.TopNav.Base" LibClient.Components.Legacy.TopNav.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Bottom.Base" LibClient.Components.Nav.Bottom.BaseRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Bottom.Button" LibClient.Components.Nav.Bottom.ButtonRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Bottom.Item" LibClient.Components.Nav.Bottom.ItemRender.render
-    LibClient.ComponentRegistry.RegisterRender "LibClient.Components.Nav.Top.Base" LibClient.Components.Nav.Top.BaseRender.render
 
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.AppShell.Content", LibClient.Components.AppShell.ContentStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Badge", LibClient.Components.BadgeStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.ContextMenu.Dialog", LibClient.Components.ContextMenu.DialogStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.ContextMenu.Popup", LibClient.Components.ContextMenu.PopupStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.DateSelector", LibClient.Components.DateSelectorStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Base", LibClient.Components.Dialog.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Confirm", LibClient.Components.Dialog.ConfirmStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Prompt", LibClient.Components.Dialog.PromptStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Shell.FullScreen", LibClient.Components.Dialog.Shell.FullScreenStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Shell.WhiteRounded.Base", LibClient.Components.Dialog.Shell.WhiteRounded.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Shell.WhiteRounded.Raw", LibClient.Components.Dialog.Shell.WhiteRounded.RawStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Dialog.Shell.WhiteRounded.Standard", LibClient.Components.Dialog.Shell.WhiteRounded.StandardStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Draggable", LibClient.Components.DraggableStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.FloatingActionButton", LibClient.Components.FloatingActionButtonStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Form.Base", LibClient.Components.Form.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.IconWithBadge", LibClient.Components.IconWithBadgeStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.Checkbox", LibClient.Components.Input.CheckboxStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.ChoiceList", LibClient.Components.Input.ChoiceListStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.ChoiceListItem", LibClient.Components.Input.ChoiceListItemStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.File", LibClient.Components.Input.FileStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.Image", LibClient.Components.Input.ImageStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.NamedFile", LibClient.Components.Input.NamedFileStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.ParsedText", LibClient.Components.Input.ParsedTextStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.Picker", LibClient.Components.Input.PickerStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.PickerInternals.Dialog", LibClient.Components.Input.PickerInternals.DialogStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.PickerInternals.Field", LibClient.Components.Input.PickerInternals.FieldStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.PickerInternals.Popup", LibClient.Components.Input.PickerInternals.PopupStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.Text", LibClient.Components.Input.TextStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Input.WeeklyCalendar", LibClient.Components.Input.WeeklyCalendarStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.LabelledFormField", LibClient.Components.LabelledFormFieldStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Legacy.Input.Picker", LibClient.Components.Legacy.Input.PickerStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Legacy.Input.PositiveInteger", LibClient.Components.Legacy.Input.PositiveIntegerStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Legacy.Sidebar.Filler", LibClient.Components.Legacy.Sidebar.FillerStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Legacy.Sidebar.Item", LibClient.Components.Legacy.Sidebar.ItemStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Legacy.TopNav.Base", LibClient.Components.Legacy.TopNav.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Bottom.Base", LibClient.Components.Nav.Bottom.BaseStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Bottom.Button", LibClient.Components.Nav.Bottom.ButtonStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Bottom.Item", LibClient.Components.Nav.Bottom.ItemStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("LibClient.Components.Nav.Top.Base", LibClient.Components.Nav.Top.BaseStyles.styles)

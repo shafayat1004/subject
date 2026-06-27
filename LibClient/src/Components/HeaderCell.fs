@@ -3,6 +3,7 @@ module LibClient.Components.HeaderCell
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Icons
 open ReactXP.Components
 open ReactXP.Styles
@@ -95,8 +96,12 @@ type LibClient.Components.Constructors.LC with
                                     }
                             )
 
-                        LC.TapCapture(
-                            onPress = maybeSort sortField currSortField currSortDirection setSort
+                        LC.Pressable(
+                            onPress = maybeSort sortField currSortField currSortDirection setSort,
+                            label = label,
+                            role = AccessibilityRole.Button,
+                            overlay = true,
+                            componentName = "LC.HeaderCell"
                         )
                     | None ->
                         noElement

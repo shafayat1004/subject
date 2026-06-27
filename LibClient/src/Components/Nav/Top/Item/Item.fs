@@ -242,7 +242,15 @@ module Nav_Top_Item =
                 }
         )
 
-    let private renderBadge (badge: Badge) (sizes: ScreenSizes) (screenSize: ScreenSize) =
+    let private badgeTheme (sizes: ScreenSizes) (colors: AppearanceColors) : LC.Badge.Theme =
+        {
+            FontSize        = sizes.BadgeFontSize
+            FontWeight      = colors.BadgeFontWeight
+            FontColor       = colors.BadgeFontColor
+            BackgroundColor = colors.BadgeBackgroundColor
+        }
+
+    let private renderBadge (badge: Badge) (sizes: ScreenSizes) (screenSize: ScreenSize) (colors: AppearanceColors) =
         RX.View(
             styles =
                 [|
@@ -251,7 +259,10 @@ module Nav_Top_Item =
                 |],
             children =
                 elements {
-                    LC.Badge(badge = badge)
+                    LC.Badge(
+                        badge = badge,
+                        theme = fun _ -> badgeTheme sizes colors
+                    )
                 }
         )
 
@@ -271,7 +282,7 @@ module Nav_Top_Item =
                 children =
                     elements {
                         renderIcon sizes colors theme icon
-                        renderBadge badge sizes screenSize
+                        renderBadge badge sizes screenSize colors
                         renderLabelBlock sizes colors label true
                     }
             )
@@ -290,7 +301,7 @@ module Nav_Top_Item =
                 children =
                     elements {
                         renderIcon sizes colors theme icon
-                        renderBadge badge sizes screenSize
+                        renderBadge badge sizes screenSize colors
                     }
             )
         | Some label, None, Some badge ->
@@ -299,7 +310,7 @@ module Nav_Top_Item =
                 children =
                     elements {
                         renderLabelBlock sizes colors label false
-                        renderBadge badge sizes screenSize
+                        renderBadge badge sizes screenSize colors
                     }
             )
         | Some label, None, None ->
