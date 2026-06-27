@@ -17,9 +17,10 @@ This is the "main" EggShell library that contains:
 ** AudioService for audio playback
 ** PageTitleService for changing the page title
 * Abstract classes for building Apps and Dialogs
-* The design-time DSL and runtime code for the styles system
+* Legacy StylesDSL runtime (class-based styles) — being retired; new components use `makeViewStyles` / `Themes`
 * Typed wrappers over raw ReactXP components
-* The vast majority of our standard UI components (buttons, form input fields, cards, etc)
+* Standard UI components (buttons, form inputs, cards, etc.) — mostly pure F#; **9** `.render` files remain
+  (see [Roadmap](./roadmap.md))
 * Logging setup, including ApplicationInsights bindings
 * Icons system
 * Chars system (replacement for HTML entities, since we are not in HTML world)
@@ -42,6 +43,8 @@ fields, custom validation, etc.
 
 The library got to about 80% completion, and then priorities changed and we abandoned development. There is
 currently about two weeks of work remaining.
+
+**Not done:** No application `.fsproj` references `LibAutoUi`. Use `LC.Form.Base` + typed inputs for forms.
 
 ## LibLangFsharp
 

@@ -39,6 +39,31 @@ need to update with additional dot-dot-slashes
     App.code-workspace
 ```
 
+## `eggshell build-lib`
+
+Compiles `.render` / `.typext.fs` files in the current project and listed dependencies,
+regenerates `ComponentRegistration.fs`, and runs the Fable precompile pass for framework libs.
+Run from a lib or app directory after adding/removing components or deleting converted render files.
+
+Typical use after converting a component cluster: ensures autogen on disk matches the fsproj and
+registration no longer lists deleted `.render` pages.
+
+## `eggshell test-build`
+
+One-shot production webpack bundle (same pipeline as CI packaging, without deploy). Use to validate
+the app compiles end-to-end after large refactors. From `AppEggShellGallery`:
+
+```bash
+../eggshell test-build
+```
+
+## `eggshell convert-component`
+
+Runs the RenderDSL compiler in **RenderConvert** mode and prints readable F# to stdout. It does
+**not** write files — use the output as a starting point for hand conversion to `[<Component>]`
+(see `MODERNIZATION_PLAN.md` in the repo). Prefer the LEARNINGS.md conversion recipe for production
+migrations.
+
 ## `eggshell dev-web`
 
 Runs the current app in development mode via webpack-dev-server. Default port **9080**; **AppEggShellGallery** uses **8082** (see `Meta/LibFablePlus/webpack.config.js`).
@@ -66,11 +91,15 @@ Starts Metro from the app directory (`npx react-native start`, optional `--reset
 
 ## `eggshell create-component`
 
-Allows you to create a new component, of the specified type (pure stateless, estateful, pstateful,
-or function-based). The component name can optionall be namespaced. So instead of doing something
-like `CookDishSchedule` you may want to consider `Cook.Dish.Schedule`. There are no fixed rules
-for how to group components, and the `rename-component` command relieves some of the pressure of
-naming the component perfectly right the first time around.
+Scaffolds a new component. Prefer the **pure F#** path: one `Components/.../Foo.fs` with
+`[<Component>]`, module name `AppOrLib.Components.Foo` (or `Foo_Bar_Baz` for nested paths),
+entry in `App.fsproj`, and extend the type in `ComponentsHierarchy.fs` if adding a new namespace.
+
+The CLI may still offer legacy render-DSL shapes (typext + `.render` + `.styles.fs`). Do not use
+those for new framework or gallery work — they are being retired (Goal A).
+
+Component names can be namespaced (`Cook.Dish.Schedule`). Use `rename-component` if the name
+needs to change later.
 
 ## `eggshell rename-component`
 
@@ -88,23 +117,27 @@ accomplished by a simple global replace in your IDE.
 
 ## `eggshell create-route`
 
-TODO
+Scaffolds a new route component in the current app (interactive prompts).
 
 ## `eggshell create-dialog`
 
-TODO
+Scaffolds a dialog component (interactive prompts).
 
 ## `eggshell create-third-party-wrapper`
 
-TODO
+Scaffolds a third-party wrapper lib (interactive prompts).
+
+## `eggshell package-web`
+
+Production webpack bundle for web deployment.
+
+## `eggshell package-android`
+
+Package Android native app (see CLI `--help` for variants).
 
 ## `eggshell package-app`
 
-TODO
-
-## `eggshell build-lib`
-
-TODO
+Legacy alias / see `package-web` and `package-android` above.
 
 ## The `eggshell.json` config file
 

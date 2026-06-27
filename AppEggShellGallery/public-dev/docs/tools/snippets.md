@@ -19,8 +19,10 @@ prefix and hit tab, it gets unfolded into the desired chunk of text.
 Snippets can specify a "scope" language, and VSCode will make them available only when editing
 files in that language.
 
-We define a set of EggShell specific snippets in `Meta/renderdsl.code-snippets`, and symlink them
-into all EggShell projects.
+We define EggShell snippets in `Meta/renderdsl.code-snippets` (symlinked into projects).
+Scopes include **`fsharp`** (F# dialect components, `element`/`elements` CEs) and **`renderdsl`**
+(legacy `.render` XML). On the Tools → Snippets page, both scopes are listed when viewing
+`tools/snippets.md` in the gallery.
 
 There are probably multiple ways to configure triggering of snippets, depending on your preferences
 for other IDE features. One way that seems to work well is to set this setting

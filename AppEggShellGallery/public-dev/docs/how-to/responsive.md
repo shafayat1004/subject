@@ -60,17 +60,21 @@ Consider the following layout.
 
 ![image](./responsive-examples-01.png)
 
-The heading users a different font size based on the screen size. If there was no existing library
-component to accomplish this, we would add one to the library, perhaps an `LC.Heading`. It may take
-`Text: string` as a prop, and would have a simple `.render` file:
+The heading uses a different font size based on screen size. The library already provides
+[`LC.Heading`](gallery:///%22Desktop%22/Components/%22Heading%22) for this; prefer it over
+rolling your own. Internally it uses `LC.With.ScreenSize` and explicit `makeTextStyles` — the
+modern F# pattern looks like:
 
-```xml
-<div>
-    <text>{=props.Text}</text>
-</div>
+```fsharp
+LC.With.ScreenSize(``with`` = fun screenSize ->
+    LC.Heading(
+        level = Heading.Level.Primary,
+        children = elements { LC.Text text }
+    )
+)
 ```
 
-To get our hands on the current screen size, we need to use the `LC.With.ScreenSize` component:
+Legacy render-DSL equivalent (for reference only):
 
 ```xml
 <LC.With.ScreenSize rt-prop-children='Content(screenSize: ScreenSize)'>
@@ -117,7 +121,8 @@ let styles = compile [
 ]
 ```
 
-Likewise, using `sprintf` could work, as will string interpolation that's apparently coming in F# 5.
+Likewise, `sprintf` is still common in the codebase; F# string interpolation (`$"..."`) is also
+available (projects use `LangVersion` 7.0 / .NET 7).
 
 Note, that there's no notion of rule precedence in the current StyleDSL implementation,
 so make sure your rules are specified XOR style, instead of having, say, a base font size

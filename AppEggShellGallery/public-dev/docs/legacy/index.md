@@ -16,3 +16,8 @@ and making it reflect the latest and greatest in EggShell tech.
 ## StylesDSL
 * [StylesDSL Language Description](./stylesDsl/index.md)
 * [StylesDSL Style Guide](./stylesDsl/style-guide.md)
+
+---
+
+The gallery app itself is fully converted to pure F#. This section remains reference material for
+RenderDSL/StylesDSL in framework libs and older apps.

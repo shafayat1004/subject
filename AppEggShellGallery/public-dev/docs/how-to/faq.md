@@ -40,8 +40,13 @@ reasonable to want to search a button label. Oh well.
 
 ## How do I make a new component/route/dialog?
 
-Use the [`eggshell` CLI](./tools/cli.md)
+Use the [`eggshell` CLI](../tools/cli.md). New components should be **pure F#** — see
+[How to Add a Component](../fsharp/component.md). Legacy render scaffolding is deprecated.
 
+## Should I use RenderDSL or F#?
+
+**F#** for all new UI. RenderDSL remains only for a few not-yet-converted LibClient files and
+some older apps. See [Sunsetting RenderDSL](../fsharp/background.md) and [Legacy](../legacy/index.md).
 
 ## How do I build an admin panel?
 

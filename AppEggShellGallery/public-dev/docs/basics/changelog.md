@@ -1,4 +1,8 @@
-# Change Log
+## 2026-06-28
+
+- Gallery docs: roadmap notes only for partial/open items; factual fixes (Fable 4, .NET 7, CLI)
+- Styling guidance updated in component/styling docs
+- AppEggShellGallery Content showcase pages converted to pure F#
 
 ## 2023-12-31
 - Updated minimum NodeJS version to `18.19.0`

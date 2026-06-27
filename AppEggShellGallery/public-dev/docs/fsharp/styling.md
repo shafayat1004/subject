@@ -1,6 +1,6 @@
 # Styling
 
-ReactXP's styling system is based on a least common demominator sort of system between CSS and
+ReactXP's styling system is based on a least common denominator sort of system between CSS and
 ReactNative's styles. We thinly wrap ReactXP's styling system to:
 * make it type-safe
 * allow for writing helper functions that return multiple rules
@@ -16,34 +16,41 @@ Styles are typically applied in three ways:
 
 ## Applying styles directly to ReactXP components
 
-In the .fs file where your component lives, you will typically have a
+In the `.fs` file where your component lives, declare styles **before** the component. Two patterns:
+
+### Top-level `let` bindings (preferred for simple styles)
+
+Use this for static, non-parametrized styles — gallery sample pages, one-off layout, demos:
 
 ```fsharp
-module private Styles =
-    ...
-```
+let card = makeViewStyles { margin 16 }
 
-Within this, there are two patterns for declaring styles.
-
-### Simple let-bound styles
-
-```fsharp
-let card = makeViewStyles {
-    margin 16
-}
-```
-
-This declares a style value `card`. It can be applied to a view like this:
-
-```fsharp
-RX.View (
-    styles = [|Styles.card|],
+RX.View(
+    styles = [| card |],
     children = ...
 )
 ```
 
-Regardless of how many times you use it within your code, it is constructed exactly once.
-This works for simple, static, non-parametrized styles.
+Each binding is constructed once regardless of how often you reference it.
+
+### Named private module (when grouping several styles)
+
+When a file has many related styles, group them under a **descriptively named** module. Do **not** use a
+generic `module private Styles =` in new code:
+
+```fsharp
+[<RequireQualifiedAccess>]
+module private CardStyles =
+    let view = makeViewStyles { margin 16 }
+    let title = makeTextStyles { fontSize 18; FontWeight.Bold }
+
+RX.View(
+    styles = [| CardStyles.view |],
+    children = [| LC.Text("Title", styles = [| CardStyles.title |]) |]
+)
+```
+
+`[<RequireQualifiedAccess>]` keeps call sites explicit (`CardStyles.view`, not bare `view`).
 
 ### Parametrized styles
 
@@ -57,15 +64,16 @@ type Level =
 [<Component>]
 member static Card (level: Level) =
     RX.View (
-        styles = [|Styles.card level|],
+        styles = [| CardStyles.card level |],
         children = ...
     )
 ```
 
-For this, a memoized function should be used:
+For this, a memoized function should be used (inside a named styles module or at top level):
 
 ```fsharp
-module private Styles =
+[<RequireQualifiedAccess>]
+module private CardStyles =
     let card = ViewStyles.Memoize (fun (level: Level) -> makeViewStyles {
         backgroundColor (
             match level with
@@ -84,22 +92,18 @@ console, which is your cue to add memoization.
 Note, that there's another way of accomplishing the same thing:
 
 ```fsharp
-module private Styles =
-    let cardInfo = makeViewStyles {
-        backgroundColor Colors.White
-    }
-
-    let cardWarning = makeViewStyles {
-        backgroundColor Colors.Orange
-    }
+[<RequireQualifiedAccess>]
+module private CardStyles =
+    let cardInfo = makeViewStyles { backgroundColor Colors.White }
+    let cardWarning = makeViewStyles { backgroundColor Colors.Orange }
 
 [<Component>]
 member static Card (level: Level) =
     RX.View (
         styles = [|
             match level with
-            | Level.Info    -> Styles.cardInfo
-            | Level.Warning -> Styles.cardWarning
+            | Level.Info    -> CardStyles.cardInfo
+            | Level.Warning -> CardStyles.cardWarning
         |],
         children = ...
     )
@@ -141,16 +145,16 @@ component, this use case would work poorly with memoization. We _could_ allow dy
 these dynamic use cases are far better served by ReactXP's animation values, which are built for performance,
 which is usually a requirement for dynamic style scenarios anyway. 
 
-## Older way of declaring styles
+## Older way of declaring styles (deprecated)
 
-We used to have a preference for keeping styles at the bottom of the .fs file, for which we used
-a recursive type, declared as
+We used to keep styles at the bottom of the file via a mutually recursive type:
 
 ```
 and private Styles() =
     ....
 ```
 
-but this approach forced us to use an unorthodox syntax for declaring styles as `static member val`,
-and the price for missing the `val` bit was runtime performance degradation. So it was decided that
-having styles in a module is simpler and safer in tersm of performance.
+That forced an unorthodox `static member val` syntax; missing `val` caused runtime performance
+degradation. We then switched to `module private Styles =`, which is simpler but the generic name
+collides easily. **Current guidance:** top-level `let` bindings, or `[<RequireQualifiedAccess>] module private FooStyles`.
+See [Components](./fsharp/component.md).

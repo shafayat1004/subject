@@ -37,9 +37,9 @@ like this:
 
 ```
 
-Some of them needed helper types/values (like the `Actions.greet` you see above)
-in order to show off the components properly. Those would typically live inside the
-`Contents/Whatever/Whatever.typext.fs` file.
+Some showcase pages still needed helper types/values (like `Actions.greet`). Those live in the
+same `Content/Foo/Foo.fs` file or shared modules (e.g. `AppEggShellGallery.Actions`), not in
+legacy `typext.fs` files.
 
 Then somebody had a brilliant idea: "Can we somehow use dotnet's XmlDocs feature to
 power the gallery? That way, we'd be able to both see example code in the IDE when
@@ -96,11 +96,10 @@ something like this:
     /// <remarks>
     ///     Setup code
     ///     <code setup="true">
-    ///         module private Styles =
-    ///             let greyExpandingBox = makeViewStyles {
-    ///                 backgroundColor Color.DevLightGrey
-    ///                 flex 1
-    ///             }
+    ///         let greyExpandingBox = makeViewStyles {
+    ///             backgroundColor Color.DevLightGrey
+    ///             flex 1
+    ///         }
     ///     </code>
     /// </remarks>
 
@@ -126,11 +125,16 @@ A few things to note here:
   impossible to recover the original component's name (as we'd like to show it to the gallery viewer) in a way that we'd
   like. For these cases, `XmlDocs.fs` has a `lossyNameMappings` value where you can add such components.
 
-* To hook up the gallery's component display pages to this system, we do this in `AppEggShellGallery/src/Components/Route/Components/Components.render`:
+* To hook up the gallery's component display pages to this system, `Components/Route/Components/Components.fs`
+  dispatches routes to either hand-written Content pages or XmlDocs-based pages:
 
-```xml
-<rt-case is='Input_Picker'><Content.Input.Picker                      /></rt-case>
-<rt-case is='InProgress'  ><XmlDocsContent.LC.InProgress  rt-fs='true'/></rt-case>
+```fsharp
+// Hand-written showcase (typical for LibClient components)
+| ComponentItem.Input_Picker -> Ui.Content.Input.Picker()
+
+// XmlDocs-scraped samples (experimental / partial coverage)
+| ComponentItem.InProgress   -> Ui.XmlDocsContent.LC.InProgress()
 ```
 
-The first line is the old way doing things, the second line is the XmlDocs based way.
+Hand-written Content pages are the norm after the 2026 gallery modernization; they use
+`Ui.ComponentContent` with F# code samples.

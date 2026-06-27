@@ -6,6 +6,9 @@ EggShell is a tech stack for front end apps. It combines a number of technologie
 * `Fable` — an F# to JS compiler
 * `ReactXP` — a layer on top of react that allows targeting ReactDOM and ReactNative from the same code base
 
+**UI code:** new work uses pure F# components (`[<Component>]`). Legacy RenderDSL: [Legacy](./legacy/index.md).
+Open and partial roadmap items are noted in [Roadmap](./basics/roadmap.md).
+
 ## Basics
 * [Getting Started](./basics/getting-started.md)
 * [Dev Experience](./basics/dev-experience.md)

@@ -167,26 +167,43 @@ The saving grace is that we're unlikely have namespaces that go deeper than this
 
 ## Styles
 
-We like to have styles at the end of the file, but we need to use them above. This requires us to define styles
-as a muturally recursive type with whatever type holds our components. It looks like this:
+Styles can appear anywhere in the file before they are used. You do **not** need a mutually recursive
+type with the component (that was an older workaround; see [Styling](./fsharp/styling.md)).
+
+**Preferred patterns** (in order):
+
+1. **Top-level `let` bindings** for simple, file-local styles (especially gallery samples and one-off layout):
 
 ```fsharp
-module private Styles =
-    let sample = makeTextStyles {
-        fontSize 42
-    }
+let cardPadding = makeViewStyles { padding 16 }
 
 type Ui with
     [<Component>]
-    static member Something (size: Size) : ReactElement =
-        LC.Text ("QQQ", styles = [|Styles.sample|])
+    static member Something () : ReactElement =
+        RX.View(styles = [| cardPadding |], children = [||])
 ```
 
-The `makeTextStyles` computation expression (and its `makeViewStyles` counterpart) is made available via the `open ReactXP.Styles` statement.
-All familiar components in the `RX` namespace (and some of their helper wrappers in `LC`) have this `styles`
-parameter defined on them.
+2. **Named private module** when you have several related styles. Use a descriptive name, not a generic
+`Styles` module (avoids collisions and matches converted LibClient components):
 
-More on styles, including how to parametrize them, is [here](./fsharp/styling.md).
+```fsharp
+[<RequireQualifiedAccess>]
+module private LinkDemoStyles =
+    let label = makeTextStyles { fontSize 14; color Color.Black }
+
+type Ui with
+    [<Component>]
+    static member Link (...) : ReactElement =
+        LC.Text(label, styles = [| LinkDemoStyles.label |])
+```
+
+Avoid bare `module private Styles =` in new code. Legacy converted files may still use it; prefer
+`FooStyles` or top-level `let` when touching them.
+
+The `makeTextStyles` / `makeViewStyles` computation expressions come from `open ReactXP.Styles`.
+Familiar `RX.*` and `LC.*` components accept `?styles: array<...Styles>`.
+
+More on styles, including memoization and themes, is [here](./fsharp/styling.md).
 
 ## The `elements` and `element` CEs
 
@@ -247,13 +264,10 @@ open LibClient.Components
 open ReactXP.Components
 open ReactXP.Styles
 
-module private Styles =
-    let sample = makeTextStyles {
-        fontSize 42
-    }
+let sampleText = makeTextStyles { fontSize 42 }
 
 type Ui with
     [<Component>]
-    static member Something (size: Size) : ReactElement =
-        LC.Text ("QQQ", styles = [|Styles.Sample|])
+    static member Something () : ReactElement =
+        LC.Text("QQQ", styles = [| sampleText |])
 ```

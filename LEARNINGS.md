@@ -865,3 +865,14 @@ All **69** gallery Content pages are now single `Foo.fs` files with `[<Component
   multi-line `position = (...)` must be parenthesized or F# parses a top-level binding.
 - **Gallery pages can lead LibClient:** Input.Text/Picker showcase pages are pure F# while framework
   twins remain render DSL; samples call `LC.Input.Text` / `LC.Input.Picker` as usual.
+
+## 2026-06-28 — Styling guidance for docs and gallery samples
+
+**Avoid** generic `module private Styles =` in new code and in gallery/XmlDocs **code sample strings**.
+Prefer:
+1. Top-level `let foo = makeViewStyles { ... }` (see `GallerySampleImages.fs`, ImageCard code blocks)
+2. `[<RequireQualifiedAccess>] module private FooStyles =` when grouping many related styles
+
+Updated gallery docs: `public-dev/docs/fsharp/component.md`, `styling.md`, `unsorted/xmldocs.md`.
+**Architecture pages** (`roadmap.md`, etc.): note **Partial** / **Not done** only — omit status for
+completed items (remove from roadmap or fold into brief intro prose).
