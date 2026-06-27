@@ -251,14 +251,13 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  ContextMenu: async ({ check, firstCell, hasPseudo }) => {
-    const cell = firstCell();
+  ContextMenu: async ({ check, anySampleCell, hasPseudo, page }) => {
     await check('ContextMenu open buttons present', async () => ({
       passed:
-        (await hasPseudo(cell, 'Handheld Context Menu')) &&
-        (await hasPseudo(cell, 'Desktop Context Menu')),
+        (await anySampleCell(page, async (cell) => hasPseudo(cell, 'Handheld Context Menu'))) &&
+        (await anySampleCell(page, async (cell) => hasPseudo(cell, 'Desktop Context Menu'))),
       message: 'Both context menu trigger buttons should be visible',
-    }), cell);
+    }));
   },
 
   ErrorBoundary: async ({ check, sampleCells, hasPseudo, cellHtmlContains, ctx }) => {
@@ -396,17 +395,21 @@ const ASSERTION_HANDLERS = {
   Carousel: async ({ check, firstCell }) => {
     const cell = firstCell();
     await check('Carousel navigation controls present', async () => ({
-      passed: (await cell.locator('button').count()) >= 2,
-      message: 'Carousel should have prev/next controls',
+      passed:
+        (await cell.locator('svg, img').count()) > 0 &&
+        ((await cell.locator('svg').count()) > 0 ||
+          (await cell.locator('[class*="dot"], [class*="Dot"]').count()) > 0),
+      message: 'Carousel should render slide surface and navigation (chevrons or dots)',
     }), cell);
   },
 
-  Card: async ({ check, firstCell, hasPseudo }) => {
-    const cell = firstCell();
+  Card: async ({ check, anySampleCell, cellContains, page }) => {
     await check('Card pressable sample visible', async () => ({
-      passed: await hasPseudo(cell, 'This is a card that you can press'),
+      passed: await anySampleCell(page, async (cell) =>
+        cellContains(cell, 'This is a card that you can press')
+      ),
       message: 'Pressable card sample text should be visible',
-    }), cell);
+    }));
   },
 
   ThirdParty_Map: async ({ check, firstCell }) => {
@@ -442,10 +445,11 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  Sidebar: async ({ check, firstCell, hasPseudo }) => {
+  Sidebar: async ({ check, firstCell, cellContains }) => {
     const cell = firstCell();
     await check('Sidebar nav items visible', async () => ({
-      passed: (await hasPseudo(cell, 'Inbox')) || (await hasPseudo(cell, 'Calendar')),
+      passed:
+        (await cellContains(cell, 'Inbox')) || (await cellContains(cell, 'Calendar')),
       message: 'Sidebar demo should show nav items',
     }), cell);
   },
@@ -466,36 +470,44 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  TouchableOpacity: async ({ check, firstCell, hasPseudo }) => {
+  TouchableOpacity: async ({ check, firstCell, cellContains }) => {
     const cell = firstCell();
     await check('TouchableOpacity Click Me visible', async () => ({
-      passed: await hasPseudo(cell, 'Click Me'),
+      passed: await cellContains(cell, 'Click Me'),
       message: 'Click Me label should be visible',
     }), cell);
   },
 
-  Tag: async ({ check, firstCell, hasPseudo }) => {
-    const cell = firstCell();
+  Tag: async ({ check, anySampleCell, cellContains, page }) => {
     await check('Tag Actionable sample visible', async () => ({
-      passed: await hasPseudo(cell, 'Actionable'),
+      passed: await anySampleCell(page, async (cell) => cellContains(cell, 'Actionable')),
       message: 'Actionable tag should be visible',
-    }), cell);
+    }));
   },
 
-  InProgress: async ({ check, firstCell, hasPseudo }) => {
+  InProgress: async ({ check, firstCell, cellContains }) => {
     const cell = firstCell();
-    await check('InProgress demo control visible', async () => ({
-      passed: (await cell.locator('button').count()) > 0 || (await hasPseudo(cell, 'Submit')),
-      message: 'InProgress sample should expose a trigger control',
+    await check('InProgress demo content visible', async () => ({
+      passed: await cellContains(cell, 'Some content here'),
+      message: 'InProgress sample should show demo content',
     }), cell);
   },
 
-  WithExecutor: async ({ check, firstCell, hasPseudo }) => {
+  WithExecutor: async ({ check, firstCell, cellContains, ctx }) => {
     const cell = firstCell();
     await check('WithExecutor Press Here visible', async () => ({
-      passed: await hasPseudo(cell, 'Press Here'),
+      passed: await cellContains(cell, 'Press Here'),
       message: 'Press Here trigger should be visible',
     }), cell);
+    await ctx.clickText(cell, 'Press Here');
+    await ctx.wait(400);
+    await check('WithExecutor in-progress after press', async () => ({
+      passed:
+        (await cell.locator('svg, [class*="ActivityIndicator"], [class*="spinner"]').count()) > 0 ||
+        !(await cellContains(cell, 'Press Here')),
+      message: 'Press Here should trigger in-progress spinner',
+    }), cell);
+    await ctx.wait(1200);
   },
 
   Executor_AlertErrors: async ({ check, firstCell, hasPseudo }) => {

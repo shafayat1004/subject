@@ -769,11 +769,8 @@ export const COMPONENT_HANDLERS = {
   Responsive: async () => {},
   InProgress: async () => {},
 
-  WithExecutor: async (ctx) => {
-    await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickText(cell, 'Press Here');
-      await ctx.wait(1200);
-    });
+  WithExecutor: async () => {
+    /* click + in-progress assert live in audit-gallery-assertions.mjs (before generic sweep) */
   },
 
   WithDataFlowControl: async (ctx) => {
