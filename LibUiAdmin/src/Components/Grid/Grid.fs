@@ -75,36 +75,35 @@ module private Styles =
             AlignSelf.Stretch
             minWidth        280
         }
-
-    let nativeGridBodyScroll =
-        makeScrollViewStyles {
-            AlignSelf.Stretch
-            minHeight       120
-        }
 #endif
 
     let headers =
         makeViewStyles {
             FlexDirection.Row
-            AlignItems.Center
+            AlignItems.Stretch
             AlignSelf.Stretch
             Overflow.Visible
             widthPercent 100
         }
 
     let nativeTableBody =
-        ViewStyles.Memoize (fun (tableWidth: int) ->
-            makeViewStyles {
-                FlexDirection.Column
-                AlignSelf.FlexStart
-                width tableWidth
-                minWidth tableWidth
-            })
+        makeViewStyles {
+            FlexDirection.Column
+            AlignSelf.Stretch
+            widthPercent 100
+        }
+
+    let nativeTableContainer =
+        makeViewStyles {
+            AlignSelf.Stretch
+            widthPercent 100
+            Overflow.Visible
+        }
 
     let row =
         makeViewStyles {
             FlexDirection.Row
-            AlignItems.Center
+            AlignItems.Stretch
             AlignSelf.Stretch
             Overflow.Visible
             widthPercent 100
@@ -124,6 +123,8 @@ module private Styles =
         makeViewStyles {
             Overflow.Visible
             minHeight 100
+            AlignSelf.Stretch
+            widthPercent 100
         }
 
     let emptyMessage =
@@ -143,12 +144,16 @@ module private Styles =
             FlexDirection.Row
             AlignItems.Stretch
             JustifyContent.SpaceBetween
+            AlignSelf.Stretch
+            widthPercent 100
         }
 
     let paginationHandheld =
         makeViewStyles {
             paddingHorizontal 10
             AlignItems.Center
+            AlignSelf.Stretch
+            widthPercent 100
         }
 
     let navigation =
@@ -264,9 +269,9 @@ module NativeGrid =
             RX.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
         | None, None   -> noElement
 
-    let staticBody (tableWidth: int) (headers: ReactElement) (rows: ReactElement) : ReactElement =
+    let staticBody (headers: ReactElement) (rows: ReactElement) : ReactElement =
         RX.View (
-            styles = [| Styles.nativeTableBody tableWidth |],
+            styles = [| Styles.nativeTableBody |],
             children = [|
                 if headers <> noElement then headers
                 RX.View (styles = [| Styles.rows |], children = [| rows |])
@@ -301,9 +306,9 @@ module NativeGrid =
                 |> List.toArray)
         )
 
-    let tableBody (tableWidth: int) (headerRow: ReactElement) (bodyRows: ReactElement) : ReactElement =
+    let tableBody (headerRow: ReactElement) (bodyRows: ReactElement) : ReactElement =
         RX.View (
-            styles = [| Styles.nativeTableBody tableWidth |],
+            styles = [| Styles.nativeTableBody |],
             children =
                 [|
                     if headerRow <> noElement then headerRow
@@ -401,7 +406,6 @@ type UiAdmin with
             ?headers:                ReactElement,
             ?headersRaw:             ReactElement,
             ?itemKey:                ('T -> string),
-            ?nativeColumnWidthUnits: List<int>,
             ?key:                    string,
             ?xLegacyStyles:          List<ReactXP.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
@@ -417,11 +421,6 @@ type UiAdmin with
         let headers = headers |> Option.orElse None
         let headersRaw = headersRaw |> Option.orElse None
         let itemKey = itemKey |> Option.orElse None
-
-        let nativeTableWidth =
-            nativeColumnWidthUnits
-            |> Option.map GridCellLayout.tableWidthFromUnits
-            |> Option.defaultValue GridCellLayout.defaultThreeColumnTableWidth
 
         let jumpToPageState = Hooks.useState LibClient.Components.Input.PositiveInteger.empty
 
@@ -648,7 +647,7 @@ type UiAdmin with
                         dom.tbody [ ClassName "rows" ] [| rows |]
                     |]
                     #else
-                    NativeGrid.staticBody nativeTableWidth maybeHeaderElement rows
+                    NativeGrid.staticBody maybeHeaderElement rows
                     #endif
 
             | Everything (asyncItems, makeDesktopRow, maybeMakeHandheldRow)
@@ -705,7 +704,6 @@ type UiAdmin with
                                     |]
                                     #else
                                     NativeGrid.tableBody
-                                        nativeTableWidth
                                         maybeHeaderElement
                                         (NativeGrid.desktopRows items makeDesktopRow itemKey)
                                     #endif
@@ -759,16 +757,9 @@ type UiAdmin with
             styles = [| Styles.view; Styles.nativeGridRoot; yield! legacyViewStyles |],
             children = [|
                 navRow
-                RX.ScrollView (
-                    scrollEnabled = handleVerticalScrolling,
-                    styles = [| Styles.scrollViewVertical |],
-                    children = [|
-                        RX.ScrollView (
-                            horizontal = true,
-                            styles = [| Styles.scrollViewHorizontal; Styles.nativeGridBodyScroll |],
-                            children = [| renderGridBody false |]
-                        )
-                    |]
+                RX.View (
+                    styles = [| Styles.nativeTableContainer |],
+                    children = [| renderGridBody false |]
                 )
                 navRow
             |]

@@ -105,8 +105,7 @@ module private QueryGridDemo =
             initialQueryAcc = Acc.Empty,
             headers = Sample.headers,
             row = Sample.makeRow,
-            queryForm = Sample.queryForm,
-            nativeColumnWidthUnits = Sample.columnWidths
+            queryForm = Sample.queryForm
         )
 
 type Ui.Content with

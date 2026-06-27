@@ -139,8 +139,7 @@ module private PaginatedWordsDemo =
 
         UiAdmin.Grid(
             input = LibUiAdmin.Components.Grid.Paginated(currentPageHook.current, Samples.makeWordRow, None),
-            headers = Samples.wordHeaders,
-            nativeColumnWidthUnits = Demo.ColumnWidths.word
+            headers = Samples.wordHeaders
         )
 
 type Ui.Content with
@@ -194,8 +193,7 @@ UiAdmin.Grid(
                         visuals =
                             UiAdmin.Grid(
                                 input = LibUiAdmin.Components.Grid.Everything(Available Demo.fruit, Samples.makeFruitRow, None),
-                                headers = Samples.fruitHeaders,
-                                nativeColumnWidthUnits = Demo.ColumnWidths.fruit
+                                headers = Samples.fruitHeaders
                             ),
                         code =
                             ComponentSample.Children(
@@ -221,8 +219,7 @@ UiAdmin.Grid(
                         visuals =
                             UiAdmin.Grid(
                                 input = LibUiAdmin.Components.Grid.Static(Samples.staticRows.Value, None),
-                                headers = Samples.fruitHeaders,
-                                nativeColumnWidthUnits = Demo.ColumnWidths.fruit
+                                headers = Samples.fruitHeaders
                             ),
                         code =
                             ComponentSample.singleBlock Render (

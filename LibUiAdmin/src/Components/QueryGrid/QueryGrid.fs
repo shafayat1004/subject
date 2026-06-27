@@ -99,7 +99,6 @@ type UiAdmin with
         ?handheldRow:    'Item * Option<QueryPage<'Query>> * (unit -> unit) -> ReactElement,
         ?queryForm:      FormHandle<'QueryFormField, 'QueryAcc, 'Query> -> ReactElement,
         ?customRender:   ReactElement * ReactElement -> ReactElement,
-        ?nativeColumnWidthUnits: List<int>,
         ?children:       ReactChildrenProp,
         ?key:            string,
         ?xLegacyStyles:  List<ReactXP.LegacyStyles.RuntimeStyles>
@@ -302,7 +301,6 @@ type UiAdmin with
                         | None ->
                             UiAdmin.Grid (
                                 headers = headers,
-                                ?nativeColumnWidthUnits = nativeColumnWidthUnits,
                                 input   =
                                     Paginated (
                                         gridData,
@@ -313,7 +311,6 @@ type UiAdmin with
                         | Some handheldRowFn ->
                             UiAdmin.Grid (
                                 headers = headers,
-                                ?nativeColumnWidthUnits = nativeColumnWidthUnits,
                                 input   =
                                     Paginated (
                                         gridData,

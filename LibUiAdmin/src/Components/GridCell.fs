@@ -22,16 +22,12 @@ let private defaultColWidthUnits (columnIndex: int) : int =
 let private resolveWidthUnits (columnIndex: int) (widthUnits: int option) : int =
     widthUnits |> Option.defaultValue (defaultColWidthUnits columnIndex)
 
-let private colWidthPx (units: int) : int =
-    units * columnBaseWidth
-
 [<RequireQualifiedAccess>]
 module GridCellLayout =
     let columnBaseWidth = columnBaseWidth
-    let defaultThreeColumnTableWidth = colWidthPx 14 + colWidthPx 7 + colWidthPx 9
 
     let tableWidthFromUnits (units: seq<int>) : int =
-        units |> Seq.sumBy colWidthPx
+        units |> Seq.sumBy (fun u -> u * columnBaseWidth)
 
 [<RequireQualifiedAccess>]
 module GridCellStyles =
@@ -39,19 +35,27 @@ module GridCellStyles =
     let text =
         makeTextStyles {
             color (Color.Grey "66")
+            #if !EGGSHELL_PLATFORM_IS_WEB
+            flexShrink 1
+            #endif
         }
 
 [<RequireQualifiedAccess>]
 module private Styles =
+    /// Row-direction cell: proportional width via flexGrow, vertical middle via AlignItems.Center
+    /// (matches web `vertical-align: middle` on `table.la-table td`).
     let cell =
         ViewStyles.Memoize (fun (widthUnits: int) (isFirstColumn: bool) ->
             makeViewStyles {
-                width (colWidthPx widthUnits)
-                flexGrow 0
-                flexShrink 0
+                FlexDirection.Row
+                AlignItems.Center
+                flexGrow widthUnits
+                flexShrink 1
+                flexBasis 0
+                minWidth 0
+                Overflow.Visible
                 paddingHorizontal 10
                 paddingVertical 20
-                JustifyContent.Center
                 if isFirstColumn then paddingLeft 30
             })
 
