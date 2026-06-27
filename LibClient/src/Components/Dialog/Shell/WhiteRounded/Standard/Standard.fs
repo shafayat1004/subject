@@ -120,6 +120,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ?buttons: ReactElement,
             ?mode: ShellStandard.Mode,
             ?heading: string,
+            ?accessibilityLabel: string,
             ?key: string,
             ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
@@ -131,7 +132,8 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
         let mode = defaultArg mode ShellStandard.Mode.Default
 
         let accessibilityLabel =
-            heading |> Option.orElse (Some "Dialog")
+            accessibilityLabel
+            |> Option.orElseWith (fun () -> heading |> Option.orElse (Some "Dialog"))
 
         let stopPropagation (e: Browser.Types.PointerEvent) = e.stopPropagation()
 

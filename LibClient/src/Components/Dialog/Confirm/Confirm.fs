@@ -140,31 +140,25 @@ type private ConfirmContent =
             |> List.map (Helpers.renderButton modeHook.current tryCancel hide asyncConfirm)
             |> List.toArray
 
-        RX.View(
-            accessibilityRole = AccessibilityRole.Dialog,
+        LC.Dialog.Shell.WhiteRounded.Standard(
+            canClose = ShellStandard.Never,
+            mode = shellMode,
+            ?heading = parameters.MaybeHeading,
             accessibilityLabel = Helpers.dialogLabel parameters.MaybeHeading parameters.Details,
-            children =
-                elements {
-                    LC.Dialog.Shell.WhiteRounded.Standard(
-                        canClose = ShellStandard.Never,
-                        mode = shellMode,
-                        ?heading = parameters.MaybeHeading,
-                        body =
-                            element {
-                                RX.View(
-                                    styles = [| Styles.details |],
-                                    children =
-                                        elements {
-                                            LC.UiText(
-                                                value = parameters.Details,
-                                                styles = [| Styles.detailsText |]
-                                            )
-                                        }
+            body =
+                element {
+                    RX.View(
+                        styles = [| Styles.details |],
+                        children =
+                            elements {
+                                LC.UiText(
+                                    value = parameters.Details,
+                                    styles = [| Styles.detailsText |]
                                 )
-                            },
-                        buttons = castAsElementAckingKeysWarning buttons
+                            }
                     )
-                }
+                },
+            buttons = castAsElementAckingKeysWarning buttons
         )
 
 // NOTE we can't take Parameters here because of circular dependency with DialogsInterface/DialogsImplementation

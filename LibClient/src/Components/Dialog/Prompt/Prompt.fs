@@ -82,66 +82,60 @@ type private PromptContent =
             submit = submit,
             content =
                 fun form ->
-                    RX.View(
-                        accessibilityRole = AccessibilityRole.Dialog,
+                    LC.Dialog.Shell.WhiteRounded.Standard(
+                        canClose = Shell.WhiteRounded.Standard.Never,
+                        ?heading = parameters.MaybeHeading,
                         accessibilityLabel = Helpers.dialogLabel parameters.MaybeHeading parameters.Details,
-                        children =
-                            elements {
-                                LC.Dialog.Shell.WhiteRounded.Standard(
-                                    canClose = Shell.WhiteRounded.Standard.Never,
-                                    ?heading = parameters.MaybeHeading,
-                                    body =
+                        body =
+                            RX.View(
+                                children =
+                                    [|
                                         RX.View(
+                                            styles = [| Styles.details |],
                                             children =
                                                 [|
-                                                    RX.View(
-                                                        styles = [| Styles.details |],
-                                                        children =
-                                                            [|
-                                                                LC.UiText(
-                                                                    value = parameters.Details,
-                                                                    styles = [| Styles.detailsText |]
-                                                                )
-                                                            |]
-                                                    )
-                                                    LC.Input.Text(
-                                                        label = "Value",
-                                                        validity = form.FieldValidity Field.Value,
-                                                        value = form.Acc.Value,
-                                                        onChange =
-                                                            fun value ->
-                                                                form.UpdateAcc (fun acc -> { acc with Value = value })
-                                                    )
-                                                |]
-                                        ),
-                                    buttons =
-                                        RX.View(
-                                            children =
-                                                [|
-                                                    LC.Button(
-                                                        label = "Cancel",
-                                                        level = Components.Button.Level.Secondary,
-                                                        state =
-                                                            ButtonHighLevelState.LowLevel (
-                                                                ButtonLowLevelState.Actionable tryCancel
-                                                            ),
-                                                        ?testId = Some (A11ySlug.testId "dialog-prompt" "Cancel")
-                                                    )
-                                                    LC.Button(
-                                                        label = "Submit",
-                                                        state =
-                                                            ButtonHighLevelState.LowLevel (
-                                                                if form.IsSubmitInProgress then
-                                                                    ButtonLowLevelState.InProgress
-                                                                else
-                                                                    ButtonLowLevelState.Actionable form.TrySubmitLowLevel
-                                                            ),
-                                                        ?testId = Some (A11ySlug.testId "dialog-prompt" "Submit")
+                                                    LC.UiText(
+                                                        value = parameters.Details,
+                                                        styles = [| Styles.detailsText |]
                                                     )
                                                 |]
                                         )
-                                )
-                            }
+                                        LC.Input.Text(
+                                            label = "Value",
+                                            validity = form.FieldValidity Field.Value,
+                                            value = form.Acc.Value,
+                                            onChange =
+                                                fun value ->
+                                                    form.UpdateAcc (fun acc -> { acc with Value = value })
+                                        )
+                                    |]
+                            ),
+                        buttons =
+                            RX.View(
+                                children =
+                                    [|
+                                        LC.Button(
+                                            label = "Cancel",
+                                            level = Components.Button.Level.Secondary,
+                                            state =
+                                                ButtonHighLevelState.LowLevel (
+                                                    ButtonLowLevelState.Actionable tryCancel
+                                                ),
+                                            ?testId = Some (A11ySlug.testId "dialog-prompt" "Cancel")
+                                        )
+                                        LC.Button(
+                                            label = "Submit",
+                                            state =
+                                                ButtonHighLevelState.LowLevel (
+                                                    if form.IsSubmitInProgress then
+                                                        ButtonLowLevelState.InProgress
+                                                    else
+                                                        ButtonLowLevelState.Actionable form.TrySubmitLowLevel
+                                                ),
+                                            ?testId = Some (A11ySlug.testId "dialog-prompt" "Submit")
+                                        )
+                                    |]
+                            )
                     )
         )
 

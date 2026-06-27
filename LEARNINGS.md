@@ -5,6 +5,18 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-28 — Dialog styling follow-up (deferred)
+
+After fixing confirm/alert visibility (removed zero-size a11y wrapper), dialogs **work** but styling is **slightly off** vs pre-modernization baseline. **Defer** visual polish; revisit with a side-by-side comparison against production gallery at [https://eggshell.dev](https://eggshell.dev) (Forms submit alert, Card press alert, prompt dialogs). Likely areas: scrim opacity/stacking (`LR.Dialogs` frame vs `Dialog.Base`), white panel padding/radius, typography, button row spacing.
+
+---
+
+`Dialog.Confirm` and `Dialog.Prompt` wrap `Dialog.Shell.WhiteRounded.Standard` in an a11y `RX.View` with `accessibilityRole=Dialog` but **no size**. `Dialog.Base` children use `Position.Absolute; inset 0`, which collapse to zero inside a zero-size relative parent. User sees only the faint `LR.Dialogs` frame scrim (~30% black), not the white panel.
+
+**Fix:** remove the extra wrapper; mount `WhiteRounded.Standard` directly in the dialog frame. Pass `accessibilityLabel` through Standard → Raw. Re-precompile LibStandard and restart `eggshell dev-web` after LibClient dialog changes — stale `LibStandard/.build/web/fable` is what webpack serves.
+
+---
+
 ## 2026-06-28 — `LC.Pressable` overlay hit targets (zero-width buttons)
 
 When `overlay=true` with **no children**, the overlay wrapper used `flex 1` as a sibling of visible content inside a non-flex parent. Hit targets collapsed to **width 0** (nav items, toggle buttons, logo TapCapture): labels looked fine but clicks did nothing.
@@ -13,7 +25,7 @@ When `overlay=true` with **no children**, the overlay wrapper used `flex 1` as a
 
 ---
 
-**`FRS.input` takes one argument** (props list only), not `FRS.input props [||]` — second array caused FS0003 "not a function".
+## 2026-06-28 — File/NamedFile FRS.input and parallel deploy
 
 **Do not name RefDom callback params `input`** when calling `FRS.input` in the same scope — F# parses `FRS.input` as `(FRS.) input`. Use `maybeFileInputElement`; RefDom's second tuple value is already `Option<Element>`.
 
