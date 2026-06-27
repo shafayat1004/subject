@@ -3,9 +3,9 @@
         <rt-case is='Ok renderDslSnippetData'>
             <rt-match what='renderDslSnippetData'>
                 <rt-case is='Ok snippets'>
+                    <rt-sharp value='if EGGSHELL_PLATFORM_IS_WEB'/>
                     <dom.table
-                     class='aesg-Snippets-table dom-user-select-text'
-                     rt-let='filteredSnippets := snippets |> List.filter props.Scope.Filter'>
+                     class='aesg-Snippets-table dom-user-select-text'>
                         <dom.tbody>
                             <dom.tr>
                                 <dom.th>Name</dom.th>
@@ -13,7 +13,7 @@
                                 <dom.th>Description</dom.th>
                                 <dom.th rt-if='props.Scope = All'>Scope</dom.th>
                             </dom.tr>
-                            <dom.tr rt-map='snippet := filteredSnippets'>
+                            <dom.tr rt-map='snippet := snippets |> List.filter props.Scope.Filter' key='snippet.Key'>
                                 <dom.td class='nowrap'>{snippet.Key}</dom.td>
                                 <dom.td class='nowrap'>{snippet.Prefix}</dom.td>
                                 <dom.td class='description'>
@@ -25,6 +25,18 @@
                             </dom.tr>
                         </dom.tbody>
                     </dom.table>
+                    <rt-sharp value='else'/>
+                    <div rt-map='snippet := snippets |> List.filter props.Scope.Filter' key='snippet.Key'>
+                        <div class='snippet-row'>
+                            <LC.Heading class='snippet-name' Level='~Tertiary'>{snippet.Key}</LC.Heading>
+                            <uitext class='snippet-prefix'>{snippet.Prefix}</uitext>
+                            <Showdown.MarkdownViewer
+                             Source='~Code snippet.Description'
+                             GlobalLinkHandler='"globalMarkdownLinkHandler"'/>
+                            <uitext rt-if='props.Scope = All' class='snippet-scope'>{snippet.Scope}</uitext>
+                        </div>
+                    </div>
+                    <rt-sharp value='endif'/>
                 </rt-case>
                 <rt-case is='Error error'>
                     <div class='error'><text class='error-text'>{error}</text></div>

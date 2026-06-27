@@ -5,7 +5,11 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-27 — Native Components nav crash + markdown on iOS
+## 2026-06-27 — Snippets `th` render crash on Android
+
+**Tools → Snippets** crashed with `View config getter callback for component th must be a function` — `Snippets.render` used `dom.table` / `dom.th` on all platforms; HTML table tags are invalid in React Native. Fix: `#if EGGSHELL_PLATFORM_IS_WEB` table (same as `ComponentProps`), native card list with `LC.Heading` + `uitext` + `MarkdownViewer`. ReactXP `Color.Grey` on native expects two hex digits (e.g. `"66"`), not `"666"`.
+
+---
 
 **`TypeError: Cannot read property 'add' of undefined` when tapping navbar routes (Components, etc.)** — not MarkdownViewer. Stack: `requestCurrentTransition` → `startTransition` → react-router `push` → EggShell `Navigation.Go`. Cause: `LR.Router` defaulted `future.v7_startTransition = true`; React Router wraps navigations in `React.startTransition`, which breaks on **RN 0.76 bridgeless** (`concurrentRoot: true`). Fix: `LibRouter.Components.Router.defaultFuture` — enable `v7_startTransition` on web only; `None` on native.
 

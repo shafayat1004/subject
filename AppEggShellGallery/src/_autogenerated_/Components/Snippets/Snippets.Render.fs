@@ -49,84 +49,147 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.S
                         match (renderDslSnippetData) with
                         | Ok snippets ->
                             [|
-                                (
-                                    let filteredSnippets = snippets |> List.filter props.Scope.Filter
-                                    FRS.table
-                                        [(FRP.ClassName ("aesg-Snippets-table dom-user-select-text"))]
-                                        ([|
-                                            FRS.tbody
-                                                []
-                                                ([|
-                                                    FRS.tr
-                                                        []
-                                                        ([|
-                                                            FRS.th
-                                                                []
-                                                                ([|
-                                                                    makeTextNode2 __parentFQN "Name"
-                                                                |])
-                                                            FRS.th
-                                                                []
-                                                                ([|
-                                                                    makeTextNode2 __parentFQN "Prefix"
-                                                                |])
-                                                            FRS.th
-                                                                []
-                                                                ([|
-                                                                    makeTextNode2 __parentFQN "Description"
-                                                                |])
-                                                            (
-                                                                if (props.Scope = All) then
-                                                                    FRS.th
-                                                                        []
-                                                                        ([|
-                                                                            makeTextNode2 __parentFQN "Scope"
-                                                                        |])
-                                                                else noElement
-                                                            )
-                                                        |])
-                                                    (
-                                                        (filteredSnippets)
-                                                        |> Seq.map
-                                                            (fun snippet ->
-                                                                FRS.tr
+                                #if EGGSHELL_PLATFORM_IS_WEB
+                                FRS.table
+                                    [(FRP.ClassName ("aesg-Snippets-table dom-user-select-text"))]
+                                    ([|
+                                        FRS.tbody
+                                            []
+                                            ([|
+                                                FRS.tr
+                                                    []
+                                                    ([|
+                                                        FRS.th
+                                                            []
+                                                            ([|
+                                                                makeTextNode2 __parentFQN "Name"
+                                                            |])
+                                                        FRS.th
+                                                            []
+                                                            ([|
+                                                                makeTextNode2 __parentFQN "Prefix"
+                                                            |])
+                                                        FRS.th
+                                                            []
+                                                            ([|
+                                                                makeTextNode2 __parentFQN "Description"
+                                                            |])
+                                                        (
+                                                            if (props.Scope = All) then
+                                                                FRS.th
                                                                     []
                                                                     ([|
-                                                                        FRS.td
-                                                                            [(FRP.ClassName ("nowrap"))]
-                                                                            ([|
-                                                                                makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Key))
-                                                                            |])
-                                                                        FRS.td
-                                                                            [(FRP.ClassName ("nowrap"))]
-                                                                            ([|
-                                                                                makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Prefix))
-                                                                            |])
-                                                                        FRS.td
-                                                                            [(FRP.ClassName ("description"))]
-                                                                            ([|
-                                                                                let __parentFQN = Some "ThirdParty.Showdown.Components.MarkdownViewer"
-                                                                                ThirdParty.Showdown.Components.Constructors.Showdown.MarkdownViewer(
-                                                                                    globalLinkHandler = ("globalMarkdownLinkHandler"),
-                                                                                    source = (ThirdParty.Showdown.Components.MarkdownViewer.Code snippet.Description)
-                                                                                )
-                                                                            |])
-                                                                        (
-                                                                            if (props.Scope = All) then
-                                                                                FRS.td
-                                                                                    []
-                                                                                    ([|
-                                                                                        makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Scope))
-                                                                                    |])
-                                                                            else noElement
-                                                                        )
+                                                                        makeTextNode2 __parentFQN "Scope"
                                                                     |])
-                                                            )
-                                                        |> Array.ofSeq |> castAsElement
-                                                    )
-                                                |])
-                                        |])
+                                                            else noElement
+                                                        )
+                                                    |])
+                                                (
+                                                    (snippets |> List.filter props.Scope.Filter)
+                                                    |> Seq.map
+                                                        (fun snippet ->
+                                                            FRS.tr
+                                                                [unbox("key", (snippet.Key))]
+                                                                ([|
+                                                                    FRS.td
+                                                                        [(FRP.ClassName ("nowrap"))]
+                                                                        ([|
+                                                                            makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Key))
+                                                                        |])
+                                                                    FRS.td
+                                                                        [(FRP.ClassName ("nowrap"))]
+                                                                        ([|
+                                                                            makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Prefix))
+                                                                        |])
+                                                                    FRS.td
+                                                                        [(FRP.ClassName ("description"))]
+                                                                        ([|
+                                                                            let __parentFQN = Some "ThirdParty.Showdown.Components.MarkdownViewer"
+                                                                            ThirdParty.Showdown.Components.Constructors.Showdown.MarkdownViewer(
+                                                                                globalLinkHandler = ("globalMarkdownLinkHandler"),
+                                                                                source = (ThirdParty.Showdown.Components.MarkdownViewer.Code snippet.Description)
+                                                                            )
+                                                                        |])
+                                                                    (
+                                                                        if (props.Scope = All) then
+                                                                            FRS.td
+                                                                                []
+                                                                                ([|
+                                                                                    makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Scope))
+                                                                                |])
+                                                                        else noElement
+                                                                    )
+                                                                |])
+                                                        )
+                                                    |> Array.ofSeq |> castAsElement
+                                                )
+                                            |])
+                                    |])
+                                #else
+                                (
+                                    (snippets |> List.filter props.Scope.Filter)
+                                    |> Seq.map
+                                        (fun snippet ->
+                                            let __parentFQN = Some "ReactXP.Components.View"
+                                            ReactXP.Components.Constructors.RX.View(
+                                                key = (snippet.Key),
+                                                children =
+                                                    [|
+                                                        let __parentFQN = Some "ReactXP.Components.View"
+                                                        let __currClass = "snippet-row"
+                                                        let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
+                                                        ReactXP.Components.Constructors.RX.View(
+                                                            ?styles = (if (not __currStyles.IsEmpty) then (ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent "ReactXP.Components.View" __currStyles |> Some) else None),
+                                                            children =
+                                                                [|
+                                                                    let __parentFQN = Some "LibClient.Components.Heading"
+                                                                    let __currClass = "snippet-name"
+                                                                    let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
+                                                                    LibClient.Components.Constructors.LC.Heading(
+                                                                        level = (LibClient.Components.Heading.Tertiary),
+                                                                        ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None),
+                                                                        children =
+                                                                            [|
+                                                                                makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Key))
+                                                                            |]
+                                                                    )
+                                                                    let __parentFQN = Some "LibClient.Components.LegacyUiText"
+                                                                    let __currClass = "snippet-prefix"
+                                                                    let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
+                                                                    LibClient.Components.Constructors.LC.LegacyUiText(
+                                                                        ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None),
+                                                                        children =
+                                                                            [|
+                                                                                makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Prefix))
+                                                                            |]
+                                                                    )
+                                                                    let __parentFQN = Some "ThirdParty.Showdown.Components.MarkdownViewer"
+                                                                    ThirdParty.Showdown.Components.Constructors.Showdown.MarkdownViewer(
+                                                                        globalLinkHandler = ("globalMarkdownLinkHandler"),
+                                                                        source = (ThirdParty.Showdown.Components.MarkdownViewer.Code snippet.Description)
+                                                                    )
+                                                                    (
+                                                                        if (props.Scope = All) then
+                                                                            let __parentFQN = Some "LibClient.Components.LegacyUiText"
+                                                                            let __currClass = "snippet-scope"
+                                                                            let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
+                                                                            LibClient.Components.Constructors.LC.LegacyUiText(
+                                                                                ?xLegacyStyles = (if (not __currStyles.IsEmpty) then Some __currStyles else None),
+                                                                                children =
+                                                                                    [|
+                                                                                        makeTextNode2 __parentFQN (System.String.Format("{0}", snippet.Scope))
+                                                                                    |]
+                                                                            )
+                                                                        else noElement
+                                                                    )
+                                                                |]
+                                                        )
+                                                    |]
+                                            )
+                                        )
+                                    |> Array.ofSeq |> castAsElement
                                 )
+                                #endif
                             |]
                         | Error error ->
                             [|

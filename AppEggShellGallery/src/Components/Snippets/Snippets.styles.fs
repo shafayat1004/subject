@@ -11,6 +11,27 @@ let styles = lazy (compile [
     "error-text" => [
         color colors.Caution.Main
     ]
+
+    "snippet-row" => [
+        marginBottom 24
+        paddingBottom 16
+        borderBottomWidth 1
+        borderColor (Color.Grey "ee")
+    ]
+
+    "snippet-name" => [
+        marginBottom 4
+    ]
+
+    "snippet-prefix" => [
+        marginBottom 8
+        color (Color.Grey "66")
+    ]
+
+    "snippet-scope" => [
+        marginTop 8
+        color (Color.Grey "99")
+    ]
 ])
 
 addCss (sprintf """
