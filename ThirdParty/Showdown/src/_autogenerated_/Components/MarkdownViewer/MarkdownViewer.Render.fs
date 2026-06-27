@@ -28,9 +28,7 @@ let render(children: array<ReactElement>, props: ThirdParty.Showdown.Components.
         whenAvailable =
             (fun (sourceCode: string) ->
                     (castAsElementAckingKeysWarning [|
-                        #if EGGSHELL_PLATFORM_IS_WEB
                          makeHtml props.ShowdownConverter props.GlobalLinkHandler (props.ImageUrlTransformer |> Option.map (fun f -> f props.Source)) sourceCode
-                        #endif
                     |])
             )
     )

@@ -8,18 +8,19 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '15.5'
 prepare_react_native_project!
 
-# CodePush + Firebase static linking
 $RNFirebaseAnalyticsWithoutAdIdSupport = true
-use_modular_headers!
-
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
 
 target 'AppEggshellGallery' do
   config = use_native_modules!
+
+  linkage = ENV['USE_FRAMEWORKS']
+  if linkage != nil
+    Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+    use_frameworks! :linkage => linkage.to_sym
+  else
+    use_frameworks! :linkage => :static
+    $RNFirebaseAsStaticFramework = true
+  end
 
   use_react_native!(
     :path => config[:reactNativePath],

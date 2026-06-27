@@ -5,7 +5,17 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-27 — RN 0.76 Android green + scaffolding aligned
+## 2026-06-27 — Native Components nav crash + markdown on iOS
+
+**`TypeError: Cannot read property 'add' of undefined` when tapping navbar routes (Components, etc.)** — not MarkdownViewer. Stack: `requestCurrentTransition` → `startTransition` → react-router `push` → EggShell `Navigation.Go`. Cause: `LR.Router` defaulted `future.v7_startTransition = true`; React Router wraps navigations in `React.startTransition`, which breaks on **RN 0.76 bridgeless** (`concurrentRoot: true`). Fix: `LibRouter.Components.Router.defaultFuture` — enable `v7_startTransition` on web only; `None` on native.
+
+**Native gallery markdown (Components/Docs/Tools):** webpack dev-web serves `public-dev/`; Metro also serves it at `/public-dev/...`. Set `MaybeInBundleResourceUrlHashedDirectoryPrefix = "/public-dev"` in `configSourceOverrides.native.js` so `PrepareInBundleResourceUrl` resolves fetchable paths. Use platform-specific `AppUrlBase`: Android emulator `10.0.2.2:8081`, iOS simulator `localhost:8081`.
+
+**MarkdownViewer on native:** use `react-native-render-html` (same pattern as FormatfulText), not `dangerouslySetInnerHTML` on a `div`. Skip inline `onclick` link rewriting on native (render-html ignores it). Metro `extraNodeModules` must include `react-native-render-html` + Showdown deps.
+
+**`ErrorUtils` import:** RN 0.76 bridgeless does not export `ErrorUtils` from `react-native` package entry; use `global.ErrorUtils` in `index.js`. Filter `react-native-render-html` defaultProps deprecation spam from `console.error` (otherwise LogBox red screen on Components page).
+
+---
 
 AppEggShellGallery **`./gradlew assembleDebug`** now succeeds on RN **0.76.5** / Gradle **8.10.2** / compileSdk **35**.
 `eggshell dev-web` serves on `http://127.0.0.1:8082/` (WDS 5, HTTP 200). Scaffolding templates updated to match.

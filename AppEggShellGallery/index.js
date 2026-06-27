@@ -11,7 +11,10 @@ const ignoredNativeWarningPatterns = [
   /componentWillReceiveProps has been renamed/,
   /AsyncStorage has been extracted from react-native/,
   /`new NativeEventEmitter\(\)` was called with a non-null argument/,
-  /Require cycle: node_modules\\react-native\\Libraries\\Network\\fetch.js/,
+  /Support for defaultProps will be removed/,
+  /TRenderEngineProvider/,
+  /MemoizedTNodeRenderer/,
+  /TNodeChildrenRenderer/,
   /^\s+in /,
 ];
 
@@ -44,7 +47,24 @@ LogBox.ignoreLogs([
   'AsyncStorage has been extracted from react-native',
   '`new NativeEventEmitter()` was called with a non-null argument',
   'Require cycle: node_modules\\react-native\\Libraries\\Network\\fetch.js',
+  'Support for defaultProps will be removed',
+  'TRenderEngineProvider',
+  'MemoizedTNodeRenderer',
+  'TNodeChildrenRenderer',
 ]);
+
+if (__DEV__) {
+  const errorUtils = global.ErrorUtils;
+  if (errorUtils && typeof errorUtils.getGlobalHandler === 'function') {
+    const defaultGlobalHandler = errorUtils.getGlobalHandler();
+    errorUtils.setGlobalHandler((error, isFatal) => {
+      if (error && error.stack) {
+        originalConsoleError('[EggShell uncaught]', error.message, '\n', error.stack);
+      }
+      defaultGlobalHandler(error, isFatal);
+    });
+  }
+}
 
 // This file is required by the react native metro bundler as
 // starting point of the application.

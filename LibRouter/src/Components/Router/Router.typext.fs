@@ -4,10 +4,19 @@ open Fable.Core
 open Fable.Core.JsInterop
 open LibClient
 
+// react-router's v7_startTransition uses React.startTransition, which crashes on
+// React Native bridgeless (requestCurrentTransition → .add of undefined).
+let defaultFuture : obj =
+    #if EGGSHELL_PLATFORM_IS_WEB
+    Some (createObj ["v7_startTransition" ==> true]) :> obj
+    #else
+    None :> obj
+    #endif
+
 type Props = (* GenerateMakeFunction *) {
     key: string option // defaultWithAutoWrap LibClient.JsInterop.Undefined
     initialEntries: array<string> option // defaultWithAutoWrap LibClient.JsInterop.Undefined
-    future: obj // default Some (createObj ["v7_startTransition" ==> true])
+    future: obj // default LibRouter.Components.Router.defaultFuture
 }
 
 type Location = {

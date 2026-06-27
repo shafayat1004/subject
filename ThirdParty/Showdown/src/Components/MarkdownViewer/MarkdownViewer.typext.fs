@@ -32,10 +32,11 @@ type Estate = {
     SourceCode: AsyncData<string>
 }
 
-let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : ReactElement =
+let private processHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : string =
     let rawHtml: string = converter?makeHtml source
 
     let linksProcessedHtml =
+        #if EGGSHELL_PLATFORM_IS_WEB
         match maybeGlobalLinkHandler with
         | None -> rawHtml
         | Some globalLinkHandler ->
@@ -44,22 +45,30 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
             // the regex is acting in an ungreedy way, so we're lucky here.
             let regex = System.Text.RegularExpressions.Regex """<a href="([^"]*)">(.*)</a>"""
             regex.Replace(rawHtml, "<a class='markdown-global-link' onclick=\"" + globalLinkHandler + "(event, '$1')\">$2</a>")
+        #else
+        // react-native-render-html does not support inline onclick handlers; in-gallery
+        // markdown links are not wired up on native yet.
+        rawHtml
+        #endif
 
-    let imagesProcessedHtml =
-        match maybeImageUrlTransformer with
-        | None -> linksProcessedHtml
-        | Some imageUrlTransformer ->
-            // NOTE this regex needs to have .* as the children of the <a>, because we want
-            // to support things like <a><code>SomeToken</code></a>. It seems that by default
-            // the regex is acting in an ungreedy way, so we're lucky here.
-            let regex = System.Text.RegularExpressions.Regex """(<img .*src=")([^"]*)(".*/>)"""
-            regex.Replace(linksProcessedHtml, System.Text.RegularExpressions.MatchEvaluator(fun theMatch ->
-                let beforeUrl = theMatch.Groups.Item(1).Value
-                let url       = theMatch.Groups.Item(2).Value
-                let afterUrl  = theMatch.Groups.Item(3).Value
-                beforeUrl + (imageUrlTransformer url) + afterUrl
-            ))
+    match maybeImageUrlTransformer with
+    | None -> linksProcessedHtml
+    | Some imageUrlTransformer ->
+        // NOTE this regex needs to have .* as the children of the <a>, because we want
+        // to support things like <a><code>SomeToken</code></a>. It seems that by default
+        // the regex is acting in an ungreedy way, so we're lucky here.
+        let regex = System.Text.RegularExpressions.Regex """(<img .*src=")([^"]*)(".*/>)"""
+        regex.Replace(linksProcessedHtml, System.Text.RegularExpressions.MatchEvaluator(fun theMatch ->
+            let beforeUrl = theMatch.Groups.Item(1).Value
+            let url       = theMatch.Groups.Item(2).Value
+            let afterUrl  = theMatch.Groups.Item(3).Value
+            beforeUrl + (imageUrlTransformer url) + afterUrl
+        ))
 
+let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : ReactElement =
+    let html = processHtml converter maybeGlobalLinkHandler maybeImageUrlTransformer source
+
+    #if EGGSHELL_PLATFORM_IS_WEB
     let props = createObj [
         "style" ==> createObj [
             // HACK we need this because ReactXP seems to add a "white-space: pre-wrap" to all
@@ -75,11 +84,41 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
             "lineHeight"       ==> "1.5"
         ]
         "dangerouslySetInnerHTML" ==> createObj [
-            "__html" ==> imagesProcessedHtml
+            "__html" ==> html
         ]
     ]
 
     Fable.React.ReactBindings.React.createElement("div", props, [])
+
+    #else
+
+    let renderHtmlRaw: obj = import "default" "react-native-render-html"
+
+    let sourceObj =
+        createObj [
+            "html" ==> $"<div>{html}</div>"
+        ]
+
+    let tagsStyles =
+        createObj [
+            "div" ==> (createObj [
+                "fontFamily" ==> "Montserrat"
+                "lineHeight"   ==> 22.5
+                "maxWidth"     ==> 800
+            ])
+        ]
+
+    let props =
+        createObj [
+            "source"      ==> sourceObj
+            "tagsStyles"  ==> tagsStyles
+            "systemFonts" ==> [|"Montserrat"|]
+            "contentWidth" ==> 800
+        ]
+
+    Fable.React.ReactBindings.React.createElement(renderHtmlRaw, props, [||])
+
+    #endif
 
 type MarkdownViewer(initialProps) =
     inherit EstatefulComponent<Props, Estate, Actions, MarkdownViewer>("ThirdParty.Showdown.Components.MarkdownViewer", initialProps, Actions, hasStyles = true)

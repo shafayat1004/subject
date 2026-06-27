@@ -40,6 +40,9 @@ let externalLibraries = {
   "react-native-push-notification":                path.resolve(__dirname, "../LibPushNotification/Client/node_modules/react-native-push-notification"),
   "react-native-fbsdk-next":                       path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk-next"),
   "@react-native-firebase/analytics":              path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules/@react-native-firebase/analytics"),
+  "react-native-render-html":                      path.resolve(__dirname, "../ThirdParty/Showdown/node_modules/react-native-render-html"),
+  "showdown":                                      path.resolve(__dirname, "../ThirdParty/Showdown/node_modules/showdown"),
+  "showdown-highlight":                            path.resolve(__dirname, "../AppEggShellGallery/node_modules/showdown-highlight"),
   "fast-memoize":                                  path.resolve(__dirname, "../LibClient/node_modules/fast-memoize")
 }
 
@@ -80,6 +83,7 @@ const config = {
    */
   watchFolders: [
     path.resolve(__dirname, "./.build"),
+    path.resolve(__dirname, "./public-dev"),
     path.resolve(__dirname, "./images"),
     path.resolve(__dirname, "../LibClient/src"),
     path.resolve(__dirname, "../LibClient/node_modules"),
@@ -94,7 +98,8 @@ const config = {
     path.resolve(__dirname, "../ThirdParty/ReactNativeDeviceInfo/node_modules"),
     path.resolve(__dirname, "../LibPushNotification/Client/node_modules"),
     path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules"),
-    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules")
+    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules"),
+    path.resolve(__dirname, "../ThirdParty/Showdown/node_modules")
   ]
 }
 

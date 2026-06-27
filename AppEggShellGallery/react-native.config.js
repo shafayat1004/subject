@@ -2,6 +2,7 @@ const path      = require("path")
 
 module.exports = {
   project: {
+    ios: {},
     android: {
       packageName: "com.eggshell.appgallery",
     },
