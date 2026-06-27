@@ -26,7 +26,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ErrorBoundary" AppEggShellGallery.Components.Content.ErrorBoundaryRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.FloatingActionButton" AppEggShellGallery.Components.Content.FloatingActionButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Forms" AppEggShellGallery.Components.Content.FormsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Grid" AppEggShellGallery.Components.Content.GridRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Icon" AppEggShellGallery.Components.Content.IconRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.IconButton" AppEggShellGallery.Components.Content.IconButtonRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Icons" AppEggShellGallery.Components.Content.IconsRender.render
@@ -45,7 +44,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ItemList" AppEggShellGallery.Components.Content.ItemListRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Nav.Bottom" AppEggShellGallery.Components.Content.Nav.BottomRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Pre" AppEggShellGallery.Components.Content.PreRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.QueryGrid" AppEggShellGallery.Components.Content.QueryGridRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Scrim" AppEggShellGallery.Components.Content.ScrimRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Stars" AppEggShellGallery.Components.Content.StarsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Tag" AppEggShellGallery.Components.Content.TagRender.render
@@ -96,7 +94,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ErrorBoundary", AppEggShellGallery.Components.Content.ErrorBoundaryStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.FloatingActionButton", AppEggShellGallery.Components.Content.FloatingActionButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Forms", AppEggShellGallery.Components.Content.FormsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Grid", AppEggShellGallery.Components.Content.GridStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Icon", AppEggShellGallery.Components.Content.IconStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.IconButton", AppEggShellGallery.Components.Content.IconButtonStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Icons", AppEggShellGallery.Components.Content.IconsStyles.styles)
@@ -115,7 +112,6 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ItemList", AppEggShellGallery.Components.Content.ItemListStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Nav.Bottom", AppEggShellGallery.Components.Content.Nav.BottomStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Pre", AppEggShellGallery.Components.Content.PreStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.QueryGrid", AppEggShellGallery.Components.Content.QueryGridStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Scrim", AppEggShellGallery.Components.Content.ScrimStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Stars", AppEggShellGallery.Components.Content.StarsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Tag", AppEggShellGallery.Components.Content.TagStyles.styles)
