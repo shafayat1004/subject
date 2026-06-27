@@ -1,6 +1,6 @@
 # EggShell Frontend Modernization Plan
 
-Consolidated reference for **render-DSL retirement (Goal A)**, **accessibility + UI observability**, and **automation/OS support**. Synthesized from `EGGSHELL_ARCHITECTURE.md` §12, `CLAUDE.md`, `LEARNINGS.md`, `LibClient/ACCESSIBILITY.md`, and gallery audit work (through 2026-06-27).
+Consolidated reference for **render-DSL retirement (Goal A)**, **accessibility + UI observability**, and **automation/OS support**. Synthesized from `EGGSHELL_ARCHITECTURE.md` §12, `CLAUDE.md`, `LEARNINGS.md`, `LibClient/ACCESSIBILITY.md`, and gallery audit work (through 2026-06-28).
 
 ---
 
@@ -23,7 +23,7 @@ From `EGGSHELL_ARCHITECTURE.md` §12 and `CLAUDE.md`. **Goals F–H are explicit
 
 | Goal | Summary | Status |
 |------|---------|--------|
-| **A** | Retire render DSL; convert framework `.render` → pure F# `[<Component>]` | **In progress** (~40 `.render` left in LibClient; see §5) |
+| **A** | Retire render DSL; convert framework `.render` → pure F# `[<Component>]` | **In progress** — **9** `.render` left in LibClient (Picker cluster + Input.Text + Dialog.Base + ContextMenu.Dialog); see §5 |
 | **B** | Fix `eggshell create-app` scaffolding (modern app, no `.render`) | Not started (this phase) |
 | **C** | Reduce component verbosity (hooks, fewer Estate/Pstate/Actions) | Incremental alongside A |
 | **D** | Standardize frontend directory structure | Incremental alongside A |
@@ -121,7 +121,7 @@ Completed items:
 | `sidebar-scroll-middle` | Middle scroll region in sidebar |
 | `aesg-sample-visuals` | Component sample wrapper (`ComponentSample`) |
 
-Gallery sidebar blade testIds live in `SidebarContent.fs` (pure F#). **`Sidebar.render` is still render DSL** — full gallery sidebar page conversion pending.
+Gallery sidebar blade testIds live in `SidebarContent.fs` (pure F#). Gallery **Content/Sidebar** showcase page is also converted (`Content/Sidebar/Sidebar.fs`).
 
 ### Phase 4 — Audit harness (partial)
 
@@ -248,17 +248,33 @@ dotnet build AppEggShellGallery/src/App.fsproj -c "Web Debug"   # or a full `egg
 
 ---
 
-## 5. Current state (2026-06-27)
+## 5. Current state (2026-06-28)
+
+### 5.0 Framework vs gallery (do not conflate)
+
+Two different trees share names like `Button`:
+
+| What you open | Path | Status |
+|---------------|------|--------|
+| **Framework component** (what apps import as `LC.Button`) | `LibClient/src/Components/Button/Button.fs` | **Converted** — pure F# `[<Component>]`, Pressable, themes |
+| **Gallery showcase page** (docs/samples for that component) | `AppEggShellGallery/src/Components/Content/Button/Button.render` | **Still render DSL** — samples show Render XML in code blocks |
+
+Same pattern for many components: LibClient may already be pure F# while the matching gallery **Content** page is still `.render` + `.typext.fs` until explicitly converted (Rule 10). `ComponentRegistration.fs` in the gallery lists only the **33** showcase pages still on render DSL.
 
 ### 5.1 LibClient render DSL remaining
 
-**~40** `.render` files under `LibClient/src/Components/`, including:
+**9** `.render` files (matches `LibClient/src/ComponentRegistration.fs`):
 
-- **Inputs:** Text, Checkbox, ChoiceList, ChoiceListItem, Picker cluster (Picker, Field, Dialog, Popup, Base), Image, File, NamedFile, ParsedText, WeeklyCalendar
-- **Dialogs:** Base, Confirm, Prompt, Shell variants, FullScreen
-- **Nav (legacy layout):** Nav.Top.Base, Nav.Bottom.{Base,Item,Button}
-- **Chrome:** AppShell/Content, Badge, FloatingActionButton, IconWithBadge, DateSelector, ContextMenu.{Dialog,Popup}, Draggable, Form/Base, LabelledFormField
-- **Legacy:** Legacy.Sidebar.*, Legacy.TopNav.Base, Legacy.Input.*
+| Cluster | Files |
+|---------|--------|
+| **Input.Text** | `Input/Text/Text.render` |
+| **Picker** | `Input/Picker/Picker.render`, `Input/PickerInternals/{Base,Dialog,Field,Popup}.render`, `Legacy/Input/Picker/Picker.render` |
+| **Dialog shell** | `Dialog/Base/Base.render` |
+| **Context menu** | `ContextMenu/Dialog/Dialog.render` |
+
+Everything else under `LibClient/src/Components/` is pure F# or lives outside the render compiler (ReactXP bindings, etc.). Confirm, Prompt, Shell, Form/Base, Draggable, Badge, Nav, AppShell/Content, most inputs, and **Button** are converted.
+
+**Next LibClient cluster to retire:** Input.Text + Picker internals (highest fan-out for forms/gallery Input.* pages still on render DSL).
 
 ### 5.2 LibClient converted to pure F# `[<Component>]` (representative)
 
@@ -266,9 +282,11 @@ dotnet build AppEggShellGallery/src/App.fsproj -c "Web Debug"   # or a full `egg
 
 **Nav (modern):** Nav.Top.{Item, Heading, Filler, Image, ShowSidebarButton}, Nav.Bottom.Filler
 
-**Inputs (modern leaf):** Many `Input/*.fs` helpers (Date, Quantity, Guid, PhoneNumber, Duration, …) — not all composite pickers
+**Inputs (modern leaf):** Most `Input/*.fs` leaves (Date, Quantity, Guid, PhoneNumber, Duration, Checkbox, ChoiceList, File, Image, …) — composite **Picker** + **Text** still render DSL
 
-**Interactive / state:** TriStateful.{Abstract, Simple}, QuadStateful, Pointer.State, Pressable, TextButton, ToggleButton, **Button**, IconButton
+**Interactive / state:** TriStateful.{Abstract, Simple}, QuadStateful, Pointer.State, Pressable, TextButton, ToggleButton, **Button**, IconButton, **Draggable** (`draggableRef` prop — not `ref`; React 18 strips `ref` from function-component props)
+
+**Dialogs (modern):** Confirm, Prompt, Shell variants, ImageViewer, etc. — **Dialog.Base** still render DSL
 
 **Infrastructure:** Accessibility.*, UiActionLog, LiveRegion, AsyncData, With.*, …
 
@@ -282,17 +300,36 @@ dotnet build AppEggShellGallery/src/App.fsproj -c "Web Debug"   # or a full `egg
 
 - Deleted `Button.styles.fs`, `Nav/Top/Item/Item.styles.fs`
 - Removed duplicate `ButtonStyles` / `ItemStyles` blocks from `DefaultComponentsTheme.fs`
-- **Callers migrated:** ContextMenu Dialog (`ButtonThemes`), PickerInternals Dialog (dead styles removed), Nav.Bottom.Button (`BadgeStyles`), LibRouter BackButton, ShowSidebarButton, gallery Button (`SampleThemes`), gallery Nav/Top (`?theme` for icon adjust)
+- **Callers migrated:** ContextMenu Dialog (`ButtonThemes`), PickerInternals Dialog (dead styles removed), Nav.Bottom.Button (`BadgeStyles`), LibRouter BackButton, ShowSidebarButton, gallery Nav/Top (`?theme` for icon adjust)
+
+**Draggable ref fix (2026-06-28):** renamed `?ref` → `?draggableRef` on `LC.Draggable` (and gallery + AppShell callers). React 18 never delivers `ref` as a normal prop to memoized function components, so `LC.With.Ref` + programmatic gallery buttons stayed permanently `Disabled`.
 
 ### 5.4 Gallery modernization
 
+**Shell / infra (converted to pure F#):** `App.fs`, `TopNav.fs`, `Route/*` (Components, Docs, Tools, Design, HowTo, Legacy), `Sidebar/SidebarContent.fs`, `ComponentContent*.fs`, `ComponentSample*.fs`, `GalleryHeadings.fs`, `Code.fs`, `ColorVariants.fs`, … Stale `_autogenerated_` for converted infra and orphan `.fs.js` emit under `src/` were removed; audit scripts point at `Route/Components/Components.fs`.
+
+**Content showcase pages** (routed from `Components.fs`):
+
+| State | Count | Code samples in UI |
+|-------|------:|--------------------|
+| **Pure F# page** (`Content/.../Foo.fs`) | **36** | F# (`ComponentSample.Fsharp`) |
+| **Still render DSL** (`Content/.../Foo.render`) | **33** | Render DSL (`ComponentSample.Render`) — expected until page converted |
+
+**36 converted showcase pages:** AnimatableImage, AnimatableText, AnimatableTextInput, AnimatableView, AsyncData, Card, DateSelector, Draggable, Executor.AlertErrors, FloatingActionButton, Forms, Grid, Heading, IconWithBadge, ImageCard, LabelledFormField, Nav.Bottom, Nav.Top, QueryGrid, Section.Padded, Sidebar, Tabs, TouchableOpacity, With.DataFlowControl, Input.{Checkbox, ChoiceList, DayOfTheWeek, Decimal, Duration, File, Image, LocalTime, PositiveDecimal, PositiveInteger, UnsignedDecimal, UnsignedInteger}
+
+**33 still render DSL (gallery `ComponentRegistration.fs`):** Avatar, Button, Buttons, Carousel, ColorVariants, ContextMenu, Dialogs, ErrorBoundary, Icon, IconButton, Icons, InfoMessage, ItemList, Pre, Scrim, Stars, Tag, TextButton, Thumb, Thumbs, TimeSpan, Timestamp, ToggleButtons, WithSortAndFilter, Input.{Date, EmailAddress, PhoneNumber, Picker, Quantity, Text}, ThirdParty.{Map, Recharts, ToolWindowContent}
+
+**Recent gallery work (2026-06-28):**
+
+- `GalleryHeadings.fs` — explicit heading font sizes (Props/Samples 24px, sample titles 14px); fixes nested `LC.Text` in `LC.Heading` ignoring level styles on web
+- `GallerySampleImages.fs` — fixed-size `ImageCard` demos (Draggable, ImageCard) where parent layout had zero height
+- Enriched sparse converted pages (Card, ImageCard, Tabs, LabelledFormField, Animatable*, TouchableOpacity, DataFlowControl, AlertErrors, Input.* samples)
+- Carousel.render — local `/images/wlop*.jpg` instead of dead example.com URLs
+
 | Area | State |
 |------|--------|
-| Pure F# content pages | Nav/Top.fs, Grid, QueryGrid, Heading, Code, … |
-| Still `.render` | Most `Components/Content/*`, Sidebar, TopNav, Route shells |
-| Audit tooling | Web + Android scripts; testId-first nav documented |
-| Known build issue | `Bootstrap.fs` `globalThis` (pre-existing) |
-| Stale autogen | `_autogenerated_/Content/Nav/Top/Top.Render.fs` orphaned after Top.fs conversion |
+| Audit tooling | Web + Android scripts; testId-first nav documented in `GALLERY-AUDIT.md` |
+| Known dev-web gotcha | Incomplete Fable output (missing `fable-library-js` in `.build/.../fable_modules`) → webpack mass `Module not found`; restart dev-web or copy from `src/fable_modules/` |
 
 ### 5.5 TapCapture → Pressable
 
@@ -312,17 +349,18 @@ dotnet build AppEggShellGallery/src/App.fsproj -c "Web Debug"   # or a full `egg
 | 3 | Gallery testIds + route/action logging | Mostly done |
 | 4 | Audit harness testId-first | Partial (scripts exist; full validation pending) |
 | — | End-to-end caller upgrade (no legacy shims) | Done for Button + Nav.Top.Item |
-| — | Goal A bulk `.render` retirement | ~50% LibClient by file count; dependency clusters remain |
+| — | Goal A bulk `.render` retirement | **LibClient ~95%** (9 render files); **gallery showcase ~52%** (36/69 pages) |
 
 ---
 
 ## 6. Recommended sequencing (next work)
 
-1. **Cluster converts** (high fan-out): `Badge`, `Nav.Top.Base` + remaining top nav, `Input.Text` + LabelledFormField, `FloatingActionButton`.
-2. **Gallery mirrors:** convert Content pages when touching LibClient twins; remove orphaned `_autogenerated_` pages.
-3. **TapCapture sweep:** each `.render` conversion should finish with Pressable; grep `LC.TapCapture` until zero, delete shim.
-4. **Automation:** run interactive Android audit with testId nav; extend assertions to use `uiSnapshot()` where possible.
-5. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
+1. **LibClient last cluster:** Input.Text + Picker internals + Dialog.Base + ContextMenu.Dialog (9 files — unblocks gallery Input.Text/Picker/Dialogs showcase conversion).
+2. **Gallery mirrors:** convert remaining **33** Content `.render` pages when touching LibClient twins; each conversion → pure F# page + F# code samples + delete `.render`/`.typext.fs`/autogen together.
+3. **Gallery batch candidates (high visibility, LibClient already F#):** Button, IconButton, TextButton, ToggleButtons, Dialogs, Scrim, Carousel, ItemList, …
+4. **TapCapture sweep:** each conversion should finish with Pressable; grep `LC.TapCapture` until zero, delete shim.
+5. **Automation:** run interactive Android audit with testId nav; extend assertions to use `uiSnapshot()` where possible.
+6. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
 
 ---
 
