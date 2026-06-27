@@ -1,6 +1,10 @@
 namespace AppEggShellGallery.Components
 
 open LibClient
+open LibClient.Components
+open ReactXP.LegacyStyles
+open ReactXP.Styles
+open LC.Button
 open AppEggShellGallery.Components.Content.Button
 open Fable.Core.JsInterop
 

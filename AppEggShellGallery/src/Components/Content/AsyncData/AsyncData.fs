@@ -57,11 +57,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='Uninitialized' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = Uninitialized,
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -72,11 +73,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='Unavailable' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = Unavailable,
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -87,11 +89,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='AccessDenied' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = AccessDenied,
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -102,11 +105,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='WillStartFetchingSoonHack' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = WillStartFetchingSoonHack,
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -117,11 +121,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='Fetching None' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = Fetching None,
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -132,11 +137,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='Fetching (Some \"Jekyll\")' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = Fetching (Some "Jekyll"),
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -147,11 +153,12 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='Available \"Hyde\"' WhenAvailable='WhenAvailable(name)'>
-    The name is {name}.
-</LC.AsyncData>
+LC.AsyncData(
+    data = Available "Hyde",
+    whenAvailable = fun name -> LC.Text $"The name is {name}."
+)
 """
                                         )
                                 )
@@ -169,7 +176,16 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText,
                                             whenUninitialized = fun () -> LC.Text "A custom uninitialized message."
                                         ),
-                                    code = ComponentSample.singleBlock Render (LC.Text "<!-- WhenUninitialized -->")
+                                    code =
+                                        ComponentSample.singleBlock Fsharp (
+                                            LC.Text """
+LC.AsyncData(
+    data = Uninitialized,
+    whenAvailable = fun name -> LC.Text $"The name is {name}.",
+    whenUninitialized = fun () -> LC.Text "A custom uninitialized message."
+)
+"""
+                                        )
                                 )
                                 Ui.ComponentSample(
                                     visuals =
@@ -178,7 +194,16 @@ type Ui.Content with
                                             whenAvailable = Demos.WhenAvailableText,
                                             whenElse = fun () -> LC.Text "An alternative way to customize for all states other than Available."
                                         ),
-                                    code = ComponentSample.singleBlock Render (LC.Text "<!-- WhenElse -->")
+                                    code =
+                                        ComponentSample.singleBlock Fsharp (
+                                            LC.Text """
+LC.AsyncData(
+    data = Unavailable,
+    whenAvailable = fun name -> LC.Text $"The name is {name}.",
+    whenElse = fun () -> LC.Text "An alternative way to customize for all states other than Available."
+)
+"""
+                                        )
                                 )
                                 Ui.ComponentSample(
                                     visuals =
@@ -191,7 +216,18 @@ type Ui.Content with
                                                     LC.Text ("Updating name (previously " + prev + "), please wait.")
                                                 )
                                         ),
-                                    code = ComponentSample.singleBlock Render (LC.Text "<!-- WhenFetching -->")
+                                    code =
+                                        ComponentSample.singleBlock Fsharp (
+                                            LC.Text """
+LC.AsyncData(
+    data = Fetching (Some "Jekyll"),
+    whenAvailable = fun name -> LC.Text $"The name is {name}.",
+    whenFetching = fun maybePrevName ->
+        let prev = maybePrevName |> Option.getOrElse "unknown"
+        LC.Text ("Updating name (previously " + prev + "), please wait.")
+)
+"""
+                                        )
                                 )
                             |]
                     )
@@ -204,12 +240,12 @@ type Ui.Content with
                                     heading = "With ErrorBoundary (triggered on demand)",
                                     visuals = Demos.ErrorBoundaryDemo(),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.ErrorBoundary Try='...' Catch='...'>
-    <LC.AsyncData Data='Failed ...' WhenAvailable='...'/>
-</LC.ErrorBoundary>
-"""
+LC.ErrorBoundary(
+    ``try`` = ...,
+    catch = fun (_, _) -> ...
+)"""
                                         )
                                 )
                                 Ui.ComponentSample(
@@ -221,9 +257,13 @@ type Ui.Content with
                                             whenFailed = fun _ -> LC.Text "Something went wrong - we couldn't retrieve the name."
                                         ),
                                     code =
-                                        ComponentSample.singleBlock Render (
+                                        ComponentSample.singleBlock Fsharp (
                                             LC.Text """
-<LC.AsyncData Data='Failed ...' WhenAvailable='...' WhenFailed='...'/>
+LC.AsyncData(
+    data = Failed (UserReadableFailure "..."),
+    whenAvailable = fun name -> ...,
+    whenFailed = fun _ -> LC.Text "Something went wrong - we couldn't retrieve the name."
+)
 """
                                         )
                                 )

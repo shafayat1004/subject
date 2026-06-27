@@ -2,16 +2,9 @@
 module AppEggShellGallery.ComponentRegistration
 
 let registerAllTheThings () : unit =
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.App" AppEggShellGallery.Components.AppRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.AppContext" AppEggShellGallery.Components.AppContextRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariant.Base" AppEggShellGallery.Components.ColorVariant.BaseRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariant.ColorBlock" AppEggShellGallery.Components.ColorVariant.ColorBlockRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariants" AppEggShellGallery.Components.ColorVariantsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ComponentContent" AppEggShellGallery.Components.ComponentContentRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ComponentContentHeading" AppEggShellGallery.Components.ComponentContentHeadingRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ComponentProps" AppEggShellGallery.Components.ComponentPropsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ComponentSample" AppEggShellGallery.Components.ComponentSampleRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ComponentSampleGroup" AppEggShellGallery.Components.ComponentSampleGroupRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.AsyncData" AppEggShellGallery.Components.Content.AsyncDataRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Avatar" AppEggShellGallery.Components.Content.AvatarRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Button" AppEggShellGallery.Components.Content.ButtonRender.render
@@ -47,29 +40,10 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.Timestamp" AppEggShellGallery.Components.Content.TimestampRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.ToggleButtons" AppEggShellGallery.Components.Content.ToggleButtonsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Content.WithSortAndFilter" AppEggShellGallery.Components.Content.WithSortAndFilterRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Components" AppEggShellGallery.Components.Route.ComponentsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Design" AppEggShellGallery.Components.Route.DesignRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Docs" AppEggShellGallery.Components.Route.DocsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Home" AppEggShellGallery.Components.Route.HomeRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.HowTo" AppEggShellGallery.Components.Route.HowToRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Legacy" AppEggShellGallery.Components.Route.LegacyRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Settings" AppEggShellGallery.Components.Route.SettingsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Subject" AppEggShellGallery.Components.Route.SubjectRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Route.Tools" AppEggShellGallery.Components.Route.ToolsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ScrapedComponentProps" AppEggShellGallery.Components.ScrapedComponentPropsRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Snippets" AppEggShellGallery.Components.SnippetsRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.TopNav" AppEggShellGallery.Components.TopNavRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.With.Navigation" AppEggShellGallery.Components.With.NavigationRender.render
 
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.App", AppEggShellGallery.Components.AppStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Code", AppEggShellGallery.Components.CodeStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ColorVariant.Base", AppEggShellGallery.Components.ColorVariant.BaseStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ColorVariants", AppEggShellGallery.Components.ColorVariantsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ComponentContent", AppEggShellGallery.Components.ComponentContentStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ComponentContentHeading", AppEggShellGallery.Components.ComponentContentHeadingStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ComponentProps", AppEggShellGallery.Components.ComponentPropsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ComponentSample", AppEggShellGallery.Components.ComponentSampleStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.ComponentSampleGroup", AppEggShellGallery.Components.ComponentSampleGroupStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.AsyncData", AppEggShellGallery.Components.Content.AsyncDataStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Avatar", AppEggShellGallery.Components.Content.AvatarStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.Buttons", AppEggShellGallery.Components.Content.ButtonsStyles.styles)
@@ -103,13 +77,4 @@ let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.TimeSpan", AppEggShellGallery.Components.Content.TimeSpanStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.ToggleButtons", AppEggShellGallery.Components.Content.ToggleButtonsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Content.WithSortAndFilter", AppEggShellGallery.Components.Content.WithSortAndFilterStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Components", AppEggShellGallery.Components.Route.ComponentsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Design", AppEggShellGallery.Components.Route.DesignStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Docs", AppEggShellGallery.Components.Route.DocsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Home", AppEggShellGallery.Components.Route.HomeStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.HowTo", AppEggShellGallery.Components.Route.HowToStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Legacy", AppEggShellGallery.Components.Route.LegacyStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Subject", AppEggShellGallery.Components.Route.SubjectStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Route.Tools", AppEggShellGallery.Components.Route.ToolsStyles.styles)
     LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.Snippets", AppEggShellGallery.Components.SnippetsStyles.styles)
-    LibClient.ComponentRegistry.RegisterStyles ("AppEggShellGallery.Components.TopNav", AppEggShellGallery.Components.TopNavStyles.styles)

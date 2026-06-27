@@ -92,41 +92,44 @@ type Ui.Content.Input with
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.AtLeastOneSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Render, LC.Text """
-<LC.Input.ChoiceList
- Value='~AtLeastOne (estate.MaybeAtLeastOneSelectedFruits, actions.SetAtLeastOneSelectedFruits)'
- Validity='Valid'
- rt-prop-children='Items(group)'>
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Mango"'  Value='Fruit.Mango' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Peach"'  Value='Fruit.Peach' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Banana"' Value='Fruit.Banana'/>
-</LC.Input.ChoiceList>""")
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+LC.Input.ChoiceList(
+    items = fun group -> element {
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Peach",  value = Fruit.Peach)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Banana", value = Fruit.Banana)
+    },
+    value = AtLeastOne (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits.ToOrderedSet)),
+    validity = Valid
+)""")
                                 )
 
                                 Ui.ComponentSample(
                                     visuals = Helpers.AnySample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Render, LC.Text """
-<LC.Input.ChoiceList
- Value='~Any (estate.MaybeAnySelectedFruits, actions.SetAnySelectedFruits)'
- Validity='Valid'
- rt-prop-children='Items(group)'>
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Mango"'  Value='Fruit.Mango' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Peach"'  Value='Fruit.Peach' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Banana"' Value='Fruit.Banana'/>
-</LC.Input.ChoiceList>""")
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+LC.Input.ChoiceList(
+    items = fun group -> element {
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Peach",  value = Fruit.Peach)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Banana", value = Fruit.Banana)
+    },
+    value = Any (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits)),
+    validity = Valid
+)""")
                                 )
 
                                 Ui.ComponentSample(
                                     visuals = Helpers.AtMostOneSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Render, LC.Text """
-<LC.Input.ChoiceList
- Value='~AtMostOne (estate.MaybeAtMostOneSelectedFruit, actions.SetAtMostOneSelectedFruit)'
- Validity='Valid'
- rt-prop-children='Items(group)'>
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Mango"'  Value='Fruit.Mango' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Peach"'  Value='Fruit.Peach' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Banana"' Value='Fruit.Banana'/>
-</LC.Input.ChoiceList>""")
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+LC.Input.ChoiceList(
+    items = fun group -> element {
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Peach",  value = Fruit.Peach)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Banana", value = Fruit.Banana)
+    },
+    value = AtMostOne (selectedFruit.current, selectedFruit.update),
+    validity = Valid
+)""")
                                 )
                             }
                         )
@@ -138,21 +141,16 @@ type Ui.Content.Input with
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.ExactlyOneSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Render, LC.Text """
-<LC.Input.ChoiceList
- Value='~ExactlyOne (estate.MaybeExactlyOneSelectedFruit, actions.SetExactlyOneSelectedFruit)'
- Validity='Valid'
- rt-prop-children='Items(group)'>
-    <LC.Input.ChoiceListItem Group='group' Value='Fruit.Mango'>
-        <uitext>Mango</uitext>
-    </LC.Input.ChoiceListItem>
-    <LC.Input.ChoiceListItem Group='group' Value='Fruit.Peach'>
-        <uitext>Peach</uitext>
-    </LC.Input.ChoiceListItem>
-    <LC.Input.ChoiceListItem Group='group' Value='Fruit.Banana'>
-        <uitext>Banana</uitext>
-    </LC.Input.ChoiceListItem>
-</LC.Input.ChoiceList>""")
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+LC.Input.ChoiceList(
+    items = fun group -> element {
+        LC.Input.ChoiceListItem(group = group, value = Fruit.Mango,  children = [| LC.UiText "Mango" |])
+        LC.Input.ChoiceListItem(group = group, value = Fruit.Peach,  children = [| LC.UiText "Peach" |])
+        LC.Input.ChoiceListItem(group = group, value = Fruit.Banana, children = [| LC.UiText "Banana" |])
+    },
+    value = ExactlyOne (selectedFruit.current, fun fruit -> selectedFruit.update (Some fruit)),
+    validity = Valid
+)""")
                                 )
                             }
                         )
@@ -164,15 +162,16 @@ type Ui.Content.Input with
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.InvalidSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Render, LC.Text """
-<LC.Input.ChoiceList
- Value='~AtMostOne (estate.MaybeAtMostOneSelectedFruit, actions.SetAtMostOneSelectedFruit)'
- Validity='Invalid "Not a fruit"'
- rt-prop-children='Items(group)'>
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Mango"'  Value='Fruit.Mango' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Peach"'  Value='Fruit.Peach' />
-    <LC.Input.ChoiceListItem Group='group' Label='~String "Banana"' Value='Fruit.Banana'/>
-</LC.Input.ChoiceList>""")
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+LC.Input.ChoiceList(
+    items = fun group -> element {
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Peach",  value = Fruit.Peach)
+        LC.Input.ChoiceListItem(group = group, label = Label.String "Banana", value = Fruit.Banana)
+    },
+    value = AtMostOne (selectedFruit.current, selectedFruit.update),
+    validity = Invalid "Not a fruit"
+)""")
                                 )
                             }
                         )

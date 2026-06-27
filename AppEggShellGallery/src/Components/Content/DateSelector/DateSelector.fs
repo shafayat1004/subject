@@ -55,13 +55,15 @@ type Ui.Content with
                             ),
                         code =
                             ComponentSample.SingleBlock (
-                                ComponentSample.Render,
+                                ComponentSample.Fsharp,
                                 LC.Text """
-                    <LC.DateSelector
-                     OnChange='actions.OnChange'
-                     MinDate='DateTimeOffset.Now'
-                     MaybeSelected='estate.MaybeSelectedDate.Item "A"'/>
-            """
+LC.DateSelector(
+    onChange = onChange,
+    minDate = DateOnly.FromDateTime DateTime.Now,
+    maybeSelected = maybeSelected,
+    testId = "date-selector"
+)
+"""
                             )
                     )
                 },
@@ -79,12 +81,14 @@ type Ui.Content with
                             ComponentSample.Children(
                                 element {
                                     Ui.Code(
-                                        language = ComponentSample.Render,
+                                        language = ComponentSample.Fsharp,
                                         children =
                                             [| LC.Text """
-                    <LC.DateSelector
-                     OnChange='actions.OnChange "B"'
-                     MaybeSelected='estate.MaybeSelectedDate.Item "B"'/>
+LC.DateSelector(
+    onChange = onChange "B",
+    maybeSelected = maybeSelected "B",
+    testId = "date-selector-b"
+)
                 """ |]
                                     )
 

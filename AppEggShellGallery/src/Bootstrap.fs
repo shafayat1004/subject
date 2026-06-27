@@ -50,7 +50,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
             let pstore = InitializePersistentStore initialPstoreData
             pstore |> ignore
 
-            let element = App.Make { PstoreKey = "app" } [||]
+            let element = Ui.App.Root()
 
             ReactXPRaw?App?initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
             ReactXPRaw?UserInterface?setContextWrapper (fun rootView ->

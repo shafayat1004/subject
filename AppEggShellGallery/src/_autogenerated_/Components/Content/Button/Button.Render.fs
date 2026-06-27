@@ -125,7 +125,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                                                                     badge = (LibClient.Components.Button.Count 3),
                                                                     label = ("Cart"),
                                                                     icon = (LibClient.Components.Button.Icon.Left Icon.ShoppingCart),
-                                                                    badgeTheme = SampleThemes.badgeGreen
+                                                                    badgeTheme = (SampleThemes.badgeGreen)
                                                                 )
                                                             |]
                                                     )

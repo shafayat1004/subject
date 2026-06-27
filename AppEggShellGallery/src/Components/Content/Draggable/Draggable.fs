@@ -103,21 +103,27 @@ type Ui.Content with
                             ),
                         code =
                             ComponentSample.SingleBlock(
-                                ComponentSample.Render,
+                                ComponentSample.Fsharp,
                                 LC.Text """
-                    <LC.With.Ref rt-fs='true' rt-with='bindRef, maybeRef: Option<Draggable.IDraggableRef>'>
-                        <LC.Draggable
-                         Left='{| ForwardThreshold = 50; Offset = 100; BackwardThreshold = 20 |}'
-                         Right='{| ForwardThreshold = 100; Offset = 200; BackwardThreshold = 20 |}'
-                         Up='{| ForwardThreshold = 20; Offset = 100; BackwardThreshold = 20 |}'
-                         Down='{| ForwardThreshold = 20; Offset = 200; BackwardThreshold = 20 |}'
-                         BaseOffset='(50, 20)'
-                         ref='bindRef'>
-                            <LC.ImageCard Source='localImage "/images/wlop4.jpg"'/>
-                        </LC.Draggable>
-                        ...
-                    </LC.With.Ref>
-            """
+LC.With.Ref(
+    ``with`` = fun (bindRef, maybeRef) ->
+        element {
+            LC.Draggable(
+                ref = bindRef,
+                testId = "gallery-draggable",
+                left = {| ForwardThreshold = 50; Offset = 100; BackwardThreshold = 20 |},
+                right = {| ForwardThreshold = 100; Offset = 200; BackwardThreshold = 20 |},
+                up = {| ForwardThreshold = 20; Offset = 100; BackwardThreshold = 20 |},
+                down = {| ForwardThreshold = 20; Offset = 200; BackwardThreshold = 20 |},
+                baseOffset = (50, 20),
+                children = elements {
+                    LC.ImageCard(source = localImage "/images/wlop4.jpg")
+                }
+            )
+            // Move Left / Reset / Move Right buttons use maybeRef.SetPosition ...
+        }
+)
+"""
                             )
                     )
                 }

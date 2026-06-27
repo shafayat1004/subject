@@ -4,6 +4,8 @@ module AppEggShellGallery.Components.Constructors
 type Ui = class end
 
 module Ui =
+    type App = class end
+
     type Route = class end
 
     type With = class end

@@ -31,15 +31,20 @@ type Ui.Content with
                             ),
                         code =
                             ComponentSample.SingleBlock(
-                                ComponentSample.Render,
+                                ComponentSample.Fsharp,
                                 LC.Text """
-                    <LC.LabelledFormField Label='"Email"'>
-                        <LC.Input.Text
-                         Value='None'
-                         OnChange='ignore'
-                         Validity='Valid'/>
-                    </LC.LabelledFormField>
-            """
+LC.LabelledFormField(
+    label = "Email",
+    testId = "gallery-labelled-form-field",
+    children = elements {
+        LC.Input.Text(
+            value = None,
+            onChange = ignore,
+            validity = InputValidity.Valid
+        )
+    }
+)
+"""
                             )
                     )
                 }

@@ -181,7 +181,7 @@ type PaginatedGridData<'T> = {
 """ |]
                                     )
                                     Ui.Code(
-                                        language = Render,
+                                        language = Fsharp,
                                         children =
                                             [| LC.Text """
 UiAdmin.Grid(
@@ -241,7 +241,7 @@ UiAdmin.Grid(
                                 headers = Samples.fruitHeaders
                             ),
                         code =
-                            ComponentSample.singleBlock Render (
+                            ComponentSample.singleBlock Fsharp (
                                 LC.Text """
 UiAdmin.Grid(
     input = Static (rows, None),
