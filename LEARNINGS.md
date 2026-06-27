@@ -609,3 +609,9 @@ All build green via `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"`
 - **ItemList style enum:** modern ItemList uses `LibClient.Components.ItemList.Style.Raw`, not `.Raw`.
 - **Delete `.render` before `eggshell build-lib`:** otherwise the registration generator re-adds
   `RegisterRender`/`RegisterStyles` lines for converted components.
+- **Native Grid invisible (not crash):** Handheld `gridView(true)` put pagination only at the bottom and
+  wrapped the body in nested `ScrollView`s with `flex: 1` on the outer one. On RN, without a flex-bounded
+  parent that collapses to zero height, so the grid body (and often the whole grid block) never appeared.
+  Fix: on native use desktop-style nav (top + bottom, page size controls) and a single horizontal
+  `ScrollView` with explicit `minHeight`. Also flatten `element { ... }` fragment children into flex rows
+  (`unwrapFragmentChildren`) so header/row cells lay out side-by-side on RN.

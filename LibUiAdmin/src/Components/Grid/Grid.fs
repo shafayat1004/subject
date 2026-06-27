@@ -1,6 +1,8 @@
 [<AutoOpen>]
 module LibUiAdmin.Components.Grid
 
+open Fable.Core
+open Fable.Core.JsInterop
 open Fable.React
 open Fable.React.Props
 
@@ -66,6 +68,20 @@ module private Styles =
             minWidth          160
             flex              1
         }
+
+#if !EGGSHELL_PLATFORM_IS_WEB
+    let nativeGridRoot =
+        makeViewStyles {
+            AlignSelf.Stretch
+            minWidth        280
+        }
+
+    let nativeGridBodyScroll =
+        makeScrollViewStyles {
+            AlignSelf.Stretch
+            minHeight       120
+        }
+#endif
 
     let headers =
         makeViewStyles {
@@ -213,11 +229,21 @@ module private Styles =
                 }
         }
 
+#if !EGGSHELL_PLATFORM_IS_WEB
 module private NativeGrid =
+    /// `element { ... }` produces a React fragment; RN flex rows need direct cell children.
+    /// IIFE Emit — assign to a `let` before passing to RX.View (never inline into `children`).
+    [<Emit("(function (el) { var c = el && el.props && el.props.children; if (c == null) return [el]; if (Array.isArray(c)) return c; return [c]; })($0)")>]
+    let private unwrapFragmentChildren (content: ReactElement) : ReactElements = jsNative
+
     let headers (headers: ReactElement option) (headersRaw: ReactElement option) : ReactElement =
         match headersRaw, headers with
-        | _, Some raw -> RX.View (styles = [| Styles.headers |], children = [| raw |])
-        | Some h, None -> RX.View (styles = [| Styles.headers |], children = [| h |])
+        | _, Some raw ->
+            let cells = unwrapFragmentChildren raw
+            RX.View (styles = [| Styles.headers |], children = cells)
+        | Some h, None ->
+            let cells = unwrapFragmentChildren h
+            RX.View (styles = [| Styles.headers |], children = cells)
         | None, None   -> noElement
 
     let staticBody (headers: ReactElement) (rows: ReactElement) : ReactElement =
@@ -241,14 +267,19 @@ module private NativeGrid =
                         else
                             [| Styles.row |]
 
+                    let rowContent = makeDesktopRow item
+                    let cells = unwrapFragmentChildren rowContent
+
                     RX.View (
                         key = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
                         styles = rowStyles,
-                        children = [| makeDesktopRow item |]
+                        children = cells
                     )
                 )
                 |> Seq.toArray)
         )
+
+#endif
 
 #if EGGSHELL_PLATFORM_IS_WEB
 do
@@ -617,6 +648,7 @@ type UiAdmin with
                         )
                 )
 
+        #if EGGSHELL_PLATFORM_IS_WEB
         let gridView (isHandheldMode: bool) : ReactElement =
             let navRow = renderNavRow isHandheldMode
 
@@ -648,8 +680,22 @@ type UiAdmin with
                 |]
             )
 
-        #if EGGSHELL_PLATFORM_IS_WEB
         gridView false
         #else
-        gridView true
+        // Nested vertical ScrollView + flex 1 collapses to zero height on RN; use desktop-style
+        // nav (matches web gallery) and a single horizontal scroll for the body.
+        let navRow = renderNavRow false
+
+        RX.View (
+            styles = [| Styles.view; Styles.nativeGridRoot; yield! legacyViewStyles |],
+            children = [|
+                navRow
+                RX.ScrollView (
+                    horizontal = true,
+                    styles = [| Styles.scrollViewHorizontal; Styles.nativeGridBodyScroll |],
+                    children = [| renderGridBody false |]
+                )
+                navRow
+            |]
+        )
         #endif

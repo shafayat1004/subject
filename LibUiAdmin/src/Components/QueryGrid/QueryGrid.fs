@@ -281,7 +281,7 @@ type UiAdmin with
                                     children = [| queryFormFn form |]
                                 )
                                 LC.Buttons (
-                                    align    = Left,
+                                    align    = LibClient.Components.Buttons.Left,
                                     styles   = [| Styles.buttonsBlock |],
                                     children = [|
                                         LC.Button (
