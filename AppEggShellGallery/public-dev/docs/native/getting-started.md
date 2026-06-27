@@ -1,16 +1,35 @@
 # Getting started with Native app development
 
-##1. Setting up dev environment
-> To setup your dev environment for native app development - select your OS and target OS from following
-> ### Windows
-> 1. [Android](./native/setup-dev-env-windows-android.md)
-> ### MacOS
-> Select target platform -
-> 1. [Android](https://reactnative.dev/docs/environment-setup?guide=native&platform=android&os=macos)
-> 2. [iOS](https://reactnative.dev/docs/environment-setup?guide=native&platform=ios&os=macos)
-> ### Linux
-> 1. [Android](https://reactnative.dev/docs/environment-setup?guide=native&platform=android&os=linux) (TODO - write actual instruction if anyone using linux)
+## 1. Setting up the dev environment
 
-## 2. [Dev experience](./native/dev-experience.md)
+Choose your host OS and target platform:
 
-## 3. [Releasing native app](./native/release-app.md)
+### Windows
+
+* [Android on Windows](./setup-dev-env-windows-android.md)
+
+### macOS
+
+* [Android (React Native docs)](https://reactnative.dev/docs/set-up-your-environment?platform=android)
+* [iOS (React Native docs)](https://reactnative.dev/docs/set-up-your-environment?platform=ios)
+
+Install Android Studio and/or Xcode as appropriate. For iOS, also install **CocoaPods** (`gem install cocoapods` or via Homebrew).
+
+### Linux
+
+* [Android (React Native docs)](https://reactnative.dev/docs/set-up-your-environment?platform=android)
+
+## 2. EggShell native prerequisites
+
+After platform SDKs are installed:
+
+1. Repo root: `./initialize`
+2. App directory: `./initialize` (creates `configSourceOverrides.native.js` from template)
+3. iOS only: `cd ios && pod install`
+
+Then follow [Native Development](../basics/native.md) for the three-terminal workflow.
+
+## 3. Further reading
+
+* [Dev experience notes](./dev-experience.md)
+* [Releasing native app](./release-app.md)

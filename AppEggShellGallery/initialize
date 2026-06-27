@@ -31,4 +31,10 @@ ln -s ../../Meta/renderdsl.code-snippets ./.vscode/renderdsl.code-snippets
 ln -s ../images ./public-dev/
 ln -s ../configSourceOverrides.dev.js public-dev/configSourceOverrides.dev.js
 
+# Local native dev overrides (gitignored); template is committed
+if [ ! -f configSourceOverrides.native.js ]; then
+  cp configSourceOverrides.native.js.template configSourceOverrides.native.js
+  echo "Created configSourceOverrides.native.js from template (edit for local API keys if needed)"
+fi
+
 dotnet restore src/App.fsproj

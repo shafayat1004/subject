@@ -10,10 +10,18 @@ This is a sample app that runs on the new Subject stack that combines Fable, Rea
 
 ## Building and running the app
 
-* If you scaffolding the app using `eggshell create-app` then running `eggshell dev-web` should
-  get you going, you should be able to see the app running at http://localhost:8080/
-* If something fails to compile, the first thing to try is to re-run `./initialize`, and then
-  try `eggshell dev-web` again.
+After `eggshell create-app`, from this app directory:
+
+```bash
+./initialize
+eggshell dev-web
+```
+
+Open **http://localhost:9080/** (default dev-web port for scaffolded apps).
+
+For **native** development, see the EggShell gallery docs: [Native Development](https://eggshell.dev/) or `AppEggShellGallery/public-dev/docs/basics/native.md` in the repo. You need `configSourceOverrides.native.js` (created by `./initialize`), plus `eggshell dev-native` and Metro on port 8081.
+
+If something fails to compile, re-run `./initialize`, then `eggshell dev-web` or `eggshell build-native` as appropriate.
 
 Any modification you do to the F# code will be reflected in the web page after saving.
 Any modifications to the `.render` files will also be reflected.

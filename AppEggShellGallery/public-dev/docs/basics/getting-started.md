@@ -1,119 +1,105 @@
 # Getting Started with EggShell
 
-Our official editor is VSCode. We're building extensions and tooling that make
-the dev experience great in VSCode, and don't have the resources to support
-other editors at the moment. See DEV_EXPERIENCE.md for more.
+Our official editor is VSCode. We target VSCode + Ionide for F# tooling; see [Dev Experience](./dev-experience.md).
 
-The tooling only runs smoothly on *nix, so Windows users need some extra setup.
+The tooling runs most smoothly on macOS and Linux. Windows users should use **Git Bash** with symlink support enabled (see below).
 
+## Windows setup (Git Bash)
 
-## Windows Setup
+1. Install [Git for Windows](https://git-scm.com/download/win) and use Git Bash for EggShell commands.
 
-### With GitBash
-Due to some some scripting+symlink support - we need to use gitbash on windows.
-1. Install git and gitbash ( https://git-scm.com/download/win )
+   Enable symbolic links:
+   * Turn on **Developer Mode** in Windows settings, and/or
+   * `git config --global core.symlinks true`
 
-      <summary> Make sure to "Enable Symbolic link" </summary>
+2. Install Node.js LTS ( [nvm-windows](https://github.com/coreybutler/nvm-windows) is fine)
+3. Install [.NET SDK 6.0+](https://dotnet.microsoft.com/download)
+4. For native apps: see [Native getting started](./native/getting-started.md)
+5. Clone this repository
 
-      1. Enable "Developer Mode" in Windows 10/11 -- gives mklink permissions
-      2. Ensure symlinks are enabled in git with (at least) one of
-          1. System setting: check the checkbox when installing msysgit
-          2. Global setting: git config --global core.symlinks true
-          3. Local setting: git config core.symlinks true
+Run the steps below from **Git Bash**, not PowerShell.
 
-      ![Enable Symbolic links](https://eggtestdata.blob.core.windows.net/catalogimages/git_bash.png "Enable Symbolic links")
+## Repository setup (required once)
 
-2. Install nodejs `18.19.0` ( **Recommended:** use [NVM](https://github.com/coreybutler/nvm-windows#install-nvm-windows))
-3. Install dotnet [6.0.300](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.300-windows-x64-installer)
-4. (Only for native app development) [Setting up the development environment]()./native/getting-started.md)
-5. Clone the EggShell repo
-6. Follow setps in `Getting a Sample App Running` below, in the "Gitbash terminal"
+After cloning, install:
 
+* .NET SDK 6.0 or newer
+* Node.js LTS
 
-## Getting a Sample App Running
+Add the **repository root** to your `PATH` so the `eggshell` CLI is available:
 
-After cloning the repo, make sure that
-
-* you have dotnet SDK 6.0.300 installed (https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-)
-* you have node `18.19.0`
-
-Add the path to the EggShell repo to your `$PATH`, by adding something like this to your
-`.bash_profile`, or wherever else you happen to manage your `$PATH`:
-
-```plaintext
-export PATH=/Users/anton/Workspace/repos/EggShell:$PATH
+```bash
+export PATH=/path/to/subject:$PATH
 ```
 
-This gives you access to the `eggshell` executable, which is a helper wrapper to our
-scaffolding and dev tools, though you need to build them first. While you're at it,
-you may want to grab tab completions for `eggshell` by adding this to your `.bash_profile`
-or `.bashrc`:
+Optional tab completions:
 
-```plaintext
-source /Users/anton/Workspace/EggShell/Meta/AppEggshellCli/bash.completions
+```bash
+source /path/to/subject/Meta/AppEggshellCli/bash.completions
 ```
 
-Now, at the root of the Egg.Shell repo, run
+At the **repo root**, run:
 
-```plaintext
+```bash
 ./initialize
 ```
 
-Now the tooling is ready (it's npm-linked in other projects). Let's make a new app and
-check it out in the browser.
+This builds the scaffolding CLI, links npm packages across framework libs, and runs initial `eggshell build-lib` passes. It takes several minutes the first time.
 
-```plaintext
-eggshell create-app
-```
+## Running AppEggShellGallery (this repo's sample app)
 
-If you enter `Sample` for the name, the directory of the new app will be conveniently
-gitignored. You'll then be told to
+The gallery is the best reference app and hosts these docs in dev mode.
 
-### Running Web App
-```plaintext
-cd AppSample
+```bash
+cd AppEggShellGallery
+./initialize
 eggshell dev-web
 ```
 
-Now go to your browser, and open http://localhost:9080/#/home
+Open **http://127.0.0.1:8082/** (gallery-specific port; other apps use 9080 by default).
 
-The app you see is mobile-centric, so until we have a better UI kit, it's best viewed
-in device emulation mode in Chrome Dev Tools.
+For **native** gallery dev, see [Native Development](./basics/native.md).
 
-### Running Native App
+## Creating a new app
 
-Go to [Running Native App](./basics/native.md)
+From the repo root (after `./initialize`):
+
+```bash
+eggshell create-app
+```
+
+If you name it `Sample`, the directory is gitignored by convention. Then:
+
+```bash
+cd AppSample
+./initialize
+eggshell dev-web
+```
+
+Open **http://localhost:9080/** (default port for scaffolded apps).
+
+Copy `configSourceOverrides.native.js` from the template before native dev; `./initialize` does this automatically for new apps.
 
 ## Edit-save-reload
 
-Now, let's edit a file.
+In VSCode, open a workspace file (`.code-workspace`) for the app or lib you are editing — **do not** open the entire monorepo root in one window (Ionide and watchers misbehave).
 
-In VSCode, open up `RouteHome.render`, and on line 4 change `Welcome to AppSample` to
-`Hello World`.
+Change a `.render` or F# file and save; the browser or Metro bundle should pick up the change.
 
-The browser should reload with the new copy visible in the top nav.
+**Caveat:** the file watcher can miss changes after git checkouts that add/remove many files. Restart `eggshell dev-web` or `eggshell dev-native` when that happens.
 
-**Caveat**: The file watcher in eggshell has some issues. So you might want to kill the
-eggshell program then and run it again. One confirmed instance of this problem is when
-you checkout some commit in git and there are new files (or removal of files), that would
-be a good time to restart the eggshell program.
+## Getting an existing app running
 
+1. Repo root: `./initialize` (if tooling changed or first clone)
+2. App directory: `./initialize`
+3. Web: `eggshell dev-web`
+4. Native: see [Native Development](./basics/native.md)
 
-## Getting an Existing App Running
-
-Please follow the steps in [Getting a Sample App Running](#getting-a-sample-app-running).
-However, instead of `eggshell create-app`, in your selected application directory run
-`./initialize`. This will set up the required npm link to the `render-dsl-compiler` binary.
-
-<small>NB: `./initialize` is run by `eggshell create-app` but not `eggshell web-dev` in order to
-not slow down normal development</small>
+`./initialize` in the app directory is **not** run automatically by `eggshell dev-web` (to keep daily web dev fast).
 
 ## Next steps
 
-Now that you got started successfully, you can build your app. You'll probably want to
-add some new components, routes, dialogs, wrappers for third party
-npm libraries, etc. See the [eggshell CLI docs](./tools/cli.md) to help get these
-scaffolded. You should probably also get acquainted with the
-[directory structure](./unsorted/directory-structure.md). And for any other "how do I..?"
-questions, head over to the [How To](./how-to/index.md) section.
+* [eggshell CLI](./tools/cli.md) — scaffold components, routes, libraries
+* [Directory structure](./unsorted/directory-structure.md)
+* [How To index](./how-to/index.md)
+* [Native Development](./basics/native.md)

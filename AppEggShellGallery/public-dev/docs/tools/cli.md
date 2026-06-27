@@ -23,7 +23,9 @@ To get started you can:
 cd ${appRootPath} #if you haven't already
 eggshell dev-web
 
-And then once it's all running, go to http://localhost:8080 in your browser.
+And then once it's all running, go to http://localhost:9080 in your browser.
+
+New apps listen on **9080** by default (`Meta/LibFablePlus/webpack.config.js`). **AppEggShellGallery** uses **8082**.
 
 If you need to move the app into a non-root directory, here are the files you'll
 need to update with additional dot-dot-slashes
@@ -39,9 +41,28 @@ need to update with additional dot-dot-slashes
 
 ## `eggshell dev-web`
 
-Runs the current app in development mode, via webpack, typically on port 8080 unless you changed the value in `webpack.config.js`.
-Watches `.render` and `.typext.fs` files, compiles them with the RenderDSL compiler, in both this project and all projects
-that are listed in the current project's `eggshell.json`'s `dependenciesToRtCompile` field.
+Runs the current app in development mode via webpack-dev-server. Default port **9080**; **AppEggShellGallery** uses **8082** (see `Meta/LibFablePlus/webpack.config.js`).
+
+Watches `.render` and `.typext.fs` files and compiles them with the RenderDSL compiler in this project and in dependencies listed under `eggshell.json` → `render.dependenciesToRtCompile`.
+
+## `eggshell dev-native`
+
+Transpiles the app to `.build/native/commonjs` in **watch** mode. Use with Metro on port 8081:
+
+```bash
+npx react-native start --port 8081
+adb reverse tcp:8081 tcp:8081   # Android emulator, each session
+```
+
+Requires `configSourceOverrides.native.js` (from `./initialize`). See [Native Development](../basics/native.md).
+
+## `eggshell build-native`
+
+One-shot native Fable compile (no watch). Run after pulling native toolchain changes, then restart Metro.
+
+## `eggshell dev-native-server`
+
+Starts Metro from the app directory (`npx react-native start`, optional `--reset-cache`).
 
 ## `eggshell create-component`
 

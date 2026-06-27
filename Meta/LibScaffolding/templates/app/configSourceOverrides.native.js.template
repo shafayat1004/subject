@@ -1,8 +1,16 @@
+const { Platform } = require("react-native");
+
 global.eggshell = global.eggshell || {};
 global.eggshell.<%= appName %> = {}
 global.eggshell.<%= appName %>.configSourceOverrides = {}
 
-global.eggshell.<%= appName %>.configSourceOverrides.AppUrlBase                   = "http://localhost:8080";
-global.eggshell.<%= appName %>.configSourceOverrides.BackendUrl                   = "http://10.0.2.2:5000";
+// Android emulator reaches the host via 10.0.2.2; iOS simulator uses localhost.
+const metroHost = Platform.OS === "android" ? "10.0.2.2" : "localhost";
+
+global.eggshell.<%= appName %>.configSourceOverrides.AppUrlBase                   = `http://${metroHost}:8081`;
+global.eggshell.<%= appName %>.configSourceOverrides.BackendUrl                   = `http://${metroHost}:5000`;
 global.eggshell.<%= appName %>.configSourceOverrides.InitializeReactXPInDevMode   = "true";
 global.eggshell.<%= appName %>.configSourceOverrides.InitializeReactXPInDebugMode = "true";
+global.eggshell.<%= appName %>.configSourceOverrides.GoogleMapsApiKey             = "YOUR_KEY_HERE";
+// Metro serves webpack-style static files from public-dev/ in dev; native fetches need the prefix.
+global.eggshell.<%= appName %>.configSourceOverrides.MaybeInBundleResourceUrlHashedDirectoryPrefix = "/public-dev";
