@@ -114,16 +114,35 @@ export function createInteractionContext(page, log) {
     return false;
   }
 
-  async function clickText(scope, text, exact = false) {
+  /**
+   * Click label text backed by LC.TapCapture (absolute RX.Button overlay on web).
+   * Plain getByText clicks the visible div and fail when the empty button intercepts.
+   */
+  async function clickPressable(scope, text, exact = false) {
     if (await clickPseudo(scope, text, exact)) return true;
-    const el = scope.getByText(text, { exact });
-    if (await el.count()) {
-      await el.first().click({ timeout: 5000 });
-      log(`click text "${text}"`);
+
+    const label = scope.getByText(text, { exact });
+    if (!(await label.count())) return false;
+
+    const target = label.first();
+    const button = target
+      .locator('xpath=ancestor::*[.//button[@role="button"]][1]//button[@role="button"]')
+      .first();
+    if (await button.count()) {
+      await button.click({ force: true, timeout: 5000 });
+      log(`click pressable "${text}"`);
       await wait();
       return true;
     }
-    return false;
+
+    await target.click({ force: true, timeout: 5000 });
+    log(`click text "${text}"`);
+    await wait();
+    return true;
+  }
+
+  async function clickText(scope, text, exact = false) {
+    return clickPressable(scope, text, exact);
   }
 
   async function fillLabel(scope, label, value) {
@@ -273,6 +292,7 @@ export function createInteractionContext(page, log) {
     clickButton,
     clickText,
     clickPseudo,
+    clickPressable,
     fillLabel,
     fillFirstInput,
     dismissOverlays,
@@ -630,7 +650,9 @@ export const COMPONENT_HANDLERS = {
   Pre: async () => {},
   Tag: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickText(cell, 'Actionable');
+      if (await ctx.clickPressable(cell, 'Actionable')) {
+        await ctx.dismissOverlays();
+      }
     });
   },
   TimeSpan: async () => {},
