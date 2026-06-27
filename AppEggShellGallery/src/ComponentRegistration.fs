@@ -4,7 +4,6 @@ module AppEggShellGallery.ComponentRegistration
 let registerAllTheThings () : unit =
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.App" AppEggShellGallery.Components.AppRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.AppContext" AppEggShellGallery.Components.AppContextRender.render
-    LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.Code" AppEggShellGallery.Components.CodeRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariant.Base" AppEggShellGallery.Components.ColorVariant.BaseRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariant.ColorBlock" AppEggShellGallery.Components.ColorVariant.ColorBlockRender.render
     LibClient.ComponentRegistry.RegisterRender "AppEggShellGallery.Components.ColorVariants" AppEggShellGallery.Components.ColorVariantsRender.render

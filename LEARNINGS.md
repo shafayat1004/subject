@@ -5,6 +5,16 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-27 — Gallery `Code` / SyntaxHighlighter crash on web
+
+**Symptom:** IconButton (and other component gallery pages) throw `Objects are not valid as a React child` inside `<SyntaxHighlighter>`. Console also shows missing-key warnings in `ComponentContent` / `ComponentSample` (benign).
+
+**Cause:** `ThirdParty.SyntaxHighlighter` mapped `Source` → React `children`. react-syntax-highlighter v15 derives `code` from `children` (`Array.isArray(children) ? children[0] : children`). When extraction passed a React element (e.g. `LC.Text` / `RX.Text` wrapper) instead of a plain string, highlight tried to render it as text.
+
+**Fix:** (1) SyntaxHighlighter wrapper: pass `code` prop instead of `children`. (2) `Code.typext.fs` `tryExtractStringChildren`: use `typeof === 'string'`, detect React elements, fold arrays of text parts, fall back to `props.value` for text wrappers.
+
+---
+
 ## 2026-06-27 — Snippets `th` render crash on Android
 
 **Tools → Snippets** crashed with `View config getter callback for component th must be a function` — `Snippets.render` used `dom.table` / `dom.th` on all platforms; HTML table tags are invalid in React Native. Fix: `#if EGGSHELL_PLATFORM_IS_WEB` table (same as `ComponentProps`), native card list with `LC.Heading` + `uitext` + `MarkdownViewer`. ReactXP `Color.Grey` on native expects two hex digits (e.g. `"66"`), not `"666"`.
@@ -615,3 +625,20 @@ All build green via `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"`
   Fix: on native use desktop-style nav (top + bottom, page size controls) and a single horizontal
   `ScrollView` with explicit `minHeight`. Also flatten `element { ... }` fragment children into flex rows
   (`unwrapFragmentChildren`) so header/row cells lay out side-by-side on RN.
+
+### 2026-06-27 — Gallery `Ui.Code` / SyntaxHighlighter React child crash
+
+- **Symptom:** `Objects are not valid as a React child (found: object with keys {$$typeof, type, key, props...})`
+  on component gallery pages (IconButton, Grid, etc.) inside `<SyntaxHighlighter>`.
+- **Cause (two parts):** (1) `react-syntax-highlighter` v15 reads highlight input from `children` when `code`
+  is missing or non-string; passing a React element there crashes. (2) legacy `Ui.Code` was an estateful
+  component that extracted text from `this.props?children` in `ComponentDidMount`, which is unreliable
+  and could leave SyntaxHighlighter receiving a React element instead of plain text.
+- **Fix:** Convert `AppEggShellGallery.Components.Code` to modern `[<Component>]` — extract string from
+  render-time `children` synchronously. On web, render via `LC.Pre` (monospace plain text). The
+  `react-syntax-highlighter` wrapper (`wrapComponentTransformingProps`) merged props.children with
+  createElement's 3rd-arg children array, so the highlighter received a React element instead of
+  plain text; direct `createElement` with string-only props.children still crashes in v15 for our
+  render/fsharp samples, so gallery Code avoids SyntaxHighlighter on web for now. SyntaxHighlighter
+  `Make` was rewritten to use direct `createElement` (no `wrapComponentTransformingProps`) for other
+  callers.

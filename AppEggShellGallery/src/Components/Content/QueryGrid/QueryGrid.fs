@@ -8,7 +8,6 @@ open LibClient.Components.Form.Base.Types
 open LibUiAdmin.Components
 open AppEggShellGallery.Components
 open AppEggShellGallery.Components.ComponentSample
-open AppEggShellGallery.Components.Content_Grid
 
 [<RequireQualifiedAccess>]
 type Field =
@@ -45,7 +44,7 @@ type Acc = {
             }
         }
 
-module private Demo =
+module private Sample =
     let headers =
         element {
             UiAdmin.GridCell [| LC.HeaderCell(label = "Word") |]
@@ -57,10 +56,10 @@ module private Demo =
         element {
             UiAdmin.GridCell [| LC.Text word |]
             UiAdmin.GridCell [| LC.Text (string word.Length) |]
-            UiAdmin.GridCell [| LC.Text (string (Demo.uniqueCharacterCount word)) |]
+            UiAdmin.GridCell [| LC.Text (string (Content_Grid.Demo.uniqueCharacterCount word)) |]
         }
 
-    let queryForm (form: LibUiAdmin.Components.Legacy.QueryGrid.FormHandle<Field, Acc, Query>) =
+    let queryForm (form: FormHandle<Field, Acc, Query>) =
         element {
             LC.Input.Text(
                 label = "Substring",
@@ -76,27 +75,35 @@ module private Demo =
             )
         }
 
-module private LegacyQueryGridDemo =
+module private QueryGridDemo =
     [<Component>]
     let Render () : ReactElement =
-        let executeQuery (query: Query) (pageSize: PositiveInteger) (pageNumber: PositiveInteger) (_order: LibUiAdmin.Components.Legacy.QueryGrid.Order) =
+        let pageHook =
+            Hooks.useState (
+                Page.BlankPage (PositiveInteger.ofLiteral 10)
+            )
+
+        let executeQuery (queryPage: QueryPage<Query>) =
             async {
                 do! Async.Sleep 1000
+                let query = queryPage.Query
                 return
-                    Demo.words
+                    Content_Grid.Demo.words
                     |> List.filter query.Predicate
-                    |> Demo.skipAtMost ((pageNumber.Value - 1) * pageSize.Value)
-                    |> Demo.takeAtMost pageSize.Value
+                    |> Content_Grid.Demo.skipAtMost ((queryPage.PageNumber.Value - 1) * queryPage.PageSize.Value)
+                    |> Content_Grid.Demo.takeAtMost queryPage.PageSize.Value
                     |> Seq.ofList
                     |> Available
             }
 
-        UiAdmin.Legacy.QueryGrid(
-            mode = LibUiAdmin.Components.Legacy.QueryGrid.OneTime executeQuery,
+        UiAdmin.QueryGrid(
+            mode = OneTime executeQuery,
+            page = pageHook.current,
+            onPageChange = pageHook.update,
             initialQueryAcc = Acc.Empty,
-            headers = Demo.headers,
-            makeRow = Demo.makeRow,
-            queryForm = Demo.queryForm
+            headers = Sample.headers,
+            row = Sample.makeRow,
+            queryForm = Sample.queryForm
         )
 
 type Ui.Content with
@@ -112,7 +119,7 @@ type Ui.Content with
                 element {
                     Ui.ComponentSample(
                         verticalAlignment = VerticalAlignment.Top,
-                        visuals = LegacyQueryGridDemo.Render(),
+                        visuals = QueryGridDemo.Render(),
                         code =
                             ComponentSample.Children(
                                 element {
@@ -130,13 +137,15 @@ type Acc = { ... } with interface AbstractAcc<Field, Query> with ...
                                         language = Fsharp,
                                         children =
                                             [| LC.Text """
-UiAdmin.Legacy.QueryGrid(
+let pageHook = Hooks.useState (Page.BlankPage (PositiveInteger.ofLiteral 10))
+
+UiAdmin.QueryGrid(
     mode = OneTime executeQuery,
+    page = pageHook.current,
+    onPageChange = pageHook.update,
     initialQueryAcc = Acc.Empty,
-    page = page,
-    onPageChange = setPage,
     headers = headers,
-    makeRow = makeRow,
+    row = makeRow,
     queryForm = queryForm
 )
 """ |]

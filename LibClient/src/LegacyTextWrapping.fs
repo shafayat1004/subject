@@ -12,7 +12,8 @@ let private isText (maybeParentFullyQualifiedName: Option<string>) : bool =
     | Some "LibClient.Components.Text"
     | Some "LibClient.Components.LegacyText"
     | Some "LibClient.Components.UiText"
-    | Some "LibClient.Components.LegacyUiText" -> true
+            | Some "LibClient.Components.LegacyUiText"
+            | Some "AppEggShellGallery.Components.Code" -> true
     | _ -> false
 
 let mutable wrapRawText : string -> Fable.React.ReactElement = fun (text: string) ->

@@ -77,28 +77,30 @@ module private Samples =
         }
 
     let staticRows =
-        [
-            ("Mango", "Orange", "Sweet", 15)
-            ("Kiwi", "Green", "Sweet and sour", 12)
-            ("Lemon", "Yellow", "Sour", 8)
-            ("Apple", "Green", "Sweet", 11)
-        ]
-        |> List.mapi (fun index (name, color, taste, price) ->
-            let cells =
-                element {
-                    UiAdmin.GridCell [| LC.Text name |]
-                    UiAdmin.GridCell [| LC.Text color |]
-                    UiAdmin.GridCell [| LC.Text taste |]
-                    UiAdmin.GridCell [| LC.Text (string price) |]
-                }
-            #if EGGSHELL_PLATFORM_IS_WEB
-            dom.tr [ unbox ("key", string index) ] [| cells |]
-            #else
-            RX.View(key = string index, children = [| cells |])
-            #endif
+        lazy (
+            [
+                ("Mango", "Orange", "Sweet", 15)
+                ("Kiwi", "Green", "Sweet and sour", 12)
+                ("Lemon", "Yellow", "Sour", 8)
+                ("Apple", "Green", "Sweet", 11)
+            ]
+            |> List.mapi (fun index (name, color, taste, price) ->
+                let cells =
+                    element {
+                        UiAdmin.GridCell [| LC.Text name |]
+                        UiAdmin.GridCell [| LC.Text color |]
+                        UiAdmin.GridCell [| LC.Text taste |]
+                        UiAdmin.GridCell [| LC.Text (string price) |]
+                    }
+                #if EGGSHELL_PLATFORM_IS_WEB
+                dom.tr [ unbox ("key", string index) ] [| cells |]
+                #else
+                RX.View(key = string index, children = [| cells |])
+                #endif
+            )
+            |> Array.ofList
+            |> castAsElement
         )
-        |> Array.ofList
-        |> castAsElement
 
 module private PaginatedWordsDemo =
     [<Component>]
@@ -217,7 +219,7 @@ UiAdmin.Grid(
                         verticalAlignment = VerticalAlignment.Top,
                         visuals =
                             UiAdmin.Grid(
-                                input = LibUiAdmin.Components.Grid.Static(Samples.staticRows, None),
+                                input = LibUiAdmin.Components.Grid.Static(Samples.staticRows.Value, None),
                                 headers = Samples.fruitHeaders
                             ),
                         code =
