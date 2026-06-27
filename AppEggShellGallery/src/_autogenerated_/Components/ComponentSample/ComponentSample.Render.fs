@@ -77,6 +77,7 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                         let __currClass = "visuals"
                         let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)
                         ReactXP.Components.Constructors.RX.View(
+                            testID = (aesg-sample-visuals),
                             ?styles = (if (not __currStyles.IsEmpty) then (ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent "ReactXP.Components.View" __currStyles |> Some) else None),
                             children =
                                 [|
@@ -171,7 +172,14 @@ let render(children: array<ReactElement>, props: AppEggShellGallery.Components.C
                 )
             |> Option.getOrElse noElement
         )
-        props.Visuals
+        let __parentFQN = Some "ReactXP.Components.View"
+        ReactXP.Components.Constructors.RX.View(
+            testID = (aesg-sample-visuals),
+            children =
+                [|
+                    props.Visuals
+                |]
+        )
         let __parentFQN = Some "ReactXP.Components.View"
         let __currClass = "code-and-notes"
         let __currStyles = (ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)

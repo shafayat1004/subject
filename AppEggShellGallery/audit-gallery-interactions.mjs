@@ -8,6 +8,7 @@
 import { archiveVisualsForReview } from './audit-gallery-visual-archive.mjs';
 import { runComponentAssertions, checkUnhandledVisuals } from './audit-gallery-assertions.mjs';
 import { SKIP_CLICK_LABELS } from './audit-gallery-components.mjs';
+import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -24,13 +25,22 @@ export const SAMPLE_CELL_SELECTOR =
 /**
  * @param {Page} page
  * @param {(msg: string) => void} log
+ * @param {{ platform?: 'web' | 'android' }} [options]
  */
-export function createInteractionContext(page, log) {
+export function createInteractionContext(page, log, options = {}) {
+  const platform = options.platform ?? PLATFORM.WEB;
+  const isAndroid = platform === PLATFORM.ANDROID;
+  const cellSelector = sampleCellSelectorFor(platform);
   const wait = (ms = PAUSE) => page.waitForTimeout(ms);
 
-  const visualsCells = () => page.locator(SAMPLE_CELL_SELECTOR);
+  const visualsCells = () => page.locator(cellSelector);
 
   async function scrollSampleTable() {
+    if (isAndroid && typeof page.scrollSampleTable === 'function') {
+      await page.scrollSampleTable();
+      await wait(200);
+      return;
+    }
     await page.evaluate(() => {
       const table = document.querySelector('.aesg-ContentComponent-table');
       if (!table) return;
@@ -75,6 +85,7 @@ export function createInteractionContext(page, log) {
 
   /** Click ReactXP pseudo-element label or fall back to role/text. */
   async function clickPseudo(scope, text, exact = true) {
+    if (isAndroid) return clickPressable(scope, text, exact);
     const escaped = text.replace(/"/g, '\\"');
     const pseudo = scope.locator(`[data-text-as-pseudo-element="${escaped}"]`).first();
     if (await pseudo.count()) {
@@ -119,6 +130,16 @@ export function createInteractionContext(page, log) {
    * Plain getByText clicks the visible div and fail when the empty button intercepts.
    */
   async function clickPressable(scope, text, exact = false) {
+    if (isAndroid) {
+      const label = scope.getByText(text, { exact });
+      if (await label.count()) {
+        await label.first().click({ force: true, timeout: 5000 });
+        log(`click text "${text}"`);
+        await wait();
+        return true;
+      }
+      return false;
+    }
     if (await clickPseudo(scope, text, exact)) return true;
 
     const label = scope.getByText(text, { exact });
@@ -146,6 +167,25 @@ export function createInteractionContext(page, log) {
   }
 
   async function fillLabel(scope, label, value) {
+    if (isAndroid) {
+      const field = scope.getByLabel(label);
+      if (await field.count()) {
+        await field.first().click({ timeout: 3000 }).catch(() => {});
+        await field.first().fill(value, { timeout: 5000 });
+        log(`fill "${label}" = "${value}"`);
+        await wait();
+        return true;
+      }
+      const inputs = scope.locator('input:not([type="file"]):not([type="hidden"]), textarea');
+      if (await inputs.count()) {
+        await inputs.first().click({ force: true, timeout: 3000 }).catch(() => {});
+        await inputs.first().fill(value, { timeout: 5000 });
+        log(`fill first input near "${label}" = "${value}"`);
+        await wait();
+        return true;
+      }
+      return false;
+    }
     const pseudo = scope.locator(`[data-text-as-pseudo-element="${label}"]`).first();
     if (await pseudo.count()) {
       const input = pseudo.locator(
@@ -184,6 +224,7 @@ export function createInteractionContext(page, log) {
 
   async function dismissOverlays() {
     await page.keyboard.press('Escape').catch(() => {});
+    if (isAndroid) await page.keyboard.press('Escape').catch(() => {});
     await wait(200);
     // Prefer topmost overlay pseudo buttons (dialog/scrim), not code-panel text.
     const overlayRoot = page.locator('[class*="dialog"], [class*="Dialog"], [class*="modal"], [class*="scrim"], [class*="Scrim"]').last();
@@ -206,6 +247,17 @@ export function createInteractionContext(page, log) {
   }
 
   async function clickAllActionableButtons(scope, max = 12) {
+    if (isAndroid) {
+      const buttons = scope.locator('button:not([disabled])');
+      const n = Math.min(await buttons.count(), max);
+      for (let i = 0; i < n; i++) {
+        await buttons.nth(i).click({ timeout: 3000 }).catch(() => {});
+        log(`generic clickable[${i}]`);
+        await wait(250);
+        await dismissOverlays();
+      }
+      return;
+    }
     const pseudoLabels = await scope
       .locator('[data-text-as-pseudo-element]')
       .evaluateAll((nodes) =>
@@ -275,16 +327,21 @@ export function createInteractionContext(page, log) {
     if (!box) return;
     const cx = box.x + box.width / 2;
     const cy = box.y + box.height / 2;
-    await page.mouse.move(cx, cy);
-    await page.mouse.down();
-    await page.mouse.move(cx + 50, cy + 30, { steps: 10 });
-    await page.mouse.up();
+    if (isAndroid && typeof page.performSwipe === 'function') {
+      await page.performSwipe(cx, cy, cx + 50, cy + 30);
+    } else {
+      await page.mouse.move(cx, cy);
+      await page.mouse.down();
+      await page.mouse.move(cx + 50, cy + 30, { steps: 10 });
+      await page.mouse.up();
+    }
     log('drag gesture on image/card');
     await wait();
   }
 
   return {
     page,
+    platform,
     log,
     wait,
     scrollSampleTable,
@@ -844,7 +901,7 @@ function logMenu(ctx, item) {
  * @param {import('playwright').Page} page
  * @param {string} componentName
  * @param {(msg: string) => void} logFn
- * @param {{ passDir?: string, screenshotMode?: 'all' | 'failures' | 'none', visualArchive?: boolean, passIndex?: number, baseUrl?: string, url?: string }} [options]
+ * @param {{ passDir?: string, screenshotMode?: 'all' | 'failures' | 'none', visualArchive?: boolean, passIndex?: number, baseUrl?: string, url?: string, platform?: 'web' | 'android' }} [options]
  * @returns {Promise<{ actionCount: number, assertions: Array<{ id: string, name: string, passed: boolean, message: string, screenshotPath: string | null }>, visualArchive: object | null }>}
  */
 export async function interactWithComponent(page, componentName, logFn, options = {}) {
@@ -854,7 +911,8 @@ export async function interactWithComponent(page, componentName, logFn, options 
     logFn(msg);
   };
 
-  const ctx = createInteractionContext(page, log);
+  const platform = options.platform ?? PLATFORM.WEB;
+  const ctx = createInteractionContext(page, log, { platform });
   await ctx.scrollSampleTable();
 
   const handler = COMPONENT_HANDLERS[componentName] ?? COMPONENT_HANDLERS._default;
@@ -865,11 +923,13 @@ export async function interactWithComponent(page, componentName, logFn, options 
     assertions = await runComponentAssertions(page, componentName, ctx, {
       passDir: options.passDir,
       screenshotMode: options.screenshotMode ?? 'all',
+      platform,
       log: (msg) => logFn(msg),
     });
     const unhandled = await checkUnhandledVisuals(page, componentName, ctx, {
       passDir: options.passDir,
       screenshotMode: options.screenshotMode ?? 'all',
+      platform,
       hasSpecificHandler: Object.prototype.hasOwnProperty.call(COMPONENT_HANDLERS, componentName),
       log: (msg) => logFn(msg),
     });
@@ -892,6 +952,7 @@ export async function interactWithComponent(page, componentName, logFn, options 
       passIndex: options.passIndex ?? 1,
       baseUrl: options.baseUrl ?? '',
       url: options.url ?? '',
+      platform,
       log: (msg) => logFn(msg),
     });
   }

@@ -5,9 +5,9 @@
 
 import { mkdirSync, writeFileSync, appendFileSync } from 'fs';
 import { join } from 'path';
+import { PLATFORM, sampleCellSelectorFor, WEB_SAMPLE_CELL_SELECTOR } from './audit-gallery-platform.mjs';
 
-export const SAMPLE_CELL_SELECTOR =
-  '.aesg-ContentComponent-table td.vertical-align-middle, .aesg-ContentComponent-table td.vertical-align-top';
+export const SAMPLE_CELL_SELECTOR = WEB_SAMPLE_CELL_SELECTOR;
 
 /** Components where overlap / placement issues are more likely. */
 const OVERLAP_REVIEW_TAGS = new Set([
@@ -76,27 +76,33 @@ function reviewFocusFor(componentName) {
 /**
  * @param {import('playwright').Page} page
  * @param {string} componentName
- * @param {{ passDir: string, passIndex?: number, baseUrl?: string, url?: string, log?: (msg: string) => void }} options
+ * @param {{ passDir: string, passIndex?: number, baseUrl?: string, url?: string, platform?: 'web' | 'android', log?: (msg: string) => void }} options
  */
 export async function archiveVisualsForReview(page, componentName, options) {
-  const { passDir, passIndex = 1, baseUrl = '', url = '', log = () => {} } = options;
+  const { passDir, passIndex = 1, baseUrl = '', url = '', platform = PLATFORM.WEB, log = () => {} } = options;
+  const isAndroid = platform === PLATFORM.ANDROID;
+  const cellSelector = sampleCellSelectorFor(platform);
   const archiveRoot = join(passDir, 'visual-archive');
   const componentDir = join(archiveRoot, componentName);
   mkdirSync(componentDir, { recursive: true });
 
-  await page.evaluate(() => {
-    const table = document.querySelector('.aesg-ContentComponent-table');
-    if (!table) return;
-    let el = table.parentElement;
-    while (el) {
-      if (el.scrollWidth > el.clientWidth + 4) el.scrollLeft = 0;
-      el = el.parentElement;
-    }
-  }).catch(() => {});
+  if (isAndroid && typeof page.scrollSampleTable === 'function') {
+    await page.scrollSampleTable().catch(() => {});
+  } else {
+    await page.evaluate(() => {
+      const table = document.querySelector('.aesg-ContentComponent-table');
+      if (!table) return;
+      let el = table.parentElement;
+      while (el) {
+        if (el.scrollWidth > el.clientWidth + 4) el.scrollLeft = 0;
+        el = el.parentElement;
+      }
+    }).catch(() => {});
+  }
 
   await page.waitForTimeout(200);
 
-  const cells = page.locator(SAMPLE_CELL_SELECTOR);
+  const cells = page.locator(cellSelector);
   const cellCount = await cells.count();
   const capturedAt = new Date().toISOString();
   const reviewFocus = reviewFocusFor(componentName);

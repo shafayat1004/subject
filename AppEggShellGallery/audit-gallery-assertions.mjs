@@ -5,9 +5,7 @@
 
 import { mkdirSync, copyFileSync } from 'fs';
 import { join, basename } from 'path';
-
-const SAMPLE_CELL_SELECTOR =
-  '.aesg-ContentComponent-table td.vertical-align-middle, .aesg-ContentComponent-table td.vertical-align-top';
+import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
 
 /** @typedef {import('playwright').Page} Page */
 /** @typedef {import('playwright').Locator} Locator */
@@ -20,10 +18,12 @@ function sanitize(name) {
  * @param {Page} page
  * @param {string} componentName
  * @param {import('./audit-gallery-interactions.mjs').createInteractionContext extends (...args: any) => infer R ? R : never} ctx
- * @param {{ passDir: string, screenshotMode?: 'all' | 'failures' | 'none', log?: (msg: string) => void }} options
+ * @param {{ passDir: string, screenshotMode?: 'all' | 'failures' | 'none', platform?: 'web' | 'android', log?: (msg: string) => void }} options
  */
 export async function runComponentAssertions(page, componentName, ctx, options) {
-  const { passDir, screenshotMode = 'all', log = () => {} } = options;
+  const { passDir, screenshotMode = 'all', platform = PLATFORM.WEB, log = () => {} } = options;
+  const isAndroid = platform === PLATFORM.ANDROID;
+  const cellSelector = sampleCellSelectorFor(platform);
   const screenshotDir = join(passDir, 'screenshots', componentName);
   const failureDir = join(passDir, 'screenshots', 'failures', componentName);
   mkdirSync(screenshotDir, { recursive: true });
@@ -31,30 +31,40 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
   const results = [];
   let index = 0;
 
-  const sampleCells = () => page.locator(SAMPLE_CELL_SELECTOR);
+  const sampleCells = () => page.locator(cellSelector);
   const firstCell = () => sampleCells().first();
 
   async function hasPseudo(scope, text) {
+    if (isAndroid) return cellContains(scope, text);
     return (await scope.locator(`[data-text-as-pseudo-element="${text}"]`).count()) > 0;
   }
 
   async function cellContains(scope, fragment) {
     const frag = fragment.toLowerCase();
-    const pseudoMatch = await scope
-      .locator('[data-text-as-pseudo-element]')
-      .evaluateAll(
-        (nodes, f) =>
-          nodes.some((n) =>
-            (n.getAttribute('data-text-as-pseudo-element') ?? '').toLowerCase().includes(f)
-          ),
-        frag
-      );
-    if (pseudoMatch) return true;
+    if (!isAndroid) {
+      const pseudoMatch = await scope
+        .locator('[data-text-as-pseudo-element]')
+        .evaluateAll(
+          (nodes, f) =>
+            nodes.some((n) =>
+              (n.getAttribute('data-text-as-pseudo-element') ?? '').toLowerCase().includes(f)
+            ),
+          frag
+        );
+      if (pseudoMatch) return true;
+    }
     const text = await scope.innerText().catch(() => '');
     return text.toLowerCase().includes(frag);
   }
 
   async function inputValueForLabel(scope, label) {
+    if (isAndroid) {
+      const field = scope.getByLabel(label);
+      if (await field.count()) return field.first().inputValue().catch(() => null);
+      const input = scope.locator('input:not([type="file"]):not([type="hidden"]), textarea').first();
+      if (await input.count()) return input.inputValue().catch(() => null);
+      return null;
+    }
     const pseudo = scope.locator(`[data-text-as-pseudo-element="${label}"]`).first();
     if (!(await pseudo.count())) return null;
     const input = pseudo.locator(
@@ -107,12 +117,13 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
   }
 
   async function cellHtmlContains(scope, fragment) {
+    if (isAndroid) return cellContains(scope, fragment);
     const html = await scope.evaluate((el) => el.innerHTML ?? '').catch(() => '');
     return html.toLowerCase().includes(fragment.toLowerCase());
   }
 
   async function anySampleCell(page, predicate) {
-    const cells = page.locator(SAMPLE_CELL_SELECTOR);
+    const cells = page.locator(cellSelector);
     const n = await cells.count();
     for (let i = 0; i < n; i++) {
       if (await predicate(cells.nth(i), i)) return true;
@@ -545,12 +556,25 @@ export function listAssertionComponents() {
  * @returns {Promise<Array<{ id: string, name: string, passed: boolean, message: string, screenshotPath: string | null }>>}
  */
 export async function checkUnhandledVisuals(page, componentName, ctx, options) {
-  const { passDir, screenshotMode = 'all', hasSpecificHandler = false, log = () => {} } = options;
+  const {
+    passDir,
+    screenshotMode = 'all',
+    platform = PLATFORM.WEB,
+    hasSpecificHandler = false,
+    log = () => {},
+  } = options;
+  const isAndroid = platform === PLATFORM.ANDROID;
   const { SKIP_CLICK_LABELS } = await import('./audit-gallery-components.mjs');
   const results = [];
-  const cells = page.locator(SAMPLE_CELL_SELECTOR);
+  const cellSelector = sampleCellSelectorFor(platform);
+  const cells = page.locator(cellSelector);
   const n = await cells.count();
   const unhandled = new Set();
+
+  if (isAndroid) {
+    // Native has no pseudo-element metadata; skip REVIEW heuristic on Android.
+    return results;
+  }
 
   for (let i = 0; i < n; i++) {
     const cell = cells.nth(i);

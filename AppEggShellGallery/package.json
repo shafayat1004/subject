@@ -6,7 +6,9 @@
     "ios": "react-native run-ios",
     "start": "webpack-dev-server",
     "audit:interactive": "node audit-gallery-interactive.mjs http://127.0.0.1:8082",
-    "audit:full": "node audit-gallery-full.mjs http://127.0.0.1:8082"
+    "audit:full": "node audit-gallery-full.mjs http://127.0.0.1:8082",
+    "audit:interactive:android": "node audit-gallery-interactive-android.mjs",
+    "audit:full:android": "node audit-gallery-full-android.mjs"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
@@ -16,6 +18,7 @@
     "@react-native/babel-preset": "^0.76.5",
     "@react-native/metro-config": "^0.76.5",
     "playwright": "^1.61.1",
+    "webdriverio": "^9.4.5",
     "yargs": "^17.7.2"
   },
   "dependencies": {

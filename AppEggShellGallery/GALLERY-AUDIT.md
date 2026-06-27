@@ -317,7 +317,7 @@ Pure-F# gallery migrations (goal A): if only the **code column** changes, visual
 | Animation frame sequences | Only post-animate resting screenshot |
 | Code column vs rendered layout parity | Not checked |
 | Choice-list selected styling | Clicks only; no selected-state CSS assert |
-| Native Metro / iOS / Android | Separate manual/logcat workflow |
+| Native Metro / iOS / Android | **Android:** automated Appium audit (see below). iOS: manual/logcat workflow |
 | OS file picker UI | Avoided via `setInputFiles` |
 
 See also `LEARNINGS.md` (§ Gallery Playwright audit).
@@ -338,7 +338,99 @@ See also `LEARNINGS.md` (§ Gallery Playwright audit).
 
 ---
 
-## Native gallery (manual)
+---
+
+## Android interactive audit (Appium)
+
+Mirrors the web Playwright audit: same interaction recipes (`audit-gallery-interactions.mjs`) and assertions (`audit-gallery-assertions.mjs`), driven through Appium instead of URLs.
+
+### Prerequisites
+
+1. **Native bundle** (no special testIDs required):
+   ```bash
+   cd AppEggShellGallery
+   ../eggshell dev-native
+   ```
+2. **Metro** on `:8081`:
+   ```bash
+   npx react-native start --port 8081
+   adb reverse tcp:8081 tcp:8081
+   ```
+3. **App** on emulator:
+   ```bash
+   npx react-native run-android
+   ```
+4. **Appium 2** (UiAutomator2):
+   ```bash
+   npm install -g appium
+   appium driver install uiautomator2
+   appium
+   ```
+5. **adb device** connected (`adb devices` shows `device`).
+
+### Run
+
+```bash
+cd AppEggShellGallery
+npm install                    # installs webdriverio
+npm run audit:interactive:android
+# or 1 pass, slower:
+node audit-gallery-interactive-android.mjs --passes=1 --slow-mo=200
+```
+
+Fast logcat-only sweep (no interactions beyond navigation):
+
+```bash
+npm run audit:full:android
+```
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--passes=N` | `2` | Full gallery crawl repetitions |
+| `--pause-ms=N` | `800` | Wait after sidebar navigation |
+| `--slow-mo=N` | `120` | Extra delay between actions |
+| `--screenshots=all\|failures\|none` | `all` | Per-assertion device screenshots |
+| `--visual-archive=on\|off` | `on` | Archival PNGs per sample cell |
+| `--appium-host=HOST` | `127.0.0.1` | Appium server |
+| `--appium-port=N` | `4723` | Appium port |
+
+### Output layout
+
+```text
+AppEggShellGallery/audit-android/interactive/<ISO-timestamp>/
+  coverage-report.json
+  final-report.json
+  final-report.md
+  pass-1/
+    meta.json
+    interactions.log
+    assertions.log
+    logcat-full.log
+    pages/{Component}.log
+    screenshots/{Component}/
+    visual-archive/{Component}/
+    summary.json
+    summary.md
+```
+
+Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). Sample cells are scoped to the native horizontal samples `ScrollView` (one region per page; multi-column pages are not split into separate cells yet).
+
+### Android vs web differences
+
+| Area | Web | Android |
+|------|-----|---------|
+| Navigation | URL `/Desktop/Components/...` | Sidebar tap |
+| Sample scope | `.aesg-ContentComponent-table td...` | Horizontal samples `ScrollView` |
+| Labels/buttons | `[data-text-as-pseudo-element]` | Native `TextView` text |
+| Console | Playwright `page.on('console')` | `adb logcat` (ReactNativeJS) |
+| File inputs | `setInputFiles` on hidden input | Skipped (OS picker) |
+| REVIEW heuristic | Unhandled pseudo clickables | Disabled (no pseudo DOM) |
+
+---
+
+## Native gallery (manual / iOS)
 
 Web audit does not replace native testing. For Android/iOS:
 
@@ -365,6 +457,9 @@ node audit-gallery-interactive.mjs http://127.0.0.1:8082
 
 # Fast console sweep
 node audit-gallery-full.mjs http://127.0.0.1:8082
+
+# Android interactive (Appium + Metro + emulator)
+npm run audit:interactive:android
 ```
 
 Latest run output: `audit-browser/interactive/` (timestamped) or `audit-browser/interactive-latest-run.log` if you tee stdout.

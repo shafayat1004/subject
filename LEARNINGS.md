@@ -699,3 +699,10 @@ All build green via `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"`
   `la-table`. Web stays plain `dom.td` + global `la-table` CSS from `LibUiAdmin.Styles`
   (imported explicitly in `Grid.fs`; was previously pulled in via legacy Grid.styles
   FixmeCrappyStyleSharing). Styling lives in modern `Grid.fs` / `GridCell.fs` only.
+
+## 2026-06-27 — Gallery Android Appium audit
+
+- Web audit recipes (`audit-gallery-interactions.mjs`, `audit-gallery-assertions.mjs`) are reused on Android via `audit-gallery-android-driver.mjs` (Playwright-like facade over WebdriverIO/Appium).
+- Native gallery has no content table; sample scope uses the horizontal `ScrollView` from `ComponentContent.render` (class `android.widget.HorizontalScrollView`). Multi-column samples are one combined cell per page for now — render DSL maps `div` → `RX.View` which has no `testID` prop, so `testID='aesg-…'` in `.render` fails Fable compile.
+- Navigation is sidebar label tap (parsed from `SidebarContent.fs`), not URLs. Runners: `audit-gallery-interactive-android.mjs`, `audit-gallery-full-android.mjs`. Output under `audit-android/`.
+- Console capture uses `adb logcat` (ReactNativeJS / AndroidRuntime), not Playwright console events. File inputs are skipped on native (no `setInputFiles`).
