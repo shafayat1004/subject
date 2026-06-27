@@ -13,6 +13,9 @@ export const WEB_SAMPLE_CELL_SELECTOR =
 /** React Native testId on ComponentSample visuals wrapper (RX.View.testId → testID). */
 export const ANDROID_SAMPLE_CELL_SELECTOR = '~aesg-sample-visuals';
 
+/** Handheld top-nav hamburger (LibClient Nav.Top.ShowSidebarButton). */
+export const ANDROID_SIDEBAR_MENU_TEST_ID = '~eggshell-sidebar-menu';
+
 /**
  * @param {'web' | 'android'} platform
  */

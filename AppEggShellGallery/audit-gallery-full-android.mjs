@@ -27,6 +27,7 @@ const flags = Object.fromEntries(
 const pauseMs = Number(flags['pause-ms'] ?? 1200);
 const appiumHost = flags['appium-host'] ?? '127.0.0.1';
 const appiumPort = Number(flags['appium-port'] ?? 4723);
+const launchTimeoutMs = Number(flags['launch-timeout-ms'] ?? 120_000);
 
 const outDir = join(process.cwd(), 'audit-android', 'local');
 mkdirSync(outDir, { recursive: true });
@@ -95,6 +96,7 @@ async function auditComponent(page, logcat, name) {
 
 console.log(`Android full audit — ${components.length} components`);
 console.log(`  Appium: ${appiumHost}:${appiumPort}`);
+console.log(`  Launch wait: ${launchTimeoutMs}ms`);
 console.log(`  Output: ${outDir}\n`);
 
 await assertAdbReady();
@@ -102,6 +104,7 @@ await assertAdbReady();
 const page = await connectAndroidPage({
   appiumHost,
   appiumPort,
+  launchTimeoutMs,
   log: (msg) => console.log(`  [connect] ${msg}`),
 });
 const logcat = new LogcatCapture({ passDir: outDir });

@@ -397,6 +397,7 @@ npm run audit:full:android
 | `--visual-archive=on\|off` | `on` | Archival PNGs per sample cell |
 | `--appium-host=HOST` | `127.0.0.1` | Appium server |
 | `--appium-port=N` | `4723` | Appium port |
+| `--launch-timeout-ms=N` | `120000` | Wait for Metro bundle + first RN render before audit |
 
 ### Output layout
 
@@ -417,14 +418,14 @@ AppEggShellGallery/audit-android/interactive/<ISO-timestamp>/
     summary.md
 ```
 
-Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). Before each page, the runner calls `ensureGalleryAppForeground` (`activateApp` + adb fallback) so the gallery is focused even if another app was on screen.
+Navigation uses sidebar labels from `SidebarContent.fs` (e.g. `Input_Date` → `"Input.Date"`). On connect, the runner waits until the gallery UI is visible (sidebar menu `testId`, "EggShell" heading, or sidebar section labels), not just until the Activity is foreground. It also detects Metro load failures ("Unable to load script", etc.). Use `--launch-timeout-ms=180000` on cold starts if needed.
 
 ### Android vs web differences
 
 | Area | Web | Android |
 |------|-----|---------|
 | Navigation | URL `/Desktop/Components/...` | Sidebar tap |
-| Sample scope | `.aesg-ContentComponent-table td...` | `~aesg-sample-visuals` |
+| Sample scope | `.aesg-ContentComponent-table td...` | `~aesg-sample-visuals` (driver maps `~` → Android `resource-id`) |
 | Labels/buttons | `[data-text-as-pseudo-element]` | Native `TextView` text |
 | Console | Playwright `page.on('console')` | `adb logcat` (ReactNativeJS) |
 | File inputs | `setInputFiles` on hidden input | Skipped (OS picker) |

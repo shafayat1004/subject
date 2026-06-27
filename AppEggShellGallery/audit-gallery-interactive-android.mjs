@@ -20,6 +20,7 @@
  *   --visual-archive=on|off          (default: on)
  *   --appium-host=HOST   (default: 127.0.0.1)
  *   --appium-port=N      (default: 4723)
+ *   --launch-timeout-ms=N  Wait for Metro + first RN render (default: 120000)
  */
 import { writeVisualArchiveReadme } from './audit-gallery-visual-archive.mjs';
 import { mkdirSync, writeFileSync, appendFileSync } from 'fs';
@@ -56,6 +57,7 @@ const screenshotMode = flags.screenshots ?? 'all';
 const visualArchiveEnabled = flags['visual-archive'] !== 'off';
 const appiumHost = flags['appium-host'] ?? '127.0.0.1';
 const appiumPort = Number(flags['appium-port'] ?? 4723);
+const launchTimeoutMs = Number(flags['launch-timeout-ms'] ?? 120_000);
 
 if (!['all', 'failures', 'none'].includes(screenshotMode)) {
   console.error(`Invalid --screenshots=${screenshotMode}; use all, failures, or none`);
@@ -316,6 +318,7 @@ console.log(`  Passes:   ${passCount}`);
 console.log(`  SlowMo:   ${slowMo}ms`);
 console.log(`  Screenshots: ${screenshotMode}`);
 console.log(`  Visual archive: ${visualArchiveEnabled ? 'on' : 'off'}`);
+console.log(`  Launch wait: ${launchTimeoutMs}ms`);
 console.log(`  Output:   ${outRoot}`);
 
 await assertAdbReady();
@@ -323,6 +326,7 @@ await assertAdbReady();
 const page = await connectAndroidPage({
   appiumHost,
   appiumPort,
+  launchTimeoutMs,
   log: (msg) => console.log(`  [connect] ${msg}`),
 });
 const logcat = new LogcatCapture({ passDir: join(outRoot, 'pass-0') });

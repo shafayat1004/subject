@@ -55,28 +55,34 @@ type LibClient.Components.Constructors.LC.Nav.Top with
 
         let icon = match menuIcon with Some i -> i | None -> Icon.Menu
 
-        match badge with
-        | Some badge ->
-            LC.Nav.Top.Item(
-                state          = (LibClient.Components.Nav.Top.Item.Actionable (AppShell.Content.toggleSidebarVisibility)),
-                style          = (LibClient.Components.Nav.Top.Item.Style.With(icon = icon, badge = badge)),
-                ?xLegacyStyles = (
-                    xLegacyStyles
-                    |> Option.bind (fun xs ->
-                        let found = ReactXP.LegacyStyles.Runtime.findApplicableStyles xs "topnav-item"
-                        if found.IsEmpty then None else Some found
+        let item =
+            match badge with
+            | Some badge ->
+                LC.Nav.Top.Item(
+                    state          = (LibClient.Components.Nav.Top.Item.Actionable (AppShell.Content.toggleSidebarVisibility)),
+                    style          = (LibClient.Components.Nav.Top.Item.Style.With(icon = icon, badge = badge)),
+                    ?xLegacyStyles = (
+                        xLegacyStyles
+                        |> Option.bind (fun xs ->
+                            let found = ReactXP.LegacyStyles.Runtime.findApplicableStyles xs "topnav-item"
+                            if found.IsEmpty then None else Some found
+                        )
                     )
                 )
-            )
-        | None ->
-            LC.Nav.Top.Item(
-                state          = (LibClient.Components.Nav.Top.Item.Actionable (AppShell.Content.setSidebarVisibility true)),
-                style          = (LibClient.Components.Nav.Top.Item.iconOnly icon),
-                ?xLegacyStyles = (
-                    xLegacyStyles
-                    |> Option.bind (fun xs ->
-                        let found = ReactXP.LegacyStyles.Runtime.findApplicableStyles xs "topnav-item"
-                        if found.IsEmpty then None else Some found
+            | None ->
+                LC.Nav.Top.Item(
+                    state          = (LibClient.Components.Nav.Top.Item.Actionable (AppShell.Content.setSidebarVisibility true)),
+                    style          = (LibClient.Components.Nav.Top.Item.iconOnly icon),
+                    ?xLegacyStyles = (
+                        xLegacyStyles
+                        |> Option.bind (fun xs ->
+                            let found = ReactXP.LegacyStyles.Runtime.findApplicableStyles xs "topnav-item"
+                            if found.IsEmpty then None else Some found
+                        )
                     )
                 )
-            )
+
+        ReactXP.Components.Constructors.RX.View(
+            testId = "eggshell-sidebar-menu",
+            children = elements { item }
+        )

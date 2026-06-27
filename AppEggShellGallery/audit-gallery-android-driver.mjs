@@ -11,6 +11,41 @@ function escapeUi(text) {
   return String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
+/** RN testID → Android resource-id (not accessibility id). WebdriverIO `~` uses the wrong strategy. */
+export function testIdSelector(testId) {
+  return `android=new UiSelector().resourceId("${escapeUi(testId)}")`;
+}
+
+/** Clickable target inside a testID wrapper (wrapper is often not clickable). */
+function testIdClickSelector(testId) {
+  const id = escapeUi(testId);
+  return `android=new UiSelector().resourceId("${id}").childSelector(new UiSelector().clickable(true))`;
+}
+
+/**
+ * @param {import('webdriverio').Element} el
+ */
+async function elementRect(el) {
+  const [loc, size] = await Promise.all([el.getLocation(), el.getSize()]);
+  return { x: loc.x, y: loc.y, width: size.width, height: size.height };
+}
+
+/**
+ * @param {import('webdriverio').Element} el
+ */
+async function clickElement(el) {
+  try {
+    const clickable = await el.$$('android=new UiSelector().clickable(true)');
+    if (clickable.length) {
+      await clickable[0].click();
+      return;
+    }
+  } catch {
+    /* fall through */
+  }
+  await el.click();
+}
+
 function uiText(text, exact = false) {
   const e = escapeUi(text);
   return exact
@@ -27,7 +62,10 @@ function uiClass(name) {
  * @param {string} selector
  */
 function translateSelector(selector) {
-  if (!selector || selector.startsWith('~')) return selector;
+  if (!selector) return selector;
+  if (selector.startsWith('~')) {
+    return testIdSelector(selector.slice(1));
+  }
   if (selector.startsWith('android=')) return selector;
 
   const pseudoExact = selector.match(/\[data-text-as-pseudo-element="([^"]+)"\]/);
@@ -187,10 +225,23 @@ class AndroidLocator {
 
   /** @param {{ force?: boolean, timeout?: number }} [opts] */
   async click(opts = {}) {
+    const sel = this._wdSelector();
+    const testIdMatch = sel.match(/resourceId\("([^"\\]+(?:\\.[^"\\]*)*)"\)/);
+    if (testIdMatch && !this.parentLocator) {
+      const rawId = testIdMatch[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+      const clickSel = testIdClickSelector(rawId);
+      const targets = await this.driver.$$(clickSel).catch(() => []);
+      if (targets.length) {
+        await targets[0].waitForDisplayed({ timeout: opts.timeout ?? 5000 }).catch(() => {});
+        await targets[0].click();
+        return;
+      }
+    }
+
     const el = await this._firstEl();
     if (!el) throw new Error(`No element to click: ${this.selector}`);
     await el.waitForDisplayed({ timeout: opts.timeout ?? 5000 }).catch(() => {});
-    await el.click();
+    await clickElement(el);
   }
 
   /** @param {string} value @param {{ timeout?: number }} [opts] */
@@ -249,8 +300,11 @@ class AndroidLocator {
   async boundingBox() {
     const el = await this._firstEl();
     if (!el) return null;
-    const rect = await el.getRect();
-    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    try {
+      return await elementRect(el);
+    } catch {
+      return null;
+    }
   }
 
   async hover() {
@@ -420,6 +474,122 @@ export class AndroidPage {
   async back() {
     await this.driver.back();
   }
+
+  /**
+   * Tap the handheld top-nav menu button (hamburger). Never uses edge swipe — that
+   * triggers Android predictive back instead of opening the in-app sidebar.
+   * @param {(msg: string) => void} [log]
+   */
+  async openHandheldSidebarMenu(log = () => {}) {
+    const menu = this.locator('~eggshell-sidebar-menu');
+    if (await menu.count()) {
+      await menu.first().click({ timeout: 5000 });
+      log('tapped sidebar menu (~eggshell-sidebar-menu)');
+      await this.waitForTimeout(500);
+      return true;
+    }
+
+    const { width, height } = await this.getWindowSize();
+    const topY = height * 0.22;
+    const minX = width * 0.55;
+    const els = await this.driver.$$('android=new UiSelector().clickable(true)');
+    let best = null;
+    let bestX = -1;
+    for (const el of els) {
+      try {
+        const rect = await elementRect(el);
+        const cy = rect.y + rect.height / 2;
+        if (cy > topY) continue;
+        if (rect.x + rect.width / 2 < minX) continue;
+        if (rect.x > bestX) {
+          bestX = rect.x;
+          best = el;
+        }
+      } catch {
+        /* skip */
+      }
+    }
+    if (best) {
+      await clickElement(best);
+      log('tapped sidebar menu (top-nav rightmost clickable fallback)');
+      await this.waitForTimeout(500);
+      return true;
+    }
+
+    return false;
+  }
+}
+
+/**
+ * @param {AndroidPage} page
+ */
+export async function isGalleryUiVisible(page) {
+  if (await page.locator('~eggshell-sidebar-menu').count()) return true;
+  if (await page.locator('~aesg-sample-visuals').count()) return true;
+  if (await page.getByText('Components Introduction', { exact: true }).count()) return true;
+  for (const hint of ['Docs', 'Tools', 'How To', 'Design', 'Subject', 'Legacy']) {
+    if (await page.getByText(hint, { exact: true }).count()) return true;
+  }
+  return false;
+}
+
+/**
+ * @param {AndroidPage} page
+ */
+async function detectGalleryLoadError(page) {
+  const patterns = [
+    'Unable to load script',
+    'Could not connect to development server',
+    'Could not connect to the server',
+    'Connect to Metro',
+    'Make sure you\'re running Metro',
+    'Download the React Native CLI',
+  ];
+  for (const text of patterns) {
+    if (await page.getByText(text, { exact: false }).count()) return text;
+  }
+  return null;
+}
+
+/**
+ * Wait until the gallery RN shell is interactive (not just the Activity in foreground).
+ * @param {AndroidPage} page
+ * @param {{ timeoutMs?: number, pollMs?: number, settleMs?: number, log?: (msg: string) => void }} [options]
+ */
+export async function waitForGalleryAppReady(page, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 120_000;
+  const pollMs = options.pollMs ?? 750;
+  const settleMs = options.settleMs ?? 1_000;
+  const log = options.log ?? (() => {});
+  const deadline = Date.now() + timeoutMs;
+  let lastLogAt = 0;
+
+  while (Date.now() < deadline) {
+    const loadError = await detectGalleryLoadError(page);
+    if (loadError) {
+      throw new Error(
+        `Gallery failed to load (${loadError}). Is Metro running on :8081 with adb reverse?`
+      );
+    }
+
+    if (await isGalleryUiVisible(page)) {
+      log(`app UI ready (${Math.round((Date.now() - (deadline - timeoutMs)) / 1000)}s)`);
+      if (settleMs > 0) await page.waitForTimeout(settleMs);
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastLogAt >= 5000) {
+      log('waiting for gallery UI (Metro bundle / first render)...');
+      lastLogAt = now;
+    }
+    await page.waitForTimeout(pollMs);
+  }
+
+  throw new Error(
+    `Gallery app UI not ready within ${timeoutMs}ms. ` +
+      'Ensure Metro is up, adb reverse tcp:8081 tcp:8081, and the app finished loading.'
+  );
 }
 
 /**
@@ -454,6 +624,33 @@ function adbLaunchGallery() {
   });
 }
 
+/** First connected adb device id (e.g. emulator-5554). */
+export function getDefaultAndroidUdid() {
+  return new Promise((resolve, reject) => {
+    const p = spawn('adb', ['devices']);
+    let out = '';
+    p.stdout.on('data', (d) => {
+      out += d;
+    });
+    p.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error('adb devices failed'));
+        return;
+      }
+      const line = out
+        .split('\n')
+        .map((l) => l.trim())
+        .find((l) => l.endsWith('\tdevice'));
+      if (!line) {
+        reject(new Error('No adb device connected'));
+        return;
+      }
+      resolve(line.split('\t')[0]);
+    });
+    p.on('error', reject);
+  });
+}
+
 /**
  * Bring the EggShell Gallery app to the foreground before navigation/interaction.
  * Uses Appium activateApp, then adb am start if the package is still wrong.
@@ -463,28 +660,37 @@ function adbLaunchGallery() {
 export async function ensureGalleryAppForeground(page, log = () => {}) {
   const expected = ANDROID_APP.package;
   let current = await getForegroundPackage(page);
-  if (current === expected) {
-    log('app already in foreground');
-    return;
+  let didLaunch = false;
+
+  if (current === expected && (await isGalleryUiVisible(page))) {
+    log('app already in foreground with UI visible');
+    return { didLaunch: false };
   }
 
-  log(`foreground is ${current ?? 'unknown'}, activating ${expected}`);
+  if (current !== expected) {
+    log(`foreground is ${current ?? 'unknown'}, activating ${expected}`);
+    didLaunch = true;
+  } else {
+    log('app foreground but UI not ready yet');
+  }
 
   try {
     await page.driver.activateApp(expected);
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(1500);
   } catch (e) {
     log(`activateApp failed (${e.message}), trying adb am start`);
     await adbLaunchGallery().catch((err) => {
       log(`adb am start failed: ${err.message}`);
     });
-    await page.waitForTimeout(800);
+    didLaunch = true;
+    await page.waitForTimeout(2000);
   }
 
   current = await getForegroundPackage(page);
   if (current !== expected) {
     await adbLaunchGallery().catch(() => {});
-    await page.waitForTimeout(800);
+    didLaunch = true;
+    await page.waitForTimeout(2000);
     current = await getForegroundPackage(page);
   }
 
@@ -494,15 +700,20 @@ export async function ensureGalleryAppForeground(page, log = () => {}) {
     );
   }
   log('gallery app in foreground');
+  return { didLaunch };
 }
 
 /**
  * Connect to Appium and attach to the gallery app.
- * @param {{ appiumHost?: string, appiumPort?: number, deviceName?: string, noReset?: boolean }} [options]
+ * @param {{ appiumHost?: string, appiumPort?: number, deviceName?: string, noReset?: boolean, launchTimeoutMs?: number, log?: (msg: string) => void }} [options]
  */
 export async function connectAndroidPage(options = {}) {
   const host = options.appiumHost ?? '127.0.0.1';
   const port = Number(options.appiumPort ?? 4723);
+  const log = options.log ?? (() => {});
+  const launchTimeoutMs = options.launchTimeoutMs ?? 120_000;
+  const udid = options.udid ?? (await getDefaultAndroidUdid());
+  log(`adb device: ${udid}`);
   const driver = await remote({
     hostname: host,
     port,
@@ -511,7 +722,8 @@ export async function connectAndroidPage(options = {}) {
     capabilities: {
       platformName: 'Android',
       'appium:automationName': 'UiAutomator2',
-      'appium:deviceName': options.deviceName ?? 'Android Emulator',
+      'appium:udid': udid,
+      'appium:deviceName': options.deviceName ?? udid,
       'appium:appPackage': ANDROID_APP.package,
       'appium:appActivity': ANDROID_APP.activity,
       'appium:noReset': options.noReset !== false,
@@ -519,13 +731,15 @@ export async function connectAndroidPage(options = {}) {
       'appium:newCommandTimeout': 600,
       'appium:disableWindowAnimation': true,
       'appium:appWaitActivity': ANDROID_APP.activity,
-      'appium:appWaitDuration': 30000,
+      'appium:appWaitPackage': ANDROID_APP.package,
+      'appium:appWaitDuration': launchTimeoutMs,
+      'appium:androidInstallTimeout': launchTimeoutMs,
+      'wdio:enforceWebDriverClassic': true,
     },
   });
   const page = new AndroidPage(driver);
-  await ensureGalleryAppForeground(page, (msg) => {
-    if (options.log) options.log(msg);
-  });
+  await ensureGalleryAppForeground(page, log);
+  await waitForGalleryAppReady(page, { timeoutMs: launchTimeoutMs, log });
   return page;
 }
 
