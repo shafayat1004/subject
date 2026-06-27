@@ -287,9 +287,9 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         LabelColor = Color.Grey "66"
     }
 
-    Input.FileStyles.Theme.All(
-        invalidColor = caution.Main
-    )
+    Themes.Set<LC.Input.File.Theme> {
+        InvalidColor = caution.Main
+    }
 
     Themes.Set<Legacy.Card.Theme> { FlatBorderColor = neutral.B300 }
 
