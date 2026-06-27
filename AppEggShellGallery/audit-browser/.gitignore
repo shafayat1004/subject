@@ -1,0 +1,5 @@
+# Audit run output — scripts and fixtures live outside this ignore via negation
+*
+!.gitignore
+!fixtures/
+!fixtures/**

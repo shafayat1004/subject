@@ -5,6 +5,24 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-27 — Gallery Playwright audit: scope and limits
+
+**Purpose (goals A–E):** headed/interactive crawl of gallery **visuals** (`td.vertical-align-*`), not the code panel. Render-DSL → pure-F# migration changes **code column text only**; assertions target live UI via `[data-text-as-pseudo-element]` and sample-cell HTML, so migration should not break audits unless sample demos change.
+
+**File picker:** never click `Select File` (opens OS picker Playwright cannot close). Use `input[type=file].setInputFiles(fixture)` when present; skip label in generic sweep (`SKIP_CLICK_LABELS`).
+
+**Native `window.alert/confirm`:** handled via `page.on('dialog')` → accept/dismiss + `native-dialogs.log`. EggShell **Dialogs** are in-app overlays (pseudo OK/Yes), not browser alerts.
+
+**Not covered (by design):** (1) code column vs rendered layout parity, (2) animation transition sequences / stated animation goals, (3) choice-list *selected* styling beyond click+visible. Those need visual regression or frame sampling later (goal H animation story).
+
+**New components:** component list discovered from `Components.Render.fs` (not hardcoded). `coverage-report.json` flags routes with only `_default` interaction/assertion recipes; screenshot `999-REVIEW-unhandled-interactives.png` when clickable pseudos lack a recipe.
+
+**Scripts:** `audit-gallery-interactive.mjs` (runner), `audit-gallery-interactions.mjs` (recipes), `audit-gallery-assertions.mjs` (post-interaction checks + screenshots), `audit-gallery-components.mjs` (discovery + skip lists), `audit-gallery-visual-archive.mjs` (archival PNGs + manifest for human/AI aesthetic review — **no pixel diff**).
+
+**Visual archive:** after interactions, saves `pass-N/visual-archive/{Component}/sample-*-after-interaction.png` (+ viewport for overlap-prone pages), `manifest.json` with `reviewFocus` tags and `reviewPrompt`, and `index.jsonl` for batch AI/human review.
+
+---
+
 ## 2026-06-27 — Gallery console audit fixes (Grid, Recharts, Map, AsyncData)
 
 **Grid web:** `headers` prop passes a fragment of `GridCell` (`dom.td`) children; `maybeHeaders` must wrap them in `dom.tr` and unwrap fragments (same as body rows). Shared helper: `FragmentHelpers.unwrapFragmentChildren`.

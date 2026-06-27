@@ -109,6 +109,20 @@ Open **`ios/AppEggshellGallery.xcworkspace`** in Xcode, not the `.xcodeproj`.
 
 More detail: `public-dev/docs/basics/native.md` (also shown in the in-app Docs section after dev-web).
 
+## Automated web audit (Playwright)
+
+Full setup, prerequisites, how to run the interactive crawl, read results, and conduct console/UI/aesthetic review:
+
+**[GALLERY-AUDIT.md](./GALLERY-AUDIT.md)**
+
+Quick start (with dev-web already on `:8082`):
+
+```bash
+cd AppEggShellGallery
+npm install -D playwright && npx playwright install chromium   # once
+node audit-gallery-interactive.mjs http://127.0.0.1:8082
+```
+
 ## Scraping component props
 
 Component property tables on gallery pages come from `src/ScrapedData.fs`, generated manually:

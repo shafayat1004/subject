@@ -30,6 +30,15 @@ configSourceOverrides.native.js
 # iOS libraries and dependencies
 ios/Pods/
 
+# Playwright gallery audit output
+audit-browser/interactive/
+audit-browser/local/
+audit-browser/prod/
+audit-browser/interactive-latest-run.log
+audit-browser/summary.json
+console-errors-*.txt
+.tmp-gallery-browser-test.mjs
+
 # Ignore copied assets
 public-dev/images/
 public-dev/libs/
