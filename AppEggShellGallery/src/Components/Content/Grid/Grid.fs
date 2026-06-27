@@ -21,6 +21,8 @@ module Demo =
     module ColumnWidths =
         let word = [14; 7; 9]
         let fruit = [10; 6; 10; 4]
+        let wordTotal = List.sum word
+        let fruitTotal = List.sum fruit
 
     let fruit: seq<RowData> =
         [
@@ -54,32 +56,32 @@ module Demo =
 module private Samples =
     let wordHeaders =
         element {
-            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.word.[0], isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
-            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.word.[1], children = [| LC.HeaderCell(label = "Character Count") |])
-            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.word.[2], children = [| LC.HeaderCell(label = "Unique Character Count") |])
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.word.[0], columnTotalUnits = Demo.ColumnWidths.wordTotal, isFirstColumn = true, children = [| LC.HeaderCell(label = "Word") |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.word.[1], columnTotalUnits = Demo.ColumnWidths.wordTotal, children = [| LC.HeaderCell(label = "Character Count") |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.word.[2], columnTotalUnits = Demo.ColumnWidths.wordTotal, children = [| LC.HeaderCell(label = "Unique Character Count") |])
         }
 
     let makeWordRow (word: string) =
         element {
-            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.word.[0], isFirstColumn = true, children = [| LC.Text (word, styles = [| GridCellStyles.text |]) |])
-            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.word.[1], children = [| LC.Text (string word.Length, styles = [| GridCellStyles.text |]) |])
-            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.word.[2], children = [| LC.Text (string (Demo.uniqueCharacterCount word), styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.word.[0], columnTotalUnits = Demo.ColumnWidths.wordTotal, isFirstColumn = true, children = [| LC.Text (word, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.word.[1], columnTotalUnits = Demo.ColumnWidths.wordTotal, children = [| LC.Text (string word.Length, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.word.[2], columnTotalUnits = Demo.ColumnWidths.wordTotal, children = [| LC.Text (string (Demo.uniqueCharacterCount word), styles = [| GridCellStyles.text |]) |])
         }
 
     let fruitHeaders =
         element {
-            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.fruit.[0], isFirstColumn = true, children = [| LC.HeaderCell(label = "Name") |])
-            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.fruit.[1], children = [| LC.HeaderCell(label = "Color") |])
-            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.fruit.[2], children = [| LC.HeaderCell(label = "Taste") |])
-            UiAdmin.GridCell (columnIndex = 3, widthUnits = Demo.ColumnWidths.fruit.[3], children = [| LC.HeaderCell(label = "Price") |])
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.fruit.[0], columnTotalUnits = Demo.ColumnWidths.fruitTotal, isFirstColumn = true, children = [| LC.HeaderCell(label = "Name") |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.fruit.[1], columnTotalUnits = Demo.ColumnWidths.fruitTotal, children = [| LC.HeaderCell(label = "Color") |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.fruit.[2], columnTotalUnits = Demo.ColumnWidths.fruitTotal, children = [| LC.HeaderCell(label = "Taste") |])
+            UiAdmin.GridCell (columnIndex = 3, widthUnits = Demo.ColumnWidths.fruit.[3], columnTotalUnits = Demo.ColumnWidths.fruitTotal, children = [| LC.HeaderCell(label = "Price") |])
         }
 
     let makeFruitRow ((name, color, taste, price): Demo.RowData) =
         element {
-            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.fruit.[0], isFirstColumn = true, children = [| LC.Text (name, styles = [| GridCellStyles.text |]) |])
-            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.fruit.[1], children = [| LC.Text (color, styles = [| GridCellStyles.text |]) |])
-            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.fruit.[2], children = [| LC.Text (taste, styles = [| GridCellStyles.text |]) |])
-            UiAdmin.GridCell (columnIndex = 3, widthUnits = Demo.ColumnWidths.fruit.[3], children = [| LC.Text (string price, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 0, widthUnits = Demo.ColumnWidths.fruit.[0], columnTotalUnits = Demo.ColumnWidths.fruitTotal, isFirstColumn = true, children = [| LC.Text (name, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 1, widthUnits = Demo.ColumnWidths.fruit.[1], columnTotalUnits = Demo.ColumnWidths.fruitTotal, children = [| LC.Text (color, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 2, widthUnits = Demo.ColumnWidths.fruit.[2], columnTotalUnits = Demo.ColumnWidths.fruitTotal, children = [| LC.Text (taste, styles = [| GridCellStyles.text |]) |])
+            UiAdmin.GridCell (columnIndex = 3, widthUnits = Demo.ColumnWidths.fruit.[3], columnTotalUnits = Demo.ColumnWidths.fruitTotal, children = [| LC.Text (string price, styles = [| GridCellStyles.text |]) |])
         }
 
     let staticRows =

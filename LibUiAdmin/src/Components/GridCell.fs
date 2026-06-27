@@ -19,12 +19,21 @@ let private defaultColWidthUnits (columnIndex: int) : int =
     | 2 -> 9
     | _ -> 6
 
+let private defaultColumnTotalUnits = 14 + 7 + 9
+
 let private resolveWidthUnits (columnIndex: int) (widthUnits: int option) : int =
     widthUnits |> Option.defaultValue (defaultColWidthUnits columnIndex)
+
+let private columnWidthPercent (widthUnits: int) (totalUnits: int) : float =
+    100.0 * float widthUnits / float totalUnits
 
 [<RequireQualifiedAccess>]
 module GridCellLayout =
     let columnBaseWidth = columnBaseWidth
+    let defaultColumnTotalUnits = defaultColumnTotalUnits
+
+    let totalUnits (columnWidthUnits: seq<int>) : int =
+        columnWidthUnits |> Seq.sum
 
     let tableWidthFromUnits (units: seq<int>) : int =
         units |> Seq.sumBy (fun u -> u * columnBaseWidth)
@@ -42,22 +51,29 @@ module GridCellStyles =
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    /// Row-direction cell: proportional width via flexGrow, vertical middle via AlignItems.Center
-    /// (matches web `vertical-align: middle` on `table.la-table td`).
+    /// Fixed column width as a row-percentage (same on every row, like HTML table columns).
     let cell =
-        ViewStyles.Memoize (fun (widthUnits: int) (isFirstColumn: bool) ->
+        ViewStyles.Memoize (fun (widthUnits: int) (totalUnits: int) (isFirstColumn: bool) ->
             makeViewStyles {
+                widthPercent (columnWidthPercent widthUnits totalUnits)
+                flexGrow 0
+                flexShrink 0
                 FlexDirection.Row
                 AlignItems.Center
-                flexGrow widthUnits
-                flexShrink 1
-                flexBasis 0
-                minWidth 0
-                Overflow.Visible
+                JustifyContent.FlexStart
+                Overflow.Hidden
                 paddingHorizontal 10
                 paddingVertical 20
                 if isFirstColumn then paddingLeft 30
             })
+
+    let cellContent =
+        makeViewStyles {
+            flex 1
+            AlignSelf.Stretch
+            JustifyContent.Center
+            AlignItems.FlexStart
+        }
 
 type UiAdmin with
     /// Cross-platform table cell: `dom.td` on web (styled by `table.la-table`), flex column on native.
@@ -66,12 +82,14 @@ type UiAdmin with
             children:           ReactElements,
             ?columnIndex:        int,
             ?widthUnits:         int,
+            ?columnTotalUnits:   int,
             ?className:          string,
             ?isFirstColumn:      bool,
             ?key:                string
         ) : ReactElement =
         let columnIndex = defaultArg columnIndex 0
         let widthUnits = resolveWidthUnits columnIndex widthUnits
+        let totalUnits = defaultArg columnTotalUnits defaultColumnTotalUnits
         let isFirstColumn = defaultArg isFirstColumn (columnIndex = 0)
         let cellKey = key |> Option.defaultValue (string columnIndex)
 
@@ -89,7 +107,12 @@ type UiAdmin with
         ignore className
         RX.View(
             key = cellKey,
-            styles = [| Styles.cell widthUnits isFirstColumn |],
-            children = children
+            styles = [| Styles.cell widthUnits totalUnits isFirstColumn |],
+            children = [|
+                RX.View(
+                    styles = [| Styles.cellContent |],
+                    children = children
+                )
+            |]
         )
         #endif
