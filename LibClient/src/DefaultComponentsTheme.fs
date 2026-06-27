@@ -224,20 +224,20 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         InvalidMessageColor = caution.Main
     }
 
-    Input.DayOfTheWeekStyles.Theme.All(
-        unselectedTextColor       = neutral.Main,
-        unselectedBackgroundColor = neutral.B050,
-        selectedTextColor         = Color.White,
-        selectedBackgroundColor   = secondary.Main,
-        labelColor                = neutral.Main,
-        invalidColor              = caution.Main
-    )
+    Themes.Set<LC.Input.DayOfTheWeek.Theme> {
+        UnselectedTextColor       = neutral.Main
+        UnselectedBackgroundColor = neutral.B050
+        SelectedTextColor         = Color.White
+        SelectedBackgroundColor   = secondary.Main
+        LabelColor                = neutral.Main
+        InvalidColor              = caution.Main
+    }
 
     Input.FileStyles.Theme.All(
         invalidColor = caution.Main
     )
 
-    Legacy.CardStyles.Theme.All(theBorderColor = neutral.B300)
+    Themes.Set<Legacy.Card.Theme> { FlatBorderColor = neutral.B300 }
 
     Themes.Set<LC.Card.Theme> LC.Card.Theme.ShadowedCard
 
@@ -282,17 +282,17 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         theVerticalPadding         = 10
     )
 
-    Input.DecimalStyles.Theme.All(
-        borderLabelBlurredColor    = neutral.B500,
-        borderLabelFocusedColor    = secondary.Main,
-        borderLabelInvalidColor    = caution.Main,
-        textColor                  = neutral.Main,
-        noneditableTextColor       = neutral.B500,
-        noneditableBackgroundColor = neutral.B200,
-        invalidReasonColor         = caution.Main,
-        placeholderColor           = neutral.B300,
-        theVerticalPadding         = 10
-    )
+    Themes.Set<LC.Input.DecimalTypes.Theme> {
+        BorderLabelBlurredColor    = neutral.B500
+        BorderLabelFocusedColor    = secondary.Main
+        BorderLabelInvalidColor    = caution.Main
+        TextColor                  = neutral.Main
+        NoneditableTextColor       = neutral.B500
+        NoneditableBackgroundColor = neutral.B200
+        InvalidReasonColor         = caution.Main
+        PlaceholderColor           = neutral.B300
+        TheVerticalPadding         = 10
+    }
 
     Input.PositiveIntegerStyles.Theme.All(
         borderLabelBlurredColor    = neutral.B500,
@@ -306,24 +306,24 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         theVerticalPadding         = 10
     )
 
-    Input.UnsignedDecimalStyles.Theme.All(
-        borderLabelBlurredColor    = neutral.B500,
-        borderLabelFocusedColor    = secondary.Main,
-        borderLabelInvalidColor    = caution.Main,
-        textColor                  = neutral.Main,
-        noneditableTextColor       = neutral.B500,
-        noneditableBackgroundColor = neutral.B200,
-        invalidReasonColor         = caution.Main,
-        placeholderColor           = neutral.B300,
-        theVerticalPadding         = 10
-    )
+    Themes.Set<LC.Input.UnsignedDecimalTypes.Theme> {
+        BorderLabelBlurredColor    = neutral.B500
+        BorderLabelFocusedColor    = secondary.Main
+        BorderLabelInvalidColor    = caution.Main
+        TextColor                  = neutral.Main
+        NoneditableTextColor       = neutral.B500
+        NoneditableBackgroundColor = neutral.B200
+        InvalidReasonColor         = caution.Main
+        PlaceholderColor           = neutral.B300
+        TheVerticalPadding         = 10
+    }
 
-    Input.LocalTimeStyles.Theme.All(
-        labelBlurredColor  = neutral.B500,
-        labelFocusedColor  = secondary.Main,
-        labelInvalidColor  = caution.Main,
-        invalidReasonColor = caution.Main
-    )
+    Themes.Set<LibClient.Components.Input.LocalTime.Theme> {
+        LabelBlurredColor  = neutral.B500
+        LabelFocusedColor  = secondary.Main
+        LabelInvalidColor  = caution.Main
+        InvalidReasonColor = caution.Main
+    }
 
     Legacy.Input.PickerStyles.Theme.All(
         borderLabelColor        = neutral.B500,
@@ -350,11 +350,13 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         labelColor         = neutral.Main
     )
 
-    InfoMessageStyles.Theme.All({
-        Info      = neutral.Main
-        Attention = attention.Main
-        Caution   = caution.Main
-    })
+    Themes.Set<LC.InfoMessage.Theme>(
+        {
+            InfoColor      = neutral.Main
+            AttentionColor = attention.Main
+            CautionColor   = caution.Main
+        }
+    )
 
     Themes.Set<LC.Stars.Theme>(
         {
@@ -371,20 +373,22 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         }
     )
 
-    TabsStyles.Theme.Customize [
-        backgroundColor Color.White
-        borderBottom    1 neutral.B700
-    ]
+    Themes.Set<LibClient.Components.Tabs.Theme>(
+        {
+            BackgroundColor = Color.White
+            BorderColor     = neutral.B700
+            BorderWidth     = 1
+        }
+    )
 
-    Sidebar.HeadingStyles.Theme.Customize [
-        (Sidebar.HeadingStyles.Theme.Part(Sidebar.Heading.Level.Primary,   textColor = neutral.Main))
-        (Sidebar.HeadingStyles.Theme.Part(Sidebar.Heading.Level.Primary,   textColor = neutral.B500))
-        (Sidebar.HeadingStyles.Theme.Part(Sidebar.Heading.Level.Primary,   textColor = neutral.B500))
-
-        (Sidebar.HeadingStyles.Theme.Part(Sidebar.Heading.Level.Secondary, textColor = neutral.Main))
-        (Sidebar.HeadingStyles.Theme.Part(Sidebar.Heading.Level.Secondary, textColor = neutral.B500))
-        (Sidebar.HeadingStyles.Theme.Part(Sidebar.Heading.Level.Secondary, textColor = neutral.B500))
-    ]
+    Themes.Set<LC.Sidebar.Heading.Theme>(
+        {
+            PrimaryTextColor   = neutral.B500
+            PrimaryFontSize    = 18
+            SecondaryTextColor = neutral.B500
+            SecondaryFontSize  = 14
+        }
+    )
 
     Sidebar.ItemStyles.Theme.Customize [
         (Sidebar.ItemStyles.Theme.Static(iconSize = 24, theFontSize = 16))

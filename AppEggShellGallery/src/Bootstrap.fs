@@ -63,7 +63,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
                     "pstore"                  ==> pstore
                     "setTapCaptureVisibility" ==> LibClient.Components.TapCaptureDebugVisibility.setVisibleForDebug
                 ]
-            Browser.Dom.window?eggshell?AppEggShellGallery?test <- consoleTestBindings
+            Browser.Dom.window?chaldal?AppEggShellGallery?test <- consoleTestBindings
             #endif
 
             element
@@ -72,16 +72,10 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
             Log.Error ("App initialization failed because config construction failed: " + reason)
             ReactXPRaw?App?initialize((* DEBUG *) false, (* DEV *) false);
 
-            LibClient.Components.AppShell.TopLevelErrorMessage.Make
-                {
-                    Error = exn reason
-                    Retry = NoopFn // TODO this should be optional
-                    key   = None
-                }
-                [|
-                    RX.Text "Failed to initialize application config"
-                    RX.Text reason
-                |]
+            LibClient.Components.Constructors.LC.AppShell.TopLevelErrorMessage(
+                error = exn reason,
+                retry = NoopFn // TODO this should be optional
+            )
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
@@ -90,8 +84,8 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
 open Fable.Core
 [<Global>]
-let private eggshell: obj = jsNative
-eggshell?AppEggShellGallery?configSourceOverrides
+let private chaldal: obj = jsNative
+chaldal?AppEggShellGallery?configSourceOverrides
 |> ConfigSource.Base.withOverrides
 |> Config.tryOfSource
 |> init
