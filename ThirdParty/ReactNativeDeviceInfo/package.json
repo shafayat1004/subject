@@ -4,7 +4,7 @@
     "start": "webpack-dev-server"
   },
   "dependencies": {
-    "react-native-device-info": "^8.4.1",
+    "react-native-device-info": "^14.0.4",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
   }
 }

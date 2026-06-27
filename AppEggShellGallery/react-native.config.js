@@ -1,6 +1,11 @@
 const path      = require("path")
 
 module.exports = {
+  project: {
+    android: {
+      packageName: "com.eggshell.appgallery",
+    },
+  },
   dependencies: {
     'reactxp-netinfo': {
       root: path.resolve(__dirname, "../LibClient/node_modules/reactxp-netinfo"),
@@ -13,9 +18,14 @@ module.exports = {
     },
     'react-native-code-push': {
       root: path.resolve(__dirname, "../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push"),
+      platforms: {
+        android: {
+          sourceDir: path.resolve(__dirname, "../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push/android/app"),
+        },
+      },
     },
-    'react-native-fbsdk': {
-      root: path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk"),
+    'react-native-fbsdk-next': {
+      root: path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk-next"),
     },
     'react-native-svg': {
       root: path.resolve(__dirname, "../LibClient/node_modules/react-native-svg"),

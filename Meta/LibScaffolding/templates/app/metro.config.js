@@ -1,12 +1,12 @@
-const path      = require("path")
-const blacklist = require("metro-config/src/defaults/blacklist");
+const path = require("path")
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
  */
 
- let externalLibraries = {
+let externalLibraries = {
   "react-native":                                path.resolve(__dirname, "./node_modules/react-native"),
   "react":                                       path.resolve(__dirname, "../../LibClient/node_modules/react"),
   "reactxp":                                     path.resolve(__dirname, "../../LibClient/node_modules/reactxp"),
@@ -19,7 +19,9 @@ const blacklist = require("metro-config/src/defaults/blacklist");
   "platform-detect":                             path.resolve(__dirname, "../../LibClient/node_modules/platform-detect"),
   "base-64":                                     path.resolve(__dirname, "../../LibClient/node_modules/base-64"),
   "abortcontroller-polyfill":                    path.resolve(__dirname, "../../LibClient/node_modules/abortcontroller-polyfill"),
-  "reactxp-netinfo":                             path.resolve(__dirname, "../../LibClient/node_modules/reactxp-netinfo"),
+  "@chaldal/reactxp-netinfo":                      path.resolve(__dirname, "../../LibClient/node_modules/@chaldal/reactxp-netinfo"),
+  "@react-native-community/netinfo":               path.resolve(__dirname, "../../LibClient/node_modules/@react-native-community/netinfo"),
+  "react-native-svg":                              path.resolve(__dirname, "../../LibClient/node_modules/react-native-svg"),
   "reactxp-virtuallistview":                     path.resolve(__dirname, "../../LibClient/node_modules/reactxp-virtuallistview"),
   "react-router":                                path.resolve(__dirname, "../../LibRouter/node_modules/react-router"),
   "react-router-native":                         path.resolve(__dirname, "../../LibRouter/node_modules/react-router-native"),
@@ -28,7 +30,7 @@ const blacklist = require("metro-config/src/defaults/blacklist");
   "react-native-code-push":                      path.resolve(__dirname, "../../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push"),
 }
 
-module.exports = {
+const config = {
   transformer: {
     getTransformOptions: async () => ({
       transform: {
@@ -39,25 +41,8 @@ module.exports = {
   },
   resolver: {
     extraNodeModules: externalLibraries,
-    /**
-     * Ignore js files that are not original src app code.
-     * They will still resolve when required.
-     *
-     * Without it we hits the default max number of file descriptors
-     */
-    blacklistRE: blacklist([/.fable\/.*/])
   },
-  /**
-   * Metro bundler doesn't support external libraries that are
-   * outside of the current project directory.
-   *
-   * But this is sort of hack that happens to fix the issue if we include
-   * the external library path in "watchFolders"
-   *
-   * We don't really need to "watch" these directories for any file changes
-   * https://github.com/facebook/metro/issues/7#issuecomment-508129053
-   */
-  watchFolders:[
+  watchFolders: [
     path.resolve(__dirname, "../../LibClient/node_modules"),
     path.resolve(__dirname, "../../LibRouter/node_modules"),
     path.resolve(__dirname, "../../LibUiSubject/node_modules"),
@@ -66,3 +51,5 @@ module.exports = {
     path.resolve(__dirname, "../../ThirdParty/ReactNativeCodePush/node_modules")
   ]
 }
+
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);

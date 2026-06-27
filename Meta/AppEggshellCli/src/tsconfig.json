@@ -2,7 +2,8 @@
     "compilerOptions": {
         "module": "commonjs",
         "noImplicitAny": true,
-        "outDir": "../dist"
+        "outDir": "../dist",
+        "skipLibCheck": true
     },
     "include": [
         "**/*.ts",

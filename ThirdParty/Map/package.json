@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.8",
-    "react-native-maps": "1.10.0",
+    "react-native-maps": "1.20.1",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
   }
 }

@@ -5,6 +5,72 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-27 — RN 0.76 Android green + scaffolding aligned
+
+AppEggShellGallery **`./gradlew assembleDebug`** now succeeds on RN **0.76.5** / Gradle **8.10.2** / compileSdk **35**.
+`eggshell dev-web` serves on `http://127.0.0.1:8082/` (WDS 5, HTTP 200). Scaffolding templates updated to match.
+
+**Android fixes (gallery):**
+- **`debug.keystore` missing** — generate with standard RN debug params (`storepass`/`keypass` = `android`, alias `androiddebugkey`). Added idempotent `keytool` step to `initialize` scripts (gallery + scaffold template).
+- **Flipper removed in RN 0.76** — delete `ReactNativeFlipper.initializeFlipper(...)` and import from `MainApplication.kt`; compile fails with deprecation-as-error otherwise.
+- **RN 0.76 native library merging** — `SoLoader.init(this, false)` crashes at runtime with `libhermes_executor.so not found`. Use `SoLoader.init(this, OpenSourceMergedSoMapping)` in `MainApplication.kt` (maps merged libs like `hermes_executor` → `hermestooling`).
+- **`settings.gradle`** — use `@react-native/gradle-plugin` autolinking (`autolinkLibrariesFromCommand()`), not legacy `native_modules.gradle`.
+- **`react-native.config.js`** — `project.android.packageName` required for autolinking code gen.
+- **CodePush autolink** — set `platforms.android.sourceDir` to `.../react-native-code-push/android/app` (not `android/` root).
+- **Force `androidx.core:1.15.0`** — newer 1.19.x pulls AGP 9 requirements that conflict with compileSdk 35 toolchain.
+- **Pin `react-native-maps@1.20.1`** (ThirdParty/Map) — 1.27.x breaks Android ViewManager codegen on RN 0.76.
+- **`react-native-svg@15.11.2`** in LibClient — 13.x incompatible with RN 0.76 native codegen.
+- **Push notification AndroidX** — `LibPushNotification/Client/patch-push-notification-android.js` replaces old support-lib appcompat dep.
+
+**Scaffolding template sync:**
+- Android gradle files, Kotlin `MainApplication.kt`/`MainActivity.kt`, metro `mergeConfig(getDefaultConfig(...))`, `react-native.config.js` with CodePush `sourceDir`, gradle-wrapper **8.10.2**, `enableJetifier=false`, Hermes on.
+
+**Still deferred:** iOS Podfile/project refresh for RN 0.76 (not validated this session).
+
+**Emulator dev workflow (validated 2026-06-27):** `assembleDebug` + install is not enough. Need concurrently: (1) `eggshell dev-native` (Fable → `.build/native/commonjs`), (2) `npx react-native start` on `:8081`, (3) `configSourceOverrides.native.js` (from template; gitignored), (4) `adb reverse tcp:8081 tcp:8081`. Metro `extraNodeModules` must include `@react-native-community/netinfo`, `react-native-svg`, etc. (not just `react-native.config.js` roots). If `copyStaticFiles` produces corrupt PNGs under `.build/native/assets`, recopy from `images/` (symlink target). Success signal in logcat: `Running "RXApp"`.
+
+**Android logcat flood (ReactXP + React 18):** ~1,600 `legacy childContextTypes/contextTypes` warnings from ReactXP `View`/`Text`/`Button`, each printing ~15 stack lines → 100k+ `W ReactNativeJS` lines. React Native's renderer emits these via **`console.error`**, not `console.warn`; `LogBox.ignoreLogs` alone does not suppress adb output. Fix: filter both `console.warn` and `console.error` in app `index.js` (patterns + `/^\s+in /` for component stacks). Also filter noisy `LC.Icon` legacy-styles warnings in gallery. Long-term fix is ReactXP/context migration (goal H later).
+
+**Gallery `Code` component render crash on native:** `GetInitialEstate` tried to read React `children` from the F# `Props` record (no children field) → `Cannot read property 'props' of undefined`. Fix: defer extraction to `ComponentDidMount` via `this.props?children`, with null-safe recursive `tryExtractStringChildren`. **`copyStaticFiles`** copied via gulp through `public-dev/images` symlink and corrupted PNG/JPG binaries for Metro; fixed to `fs.copyFile` from `images/` → `.build/native/assets/public-dev/images/`.
+
+---
+
+## 2026-06-27 — NPM dependency upgrade (framework-wide)
+
+Full framework NPM upgrade for security and performance. Validated with `eggshell build-lib` on LibClient/LibRouter/LibUi*, `eggshell test-build` + `eggshell dev-web` on AppEggShellGallery, and **`assembleDebug`** on Android.
+
+**Key version bumps:**
+- `lodash` → **4.18.1** everywhere (4.17.23 still flagged by npm audit for newer CVEs)
+- `typescript` toolchain → **5.7.x**; all Meta/Lib* tsconfigs got `skipLibCheck: true` and `target: es2018` (needed for `/s` regex in LibRtCompiler)
+- `gulp` → **5.0.1** in LibScaffolding + LibRtCompiler (clears chokidar 2 / braces chain)
+- `webpack-dev-server` → **5.2.5+** in Meta/LibFablePlus only; `webpack.config.js` binds to `127.0.0.1` and sets CORP headers
+- `glob` → **8.1.0** with `glob-promise@6` (glob 11 conflicts with glob-promise peer `^8`)
+- Removed unused `gulp`/`glob` devDeps from LibClient, LibRouter, LibUiSubject, LibPushNotification (were pulling ~300+ transitive packages each)
+- AppEggShellGallery: **react-native 0.76.5**, `@react-native/metro-config 0.76.5`, babel 7.26
+- ThirdParty: firebase/RN-firebase 21.x, image-picker 7.x, showdown 2.1, recharts 2.15, fbsdk-next 13.x
+
+**Package count impact (approx, from npm audit output):**
+| Package | Before | After |
+|---------|--------|-------|
+| LibClient | 414 | 82 |
+| LibUiSubject | 357 | 21 |
+| LibScaffolding | 439 | 236 |
+| LibRtCompiler | 614 | 386 |
+| LibFablePlus | 388 | 420 |
+| AppEggshellCli (top-level) | 1102 | 28 |
+| ImagePicker | 714 | 4 |
+| GoogleAnalytics | 818 | ~10 |
+
+**Gotchas:**
+- `glob-promise@6` peer requires `glob@^8`, not glob 11 — do not bump glob past 8 until glob-promise updates
+- TypeScript 5 + `@types/gulp` pulls `@types/glob-stream` with broken stream typings — use `skipLibCheck: true`
+- `@types/chokidar` is deprecated stub; chokidar 4 ships its own types — remove the @types package
+- ThirdParty installs often need `--legacy-peer-deps` (react-router-native vs RN peer ranges)
+- Showdown ReDoS advisory still reports on 2.x (`npm audit` "no fix") — acceptable for gallery markdown rendering; replace with `marked` later if needed
+- `react-native-fbsdk` → `react-native-fbsdk-next` requires updating F# `import` paths (FacebookPixel/NativeSdk.fs)
+
+---
+
 ## 2026-06-27 — AppEggShellGallery bootstrap used the wrong global name, and `docco.css` was missing
 
 The gallery bootstrap was reading `chaldal.AppEggShellGallery.configSourceOverrides`, but the host page only initializes `eggshell`. That produced `ReferenceError: Can't find variable: chaldal` before the app could start. Fix: use the same global name the page defines, `eggshell`, in `AppEggShellGallery/src/Bootstrap.fs`.

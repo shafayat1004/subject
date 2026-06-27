@@ -4,7 +4,7 @@
     "start": "webpack-dev-server"
   },
   "dependencies": {
-    "react-native-contacts": "^7.0.8",
+    "react-native-contacts": "^8.0.4",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
   }
 }

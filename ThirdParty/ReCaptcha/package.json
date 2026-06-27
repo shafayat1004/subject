@@ -5,9 +5,6 @@
   },
   "dependencies": {
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler",
-    "recaptcha-v3": "^1.10.0"
-  },
-  "devDependencies": {
-    "jetifier": "^2.0.0"
+    "recaptcha-v3": "^1.11.3"
   }
 }

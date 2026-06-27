@@ -1,3 +1,4 @@
 npm install
+node ./patch-push-notification-android.js
 npm link react-templates-fable
 

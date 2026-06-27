@@ -5,9 +5,9 @@
   },
   "dependencies": {
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler",
-    "recharts": "2.1.6"
+    "recharts": "^2.15.0"
   },
   "devDependencies": {
-    "react-syntax-highlighter": "15.3.0"
+    "react-syntax-highlighter": "^15.6.1"
   }
 }

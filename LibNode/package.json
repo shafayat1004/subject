@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^18.19.4",
+    "@types/node": "^22.10.0",
     "eggshell-lib-lang-typescript": "file:../LibLangTypeScript",
-    "typescript": "^4.8.4"
+    "typescript": "^5.7.3"
   }
 }

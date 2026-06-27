@@ -5,10 +5,7 @@
   },
   "dependencies": {
     "react-facebook-pixel": "^1.0.4",
-    "react-native-fbsdk": "^3.0.0"
-  },
-  "devDependencies": {
-    "jetifier": "^2.0.0",
+    "react-native-fbsdk-next": "^13.4.1",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
   }
 }

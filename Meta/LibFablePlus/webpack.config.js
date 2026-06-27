@@ -64,6 +64,7 @@ if (isDev) {
     module.exports = {
         ...commonConfig,
         devServer: {
+            host: "127.0.0.1",
             allowedHosts: "all",
             static: {
                 directory: path.join(PROJECT_PATH, "public-dev"),
@@ -77,7 +78,11 @@ if (isDev) {
                     errors:   true,
                     warnings: false, // until #1116 is addressed
                 }
-            }
+            },
+            headers: {
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Cross-Origin-Resource-Policy": "same-origin",
+            },
         },
         module: {
             ...commonConfig.module,

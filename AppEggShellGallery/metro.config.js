@@ -23,6 +23,10 @@ let externalLibraries = {
   "platform-detect":                               path.resolve(__dirname, "../LibClient/node_modules/platform-detect"),
   "pako":                                          path.resolve(__dirname, "../LibClient/node_modules/pako"),
   "@chaldal/reactxp-netinfo":                      path.resolve(__dirname, "../LibClient/node_modules/@chaldal/reactxp-netinfo"),
+  "@react-native-community/netinfo":               path.resolve(__dirname, "../LibClient/node_modules/@react-native-community/netinfo"),
+  "react-native-svg":                              path.resolve(__dirname, "../LibClient/node_modules/react-native-svg"),
+  "react-native-webview":                          path.resolve(__dirname, "../LibClient/node_modules/react-native-webview"),
+  "@react-native-firebase/app":                    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules/@react-native-firebase/app"),
   "react-router":                                  path.resolve(__dirname, "../LibRouter/node_modules/react-router"),
   "react-router-native":                           path.resolve(__dirname, "../LibRouter/node_modules/react-router-native"),
   "@googlemaps/js-api-loader":                     path.resolve(__dirname, "../ThirdParty/Map/node_modules/@googlemaps/js-api-loader"),
@@ -34,7 +38,7 @@ let externalLibraries = {
   "react-native-device-info":                      path.resolve(__dirname, "../ThirdParty/ReactNativeDeviceInfo/node_modules/react-native-device-info"),
   "@react-native-community/push-notification-ios": path.resolve(__dirname, "../LibPushNotification/Client/node_modules/@react-native-community/push-notification-ios"),
   "react-native-push-notification":                path.resolve(__dirname, "../LibPushNotification/Client/node_modules/react-native-push-notification"),
-  "react-native-fbsdk":                            path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk"),
+  "react-native-fbsdk-next":                       path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk-next"),
   "@react-native-firebase/analytics":              path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules/@react-native-firebase/analytics"),
   "fast-memoize":                                  path.resolve(__dirname, "../LibClient/node_modules/fast-memoize")
 }

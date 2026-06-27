@@ -1,6 +1,11 @@
-const path      = require("path")
+const path = require("path")
 
 module.exports = {
+  project: {
+    android: {
+      packageName: "com.company.appwhatever",
+    },
+  },
   dependencies: {
     'reactxp-netinfo': {
       root: path.resolve(__dirname, "../../LibClient/node_modules/reactxp-netinfo"),
@@ -16,6 +21,11 @@ module.exports = {
     },
     'react-native-code-push': {
       root: path.resolve(__dirname, "../../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push"),
+      platforms: {
+        android: {
+          sourceDir: path.resolve(__dirname, "../../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push/android/app"),
+        },
+      },
     },
   },
 };

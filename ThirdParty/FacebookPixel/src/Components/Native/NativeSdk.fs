@@ -3,7 +3,7 @@ module ThirdParty.FacebookPixel.Native
 open Fable.Core.JsInterop
 open LibClient.Json
 
-let private AppEventsLogger: obj = import "AppEventsLogger"  "react-native-fbsdk";
+let private AppEventsLogger: obj = import "AppEventsLogger"  "react-native-fbsdk-next";
 let private DefaultCurrency: string = "BDT"
 
 let private trackEvent (eventName: string) (price: UnsignedDecimal) (properties: obj) : unit =
