@@ -91,11 +91,24 @@ progress {
 #app-pre-bootstrap-loader {
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background-color: #eef2f7;
+  color: #0f172a;
+  font-family: Montserrat, sans-serif;
 }
 
-#loader-img {
-  align-self: center;
+.app-pre-bootstrap-loader__brand {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.app-pre-bootstrap-loader__hint {
+  font-size: 15px;
+  color: #94a3b8;
 }
 
 /**
@@ -466,7 +479,7 @@ html {
   /* For some Androids */
 }
 body.page--basic {
-  background-color: #f3f5f8;
+  background-color: #eef2f7;
 }
 
 body,
@@ -489,10 +502,7 @@ body,
 }
 
 body.page--electron {
-  background-image: url(../images/firstrun/startup_background.png);
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-color: #eef2f7;
 }
 textarea {
   -webkit-appearance: none;

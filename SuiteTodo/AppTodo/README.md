@@ -37,6 +37,13 @@ Creates npm links, debug keystore (when `android/` exists), and symlinks `public
 cd ios && pod install && cd ..
 ```
 
+If Android still shows the old **dispatcher** splash or launcher icon (copied from the LibScaffolding template), re-apply AppTodo branding:
+
+```bash
+./scripts/install-apptodo-branding.sh
+# then rebuild/reinstall the native app
+```
+
 ### Observability (optional, for `npm run observe`)
 
 ```bash

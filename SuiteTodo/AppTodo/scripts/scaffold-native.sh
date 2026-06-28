@@ -46,6 +46,7 @@ EOF
     "$ROOT/android/app/src/main/AndroidManifest.xml" 2>/dev/null || true
 
   chmod +x "$ROOT/android/gradlew"
+  "$ROOT/scripts/install-apptodo-branding.sh"
   echo "  android/ created"
 else
   echo "  android/ already exists — skipping"
@@ -73,6 +74,10 @@ if [[ ! -d "$ROOT/ios" ]]; then
       -e "s/com.eggshell.appgallery/$PKG/g" \
       -e "s/Egg Shell Gallery/Todo/g" \
       {} +
+
+  if [[ -f "$ROOT/scripts/ios-branding/LaunchScreen.storyboard" ]]; then
+    cp "$ROOT/scripts/ios-branding/LaunchScreen.storyboard" "$ROOT/ios/$APP/LaunchScreen.storyboard"
+  fi
 
   echo "  ios/ created (run: cd ios && pod install)"
 else
