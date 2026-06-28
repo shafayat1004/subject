@@ -1,6 +1,6 @@
 # EggShell Frontend Modernization Plan
 
-Consolidated reference for **render-DSL retirement (Goal A)**, **accessibility + UI observability**, and **automation/OS support**. Synthesized from `EGGSHELL_ARCHITECTURE.md` §12, `CLAUDE.md`, `LEARNINGS.md`, `LibClient/ACCESSIBILITY.md`, and gallery audit work (through 2026-06-29).
+Consolidated reference for **render-DSL retirement (Goal A)**, **accessibility + UI observability**, and **automation/OS support**. Synthesized from `EGGSHELL_ARCHITECTURE.md` §12, `CLAUDE.md`, `LEARNINGS.md`, `LibClient/ACCESSIBILITY.md`, and gallery audit work (through 2026-06-29; audit harness + gallery routes updated same day).
 
 ---
 
@@ -14,6 +14,10 @@ component correctly without re-deriving conventions. Concretely, that means ever
 is a labeled semantic press target, every component carries stable automation `testId`s, the whole
 library is one-file `[<Component>]` F# (no render DSL, no `.typext.fs`/`.styles.fs` trio), and §10's
 a11y/automation bar is met by every shipped component.
+
+**As of 2026-06-29:** infrastructure and Tier-1 nav/buttons meet much of this vision; **§10 is not yet
+ satisfied by every LibClient component** (~16 still on `TapCapture` shim without explicit
+ label/role/testId; audits still pseudo-element-heavy). See §3 Phase 4–5, §5.7, §10.
 
 This plan is meant to be **executable by a weaker model**: §9 gives copy-paste skeletons per component
 archetype, §10 is the a11y/automation acceptance bar, and §11 is a classify-then-route decision tree.
@@ -123,17 +127,37 @@ Completed items:
 
 Gallery sidebar blade testIds live in `SidebarContent.fs` (pure F#). Gallery **Content/Sidebar** showcase page is also converted (`Content/Sidebar/Sidebar.fs`).
 
-### Phase 4 — Audit harness (partial)
+**Sidebar observability gap:** explicit close via `LC.Sidebar.WithClose` / `setSidebarVisibility false` logs `UiActionLog.SidebarClose` and broadcasts on the EventBus. **Popup `OnDismiss` auto-close** (off-click on handheld drawer) only updates internal state — **no `SidebarClose` in `uiLog()`**. Not a DOM event; automation reads dev hook `window.__eggshell.<App>.uiLog()` (DEBUG only).
 
-- **Web:** `AppEggShellGallery/audit-gallery-interactive.mjs`, assertions, visual archive, full crawl — documented in `GALLERY-AUDIT.md`.
-- **Android:** Appium/WebdriverIO facade; testId → `resource-id` mapping; menu-tap nav (no edge-swipe); drawer reopen per navigation.
-- **Blocked until testIds exist** on all nav paths; Phase 3 unblocked primary flows.
-- **Not done:** full audit rewrite to prefer `uiSnapshot()` over heuristics; interactive Android audit with testId nav not fully validated end-to-end.
+### Phase 4 — Audit harness (in progress)
+
+| Script | Role |
+|--------|------|
+| `audit-gallery-interactive.mjs` | Headed/headless full crawl; route discovery from `Components.fs`; assertions; visual archive |
+| `audit-gallery-full.mjs` | Fast console-only sweep (**uses `discoverGalleryComponents()`** since 2026-06-29) |
+| `audit-gallery-browser-session.mjs` | Detect closed/crashed Playwright context; wait for dev-web; recover + retry once |
+| `audit-gallery-app-crash.mjs` | Detect webpack / top-level error overlay; block route; escape to safe page; `blocked-components.json` |
+| `audit-gallery-visual-archive.mjs` | Before + after screenshots; **mid-animation** frames on Animatable* pages |
+| `audit-gallery-interactive-android.mjs` | Appium path (not validated end-to-end here) |
+
+**Interactive audit features (2026-06-29):**
+
+- Per-page console cap (1000); `Input_File` interaction limited to first sample cell
+- Checkpoint after each route + `--resume=DIR` for interrupted runs
+- App-crash overlay → log + screenshot + skip route for remainder of run; continue on safe fallback (`Index`, …)
+- Visual archive: `sample-NN-before-interaction.png`, `sample-NN-after-interaction.png`, `sample-NN-mid-0N-animation.png` (Animatable*)
+
+**Still not done:**
+
+- Full audit rewrite to prefer `uiSnapshot()` / `testId` selectors over `[data-text-as-pseudo-element]` heuristics
+- Interactive Android audit with testId nav validated end-to-end
+- Clean full-crawl green run after Input_File fix (re-run pending stable dev-web)
 
 ### Phase 5+ (future)
 
-- Migrate remaining `LC.TapCapture` call sites → `LC.Pressable` (~15+ in LibClient `.render` trees).
+- Migrate remaining `LC.TapCapture` call sites → `LC.Pressable` (~8–16 in LibClient pure F#; see §5.7).
 - Delete `TapCapture.fs` when zero callers.
+- Route **all** sidebar hide paths through `setSidebarVisibility false` (including popup `OnDismiss`) so `SidebarClose` appears in `UiActionLog`.
 - Keyboard/focus: `restrictFocusWithin`, roving tabindex on nav.
 - Optional: sampled production telemetry (tiered sinks); v1 is **dev-only** `UiActionLog`.
 
@@ -295,9 +319,9 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 
 ### 5.2 Gallery coverage vs framework components
 
-**Routed component demos** (`Components.fs`): **79** routes (including Index markdown, layout/executor XmlDocs pages, LibRouter cluster).
+**Routed component demos** (`Components.fs`): **82** routes (discovered by `audit-gallery-components.mjs`; includes Index markdown, layout/executor XmlDocs pages, LibRouter cluster, ThirdParty additions).
 
-**Content showcase pages** (`Components/Content/**/*.fs`): **~75** pure-F# pages; all use `[<Component>]`.
+**Content showcase pages** (`Components/Content/**/*.fs`): **~78** pure-F# pages; all use `[<Component>]`.
 
 **ScrapedData.fs** prop tables: **~179** FQN keys (includes infra, dialog shells, picker internals, LibRouter, LibAutoUi — not all need a sidebar demo).
 
@@ -307,12 +331,12 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 |-----------|:--------------:|:-------------:|-------|
 | `Dialog.Base`, `ContextMenu.Dialog` | yes | indirect | Exercised via Dialogs / ContextMenu pages |
 | Picker internals | partial | indirect | Via Input_Picker page |
-| `ThirdParty.MarkdownViewer` | yes | **missing route** | Page exists (`Content/ThirdParty/MarkdownViewer.fs`) but not wired in `Components.fs` / sidebar |
-| `ThirdParty.ImagePicker`, `ReCaptcha` | yes | **missing** | No gallery project ref or showcase yet |
+| `ThirdParty.MarkdownViewer` | yes | **done** | `ThirdParty_MarkdownViewer` — wired 2026-06-29 |
+| `ThirdParty.ImagePicker`, `ReCaptcha` | yes | **done** | Showcase pages + `ImagePicker`/`ReCaptcha` project refs — wired 2026-06-29 |
 | `LibUiSubject.With.*` | no | **missing** | Needs Subject stack demo / fake service |
 | Infra (`Pressable`, `Subscribe`, `AppShell.*`, …) | yes | **N/A** | Documented in ScrapedData; no interactive demo expected |
 
-**Validation in progress (2026-06-29):** Playwright interactive audit (`audit-gallery-interactive.mjs`) + Android Appium audit for console errors, assertion failures, style-leak warnings, overlap review.
+**Validation in progress (2026-06-29):** Playwright interactive audit with crash recovery + app-overlay detection; Android Appium audit pending emulator.
 
 ### 5.3 LibClient — all product components pure F#
 
@@ -320,7 +344,9 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 
 **Legacy removed:** `Legacy/Input/Picker` deleted; callers migrated (Forms, LocalTime, Grid, LibAutoUi).
 
-**Still incremental:** TapCapture → direct Pressable on ~16 pure-F# components; optional props on Input.Text (`onKeyPress`, `maxLength`, `tabIndex`).
+**Still incremental:** TapCapture → direct Pressable on ~8–16 pure-F# components; optional props on Input.Text (`onKeyPress`, `maxLength`, `tabIndex`).
+
+**Style-leak fixes (2026-06-29):** `Input.File` — `useEffect` infinite loop removed (stable `value.Length` dep); theme styles memoized. `LabelledFormField` — `ViewStyles.Memoize` / `TextStyles.Memoize` on view/label/field.
 
 ### 5.4 LibRouter, LibUi*, ThirdParty
 
@@ -330,11 +356,20 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 
 ### 5.5 Gallery validation results (2026-06-29)
 
-**Web — console sweep (`audit-gallery-full.mjs`):** **75/75 hardcoded routes**, **0 actionable** console errors. Note: script list is **stale** (missing LibRouter×5, AutoUi, LabelledFormField, etc.) — use `audit-gallery-interactive.mjs` (discovers routes from `Components.fs`).
+**Web — console sweep (`audit-gallery-full.mjs`):** discovers routes dynamically from `Components.fs` (**82** routes). Re-run after dev-web restart for fresh baseline.
 
-**Web — interactive audit (`audit-gallery-interactive.mjs`, 2026-06-28 run):** **79/79 routes** discovered; **~35 pages fully tested** before **Input_File crashed the browser** (~1.57M console events → Playwright closed context; remaining 44 routes = LOAD FAIL, not app bugs). **18 actionable** console pages, **3 assertion failures** (AutoUi_InputForm, ContextMenu, Input_Checkbox). Report: `audit-browser/interactive/2026-06-28T00-55-58-429Z/final-report.md`. **Fix Input_File recipe / console cap and re-run** before trusting full-crawl results.
+**Web — interactive audit (`audit-gallery-interactive.mjs`):**
 
-**Style leaks:** classified as **dev noise** on every page in full audit (`style-leak` bucket alongside HMR, legacy context, telemetry). Not treated as actionable by scripts; manual triage via visual-archive `overlapReviewPriority` still pending when interactive run completes.
+| Run | Outcome |
+|-----|---------|
+| `2026-06-28T00-55-58-429Z` | 79 routes; **Input_File** infinite re-render (~1.5M console lines) crashed Playwright context; 44 cascade LOAD FAILs |
+| `2026-06-28T01-26-00-088Z` (headed) | Pass 1: 6 pages with actionable console (Animatable*, AsyncData) then mass LOAD FAIL (dev-web likely stopped); Pass 2: all LOAD FAIL |
+
+**Fixes applied (2026-06-29):** Input.File `useEffect` loop; per-page console cap; Input_File first-cell-only interaction; browser session recovery; app crash overlay detection + blocked-component skip; visual archive before/after/mid-animation; `--resume=DIR`.
+
+**Re-run needed** on stable dev-web before treating full-crawl results as authoritative. Prior assertion failures to re-check: AutoUi_InputForm, ContextMenu, Input_Checkbox.
+
+**Style leaks:** ReactXP "possible style leak" warnings classified as **dev noise** in audit scripts. Targeted memoization fixes in §5.3; broader overlap triage via visual-archive `overlapReviewPriority` after clean crawl.
 
 **Native — compile:** `Native Debug` build initially **failed** on `ThirdParty/Map/Base.fs` (`Option<LatLng>` passed where `LatLng` expected) — **fixed** 2026-06-29.
 
@@ -342,16 +377,16 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 
 ### 5.6 Gallery modernization (2026-06-28 → 29)
 
-**Added routes:** LibRouter.{Dialogs, LogRouteTransitions, NativeBackButton, WithLocation, WithRoute}, AutoUi_InputForm.
+**Added routes:** LibRouter.{Dialogs, LogRouteTransitions, NativeBackButton, WithLocation, WithRoute}, AutoUi_InputForm, ThirdParty_{MarkdownViewer, ImagePicker, ReCaptcha}.
 
 **Shell / infra:** all pure F# (App, routes, sidebar, ComponentContent*, audit scripts read `Components.fs`).
 
 | Area | State |
 |------|--------|
-| Audit tooling | Web Playwright + Android Appium scripts in `GALLERY-AUDIT.md` |
-| Web audit run | **In progress** (2026-06-29) — interactive crawl, console + assertions + visual archive |
+| Audit tooling | Web Playwright + resilience layers (`browser-session`, `app-crash`) — see `GALLERY-AUDIT.md` |
+| Web audit run | **Re-run pending** — harness updated 2026-06-29; prior runs blocked by Input_File / dev-web drop |
 | Native audit | Pending — requires Metro + emulator + Appium |
-| Known dev-web gotcha | Incomplete Fable output → webpack `Module not found`; restart dev-web |
+| Known dev-web gotcha | Incomplete Fable output → webpack `Module not found`; restart dev-web; keep server up for full 82-route crawl |
 
 ### 5.7 TapCapture → Pressable
 
@@ -367,24 +402,26 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 | 1 | Pressable, UiActionLog, RX bindings, core types | Done |
 | 2 | Tier-1 labels + Button/Nav.Top.Item/Sidebar.Item Pressable + F# conversion | Done |
 | 3 | Gallery testIds + route/action logging | Mostly done |
-| 4 | Audit harness (web + Android) | **In progress** — scripts exist; full validation run 2026-06-29 |
+| 4 | Audit harness (web + Android) | **In progress** — resilience + visual archive upgraded 2026-06-29; clean full crawl pending |
 | — | Goal A framework `.render` retirement | **Done** (product code) |
 | — | Goal A DSL machinery deletion | Not started |
-| — | Style-leak / console-warning regression pass | **In progress** (audit-driven) |
+| — | Style-leak / console-warning regression pass | **In progress** — Input.File + LabelledFormField memoized; audit triage pending |
+| — | Gallery route wiring (ThirdParty) | **Done** (2026-06-29) |
 | — | LibAutoUi product completion | Partial (~2 primitives wired) |
 
 ---
 
 ## 6. Recommended sequencing (next work)
 
-1. **Gallery validation (web):** run `audit-gallery-interactive.mjs`; fix actionable console errors, assertion failures, style-leak warnings; wire missing routes (MarkdownViewer, ImagePicker, ReCaptcha).
+1. **Gallery validation (web):** restart `eggshell dev-web`; run `audit-gallery-interactive.mjs` (optionally `--resume=DIR` if interrupted); fix remaining actionable console errors and assertion failures (AutoUi_InputForm, ContextMenu, Input_Checkbox).
 2. **Gallery validation (native):** `eggshell dev-native` + Metro + Appium `audit:interactive:android`; fix native-only crashes/layout.
-3. **Style-leak pass:** triage audit `style-leak` / visual-archive `overlapReviewPriority`; fix cross-component cascade regressions from conversions (§4.1).
-4. **TapCapture sweep:** grep `LC.TapCapture` until zero outside shim; delete `TapCapture.fs`.
-5. **LibAutoUi product completion:** wire bool/numeric/file primitives; richer gallery samples; optional first Suite app screen.
-6. **Goal A closure:** delete DSL compiler + build hooks once audits green on web + native.
-7. **Goal B:** fix `eggshell create-app` scaffolding.
-8. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
+3. **Style-leak pass:** triage visual-archive `overlapReviewPriority` after clean crawl; continue `ViewStyles.Memoize` on theme-hot paths (§4.1).
+4. **TapCapture sweep:** grep `LC.TapCapture` until zero outside shim; add label/role/testId per §10; delete `TapCapture.fs`.
+5. **Observability gaps:** route popup sidebar `OnDismiss` through `setSidebarVisibility false`; shift audit scripts toward testId-first selectors + `uiSnapshot()`.
+6. **LibAutoUi product completion:** wire bool/numeric/file primitives; richer gallery samples; optional first Suite app screen.
+7. **Goal A closure:** delete DSL compiler + build hooks once audits green on web + native.
+8. **Goal B:** fix `eggshell create-app` scaffolding.
+9. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
 
 ---
 
@@ -397,6 +434,10 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 | Conversion gotchas + dated log | `LEARNINGS.md` |
 | A11y API + checklist | `LibClient/ACCESSIBILITY.md` |
 | Gallery audit how-to | `AppEggShellGallery/GALLERY-AUDIT.md` |
+| Audit: browser recovery | `AppEggShellGallery/audit-gallery-browser-session.mjs` |
+| Audit: app crash overlay | `AppEggShellGallery/audit-gallery-app-crash.mjs` |
+| Audit: visual archive | `AppEggShellGallery/audit-gallery-visual-archive.mjs` |
+| Blocked crash routes (persisted) | `audit-browser/interactive/<run>/blocked-components.json` |
 | Default theming | `LibClient/src/DefaultComponentsTheme.fs` |
 | Templates | `LibClient/src/Components/Tabs/Tabs.fs`, `HandheldListItem/HandheldListItem.fs`, `Nav/Top/Heading/Heading.fs`, `Button/Button.fs`, `Nav/Top/Item/Item.fs` |
 
@@ -665,6 +706,10 @@ Keep the established recipe: `TypesJs.fs` (marshal F# -> JS with `==>`/`==?>`/`=
 
 A component is **not done** until its archetype row is satisfied. This is the measurable definition of
 "best-in-class a11y + UI automation."
+
+**Fleet status (2026-06-29):** Tier-1 interactive components (Button, Nav, Sidebar.Item, core dialogs)
+ meet most rows; **the majority of LibClient components are converted to pure F# but not yet audited
+ against §10**. Do not assume gallery coverage implies §10 compliance.
 
 | Archetype | Label | Role | State | testId | Live region | Keyboard/focus (v2) |
 |-----------|-------|------|-------|--------|-------------|---------------------|
