@@ -719,6 +719,94 @@ worth a time-boxed spike**, and only if web-via-WASM weight is acceptable and an
 prototype passes. If web is a first-class requirement (it is), this is a hard sell. Keep it on the radar,
 do not pursue MAUI, Uno, or Fable-to-Flutter.
 
+### 18.1 The MVU-overlap question: Bolero (web) + Fabulous (native widgets)
+
+A natural counter-proposal: pair **Bolero** (F# over Blazor, real DOM web) with **Fabulous** (F#-first
+MVU over native) to get **real-DOM web a11y AND true native widgets, in pure F#**. Is there enough
+overlap to define one UI surface? **Overlap exists at the architecture level, not the view level.**
+
+- **Shared (real overlap):** both Bolero and Fabulous are **Elmish/MVU** lineage, so `Model`, `Msg`,
+  `Update`, commands, domain logic, and the data layer (AsyncData, subscriptions, SignalR .NET client)
+  can be **one shared F# codebase** (roughly half to two-thirds of an app).
+- **Not shared (the crux):** the `view` function differs because the **element vocabularies differ** -
+  Bolero emits **HTML nodes + CSS**, Fabulous emits **native control trees (MAUI controls) + XAML-style
+  layout**. There is **no .NET framework that maps one view tree to both real-DOM web and native-widget
+  mobile**; that mapping is precisely the react-native-web niche. So views are written twice unless the
+  framework **builds its own common widget DSL** (`LC.View` -> HTML on web, -> MAUI controls on native),
+  which is "build react-native-web for .NET, in-house" - large and perpetual.
+- **Important: RN already gives you native widgets.** React Native renders **true native OS controls** on
+  mobile (Fabric) and real DOM on web (RNW). So "native widgets/features" is **not** a reason to leave RN;
+  RN already provides exactly that from one component model. The only thing the Bolero+Fabulous path adds
+  is "no JS / pure F#," at the cost of building and owning the cross-platform view layer yourself.
+
+### 18.2 Maintenance reality of the F#-native UI stack (checked 2026-06)
+
+The all-F# path's keystones are small or in flux, which raises the risk of betting the framework on them:
+
+- **Bolero (web):** rides Microsoft **Blazor**, which is very actively maintained (.NET 10 cut the Blazor
+  JS bundle ~76% to ~43KB, added improved render modes). Bolero itself is a healthy-but-small F# wrapper
+  (~1.1k stars; 0.25+ requires .NET 8). Reasonable bet, with bus-factor risk on the F# layer.
+- **Fabulous (native):** core last release **2.4.2 (Mar 2024)**, ~1.3k stars, slowing. Critically,
+  **`Fabulous.Maui` is officially ON-HOLD** ("cannot be completed while the MAUI team migrates to a new
+  architecture in a multi-year effort"). The usable path is **`Fabulous.MauiControls`** (F# MVU layered
+  over MAUI's existing controls).
+- **MAUI (under Fabulous):** Microsoft first-party so it will not vanish, but it is **mid multi-year
+  re-architecture**, **.NET 10 shipped notable bug/regression churn**, **MAUI 9 went out of support
+  2026-05**, and **F# is second-class** (only viable through the Fabulous wrapper).
+- **Avalonia + FuncUI:** the **more-maintained** native-F# renderer (FuncUI 1.5.2 Oct 2025, Avalonia
+  active) - but it is the **canvas-web** option (Skia, not DOM), so it loses web a11y/SEO.
+
+So the all-F# native side is risky **either way**: the maintained renderer (Avalonia/FuncUI) is the one
+that breaks web a11y, and the native-widget path (Fabulous + MAUI) is slowing / partly on-hold / F#-second-class
+and gated on MAUI's own churn. RNW is itself in maintenance mode (Section 7), but the **RN** side it sits
+on is a vastly larger, more active ecosystem than any F#-native UI stack.
+
+### 18.3 The cheap hedge: adopt MVU now (do this regardless)
+
+Whether or not EggShell ever migrates off React, **structure apps as Elmish MVU** (Model/Msg/Update +
+thin view). Elmish runs fine over Fable/React today. Then:
+
+- the non-view majority of every app (model, update, domain, data) becomes **portable**, and
+- any future move to Bolero + Fabulous/MAUI (or Avalonia/FuncUI) reuses that majority and re-authors only
+  the views.
+
+This converts the giant "should we migrate to native F#" question into a much smaller "we already share
+the architecture; the only open item is the view-vocabulary abstraction." Low cost now, good design
+anyway, and it de-risks the option without committing to it.
+
+### 18.4 Other "escape JS" levers evaluated (and why none change the plan)
+
+The same survey covered several client-side ways to bypass JS. All converge on one fact: **EggShell's
+heavy work already lives on the .NET / Orleans backend, so client-side "escape JS" levers optimize a
+non-bottleneck.**
+
+- **Native modules first-class (general strategy):** low ROI. RN structurally requires JS for the UI
+  layer; native modules can only offload non-UI work. Making them the default fights the F#-only premise
+  (Kotlin + Swift + a web fallback per module), breaks web parity (native modules do not exist on web),
+  and triples the surface. Keep native modules **targeted** (specific capabilities: camera, BLE,
+  biometrics) via the `ThirdParty` recipe, with good binding ergonomics.
+- **Web + Web Workers + PWA for "perf-hungry" apps:** web's compute ceiling is below native and iOS
+  hobbles PWAs (push/background/install), so "perf app -> web" is backwards for raw throughput. The one
+  genuine win: **client-side F# off-thread works in a Web Worker** (a worker loads a full bundle, so
+  FSharp.Core is available) whereas it does **not** in native Reanimated worklets (Section 24). PWA is a
+  **distribution** play (offline, installable, no app store), not a performance one; decide it per app on
+  reach/capability grounds, not speed.
+- **F# to Kotlin / Scala / Swift transpilation:** does not exist, and building it would be a Fable-scale
+  compiler **plus a per-target FSharp.Core runtime** (the same FSharp.Core dependency that blocks
+  worklets, Section 24). It would also still abandon React/RNW and real-DOM web. And it is pointless as a
+  route to "native F#," because F# already runs native via .NET (this section). Not worth it.
+- **Fable Python / Rust:** different problem domain (data/ML/scripting), not client UI or perf. CPython
+  is slower than JS for general compute; Python's speed comes from native C-extensions. For EggShell, if
+  ML/data ever matters, run a **Python (or ML.NET) service behind the Orleans backend**, do not transpile
+  F# to Python into the client. Near-zero ROI here.
+
+**Bottom line across all of 18:** stay on F# + Fable + RN/RNW, heavy work on .NET/Orleans. The strongest
+all-F# alternative is **Bolero (web) + Fabulous.MauiControls (native)** sharing an MVU architecture, but
+it requires building and maintaining your own cross-platform view layer over a **fragile** native-F#
+ecosystem to remove JS ceilings that the backend-heavy design already keeps from biting. Revisit only if
+"all-.NET, no-JS" becomes a hard strategic requirement or the product turns **desktop-first** (where
+Avalonia genuinely wins). Until then, **adopt MVU now (18.3)** as the reversible hedge.
+
 ---
 
 ## 19. Spike status and the confirmed Fable 5 / .NET 10 gate
@@ -1091,6 +1179,18 @@ problem entirely:
 
 ## 22. Update Log
 
+- **2026-06-29 (20)** **Section 18 expanded: native-F# alternatives deep dive + maintenance check + MVU
+  hedge.** Recorded the full "escape JS" survey from the design discussion. Key additions: (18.1) the
+  MVU-overlap finding for **Bolero (web) + Fabulous (native)** - architecture (Elmish Model/Update/domain/
+  data) is shareable, but the **view vocabulary is not** (HTML vs MAUI controls), so one UI surface needs
+  a self-built react-native-web-for-.NET view DSL; and **RN already renders true native widgets**, so
+  "native widgets" is not a reason to leave. (18.2) **Maintenance reality (checked live):** `Fabulous.Maui`
+  is **ON-HOLD**, Fabulous core slowing (2.4.2, Mar 2024), MAUI mid re-architecture + .NET 10 regressions
+  + F# second-class; Bolero healthy-ish on Microsoft Blazor; Avalonia/FuncUI maintained but canvas-web
+  (no a11y). (18.3) **Adopt MVU now** as the cheap, reversible hedge. (18.4) native-modules-first-class,
+  web+WebWorkers+PWA, F#->Kotlin/Scala/Swift, and Fable Python/Rust all evaluated and declined, with the
+  recurring reason: heavy work already lives on the .NET/Orleans backend, so client-side escape-JS levers
+  optimize a non-bottleneck. Cross-refs Section 24 (worklets).
 - **2026-06-29 (19)** **Risk 1 (worklets from F#) RESOLVED + Section 24 added.** Measured on an Android
   dev build of the spike: Fable-emitted Reanimated worklets run on the **JS thread, not the UI thread**
   (JS-block test froze the animation while JS was blocked), and `runOnJS` inside a Fable worklet aborts
