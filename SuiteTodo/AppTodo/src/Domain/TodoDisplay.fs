@@ -54,11 +54,11 @@ let metaPrioritySpoken (priority: TodoPriority) =
 let metaCategorySpoken (category: TodoCategory) =
     i18n.Format(i18n.t.MetaCategoryFormat, categoryLabel category)
 
-let metaDueSpoken (dueOn: DateTimeOffset) =
-    i18n.Format(i18n.t.MetaDueSpokenFormat, formatDueOn dueOn)
-
 let formatDueOn (dueOn: DateTimeOffset) =
     dueOn.ToLocalTime().ToString("MMM d")
+
+let metaDueSpoken (dueOn: DateTimeOffset) =
+    i18n.Format(i18n.t.MetaDueSpokenFormat, formatDueOn dueOn)
 
 let parseDueOnInput (raw: string) : Option<DateTimeOffset> =
     if String.IsNullOrWhiteSpace raw then

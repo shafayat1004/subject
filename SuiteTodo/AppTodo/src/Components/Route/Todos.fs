@@ -338,7 +338,7 @@ type private Helpers =
     static member StatChip(palette: SemanticPalette, label: string, ?testId: string) : ReactElement =
         RX.View(
             ?testId = testId,
-            importantForAccessibility = ImportantForAccessibility.No,
+            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
             styles = [| Styles.statChip palette |],
             children = [|
                 LC.Text(styles = [| Styles.statChipText palette |], value = label)
@@ -612,7 +612,7 @@ type Ui.Route with
                         async {
                             match titleInput.current with
                             | None ->
-                                LC.LiveRegion.announce i18n.t.EnterTitle AccessibilityLiveRegion.Polite
+                                LC.LiveRegion.announce i18n.t.EnterTitle LibClient.Accessibility.AccessibilityLiveRegion.Polite
                                 return Error i18n.t.EnterTitle
                             | Some title ->
                                 let dueOn =
@@ -620,7 +620,7 @@ type Ui.Route with
                                     |> Option.bind (fun (s: NonemptyString) -> parseDueOnInput s.Value)
                                 let! result = addTodo title priorityHook.current categoryHook.current dueOn
                                 if Result.isOk result then
-                                    LC.LiveRegion.announce (i18n.Format(i18n.t.AddedFormat, title.Value)) AccessibilityLiveRegion.Polite
+                                    LC.LiveRegion.announce (i18n.Format(i18n.t.AddedFormat, title.Value)) LibClient.Accessibility.AccessibilityLiveRegion.Polite
                                     titleInput.update None
                                     dueInput.update None
                                     priorityHook.update TodoPriority.Medium

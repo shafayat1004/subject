@@ -106,6 +106,7 @@ let private lazyServices = lazy (
         {|
             Http             = LibClient.ServiceInstances.services().Http
             ThothEncodedHttp = thothEncodedHttpService
+            LocalStorage     = LibClient.Services.LocalStorageService.LocalStorageService "apptodo"
             Todo             = todoService
             TodoListView     = todoListViewService
         |}

@@ -26,7 +26,7 @@ module With_NavigationTypeExtensions =
             match xLegacyStyles with
             | Option.None | Option.Some [] -> ()
             | Option.Some styles -> __props?__style <- styles
-            LibRouter.Components.With.Navigation.Make
+            LibRouter.Components.With.NavigationBridge.Make
                 __props
                 (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||])
             

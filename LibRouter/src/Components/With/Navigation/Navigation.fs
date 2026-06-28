@@ -1,5 +1,6 @@
 module LibRouter.Components.With.Navigation
 
+open Fable.React
 open LibClient
 open LibClient.Dialogs
 open LibClient.SystemDialogs

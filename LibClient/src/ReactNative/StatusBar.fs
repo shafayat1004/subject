@@ -31,11 +31,9 @@ type RN with
         ?key:      string,
         ?barStyle: ReactNativeStatusBarStyle
     ) =
+        let maybeBarStyle = barStyle |> Option.map (fun s -> s.toJS)
         let __props =
-            StatusBarPropsJs(
-                ?key = key,
-                ?barStyle = barStyle |> Option.map (fun s -> s.toJS)
-            )
+            StatusBarPropsJs(?key = key, ?barStyle = maybeBarStyle)
             |> box
 
         MakeReactNativeStatusBar

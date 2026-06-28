@@ -27,6 +27,8 @@
   <ItemGroup>
     <Compile Include="Config.fs" />
     <Compile Include="RenderHelpers.fs" />
+    <Compile Include="FakeData/FakeTodoService.fs" />
+    <Compile Include="Services.fs" />
   </ItemGroup>
 
   <!-- Domain: error display, todo actions, queries, and display helpers. -->
@@ -37,10 +39,8 @@
     <Compile Include="Domain/ErrorMessages.fs" />
   </ItemGroup>
 
-  <!-- Foundation (services + routing): may depend on Domain + FakeData. -->
+  <!-- Foundation (routing): may depend on Domain + FakeData. -->
   <ItemGroup>
-    <Compile Include="FakeData/FakeTodoService.fs" />
-    <Compile Include="Services.fs" />
     <Compile Include="Navigation.fs" />
   </ItemGroup>
 

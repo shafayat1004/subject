@@ -1,6 +1,7 @@
 namespace LibRouter.Components
 
 open LibClient
+open Fable.Core
 open Fable.Core.JsInterop
 open LibRouter.Components.Link
 open Fable.Core.JsInterop
