@@ -107,9 +107,12 @@ module Styles =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) (isActive: bool) ->
                 makeViewStyles {
-                    paddingVertical 5
-                    paddingHorizontal 12
+                    paddingVertical 6
+                    paddingHorizontal 14
                     borderRadius 999
+                    // Android: a backgroundColor + borderRadius View needs Overflow.Hidden
+                    // to actually clip the fill to the rounded box (otherwise square).
+                    Overflow.Hidden
                     if isActive then
                         backgroundColor palette.Accent
                 }
@@ -124,6 +127,13 @@ module Styles =
                     color segmentColor
                 }
         )
+
+    // Match the mockup's radius-md (16) on primary buttons; framework Button
+    // hardcodes 4, and caller styles win (appended last).
+    let addButton =
+        makeViewStyles {
+            borderRadius 16
+        }
 
     // Composer field cell: full-width stacked on handheld, equal flex columns when wide.
     let composerCell =

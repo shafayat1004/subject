@@ -314,6 +314,14 @@ module Input_TextComponent =
                 fillColor
                 (outlineColorFor theTheme isInvalid isFocused)
 
+        let prefixIconWrap =
+            makeViewStyles {
+                flexShrink 0
+                marginRight 8
+                AlignItems.Center
+                JustifyContent.Center
+            }
+
         let prefix =
             TextStyles.Memoize (fun (textColor: Color) ->
                 makeTextStyles {
@@ -412,6 +420,7 @@ module Input_TextComponent =
                 ?onBlur: FocusEvent -> unit,
                 ?placeholder: string,
                 ?prefix: string,
+                ?prefixIcon: LibClient.Icons.IconConstructor,
                 ?suffix: InputSuffix,
                 ?maxLength: int,
                 ?tabIndex: int,
@@ -519,6 +528,15 @@ module Input_TextComponent =
                             styles = [| Styles.borderFor theTheme validity.IsInvalid isFocusedHook.current editable |],
                             children =
                                 [|
+                                    match prefixIcon with
+                                    | Some iconCtor ->
+                                        RX.View(
+                                            styles = [| Styles.prefixIconWrap |],
+                                            children = [| iconCtor theTheme.PlaceholderColor 16 |]
+                                        )
+                                    | None ->
+                                        noElement
+
                                     match (isLabelSmall, prefix) with
                                     | (true, Some prefixText) ->
                                         LC.UiText(value = prefixText, styles = [| Styles.prefix theTheme.TextColor |])

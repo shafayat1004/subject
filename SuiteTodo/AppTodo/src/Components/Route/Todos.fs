@@ -7,6 +7,7 @@ open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Components.Input
 open LibClient.Components.Input_Picker
+open LibClient.Icons
 open LibClient.Responsive
 open LibUiSubject
 open LibUiSubject.Components.Constructors
@@ -656,6 +657,7 @@ type Ui.Route with
                                                                                 LC.Button(
                                                                                     label = "Add",
                                                                                     state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                                                    styles = [| Styles.addButton |],
                                                                                     testId = A11ySlug.testId "todo" "add"
                                                                                 )
                                                                         |]
@@ -700,6 +702,7 @@ type Ui.Route with
                                                                     LC.Button(
                                                                         label = "Add todo",
                                                                         state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                                        styles = [| Styles.addButton |],
                                                                         testId = A11ySlug.testId "todo" "add-mobile"
                                                                     )
                                                             |]
@@ -715,6 +718,7 @@ type Ui.Route with
                                                             onChange = searchInput.update,
                                                             validity = Valid,
                                                             placeholder = "Search todos...",
+                                                            prefixIcon = Icon.MagnifyingGlass,
                                                             testId = A11ySlug.testId "todo" "search"
                                                         )
                                                     |]

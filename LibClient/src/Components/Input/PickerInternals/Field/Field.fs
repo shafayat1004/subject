@@ -131,7 +131,7 @@ module private Styles =
         ViewStyles.Memoize (fun (labelBg: Color) ->
             makeViewStyles {
                 Position.Absolute
-                top 0
+                top -8
                 left 10
                 paddingHorizontal 3
                 backgroundColor labelBg

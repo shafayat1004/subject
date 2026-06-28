@@ -1388,4 +1388,28 @@ config) and `snapshots/default_boot` (quickboot restores old landscape state); c
 **Screenshot-verify the matrix.** Reload (`am force-stop` + `monkey -p <pkg> -c LAUNCHER 1`), wait
 ~25s for first bundle, `adb shell screencap`. Rotate via `adb shell settings put system
 user_rotation 0|1` (set `accelerometer_rotation 0` first). This caught the uppercase-hex runtime crash
-and the Due-date cutoff that a green build hid.
+and the Due-date cutoff that a green build hid. **Zoom for pixel bugs:** crop with
+`sips -c <h> <w> --cropOffset <y> <x> in.png --out out.png` then Read — caught a square-cornered toggle
+fill that was invisible at full-screen scale.
+
+### 2026-06-28 — ui2 polish: Android borderRadius clip, prefix icon, button/picker label
+
+**Android: `backgroundColor` + `borderRadius` View renders SQUARE without `Overflow.Hidden`.** The
+segmented toggle's active segment had `borderRadius 999` but painted a hard rectangle on Android; the
+sibling track (which also had `borderWidth`) rounded fine. Adding `Overflow.Hidden` to the filled view
+makes Android clip the background to the rounded box. Rule: a filled, borderless, rounded `RX.View`
+needs `Overflow.Hidden` on native.
+
+**Picker floating label background.** `PickerInternals/Field` label was `top 0`, so the label box
+straddled the white field fill and showed a label-colored patch over the field ("wrong background").
+Moved to `top -8` so it floats above onto the panel; its bg (`LabelBackgroundColor`, themeable) then
+blends with the form surface. Matches the Material floating-label pattern.
+
+**Left icon in a text input.** `Input.Text` only had `?prefix: string` (text) and `?suffix:
+InputSuffix` (right). Added `?prefixIcon: IconConstructor`; render it left of the field by calling the
+constructor directly (`iconCtor color size` → `Icon` is a `ReactElement`) inside a small wrap view — no
+need for `LC.Icon` (avoids a Text→Icon compile-order dependency). `Icon.MagnifyingGlass` exists.
+
+**Button corner radius is hardcoded (4) in `Button.fs` `Styles.viewBase`.** Not themeable, but caller
+`?styles` are appended LAST and win, so `styles = [| makeViewStyles { borderRadius 16 } |]` overrides
+it per call (define the style top-level, not in render).
