@@ -1,4 +1,5 @@
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const webpack = require("webpack");
 
@@ -68,10 +69,12 @@ const commonConfig = {
 
 // CONFIG FOR DEVELOPMENT ==========
 if (isDev) {
+    const devServerPort = getDevServerPort();
     module.exports = {
         ...commonConfig,
         devServer: {
-            host: "127.0.0.1",
+            // Listen on all interfaces so other devices on the LAN can open dev-web.
+            host: "0.0.0.0",
             allowedHosts: "all",
             static: {
                 directory: path.join(PROJECT_PATH, "public-dev"),
@@ -79,12 +82,20 @@ if (isDev) {
             historyApiFallback: {
                 disableDotRule: true
             },
-            port:               getDevServerPort(),
+            port:               devServerPort,
             client: {
+                // HMR websocket follows the host:port the browser used (any interface IP).
+                webSocketURL: "auto://0.0.0.0:0/ws",
                 overlay: {
                     errors:   true,
                     warnings: false, // until #1116 is addressed
                 }
+            },
+            onListening: (devServer) => {
+                if (!devServer) {
+                    return;
+                }
+                logDevServerUrls(devServerPort);
             },
             headers: {
                 "Cross-Origin-Opener-Policy": "same-origin",
@@ -178,4 +189,45 @@ function getDevServerPort() {
         case "AppEggShellGallery":        return 8082;
         default:                          return 9080;
     }
+}
+
+function isIPv4(net) {
+    return net.family === "IPv4" || net.family === 4;
+}
+
+function isIPv6(net) {
+    return net.family === "IPv6" || net.family === 6;
+}
+
+function formatHostForUrl(address, family) {
+    if (family === "IPv6" || family === 6) {
+        // Strip zone id (e.g. fe80::1%en0) — not valid in URL host literals.
+        const bare = address.split("%")[0];
+        return `[${bare}]`;
+    }
+    return address;
+}
+
+/** Print every address this machine can use to reach dev-web on the given port. */
+function logDevServerUrls(port) {
+    const urls = new Set([
+        `http://127.0.0.1:${port}`,
+        `http://localhost:${port}`,
+    ]);
+
+    for (const ifaces of Object.values(os.networkInterfaces())) {
+        if (!ifaces) {
+            continue;
+        }
+        for (const net of ifaces) {
+            if (isIPv4(net) || isIPv6(net)) {
+                const host = formatHostForUrl(net.address, net.family);
+                urls.add(`http://${host}:${port}`);
+            }
+        }
+    }
+
+    console.log("\nDev server listening on all interfaces (0.0.0.0). Reachable at:\n  "
+        + [...urls].sort().join("\n  ")
+        + "\n");
 }

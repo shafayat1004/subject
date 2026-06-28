@@ -216,8 +216,9 @@ xcrun simctl spawn booted log show --last 2m --style compact | tail -300   # run
 ### 5.1 Start dev-web and open
 ```bash
 cd SuiteTodo/AppTodo
-../../eggshell dev-web        # http://127.0.0.1:9080  (fake backend works without a real host)
+../../eggshell dev-web        # default port 9080; binds 0.0.0.0 (every interface)
 open http://127.0.0.1:9080
+# On startup, webpack prints every reachable URL (127.0.0.1, LAN IPs, etc.)
 ```
 ### 5.2 Observe
 - **Screenshot / console (scripted, headless):** the Playwright smoke `npm run audit:web` (adds a todo,

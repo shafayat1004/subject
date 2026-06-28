@@ -5,6 +5,21 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — AppTodo UI: `ui2.html` mockup + `Color.Hex` alpha trap
+
+**Mockup:** `SuiteTodo/AppTodo/suggestions/ui2.html` — canonical layout (420px phone shell, 40px radius, `#E5E5E5` canvas, `#FDF9F6` app bg, form `#EFE6DF`, teal `#458B8C`, swipe hint 3px `#DC2626` on row right edge). Match palette tokens in `Theme/Colors.fs` + spacing in `Theme/TodoTheme.fs`; do not paste 8-digit CSS hex into `Color.Hex`.
+
+**Bootstrap crash:** `Color.Hex "#0000001a"` throws at module load (`Color is expected to match #[0-9a-f]{6}`). Use `Color.BlackAlpha (26./255.)` or `Color.White.WithOpacity 0.4` instead — `ColorModule` appends alpha via `WithOpacity`, not `#RRGGBBAA` literals.
+
+---
+
+## 2026-06-29 — AppTodo fake services
+**Reference:** `SuiteX/AppX/src/Services.fs` (fake when `BackendUrl` is `None`, real via `SubjectService.Create` when `Some`). **`AppX`** (`SuiteX/AppX`) always requires `BackendUrl: string` — no fake path.
+
+**Pattern:** `#if DEBUG` only (not `EGGSHELL_PLATFORM_IS_WEB`); put `#if DEBUG` **inside** the `| None ->` match arm (Fable can strip it when arms split). `ConfigSource.Base.BackendUrl = None`; dev JS **comments out** `BackendUrl` for fake data (AppDriver sets it and says comment out for fake). `initialize` ends with `services () |> ignore` to force lazy service wiring. LibFablePlus must pass `--define DEBUG` for `package` builds too.
+
+---
+
 ## 2026-06-29 — `build-native` / `package-web` must pass `--define DEBUG` for `#if DEBUG` fake services
 
 **Symptom:** AppTodo runtime throws `"No BackendUrl is set"` even though `Services.fs` has `#if DEBUG` → `FakeTodoService` — compile is green.
@@ -398,7 +413,7 @@ Full framework NPM upgrade for security and performance. Validated with `eggshel
 - `lodash` → **4.18.1** everywhere (4.17.23 still flagged by npm audit for newer CVEs)
 - `typescript` toolchain → **5.7.x**; all Meta/Lib* tsconfigs got `skipLibCheck: true` and `target: es2018` (needed for `/s` regex in LibRtCompiler)
 - `gulp` → **5.0.1** in LibScaffolding + LibRtCompiler (clears chokidar 2 / braces chain)
-- `webpack-dev-server` → **5.2.5+** in Meta/LibFablePlus only; `webpack.config.js` binds to `127.0.0.1` and sets CORP headers
+- `webpack-dev-server` → **5.2.5+** in Meta/LibFablePlus only; `webpack.config.js` dev-server binds **`0.0.0.0`** (LAN + localhost) with `client.webSocketURL` for HMR over LAN IP; sets CORP headers
 - `glob` → **8.1.0** with `glob-promise@6` (glob 11 conflicts with glob-promise peer `^8`)
 - Removed unused `gulp`/`glob` devDeps from LibClient, LibRouter, LibUiSubject, LibPushNotification (were pulling ~300+ transitive packages each)
 - AppEggShellGallery: **react-native 0.76.5**, `@react-native/metro-config 0.76.5`, babel 7.26
