@@ -62,6 +62,23 @@ type AccessibilityStateRecord = {
     Busy: bool option
 }
 
+/// POJO prototype (Fable 5 `[<Pojo>]`): constructor args define a plain JS object, the class
+/// declaration is erased. Optional ctor args map to optional fields; member names set JS key
+/// casing (ReactXP wants camelCase `disabled`/`selected`/...). Replaces the hand-built
+/// `createObj` + `Option.map`/`box` prop bag below.
+[<Fable.Core.JS.Pojo>]
+type private AccessibilityStateJs
+    ( ?disabled:    bool,
+      ?selected:    bool,
+      ?``checked``: bool,
+      ?expanded:    bool,
+      ?busy:        bool ) =
+    member val disabled    = disabled
+    member val selected    = selected
+    member val ``checked`` = ``checked``
+    member val expanded    = expanded
+    member val busy        = busy
+
 module AccessibilityStateRecord =
     let empty = {
         Disabled = None
@@ -78,13 +95,13 @@ module AccessibilityStateRecord =
     let busy value = { empty with Busy = Some value }
 
     let toJs (state: AccessibilityStateRecord) : obj =
-        createObj [
-            yield! (state.Disabled |> Option.map (fun v -> ("disabled", box v)) |> Option.toList)
-            yield! (state.Selected |> Option.map (fun v -> ("selected", box v)) |> Option.toList)
-            yield! (state.Checked |> Option.map (fun v -> ("checked", box v)) |> Option.toList)
-            yield! (state.Expanded |> Option.map (fun v -> ("expanded", box v)) |> Option.toList)
-            yield! (state.Busy |> Option.map (fun v -> ("busy", box v)) |> Option.toList)
-        ]
+        AccessibilityStateJs(
+            ?disabled    = state.Disabled,
+            ?selected    = state.Selected,
+            ?``checked`` = state.Checked,
+            ?expanded    = state.Expanded,
+            ?busy        = state.Busy
+        ) |> box
 
 type A11yProps = {
     Label: string option

@@ -10,6 +10,11 @@ open ThirdParty.ReactLeafletOsmMap.Components
 
 #if EGGSHELL_PLATFORM_IS_WEB
 
+[<Fable.Core.JS.Pojo>]
+type private FeatureGroupPropsJs ( ?key: string, ?ref: obj -> unit ) =
+    member val key = key
+    member val ``ref`` = ``ref``
+
 let private FeatureGroupComp: obj -> ReactElement = JsInterop.import "FeatureGroup" "react-leaflet"
 
 type OsmMap with
@@ -20,10 +25,7 @@ type OsmMap with
         ?children:            ReactChildrenProp)
         : ReactElement =
         let wrappedProps =
-            createObjWithOptionalValues [
-                "key"              ==?> key
-                "ref"              ==?> onfeatureGroupReady
-            ]
+            FeatureGroupPropsJs(?key = key, ?ref = onfeatureGroupReady) |> box
 
         Fable.React.ReactBindings.React.createElement (FeatureGroupComp, wrappedProps, (children |> Option.defaultValue Array.empty))
 

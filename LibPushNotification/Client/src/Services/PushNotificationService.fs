@@ -21,6 +21,18 @@ type IToken =
 type IData =
     abstract onClickUrl: Option<string> with get, set
 
+[<Fable.Core.JS.Pojo>]
+type private NotificationChannelAttrsJs
+    ( channelId: string, channelName: string, channelDescription: string,
+      playSound: bool, soundName: string, importance: NotificationImportance, vibrate: bool ) =
+    member val channelId = channelId
+    member val channelName = channelName
+    member val channelDescription = channelDescription
+    member val playSound = playSound
+    member val soundName = soundName
+    member val importance = importance
+    member val vibrate = vibrate
+
 type INotification =
     abstract foreground:      bool   with get, set
     abstract userInteraction: bool   with get, set
@@ -165,15 +177,16 @@ type PushNotificationService () =
             | Some sound -> sound.Value
             | None       -> "default"
 
-        let channelAttr = createObj [
-            "channelId"          ==> channelId.Value
-            "channelName"        ==> channelDetails.Name.Value
-            "channelDescription" ==> channelDetails.Description.Value
-            "playSound"          ==> true
-            "soundName"          ==> soundName
-            "importance"         ==> channelDetails.Importance
-            "vibrate"            ==> true
-        ]
+        let channelAttr =
+            NotificationChannelAttrsJs(
+                channelId.Value,
+                channelDetails.Name.Value,
+                channelDetails.Description.Value,
+                true,
+                soundName,
+                channelDetails.Importance,
+                true
+            ) |> box
 
         pushNotification?createChannel (channelAttr, ( fun _ -> ()))
 

@@ -3,6 +3,25 @@
 open Fable.Core
 open Fable.Core.JsInterop
 
+[<Fable.Core.JS.Pojo>]
+type private EdgeInsetsJs(top: int, bottom: int, left: int, right: int) =
+    member val top    = top
+    member val bottom = bottom
+    member val left   = left
+    member val right  = right
+
+[<Fable.Core.JS.Pojo>]
+type private ViewBoxJs(x: int, y: int, width: int, height: int) =
+    member val x      = x
+    member val y      = y
+    member val width  = width
+    member val height = height
+
+[<Fable.Core.JS.Pojo>]
+type private PositionJs(x: int, y: int) =
+    member val x = x
+    member val y = y
+
 type EdgeInsets = {
     Top:    int
     Bottom: int
@@ -11,12 +30,7 @@ type EdgeInsets = {
 }
 with
     member this.ToJS =
-        createObj [
-            "top"    ==> this.Top
-            "bottom" ==> this.Bottom
-            "left"   ==> this.Left
-            "right"  ==> this.Right
-        ]
+        EdgeInsetsJs(this.Top, this.Bottom, this.Left, this.Right) |> box
 
 type ViewBox = {
     X:      int
@@ -26,12 +40,7 @@ type ViewBox = {
 }
 with
     member this.ToJS =
-        createObj [
-            "x"      ==> this.X
-            "y"      ==> this.Y
-            "width"  ==> this.Width
-            "height" ==> this.Height
-        ]
+        ViewBoxJs(this.X, this.Y, this.Width, this.Height) |> box
 
 type Position = {
     X: int
@@ -39,10 +48,7 @@ type Position = {
 }
 with
     member this.ToJS =
-        createObj [
-            "x" ==> this.X
-            "y" ==> this.Y
-        ]
+        PositionJs(this.X, this.Y) |> box
 
 type Size =
 | Percentage of float

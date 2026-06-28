@@ -30,9 +30,13 @@ type ContextMenu =
 
         let contextMenuPopup = makeContextMenuPopup items hide e
 
-        let options = createObj [
-            "getAnchor"   ==> fun () -> maybeAnchor |> Option.getOrElseRaise (exn "Need an anchor react element for context menus; no time to fix now")
-            "renderPopup" ==> fun (_anchorPosition: obj, _anchorOffset: int, _popupWidth: int, _popupHeight: int) -> contextMenuPopup
-            "onDismiss"   ==> onClose
-        ]
+        let options =
+            ReactXP.Helpers.popupShowOptions
+                (fun () ->
+                    maybeAnchor
+                    |> Option.getOrElseRaise (exn "Need an anchor react element for context menus; no time to fix now")
+                    :> obj)
+                (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
+                    contextMenuPopup)
+                onClose
         ReactXP.Helpers.ReactXPRaw?Popup?show(options, id)

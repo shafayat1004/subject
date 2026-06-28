@@ -4,11 +4,15 @@ open Fable.Core
 open Fable.Core.JsInterop
 open LibClient
 
+[<Fable.Core.JS.Pojo>]
+type private RouterFutureJs ( ?v7_startTransition: bool ) =
+    member val v7_startTransition = v7_startTransition
+
 // react-router's v7_startTransition uses React.startTransition, which crashes on
 // React Native bridgeless (requestCurrentTransition → .add of undefined).
 let defaultFuture : obj =
     #if EGGSHELL_PLATFORM_IS_WEB
-    Some (createObj ["v7_startTransition" ==> true]) :> obj
+    Some (RouterFutureJs(?v7_startTransition = Some true) |> box) :> obj
     #else
     None :> obj
     #endif

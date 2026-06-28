@@ -10,6 +10,17 @@ open ThirdParty.ReactLeafletOsmMap.Components
 
 #if EGGSHELL_PLATFORM_IS_WEB
 
+[<Fable.Core.JS.Pojo>]
+type private FullscreenControlPropsJs
+    ( ?position: string, ?title: string, ?titleCancel: string, ?content: string,
+      ?forceSeparateButton: bool, ?forcePseudoFullscreen: bool ) =
+    member val position = position
+    member val title = title
+    member val titleCancel = titleCancel
+    member val content = content
+    member val forceSeparateButton = forceSeparateButton
+    member val forcePseudoFullscreen = forcePseudoFullscreen
+
 let private FullscreenControlComp: obj -> ReactElement = JsInterop.import "FullscreenControl" "react-leaflet-fullscreen"
 
 type OsmMap with
@@ -23,14 +34,14 @@ type OsmMap with
         ?forcePseudoFullscreen: bool)
         : ReactElement =
         let wrappedProps =
-            createObjWithOptionalValues [
-                "position"              ==?> (position |> Option.map (fun x -> x.ToJs()))
-                "title"                 ==?> title
-                "titleCancel"           ==?> titleCancel
-                "content"               ==?> content
-                "forceSeparateButton"   ==?> forceSeparateButton
-                "forcePseudoFullscreen" ==?> forcePseudoFullscreen
-            ]
+            FullscreenControlPropsJs(
+                ?position = (position |> Option.map (fun x -> x.ToJs())),
+                ?title = title,
+                ?titleCancel = titleCancel,
+                ?content = content,
+                ?forceSeparateButton = forceSeparateButton,
+                ?forcePseudoFullscreen = forcePseudoFullscreen
+            ) |> box
 
         Fable.React.ReactBindings.React.createElement (FullscreenControlComp, wrappedProps, Seq.empty)
 

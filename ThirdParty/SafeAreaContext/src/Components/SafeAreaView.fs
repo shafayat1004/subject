@@ -5,7 +5,13 @@ open LibClient
 open ReactXP.Styles
 
 #if !EGGSHELL_PLATFORM_IS_WEB
+open Fable.Core
 open Fable.Core.JsInterop
+
+[<Fable.Core.JS.Pojo>]
+type private SafeAreaViewPropsJs ( ?style: obj, ?key: string ) =
+    member val style = style
+    member val key = key
 
 let private safeAreaView : obj = import "SafeAreaView" "react-native-safe-area-context"
 let private MakeSafeAreaView: obj -> ReactElements -> ReactElement =
@@ -27,10 +33,11 @@ type SafeAreaContext with
             |> ThirdParty.fixPotentiallySingleChild
 
         #if !EGGSHELL_PLATFORM_IS_WEB
-        let __props = createObj [
-            "style" ==> styles
-            "key"   ==> key
-        ]
+        let __props =
+            SafeAreaViewPropsJs(
+                ?style = (styles |> Option.map box),
+                ?key = key
+            ) |> box
 
         MakeSafeAreaView
             __props

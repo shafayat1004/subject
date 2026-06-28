@@ -76,18 +76,26 @@ with
         | 7 -> SYNC_IN_PROGRESS
         | _ -> UNKNOWN_ERROR
 
+[<Fable.Core.JS.Pojo>]
+type private CodePushOptionsJs ( ?checkFrequency: int, ?mandatoryInstallMode: int ) =
+    member val checkFrequency = checkFrequency
+    member val mandatoryInstallMode = mandatoryInstallMode
+
+[<Fable.Core.JS.Pojo>]
+type private SyncOptionsJs ( installMode: int, mandatoryInstallMode: int ) =
+    member val installMode = installMode
+    member val mandatoryInstallMode = mandatoryInstallMode
+
 type CodePushOptions = {
     checkFrequency: Option<CheckFrequency>
     mandatoryInstallMode: Option<InstallMode>
 }
 with
     member this.toJS() =
-        createObj [
-            if this.checkFrequency.IsSome then
-                "checkFrequency" ==> this.checkFrequency.Value.toJS()
-            if this.mandatoryInstallMode.IsSome then
-                "mandatoryInstallMode" ==> this.mandatoryInstallMode.Value.toJS()
-        ]
+        CodePushOptionsJs(
+            ?checkFrequency = (this.checkFrequency |> Option.map (fun x -> x.toJS())),
+            ?mandatoryInstallMode = (this.mandatoryInstallMode |> Option.map (fun x -> x.toJS()))
+        ) |> box
 
 type LocalPackage = {
     appVersion:    string
@@ -133,10 +141,7 @@ type SyncOptions = {
 }
 with
     member this.toJS() =
-        createObj [
-            "installMode"          ==> this.installMode.toJS()
-            "mandatoryInstallMode" ==> this.mandatoryInstallMode.toJS()
-        ]
+        SyncOptionsJs(this.installMode.toJS(), this.mandatoryInstallMode.toJS()) |> box
 
 // What you pass in to this function is the constructor of your EggShellReact subclass component.
 // e.g. if you want to wrap the AppExample.Components.AppContext component, you say:

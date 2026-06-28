@@ -1,8 +1,37 @@
 module ReactXP.Styles.Animation
 
 open System
+open Fable.Core
 open Fable.Core.JsInterop
 open LibClient
+
+[<Fable.Core.JS.Pojo>]
+type private AnimationLoopOptionsJs (?restartFrom: float) =
+    member val restartFrom = restartFrom
+
+[<Fable.Core.JS.Pojo>]
+type private AnimatedTimingOptionsJs
+    ( toValue: float, duration: float, useNativeDriver: bool,
+      ?delay: float, ?easing: obj, ?loop: obj ) =
+    member val toValue = toValue
+    member val duration = duration
+    member val useNativeDriver = useNativeDriver
+    member val delay = delay
+    member val easing = easing
+    member val loop = loop
+
+[<Fable.Core.JS.Pojo>]
+type private AnimatedTimingSimpleOptionsJs
+    ( toValue: float, duration: int, useNativeDriver: bool, ?easing: obj ) =
+    member val toValue = toValue
+    member val duration = duration
+    member val useNativeDriver = useNativeDriver
+    member val easing = easing
+
+[<Fable.Core.JS.Pojo>]
+type private InterpolationConfigJs ( inputRange: obj, outputRange: obj ) =
+    member val inputRange = inputRange
+    member val outputRange = outputRange
 
 [<RequireQualifiedAccess>]
 type Easing =
@@ -36,19 +65,19 @@ with
 
 type InterpolationConfig internal(raw: obj) =
     static member Create(mappings: seq<double * double>) =
-        createObj
-            [
-                ("inputRange", mappings |> Seq.map fst |> Seq.toArray |> box)
-                ("outputRange", mappings |> Seq.map snd |> Seq.toArray |> box)
-            ]
+        InterpolationConfigJs(
+            mappings |> Seq.map fst |> Seq.toArray |> box,
+            mappings |> Seq.map snd |> Seq.toArray |> box
+        )
+        |> box
         |> InterpolationConfig
 
     static member Create(mappings: seq<double * Color>) =
-        createObj
-            [
-                ("inputRange", mappings |> Seq.map fst |> Seq.toArray |> box)
-                ("outputRange", mappings |> Seq.map snd |> Seq.map (fun color -> color.ToReactXPString) |> Seq.toArray |> box)
-            ]
+        InterpolationConfigJs(
+            mappings |> Seq.map fst |> Seq.toArray |> box,
+            mappings |> Seq.map snd |> Seq.map (fun color -> color.ToReactXPString) |> Seq.toArray |> box
+        )
+        |> box
         |> InterpolationConfig
 
     member internal _.Raw = raw
@@ -108,29 +137,21 @@ type Animation internal(raw: RawAnimation) =
             ?easing: Easing,
             ?restartFrom: double)
             : Animation =
+        let maybeDelayMs = delay |> Option.map (fun d -> d.TotalMilliseconds)
+        let maybeEasing = easing |> Option.map (fun e -> e.ToReactXP)
+        let maybeLoop =
+            restartFrom
+            |> Option.map (fun v -> AnimationLoopOptionsJs(?restartFrom = Some v) |> box)
+
         let fields =
-            createObj
-                [|
-                    ("toValue",  toValue :> obj)
-                    ("duration", duration.TotalMilliseconds :> obj)
-                    // Per the caveats listed at https://reactnative.dev/blog/2017/02/14/using-native-driver-for-animated#caveats, not all properties
-                    // can be natively animated. Despite being on a fairly recent version of RN (0.70.8 at time of writing), I have found that even
-                    // some basic things like text color cannot be animated with the native driver, so I've explicitly disabled it for now. In the
-                    // future we should enable this if we can, or perhaps allow the caller to specify.
-                    ("useNativeDriver", box false)
-
-                    match delay with
-                    | None -> Noop
-                    | Some delay -> ("delay", delay.TotalMilliseconds :> obj)
-
-                    match easing with
-                    | None -> Noop
-                    | Some easing -> ("easing", easing.ToReactXP)
-
-                    match restartFrom with
-                    | None -> Noop
-                    | Some restartFrom -> ("loop", createObj [| ("restartFrom", restartFrom :> obj) |])
-                |]
+            AnimatedTimingOptionsJs(
+                toValue,
+                duration.TotalMilliseconds,
+                false,
+                ?delay = maybeDelayMs,
+                ?easing = maybeEasing,
+                ?loop = maybeLoop
+            ) |> box
 
         ReactXP.Helpers.ReactXPRaw?Animated?timing(animatedValue.Raw, fields)
         |> Animation
@@ -168,18 +189,16 @@ module ReactXPAnimationExtensions =
 
         static member Simple (toValue: double, durationMillis: int, ?easing: Easing) : (RawAnimatedValue -> RawAnimation) =
             fun (value: RawAnimatedValue) ->
-                let requiredFields = [
-                    ("toValue",  toValue :> obj)
-                    ("duration", durationMillis :> obj)
-                    ("useNativeDriver", true)
-                ]
-
+                let maybeEasing = easing |> Option.map (fun e -> e.ToReactXP)
                 let fields =
-                    match easing with
-                    | None -> requiredFields
-                    | Some easing -> ("easing", easing.ToReactXP) :: requiredFields
+                    AnimatedTimingSimpleOptionsJs(
+                        toValue,
+                        durationMillis,
+                        true,
+                        ?easing = maybeEasing
+                    ) |> box
 
-                ReactXP.Helpers.ReactXPRaw?Animated?timing(value, createObj fields)
+                ReactXP.Helpers.ReactXPRaw?Animated?timing(value, fields)
 
         static member Parallel (a1: RawAnimatedValue -> RawAnimation, a2: RawAnimatedValue -> RawAnimation) =
             fun (v1: RawAnimatedValue) (v2: RawAnimatedValue) ->

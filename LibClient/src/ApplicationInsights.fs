@@ -1,9 +1,36 @@
 module LibClient.ApplicationInsights
 
+open Fable.Core
 open Fable.Core.JsInterop
 open LibClient.MessageTemplates
 
 let private AppInsightsRaw: obj = import "ApplicationInsights" "@microsoft/applicationinsights-web"
+
+[<Fable.Core.JS.Pojo>]
+type private AppInsightsInnerConfigJs
+    ( instrumentationKey: string, maxBatchInterval: int, extensions: obj array ) =
+    member val instrumentationKey = instrumentationKey
+    member val maxBatchInterval = maxBatchInterval
+    member val extensions = extensions
+
+[<Fable.Core.JS.Pojo>]
+type private AppInsightsConstructorOptionsJs ( config: obj ) =
+    member val config = config
+
+[<Fable.Core.JS.Pojo>]
+type private TrackTraceJs ( message: string, properties: obj ) =
+    member val message = message
+    member val properties = properties
+
+[<Fable.Core.JS.Pojo>]
+type private TrackEventJs ( name: string, properties: obj ) =
+    member val name = name
+    member val properties = properties
+
+[<Fable.Core.JS.Pojo>]
+type private TrackPageViewJs ( name: string, properties: obj ) =
+    member val name = name
+    member val properties = properties
 
 let private getAppInsightExtensions () =
     #if !EGGSHELL_PLATFORM_IS_WEB
@@ -44,14 +71,15 @@ type ApplicationInsightsSink (config: AppInsightsConfig) =
             Map.merge properties userProperties
 
     let appInsights =
-        createNew AppInsightsRaw (createObj [
-            "config" ==> createObj [
-                "instrumentationKey" ==> config.InstrumentationKey
-                // default is 15000, which I'm afraid will not survive user attempted page reloads when errors happen
-                "maxBatchInterval"   ==> 5000
-                "extensions"         ==> getAppInsightExtensions ()
-            ]
-        ])
+        createNew AppInsightsRaw (
+            AppInsightsConstructorOptionsJs(
+                AppInsightsInnerConfigJs(
+                    config.InstrumentationKey,
+                    5000,
+                    getAppInsightExtensions ()
+                ) |> box
+            ) |> box
+        )
 
     let setUser (user: TelemetryUser) : unit =
         match user with
@@ -82,10 +110,9 @@ type ApplicationInsightsSink (config: AppInsightsConfig) =
             |> mergeGlobalProperties
             |> propertiesToPojo
 
-        appInsights?trackTrace (createObj [
-            "message"    ==> string event
-            "properties" ==> propertiesPojo
-        ])
+        appInsights?trackTrace (
+            TrackTraceJs(string event, propertiesPojo) |> box
+        )
 
     do
         appInsights?loadAppInsights()
@@ -102,10 +129,9 @@ type ApplicationInsightsSink (config: AppInsightsConfig) =
                 |> mergeUserProperties user
                 |> mergeGlobalProperties
                 |> propertiesToPojo
-            appInsights?trackEvent (createObj [
-                "name"       ==> name
-                "properties" ==> propertiesPojo
-            ])
+            appInsights?trackEvent (
+                TrackEventJs(name, propertiesPojo) |> box
+            )
 
         override _.TrackScreenView (url: string) (user: TelemetryUser) (properties: TelemetryProperties) : unit =
             setUser user
@@ -115,17 +141,13 @@ type ApplicationInsightsSink (config: AppInsightsConfig) =
                 |> mergeUserProperties user
                 |> mergeGlobalProperties
                 |> propertiesToPojo
-            appInsights?trackPageView (createObj [
-                // The AppInsights backend is responding with an HTTP 400, saying that
-                // the name for the page view is 1024 characters instead of the expected
-                // 512. This is probably because the backend and the library used to be in
-                // sync, both where updated to the shorter value, but we still have an older
-                // version of the library. Since 1024 is too short for a lot of our encoded
-                // URLs anyway, and on the eve of the launch we don't want to
-                // upgrade the library, we just trim the length here.
-                "name"       ==> url.Substring(0, min 512 url.Length)
-                "properties" ==> propertiesPojo
-            ])
+            // AppInsights backend expects page-view name <= 512 chars; trim encoded URLs.
+            appInsights?trackPageView (
+                TrackPageViewJs(
+                    url.Substring(0, min 512 url.Length),
+                    propertiesPojo
+                ) |> box
+            )
 
     interface ILogSink with
         member _.Log(level: LogLevel, maybeCategory: Option<string>, properties: LogProperties, event: Event) : Unit =

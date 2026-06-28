@@ -79,12 +79,12 @@ type LibClient.Components.Constructors.LC with
                 connector.SetCallbacks
                     {
                         Show = (fun (anchor: ReactElement) ->
-                            let options = createObj [
-                                "getAnchor"   ==> fun () -> anchor
-                                "renderPopup" ==> fun (_anchorPosition: obj, _anchorOffset: int, _popupWidth: int, _popupHeight: int) ->
-                                    render ()
-                                "onDismiss"   ==> fun () -> connector.CallOnDismissCallbacks ()
-                            ]
+                            let options =
+                                ReactXP.Helpers.popupShowOptions
+                                    (fun () -> anchor :> obj)
+                                    (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
+                                        render ())
+                                    (fun () -> connector.CallOnDismissCallbacks ())
                             ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
                         )
                         Hide = (fun () ->

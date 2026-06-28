@@ -61,37 +61,90 @@ type Props = (* GenerateMakeFunction *) {
 
 }
 
+[<Fable.Core.JS.Pojo>]
+type private PiePropsJs
+    ( ?cx:                obj,
+      ?cy:                obj,
+      ?innerRadius:       obj,
+      ?outerRadius:       obj,
+      ?startAngle:        float,
+      ?endAngle:          float,
+      ?minAngle:          float,
+      ?paddingAngle:      float,
+      ?nameKey:           string,
+      ?dataKey:           string,
+      ?fill:              string,
+      ?legendType:        LegendType,
+      ?data:              obj array,
+      ?isAnimationActive: bool,
+      ?animationEasing:   AnimationEasing,
+      ?onAnimationStart:  (unit -> unit),
+      ?onAnimationEnd:    (unit -> unit),
+      ?onClick:           (unit -> unit),
+      ?onMouseDown:       (unit -> unit),
+      ?onMouseUp:         (unit -> unit),
+      ?onMouseMove:       (unit -> unit),
+      ?onMouseOver:       (unit -> unit),
+      ?onMouseOut:        (unit -> unit),
+      ?onMouseEnter:      (unit -> unit),
+      ?onMouseLeave:      (unit -> unit) ) =
+    member val cx                = cx
+    member val cy                = cy
+    member val innerRadius       = innerRadius
+    member val outerRadius       = outerRadius
+    member val startAngle        = startAngle
+    member val endAngle          = endAngle
+    member val minAngle          = minAngle
+    member val paddingAngle      = paddingAngle
+    member val nameKey           = nameKey
+    member val dataKey           = dataKey
+    member val fill              = fill
+    member val legendType        = legendType
+    member val data              = data
+    member val isAnimationActive = isAnimationActive
+    member val animationEasing   = animationEasing
+    member val onAnimationStart  = onAnimationStart
+    member val onAnimationEnd    = onAnimationEnd
+    member val onClick           = onClick
+    member val onMouseDown       = onMouseDown
+    member val onMouseUp         = onMouseUp
+    member val onMouseMove       = onMouseMove
+    member val onMouseOver       = onMouseOver
+    member val onMouseOut        = onMouseOut
+    member val onMouseEnter      = onMouseEnter
+    member val onMouseLeave      = onMouseLeave
+
 let private Pie: obj = JsInterop.import "Pie" "recharts"
 let Make =
     LibClient.ThirdParty.wrapComponentTransformingProps<Props>
         Pie
         (fun (props: Props) ->
-            createObj [
-                "cx"                ==> (props.Cx |> Option.map (fun v -> v.ToJS))
-                "cy"                ==> (props.Cy |> Option.map (fun v -> v.ToJS))
-                "innerRadius"       ==> (props.InnerRadius |> Option.map (fun v -> v.ToJS))
-                "outerRadius"       ==> (props.OuterRadius |> Option.map (fun v -> v.ToJS))
-                "startAngle"        ==> props.StartAngle
-                "endAngle"          ==> props.EndAngle
-                "minAngle"          ==> props.MinAngle
-                "paddingAngle"      ==> props.PaddingAngle
-                "nameKey"           ==> props.NameKey
-                "dataKey"           ==> props.DataKey
-                "fill"              ==> (props.Fill |> Option.map (fun v -> v.ToReactXPString))
-                "legendType"        ==> props.LegendType
-                "data"              ==> props.Data
-                "isAnimationActive" ==> props.IsAnimationActive
-                "animationEasing"   ==> props.AnimationEasing
-                "onAnimationStart"  ==> props.OnAnimationStart
-                "onAnimationEnd"    ==> props.OnAnimationEnd
-                "onClick"           ==> props.OnClick
-                "onMouseDown"       ==> props.OnMouseDown
-                "onMouseUp"         ==> props.OnMouseUp
-                "onMouseMove"       ==> props.OnMouseMove
-                "onMouseOver"       ==> props.OnMouseOver
-                "onMouseOut"        ==> props.OnMouseOut
-                "onMouseEnter"      ==> props.OnMouseEnter
-                "onMouseLeave"      ==> props.OnMouseLeave
-            ]
+            PiePropsJs(
+                ?cx                = (props.Cx |> Option.map (fun v -> v.ToJS)),
+                ?cy                = (props.Cy |> Option.map (fun v -> v.ToJS)),
+                ?innerRadius       = (props.InnerRadius |> Option.map (fun v -> v.ToJS)),
+                ?outerRadius       = (props.OuterRadius |> Option.map (fun v -> v.ToJS)),
+                ?startAngle        = props.StartAngle,
+                ?endAngle          = props.EndAngle,
+                ?minAngle          = props.MinAngle,
+                ?paddingAngle      = props.PaddingAngle,
+                ?nameKey           = props.NameKey,
+                ?dataKey           = props.DataKey,
+                ?fill              = (props.Fill |> Option.map (fun v -> v.ToReactXPString)),
+                ?legendType        = props.LegendType,
+                ?data              = props.Data,
+                ?isAnimationActive = props.IsAnimationActive,
+                ?animationEasing   = props.AnimationEasing,
+                ?onAnimationStart  = props.OnAnimationStart,
+                ?onAnimationEnd    = props.OnAnimationEnd,
+                ?onClick           = props.OnClick,
+                ?onMouseDown       = props.OnMouseDown,
+                ?onMouseUp         = props.OnMouseUp,
+                ?onMouseMove       = props.OnMouseMove,
+                ?onMouseOver       = props.OnMouseOver,
+                ?onMouseOut        = props.OnMouseOut,
+                ?onMouseEnter      = props.OnMouseEnter,
+                ?onMouseLeave      = props.OnMouseLeave
+            ) |> box
         )
 

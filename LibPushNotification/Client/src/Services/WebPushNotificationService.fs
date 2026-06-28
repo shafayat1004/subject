@@ -12,15 +12,18 @@ type iSubscribeOption =
     abstract userVisibleOnly: bool with get, set
     abstract applicationServerKey: array<string> with get, set
 
+[<Fable.Core.JS.Pojo>]
+type private SubscribeOptionsJs
+    ( userVisibleOnly: bool, applicationServerKey: array<byte> ) =
+    member val userVisibleOnly = userVisibleOnly
+    member val applicationServerKey = applicationServerKey
+
 type subscribeOption = {
     userVisibleOnly: bool
     applicationServerKey: array<byte>
 } with
     member this.toObj: iSubscribeOption =
-        !!createObj [
-            "userVisibleOnly"      ==> this.userVisibleOnly
-            "applicationServerKey" ==> this.applicationServerKey
-        ]
+        SubscribeOptionsJs(this.userVisibleOnly, this.applicationServerKey) |> unbox
 
 type iPushManager =
     abstract subscribe: iSubscribeOption -> JS.Promise<iSubscription>

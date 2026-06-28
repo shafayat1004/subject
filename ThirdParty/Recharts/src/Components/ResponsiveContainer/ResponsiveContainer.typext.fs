@@ -21,17 +21,32 @@ type Props = (* GenerateMakeFunction *) {
 
 }
 
+[<Fable.Core.JS.Pojo>]
+type private ResponsiveContainerPropsJs
+    ( ?aspect:    float,
+      ?width:     obj,
+      ?height:    obj,
+      ?minWidth:  int,
+      ?minHeight: int,
+      ?debounce:  int ) =
+    member val aspect    = aspect
+    member val width     = width
+    member val height    = height
+    member val minWidth  = minWidth
+    member val minHeight = minHeight
+    member val debounce  = debounce
+
 let private ResponsiveContainerRaw: obj = JsInterop.import "ResponsiveContainer" "recharts"
 let Make (props: Props) (children: array<Fable.React.ReactElement>) =
     Fable.React.ReactBindings.React.createElement(
         ResponsiveContainerRaw,
-        (createObjWithOptionalValues [
-            "aspect"    ==?> props.Aspect
-            "width"     ==?> (props.Width |> Option.map (fun v -> v.ToJS))
-            "height"    ==?> (props.Height |> Option.map (fun v -> v.ToJS))
-            "minWidth"  ==?> props.MinWidth
-            "minHeight" ==?> props.MinHeight
-            "debounce"  ==?> props.Debounce
-        ]),
+        (ResponsiveContainerPropsJs(
+            ?aspect    = props.Aspect,
+            ?width     = (props.Width |> Option.map (fun v -> v.ToJS)),
+            ?height    = (props.Height |> Option.map (fun v -> v.ToJS)),
+            ?minWidth  = props.MinWidth,
+            ?minHeight = props.MinHeight,
+            ?debounce  = props.Debounce
+        ) |> box),
         LibClient.ThirdParty.fixPotentiallySingleChild children
     )

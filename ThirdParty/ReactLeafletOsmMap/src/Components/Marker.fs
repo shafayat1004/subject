@@ -11,6 +11,14 @@ open Fable.Core.JsInterop
 
 #if EGGSHELL_PLATFORM_IS_WEB
 
+[<Fable.Core.JS.Pojo>]
+type private MarkerPropsJs
+    ( position: obj, icon: obj, key: string, ?eventHandlers: obj ) =
+    member val position = position
+    member val icon = icon
+    member val key = key
+    member val eventHandlers = eventHandlers
+
 let private MarkerComp: obj -> ReactElement = JsInterop.import "Marker" "react-leaflet"
 let private leaflet: obj                    = JsInterop.import "*" "leaflet"
 let private useMapEvents: obj -> obj        = JsInterop.import "useMapEvents" "react-leaflet"
@@ -31,12 +39,12 @@ type OsmMap with
                     leaflet?Icon
                     (icon.ToJs())
 
-            createObjWithOptionalValues [
-                "position"      ==!> position.ToJs()
-                "icon"          ==!> icon
-                "key"           ==!> (key |> Option.map (fun x -> x.Value) |> Option.defaultValue (System.Guid.NewGuid().ToString()))
-                "eventHandlers" ==?> (eventHandlers |> Option.map LeafletEvent.ToJsObj)
-            ]
+            MarkerPropsJs(
+                position.ToJs(),
+                icon,
+                (key |> Option.map (fun x -> x.Value) |> Option.defaultValue (System.Guid.NewGuid().ToString())),
+                ?eventHandlers = (eventHandlers |> Option.map LeafletEvent.ToJsObj)
+            ) |> box
 
         let _ =
             eventHandlers

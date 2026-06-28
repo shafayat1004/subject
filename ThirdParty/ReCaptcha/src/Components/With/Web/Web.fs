@@ -12,11 +12,15 @@ type ReCaptchaInstance =
     abstract execute: string -> Promise<string>
 
 #if EGGSHELL_PLATFORM_IS_WEB
+[<Fable.Core.JS.Pojo>]
+type private ReCaptchaLoadOptionsJs ( autoHideBadge: bool ) =
+    member val autoHideBadge = autoHideBadge
+
 let private ReCaptchaLoader (_: string) (_: obj): Promise<ReCaptchaInstance> = import "load" "recaptcha-v3"
 
 let private load (siteKey: string) : Async<ReCaptchaInstance> =
     async {
-        return! ReCaptchaLoader siteKey (createObj ["autoHideBadge" ==> true]) |> Async.AwaitPromise
+        return! ReCaptchaLoader siteKey (ReCaptchaLoadOptionsJs(true) |> box) |> Async.AwaitPromise
     }
 
 let private execute (siteKey: string) (action: string) =

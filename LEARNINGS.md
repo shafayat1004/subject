@@ -5,6 +5,14 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — Fable 5 `[<Pojo>]` for JS prop bags + `--configuration "Web Debug"` cracker bug
+
+**`[<Fable.Core.JS.Pojo>]` (Fable.Core 5.0.0)** turns a class into a plain JS object literal: class decl erased, `None` optional ctor args **omitted** (not `undefined`), `member val` names set JS key casing. Verified emit: `Foo()` → `{}`, `Foo(?disabled = Some true, ?``checked`` = Some false)` → `{ disabled: true, checked: false }`. Drop-in replacement for hand-built `createObj [ yield! (x |> Option.map (fun v -> ("k", box v)) |> Option.toList) ]` bags. Reference conversion: `LibClient/src/Accessibility.fs` (`AccessibilityStateJs`). Full recipe + when-to/when-not-to + the 165-site analysis: `FABLE5_POJO_PLAYBOOK.md`. **No automated codemod** — sites are too heterogeneous (computed keys, nested `==>`, dynamic `?` assign); convert by judgment, validate each via IDE diagnostics + emit diff.
+
+**Fable 5 cracker bug:** `dotnet fable <proj>.fsproj --configuration "Web Debug"` fails — the new MSBuild cracker runs `dotnet msbuild ... /p:Configuration=Web Debug` with the **space unquoted**, so `--getProperty:TargetFramework` throws (`MSBuildCrackerResolver`). Do **not** pass `--configuration "Web Debug"` to Fable. Compile the **src dir** with `--define DEBUG --define EGGSHELL_PLATFORM_IS_WEB --exclude FablePlugins` (what `eggshell` does — fsproj cracks with its default config, platform comes from defines). Pointing `dotnet fable LibClient/src --precompiledLib <LibStandard/.build/...>` at a stale precompiled lib just reports "outdated files ... 0 source files parsed" and compiles nothing — precompile `LibStandard/src` fresh to a scratch `-o` instead.
+
+---
+
 ## 2026-06-29 — Do not run bare `dotnet fable` from LibClient/ (wrong output dir)
 
 Running `dotnet fable -c "Web Debug"` **from `LibClient/`** (no `-o`, no `.fsproj` path) compiles the **Fake build graph** (`build-LibClient.fsx` → `Fake/*.fsx`, `Meta/*/build-*.fsx`) and emits **`*.fs.js` next to those scripts** — not LibClient components into `.build/web/fable`.

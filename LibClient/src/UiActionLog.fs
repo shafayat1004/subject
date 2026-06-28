@@ -52,6 +52,37 @@ type UiSnapshot = {
     RecentActions: UiAction list
 }
 
+[<Fable.Core.JS.Pojo>]
+type private UiActionJs
+    ( kind: string, testId: string, label: string, route: string, component: string,
+      detail: obj, timestamp: int64 ) =
+    member val kind = kind
+    member val testId = testId
+    member val label = label
+    member val route = route
+    member val component = component
+    member val detail = detail
+    member val timestamp = timestamp
+
+[<Fable.Core.JS.Pojo>]
+type private InteractiveSnapshotJs
+    ( testId: string, label: string, role: string, component: string, visible: bool,
+      state: obj ) =
+    member val testId = testId
+    member val label = label
+    member val role = role
+    member val component = component
+    member val visible = visible
+    member val state = state
+
+[<Fable.Core.JS.Pojo>]
+type private UiSnapshotJs
+    ( route: string, focused: obj, interactives: obj array, recentActions: obj array ) =
+    member val route = route
+    member val focused = focused
+    member val interactives = interactives
+    member val recentActions = recentActions
+
 [<RequireQualifiedAccess>]
 module private Registry =
     let mutable enabled = false
@@ -76,46 +107,49 @@ module private Registry =
         | UiActionKind.AsyncStateChange -> "AsyncStateChange"
         | UiActionKind.Announce -> "Announce"
 
+    let detailToJs (detail: Map<string, string>) : obj =
+        detail
+        |> Map.toList
+        |> List.map (fun (k, v) -> (k, box v))
+        |> createObj
+
     let actionToJs (a: UiAction) =
-        createObj [
-            "kind" ==> kindName a.Kind
-            "testId" ==> (a.TestId |> Option.defaultValue "")
-            "label" ==> (a.Label |> Option.defaultValue "")
-            "route" ==> (a.Route |> Option.defaultValue "")
-            "component" ==> (a.Component |> Option.defaultValue "")
-            "detail" ==> (a.Detail |> Map.toList |> List.map (fun (k, v) -> (k, box v)) |> createObj)
-            "timestamp" ==> a.Timestamp
-        ]
+        UiActionJs(
+            kindName a.Kind,
+            a.TestId |> Option.defaultValue "",
+            a.Label |> Option.defaultValue "",
+            a.Route |> Option.defaultValue "",
+            a.Component |> Option.defaultValue "",
+            detailToJs a.Detail,
+            a.Timestamp
+        ) |> box
 
     let interactiveToJs (i: InteractiveSnapshot) =
-        createObj [
-            "testId" ==> (i.TestId |> Option.defaultValue "")
-            "label" ==> (i.Label |> Option.defaultValue "")
-            "role" ==> (i.Role |> Option.defaultValue "")
-            "component" ==> (i.Component |> Option.defaultValue "")
-            "visible" ==> i.Visible
-            "state" ==> (i.State |> Map.toList |> List.map (fun (k, v) -> (k, box v)) |> createObj)
-        ]
+        InteractiveSnapshotJs(
+            i.TestId |> Option.defaultValue "",
+            i.Label |> Option.defaultValue "",
+            i.Role |> Option.defaultValue "",
+            i.Component |> Option.defaultValue "",
+            i.Visible,
+            detailToJs i.State
+        ) |> box
 
     let snapshotToJs () =
-        createObj [
-            "route" ==> (currentRoute |> Option.defaultValue "")
-            "focused" ==>
-                (focused
-                 |> Option.map interactiveToJs
-                 |> Option.defaultValue JS.undefined)
-            "interactives" ==>
-                (interactives
-                 |> Map.values
-                 |> Seq.filter (fun i -> i.Visible)
-                 |> Seq.map interactiveToJs
-                 |> Seq.toArray)
-            "recentActions" ==>
-                (actions
-                 |> List.take (min 50 (List.length actions))
-                 |> List.map actionToJs
-                 |> List.toArray)
-        ]
+        UiSnapshotJs(
+            currentRoute |> Option.defaultValue "",
+            focused
+            |> Option.map interactiveToJs
+            |> Option.defaultValue JS.undefined,
+            interactives
+            |> Map.values
+            |> Seq.filter (fun i -> i.Visible)
+            |> Seq.map interactiveToJs
+            |> Seq.toArray,
+            actions
+            |> List.take (min 50 (List.length actions))
+            |> List.map actionToJs
+            |> List.toArray
+        ) |> box
 
 let private isDevEnabled () =
 #if DEBUG

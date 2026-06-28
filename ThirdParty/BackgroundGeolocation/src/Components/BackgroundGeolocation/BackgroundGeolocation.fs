@@ -7,6 +7,32 @@ open System
 
 let private BackgroundGeolocation: obj -> obj = importDefault "react-native-background-geolocation"
 
+[<Fable.Core.JS.Pojo>]
+type private BackgroundPermissionRationaleJs(title: string, message: string, positiveAction: string, negativeAction: string) =
+    member val title = title
+    member val message = message
+    member val positiveAction = positiveAction
+    member val negativeAction = negativeAction
+
+[<Fable.Core.JS.Pojo>]
+type private CurrentPositionRequestJs(timeout: int, persist: bool, maximumAge: int, desiredAccuracy: int, samples: int) =
+    member val timeout = timeout
+    member val persist = persist
+    member val maximumAge = maximumAge
+    member val desiredAccuracy = desiredAccuracy
+    member val samples = samples
+
+[<Fable.Core.JS.Pojo>]
+type private GeofenceOptionJs(identifier: string, radius: int, latitude: float, longitude: float, notifyOnEntry: bool, notifyOnExit: bool, loiteringDelay: int, notifyOnDwell: bool) =
+    member val identifier = identifier
+    member val radius = radius
+    member val latitude = latitude
+    member val longitude = longitude
+    member val notifyOnEntry = notifyOnEntry
+    member val notifyOnExit = notifyOnExit
+    member val loiteringDelay = loiteringDelay
+    member val notifyOnDwell = notifyOnDwell
+
 [<Measure>] type radian
 [<Measure>] type degree
 [<Measure>] type m
@@ -162,6 +188,40 @@ type DesiredAccuracy =
 | VeryLow    = 3000
 | Lowest     = 1000
 
+[<Fable.Core.JS.Pojo>]
+type private GeolocationOptionJs(
+    backgroundPermissionRationale: obj,
+    debug: bool,
+    desiredAccuracy: DesiredAccuracy,
+    triggerActivities: string,
+    startOnBoot: bool,
+    stopOnTerminate: bool,
+    maxRecordsToPersist: int,
+    heartbeatInterval: int,
+    locationUpdateInterval: int,
+    fastestLocationUpdateInterval: int,
+    locationAuthorizationRequest: LocationAuthorizationRequest,
+    enableHeadless: bool,
+    allowIdenticalLocations: bool,
+    distanceFilter: int,
+    stopTimeout: int
+) =
+    member val backgroundPermissionRationale = backgroundPermissionRationale
+    member val debug = debug
+    member val desiredAccuracy = desiredAccuracy
+    member val triggerActivities = triggerActivities
+    member val startOnBoot = startOnBoot
+    member val stopOnTerminate = stopOnTerminate
+    member val maxRecordsToPersist = maxRecordsToPersist
+    member val heartbeatInterval = heartbeatInterval
+    member val locationUpdateInterval = locationUpdateInterval
+    member val fastestLocationUpdateInterval = fastestLocationUpdateInterval
+    member val locationAuthorizationRequest = locationAuthorizationRequest
+    member val enableHeadless = enableHeadless
+    member val allowIdenticalLocations = allowIdenticalLocations
+    member val distanceFilter = distanceFilter
+    member val stopTimeout = stopTimeout
+
 type BackgroundPermissionRationale =
     {
         Title:          string
@@ -170,12 +230,8 @@ type BackgroundPermissionRationale =
         NegativeAction: string
     }
     member this.toLibraryFormat () : obj =
-        createObj [
-            "title"          ==> this.Title
-            "message"        ==> this.Message
-            "positiveAction" ==> this.PositiveAction
-            "negativeAction" ==> this.NegativeAction
-        ]
+        (BackgroundPermissionRationaleJs(this.Title, this.Message, this.PositiveAction, this.NegativeAction))
+        |> box
     static member fromLibraryFormat (backgroundPermissionRationale: obj) : BackgroundPermissionRationale =
         {
             Title          = backgroundPermissionRationale?title
@@ -204,23 +260,23 @@ type GeolocationOption =
 
     }
     member this.toLibraryFormat () : obj =
-        createObj [
-            "backgroundPermissionRationale" ==> this.BackgroundPermissionRationale.toLibraryFormat()
-            "debug"                         ==> this.Debug
-            "desiredAccuracy"               ==> this.DesiredAccuracy
-            "triggerActivities"             ==> (this.TriggerActivities |> List.fold (fun activityAccumulator activity -> activityAccumulator  + activity.toLibraryFormat() + ", " ) "")
-            "startOnBoot"                   ==> this.StartOnBoot
-            "stopOnTerminate"               ==> this.StopOnTerminate
-            "maxRecordsToPersist"           ==> this.MaxRecordsToPersist
-            "heartbeatInterval"             ==> this.HeartbeatInterval
-            "locationUpdateInterval"        ==> this.LocationUpdateInterval
-            "fastestLocationUpdateInterval" ==> this.FastestLocationUpdateInterval
-            "locationAuthorizationRequest"  ==> this.LocationAuthorizationRequest
-            "enableHeadless"                ==> this.EnableHeadless
-            "allowIdenticalLocations"       ==> this.AllowIdenticalLocations
-            "distanceFilter"                ==> this.DistanceFilter
-            "stopTimeout"                   ==> this.StopTimeout
-        ]
+        (GeolocationOptionJs(
+            this.BackgroundPermissionRationale.toLibraryFormat(),
+            this.Debug,
+            this.DesiredAccuracy,
+            (this.TriggerActivities |> List.fold (fun activityAccumulator activity -> activityAccumulator + activity.toLibraryFormat() + ", ") ""),
+            this.StartOnBoot,
+            this.StopOnTerminate,
+            this.MaxRecordsToPersist,
+            this.HeartbeatInterval,
+            this.LocationUpdateInterval,
+            this.FastestLocationUpdateInterval,
+            this.LocationAuthorizationRequest,
+            this.EnableHeadless,
+            this.AllowIdenticalLocations,
+            this.DistanceFilter,
+            this.StopTimeout
+        )) |> box
     static member fromLibraryResponse (option: IBackgroundGeolocationOption): GeolocationOption =
         {
             Debug                         = option.debug
@@ -281,13 +337,15 @@ type CurrentPositionRequest =
     abstract maximumAge:      int
     abstract persist:         bool
 
-let currentPositionRequest = createObj [
-    "timeout"         ==> 30   // 30 second timeout to fetch location
-    "persist"         ==> true // Defaults to state.enabled
-    "maximumAge"      ==> 0   // Always request updated location
-    "desiredAccuracy" ==> 1   // Try to fetch a location with an accuracy of  `10` meters.
-    "samples"         ==> 3
-]
+let currentPositionRequest =
+    (CurrentPositionRequestJs(
+        30,    // 30 second timeout to fetch location
+        true,  // Defaults to state.enabled
+        0,     // Always request updated location
+        1,     // Try to fetch a location with an accuracy of  `10` meters.
+        3
+    ))
+    |> box
 
 let getCurrentPositionInCallback (option: obj) (callback: Location -> unit) (errorHandler: LocationError -> unit) =
     let customCallbackHandler (jsLocation: obj) =
@@ -339,16 +397,9 @@ let addGeofence (locationPoint: LatLong) (geofenceRadius: PositiveDecimal) (iden
     let lat:  float = locationPoint.Lat  |> float
     let long: float = locationPoint.Long |> float
     let rad:  int   = geofenceRadius.Value |> int
-    let geofenceOption = createObj [
-        "identifier"     ==> identifier
-        "radius"         ==> rad
-        "latitude"       ==> lat
-        "longitude"      ==> long
-        "notifyOnEntry"  ==> true
-        "notifyOnExit"   ==> true
-        "loiteringDelay" ==> 100
-        "notifyOnDwell"  ==> true
-    ]
+    let geofenceOption =
+        (GeofenceOptionJs(identifier, rad, lat, long, true, true, 100, true))
+        |> box
     BackgroundGeolocation?addGeofence geofenceOption ()
 
 let getGeofences () =

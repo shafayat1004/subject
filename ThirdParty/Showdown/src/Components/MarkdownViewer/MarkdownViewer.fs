@@ -5,6 +5,7 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.ServiceInstances
+open Fable.Core
 open Fable.Core.JsInterop
 open LibClient.Services.HttpService.Types
 open ReactXP.LegacyStyles.Css
@@ -25,6 +26,63 @@ let makeCustomShowdownConverter (config: obj) : obj =
 type Source =
 | Url  of string
 | Code of string
+
+[<Fable.Core.JS.Pojo>]
+type private MarkdownDivStyleJs(
+    whiteSpace: string,
+    cursor: string,
+    ``WebkitUserSelect``: string,
+    ``MozUserSelect``: string,
+    ``msUserSelect``: string,
+    userSelect: string,
+    wordWrap: string,
+    maxWidth: string,
+    lineHeight: string
+) =
+    member val whiteSpace = whiteSpace
+    member val cursor = cursor
+    member val ``WebkitUserSelect`` = ``WebkitUserSelect``
+    member val ``MozUserSelect`` = ``MozUserSelect``
+    member val ``msUserSelect`` = ``msUserSelect``
+    member val userSelect = userSelect
+    member val wordWrap = wordWrap
+    member val maxWidth = maxWidth
+    member val lineHeight = lineHeight
+
+[<Fable.Core.JS.Pojo>]
+type private DangerouslySetInnerHTMLJs(``__html``: string) =
+    member val ``__html`` = ``__html``
+
+[<Fable.Core.JS.Pojo>]
+type private MarkdownDivPropsJs(style: obj, dangerouslySetInnerHTML: obj) =
+    member val style = style
+    member val dangerouslySetInnerHTML = dangerouslySetInnerHTML
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlSourceJs(html: string) =
+    member val html = html
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlDivTagStyleJs(fontFamily: string, lineHeight: float, maxWidth: int) =
+    member val fontFamily = fontFamily
+    member val lineHeight = lineHeight
+    member val maxWidth = maxWidth
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlTagsStylesJs(div: obj) =
+    member val div = div
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlPropsJs(source: obj, tagsStyles: obj, systemFonts: string[], contentWidth: int) =
+    member val source = source
+    member val tagsStyles = tagsStyles
+    member val systemFonts = systemFonts
+    member val contentWidth = contentWidth
+
+[<Fable.Core.JS.Pojo>]
+type private HttpRequestOptionsJs(acceptType: string, customResponseType: string) =
+    member val acceptType = acceptType
+    member val customResponseType = customResponseType
 
 let private processHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : string =
     let rawHtml: string = converter?makeHtml source
@@ -55,22 +113,21 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
     let html = processHtml converter maybeGlobalLinkHandler maybeImageUrlTransformer source
 
     #if EGGSHELL_PLATFORM_IS_WEB
-    let props = createObj [
-        "style" ==> createObj [
-            "whiteSpace"       ==> "normal"
-            "cursor"           ==> "text"
-            "WebkitUserSelect" ==> "text"
-            "MozUserSelect"    ==> "text"
-            "msUserSelect"     ==> "text"
-            "userSelect"       ==> "text"
-            "wordWrap"         ==> "break-word"
-            "maxWidth"         ==> "800px"
-            "lineHeight"       ==> "1.5"
-        ]
-        "dangerouslySetInnerHTML" ==> createObj [
-            "__html" ==> html
-        ]
-    ]
+    let props =
+        (MarkdownDivPropsJs(
+            (MarkdownDivStyleJs(
+                "normal",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "break-word",
+                "800px",
+                "1.5"
+            ) |> box),
+            (DangerouslySetInnerHTMLJs(html) |> box)
+        )) |> box
 
     Fable.React.ReactBindings.React.createElement("div", props, [])
 
@@ -79,26 +136,17 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
     let renderHtmlRaw: obj = import "default" "react-native-render-html"
 
     let sourceObj =
-        createObj [
-            "html" ==> $"<div>{html}</div>"
-        ]
+        (RenderHtmlSourceJs($"<div>{html}</div>"))
+        |> box
 
     let tagsStyles =
-        createObj [
-            "div" ==> (createObj [
-                "fontFamily" ==> "Montserrat"
-                "lineHeight"   ==> 22.5
-                "maxWidth"     ==> 800
-            ])
-        ]
+        (RenderHtmlTagsStylesJs(
+            (RenderHtmlDivTagStyleJs("Montserrat", 22.5, 800) |> box)
+        )) |> box
 
     let props =
-        createObj [
-            "source"      ==> sourceObj
-            "tagsStyles"  ==> tagsStyles
-            "systemFonts" ==> [|"Montserrat"|]
-            "contentWidth" ==> 800
-        ]
+        (RenderHtmlPropsJs(sourceObj, tagsStyles, [|"Montserrat"|], 800))
+        |> box
 
     Fable.React.ReactBindings.React.createElement(renderHtmlRaw, props, [||])
 
@@ -129,10 +177,9 @@ type ThirdParty.Showdown.Components.Constructors.Showdown with
                 match source with
                 | Url url ->
                     async {
-                        let requestOptions = createObj [
-                            "acceptType"         ==> "text/plain"
-                            "customResponseType" ==> "text"
-                        ]
+                        let requestOptions =
+                            (HttpRequestOptionsJs("text/plain", "text"))
+                            |> box
                         let! response = services().Http.RequestReactXPRaw url HttpAction.Get (Some requestOptions)
                         sourceCodeHook.update (Available (response.body :?> string))
                     } |> startSafely

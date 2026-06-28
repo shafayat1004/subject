@@ -20,21 +20,42 @@ type Props = (* GenerateMakeFunction *) {
     StrokeDashArray:  float array option // defaultWithAutoWrap Some [||]
 }
 
+[<Fable.Core.JS.Pojo>]
+type private CartesianGridPropsJs
+    ( ?x:                int,
+      ?y:                int,
+      ?width:            int,
+      ?height:           int,
+      ?horizontal:       bool,
+      ?vertical:         bool,
+      ?horizontalPoints: float array,
+      ?verticalPoints:   float array,
+      ?strokeDasharray:  float array ) =
+    member val x                = x
+    member val y                = y
+    member val width            = width
+    member val height           = height
+    member val horizontal       = horizontal
+    member val vertical         = vertical
+    member val horizontalPoints = horizontalPoints
+    member val verticalPoints   = verticalPoints
+    member val strokeDasharray  = strokeDasharray
+
 let private CartesianGrid: obj = JsInterop.import "CartesianGrid" "recharts"
 let Make =
     LibClient.ThirdParty.wrapComponentTransformingProps<Props>
         CartesianGrid
         (fun (props: Props) ->
-            createObjWithOptionalValues [
-                "x"                ==?> props.X
-                "y"                ==?> props.Y
-                "width"            ==?> props.Width
-                "height"           ==?> props.Height
-                "horizontal"       ==?> props.Horizontal
-                "vertical"         ==?> props.Vertical
-                "horizontalPoints" ==?> props.HorizontalPoints
-                "verticalPoints"   ==?> props.VerticalPoints
-                "strokeDasharray"  ==?> props.StrokeDashArray
-            ]
+            CartesianGridPropsJs(
+                ?x                = props.X,
+                ?y                = props.Y,
+                ?width            = props.Width,
+                ?height           = props.Height,
+                ?horizontal       = props.Horizontal,
+                ?vertical         = props.Vertical,
+                ?horizontalPoints = props.HorizontalPoints,
+                ?verticalPoints   = props.VerticalPoints,
+                ?strokeDasharray  = props.StrokeDashArray
+            ) |> box
         )
 

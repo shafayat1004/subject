@@ -3,6 +3,7 @@ module ThirdParty.FormatfulText.Components.RenderFormatfulText
 
 // All these modules are required for this component to work in both web and native
 open Fable.React
+open Fable.Core
 open Fable.Core.JsInterop
 open ReactXP.Styles
 open FormatfulText.TextService
@@ -11,35 +12,78 @@ open FormatfulText.TextService
 open LibClient.Components
 #endif
 
+[<Fable.Core.JS.Pojo>]
+type private FormatfulTextDivStyleJs(
+    whiteSpace: string,
+    cursor: string,
+    ``WebkitUserSelect``: string,
+    ``MozUserSelect``: string,
+    ``msUserSelect``: string,
+    userSelect: string,
+    wordWrap: string
+) =
+    member val whiteSpace = whiteSpace
+    member val cursor = cursor
+    member val ``WebkitUserSelect`` = ``WebkitUserSelect``
+    member val ``MozUserSelect`` = ``MozUserSelect``
+    member val ``msUserSelect`` = ``msUserSelect``
+    member val userSelect = userSelect
+    member val wordWrap = wordWrap
+
+[<Fable.Core.JS.Pojo>]
+type private DangerouslySetInnerHTMLJs(``__html``: string) =
+    member val ``__html`` = ``__html``
+
+[<Fable.Core.JS.Pojo>]
+type private FormatfulTextDivPropsJs(style: obj, className: string, dangerouslySetInnerHTML: obj) =
+    member val style = style
+    member val className = className
+    member val dangerouslySetInnerHTML = dangerouslySetInnerHTML
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlSourceJs(html: string) =
+    member val html = html
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlDivTagStyleJs(fontFamily: string) =
+    member val fontFamily = fontFamily
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlTagsStylesJs(div: obj) =
+    member val div = div
+
+[<Fable.Core.JS.Pojo>]
+type private RenderHtmlPropsJs(source: obj, tagsStyles: obj, systemFonts: string[]) =
+    member val source = source
+    member val tagsStyles = tagsStyles
+    member val systemFonts = systemFonts
+
 type FormatfulText with
     [<Component>]
     static member Render (
         text: FormatfulTextSource,
         ?styles: array<TextStyles>
     ): ReactElement =
-        let htmlText =
+        let renderedHtml =
             match text with
             | FormatfulTextSource.Html          source        -> source
             | FormatfulTextSource.MaybeMarkdown (_, rendered) -> rendered
 
         #if EGGSHELL_PLATFORM_IS_WEB
-        let props = createObj [
-            "style" ==> createObj [
-                // HACK we need this because ReactXP seems to add a "white-space: pre-wrap" to all
-                // text elements, and there's no way to override it using the styles system.
-                "whiteSpace"       ==> "normal"
-                "cursor"           ==> "text"
-                "WebkitUserSelect" ==> "text"
-                "MozUserSelect"    ==> "text"
-                "msUserSelect"     ==> "text"
-                "userSelect"       ==> "text"
-                "wordWrap"         ==> "break-word"
-            ]
-            "className"               ==> "style-hack-if-it-contains-a-pre-tag"
-            "dangerouslySetInnerHTML" ==> createObj [
-                "__html" ==> htmlText
-            ]
-        ]
+        let props =
+            (FormatfulTextDivPropsJs(
+                (FormatfulTextDivStyleJs(
+                    "normal",
+                    "text",
+                    "text",
+                    "text",
+                    "text",
+                    "text",
+                    "break-word"
+                ) |> box),
+                "style-hack-if-it-contains-a-pre-tag",
+                (DangerouslySetInnerHTMLJs(renderedHtml) |> box)
+            )) |> box
 
         LC.Text (?styles = styles, children = [|
             Fable.React.ReactBindings.React.createElement("div", props, [])
@@ -50,9 +94,8 @@ type FormatfulText with
         let renderHtmlRaw: obj = import "default" "react-native-render-html"
 
         let source =
-            createObj [
-                "html" ==> $"<div>{htmlText}</div>"
-            ]
+            (RenderHtmlSourceJs($"<div>{renderedHtml}</div>"))
+            |> box
 
         let containerStyles : obj =
             styles
@@ -74,16 +117,13 @@ type FormatfulText with
             |> createObj
 
         let tagsStyles =
-            createObj [
-                "div" ==> containerStyles
-            ]
+            (RenderHtmlTagsStylesJs(
+                (RenderHtmlDivTagStyleJs("Montserrat") |> box)
+            )) |> box
 
         let props =
-            createObj [
-                "source"      ==> source
-                "tagsStyles"  ==> tagsStyles
-                "systemFonts" ==> [|"Montserrat"|]
-            ]
+            (RenderHtmlPropsJs(source, tagsStyles, [|"Montserrat"|]))
+            |> box
 
         Fable.React.ReactBindings.React.createElement(
             renderHtmlRaw,

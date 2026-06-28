@@ -65,14 +65,14 @@ let renderPickerBase<'Item when 'Item : comparison>(
             let popup =
                 LC.Input.PickerInternals.Popup(model, itemView, ?key = pickerId)
 
-            let options = createObj [
-                "getAnchor"   ==> fun () -> anchorRef.current
-                "renderPopup" ==> fun (_anchorPosition: obj, _anchorOffset: int, _popupWidth: int, _popupHeight: int) -> popup
-                "onDismiss"   ==> (fun () ->
-                    maybePopupHideRef.current <- None
-                    model.HandleInputEvent ListWasHidden
-                )
-            ]
+            let options =
+                ReactXP.Helpers.popupShowOptions
+                    (fun () -> anchorRef.current)
+                    (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
+                        popup)
+                    (fun () ->
+                        maybePopupHideRef.current <- None
+                        model.HandleInputEvent ListWasHidden)
             ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
 
             maybePopupHideRef.current <-

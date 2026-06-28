@@ -77,44 +77,113 @@ type Props = (* GenerateMakeFunction *) {
     Domain:                  AxisDomain option       // defaultWithAutoWrap JsUndefined
 }
 
+[<Fable.Core.JS.Pojo>]
+type private XAxisPropsJs
+    ( ?hide:                    bool,
+      ?dataKey:                 string,
+      ?xAxisId:                 obj,
+      ?width:                   int,
+      ?height:                  int,
+      ?orientation:             XAxisOrientation,
+      ?``type``:               AxisType,
+      ?allowDecimals:           bool,
+      ?allowDataOverflow:       bool,
+      ?allowDuplicatedCategory: bool,
+      ?angle:                   float,
+      ?tickCount:               int,
+      ?interval:                obj,
+      ?padding:                 obj,
+      ?minTickGap:              int,
+      ?tickSize:                int,
+      ?ticks:                   obj array,
+      ?mirror:                  bool,
+      ?reversed:                bool,
+      ?scale:                   AxisScale,
+      ?unit:                    obj,
+      ?name:                    obj,
+      ?onClick:                 (unit -> unit),
+      ?onMouseDown:             (unit -> unit),
+      ?onMouseUp:               (unit -> unit),
+      ?onMouseMove:             (unit -> unit),
+      ?onMouseOver:             (unit -> unit),
+      ?onMouseOut:              (unit -> unit),
+      ?onMouseEnter:            (unit -> unit),
+      ?onMouseLeave:            (unit -> unit),
+      ?tickFormatter:           (obj -> string),
+      ?tickMargin:              int,
+      ?domain:                  obj ) =
+    member val hide                    = hide
+    member val dataKey                 = dataKey
+    member val xAxisId                 = xAxisId
+    member val width                   = width
+    member val height                  = height
+    member val orientation             = orientation
+    member val ``type``                = ``type``
+    member val allowDecimals           = allowDecimals
+    member val allowDataOverflow       = allowDataOverflow
+    member val allowDuplicatedCategory = allowDuplicatedCategory
+    member val angle                   = angle
+    member val tickCount               = tickCount
+    member val interval                = interval
+    member val padding                 = padding
+    member val minTickGap              = minTickGap
+    member val tickSize                = tickSize
+    member val ticks                   = ticks
+    member val mirror                  = mirror
+    member val reversed                = reversed
+    member val scale                   = scale
+    member val unit                    = unit
+    member val name                    = name
+    member val onClick                 = onClick
+    member val onMouseDown             = onMouseDown
+    member val onMouseUp               = onMouseUp
+    member val onMouseMove             = onMouseMove
+    member val onMouseOver             = onMouseOver
+    member val onMouseOut              = onMouseOut
+    member val onMouseEnter            = onMouseEnter
+    member val onMouseLeave            = onMouseLeave
+    member val tickFormatter           = tickFormatter
+    member val tickMargin              = tickMargin
+    member val domain                  = domain
+
 let private XAxis: obj = JsInterop.import "XAxis" "recharts"
 let Make =
     LibClient.ThirdParty.wrapComponentTransformingProps<Props>
         XAxis
         (fun (props: Props) ->
-            createObjWithOptionalValues [
-                "hide"                    ==?> props.Hide
-                "dataKey"                 ==?> props.DataKey
-                "xAxisId"                 ==?> (props.XAxisId |> Option.map (fun v -> v.ToJS))
-                "width"                   ==?> props.Width
-                "height"                  ==?> props.Height
-                "orientation"             ==?> props.Orientation
-                "type"                    ==?> props.Type
-                "allowDecimals"           ==?> props.AllowDecimals
-                "allowDataOverflow"       ==?> props.AllowDataOverflow
-                "allowDuplicatedCategory" ==?> props.AllowDuplicatedCategory
-                "angle"                   ==?> props.Angle
-                "tickCount"               ==?> props.TickCount
-                "interval"                ==?> (props.Interval |> Option.map (fun v -> v.ToJS))
-                "padding"                 ==?> (props.Padding |> Option.map (fun v -> v.ToJS))
-                "minTickGap"              ==?> props.MinTickGap
-                "tickSize"                ==?> props.TickSize
-                "ticks"                   ==?> props.Ticks
-                "mirror"                  ==?> props.Mirror
-                "reversed"                ==?> props.Reversed
-                "scale"                   ==?> props.Scale
-                "unit"                    ==?> (props.Unit |> Option.map (fun v -> v.ToJS))
-                "name"                    ==?> (props.Name |> Option.map (fun v -> v.ToJS))
-                "onClick"                 ==?> props.OnClick
-                "onMouseDown"             ==?> props.OnMouseDown
-                "onMouseUp"               ==?> props.OnMouseUp
-                "onMouseMove"             ==?> props.OnMouseMove
-                "onMouseOver"             ==?> props.OnMouseOver
-                "onMouseOut"              ==?> props.OnMouseOut
-                "onMouseEnter"            ==?> props.OnMouseEnter
-                "onMouseLeave"            ==?> props.OnMouseLeave
-                "tickFormatter"           ==?> props.TickFormatter
-                "tickMargin"              ==?> props.TickMargin
-                "domain"                  ==?> (props.Domain |> Option.map (fun v -> v.ToJS))
-           ]
+            XAxisPropsJs(
+                ?hide                    = props.Hide,
+                ?dataKey                 = props.DataKey,
+                ?xAxisId                 = (props.XAxisId |> Option.map (fun v -> v.ToJS)),
+                ?width                   = props.Width,
+                ?height                  = props.Height,
+                ?orientation             = props.Orientation,
+                ?``type``                = props.Type,
+                ?allowDecimals           = props.AllowDecimals,
+                ?allowDataOverflow       = props.AllowDataOverflow,
+                ?allowDuplicatedCategory = props.AllowDuplicatedCategory,
+                ?angle                   = props.Angle,
+                ?tickCount               = props.TickCount,
+                ?interval                = (props.Interval |> Option.map (fun v -> v.ToJS)),
+                ?padding                 = (props.Padding |> Option.map (fun v -> v.ToJS)),
+                ?minTickGap              = props.MinTickGap,
+                ?tickSize                = props.TickSize,
+                ?ticks                   = props.Ticks,
+                ?mirror                  = props.Mirror,
+                ?reversed                = props.Reversed,
+                ?scale                   = props.Scale,
+                ?unit                    = (props.Unit |> Option.map (fun v -> v.ToJS)),
+                ?name                    = (props.Name |> Option.map (fun v -> v.ToJS)),
+                ?onClick                 = props.OnClick,
+                ?onMouseDown             = props.OnMouseDown,
+                ?onMouseUp               = props.OnMouseUp,
+                ?onMouseMove             = props.OnMouseMove,
+                ?onMouseOver             = props.OnMouseOver,
+                ?onMouseOut              = props.OnMouseOut,
+                ?onMouseEnter            = props.OnMouseEnter,
+                ?onMouseLeave            = props.OnMouseLeave,
+                ?tickFormatter           = props.TickFormatter,
+                ?tickMargin              = props.TickMargin,
+                ?domain                  = (props.Domain |> Option.map (fun v -> v.ToJS))
+            ) |> box
         )
