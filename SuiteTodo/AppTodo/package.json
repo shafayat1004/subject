@@ -1,0 +1,26 @@
+{
+  "name": "AppTodo",
+  "private": true,
+  "scripts": {
+    "audit:web": "node audit/audit-todo-web.mjs http://127.0.0.1:9081"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/plugin-transform-named-capturing-groups-regex": "^7.25.9",
+    "@babel/runtime": "^7.26.0",
+    "@react-native-community/cli": "^15.1.3",
+    "@react-native/babel-preset": "^0.76.5",
+    "@react-native/metro-config": "^0.76.5",
+    "playwright": "^1.61.1",
+    "yargs": "^17.7.2"
+  },
+  "dependencies": {
+    "react": "file:../../LibClient/node_modules/react",
+    "react-native": "0.76.5",
+    "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
+  },
+  "engines": {
+    "node": ">=18.19.0"
+  },
+  "engineStrict": true
+}

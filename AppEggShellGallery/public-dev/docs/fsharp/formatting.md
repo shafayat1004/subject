@@ -541,10 +541,63 @@ type Bar = ...
 
 ---
 
-## 16. Fantomas `.fantomasrc` reference
+## 16. Tooling
 
-Create `.fantomasrc.json` at the repository root with these settings to match the conventions above.
-Any setting not listed here is left at the Fantomas 6 default.
+Coverage breakdown: what each tool covers and what it can't touch.
+
+| Convention | EditorConfig | Fantomas | Rider | EggShellFmt (future) |
+|---|---|---|---|---|
+| 4-space indent, no tabs | hint | enforced | enforced | -- |
+| Operator spacing | -- | enforced | enforced | -- |
+| Blank lines between defs | -- | enforced | enforced | -- |
+| Line length limit | hint | enforced | enforced | -- |
+| Bracket / brace placement | -- | enforced | enforced | -- |
+| Signature `+8` param indent | -- | partial | partial | -- |
+| Record field `:` alignment (2a) | -- | **no** | **no** | enforced |
+| Union case `of` alignment (2b) | -- | **no** | **no** | enforced |
+| Match arm `->` alignment (2c) | -- | **no** | **no** | enforced |
+| `let` group `=` alignment (2d) | -- | **no** | **no** | enforced |
+| Record literal `=` alignment (7) | -- | **no** | **no** | enforced |
+| CE binding `=` alignment (13) | -- | **no** | **no** | enforced |
+
+**Enforcement is opt-in.** None of these tools run as a CI gate or pre-commit hook by default.
+Run them when you want; the alignment conventions are maintained by discipline and PR review.
+
+---
+
+### 16a. EditorConfig (always-on hints)
+
+`.editorconfig` at the repository root. Picked up automatically by VS Code, Rider, and most
+editors. Does not auto-format -- it tells the editor how to behave as you type.
+
+```ini
+[*.fs]
+indent_style  = space
+indent_size   = 4
+end_of_line   = lf
+charset       = utf-8-bom
+trim_trailing_whitespace = true
+insert_final_newline     = true
+max_line_length          = 120
+
+[*.fsproj]
+indent_style = space
+indent_size  = 2
+```
+
+---
+
+### 16b. Fantomas (auto-formatter, covers ~60% of rules)
+
+Fantomas handles spacing, indentation, blank lines, bracket placement, and line-length-driven
+line breaks. It **cannot** do column alignment (sections 2a-2d, 7, 13). With `StrictMode = false`
+it preserves alignment you have already written; it will not create it.
+
+**IMPORTANT:** do not run Fantomas in strict mode (`--check` with `StrictMode = true`) on files
+that contain manual column alignment -- it will flag them as incorrectly formatted even though
+they follow this spec.
+
+Create `.fantomasrc.json` at the repository root:
 
 ```json
 {
@@ -572,7 +625,75 @@ Any setting not listed here is left at the Fantomas 6 default.
 }
 ```
 
-> **Note:** Fantomas cannot enforce column-alignment of record type fields, union case arms, or
-> let binding groups (sections 2a/2b/2d). That alignment must be maintained manually or via a
-> custom editor snippet. Fantomas will preserve existing alignment when `StrictMode = false`
-> (the default).
+Run on a single file: `dotnet fantomas <file.fs>`
+Run on a directory: `dotnet fantomas <dir/>`
+Check without writing: `dotnet fantomas --check <file.fs>`
+
+---
+
+### 16c. Rider IDE
+
+Rider 2023+ uses Fantomas as its F# formatter engine, so the `.fantomasrc.json` above is the
+primary configuration. Rider picks it up automatically from the repository root.
+
+**Settings to verify in Rider** (Settings > Editor > Code Style > F#):
+
+- Formatter: confirm it shows "Fantomas" (not "Built-in"). If not, install the Fantomas plugin
+  from the JetBrains Marketplace.
+- The Fantomas version Rider bundles may differ from the repo's `dotnet-tools.json` version.
+  To use the repo's pinned version: Settings > Tools > Fantomas > "Use custom Fantomas tool"
+  and point it at `dotnet fantomas` (resolved via `dotnet-tools.json`).
+
+**Reformat shortcut:**
+
+| OS | Shortcut |
+|---|---|
+| macOS | `Cmd + Alt + L` |
+| Windows / Linux | `Ctrl + Alt + L` |
+
+**Reformat on save (opt-in):** Settings > Tools > Actions on Save > "Reformat code" -- enable only
+for F# files if desired. Off by default.
+
+**Alignment live templates:** Rider's "Live Templates" (Settings > Editor > Live Templates) can be
+used to insert pre-aligned boilerplate (e.g., a 4-field record type stub with `:` signs already
+column-aligned). These are per-developer and not committed to the repo.
+
+---
+
+### 16d. EggShellFmt (future -- `Meta/EggShellFmt`)
+
+A planned opt-in CLI post-processor that covers the alignment rules Fantomas cannot. The intended
+workflow:
+
+```
+dotnet fantomas <file.fs>        # normalize spacing/indentation/brackets
+eggshell fmt <file.fs>           # apply column alignment on top
+```
+
+Or as a single command: `eggshell fmt --full <file.fs>` (runs Fantomas internally first).
+
+**Scope of what it would enforce:**
+
+- Record type field `:` alignment (section 2a): scan each `type … = { … }` block; find the longest
+  field name; pad all shorter names to that column.
+- Union case `of` alignment (section 2b): same pass over `| CaseName of …`; align `of` to longest
+  case name.
+- Short match arm `->` alignment (section 2c): within a `match` block where ALL bodies are inline
+  (no multi-line arm), align `->` to the longest pattern.
+- `let` binding group `=` alignment (section 2d): consecutive `let` bindings with no blank line
+  between them form a group; align `=` within each group.
+- Record literal `=` alignment (section 7): multi-line `{ Field = value }` construction; align `=`
+  within each literal.
+- CE binding `=` alignment (section 13): `let!` / `and!` chains; align `=` within each CE block.
+
+**Implementation path:**
+
+- F# console app in `Meta/EggShellFmt/`
+- Parses input with `FSharp.Compiler.Services` (FCS) to get the concrete syntax tree
+- Walks the CST to locate the target constructs above
+- Emits the modified source with padding applied (text-level rewrite on top of the CST, not a
+  full pretty-printer -- Fantomas already handled the pretty-printing pass)
+- Registered as an `eggshell` subcommand via the existing CLI plugin mechanism
+
+**Not a CI gate.** Runs only when explicitly invoked. The goal is "run once on a file when you're
+done, same as running Fantomas."

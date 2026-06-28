@@ -45,6 +45,8 @@ audit + a11y testIds + UiActionLog. Templatize only after concrete app is green 
 smoke. Phase 6 adds real docker SQL persistence. Plan in `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` §21
 and `MIGRATION_RUNBOOK.md` Phase 5-6. In-repo patterns: `SuiteJobs`, `AppEggShellGallery` only.
 
+**SuiteTodo Phase 5A (2026-06-28):** Created `SuiteTodo/` backend skeleton: `Todo.Types` (subject + `TodoListView` projection types + hand-written codecs; `TypesCodecGen` blocked because `LibCodecGen` fails to build on net10 SDK due to missing template fsproj path), `LifeCycles` (`TodoLifeCycle` with 5-min auto-archive timer, structured logging, `TodoListView`), `Tests` (4 simulation tests compile), `Launchers/Dev/DevelopmentHost` (ports 20042/20043, unrestricted API). Validated: `dotnet build LifeCycles.fsproj`, `dotnet build DevelopmentHost.fsproj`, `dotnet build Tests.fsproj` green. `dotnet test` discovers 0 tests (`LibLifeCycleTest, Version=1.0.0` binding on net10 host; same class of issue as SuiteJobs missing `.runsettings`); simulation logic is in place, runner wiring is follow-up. Removed `SuiteBenchmark/` (Counter-only scratch ecosystem; superseded by `SuiteTodo`, was not referenced from solutions, CI, or docs).
+
 **Phase 2b SignalR server (2026-06-28):** (superseded by modular repo above) Vendored `Fable.SignalR.AspNetCore` — now lives in `eggshell-signalr/src/LibSignalRServer/`.
 
 **Phase 2a SignalR client (2026-06-28):** (superseded by modular repo above) Vendored Fable.SignalR 0.16.0 — now lives in `eggshell-signalr/src/LibSignalRClient/`. Renamed streaming `Subject<'T>` → `StreamSubject<'T>`. LibUiSubject: `#if !FABLE_COMPILER` around `open LibLifeCycleTypes.SubjectTypes`. `inline` on `HubConnectionBuilder.build` / `SignalR.connect`.
@@ -1121,3 +1123,28 @@ keys, not whole Theme), `Input.Text` label/view, `Field` tag.
 Input_Picker 3196→0, Input_Text 704→129, Button 441→25, Grid 953→101, Forms 757→94. Remaining
 `{overflow:visible}` hits on composite pages are mostly gallery chrome (sidebar/nav); Input_Text
 `marginTop:6` fixed via memo on `Styles.view hasLabel`.
+
+### 2026-06-28 — SuiteTodo AppTodo frontend (Phase 5C)
+
+**Location:** `SuiteTodo/AppTodo/` — auth-free reference app over `todoDef` (`SubjectService` +
+`ViewService` + `RealTimeService`).
+
+**Patterns:** No `LibUiAuth`/session; backend `http://localhost:5001` via `configSourceOverrides.dev.js`.
+List uses `UiSubject.With.View` on `TodoList` with `UseCache.No` and a `listVersion` key bump after
+mutations (views do not auto-invalidate on subject acts yet). Pure F# route at `Components/Route/Todos.fs`.
+
+**Build validate:** `dotnet build SuiteTodo/AppTodo/src/App.fsproj -c "Web Debug"` (green). Full
+`eggshell dev-web` needs `./initialize` (npm) first; Fake `Eggshell build-web` hit unrelated
+`NodeNpm.fs WriteAllText` overload error on this machine.
+
+**CI stub:** `AppTodo/audit/audit-todo-web.mjs` — Playwright smoke (add todo, assert title visible).
+Pair with gallery `audit-gallery-full.mjs` in post-commit pipelines once dev stack is scripted (Phase 5E/5F).
+
+### 2026-06-28 — SuiteTodo dev-stack + SQL full-text search
+
+**`SuiteTodo/dev-stack.sh`:** `up` = Docker SQL (optional) + DevelopmentHost + `eggshell dev-web`.
+Password `EggShell_Dev_123!` in `docker-compose.yml` and `template.appsettings.Development.json`.
+
+**SQL FTS:** Reference apps on SQL Server should define a real `SubjectSearchIndex` (not `NoSearchIndex`)
+so `LibLifeCycleHost` creates `SubjectSearchCatalog` + `_SearchIndex` tables. SuiteTodo uses
+`TodoSearchIndex.Title` indexed from todo title text.

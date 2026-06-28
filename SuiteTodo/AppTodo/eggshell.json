@@ -1,0 +1,15 @@
+{
+	"name": "AppTodo",
+	"alias": "Ui",
+	"type": "app",
+	"renderDependencies": [
+		"../../LibClient",
+		"../../LibRouter",
+		"../../LibUiSubject"
+	],
+	"build": {
+		"copyStaticFiles": [
+			["public-dev/app.css", "public/[resources]/app.css"]
+		]
+	}
+}

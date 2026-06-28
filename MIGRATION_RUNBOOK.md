@@ -313,7 +313,8 @@ SuiteTodo/
    - `TodoConstructor`: `New of Title`
    `TodoLifeEvent`: `Created | TitleChanged | DoneToggled of bool | Archived`
    - `TodoOpError`: `EmptyTitle`
-   - Index types + `TodoIndex()` inheriting `SubjectIndex<...>`
+   - Index types + `TodoIndex()` inheriting `SubjectIndex<...>` — include **`TodoSearchIndex.Title`**
+     (SQL Server full-text; not `NoSearchIndex`) so Dev host creates FTS catalog/tables
    - `EcosystemDef.fs`: `newEcosystemDef "Todo"` + life cycle registration
 2. **Codec gen:** wire `TypesCodecGen` Dev launcher (mirror `SuiteJobs/Launchers/Dev/TypesCodecGen`).
    Run it; commit generated `#if !FABLE_COMPILER` codec blocks. **ESCALATE-IF** wiring is unclear.
@@ -329,6 +330,7 @@ SuiteTodo/
    - Test: construct todo, toggle, assert LifeEvent + state
    - Test: `EmptyTitle` rejected
    - Test: `Ecosystem.moveTimeForwardAndRunReminders` fires auto-archive timer
+   - Test: `IndexPredicate.Matches` on `TodoSearchIndex.Title` (full-text search)
 
 **VALIDATE:** `dotnet build` each project green; `dotnet test SuiteTodo/Ecosystem/Tests` passes.
 

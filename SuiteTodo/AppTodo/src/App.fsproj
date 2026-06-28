@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Configurations>Web Debug;Web Release;Native Debug;Native Release</Configurations>
+    <DefineConstants>FABLE_COMPILER</DefineConstants>
+    <DefineConstants Condition="'$(Configuration)' == 'Web Debug' Or '$(Configuration)' == 'Native Debug'">$(DefineConstants);DEBUG</DefineConstants>
+    <DefineConstants Condition="'$(Configuration)' == 'Web Debug' Or '$(Configuration)' == 'Web Release'">$(DefineConstants);EGGSHELL_PLATFORM_IS_WEB</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../LibLangFsharp/src/LibLangFsharp.fsproj" />
+    <ProjectReference Include="../../../LibLifeCycleTypes/src/LibLifeCycleTypes.fsproj" />
+    <ProjectReference Include="../../../LibClient/src/LibClient.fsproj" />
+    <ProjectReference Include="../../../LibRouter/src/LibRouter.fsproj" />
+    <ProjectReference Include="../../../Meta/FablePlugins/FablePlugins.fsproj" />
+    <ProjectReference Include="../../../LibUiSubject/src/LibUiSubject.fsproj" />
+    <ProjectReference Include="../../Ecosystem/Todo.Types/Todo.Types.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="**/*.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Config.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="ErrorMessages.fs" />
+    <Compile Include="RenderHelpers.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Services.fs" />
+    <Compile Include="Navigation.fs" />
+    <Compile Include="Colors.fs" />
+    <Compile Include="Icons.fs" />
+    <Compile Include="LocalImagesRegistration.fs" />
+    <Compile Include="Actions.fs" />
+    <Compile Include="ComponentsHierarchy.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Components/Route/Todos.fs" />
+    <Compile Include="Components/AppContext.fs" />
+    <Compile Include="Components/App.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="ComponentsTheme.fs" />
+    <Compile Include="Bootstrap.fs" />
+  </ItemGroup>
+</Project>
