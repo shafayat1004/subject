@@ -1,26 +1,12 @@
 import { writeFileSync, appendFileSync } from 'fs';
 import { join } from 'path';
+import { writeJson, writeLines } from './io.mjs';
 import { collectDomSummary, collectLayoutMetrics } from './dom-analysis.mjs';
 import { readUiLog, readUiSnapshot } from './selectors.mjs';
 import { APP_NAME } from './config.mjs';
+import { isNativePlatform } from './platform.mjs';
 
-/**
- * @param {string} dir
- * @param {string} name
- * @param {unknown} data
- */
-export function writeJson(dir, name, data) {
-  writeFileSync(join(dir, name), `${JSON.stringify(data, null, 2)}\n`, 'utf8');
-}
-
-/**
- * @param {string} dir
- * @param {string} name
- * @param {string[]} lines
- */
-export function writeLines(dir, name, lines) {
-  writeFileSync(join(dir, name), lines.length ? `${lines.join('\n')}\n` : '', 'utf8');
-}
+export { writeJson, writeLines } from './io.mjs';
 
 /**
  * Full capture bundle for one point in time.
@@ -57,6 +43,24 @@ export async function captureState(page, outDir, options = {}) {
     uiSnapshot,
     uiLog,
   };
+}
+
+/**
+ * Platform-aware capture (web DOM or native UI hierarchy).
+ * @param {{ platform: 'web' | 'android' | 'ios', page: import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage, logs?: { consoleLines: string[], pageErrors: string[], networkErrors: string[] } }} session
+ * @param {string} outDir
+ * @param {{ label?: string }} [options]
+ */
+export async function captureObserveState(session, outDir, options = {}) {
+  const { platform, page, logs } = session;
+  const label = options.label ?? 'snapshot';
+
+  if (isNativePlatform(platform)) {
+    const { captureNativeState } = await import('./native-capture.mjs');
+    return captureNativeState({ page, platform }, outDir, { label });
+  }
+
+  return captureState(page, outDir, { label, logs });
 }
 
 /**

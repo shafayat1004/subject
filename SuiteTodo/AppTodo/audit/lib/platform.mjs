@@ -1,5 +1,5 @@
 /**
- * Platform routing for AppTodo observability (web first; android/ios stubs).
+ * Platform routing for AppTodo observability.
  */
 
 export const PLATFORM = {
@@ -17,16 +17,6 @@ export function normalizePlatform(raw) {
   throw new Error(`Unknown platform "${raw}". Use web, android, or ios.`);
 }
 
-/**
- * @param {'web' | 'android' | 'ios'} platform
- */
-export function platformNotReadyMessage(platform) {
-  if (platform === PLATFORM.WEB) return null;
-  const name = platform === PLATFORM.ANDROID ? 'Android (Appium)' : 'iOS (Appium / XCUITest)';
-  return [
-    `${name} observability is not wired for AppTodo yet.`,
-    'Use --platform web for now (Playwright, headed by default).',
-    'Gallery reference: AppEggShellGallery/audit-gallery-android-driver.mjs',
-    'When templating, copy that driver and set AppTodo package/activity.',
-  ].join('\n');
+export function isNativePlatform(platform) {
+  return platform === PLATFORM.ANDROID || platform === PLATFORM.IOS;
 }

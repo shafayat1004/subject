@@ -1181,11 +1181,16 @@ so `LibLifeCycleHost` creates `SubjectSearchCatalog` + `_SearchIndex` tables. Su
 content appeared. Replaced with `cardShell` (`widthPercent 100`, `maxWidth 560`, `AlignSelf.Stretch`) and
 `testId`s `todo-page` / `todo-card` on `RX.View`.
 
-**Platforms:** Web (Playwright) only for now; `--platform android|ios` prints stub message (gallery
-`audit-gallery-android-driver.mjs` is the template for later scaffolding).
+**Platforms:** Web (Playwright), Android (Appium/UiAutomator2), iOS (Appium/XCUITest) via
+`audit/lib/{android,ios}-driver.mjs`. Same CLI commands with `--platform android|ios`. Native capture:
+UI hierarchy XML, logcat/simulator log, testID layout bounds. **Doctor:** `npm run observe -- doctor -p android`.
 
 **Gotcha:** `RX.View` optional `testId` is `?testId: string` — pass `A11ySlug.testId ...` directly, not
 `Some (...)`.
+
+**Native gotcha:** AppTodo has no `android/`/`ios/` until `eggshell dev-android` / `dev-native`. Package defaults
+`com.eggshell.apptodo` — override in `audit/native.local.json`. Lazy-import native drivers so web doctor works
+without webdriverio loaded at startup (native deps still required for `-p android|ios`).
 
 ### 2026-06-28 — Checkbox iconTheme style leak (LibClient)
 

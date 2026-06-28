@@ -1,75 +1,112 @@
 # AppTodo dev observability
 
-First-class tooling for **humans and LLM agents** to capture screenshots, DOM data, layout metrics, and logs while developing. **Headed (visible) browser is the default** so you and the agent see the same UI.
+First-class tooling for **humans and LLM agents** on **web, Android, and iOS**: screenshots, layout metrics, DOM/UI hierarchy, device logs, and named workflows.
 
-Platforms: **web (Playwright)** today; **Android (Appium)** and **iOS** hooks are stubbed for templating later (see gallery `audit-gallery-android-driver.mjs`).
+**Web:** headed browser by default (Playwright). **Native:** Appium via WebdriverIO (device/emulator stays visible).
 
-## Prerequisites
+## Quick start by platform
+
+### Web
 
 ```bash
 cd SuiteTodo/AppTodo
 ./initialize
-../../eggshell dev-web   # http://127.0.0.1:9080, fake backend by default
+../../eggshell dev-web                    # http://127.0.0.1:9080
+npm run observe -- doctor                 # verify dev-web
+npm run observe -- snapshot
+npm run observe:layout-check
 ```
 
-## Quick commands (for agents)
+### Android
 
-Copy-paste these from the repo root or `SuiteTodo/AppTodo`:
+```bash
+# One-time
+npm run appium:setup
+npm run appium                            # terminal 1 — Appium on :4723
 
-| Goal | Command |
-|------|---------|
-| Current state bundle | `npm run observe -- snapshot` |
-| LLM JSON manifest | `npm run observe -- state` |
-| Add todo + capture | `npm run observe -- add-todo "Buy milk"` |
-| **Layout regression** (card width before/after add) | `npm run observe -- workflow layout-check` |
-| Compare two runs | `npm run observe -- diff` |
-| Pair programming (browser stays open) | `npm run observe -- open` |
-| Console/page errors only | `npm run observe -- logs` |
-| Headless CI | `npm run observe -- snapshot --headless true` |
+# Native project + Metro (when android/ exists)
+../../eggshell dev-android                # or dev-native-server + install APK
+adb reverse tcp:8081 tcp:8081
 
-## Output layout
+npm run observe -- doctor --platform android
+npm run observe -- snapshot --platform android
+npm run observe -- workflow layout-check --platform android
+```
 
-Each run writes to `audit/out/<timestamp>-<label>/`:
+### iOS (macOS + Xcode)
 
-- `manifest.json` — index for agents (paths, card width, error counts)
-- `current.png` / `before.png` / `after.png` — full-page screenshots
-- `*-layout-metrics.json` — bounding boxes (`todo-card`, inputs, viewport)
-- `*-dom-summary.json` — compact DOM tree
-- `*-ui-snapshot.json` — `window.__eggshell.AppTodo.uiSnapshot()` (DEBUG builds)
-- `*-console.log`, `*-page-errors.log`, `*-network-errors.log`
-- `layout-diff.json` — from `workflow layout-check`
+```bash
+npm run appium:setup
+npm run appium                            # terminal 1
 
-## Workflows
+# Boot simulator, install app via ../../eggshell dev-native
+npm run observe -- doctor --platform ios
+npm run observe -- snapshot --platform ios
+```
 
-### `workflow layout-check`
+AppTodo does not ship `android/` / `ios/` until native is scaffolded (`eggshell dev-android` / `dev-native`). **Doctor** tells you exactly what is missing.
 
-1. Captures empty-state screenshot + layout metrics  
-2. Adds a todo  
-3. Captures again  
-4. Diffs `todo-card` width/height (flags if change &gt; 2px)
+## Commands (all platforms)
 
-Exit code `2` = likely layout regression (e.g. card shrinking after first todo).
+| Command | Description |
+|---------|-------------|
+| `npm run observe:doctor` | **All platforms** — web + Android + iOS health (beige UI) |
+| `npm run observe -- doctor --json` | Same checks, JSON for LLM agents |
+| `npm run observe -- doctor -p android` | Single-platform doctor |
+| `npm run observe -- snapshot [-p platform]` | Full capture bundle |
+| `npm run observe -- add-todo "title" [-p platform]` | Add todo + capture |
+| `npm run observe:layout-check` | Before/after card width diff |
+| `npm run observe -- diff [dirA dirB]` | Compare two runs |
+| `npm run observe:open` | Web only — browser stays open |
+| `npm run observe -- logs [-p platform]` | Console or device logs |
 
-### `diff`
+Platform flag: `--platform android` or `-p ios` (default: `web`).
 
-Compare layout metrics between two run folders. With no args, uses the two most recent dirs under `audit/out/`.
+## Artifacts
 
-## Test IDs (AppTodo)
+### Web (`audit/out/<timestamp>-*/`)
+
+- `manifest.json`, `current.png`, `*-layout-metrics.json`, `*-dom-summary.json`
+- `*-ui-snapshot.json` (DEBUG `window.__eggshell.AppTodo.uiSnapshot()`)
+- `*-console.log`, `*-page-errors.log`
+
+### Native
+
+- `current.png`, `*-layout-metrics.json` (testID bounds + card heuristic)
+- `*-ui-hierarchy.xml` + `*-ui-summary.json` (compact tree for LLM)
+- `*-device.log` (logcat or simulator log)
+
+## Native app IDs
+
+Defaults: `com.eggshell.apptodo` / `MainActivity` / iOS bundle `com.eggshell.apptodo`.
+
+Override:
+
+1. Copy `audit/native.local.json.example` → `audit/native.local.json`
+2. Or env: `APPTODO_ANDROID_PACKAGE`, `APPTODO_ANDROID_ACTIVITY`, `APPTODO_IOS_BUNDLE_ID`
+3. Or auto-read from `android/app/build.gradle` when present
+
+## Test IDs
 
 | testId | Element |
 |--------|---------|
 | `todo-page` | Page wrapper |
-| `todo-card` | White card shell |
+| `todo-card` | Card shell |
 | `todo-new-title` | New todo input |
 | `todo-add` | Add button |
 | `todo-search` | Search input |
 
-Selectors fall back to `input` / `[data-text-as-pseudo-element]` when ReactXP does not expose `data-testid`.
+On native, RN `testID` → Android `resource-id` / iOS accessibility id (`~todo-new-title` in Appium).
 
-## Smoke audit (legacy)
+## LLM copy-paste
 
-`npm run audit:web` — minimal add-todo smoke test (headless).
+```bash
+npm run observe -- doctor --platform android
+npm run observe -- snapshot --platform android
+npm run observe -- workflow layout-check --platform android
+npm run observe -- snapshot --headless true          # web CI
+```
 
-## Templating note
+## Templating
 
-This folder is the reference implementation for EggShell app scaffolding. Later: move shared `audit/lib/*` into `Meta/LibScaffolding` and wire Android/iOS drivers from the gallery patterns.
+Reference for EggShell scaffolding. Shared drivers will move to `Meta/LibScaffolding`; gallery `audit-gallery-android-driver.mjs` was the prior art.

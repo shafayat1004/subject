@@ -1,0 +1,231 @@
+/**
+ * Appium / WebdriverIO driver for AppTodo iOS (XCUITest, Playwright-like facade).
+ */
+
+import { remote } from 'webdriverio';
+import { spawn, execSync } from 'child_process';
+import { resolveIosApp, APPIUM } from './native-config.mjs';
+import { TEST_IDS } from './selectors.mjs';
+
+class IosLocator {
+  /** @param {import('webdriverio').Browser} driver @param {string} selector @param {{ index?: number }} [meta] */
+  constructor(driver, selector, meta = {}) {
+    this.driver = driver;
+    this.selector = selector;
+    this._index = meta.index ?? null;
+  }
+
+  _clone(extra = {}) {
+    return new IosLocator(this.driver, this.selector, { index: this._index, ...extra });
+  }
+
+  async _resolveRaw() {
+    let els;
+    try {
+      els = await this.driver.$$(this.selector);
+    } catch {
+      els = [];
+    }
+    if (this._index === 'last') return els.length ? [els[els.length - 1]] : [];
+    if (typeof this._index === 'number') return this._index < els.length ? [els[this._index]] : [];
+    return els;
+  }
+
+  async count() {
+    return (await this._resolveRaw()).length;
+  }
+
+  first() {
+    return this._clone({ index: 0 });
+  }
+
+  /** @param {string} sub */
+  locator(sub) {
+    if (sub.startsWith('~')) return new IosLocator(this.driver, `~${sub.slice(1)}`);
+    if (sub === 'input') return new IosLocator(this.driver, '-ios class chain:**/XCUIElementTypeTextField');
+    return new IosLocator(this.driver, sub);
+  }
+
+  async click(opts = {}) {
+    const el = (await this._resolveRaw())[0];
+    if (!el) throw new Error(`No element to click: ${this.selector}`);
+    await el.waitForDisplayed({ timeout: opts.timeout ?? 8000 }).catch(() => {});
+    await el.click();
+  }
+
+  async fill(value, opts = {}) {
+    const el = (await this._resolveRaw())[0];
+    if (!el) throw new Error(`No element to fill: ${this.selector}`);
+    await el.waitForDisplayed({ timeout: opts.timeout ?? 8000 }).catch(() => {});
+    await el.clearValue().catch(() => {});
+    await el.setValue(value);
+  }
+
+  async waitFor({ timeout = 30000 } = {}) {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+      if ((await this.count()) > 0) return;
+      await this.driver.pause(200);
+    }
+    throw new Error(`Timeout waiting for ${this.selector}`);
+  }
+
+  async boundingBox() {
+    const el = (await this._resolveRaw())[0];
+    if (!el) return null;
+    const rect = await el.getRect();
+    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+  }
+}
+
+export class IosPage {
+  /** @param {import('webdriverio').Browser} driver */
+  constructor(driver) {
+    this.driver = driver;
+    this.platform = 'ios';
+  }
+
+  waitForTimeout(ms) {
+    return this.driver.pause(ms);
+  }
+
+  locator(selector) {
+    if (selector.startsWith('~')) return new IosLocator(this.driver, selector);
+    if (selector === 'input') return new IosLocator(this.driver, '-ios class chain:**/XCUIElementTypeTextField');
+    return new IosLocator(this.driver, selector);
+  }
+
+  getByText(text, opts = {}) {
+    const pred = opts.exact
+      ? `-ios predicate string:name == "${text.replace(/"/g, '\\"')}"`
+      : `-ios predicate string:name CONTAINS "${text.replace(/"/g, '\\"')}"`;
+    return new IosLocator(this.driver, pred);
+  }
+
+  getByRole(role, opts = {}) {
+    if (role === 'button' && opts.name) {
+      return new IosLocator(
+        this.driver,
+        `-ios predicate string:type == 'XCUIElementTypeButton' AND name CONTAINS "${opts.name.replace(/"/g, '\\"')}"`
+      );
+    }
+    return new IosLocator(this.driver, '-ios class chain:**/XCUIElementTypeButton');
+  }
+
+  async screenshot(opts) {
+    await this.driver.saveScreenshot(opts.path);
+  }
+
+  async getPageSource() {
+    return this.driver.getPageSource();
+  }
+
+  async getWindowSize() {
+    const rect = await this.driver.getWindowRect();
+    return { width: rect.width, height: rect.height };
+  }
+}
+
+export function getDefaultIosUdid() {
+  try {
+    const out = execSync('xcrun simctl list devices booted -j', { encoding: 'utf8' });
+    const data = JSON.parse(out);
+    for (const runtime of Object.values(data.devices)) {
+      for (const device of runtime) {
+        if (device.state === 'Booted') return device.udid;
+      }
+    }
+  } catch {
+    /* no simulator */
+  }
+  return null;
+}
+
+/**
+ * @param {IosPage} page
+ */
+export async function isTodoUiVisible(page) {
+  if (await page.locator(`~${TEST_IDS.newTitle}`).count()) return true;
+  if (await page.getByText('Todos', { exact: true }).count()) return true;
+  return false;
+}
+
+/**
+ * @param {IosPage} page
+ * @param {{ timeoutMs?: number, log?: (msg: string) => void }} [options]
+ */
+export async function waitForTodoAppReady(page, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 120_000;
+  const log = options.log ?? (() => {});
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (await isTodoUiVisible(page)) {
+      log('AppTodo UI ready');
+      await page.waitForTimeout(800);
+      return;
+    }
+    await page.waitForTimeout(750);
+  }
+  throw new Error(`AppTodo UI not ready within ${timeoutMs}ms`);
+}
+
+/**
+ * @param {{ appiumHost?: string, appiumPort?: number, udid?: string, log?: (msg: string) => void }} [options]
+ */
+export async function connectIosPage(options = {}) {
+  const app = resolveIosApp();
+  const host = options.appiumHost ?? APPIUM.host;
+  const port = Number(options.appiumPort ?? APPIUM.port);
+  const log = options.log ?? (() => {});
+  const udid = options.udid ?? getDefaultIosUdid();
+  if (!udid) throw new Error('No booted iOS simulator found. Boot one in Xcode or via xcrun simctl.');
+
+  log(`ios simulator: ${udid}, bundle: ${app.bundleId}`);
+
+  const driver = await remote({
+    hostname: host,
+    port,
+    path: '/',
+    logLevel: 'error',
+    capabilities: {
+      platformName: 'iOS',
+      'appium:automationName': 'XCUITest',
+      'appium:udid': udid,
+      'appium:bundleId': app.bundleId,
+      'appium:noReset': true,
+      'appium:newCommandTimeout': 600,
+      'wdio:enforceWebDriverClassic': true,
+    },
+  });
+
+  const page = new IosPage(driver);
+  try {
+    await driver.activateApp(app.bundleId);
+  } catch {
+    /* not installed */
+  }
+  await page.waitForTimeout(1500);
+  await waitForTodoAppReady(page, { log });
+  return page;
+}
+
+/** @param {IosPage} page */
+export async function disconnectIosPage(page) {
+  await page.driver.deleteSession();
+}
+
+/**
+ * Recent simulator sys log lines mentioning AppTodo / React Native.
+ */
+export function captureIosLogs() {
+  try {
+    const out = execSync('xcrun simctl spawn booted log show --last 2m --style compact 2>/dev/null | tail -300', {
+      encoding: 'utf8',
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    return out.split('\n').filter((l) => /AppTodo|React|eggshell/i.test(l));
+  } catch {
+    return [];
+  }
+}

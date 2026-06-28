@@ -1,8 +1,8 @@
 /**
- * AppTodo selectors: testId-first with ReactXP web fallbacks.
+ * AppTodo selectors: testId-first with platform fallbacks.
  */
 
-import { PLATFORM } from './platform.mjs';
+import { PLATFORM, isNativePlatform } from './platform.mjs';
 
 export const TEST_IDS = {
   page: 'todo-page',
@@ -21,41 +21,53 @@ export function escapeAttr(text) {
  * @param {'web' | 'android' | 'ios'} [platform]
  */
 export function testIdSelector(testId, platform = PLATFORM.WEB) {
-  if (platform === PLATFORM.ANDROID || platform === PLATFORM.IOS) {
+  if (isNativePlatform(platform)) {
     return `~${testId}`;
   }
   return `[data-testid="${escapeAttr(testId)}"]`;
 }
 
 /**
- * @param {import('playwright').Page} page
+ * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
  * @param {string} testId
+ * @param {'web' | 'android' | 'ios'} [platform]
  */
-export function findByTestId(page, testId) {
-  return page.locator(testIdSelector(testId));
+export function findByTestId(page, testId, platform = PLATFORM.WEB) {
+  return page.locator(testIdSelector(testId, platform));
 }
 
 /**
- * @param {import('playwright').Page} page
+ * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
  * @param {string} testId
- * @param {{ timeout?: number, log?: (msg: string) => void }} [options]
+ * @param {{ timeout?: number, log?: (msg: string) => void, platform?: 'web' | 'android' | 'ios' }} [options]
  */
 export async function clickByTestId(page, testId, options = {}) {
-  const { timeout = 8000, log = () => {} } = options;
-  const el = findByTestId(page, testId).first();
+  const { timeout = 8000, log = () => {}, platform = PLATFORM.WEB } = options;
+  const el = findByTestId(page, testId, platform).first();
   if (!(await el.count())) return false;
-  await el.click({ force: true, timeout });
+  const clickOpts = isNativePlatform(platform) ? { timeout } : { force: true, timeout };
+  await el.click(clickOpts);
   log(`click testId "${testId}"`);
   return true;
 }
 
 /**
- * Fill new-todo input (testId, then first text input fallback).
- * @param {import('playwright').Page} page
+ * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
  * @param {string} value
+ * @param {'web' | 'android' | 'ios'} [platform]
  */
-export async function fillNewTodoTitle(page, value) {
-  const byTestId = findByTestId(page, TEST_IDS.newTitle).locator('input').first();
+export async function fillNewTodoTitle(page, value, platform = PLATFORM.WEB) {
+  if (isNativePlatform(platform)) {
+    const byTestId = findByTestId(page, TEST_IDS.newTitle, platform);
+    if (await byTestId.count()) {
+      await byTestId.first().fill(value);
+      return;
+    }
+    await page.locator('input').first().fill(value);
+    return;
+  }
+
+  const byTestId = findByTestId(page, TEST_IDS.newTitle, platform).locator('input').first();
   if (await byTestId.count()) {
     await byTestId.fill(value);
     return;
@@ -64,30 +76,51 @@ export async function fillNewTodoTitle(page, value) {
 }
 
 /**
- * Click Add (testId, pseudo-element, role button).
- * @param {import('playwright').Page} page
+ * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
+ * @param {'web' | 'android' | 'ios'} [platform]
  */
-export async function clickAddTodo(page) {
-  if (await clickByTestId(page, TEST_IDS.add)) return;
+export async function clickAddTodo(page, platform = PLATFORM.WEB) {
+  if (await clickByTestId(page, TEST_IDS.add, { platform })) return;
 
-  const pseudo = page.locator('[data-text-as-pseudo-element="Add"]').first();
-  if (await pseudo.count()) {
-    await pseudo.click({ force: true });
-    return;
+  if (!isNativePlatform(platform)) {
+    const pseudo = page.locator('[data-text-as-pseudo-element="Add"]').first();
+    if (await pseudo.count()) {
+      await pseudo.click({ force: true });
+      return;
+    }
   }
 
   await page.getByRole('button', { name: 'Add' }).click();
 }
 
 /**
- * Wait until todo UI is interactive.
- * @param {import('playwright').Page} page
- * @param {{ bootstrapWaitMs?: number }} [options]
+ * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
+ * @param {{ bootstrapWaitMs?: number, platform?: 'web' | 'android' | 'ios' }} [options]
  */
 export async function waitForTodoReady(page, options = {}) {
-  const { bootstrapWaitMs = 8000 } = options;
+  const { bootstrapWaitMs = 8000, platform = PLATFORM.WEB } = options;
   await page.waitForTimeout(bootstrapWaitMs);
-  const input = findByTestId(page, TEST_IDS.newTitle).locator('input').first();
+
+  if (isNativePlatform(platform)) {
+    const byTestId = findByTestId(page, TEST_IDS.newTitle, platform);
+    if (await byTestId.count()) {
+      await byTestId.first().waitFor({ timeout: 30000 });
+      return;
+    }
+    const edit = page.locator('input').first();
+    if (await edit.count()) {
+      await edit.waitFor({ timeout: 30000 });
+      return;
+    }
+    if (await page.getByText('Todos', { exact: true }).count()) return;
+    throw new Error(
+      'AppTodo native UI not ready. Run: npm run observe -- doctor --platform ' +
+        platform +
+        ' — ensure Metro + Appium + app installed.'
+    );
+  }
+
+  const input = findByTestId(page, TEST_IDS.newTitle, platform).locator('input').first();
   if (await input.count()) {
     await input.waitFor({ timeout: 30000 });
     return;
@@ -110,11 +143,12 @@ export async function waitForTodoReady(page, options = {}) {
 }
 
 /**
- * Dev hook from LibClient UiActionLog (DEBUG builds).
+ * Dev hook from LibClient UiActionLog (web DEBUG builds only).
  * @param {import('playwright').Page} page
  * @param {string} [appName]
  */
 export async function readUiSnapshot(page, appName = 'AppTodo') {
+  if (typeof page.evaluate !== 'function') return null;
   return page.evaluate((name) => {
     const eggshell = /** @type {Record<string, { uiSnapshot?: () => unknown }> | undefined} */ (
       window.__eggshell
@@ -130,6 +164,7 @@ export async function readUiSnapshot(page, appName = 'AppTodo') {
  * @param {string} [appName]
  */
 export async function readUiLog(page, appName = 'AppTodo') {
+  if (typeof page.evaluate !== 'function') return null;
   return page.evaluate((name) => {
     const eggshell = /** @type {Record<string, { uiLog?: () => unknown }> | undefined} */ (
       window.__eggshell

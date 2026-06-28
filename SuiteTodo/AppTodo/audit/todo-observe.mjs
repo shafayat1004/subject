@@ -1,26 +1,24 @@
 #!/usr/bin/env node
 /**
- * AppTodo dev observability CLI — screenshots, DOM, layout diff, logs.
- * Headed (non-headless) by default so humans and AI share the same view.
+ * AppTodo dev observability CLI — web (Playwright) + native (Appium Android/iOS).
+ * Headed by default on web so humans and AI share the same view.
  *
  * Usage:
- *   node audit/todo-observe.mjs snapshot
- *   node audit/todo-observe.mjs state
- *   node audit/todo-observe.mjs add-todo "Buy milk"
- *   node audit/todo-observe.mjs workflow layout-check
- *   node audit/todo-observe.mjs diff audit/out/run-a audit/out/run-b
- *   node audit/todo-observe.mjs open
- *   node audit/todo-observe.mjs --help
+ *   npm run observe -- snapshot
+ *   npm run observe -- snapshot --platform android
+ *   npm run observe -- doctor --platform ios
+ *   npm run observe -- workflow layout-check --platform android
  */
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
-import { DEFAULTS, parseBool } from './lib/config.mjs';
-import { normalizePlatform, platformNotReadyMessage } from './lib/platform.mjs';
+import { DEFAULTS } from './lib/config.mjs';
+import { normalizePlatform } from './lib/platform.mjs';
 import { OUT_ROOT } from './lib/paths.mjs';
 import { diffLayoutMetrics } from './lib/dom-analysis.mjs';
 import { emitReport, emitStatus } from './lib/report.mjs';
+import { runDoctor } from './lib/doctor.mjs';
 import { runSnapshotWorkflow } from './workflows/snapshot.mjs';
 import { runLayoutCheckWorkflow, runAddTodoWorkflow } from './workflows/layout-check.mjs';
 
@@ -47,6 +45,16 @@ function latestRunDirs(limit = 2) {
     .slice(0, limit);
 }
 
+function workflowOptions(args) {
+  return {
+    platform: args.platform,
+    baseUrl: args.baseUrl,
+    headless: args.headless,
+    outDir: args.out,
+    title: args.title,
+  };
+}
+
 const argv = yargs(hideBin(process.argv))
   .scriptName('todo-observe')
   .usage('$0 <command> [options]')
@@ -54,32 +62,50 @@ const argv = yargs(hideBin(process.argv))
     alias: 'u',
     type: 'string',
     default: DEFAULTS.baseUrl,
-    describe: 'AppTodo dev-web URL',
+    describe: 'AppTodo dev-web URL (web platform only)',
   })
   .option('headless', {
     type: 'boolean',
     default: DEFAULTS.headless,
-    describe: 'Run browser headless (default: false — visible for collaboration)',
+    describe: 'Web: run browser headless (default: false — visible for collaboration)',
   })
   .option('platform', {
     alias: 'p',
     choices: ['web', 'android', 'ios'],
     default: DEFAULTS.platform,
-    describe: 'Target platform (android/ios stubs for now)',
+    describe: 'Target platform for snapshot/workflows (doctor checks all unless -p set)',
   })
   .command(
-    'snapshot',
-    'Screenshot + DOM summary + layout metrics + uiSnapshot + logs',
+    'doctor',
+    'Health check for web, Android, and iOS observe (beige UI; use --json for agents)',
     (y) =>
-      y.option('out', { type: 'string', describe: 'Output directory (default: audit/out/<timestamp>-snapshot)' }),
+      y.option('json', { type: 'boolean', default: false, describe: 'Machine-readable JSON instead of UI' }),
     async (args) => {
-      assertPlatform(args);
-      await runSnapshotWorkflow({
+      const singlePlatform = args.platform !== DEFAULTS.platform ? args.platform : undefined;
+      const report = await runDoctor({
+        platform: singlePlatform,
         baseUrl: args.baseUrl,
-        headless: args.headless,
-        outDir: args.out,
-        label: 'current',
+        json: args.json,
       });
+      if (args.json) {
+        emitReport(report);
+      }
+      if (!report.allReady) {
+        if (args.json) {
+          emitStatus('warn', `${report.readyCount}/${report.total} platforms ready`);
+        }
+        process.exitCode = 2;
+      } else if (args.json) {
+        emitStatus('ok', `All ${report.total} platforms ready`);
+      }
+    }
+  )
+  .command(
+    'snapshot',
+    'Screenshot + layout metrics + DOM (web) or UI hierarchy (native) + logs',
+    (y) => y.option('out', { type: 'string' }),
+    async (args) => {
+      await runSnapshotWorkflow({ ...workflowOptions(args), label: 'current' });
     }
   )
   .command(
@@ -87,13 +113,7 @@ const argv = yargs(hideBin(process.argv))
     'Alias for snapshot — structured JSON bundle for LLM agents',
     (y) => y.option('out', { type: 'string' }),
     async (args) => {
-      assertPlatform(args);
-      await runSnapshotWorkflow({
-        baseUrl: args.baseUrl,
-        headless: args.headless,
-        outDir: args.out,
-        label: 'current',
-      });
+      await runSnapshotWorkflow({ ...workflowOptions(args), label: 'current' });
     }
   )
   .command(
@@ -104,13 +124,7 @@ const argv = yargs(hideBin(process.argv))
         .positional('title', { type: 'string', default: `observe-${Date.now()}` })
         .option('out', { type: 'string' }),
     async (args) => {
-      assertPlatform(args);
-      await runAddTodoWorkflow({
-        baseUrl: args.baseUrl,
-        headless: args.headless,
-        title: args.title,
-        outDir: args.out,
-      });
+      await runAddTodoWorkflow(workflowOptions(args));
     }
   )
   .command(
@@ -118,29 +132,23 @@ const argv = yargs(hideBin(process.argv))
     'Named workflows (layout-check: before/after add-todo + card width diff)',
     (y) =>
       y
-        .positional('name', { choices: ['layout-check'], describe: 'Workflow name' })
-        .option('title', { type: 'string', describe: 'Todo title for layout-check' })
+        .positional('name', { choices: ['layout-check'] })
+        .option('title', { type: 'string' })
         .option('out', { type: 'string' }),
     async (args) => {
-      assertPlatform(args);
       if (args.name === 'layout-check') {
-        await runLayoutCheckWorkflow({
-          baseUrl: args.baseUrl,
-          headless: args.headless,
-          title: args.title,
-          outDir: args.out,
-        });
+        await runLayoutCheckWorkflow(workflowOptions(args));
       }
     }
   )
   .command(
     'diff [dirA] [dirB]',
-    'Compare layout metrics between two snapshot runs (defaults: two latest in audit/out/)',
+    'Compare layout metrics between two snapshot runs',
     (y) =>
       y
-        .positional('dirA', { type: 'string', describe: 'First run directory' })
-        .positional('dirB', { type: 'string', describe: 'Second run directory' })
-        .option('threshold', { type: 'number', default: 2, describe: 'Px threshold for flagged changes' }),
+        .positional('dirA', { type: 'string' })
+        .positional('dirB', { type: 'string' })
+        .option('threshold', { type: 'number', default: 2 }),
     (args) => {
       let dirA = args.dirA;
       let dirB = args.dirB;
@@ -159,12 +167,7 @@ const argv = yargs(hideBin(process.argv))
       const after = loadLayoutMetrics(dirB, 'after');
       const diff = diffLayoutMetrics(before.data, after.data, { thresholdPx: args.threshold });
 
-      emitReport({
-        command: 'diff',
-        dirA,
-        dirB,
-        layoutDiff: diff,
-      });
+      emitReport({ command: 'diff', dirA, dirB, layoutDiff: diff });
 
       if (diff.regressionLikely) {
         emitStatus('warn', diff.summary);
@@ -176,12 +179,16 @@ const argv = yargs(hideBin(process.argv))
   )
   .command(
     'open',
-    'Open AppTodo in a visible browser and keep session alive for human + AI pairing',
+    'Open AppTodo in a visible browser and keep session alive (web only)',
     () => {},
     async (args) => {
-      assertPlatform(args);
+      if (normalizePlatform(args.platform) !== 'web') {
+        emitStatus('fail', 'open is web-only. Native: use snapshot (device stays visible).');
+        process.exitCode = 2;
+        return;
+      }
       await runSnapshotWorkflow({
-        baseUrl: args.baseUrl,
+        ...workflowOptions(args),
         headless: false,
         keepOpen: true,
         label: 'open',
@@ -190,35 +197,23 @@ const argv = yargs(hideBin(process.argv))
   )
   .command(
     'logs',
-    'Collect console + page errors only (quick smoke)',
+    'Collect console (web) or device log (native) snapshot',
     () => {},
     async (args) => {
-      assertPlatform(args);
-      const result = await runSnapshotWorkflow({
-        baseUrl: args.baseUrl,
-        headless: args.headless,
-        label: 'logs',
-      });
+      const result = await runSnapshotWorkflow({ ...workflowOptions(args), label: 'logs' });
       if (result?.manifest) {
+        const cs = result.manifest.consoleSummary;
         emitStatus(
-          result.manifest.pageErrorCount ? 'warn' : 'ok',
-          `console errors: ${result.manifest.consoleErrorCount}, page errors: ${result.manifest.pageErrorCount}`
+          cs?.actionable || result.manifest.pageErrorCount ? 'warn' : 'ok',
+          cs
+            ? `actionable: ${cs.actionable}, styleLeaks: ${cs.styleLeaks}, noise: ${cs.noise}`
+            : `platform ${result.manifest.platform} logs captured`
         );
       }
     }
   )
-  .demandCommand(1, 'Pick a command: snapshot | state | add-todo | workflow | diff | open | logs')
+  .demandCommand(1, 'Pick: doctor | snapshot | state | add-todo | workflow | diff | open | logs')
   .help()
   .parse();
 
-function assertPlatform(args) {
-  const platform = normalizePlatform(args.platform);
-  const msg = platformNotReadyMessage(platform);
-  if (msg) {
-    console.error(msg);
-    process.exit(2);
-  }
-}
-
-// yargs parse is sync for diff; async commands handle their own exit
 void argv;

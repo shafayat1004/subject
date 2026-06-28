@@ -1,0 +1,5 @@
+{
+  "androidPackage": "com.eggshell.apptodo",
+  "androidActivity": "com.eggshell.apptodo.MainActivity",
+  "iosBundleId": "com.eggshell.apptodo"
+}
