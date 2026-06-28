@@ -11,8 +11,9 @@ import { PLATFORM } from './platform.mjs';
 import { resolveAndroidApp, resolveIosApp, APPIUM, METRO } from './native-config.mjs';
 import { waitForAppReady } from './web-session.mjs';
 import { renderDoctorUi } from './doctor-ui.mjs';
-import { buildDevPlaybooks, listEmulatorAvds } from './doctor-playbooks.mjs';
+import { buildDevPlaybooks } from './doctor-playbooks.mjs';
 import { collectToolchainChecks } from './doctor-toolchain.mjs';
+import { collectDeviceInventory, buildDeviceChecks } from './device-targets.mjs';
 
 const appRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -55,16 +56,6 @@ async function checkMetro() {
   }
 }
 
-/**
- * @param {string[]} avds
- */
-function adbDeviceDetail(avds) {
-  if (avds.length) {
-    return `No device — start emulator: emulator -avd ${avds[0]} (or Android Studio → Device Manager)`;
-  }
-  return 'No device — create/start an AVD in Android Studio → Device Manager, then: emulator -list-avds';
-}
-
 async function checkAppium() {
   try {
     const res = await fetch(`http://${APPIUM.host}:${APPIUM.port}/status`, {
@@ -86,10 +77,11 @@ async function checkAppium() {
 
 /**
  * @param {'web' | 'android' | 'ios'} platform
- * @param {{ baseUrl?: string, appium?: { id: string, ok: boolean, detail: string }, metro?: { id: string, ok: boolean, detail: string }, avds?: string[] }} ctx
+ * @param {{ baseUrl?: string, appium?: { id: string, ok: boolean, detail: string }, metro?: { id: string, ok: boolean, detail: string }, inventory?: ReturnType<typeof collectDeviceInventory> }} ctx
  */
 async function collectPlatformChecks(platform, ctx = {}) {
   const baseUrl = ctx.baseUrl ?? DEFAULTS.baseUrl;
+  const inventory = ctx.inventory;
   /** @type {Array<{ id: string, ok: boolean, detail: string, informational?: boolean }>} */
   const checks = [];
 
@@ -112,13 +104,18 @@ async function collectPlatformChecks(platform, ctx = {}) {
         : 'Missing android/ — run ../../eggshell dev-android',
     });
 
-    const adb = run('adb', ['devices']);
-    const deviceLine = adb.out.split('\n').find((l) => l.trim().endsWith('device') && !l.includes('List'));
-    const avds = ctx.avds ?? [];
+    const connected = inventory?.adbDevices.filter((d) => d.state === 'device') ?? [];
+    const deviceLine = connected[0];
     checks.push({
       id: 'adb-device',
       ok: Boolean(deviceLine),
-      detail: deviceLine ? `Connected · ${deviceLine.split('\t')[0]}` : adbDeviceDetail(avds),
+      detail: deviceLine
+        ? `Connected · ${deviceLine.udid}${deviceLine.avdName ? ` (${deviceLine.avdName})` : ''}`
+        : inventory?.defaultAndroidAvd
+          ? `No device — start: emulator -avd ${inventory.defaultAndroidAvd}`
+          : inventory?.avds[0]
+            ? `No device — start: emulator -avd ${inventory.avds[0]}`
+            : 'No device — create/start an AVD in Android Studio',
     });
 
     if (ctx.metro) {
@@ -157,12 +154,25 @@ async function collectPlatformChecks(platform, ctx = {}) {
         : 'Missing ios/ — run ../../eggshell dev-ios (macOS + Xcode)',
     });
 
-    const sim = run('xcrun', ['simctl', 'list', 'devices', 'booted']);
-    const booted = /Booted/.test(sim.out);
+    const booted = inventory?.bootedSimulators ?? [];
+    const bootedOk = booted.length >= 1;
+    let simDetail;
+    if (booted.length === 0) {
+      simDetail = inventory?.defaultIosSimulator
+        ? `None booted — observe will boot: ${inventory.defaultIosSimulator}`
+        : 'open -a Simulator  (or set default: npm run observe -- setup-devices)';
+    } else if (booted.length === 1) {
+      simDetail = `Booted · ${booted[0].name}`;
+    } else {
+      simDetail = inventory?.defaultIosSimulator
+        ? `${booted.length} booted — observe uses default "${inventory.defaultIosSimulator}"`
+        : `${booted.length} booted (${booted.map((s) => s.name).join(', ')}) — quit extras or set defaultIosSimulator`;
+    }
     checks.push({
       id: 'ios-simulator',
-      ok: booted,
-      detail: booted ? 'Simulator booted' : 'open -a Simulator  (or Xcode → Device Manager)',
+      ok: bootedOk || Boolean(inventory?.defaultIosSimulator),
+      informational: booted.length > 1 && Boolean(inventory?.defaultIosSimulator),
+      detail: simDetail,
     });
 
     if (ctx.metro) {
@@ -192,7 +202,6 @@ async function collectPlatformChecks(platform, ctx = {}) {
 }
 
 /**
- * Run doctor for web + Android + iOS (default).
  * @param {{ baseUrl?: string, platforms?: Array<'web' | 'android' | 'ios'>, json?: boolean }} [options]
  */
 export async function runDoctorAll(options = {}) {
@@ -203,7 +212,8 @@ export async function runDoctorAll(options = {}) {
   const needsMetro = platforms.includes(PLATFORM.ANDROID) || platforms.includes(PLATFORM.IOS);
   const appium = needsAppium ? await checkAppium() : null;
   const metro = needsMetro ? await checkMetro() : null;
-  const avds = listEmulatorAvds(run);
+  const inventory = collectDeviceInventory(run);
+  const deviceChecks = buildDeviceChecks(inventory);
 
   /** @type {Array<Awaited<ReturnType<typeof collectPlatformChecks>>>} */
   const sections = [];
@@ -213,7 +223,7 @@ export async function runDoctorAll(options = {}) {
         baseUrl,
         appium: appium ?? undefined,
         metro: metro ?? undefined,
-        avds,
+        inventory,
       })
     );
   }
@@ -224,27 +234,26 @@ export async function runDoctorAll(options = {}) {
     command: 'doctor',
     baseUrl,
     toolchain,
-    shared: [
-      ...(appium ? [appium] : []),
-      ...(avds.length
-        ? [{ id: 'emulator-avds', ok: true, informational: true, detail: `AVDs installed: ${avds.join(', ')}` }]
-        : [
-            {
-              id: 'emulator-avds',
-              ok: false,
-              detail: 'No AVDs found — Android Studio → Device Manager → Create Device',
-            },
-          ]),
-    ],
+    devices: {
+      inventory: {
+        avds: inventory.avds,
+        adbDevices: inventory.adbDevices,
+        bootedSimulators: inventory.bootedSimulators.map((s) => s.name),
+        simulatorCount: inventory.simulators.length,
+        multipleIosBooted: inventory.multipleIosBooted,
+        defaults: {
+          defaultAndroidAvd: inventory.defaultAndroidAvd,
+          defaultIosSimulator: inventory.defaultIosSimulator,
+        },
+      },
+      checks: deviceChecks,
+    },
+    shared: [...(appium ? [appium] : [])],
     platforms: sections,
     readyCount: sections.filter((s) => s.ready).length,
     total: sections.length,
     allReady: sections.every((s) => s.ready),
-    avds,
-    playbooks: buildDevPlaybooks(
-      { platforms: sections },
-      { avds, appRoot }
-    ),
+    playbooks: buildDevPlaybooks({ platforms: sections }, { inventory, appRoot }),
   };
 
   if (!options.json) {
@@ -258,6 +267,8 @@ export async function runDoctorAll(options = {}) {
  * @param {{ platform?: string, baseUrl?: string, json?: boolean }} [options]
  */
 export async function runDoctor(options = {}) {
+  const inventory = collectDeviceInventory(run);
+
   if (options.platform && options.platform !== 'all') {
     const section = await collectPlatformChecks(
       options.platform === 'web' ? PLATFORM.WEB : options.platform === 'android' ? PLATFORM.ANDROID : PLATFORM.IOS,
@@ -267,6 +278,7 @@ export async function runDoctor(options = {}) {
           options.platform === 'android' || options.platform === 'ios'
             ? await checkAppium()
             : undefined,
+        inventory,
       }
     );
     const report = {
@@ -275,13 +287,24 @@ export async function runDoctor(options = {}) {
       toolchain: collectToolchainChecks({
         includeIos: options.platform === 'ios',
       }),
+      devices: {
+        inventory: {
+          avds: inventory.avds,
+          adbDevices: inventory.adbDevices,
+          bootedSimulators: inventory.bootedSimulators.map((s) => s.name),
+          defaults: {
+            defaultAndroidAvd: inventory.defaultAndroidAvd,
+            defaultIosSimulator: inventory.defaultIosSimulator,
+          },
+        },
+        checks: buildDeviceChecks(inventory),
+      },
       shared: [],
       platforms: [section],
       readyCount: section.ready ? 1 : 0,
       total: 1,
       allReady: section.ready,
-      avds: listEmulatorAvds(run),
-      playbooks: buildDevPlaybooks({ platforms: [section] }, { avds: listEmulatorAvds(run), appRoot }),
+      playbooks: buildDevPlaybooks({ platforms: [section] }, { inventory, appRoot }),
     };
     if (!options.json) {
       console.log(renderDoctorUi(report));

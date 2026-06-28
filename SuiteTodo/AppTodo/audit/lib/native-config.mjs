@@ -3,17 +3,21 @@
  * Override via env or audit/native.local.json (gitignored).
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { spawnSync } from 'child_process';
 
 const auditRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** @type {Record<string, string> | null} */
+/** @type {Record<string, unknown> | null} */
 let localOverrides = null;
 
-function loadLocalOverrides() {
-  if (localOverrides !== null) return localOverrides;
+/**
+ * @returns {Record<string, unknown>}
+ */
+export function loadNativeLocal() {
+  if (localOverrides !== null) return { ...localOverrides };
   localOverrides = {};
   const path = join(auditRoot, 'native.local.json');
   if (existsSync(path)) {
@@ -23,7 +27,25 @@ function loadLocalOverrides() {
       /* ignore */
     }
   }
-  return localOverrides;
+  return { ...localOverrides };
+}
+
+/**
+ * Merge updates into audit/native.local.json and reload cache.
+ * @param {Record<string, unknown>} updates
+ */
+export function saveNativeLocal(updates) {
+  const path = join(auditRoot, 'native.local.json');
+  const current = loadNativeLocal();
+  localOverrides = null;
+  const merged = { ...current, ...updates };
+  writeFileSync(path, `${JSON.stringify(merged, null, 2)}\n`, 'utf8');
+  localOverrides = merged;
+  return { ...merged };
+}
+
+function loadLocalOverrides() {
+  return loadNativeLocal();
 }
 
 /**
@@ -63,12 +85,12 @@ export function resolveAndroidApp(appRoot = join(auditRoot, '..')) {
   const local = loadLocalOverrides();
   const pkg =
     process.env.APPTODO_ANDROID_PACKAGE ??
-    local.androidPackage ??
+    /** @type {string | undefined} */ (local.androidPackage) ??
     readGradleApplicationId(appRoot) ??
     'com.eggshell.apptodo';
   const activity =
     process.env.APPTODO_ANDROID_ACTIVITY ??
-    local.androidActivity ??
+    /** @type {string | undefined} */ (local.androidActivity) ??
     `${pkg}.MainActivity`;
   return { package: pkg, activity };
 }
@@ -80,7 +102,7 @@ export function resolveIosApp(appRoot = join(auditRoot, '..')) {
   const local = loadLocalOverrides();
   const bundleId =
     process.env.APPTODO_IOS_BUNDLE_ID ??
-    local.iosBundleId ??
+    /** @type {string | undefined} */ (local.iosBundleId) ??
     readIosBundleId(appRoot) ??
     'com.eggshell.apptodo';
   return { bundleId };

@@ -10,25 +10,14 @@ import { PLATFORM } from './platform.mjs';
 const APP_CWD = 'SuiteTodo/AppTodo';
 
 /**
- * @param {(cmd: string, args: string[]) => { ok: boolean, out: string }} run
- */
-export function listEmulatorAvds(run) {
-  const r = run('emulator', ['-list-avds']);
-  if (!r.ok) return [];
-  return r.out
-    .split('\n')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-/**
- * Build contextual terminal playbooks from doctor report state.
  * @param {{ platforms: Array<{ platform: string, ready: boolean, checks: Array<{ id: string, ok: boolean }> }> }} report
- * @param {{ avds?: string[], appRoot?: string }} ctx
+ * @param {{ inventory?: { avds?: string[], defaultAndroidAvd?: string | null, defaultIosSimulator?: string | null }, appRoot?: string }} ctx
  */
 export function buildDevPlaybooks(report, ctx = {}) {
-  const avds = ctx.avds ?? [];
-  const firstAvd = avds[0];
+  const inventory = ctx.inventory ?? {};
+  const avds = inventory.avds ?? [];
+  const firstAvd = inventory.defaultAndroidAvd ?? avds[0];
+  const defaultIos = inventory.defaultIosSimulator;
   const hasAndroidDir = ctx.appRoot ? existsSync(join(ctx.appRoot, 'android')) : false;
 
   const webSection = report.platforms.find((p) => p.platform === PLATFORM.WEB);
@@ -76,6 +65,8 @@ export function buildDevPlaybooks(report, ctx = {}) {
   const emulatorLines = [
     '# Option A — Android Studio → Device Manager → ▶ on an AVD',
     'emulator -list-avds',
+    '# Set default for observe sessions:',
+    'npm run observe -- setup-devices --android <AVD_NAME>',
   ];
   if (firstAvd) {
     emulatorLines.push(`emulator -avd ${firstAvd}`);
@@ -149,7 +140,13 @@ export function buildDevPlaybooks(report, ctx = {}) {
       {
         n: 1,
         label: 'Simulator',
-        lines: ['open -a Simulator', '# or Xcode → Window → Devices and Simulators'],
+        lines: [
+          defaultIos ? `xcrun simctl boot "${defaultIos}"  # if needed` : 'open -a Simulator',
+          defaultIos
+            ? `# defaultIosSimulator: ${defaultIos}`
+            : 'npm run observe -- setup-devices --ios "iPhone 16"',
+          '# Keep one simulator booted — multiple booted simulators confuse observe',
+        ],
       },
       {
         n: 2,

@@ -19,6 +19,7 @@ import { OUT_ROOT } from './lib/paths.mjs';
 import { diffLayoutMetrics } from './lib/dom-analysis.mjs';
 import { emitReport, emitStatus } from './lib/report.mjs';
 import { runDoctor } from './lib/doctor.mjs';
+import { runDeviceSetup } from './lib/device-targets.mjs';
 import { runSnapshotWorkflow } from './workflows/snapshot.mjs';
 import { runLayoutCheckWorkflow, runAddTodoWorkflow } from './workflows/layout-check.mjs';
 import { runVerifyNativeWorkflow } from './workflows/verify-native.mjs';
@@ -82,6 +83,29 @@ const argv = yargs(hideBin(process.argv))
     default: undefined,
     describe: 'Max wait for healthy app / end states (default: 120000ms)',
   })
+  .command(
+    'setup-devices',
+    'List emulators/simulators and set defaults in audit/native.local.json',
+    (y) =>
+      y
+        .option('list', { type: 'boolean', default: false, describe: 'List available devices (default when no --android/--ios)' })
+        .option('android', { type: 'string', describe: 'Default Android AVD name (emulator -list-avds)' })
+        .option('ios', { type: 'string', describe: 'Default iOS simulator name (e.g. iPhone 16)' })
+        .option('json', { type: 'boolean', default: false }),
+    async (args) => {
+      try {
+        runDeviceSetup({
+          android: args.android,
+          ios: args.ios,
+          list: args.list || (!args.android && !args.ios),
+          json: args.json,
+        });
+      } catch (e) {
+        emitStatus('fail', e.message ?? String(e));
+        process.exitCode = 1;
+      }
+    }
+  )
   .command(
     'doctor',
     'Health check for web, Android, and iOS observe (beige UI; use --json for agents)',
@@ -225,7 +249,7 @@ const argv = yargs(hideBin(process.argv))
       }
     }
   )
-  .demandCommand(1, 'Pick: doctor | snapshot | state | add-todo | workflow | diff | open | logs')
+  .demandCommand(1, 'Pick: setup-devices | doctor | snapshot | state | add-todo | workflow | diff | open | logs')
   .help()
   .parse();
 

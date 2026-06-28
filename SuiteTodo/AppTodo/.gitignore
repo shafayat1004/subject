@@ -39,6 +39,9 @@ node_modules/
 npm-debug.log*
 yarn-error.log*
 
+# --- Local observe / native overrides (copy from audit/native.local.json.example) ---
+audit/native.local.json
+
 # --- Local secrets (template *.template is committed; real file is not) ---
 configSourceOverrides.native.js
 

@@ -6,6 +6,7 @@ import { remote } from 'webdriverio';
 import { spawn, execSync } from 'child_process';
 import { resolveIosApp, APPIUM } from './native-config.mjs';
 import { TIMEOUTS } from './config.mjs';
+import { resolveIosSessionUdid } from './device-targets.mjs';
 import { waitForHealthyApp, probeAppHealth, detectMetroRedbox, isTodoUiVisible } from './app-health.mjs';
 
 class IosLocator {
@@ -127,19 +128,8 @@ export class IosPage {
   }
 }
 
-export function getDefaultIosUdid() {
-  try {
-    const out = execSync('xcrun simctl list devices booted -j', { encoding: 'utf8' });
-    const data = JSON.parse(out);
-    for (const runtime of Object.values(data.devices)) {
-      for (const device of runtime) {
-        if (device.state === 'Booted') return device.udid;
-      }
-    }
-  } catch {
-    /* no simulator */
-  }
-  return null;
+export function getDefaultIosUdid(options = {}) {
+  return resolveIosSessionUdid(options);
 }
 
 export { isTodoUiVisible, probeAppHealth, detectMetroRedbox as detectMetroLoadError };
@@ -163,8 +153,8 @@ export async function connectIosPage(options = {}) {
   const host = options.appiumHost ?? APPIUM.host;
   const port = Number(options.appiumPort ?? APPIUM.port);
   const log = options.log ?? (() => {});
-  const udid = options.udid ?? getDefaultIosUdid();
-  if (!udid) throw new Error('No booted iOS simulator found. Boot one in Xcode or via xcrun simctl.');
+  const udid = options.udid ?? getDefaultIosUdid({ log, bootIfNeeded: options.bootIfNeeded });
+  if (!udid) throw new Error('No iOS simulator available. Set defaultIosSimulator: npm run observe -- setup-devices');
 
   log(`ios simulator: ${udid}, bundle: ${app.bundleId}`);
 

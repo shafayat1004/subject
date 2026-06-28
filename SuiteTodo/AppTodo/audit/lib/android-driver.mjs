@@ -6,6 +6,7 @@ import { remote } from 'webdriverio';
 import { spawn } from 'child_process';
 import { resolveAndroidApp, APPIUM } from './native-config.mjs';
 import { TIMEOUTS } from './config.mjs';
+import { resolveAndroidSessionUdid } from './device-targets.mjs';
 import {
   ensureAppForeground,
   waitForHealthyApp,
@@ -187,21 +188,8 @@ export class AndroidPage {
   }
 }
 
-export function getDefaultAndroidUdid() {
-  return new Promise((resolve, reject) => {
-    const p = spawn('adb', ['devices']);
-    let out = '';
-    p.stdout.on('data', (d) => {
-      out += d;
-    });
-    p.on('close', (code) => {
-      if (code !== 0) return reject(new Error('adb devices failed'));
-      const line = out.split('\n').map((l) => l.trim()).find((l) => l.endsWith('\tdevice'));
-      if (!line) return reject(new Error('No adb device connected'));
-      resolve(line.split('\t')[0]);
-    });
-    p.on('error', reject);
-  });
+export function getDefaultAndroidUdid(options = {}) {
+  return resolveAndroidSessionUdid(options);
 }
 
 export { isTodoUiVisibleHealth as isTodoUiVisible, probeAppHealth, detectMetroRedbox as detectMetroLoadError };
@@ -226,7 +214,7 @@ export async function connectAndroidPage(options = {}) {
   const host = options.appiumHost ?? APPIUM.host;
   const port = Number(options.appiumPort ?? APPIUM.port);
   const log = options.log ?? (() => {});
-  const udid = options.udid ?? (await getDefaultAndroidUdid());
+  const udid = options.udid ?? (await getDefaultAndroidUdid({ log }));
   log(`adb device: ${udid}, package: ${app.package}`);
 
   const driver = await remote({

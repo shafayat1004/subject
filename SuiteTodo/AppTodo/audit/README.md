@@ -61,6 +61,8 @@ AppTodo does not ship `android/` / `ios/` until native is scaffolded (`eggshell 
 | Command | Description |
 |---------|-------------|
 | `npm run observe:doctor` | **All platforms** — web + Android + iOS health (beige UI) |
+| `npm run observe:setup-devices` | List AVDs/simulators; set defaults in `audit/native.local.json` |
+| `npm run observe -- setup-devices --android Android_Desktop --ios "iPhone 16"` | Save device defaults |
 | `npm run observe -- doctor --json` | Same checks, JSON for LLM agents |
 | `npm run observe -- doctor -p android` | Single-platform doctor |
 | `npm run observe -- snapshot [-p platform]` | Full capture bundle (logs + health by default) |
@@ -92,7 +94,28 @@ Patterns aligned with `AppEggShellGallery/audit-gallery-app-crash.mjs`. Native a
 
 ## Doctor · toolchain PATH
 
-`npm run observe:doctor` prints a **Toolchain · PATH & SDK** section: `adb`, `emulator`, `eggshell`, `node`, `npx`, `react-native`, `ANDROID_SDK`, `xcrun`, `pod`, etc.
+`npm run observe:doctor` prints a **Toolchain · PATH & SDK** section and a **Devices · emulators & simulators** section:
+
+- Installed Android AVDs and connected adb devices (with AVD name when available)
+- Available iOS simulators and which are booted
+- Warning when **multiple iOS simulators are booted** (observe needs one target — set a default or quit extras)
+- Configured defaults from `audit/native.local.json`
+
+## Device defaults
+
+Observe sessions pick targets from `audit/native.local.json` (gitignored):
+
+```bash
+cp audit/native.local.json.example audit/native.local.json
+npm run observe:setup-devices                              # list all
+npm run observe -- setup-devices --android Android_Desktop
+npm run observe -- setup-devices --ios "iPhone 16"
+```
+
+- **Android:** matches connected emulator to `defaultAndroidAvd`; errors if multiple adb devices without a default
+- **iOS:** uses `defaultIosSimulator` when set (boots it if shut down); warns when multiple simulators are booted
+
+Toolchain PATH checks: `adb`, `emulator`, `eggshell`, `node`, `npx`, `react-native`, `ANDROID_SDK`, `xcrun`, `pod`, etc.
 
 ## Artifacts
 

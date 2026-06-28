@@ -90,6 +90,15 @@ export function renderDoctorUi(report) {
     lines.push('');
   }
 
+  if (report.devices?.checks?.length) {
+    lines.push(fg(palette.espresso, bold('  Devices · emulators & simulators')));
+    lines.push(hr());
+    for (const check of report.devices.checks) {
+      lines.push(formatCheck(check));
+    }
+    lines.push('');
+  }
+
   if (report.shared?.length) {
     lines.push(fg(palette.espresso, bold('  Shared · Native infrastructure')));
     lines.push(hr());

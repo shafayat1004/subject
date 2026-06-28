@@ -8,6 +8,7 @@
     "observe:layout-check": "node audit/todo-observe.mjs workflow layout-check",
     "observe:open": "node audit/todo-observe.mjs open",
     "observe:doctor": "node audit/todo-observe.mjs doctor",
+    "observe:setup-devices": "node audit/todo-observe.mjs setup-devices --list",
     "observe:android": "node audit/todo-observe.mjs snapshot --platform android",
     "observe:ios": "node audit/todo-observe.mjs snapshot --platform ios",
     "observe:verify-native": "node audit/todo-observe.mjs workflow verify-native",
