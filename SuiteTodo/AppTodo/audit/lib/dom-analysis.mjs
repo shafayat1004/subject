@@ -200,6 +200,11 @@ export function diffLayoutMetrics(before, after, options = {}) {
     (c) => CARD_REGION_IDS.includes(c.testId) && c.field === 'width'
   );
 
+  // Card *width shrink* after add-todo is the known aesthetic bug; height growth is expected.
+  const cardWidthRegression =
+    cardWidthChange !== undefined &&
+    Math.abs(cardWidthChange.delta) > thresholdPx;
+
   return {
     thresholdPx,
     changeCount: changes.length,
@@ -211,8 +216,6 @@ export function diffLayoutMetrics(before, after, options = {}) {
       : flagged.length
         ? `${flagged.length} layout change(s) exceed ${thresholdPx}px`
         : 'No significant layout changes',
-    regressionLikely: flagged.some(
-      (c) => CARD_REGION_IDS.includes(c.testId) && (c.field === 'width' || c.field === 'height')
-    ),
+    regressionLikely: cardWidthRegression,
   };
 }
