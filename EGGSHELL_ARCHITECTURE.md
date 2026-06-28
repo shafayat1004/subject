@@ -381,8 +381,6 @@ executor context exists for action dispatch with built-in in-progress/error stat
 - General-purpose framework UI: `LibUiAdmin` (grids/tables/pagination), `LibUiIdentityAuth`
   (login/verify/token), `LibAutoUi` (forms auto-generated from F# types via reflection in
   `FormConstruction.fs`).
-- Company-specific UI (Chaldal): `LibUiChaldal`, `LibUiChaldalAdmin`, `LibUiChaldalAuth`,
-  `LibUiSubject`, `LibUiSubjectAdmin`, `LibUiPayments`. These are domain modules, not framework.
 - `ThirdParty/` — ~20 wrappers around JS/RN libraries (Google Maps, Leaflet, Recharts, reCAPTCHA,
   QR, camera, image picker, device info, CodePush, analytics, ...). The pattern per wrapper is:
   `TypesJs.fs` (marshal F# → JS with `==>`/`==?>`/`==!>`), a `.typext.fs` component (often split
