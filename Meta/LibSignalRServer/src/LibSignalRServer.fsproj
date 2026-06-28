@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Vendored Fable.SignalR.AspNetCore sources; FS1182 unused bindings are upstream. -->
+    <NoWarn>1182</NoWarn>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Shared.fs" />
+    <Compile Include="MemoryCache.fs" />
+    <Compile Include="MsgPack.fs" />
+    <Compile Include="Server.fs" />
+    <Compile Include="WebSocketsMiddleware.fs" />
+    <Compile Include="AspNetCore.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Fable.Remoting.Json" Version="2.18.0" />
+    <PackageReference Include="Fable.Remoting.MsgPack" Version="1.24.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.20" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
+    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
+  </ItemGroup>
+</Project>

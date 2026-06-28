@@ -17,8 +17,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <!-- TODO: currently using an internally hosted custom build. -->
-    <PackageReference Include="Fable.SignalR.AspNetCore" Version="0.14.0" />
+    <ProjectReference Include="../../Meta/LibSignalRServer/src/LibSignalRServer.fsproj" />
     <PackageReference Include="NSwag.AspNetCore" Version="13.10.8" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" />
