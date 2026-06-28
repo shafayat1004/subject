@@ -103,10 +103,11 @@ export class IosPage {
   }
 
   getByText(text, opts = {}) {
+    const escaped = String(text).replace(/"/g, '\\"');
     const pred = opts.exact
-      ? `-ios predicate string:name == "${text.replace(/"/g, '\\"')}"`
-      : `-ios predicate string:name CONTAINS "${text.replace(/"/g, '\\"')}"`;
-    return new IosLocator(this.driver, pred);
+      ? `name == "${escaped}" OR label == "${escaped}" OR value == "${escaped}"`
+      : `name CONTAINS "${escaped}" OR label CONTAINS "${escaped}" OR value CONTAINS "${escaped}"`;
+    return new IosLocator(this.driver, `-ios predicate string:${pred}`);
   }
 
   getByRole(role, opts = {}) {
@@ -147,6 +148,7 @@ export async function waitForTodoAppReady(page, options = {}) {
   return waitForHealthyApp(page, 'ios', {
     timeoutMs: options.timeoutMs ?? TIMEOUTS.appReadyMs,
     log: options.log,
+    logCollector: options.logCollector ?? null,
   });
 }
 
@@ -192,6 +194,7 @@ export async function connectIosPage(options = {}) {
   await waitForTodoAppReady(page, {
     log,
     timeoutMs: TIMEOUTS.sessionConnectMs,
+    logCollector: options.logCollector ?? null,
   });
   return page;
 }

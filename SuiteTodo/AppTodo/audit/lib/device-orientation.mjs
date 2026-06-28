@@ -39,21 +39,54 @@ export function resolveDeviceOrientation(options = {}) {
 }
 
 /**
+ * @param {string} [udid]
+ * @returns {{ width: number, height: number, naturalLandscape: boolean } | null}
+ */
+export function readAndroidDisplaySize(udid) {
+  const adbArgs = (args) => (udid ? ['-s', udid, ...args] : args);
+  const r = spawnSync('adb', adbArgs(['shell', 'wm', 'size']), { encoding: 'utf8' });
+  const m = String(r.stdout).match(/Physical size:\s*(\d+)x(\d+)/);
+  if (!m) return null;
+  const width = Number(m[1]);
+  const height = Number(m[2]);
+  return { width, height, naturalLandscape: width > height };
+}
+
+/**
+ * Map desired orientation to Android user_rotation for this device.
+ * @param {'portrait' | 'landscape'} orientation
+ * @param {boolean} naturalLandscape
+ */
+export function androidUserRotationFor(orientation, naturalLandscape) {
+  const wantPortrait = normalizeOrientation(orientation) === 'portrait';
+  if (naturalLandscape) {
+    return wantPortrait ? 1 : 0;
+  }
+  return wantPortrait ? 0 : 1;
+}
+
+/**
  * Lock Android emulator rotation via adb (before or without Appium).
  * @param {'portrait' | 'landscape'} orientation
  * @param {string} [udid]
  */
 export function setAndroidOrientationViaAdb(orientation, udid) {
-  const rotation = orientation === 'landscape' ? 1 : 0;
   const adbArgs = (args) => (udid ? ['-s', udid, ...args] : args);
+  const display = readAndroidDisplaySize(udid);
+  const naturalLandscape = display?.naturalLandscape ?? true;
+  const rotation = androidUserRotationFor(orientation, naturalLandscape);
 
   spawnSync('adb', adbArgs(['shell', 'settings', 'put', 'system', 'accelerometer_rotation', '0']), {
     encoding: 'utf8',
   });
-  const r = spawnSync('adb', adbArgs(['shell', 'settings', 'put', 'system', 'user_rotation', String(rotation)]), {
+  spawnSync('adb', adbArgs(['shell', 'settings', 'put', 'system', 'user_rotation', String(rotation)]), {
     encoding: 'utf8',
   });
-  return r.status === 0;
+  // API 29+ — lock rotation explicitly
+  spawnSync('adb', adbArgs(['shell', 'cmd', 'window', 'set-user-rotation', 'lock', String(rotation)]), {
+    encoding: 'utf8',
+  });
+  return rotation;
 }
 
 /**

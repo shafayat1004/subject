@@ -10,7 +10,12 @@ open LibClient.Services.ImageService
 let localImage (filename: string) : ImageSource =
     match filename with
 
-
+    | "/images/image-not-found.png" ->
+        #if EGGSHELL_PLATFORM_IS_WEB
+            ImageSource.restricted_ofWebRelativePath filename
+        #else
+            ImageSource.restricted_ofNativeImport (importDefault "${entryDir}/../.build/native/assets/public-dev/images/image-not-found.png")
+        #endif
     | _ ->
             Log.Error (sprintf "Image '%s' not found, at least not by the eggshell glob pattern. Maybe restart eggshell to see if that fixes the problem?" filename)
 

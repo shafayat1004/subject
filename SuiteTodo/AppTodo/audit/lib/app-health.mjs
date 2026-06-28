@@ -8,6 +8,13 @@ import { TEST_IDS } from './selectors.mjs';
 import { PLATFORM, isNativePlatform } from './platform.mjs';
 import { pollUntil } from './timeouts.mjs';
 import { TIMEOUTS } from './config.mjs';
+import {
+  METRO_ERROR_SIGNALS,
+  RENDER_ERROR_SIGNALS,
+  RN_ERROR_SCREEN_SIGNALS,
+  scanPageSourceForRenderError,
+  findRenderErrorInLogEntries,
+} from './render-error-signals.mjs';
 
 /** @typedef {'healthy' | 'loading' | 'background' | 'metro_redbox' | 'native_crash' | 'top_level_error' | 'webpack_overlay' | 'react_runtime_overlay'} AppHealthState */
 
@@ -24,37 +31,16 @@ export const HEALTH = {
 };
 
 /** Metro / RN dev error screen text (Android RedBox, iOS LogBox). */
-export const METRO_ERROR_PATTERNS = [
-  'Unable to load script',
-  'Could not connect to development server',
-  'Could not connect to the server',
-  'Connect to Metro',
-  "Make sure you're running Metro",
-  'The development server returned response error code',
-  'development server returned response error',
-  'Unable to resolve module',
-  'Module not found',
-  '500 Internal Server Error',
-  'Invariant Violation',
-  'Exception in HostFunction',
-  'TransformError',
-  'SyntaxError',
-];
+export const METRO_ERROR_PATTERNS = METRO_ERROR_SIGNALS;
 
 /** RN LogBox render / runtime error UI (bundle loaded, app crashed on render). */
-export const RN_RENDER_ERROR_PATTERNS = [
-  'Render Error',
-  'Uncaught Error',
-  "Property 'crypto' doesn't exist",
-  'ReferenceError',
-  'TypeError',
-];
+export const RN_RENDER_ERROR_PATTERNS = RENDER_ERROR_SIGNALS;
 
 /** EggShell TopLevelErrorMessage markers (web + native text). */
 export const TOP_LEVEL_ERROR_MARKERS = ['Oops!', 'Something went wrong'];
 
 /** RN error screen action buttons — strong signal of RedBox. */
-export const RN_ERROR_SCREEN_MARKERS = ['DISMISS (ESC)', 'RELOAD (R, R)', 'Dismiss', 'Reload'];
+export const RN_ERROR_SCREEN_MARKERS = RN_ERROR_SCREEN_SIGNALS;
 
 /**
  * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
@@ -63,6 +49,37 @@ export const RN_ERROR_SCREEN_MARKERS = ['DISMISS (ESC)', 'RELOAD (R, R)', 'Dismi
 async function anyTextVisible(page, patterns) {
   for (const text of patterns) {
     if (await page.getByText(text, { exact: false }).count()) return text;
+
+    if (page.platform === 'android' && page.locator) {
+      const desc = `android=new UiSelector().descriptionContains("${String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")`;
+      if (await page.locator(desc).count()) return text;
+    }
+  }
+  return null;
+}
+
+/**
+ * @param {import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
+ */
+async function scanNativePageSource(page) {
+  try {
+    const source = await page.getPageSource();
+    return scanPageSourceForRenderError(source);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {{ entries?: Array<{ text?: string, tag?: string, type?: string }>, findRenderError?: () => { detail: string } | null }} [logCollector]
+ */
+function detectLogRenderError(logCollector) {
+  if (!logCollector) return null;
+  if (typeof logCollector.findRenderError === 'function') {
+    return logCollector.findRenderError();
+  }
+  if (logCollector.entries?.length) {
+    return findRenderErrorInLogEntries(logCollector.entries);
   }
   return null;
 }
@@ -129,10 +146,20 @@ export async function detectMetroRedbox(page) {
   }
 
   // LogBox title is often split; "Render Error" + stack sections is a strong signal.
-  const hasRenderTitle = (await page.getByText('Render Error', { exact: true }).count()) > 0;
+  const hasRenderTitle = (await page.getByText('Render Error', { exact: false }).count()) > 0;
   const hasCallStack = (await page.getByText('Call Stack', { exact: false }).count()) > 0;
-  if (hasRenderTitle && hasCallStack) {
+  const hasComponentStack = (await page.getByText('Component Stack', { exact: false }).count()) > 0;
+  if (hasRenderTitle && (hasCallStack || hasComponentStack)) {
     return { state: HEALTH.RENDER_ERROR, kind: 'logbox-render-error', detail: 'Render Error (LogBox)' };
+  }
+
+  const pageSourceHit = await scanNativePageSource(page);
+  if (pageSourceHit) {
+    return {
+      state: pageSourceHit.state === 'metro_redbox' ? HEALTH.METRO_REDBOX : HEALTH.RENDER_ERROR,
+      kind: pageSourceHit.kind,
+      detail: pageSourceHit.detail,
+    };
   }
 
   let dismissReload = 0;
@@ -187,7 +214,7 @@ export async function detectTopLevelError(page, platform = PLATFORM.WEB) {
  * Full health probe at a point in time.
  * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
  * @param {'web' | 'android' | 'ios'} platform
- * @param {{ expectedPackage?: string, foregroundPackage?: string | null }} [ctx]
+ * @param {{ expectedPackage?: string, foregroundPackage?: string | null, logCollector?: { entries?: unknown[], findRenderError?: () => { detail?: string, raw?: string } | null } }} [ctx]
  */
 export async function probeAppHealth(page, platform, ctx = {}) {
   const foregroundPackage = ctx.foregroundPackage ?? (await getForegroundPackage(page));
@@ -212,6 +239,18 @@ export async function probeAppHealth(page, platform, ctx = {}) {
   }
 
   if (isNativePlatform(platform)) {
+    const logHit = detectLogRenderError(ctx.logCollector);
+    if (logHit) {
+      return {
+        state: HEALTH.RENDER_ERROR,
+        kind: 'logcat-render-error',
+        healthy: false,
+        foreground: true,
+        foregroundPackage,
+        detail: logHit.detail ?? logHit.raw ?? 'render error in device logs',
+      };
+    }
+
     const metro = await detectMetroRedbox(page);
     if (metro) {
       return { ...metro, healthy: false, foreground: true, foregroundPackage };
@@ -247,20 +286,31 @@ export async function probeAppHealth(page, platform, ctx = {}) {
  * Wait until app is healthy or fail fast on crash UI.
  * @param {import('playwright').Page | import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
  * @param {'web' | 'android' | 'ios'} platform
- * @param {{ timeoutMs?: number, pollMs?: number, settleMs?: number, log?: (msg: string) => void, expectedPackage?: string }} [options]
+ * @param {{ timeoutMs?: number, pollMs?: number, settleMs?: number, log?: (msg: string) => void, expectedPackage?: string, logCollector?: { entries?: unknown[], findRenderError?: () => { detail?: string, raw?: string } | null } }} [options]
  */
 export async function waitForHealthyApp(page, platform, options = {}) {
   const timeoutMs = options.timeoutMs ?? TIMEOUTS.appReadyMs;
-  const pollMs = options.pollMs ?? TIMEOUTS.pollMs;
+  const pollMs = options.pollMs ?? (isNativePlatform(platform) ? TIMEOUTS.crashPollMs : TIMEOUTS.pollMs);
   const settleMs = options.settleMs ?? TIMEOUTS.settleMs;
   const log = options.log ?? (() => {});
+  const logCollector = options.logCollector ?? null;
 
   const health = await pollUntil(
     async () => {
+      const logHit = detectLogRenderError(logCollector);
+      if (logHit) {
+        throw new AppHealthError({
+          state: HEALTH.RENDER_ERROR,
+          kind: 'logcat-render-error',
+          detail: logHit.detail ?? logHit.raw ?? 'render error in device logs',
+        });
+      }
+
       const foregroundPackage = await getForegroundPackage(page);
       const probe = await probeAppHealth(page, platform, {
         expectedPackage: options.expectedPackage,
         foregroundPackage,
+        logCollector,
       });
 
       if (

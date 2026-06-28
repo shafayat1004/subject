@@ -209,6 +209,7 @@ export async function waitForTodoAppReady(page, options = {}) {
     timeoutMs: options.timeoutMs ?? TIMEOUTS.appReadyMs,
     log: options.log,
     expectedPackage: options.expectedPackage ?? resolveAndroidApp().package,
+    logCollector: options.logCollector ?? null,
   });
 }
 
@@ -256,6 +257,7 @@ export async function connectAndroidPage(options = {}) {
     log,
     timeoutMs: options.launchTimeoutMs ?? TIMEOUTS.sessionConnectMs,
     expectedPackage: app.package,
+    logCollector: options.logCollector ?? null,
   });
   return page;
 }

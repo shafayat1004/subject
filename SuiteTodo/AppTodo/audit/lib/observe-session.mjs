@@ -69,6 +69,7 @@ export async function openObserveSession(options = {}) {
     const page = await connectAndroidPage({
       log,
       orientation,
+      logCollector,
       launchTimeoutMs: options.timeoutMs ?? TIMEOUTS.sessionConnectMs,
     });
 
@@ -87,15 +88,19 @@ export async function openObserveSession(options = {}) {
 
   if (platform === PLATFORM.IOS) {
     const { connectIosPage, disconnectIosPage } = await import('./ios-driver.mjs');
-    const page = await connectIosPage({ log, orientation });
+    const logCollector = createDeviceLogCollector('ios', { outDir: options.outDir });
+    logCollector?.start();
+
+    const page = await connectIosPage({ log, orientation, logCollector });
 
     return {
       platform,
       page,
       orientation,
-      logs: { consoleLines: [], pageErrors: [], networkErrors: [] },
-      logCollector: null,
+      logs: logCollector?.toSessionLogs() ?? { consoleLines: [], pageErrors: [], networkErrors: [] },
+      logCollector,
       async close() {
+        logCollector?.stop();
         await disconnectIosPage(page);
       },
     };
@@ -136,6 +141,7 @@ export async function prepareTodoUi(session, options = {}) {
         timeoutMs,
         log,
         expectedPackage: app?.package,
+        logCollector: session.logCollector ?? null,
       });
     } catch (e) {
       if (e instanceof AppHealthError && outDir) {
@@ -154,6 +160,7 @@ export async function probeSessionHealth(session) {
   const app = session.platform === PLATFORM.ANDROID ? resolveAndroidApp() : null;
   return probeAppHealth(session.page, session.platform, {
     expectedPackage: app?.package,
+    logCollector: session.logCollector ?? null,
   });
 }
 

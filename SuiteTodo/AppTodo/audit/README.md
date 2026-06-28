@@ -85,12 +85,19 @@ Every snapshot writes `*-health.json` and fails (exit 2) when the app is in a cr
 |-------|-----|--------|
 | `healthy` | Todo UI + testIds visible | Same via Appium |
 | `metro_redbox` | — | Metro bundle error (e.g. missing module, HTTP 500) |
+| `render_error` | — | LogBox render crash (`Render Error`, `Native module not found`, crypto, etc.) |
 | `webpack_overlay` | Webpack dev-server overlay | — |
 | `top_level_error` | EggShell "Oops!" / "Something went wrong" | Same text when shell crashes |
 | `background` | — | Wrong package in foreground |
 | `loading` | Foreground but UI not ready yet | Splash / bundle loading |
 
-Patterns aligned with `AppEggShellGallery/audit-gallery-app-crash.mjs`. Native also streams **logcat** (`ReactNativeJS`, `AndroidRuntime`) for the whole session.
+Patterns aligned with `AppEggShellGallery/audit-gallery-app-crash.mjs`. Native sessions **fail fast** on render errors:
+
+- **Logcat / sim logs** (200ms poll): `ReactNativeJS:E` lines such as `Native module not found`, crypto errors
+- **Appium UI**: LogBox text (`Render Error`, `Component Stack`, Dismiss/Reload)
+- **Page source scan**: fallback when splash or accessibility hides LogBox text
+
+Override wait with `--timeout-ms`; crash detection does not wait for the full timeout when a render error is seen.
 
 ## Doctor · toolchain PATH
 

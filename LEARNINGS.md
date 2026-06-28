@@ -1222,6 +1222,8 @@ add dep to `package.json` + Metro `extraNodeModules`.
 
 **Observe gap:** Doctor/verify waited up to 120s for Todo testIds while LogBox was visible. Health checks
 only matched Metro *bundle* errors (`Unable to resolve module`, HTTP 500), not LogBox *render* errors
-(`Render Error`, `Property 'crypto'…`). Now `RN_RENDER_ERROR_PATTERNS` fails fast with `render_error` state.
-Also: earlier runs never reached runtime (Metro missing assets/config); verify was interrupted before this
-crash class appeared.
+(`Render Error`, `Property 'crypto'…`, `Native module not found`). Fixes:
+
+- `render_error` state from UI (`Render Error`, stack sections), page-source scan, and **streaming logs**
+- Android logcat must include `ReactNativeJS:E` (errors were filtered out when only `ReactNativeJS:I` was captured)
+- Native health poll uses `crashPollMs` (200ms) and throws `AppHealthError` immediately on first signal

@@ -22,6 +22,8 @@ export const TIMEOUTS = {
   appReadyMs: 120_000,
   /** Poll interval while waiting for end states. */
   pollMs: 750,
+  /** Faster poll while watching for crash UI / logcat render errors. */
+  crashPollMs: 200,
   /** Settle after app becomes healthy before capture. */
   settleMs: 800,
   /** Single user action (click, fill, waitFor text). */

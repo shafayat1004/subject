@@ -6,21 +6,42 @@ import { spawn } from 'child_process';
 import { appendFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { classifyConsole } from './log-classify.mjs';
+import { findRenderErrorInLogEntries } from './render-error-signals.mjs';
 
 /**
  * @param {string} line
  */
 function parseLogcatLine(line) {
-  const m = line.match(
-    /^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}\s+\d+\s+\d+\s+([VDIWEF])\s+(\S+):\s*(.*)$/
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('---------')) return null;
+
+  // Filtered compact: 06-28 15:02:12.744 E/ReactNativeJS( 4034): message
+  const compact = trimmed.match(
+    /^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}\s+([VDIWEF])\/([^:(]+)(?:\(\s*\d+\s*\))?:\s*(.*)$/
   );
-  if (!m) return null;
-  const [, level, tag, text] = m;
-  let type = 'log';
-  if (level === 'E') type = 'error';
-  else if (level === 'W') type = 'warning';
-  else if (level === 'I') type = 'info';
-  return { tag, type, text, raw: line };
+  if (compact) {
+    const [, level, tag, text] = compact;
+    return { tag, type: levelToType(level), text, raw: line };
+  }
+
+  // Standard time: 06-28 15:02:12.744 4034 5678 E ReactNativeJS: message
+  const standard = trimmed.match(
+    /^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}\s+\d+\s+\d+\s+([VDIWEF])\s+([^:]+):\s*(.*)$/
+  );
+  if (standard) {
+    const [, level, tag, text] = standard;
+    return { tag: tag.trim(), type: levelToType(level), text, raw: line };
+  }
+
+  return null;
+}
+
+/** @param {string} level */
+function levelToType(level) {
+  if (level === 'E') return 'error';
+  if (level === 'W') return 'warning';
+  if (level === 'I') return 'info';
+  return 'log';
 }
 
 /**
@@ -49,6 +70,8 @@ export class AndroidLogCollector {
       '-v',
       'time',
       'ReactNativeJS:I',
+      'ReactNativeJS:W',
+      'ReactNativeJS:E',
       'ReactNative:W',
       'ReactNative:E',
       'AndroidRuntime:E',
@@ -99,6 +122,8 @@ export class AndroidLogCollector {
         '-v',
         'time',
         'ReactNativeJS:I',
+        'ReactNativeJS:W',
+        'ReactNativeJS:E',
         'ReactNative:W',
         'ReactNative:E',
         'AndroidRuntime:E',
@@ -115,6 +140,11 @@ export class AndroidLogCollector {
       });
       p.on('error', () => resolve([]));
     });
+  }
+
+  /** @returns {{ detail: string, raw: string } | null} */
+  findRenderError() {
+    return findRenderErrorInLogEntries(this.entries);
   }
 
   /** @returns {{ consoleLines: string[], pageErrors: string[], networkErrors: string[] }} */
@@ -144,10 +174,88 @@ export class AndroidLogCollector {
 }
 
 /**
+ * Streaming iOS simulator log collector (React / error lines).
+ */
+export class IosLogCollector {
+  /**
+   * @param {{ outDir?: string }} [options]
+   */
+  constructor(options = {}) {
+    this.outDir = options.outDir ?? null;
+    /** @type {Array<{ at: string, source: string, type: string, tag: string, text: string }>} */
+    this.entries = [];
+    /** @type {import('child_process').ChildProcessWithoutNullStreams | null} */
+    this.proc = null;
+    this.fullLogPath = this.outDir ? join(this.outDir, 'session-ios.log') : null;
+  }
+
+  start() {
+    if (this.proc) return;
+    if (this.outDir) mkdirSync(this.outDir, { recursive: true });
+
+    this.proc = spawn(
+      'xcrun',
+      ['simctl', 'spawn', 'booted', 'log', 'stream', '--style', 'compact', '--level', 'debug'],
+      { stdio: ['ignore', 'pipe', 'pipe'] }
+    );
+    this.proc.stdout.on('data', (buf) => {
+      const chunk = buf.toString();
+      if (this.fullLogPath) appendFileSync(this.fullLogPath, chunk);
+      for (const line of chunk.split('\n')) {
+        const text = line.trim();
+        if (!text) continue;
+        if (!/react|error|exception|render|native module|crypto|apptodo|eggshell/i.test(text)) continue;
+        this.entries.push({
+          at: new Date().toISOString(),
+          source: 'console',
+          type: /error|exception/i.test(text) ? 'error' : 'log',
+          tag: 'simlog',
+          text,
+        });
+        if (this.entries.length > 4000) this.entries.splice(0, 500);
+      }
+    });
+  }
+
+  stop() {
+    if (!this.proc) return;
+    this.proc.kill('SIGTERM');
+    this.proc = null;
+  }
+
+  /** @returns {{ detail: string, raw: string } | null} */
+  findRenderError() {
+    return findRenderErrorInLogEntries(this.entries);
+  }
+
+  /** @returns {{ consoleLines: string[], pageErrors: string[], networkErrors: string[] }} */
+  toSessionLogs() {
+    const consoleLines = [];
+    const pageErrors = [];
+    for (const e of this.entries) {
+      const line = `[${e.tag}] ${e.text}`;
+      if (e.type === 'error') pageErrors.push(line);
+      else consoleLines.push(line);
+    }
+    return { consoleLines, pageErrors, networkErrors: [] };
+  }
+
+  summarize() {
+    let actionable = 0;
+    for (const e of this.entries) {
+      const { bucket } = classifyConsole(e.text, e.type);
+      if (bucket === 'actionable') actionable += 1;
+    }
+    return { actionable, styleLeaks: 0, noise: 0, total: this.entries.length };
+  }
+}
+
+/**
  * @param {'android' | 'ios'} platform
  * @param {{ outDir?: string, packageName?: string }} [options]
  */
 export function createDeviceLogCollector(platform, options = {}) {
   if (platform === 'android') return new AndroidLogCollector(options);
+  if (platform === 'ios') return new IosLogCollector(options);
   return null;
 }
