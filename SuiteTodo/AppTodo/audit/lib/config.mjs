@@ -14,6 +14,20 @@ export const DEFAULTS = {
   platform: 'web',
 };
 
+/** Timeouts for observe workflows — override via CLI `--timeout-ms`. */
+export const TIMEOUTS = {
+  /** Wait for Todo UI / healthy app state. */
+  appReadyMs: 120_000,
+  /** Poll interval while waiting for end states. */
+  pollMs: 750,
+  /** Settle after app becomes healthy before capture. */
+  settleMs: 800,
+  /** Single user action (click, fill, waitFor text). */
+  actionMs: 30_000,
+  /** Appium session connect + launch. */
+  sessionConnectMs: 120_000,
+};
+
 /** Layout diff threshold in px before flagging a regression. */
 export const LAYOUT_DIFF_THRESHOLD_PX = 2;
 

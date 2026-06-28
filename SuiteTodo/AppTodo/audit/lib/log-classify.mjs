@@ -11,6 +11,15 @@ export function classifyConsole(text, type) {
 
   if (type === 'pageerror') return { bucket: 'actionable', kind: 'uncaught' };
   if (t.includes('possible style leak')) return { bucket: 'style-leak', kind: 'style-leak' };
+  if (t.includes('unable to resolve module') || t.includes('module not found')) {
+    return { bucket: 'actionable', kind: 'metro-bundle' };
+  }
+  if (t.includes('development server returned response error') || t.includes('transformerror')) {
+    return { bucket: 'actionable', kind: 'metro-server' };
+  }
+  if (t.includes('androidruntime') || t.includes('fatal exception')) {
+    return { bucket: 'actionable', kind: 'native-crash' };
+  }
   if (t.includes('objects are not valid as a react child')) return { bucket: 'actionable', kind: 'react-child' };
   if (t.includes('typeerror') || t.includes('referenceerror')) return { bucket: 'actionable', kind: 'runtime' };
 

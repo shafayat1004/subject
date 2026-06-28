@@ -10,6 +10,10 @@
     "observe:doctor": "node audit/todo-observe.mjs doctor",
     "observe:android": "node audit/todo-observe.mjs snapshot --platform android",
     "observe:ios": "node audit/todo-observe.mjs snapshot --platform ios",
+    "observe:verify-native": "node audit/todo-observe.mjs workflow verify-native",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
     "appium": "appium",
     "appium:setup": "appium driver install uiautomator2@2.45.1 && appium driver install xcuitest@7.28.3"
   },

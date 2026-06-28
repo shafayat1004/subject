@@ -21,6 +21,7 @@ import { emitReport, emitStatus } from './lib/report.mjs';
 import { runDoctor } from './lib/doctor.mjs';
 import { runSnapshotWorkflow } from './workflows/snapshot.mjs';
 import { runLayoutCheckWorkflow, runAddTodoWorkflow } from './workflows/layout-check.mjs';
+import { runVerifyNativeWorkflow } from './workflows/verify-native.mjs';
 
 function loadLayoutMetrics(dir, preferLabel) {
   const candidates = preferLabel
@@ -52,6 +53,7 @@ function workflowOptions(args) {
     headless: args.headless,
     outDir: args.out,
     title: args.title,
+    timeoutMs: args.timeoutMs,
   };
 }
 
@@ -74,6 +76,11 @@ const argv = yargs(hideBin(process.argv))
     choices: ['web', 'android', 'ios'],
     default: DEFAULTS.platform,
     describe: 'Target platform for snapshot/workflows (doctor checks all unless -p set)',
+  })
+  .option('timeout-ms', {
+    type: 'number',
+    default: undefined,
+    describe: 'Max wait for healthy app / end states (default: 120000ms)',
   })
   .command(
     'doctor',
@@ -132,12 +139,18 @@ const argv = yargs(hideBin(process.argv))
     'Named workflows (layout-check: before/after add-todo + card width diff)',
     (y) =>
       y
-        .positional('name', { choices: ['layout-check'] })
+        .positional('name', { choices: ['layout-check', 'verify-native'] })
         .option('title', { type: 'string' })
         .option('out', { type: 'string' }),
     async (args) => {
       if (args.name === 'layout-check') {
         await runLayoutCheckWorkflow(workflowOptions(args));
+      } else if (args.name === 'verify-native') {
+        const platforms = [];
+        const p = normalizePlatform(args.platform);
+        if (p === 'android' || p === 'ios') platforms.push(p);
+        else platforms.push('android', 'ios');
+        await runVerifyNativeWorkflow({ platforms, timeoutMs: args.timeoutMs });
       }
     }
   )

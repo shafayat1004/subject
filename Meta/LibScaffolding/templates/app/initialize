@@ -2,6 +2,11 @@ npm install
 npm link react-templates-fable
 npm link ../../LibClient/node_modules/react
 
+if [ ! -f .gitignore ] && [ -f .gitignore.template ]; then
+  cp .gitignore.template .gitignore
+  echo "Created .gitignore from template"
+fi
+
 # Android debug keystore (standard RN debug signing)
 if [ ! -f android/app/debug.keystore ]; then
   keytool -genkeypair -v \

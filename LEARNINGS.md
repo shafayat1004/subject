@@ -1192,6 +1192,17 @@ UI hierarchy XML, logcat/simulator log, testID layout bounds. **Doctor:** `npm r
 `com.eggshell.apptodo` — override in `audit/native.local.json`. Lazy-import native drivers so web doctor works
 without webdriverio loaded at startup (native deps still required for `-p android|ios`).
 
+### 2026-06-28 — AppTodo native scaffold (android/ + ios/)
+
+**Script:** `SuiteTodo/AppTodo/scripts/scaffold-native.sh` — copies `Meta/LibScaffolding/templates/app/android`
+(package `com.eggshell.apptodo`, no CodePush) and gallery `ios/` renamed to `AppTodo`. Also adds
+`metro.config.js`, `react-native.config.js`, `babel.config.js`, `configSourceOverrides.native.js` (fake backend).
+
+**Validate:** `../../eggshell build-native` then `cd android && ./gradlew assembleDebug`; `cd ios && pod install`.
+
+**Manifest fix:** Android 12+ needs `android:exported="true"` on launcher `MainActivity`; drop deprecated `package=`
+on manifest root when using Gradle `namespace`.
+
 ### 2026-06-28 — Checkbox iconTheme style leak (LibClient)
 
 **Symptom:** `{ fontSize: 20, color: "#00bcd4" }` leak when todo rows render `LC.Input.Checkbox`.

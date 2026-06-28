@@ -9,6 +9,7 @@ import { CARD_REGION_IDS } from './dom-analysis.mjs';
 import { captureLogcat } from './android-driver.mjs';
 import { captureIosLogs } from './ios-driver.mjs';
 import { PLATFORM } from './platform.mjs';
+import { captureHealthState, writeLogArtifacts } from './capture.mjs';
 
 /**
  * Compact summary from Appium page source XML (depth-limited).
@@ -98,12 +99,12 @@ export async function collectNativeLayoutMetrics(page, platform) {
 }
 
 /**
- * @param {{ page: import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage, platform: 'android' | 'ios' }} session
+ * @param {{ page: import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage, platform: 'android' | 'ios', logs?: { consoleLines: string[], pageErrors: string[], networkErrors: string[] }, logCollector?: import('./device-logs.mjs').AndroidLogCollector | null }} session
  * @param {string} outDir
  * @param {{ label?: string }} [options]
  */
 export async function captureNativeState(session, outDir, options = {}) {
-  const { page, platform } = session;
+  const { page, platform, logs, logCollector } = session;
   const label = options.label ?? 'snapshot';
 
   const screenshotPath = join(outDir, `${label}.png`);
@@ -112,6 +113,7 @@ export async function captureNativeState(session, outDir, options = {}) {
   const pageSource = await page.getPageSource();
   const hierarchySummary = summarizeUiHierarchy(pageSource);
   const layoutMetrics = await collectNativeLayoutMetrics(page, platform);
+  const health = await captureHealthState(page, platform, outDir, label);
 
   writeJson(outDir, `${label}-ui-hierarchy.xml.json`, { truncated: pageSource.length > 500_000, length: pageSource.length });
   writeLines(outDir, `${label}-ui-hierarchy.xml`, [pageSource]);
@@ -120,15 +122,29 @@ export async function captureNativeState(session, outDir, options = {}) {
   writeJson(outDir, `${label}-ui-snapshot.json`, null);
   writeJson(outDir, `${label}-ui-log.json`, null);
 
-  const deviceLogs =
-    platform === PLATFORM.ANDROID ? await captureLogcat().catch(() => []) : captureIosLogs();
-  writeLines(outDir, `${label}-device.log`, deviceLogs);
+  const deviceLogLines =
+    platform === PLATFORM.ANDROID
+      ? logCollector
+        ? await logCollector.snapshot()
+        : await captureLogcat().catch(() => [])
+      : captureIosLogs();
+  writeLines(outDir, `${label}-device.log`, deviceLogLines);
+
+  const mergedLogs = logs ?? { consoleLines: [], pageErrors: [], networkErrors: [] };
+  if (logCollector) {
+    const streamed = logCollector.toSessionLogs();
+    mergedLogs.consoleLines = [...mergedLogs.consoleLines, ...streamed.consoleLines];
+    mergedLogs.pageErrors = [...mergedLogs.pageErrors, ...streamed.pageErrors];
+  }
+  const logSummary = writeLogArtifacts(outDir, label, mergedLogs);
 
   return {
     screenshotPath,
     layoutMetrics,
     hierarchySummary,
-    deviceLogs,
+    deviceLogs: deviceLogLines,
+    health,
+    logSummary,
   };
 }
 

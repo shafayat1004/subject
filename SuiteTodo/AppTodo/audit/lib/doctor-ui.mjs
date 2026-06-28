@@ -81,6 +81,15 @@ export function renderDoctorUi(report) {
   lines.push(fg(palette.taupe, '  ╰' + '─'.repeat(W - 2) + '╯'));
   lines.push('');
 
+  if (report.toolchain?.length) {
+    lines.push(fg(palette.espresso, bold('  Toolchain · PATH & SDK')));
+    lines.push(hr());
+    for (const check of report.toolchain) {
+      lines.push(formatCheck(check));
+    }
+    lines.push('');
+  }
+
   if (report.shared?.length) {
     lines.push(fg(palette.espresso, bold('  Shared · Native infrastructure')));
     lines.push(hr());

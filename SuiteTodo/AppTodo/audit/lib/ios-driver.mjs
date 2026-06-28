@@ -5,7 +5,8 @@
 import { remote } from 'webdriverio';
 import { spawn, execSync } from 'child_process';
 import { resolveIosApp, APPIUM } from './native-config.mjs';
-import { TEST_IDS } from './selectors.mjs';
+import { TIMEOUTS } from './config.mjs';
+import { waitForHealthyApp, probeAppHealth, detectMetroRedbox, isTodoUiVisible } from './app-health.mjs';
 
 class IosLocator {
   /** @param {import('webdriverio').Browser} driver @param {string} selector @param {{ index?: number }} [meta] */
@@ -141,33 +142,17 @@ export function getDefaultIosUdid() {
   return null;
 }
 
-/**
- * @param {IosPage} page
- */
-export async function isTodoUiVisible(page) {
-  if (await page.locator(`~${TEST_IDS.newTitle}`).count()) return true;
-  if (await page.getByText('Todos', { exact: true }).count()) return true;
-  return false;
-}
+export { isTodoUiVisible, probeAppHealth, detectMetroRedbox as detectMetroLoadError };
 
 /**
  * @param {IosPage} page
  * @param {{ timeoutMs?: number, log?: (msg: string) => void }} [options]
  */
 export async function waitForTodoAppReady(page, options = {}) {
-  const timeoutMs = options.timeoutMs ?? 120_000;
-  const log = options.log ?? (() => {});
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    if (await isTodoUiVisible(page)) {
-      log('AppTodo UI ready');
-      await page.waitForTimeout(800);
-      return;
-    }
-    await page.waitForTimeout(750);
-  }
-  throw new Error(`AppTodo UI not ready within ${timeoutMs}ms`);
+  return waitForHealthyApp(page, 'ios', {
+    timeoutMs: options.timeoutMs ?? TIMEOUTS.appReadyMs,
+    log: options.log,
+  });
 }
 
 /**
@@ -206,7 +191,10 @@ export async function connectIosPage(options = {}) {
     /* not installed */
   }
   await page.waitForTimeout(1500);
-  await waitForTodoAppReady(page, { log });
+  await waitForTodoAppReady(page, {
+    log,
+    timeoutMs: TIMEOUTS.sessionConnectMs,
+  });
   return page;
 }
 

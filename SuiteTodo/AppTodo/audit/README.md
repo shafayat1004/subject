@@ -17,7 +17,17 @@ npm run observe -- snapshot
 npm run observe:layout-check
 ```
 
-### Android
+### Native scaffold
+
+First time (or fresh clone):
+
+```bash
+cd SuiteTodo/AppTodo
+./scripts/scaffold-native.sh   # android/ + ios/ (idempotent)
+./initialize                   # keystore + npm
+../../eggshell build-native
+cd ios && pod install && cd ..
+```
 
 ```bash
 # One-time
@@ -53,28 +63,53 @@ AppTodo does not ship `android/` / `ios/` until native is scaffolded (`eggshell 
 | `npm run observe:doctor` | **All platforms** — web + Android + iOS health (beige UI) |
 | `npm run observe -- doctor --json` | Same checks, JSON for LLM agents |
 | `npm run observe -- doctor -p android` | Single-platform doctor |
-| `npm run observe -- snapshot [-p platform]` | Full capture bundle |
+| `npm run observe -- snapshot [-p platform]` | Full capture bundle (logs + health by default) |
 | `npm run observe -- add-todo "title" [-p platform]` | Add todo + capture |
 | `npm run observe:layout-check` | Before/after card width diff |
+| `npm run observe:verify-native` | Android/iOS smoke: health + add-todo + components |
 | `npm run observe -- diff [dirA dirB]` | Compare two runs |
-| `npm run observe:open` | Web only — browser stays open |
-| `npm run observe -- logs [-p platform]` | Console or device logs |
+| `npm run observe -- open` | Web only — browser stays open |
+| `npm run observe -- logs [-p platform]` | Console or device logs (also included in every snapshot) |
 
 Platform flag: `--platform android` or `-p ios` (default: `web`).
+
+Timeout: `--timeout-ms 120000` (app ready / end states; default 120s).
+
+## App health detection
+
+Every snapshot writes `*-health.json` and fails (exit 2) when the app is in a crash state:
+
+| State | Web | Native |
+|-------|-----|--------|
+| `healthy` | Todo UI + testIds visible | Same via Appium |
+| `metro_redbox` | — | Metro bundle error (e.g. missing module, HTTP 500) |
+| `webpack_overlay` | Webpack dev-server overlay | — |
+| `top_level_error` | EggShell "Oops!" / "Something went wrong" | Same text when shell crashes |
+| `background` | — | Wrong package in foreground |
+| `loading` | Foreground but UI not ready yet | Splash / bundle loading |
+
+Patterns aligned with `AppEggShellGallery/audit-gallery-app-crash.mjs`. Native also streams **logcat** (`ReactNativeJS`, `AndroidRuntime`) for the whole session.
+
+## Doctor · toolchain PATH
+
+`npm run observe:doctor` prints a **Toolchain · PATH & SDK** section: `adb`, `emulator`, `eggshell`, `node`, `npx`, `react-native`, `ANDROID_SDK`, `xcrun`, `pod`, etc.
 
 ## Artifacts
 
 ### Web (`audit/out/<timestamp>-*/`)
 
 - `manifest.json`, `current.png`, `*-layout-metrics.json`, `*-dom-summary.json`
-- `*-ui-snapshot.json` (DEBUG `window.__eggshell.AppTodo.uiSnapshot()`)
-- `*-console.log`, `*-page-errors.log`
+- `*-health.json`, `*-log-summary.json`
+- `*-ui-snapshot.json` (DEBUG `window.eggshell.AppTodo.uiSnapshot()`)
+- `*-console.log`, `*-page-errors.log` (always written)
 
 ### Native
 
 - `current.png`, `*-layout-metrics.json` (testID bounds + card heuristic)
+- `*-health.json`, `*-log-summary.json`
 - `*-ui-hierarchy.xml` + `*-ui-summary.json` (compact tree for LLM)
 - `*-device.log` (logcat or simulator log)
+- `session-logcat.log` (full Android session stream when using observe)
 
 ## Native app IDs
 
@@ -104,9 +139,11 @@ On native, RN `testID` → Android `resource-id` / iOS accessibility id (`~todo-
 npm run observe -- doctor --platform android
 npm run observe -- snapshot --platform android
 npm run observe -- workflow layout-check --platform android
-npm run observe -- snapshot --headless true          # web CI
+npm run observe -- workflow verify-native --platform android
+npm run observe -- snapshot --timeout-ms 60000   # shorter wait
+npm run observe -- snapshot --headless true      # web CI
 ```
 
 ## Templating
 
-Reference for EggShell scaffolding. Shared drivers will move to `Meta/LibScaffolding`; gallery `audit-gallery-android-driver.mjs` was the prior art.
+Reference for EggShell scaffolding. Health/crash detection patterns come from `AppEggShellGallery/audit-gallery-app-crash.mjs` and `audit-gallery-android-logcat.mjs`. Shared drivers will move to `Meta/LibScaffolding` as first-party observability.

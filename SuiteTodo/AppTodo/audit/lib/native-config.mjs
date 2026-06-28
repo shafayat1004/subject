@@ -42,10 +42,18 @@ function readGradleApplicationId(appRoot) {
  */
 function readIosBundleId(appRoot) {
   const plist = join(appRoot, 'ios/AppTodo/Info.plist');
-  if (!existsSync(plist)) return null;
-  const text = readFileSync(plist, 'utf8');
-  const m = text.match(/<key>CFBundleIdentifier<\/key>\s*<string>([^<]+)<\/string>/);
-  return m?.[1] ?? null;
+  if (existsSync(plist)) {
+    const text = readFileSync(plist, 'utf8');
+    const m = text.match(/<key>CFBundleIdentifier<\/key>\s*<string>([^<]+)<\/string>/);
+    if (m?.[1] && !m[1].includes('$(')) return m[1];
+  }
+  const pbx = join(appRoot, 'ios/AppTodo.xcodeproj/project.pbxproj');
+  if (existsSync(pbx)) {
+    const text = readFileSync(pbx, 'utf8');
+    const m = text.match(/PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);/);
+    if (m?.[1]) return m[1].trim().replace(/"/g, '');
+  }
+  return null;
 }
 
 /**

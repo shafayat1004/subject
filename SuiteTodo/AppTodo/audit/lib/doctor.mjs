@@ -12,6 +12,7 @@ import { resolveAndroidApp, resolveIosApp, APPIUM, METRO } from './native-config
 import { waitForAppReady } from './web-session.mjs';
 import { renderDoctorUi } from './doctor-ui.mjs';
 import { buildDevPlaybooks, listEmulatorAvds } from './doctor-playbooks.mjs';
+import { collectToolchainChecks } from './doctor-toolchain.mjs';
 
 const appRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -217,9 +218,12 @@ export async function runDoctorAll(options = {}) {
     );
   }
 
+  const toolchain = collectToolchainChecks({ includeIos: platforms.includes(PLATFORM.IOS) });
+
   const report = {
     command: 'doctor',
     baseUrl,
+    toolchain,
     shared: [
       ...(appium ? [appium] : []),
       ...(avds.length
@@ -268,6 +272,9 @@ export async function runDoctor(options = {}) {
     const report = {
       command: 'doctor',
       baseUrl: options.baseUrl ?? DEFAULTS.baseUrl,
+      toolchain: collectToolchainChecks({
+        includeIos: options.platform === 'ios',
+      }),
       shared: [],
       platforms: [section],
       readyCount: section.ready ? 1 : 0,

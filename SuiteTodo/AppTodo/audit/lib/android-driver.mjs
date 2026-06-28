@@ -5,7 +5,14 @@
 import { remote } from 'webdriverio';
 import { spawn } from 'child_process';
 import { resolveAndroidApp, APPIUM } from './native-config.mjs';
-import { TEST_IDS } from './selectors.mjs';
+import { TIMEOUTS } from './config.mjs';
+import {
+  ensureAppForeground,
+  waitForHealthyApp,
+  isTodoUiVisible as isTodoUiVisibleHealth,
+  probeAppHealth,
+  detectMetroRedbox,
+} from './app-health.mjs';
 
 function escapeUi(text) {
   return String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -197,53 +204,18 @@ export function getDefaultAndroidUdid() {
   });
 }
 
-/**
- * @param {AndroidPage} page
- */
-export async function isTodoUiVisible(page) {
-  if (await page.locator(`~${TEST_IDS.newTitle}`).count()) return true;
-  if (await page.getByText('Todos', { exact: true }).count()) return true;
-  return false;
-}
+export { isTodoUiVisibleHealth as isTodoUiVisible, probeAppHealth, detectMetroRedbox as detectMetroLoadError };
 
 /**
  * @param {AndroidPage} page
- */
-async function detectMetroLoadError(page) {
-  const patterns = [
-    'Unable to load script',
-    'Could not connect to development server',
-    'Could not connect to the server',
-    'Connect to Metro',
-  ];
-  for (const text of patterns) {
-    if (await page.getByText(text, { exact: false }).count()) return text;
-  }
-  return null;
-}
-
-/**
- * @param {AndroidPage} page
- * @param {{ timeoutMs?: number, log?: (msg: string) => void }} [options]
+ * @param {{ timeoutMs?: number, log?: (msg: string) => void, expectedPackage?: string }} [options]
  */
 export async function waitForTodoAppReady(page, options = {}) {
-  const timeoutMs = options.timeoutMs ?? 120_000;
-  const log = options.log ?? (() => {});
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    const loadError = await detectMetroLoadError(page);
-    if (loadError) {
-      throw new Error(`AppTodo failed to load (${loadError}). Run Metro on :8081 and adb reverse tcp:8081 tcp:8081`);
-    }
-    if (await isTodoUiVisible(page)) {
-      log('AppTodo UI ready');
-      await page.waitForTimeout(800);
-      return;
-    }
-    await page.waitForTimeout(750);
-  }
-  throw new Error(`AppTodo UI not ready within ${timeoutMs}ms`);
+  return waitForHealthyApp(page, 'android', {
+    timeoutMs: options.timeoutMs ?? TIMEOUTS.appReadyMs,
+    log: options.log,
+    expectedPackage: options.expectedPackage ?? resolveAndroidApp().package,
+  });
 }
 
 /**
@@ -280,13 +252,12 @@ export async function connectAndroidPage(options = {}) {
   });
 
   const page = new AndroidPage(driver);
-  try {
-    await driver.activateApp(app.package);
-  } catch {
-    /* may already be foreground */
-  }
-  await page.waitForTimeout(1500);
-  await waitForTodoAppReady(page, { log });
+  await ensureAppForeground(page, app, log);
+  await waitForTodoAppReady(page, {
+    log,
+    timeoutMs: options.launchTimeoutMs ?? TIMEOUTS.sessionConnectMs,
+    expectedPackage: app.package,
+  });
   return page;
 }
 

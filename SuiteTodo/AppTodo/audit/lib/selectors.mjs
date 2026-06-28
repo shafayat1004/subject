@@ -143,20 +143,33 @@ export async function waitForTodoReady(page, options = {}) {
 }
 
 /**
+ * Read eggshell dev hook (DEBUG builds). Tries window.eggshell then window.__eggshell.
+ * @param {import('playwright').Page} page
+ * @param {string} appName
+ */
+function readEggshellHook(page, appName, method) {
+  if (typeof page.evaluate !== 'function') return null;
+  return page.evaluate(
+    ({ name, hook }) => {
+      const root =
+        /** @type {Record<string, Record<string, unknown>> | undefined} */ (window.eggshell) ??
+        /** @type {Record<string, Record<string, unknown>> | undefined} */ (window.__eggshell);
+      if (!root) return null;
+      const app = root[name] ?? Object.values(root)[0];
+      const fn = app?.[hook];
+      return typeof fn === 'function' ? fn() : null;
+    },
+    { name: appName, hook: method }
+  );
+}
+
+/**
  * Dev hook from LibClient UiActionLog (web DEBUG builds only).
  * @param {import('playwright').Page} page
  * @param {string} [appName]
  */
 export async function readUiSnapshot(page, appName = 'AppTodo') {
-  if (typeof page.evaluate !== 'function') return null;
-  return page.evaluate((name) => {
-    const eggshell = /** @type {Record<string, { uiSnapshot?: () => unknown }> | undefined} */ (
-      window.__eggshell
-    );
-    if (!eggshell) return null;
-    const app = eggshell[name] ?? Object.values(eggshell)[0];
-    return typeof app?.uiSnapshot === 'function' ? app.uiSnapshot() : null;
-  }, appName);
+  return readEggshellHook(page, appName, 'uiSnapshot');
 }
 
 /**
@@ -164,13 +177,5 @@ export async function readUiSnapshot(page, appName = 'AppTodo') {
  * @param {string} [appName]
  */
 export async function readUiLog(page, appName = 'AppTodo') {
-  if (typeof page.evaluate !== 'function') return null;
-  return page.evaluate((name) => {
-    const eggshell = /** @type {Record<string, { uiLog?: () => unknown }> | undefined} */ (
-      window.__eggshell
-    );
-    if (!eggshell) return null;
-    const app = eggshell[name] ?? Object.values(eggshell)[0];
-    return typeof app?.uiLog === 'function' ? app.uiLog() : null;
-  }, appName);
+  return readEggshellHook(page, appName, 'uiLog');
 }
