@@ -85,3 +85,10 @@ We stay on **current Fable (v4)** for this phase.)
   Fable). Backend libs: `dotnet build`.
 - Framework libs use custom configs (`Web Debug`, `Web Release`, `Native Debug`, `Native Release`),
   not plain `Debug` — pass `-c "Web Debug"` to `dotnet build` where relevant.
+- **No stale-cache false greens.** Fable may print `Skipped compilation because all generated files
+  are up-to-date!` and exit 0 without type-checking your edits. Before claiming done: force
+  recompile (`touch` changed `.fs`, or clear `.build/<platform>/fable`), confirm
+  `Started Fable compilation...` and `rg "error FS"` is clean. If the user has watch/dev running,
+  their watch terminal beats a separate cached build.
+- **Check build output promptly** (30–45s waits; read terminal files early). Do not block 120s+
+  and miss errors already printed.

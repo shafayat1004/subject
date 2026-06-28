@@ -37,10 +37,12 @@
     <Compile Include="Services.fs" />
     <Compile Include="Navigation.fs" />
     <Compile Include="Colors.fs" />
+    <Compile Include="TodoTheme.fs" />
     <Compile Include="Icons.fs" />
     <Compile Include="LocalImagesRegistration.fs" />
     <Compile Include="Actions.fs" />
     <Compile Include="TodoQueries.fs" />
+    <Compile Include="TodoDisplay.fs" />
     <Compile Include="ComponentsHierarchy.fs" />
   </ItemGroup>
 

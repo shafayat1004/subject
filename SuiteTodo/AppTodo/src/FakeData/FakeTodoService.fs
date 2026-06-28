@@ -33,15 +33,41 @@ module FakeTodoService =
 
             filter predicate
 
+    let private initialTodos =
+        [
+            {
+                Id = TodoId (Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeee0001"))
+                Title = NonemptyString.ofStringUnsafe "Welcome to AppTodo"
+                Done = false
+                ArchivedOn = None
+                QueuedForDeletion = false
+                CreatedOn = DateTimeOffset.UtcNow.AddDays -2.
+                Priority = TodoPriority.High
+                DueOn = Some (DateTimeOffset.UtcNow.AddDays 2.)
+                Category = Some TodoCategory.Work
+            }
+            {
+                Id = TodoId (Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeee0002"))
+                Title = NonemptyString.ofStringUnsafe "Try dark mode and filters"
+                Done = true
+                ArchivedOn = None
+                QueuedForDeletion = false
+                CreatedOn = DateTimeOffset.UtcNow.AddDays -1.
+                Priority = TodoPriority.Medium
+                DueOn = None
+                Category = Some TodoCategory.Personal
+            }
+        ]
+
     let service =
         { new FakeSubjectService<Todo, Todo, TodoId, TodoIndex, TodoConstructor, TodoAction, TodoLifeEvent, TodoOpError>(
             todoDef.LifeCycles.todo.Key,
-            [],
+            initialTodos,
             fakeDelay
           ) with
             override _.ConstructCore ctor =
                 match ctor with
-                | TodoConstructor.New title ->
+                | TodoConstructor.New (title, priority, category, dueOn) ->
                     if TodoValidation.isBlankTitle title then
                         TodoOpError.EmptyTitle |> OpError |> Error
                     else
@@ -52,6 +78,9 @@ module FakeTodoService =
                             ArchivedOn = None
                             QueuedForDeletion = false
                             CreatedOn = DateTimeOffset.UtcNow
+                            Priority = priority
+                            DueOn = dueOn
+                            Category = category
                         }
 
             override _.ActCore todo action =
@@ -74,6 +103,15 @@ module FakeTodoService =
 
                     | TodoAction.Delete ->
                         return Ok { todo with QueuedForDeletion = true }
+
+                    | TodoAction.SetPriority priority ->
+                        return Ok { todo with Priority = priority }
+
+                    | TodoAction.SetCategory category ->
+                        return Ok { todo with Category = category }
+
+                    | TodoAction.SetDueOn dueOn ->
+                        return Ok { todo with DueOn = dueOn }
                 }
 
             override _.ShouldRemoveProjectionAfterAct action _ =

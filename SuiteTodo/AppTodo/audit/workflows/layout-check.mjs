@@ -29,10 +29,40 @@ export async function runLayoutCheckWorkflow(options = {}) {
 
     const before = await captureObserveState(session, outDir, { label: 'before' });
 
+    /** @param {import('playwright').Page | import('../lib/android-driver.mjs').AndroidPage | import('../lib/ios-driver.mjs').IosPage} p */
+    const readOpenCount = async (p) => {
+      const el = p.locator('[data-testid="todo-stats-open"]');
+      if (!(await el.count())) return null;
+      const text = (await el.first().textContent()) ?? '';
+      const m = text.match(/(\d+)\s+open/);
+      return m ? Number(m[1]) : null;
+    };
+
+    const openBefore = await readOpenCount(session.page);
+
     await fillNewTodoTitle(session.page, title, platform);
     await clickAddTodo(session.page, platform);
-    await session.page.getByText(title).waitFor({ timeout: 15000 });
-    await session.page.waitForTimeout(400);
+    await session.page.waitForTimeout(800);
+
+    if (openBefore != null) {
+      await session.page.waitForFunction(
+        (prev) => {
+          const el = document.querySelector('[data-testid="todo-stats-open"]');
+          const text = el?.textContent ?? '';
+          const m = text.match(/(\d+)\s+open/);
+          const n = m ? Number(m[1]) : 0;
+          return n > prev;
+        },
+        openBefore,
+        { timeout: 20000 }
+      );
+    } else {
+      await session.page.waitForFunction(
+        (expected) => document.body?.innerText?.includes(expected) ?? false,
+        title,
+        { timeout: 20000 }
+      );
+    }
 
     const after = await captureObserveState(session, outDir, { label: 'after' });
 

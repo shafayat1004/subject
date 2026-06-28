@@ -7,7 +7,11 @@ import { join } from 'path';
  * @param {unknown} data
  */
 export function writeJson(dir, name, data) {
-  writeFileSync(join(dir, name), `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  writeFileSync(
+    join(dir, name),
+    `${JSON.stringify(data, (_key, value) => (typeof value === 'bigint' ? Number(value) : value), 2)}\n`,
+    'utf8'
+  );
 }
 
 /**

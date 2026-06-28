@@ -126,16 +126,18 @@ type LibClient.Components.Constructors.LC.Executor with
                         Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
                     )
             | Some keys ->
-                RX.View(
-                    styles = [| Styles.everything |],
-                    children =
-                        (if Helpers.shouldShowSpinner keys executorsHook.current then
+                let pageContent =
+                    content
+                        (
+                            Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
+                            Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
+                        )
+
+                if Helpers.shouldShowSpinner keys executorsHook.current then
+                    LC.Fragment(
+                        children =
                             tellReactArrayKeysAreOkay [|
-                                content
-                                    (
-                                        Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
-                                        Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
-                                    )
+                                pageContent
                                 RX.View(
                                     styles = [| Styles.spinnerOverlay |],
                                     children =
@@ -147,15 +149,9 @@ type LibClient.Components.Constructors.LC.Executor with
                                         }
                                 )
                             |]
-                         else
-                            tellReactArrayKeysAreOkay [|
-                                content
-                                    (
-                                        Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
-                                        Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
-                                    )
-                            |])
-                )
+                    )
+                else
+                    pageContent
 
         if not errorsExaminedOnLastRenderHook.current then
             Log.Error "Using Executor.Base but not displaying errors. Make sure to call getErrors() and display the result, or use Executor.AlertOnError instead."

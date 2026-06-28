@@ -5,6 +5,7 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Components.Input.PickerModel
+open LibClient.Responsive
 
 open ReactXP.Components
 open ReactXP.Styles
@@ -41,6 +42,40 @@ type PropItemViewFactory =
     static member Make<'T when 'T : comparison> (itemToVisuals: 'T -> PickerItemVisuals) : PickerItemView<'T> =
         PickerItemView.Default itemToVisuals
 
+// Wrapper so picker hooks run in a real component render, not inside
+// LC.With.ScreenSize's useMemo factory (Rules of Hooks).
+[<RequireQualifiedAccess>]
+type private PickerHost =
+    [<Component>]
+    static member Render<'Item when 'Item : comparison>(
+            items: Items<'Item>,
+            itemView: PickerItemView<'Item>,
+            value: SelectableValue<'Item>,
+            validity: InputValidity,
+            screenSize: ScreenSize,
+            showSearchBar: bool,
+            label: string option,
+            placeholder: string option,
+            testId: string option,
+            pickerId: string option,
+            styles: ViewStyles array option,
+            xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option
+        ) : ReactElement =
+        LibClient.Components.Input.PickerInternals.Base.renderPickerBase(
+            items,
+            itemView,
+            value,
+            validity,
+            screenSize,
+            showSearchBar,
+            label,
+            placeholder,
+            testId,
+            pickerId,
+            styles,
+            xLegacyStyles
+        )
+
 type LibClient.Components.Constructors.LC.Input with
     [<Component>]
     static member Picker<'T when 'T : comparison>(
@@ -64,7 +99,7 @@ type LibClient.Components.Constructors.LC.Input with
         LC.With.ScreenSize(
             ``with`` =
                 fun screenSize ->
-                    LibClient.Components.Input.PickerInternals.Base.renderPickerBase(
+                    PickerHost.Render(
                         items,
                         itemView,
                         value,

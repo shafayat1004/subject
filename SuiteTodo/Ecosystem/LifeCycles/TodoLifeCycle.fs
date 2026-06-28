@@ -56,13 +56,22 @@ let private transition (env: TodoEnvironment) (todo: Todo) (action: TodoAction)
                 "Todo {TodoId} queued for deletion",
                 (todo.Id :> SubjectId).IdString)
             return { todo with QueuedForDeletion = true }
+
+        | TodoAction.SetPriority priority ->
+            return { todo with Priority = priority }
+
+        | TodoAction.SetCategory category ->
+            return { todo with Category = category }
+
+        | TodoAction.SetDueOn dueOn ->
+            return { todo with DueOn = dueOn }
     }
 
 let private construction (env: TodoEnvironment) (id: TodoId) (ctor: TodoConstructor)
     : ConstructionResult<Todo, TodoAction, TodoOpError, TodoLifeEvent> =
     construction {
         match ctor with
-        | TodoConstructor.New title ->
+        | TodoConstructor.New (title, priority, category, dueOn) ->
             if TodoValidation.isBlankTitle title then
                 return TodoOpError.EmptyTitle
             else
@@ -79,6 +88,9 @@ let private construction (env: TodoEnvironment) (id: TodoId) (ctor: TodoConstruc
                     ArchivedOn = None
                     QueuedForDeletion = false
                     CreatedOn = now
+                    Priority = priority
+                    DueOn = dueOn
+                    Category = category
                 }
     }
 

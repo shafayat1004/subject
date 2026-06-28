@@ -1,0 +1,32 @@
+---
+description: EggShell/Fable build validation — no stale-cache false greens; check terminal output promptly
+alwaysApply: true
+---
+
+# Build validation and terminal checks
+
+## Fable cache is not proof of green
+
+`eggshell build-native` / `build-lib` may print **exit 0** while Fable says:
+
+`Skipped compilation because all generated files are up-to-date!`
+
+That is **not** validation. Before calling a frontend change done:
+
+1. **Force recompile** if you changed any `.fs` file: `touch` the file(s), or remove `.build/<platform>/fable`, or `dotnet fable clean` in the app/lib dir.
+2. Confirm output includes **`Started Fable compilation...`** and your changed file in `Compiled N/M: ...`.
+3. **`rg "error FS|Compilation failed"`** on build output — never rely on exit code alone after a skip.
+
+If the user has **`eggshell watch-*` / dev stack running**, treat **their watch terminal** as ground truth over a separate cached `build-native` you ran.
+
+## Check terminal output early
+
+- Use **30–45s** initial waits on builds; read output as soon as lines appear.
+- On long runs, **read the terminal file** (`terminals/*.txt`) instead of blocking for 120s+.
+- If output shows errors, fix them before retrying — do not rerun the same blind long command.
+
+## Hooks inside `LC.With.ScreenSize` / `LC.With.Context`
+
+These use `Hooks.useMemo` on the render callback. **Never call hook-using code inside that callback** (plain functions with `useState`/`useEffect`, or `renderPickerBase`). Use a `[<Component>]` wrapper `type` with `static member` instead — **not** a `module`.
+
+Example: `LibClient/.../Input/Picker/Picker.fs` → private `PickerHost` type wrapping `renderPickerBase`.

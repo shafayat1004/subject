@@ -12,6 +12,20 @@ with
             let (TodoId guid) = this
             guid.ToString("D")
 
+[<RequireQualifiedAccess>]
+type TodoPriority =
+| Low
+| Medium
+| High
+
+[<RequireQualifiedAccess>]
+type TodoCategory =
+| Work
+| Personal
+| Shopping
+| Health
+| Other
+
 type Todo = {
     Id: TodoId
     Title: NonemptyString
@@ -19,6 +33,9 @@ type Todo = {
     ArchivedOn: Option<DateTimeOffset>
     QueuedForDeletion: bool
     CreatedOn: DateTimeOffset
+    Priority: TodoPriority
+    DueOn: Option<DateTimeOffset>
+    Category: Option<TodoCategory>
 }
 with
     interface Subject<TodoId> with
@@ -34,6 +51,9 @@ type TodoAction =
 | ToggleDone
 | Archive
 | Delete
+| SetPriority of TodoPriority
+| SetCategory of Option<TodoCategory>
+| SetDueOn of Option<DateTimeOffset>
 with interface LifeAction
 
 [<RequireQualifiedAccess>]
@@ -43,7 +63,7 @@ with interface OpError
 
 [<RequireQualifiedAccess>]
 type TodoConstructor =
-| New of Title: NonemptyString
+| New of Title: NonemptyString * Priority: TodoPriority * Category: Option<TodoCategory> * DueOn: Option<DateTimeOffset>
 with interface Constructor
 
 [<RequireQualifiedAccess>]
@@ -131,15 +151,18 @@ type TodoId with
 type Todo with
     static member TypeLabel () = "Todo"
 
-    static member private get_ObjCodec_V1 () =
+    static member private get_ObjCodec_V2 () =
         codec {
-            let! _version = reqWith Codecs.int "__v1" (fun _ -> Some 0)
+            let! _version = reqWith Codecs.int "__v2" (fun _ -> Some 0)
             and! id = reqWith codecFor<_, TodoId> "Id" (fun x -> Some x.Id)
             and! title = reqWith codecFor<_, NonemptyString> "Title" (fun x -> Some x.Title)
             and! done_ = reqWith Codecs.boolean "Done" (fun x -> Some x.Done)
             and! archivedOn = reqWith (Codecs.option Codecs.dateTimeOffset) "ArchivedOn" (fun x -> Some x.ArchivedOn)
             and! queuedForDeletion = reqWith Codecs.boolean "QueuedForDeletion" (fun x -> Some x.QueuedForDeletion)
             and! createdOn = reqWith Codecs.dateTimeOffset "CreatedOn" (fun x -> Some x.CreatedOn)
+            and! priority = reqWith codecFor<_, TodoPriority> "Priority" (fun x -> Some x.Priority)
+            and! dueOn = reqWith (Codecs.option Codecs.dateTimeOffset) "DueOn" (fun x -> Some x.DueOn)
+            and! category = reqWith (Codecs.option codecFor<_, TodoCategory>) "Category" (fun x -> Some x.Category)
             return {
                 Id = id
                 Title = title
@@ -147,10 +170,13 @@ type Todo with
                 ArchivedOn = archivedOn
                 QueuedForDeletion = queuedForDeletion
                 CreatedOn = createdOn
+                Priority = priority
+                DueOn = dueOn
+                Category = category
              }
         }
 
-    static member private get_ObjCodec () = Todo.get_ObjCodec_V1 ()
+    static member private get_ObjCodec () = Todo.get_ObjCodec_V2 ()
     static member get_Codec () = ofObjCodec <| Todo.get_ObjCodec ()
     static member Init (typeLabel: string, _typeParams: _) = initializeInterfaceImplementation<Subject<TodoId>, Todo> (fun () -> attachCodecTypeLabel ("__type_" + typeLabel) <| Todo.get_ObjCodec ())
 
@@ -184,6 +210,24 @@ type TodoAction with
                 and! _ = reqWith Codecs.unit "Delete" (function TodoAction.Delete -> Some () | _ -> None)
                 return TodoAction.Delete
             }
+        | TodoAction.SetPriority _ ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoAction.SetPriority _ -> Some 0 | _ -> None)
+                and! payload = reqWith codecFor<_, TodoPriority> "SetPriority" (function TodoAction.SetPriority x -> Some x | _ -> None)
+                return TodoAction.SetPriority payload
+            }
+        | TodoAction.SetCategory _ ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoAction.SetCategory _ -> Some 0 | _ -> None)
+                and! payload = reqWith (Codecs.option codecFor<_, TodoCategory>) "SetCategory" (function TodoAction.SetCategory x -> Some x | _ -> None)
+                return TodoAction.SetCategory payload
+            }
+        | TodoAction.SetDueOn _ ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoAction.SetDueOn _ -> Some 0 | _ -> None)
+                and! payload = reqWith (Codecs.option Codecs.dateTimeOffset) "SetDueOn" (function TodoAction.SetDueOn x -> Some x | _ -> None)
+                return TodoAction.SetDueOn payload
+            }
         |> mergeUnionCases
 
     static member private get_ObjCodec () = TodoAction.get_ObjCodec_AllCases ()
@@ -216,9 +260,12 @@ type TodoConstructor with
         function
         | TodoConstructor.New _ ->
             codec {
-                let! _version = reqWith Codecs.int "__v1" (fun _ -> Some 0)
-                and! payload = reqWith codecFor<_, NonemptyString> "New" (function TodoConstructor.New x -> Some x)
-                return TodoConstructor.New payload
+                let! _version = reqWith Codecs.int "__v2" (fun _ -> Some 0)
+                and! title = reqWith codecFor<_, NonemptyString> "Title" (function TodoConstructor.New (t, _, _, _) -> Some t)
+                and! priority = reqWith codecFor<_, TodoPriority> "Priority" (function TodoConstructor.New (_, p, _, _) -> Some p)
+                and! category = reqWith (Codecs.option codecFor<_, TodoCategory>) "Category" (function TodoConstructor.New (_, _, c, _) -> Some c)
+                and! dueOn = reqWith (Codecs.option Codecs.dateTimeOffset) "DueOn" (function TodoConstructor.New (_, _, _, d) -> Some d)
+                return TodoConstructor.New (title, priority, category, dueOn)
             }
         |> mergeUnionCases
 
@@ -261,6 +308,68 @@ type TodoLifeEvent with
     static member private get_ObjCodec () = TodoLifeEvent.get_ObjCodec_AllCases ()
     static member get_Codec () = ofObjCodec <| TodoLifeEvent.get_ObjCodec ()
     static member Init (typeLabel: string, _typeParams: _) = initializeInterfaceImplementation<LifeEvent, TodoLifeEvent> (fun () -> attachCodecTypeLabel ("__type_" + typeLabel) <| TodoLifeEvent.get_ObjCodec ())
+
+
+type TodoPriority with
+    static member private get_ObjCodec_AllCases () =
+        function
+        | TodoPriority.Low ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.Low -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Low" (function TodoPriority.Low -> Some () | _ -> None)
+                return TodoPriority.Low
+            }
+        | TodoPriority.Medium ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.Medium -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Medium" (function TodoPriority.Medium -> Some () | _ -> None)
+                return TodoPriority.Medium
+            }
+        | TodoPriority.High ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.High -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "High" (function TodoPriority.High -> Some () | _ -> None)
+                return TodoPriority.High
+            }
+        |> mergeUnionCases
+    static member get_Codec () = ofObjCodec (TodoPriority.get_ObjCodec_AllCases ())
+
+
+type TodoCategory with
+    static member private get_ObjCodec_AllCases () =
+        function
+        | TodoCategory.Work ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Work -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Work" (function TodoCategory.Work -> Some () | _ -> None)
+                return TodoCategory.Work
+            }
+        | TodoCategory.Personal ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Personal -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Personal" (function TodoCategory.Personal -> Some () | _ -> None)
+                return TodoCategory.Personal
+            }
+        | TodoCategory.Shopping ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Shopping -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Shopping" (function TodoCategory.Shopping -> Some () | _ -> None)
+                return TodoCategory.Shopping
+            }
+        | TodoCategory.Health ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Health -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Health" (function TodoCategory.Health -> Some () | _ -> None)
+                return TodoCategory.Health
+            }
+        | TodoCategory.Other ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Other -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Other" (function TodoCategory.Other -> Some () | _ -> None)
+                return TodoCategory.Other
+            }
+        |> mergeUnionCases
+    static member get_Codec () = ofObjCodec (TodoCategory.get_ObjCodec_AllCases ())
 
 
 type TodoArchiveStatus with

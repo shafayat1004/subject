@@ -8,8 +8,17 @@ export const TEST_IDS = {
   page: 'todo-page',
   card: 'todo-card',
   newTitle: 'todo-new-title',
+  newPriority: 'todo-new-priority',
+  newDue: 'todo-new-due',
   add: 'todo-add',
   search: 'todo-search',
+  themeToggle: 'todo-theme-toggle',
+  stats: 'todo-stats',
+  list: 'todo-list',
+  filterOpen: 'todo-filter-open',
+  filterDone: 'todo-filter-done',
+  filterAll: 'todo-filter-all',
+  filterArchived: 'todo-filter-archived',
 };
 
 export function escapeAttr(text) {
@@ -84,7 +93,9 @@ export async function fillNewTodoTitle(page, value, platform = PLATFORM.WEB) {
 
   const byTestId = findByTestId(page, TEST_IDS.newTitle, platform).locator('input').first();
   if (await byTestId.count()) {
-    await byTestId.fill(value);
+    await byTestId.click();
+    await byTestId.fill('');
+    await byTestId.pressSequentially(value, { delay: 15 });
     return;
   }
   await page.locator('input').first().fill(value);

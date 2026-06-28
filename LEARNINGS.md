@@ -1271,3 +1271,60 @@ Android and web fine. Appium `setValue` also worked — that is **not** the same
 (`state: healthy`, Todo UI visible) as ground truth when verify-native reports `logcat-render-error` with simlog noise.
 
 Long-term: RNW migration (see `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md`) removes ReactXP TextInput.
+
+### 2026-06-28 — AppTodo rich UI (filters, priority, theme, responsive)
+
+**Scope:** `SuiteTodo/AppTodo` + `Todo.Types` extensions (Priority, Category, DueOn; constructor/actions).
+
+**UI:** Filter tabs (Open/Done/All/Archived), priority picker, category chips, due date, inline edit, archive, dark/light toggle
+(web `localStorage`), `LC.With.ScreenSize` handheld vs desktop layouts, semantic palette in `Colors.fs` /
+`TodoTheme.fs`, per-item testIds `todo-item-{id8}-{toggle|edit|delete|...}`.
+
+**Audit:** Extended `TEST_IDS` in `selectors.mjs`; fixed `writeJson` BigInt serialization in `io.mjs`.
+Web Playwright `fill()` alone may not update F# `useState` for `LC.Input.Text` — use `pressSequentially` in
+`fillNewTodoTitle`. Layout-check waits on `todo-stats-open` count when present.
+
+**Fake data:** `FakeTodoService` seeds two demo todos in DEBUG for gallery/observe non-empty states.
+
+### 2026-06-28 — When changes “don’t apply”, assume full restart first
+
+Hot reload / Fable watch often **looks** fine while the running app still serves stale JS or Metro cache.
+
+**Web (`eggshell dev-web`):** stop dev-web, hard-refresh browser (or clear cache). After `LibClient` /
+domain / `metro.config.js` changes, restart dev-web entirely — do not trust HMR alone.
+
+**Native:** kill Metro, restart with `--reset-cache`; restart `eggshell dev-native`; rebuild/relaunch app
+(`run-ios` / `run-android` or Cmd+R only after Metro has the new bundle). ReactXP `node_modules` patches
+(`postinstall` copy) need Metro restart + app reload. `ios/` pod / native module changes need `pod install` +
+full Xcode rebuild.
+
+**Rule of thumb:** if a fix “should work” but UI/behavior is unchanged, do a full stack restart before
+debugging the code again.
+
+### 2026-06-28 — Fable “skipped compilation” is not a green build
+
+**Symptom:** Agent runs `eggshell build-native`, sees exit 0 + `completed!`, claims done — while the
+user’s **watch** terminal still shows `error FS`.
+
+**Cause:** Fable cache (`Skipped compilation because all generated files are up-to-date!`) skips the
+F# type-check pass. Babel may still run on old `.js`, so the command “succeeds” without compiling edits.
+
+**Fix when validating:** `touch` changed `.fs` (or delete `.build/native/fable`), re-run build, grep
+`error FS`. Treat the user’s watch/dev terminal as authoritative when it is running.
+
+**Also:** do not use 120s+ blind waits on builds — read terminal output within ~30–45s.
+
+### 2026-06-28 — Rules of Hooks: `LC.Input.Picker` inside `LC.With.ScreenSize`
+
+**Symptom:** iOS LogBox: “Do not call Hooks inside useEffect/useMemo…”; todo page broken.
+
+**Cause:** `Picker.fs` called `renderPickerBase` (uses `useRef`/`useEffect`) inside
+`LC.With.ScreenSize` → `LC.With.Context` → `Hooks.useMemo` callback.
+
+**Fix:** private `[<Component>]` wrapper **type** `PickerHost` with `static member Render` that calls
+`renderPickerBase` at component top level; `Picker` passes screen size into `PickerHost.Render(...)`.
+`[<Component>] static member` must live on a **`type`**, not a **`module`** (FS0010 otherwise).
+
+**Module shadowing (unchanged):** module `LibClient.Components.Input.PickerInternals.Base` hides
+`LC.Input.PickerInternals.Base` static member from sibling files — use module-level `renderPickerBase`
+or rename module to `PickerInternals_Base` (see LEARNINGS § nested-namespace).

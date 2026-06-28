@@ -11,7 +11,7 @@ let ``Construct todo, toggle done, life event and state reflect the change`` () 
         let! title = genTodoTitle
 
         let! todo =
-            TodoConstructor.New title
+            TodoConstructor.New (title, TodoPriority.Medium, None, None)
             |> Ecosystem.construct todoLifeCycle
             |> Ecosystem.thenAssertOk
             |> Ecosystem.thenAssert (fun t -> t.Title = title && not t.Done && t.ArchivedOn.IsNone)
@@ -28,7 +28,7 @@ let ``Empty title is rejected on construct`` () =
     simulation {
         let blankTitle = "   " |> NonemptyString.ofStringUnsafe
 
-        do! TodoConstructor.New blankTitle
+        do! TodoConstructor.New (blankTitle, TodoPriority.Medium, None, None)
             |> Ecosystem.construct todoLifeCycle
             |> Ecosystem.thenAssertConstructionOpError
             |> Ecosystem.thenAssert (fun err -> err = TodoOpError.EmptyTitle)
@@ -41,7 +41,7 @@ let ``Empty title is rejected on set title`` () =
         let! title = genTodoTitle
         let blankTitle = "   " |> NonemptyString.ofStringUnsafe
 
-        do! TodoConstructor.New title
+        do! TodoConstructor.New (title, TodoPriority.Medium, None, None)
             |> Ecosystem.construct todoLifeCycle
             |> Ecosystem.thenAssertOk
             |> Ecosystem.thenAct todoLifeCycle (TodoAction.SetTitle blankTitle)
@@ -55,7 +55,7 @@ let ``Done todo auto-archives after archive delay`` () =
     simulation {
         let! title = genTodoTitle
 
-        do! TodoConstructor.New title
+        do! TodoConstructor.New (title, TodoPriority.Medium, None, None)
             |> Ecosystem.construct todoLifeCycle
             |> Ecosystem.thenAssertOk
             |> Ecosystem.thenAct todoLifeCycle TodoAction.ToggleDone
@@ -76,7 +76,7 @@ let ``Title full-text search finds active todo`` () =
             |> Option.defaultValue title.Value
 
         let! todo =
-            TodoConstructor.New title
+            TodoConstructor.New (title, TodoPriority.Medium, None, None)
             |> Ecosystem.construct todoLifeCycle
             |> Ecosystem.thenAssertOk
 
