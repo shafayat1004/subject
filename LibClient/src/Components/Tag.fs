@@ -101,25 +101,25 @@ module private Styles =
 
     let textTheme =
         TextStyles.Memoize(
-            fun (textColor: Color) (labelFontSize: int) ->
+            fun (textColorCss: string) (labelFontSize: int) ->
                 makeTextStyles {
-                    color textColor
+                    color (Color.InternalString textColorCss)
                     fontSize labelFontSize
                 }
         )
 
     let textThemeFor (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) =
         let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
-        textTheme tagTheme.TextColor sizeTheme.FontSize
+        textTheme tagTheme.TextColor.ToCssString sizeTheme.FontSize
 
     let viewTheme =
         ViewStyles.Memoize(
-            fun (padHorizontal: int) (padVertical: int) (fillColor: Color) (isHovered: bool) (isDepressed: bool) (state: ThemeState) ->
+            fun (padHorizontal: int) (padVertical: int) (fillColorCss: string) (isHovered: bool) (isDepressed: bool) (state: ThemeState) ->
                 makeViewStyles {
                     paddingHorizontal padHorizontal
                     paddingVertical padVertical
 
-                    backgroundColor fillColor
+                    backgroundColor (Color.InternalString fillColorCss)
 
                     if isHovered then
                         shadow (Color.BlackAlpha 0.2) 5 (0, 3)
@@ -130,7 +130,7 @@ module private Styles =
                     match state with
                     | ThemeState.Disabled ->
                         opacity 0.5
-                    | ThemeState.Actionable _ ->
+                    | ThemeState.Actionable ->
                         Cursor.Pointer
                     | ThemeState.Other ->
                         Noop
@@ -139,7 +139,7 @@ module private Styles =
 
     let viewThemeFor (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) (isHovered: bool) (isDepressed: bool) (state: ThemeState) =
         let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
-        viewTheme sizeTheme.PaddingHorizontal sizeTheme.PaddingVertical tagTheme.BackgroundColor isHovered isDepressed state
+        viewTheme sizeTheme.PaddingHorizontal sizeTheme.PaddingVertical tagTheme.BackgroundColor.ToCssString isHovered isDepressed state
 
 type private State with
     member private this.ToThemeState() =

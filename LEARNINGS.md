@@ -34,6 +34,8 @@ Gallery full crawl (`style-leaks.json`, 819 hits / 4 keys) traced mostly to **`V
 
 **Gallery audit testId:** ReactXP emits **`data-test-id`** on web, not RNW's `data-testid`. `audit-gallery-selectors.mjs` must query `[data-test-id="…"]` — wrong attribute caused Scrim (and all Pressable testId) false-fails.
 
+**`memoize2`–`memoize6` cache never hit (2026-06-29):** curried F# lambdas compile to **length-1** JS functions; `fast-memoize` then uses **monadic** caching on a fresh `(a,b,…)` tuple each call, so every render was a cache miss (Button `viewBase`, etc.). Fix: `Emit` wrappers that pass true **N-arg** JS functions into `fast-memoize` (variadic strategy + `JSON.stringify` on primitive args), then re-wrap with curried F# (`fun a b -> mem a b`) so existing `f a b` / partial-apply call sites keep working.
+
 ---
 
 **New module:** `audit-gallery-a11y.mjs` — parses `ComponentItem.pageTitle` from `Navigation.fs`, checks `Ui.A11yPanel` (`Font scaling` / `Role` facts) and display heading **before** interaction handlers run (`runGalleryA11yBaselineAssertions`).

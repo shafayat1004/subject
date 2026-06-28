@@ -134,16 +134,16 @@ module Nav_Top_Item =
     [<RequireQualifiedAccess>]
     module private Styles =
         let item =
-            ViewStyles.Memoize (fun (itemHeight: int) (border: Color) (background: Color) (bottomBorder: Color) ->
+            ViewStyles.Memoize (fun (itemHeight: int) (borderCss: string) (backgroundCss: string) (bottomBorderCss: string) ->
                 makeViewStyles {
                     Position.Relative
                     paddingHorizontal 10
                     JustifyContent.SpaceAround
                     AlignItems.Center
                     height (itemHeight - 2)
-                    borderColor     border
-                    backgroundColor background
-                    borderBottom    3 bottomBorder
+                    borderColor     (Color.InternalString borderCss)
+                    backgroundColor (Color.InternalString backgroundCss)
+                    borderBottom    3 (Color.InternalString bottomBorderCss)
                 }
             )
 
@@ -193,30 +193,30 @@ module Nav_Top_Item =
             }
 
         let labelSentinel =
-            TextStyles.Memoize (fun (labelFontSize: int) (sentinelColor: Color) ->
+            TextStyles.Memoize (fun (labelFontSize: int) (sentinelColorCss: string) ->
                 makeTextStyles {
                     fontSize labelFontSize
-                    color sentinelColor
+                    color (Color.InternalString sentinelColorCss)
                     FontWeight.W900
                 }
             )
 
         let labelVisible =
-            TextStyles.Memoize (fun (labelFontSize: int) (labelColor: Color) (weight: RulesRestricted.FontWeight) ->
+            TextStyles.Memoize (fun (labelFontSize: int) (labelColorCss: string) (weight: RulesRestricted.FontWeight) ->
                 makeTextStyles {
                     Position.Absolute
                     trbl 0 0 0 0
                     fontSize labelFontSize
-                    color labelColor
+                    color (Color.InternalString labelColorCss)
                     RulesRestricted.fontWeight weight
                 }
             )
 
         let iconText =
-            TextStyles.Memoize (fun (iconFontSize: int) (iconColor: Color) ->
+            TextStyles.Memoize (fun (iconFontSize: int) (iconColorCss: string) ->
                 makeTextStyles {
                     fontSize iconFontSize
-                    color iconColor
+                    color (Color.InternalString iconColorCss)
                 }
             )
 
@@ -241,8 +241,8 @@ module Nav_Top_Item =
             styles = [| if withIconBadgeOffset then Styles.labelContentIconBadge else Styles.labelContent |],
             children =
                 elements {
-                    LC.UiText(value = label, styles = [| Styles.labelSentinel sizes.LabelFontSize colors.Background |])
-                    LC.UiText(value = label, styles = [| Styles.labelVisible sizes.LabelFontSize colors.Label colors.LabelWeight |])
+                    LC.UiText(value = label, styles = [| Styles.labelSentinel sizes.LabelFontSize colors.Background.ToCssString |])
+                    LC.UiText(value = label, styles = [| Styles.labelVisible sizes.LabelFontSize colors.Label.ToCssString colors.LabelWeight |])
                 }
         )
 
@@ -251,7 +251,7 @@ module Nav_Top_Item =
             styles = [| Styles.iconAdjust theme.IconVerticalAdjust |],
             children =
                 elements {
-                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon |])
+                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon.ToCssString |])
                 }
         )
 
@@ -385,7 +385,7 @@ module Nav_Top_Item =
                                 RX.View(
                                     styles =
                                         [|
-                                            Styles.item sizes.Height colors.Border colors.Background (bottomBorderColor state colors)
+                                            Styles.item sizes.Height colors.Border.ToCssString colors.Background.ToCssString (bottomBorderColor state colors).ToCssString
                                             yield! legacyViewStyles
                                             yield! (styles |> Option.defaultValue [||])
                                         |],

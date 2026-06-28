@@ -190,7 +190,7 @@ module Nav_Bottom_Item =
             }
 
         let item =
-            ViewStyles.Memoize (fun (itemHeight: int) (border: Color) (background: Color) ->
+            ViewStyles.Memoize (fun (itemHeight: int) (borderCss: string) (backgroundCss: string) ->
                 makeViewStyles {
                     Position.Relative
                     AlignItems.Center
@@ -198,17 +198,17 @@ module Nav_Bottom_Item =
                     marginHorizontal 5
                     borderRadius 4
                     height (itemHeight - 2)
-                    borderColor     border
-                    backgroundColor background
+                    borderColor     (Color.InternalString borderCss)
+                    backgroundColor (Color.InternalString backgroundCss)
                 }
             )
 
         let labelText =
-            TextStyles.Memoize (fun (labelFontSize: int) (labelColor: Color) (weight: RulesRestricted.FontWeight) ->
+            TextStyles.Memoize (fun (labelFontSize: int) (labelColorCss: string) (weight: RulesRestricted.FontWeight) ->
                 makeTextStyles {
                     fontSize                   labelFontSize
                     RulesRestricted.fontWeight weight
-                    color                      labelColor
+                    color                      (Color.InternalString labelColorCss)
                 }
             )
 
@@ -220,10 +220,10 @@ module Nav_Bottom_Item =
             )
 
         let iconText =
-            TextStyles.Memoize (fun (iconFontSize: int) (iconColor: Color) ->
+            TextStyles.Memoize (fun (iconFontSize: int) (iconColorCss: string) ->
                 makeTextStyles {
                     fontSize iconFontSize
-                    color    iconColor
+                    color    (Color.InternalString iconColorCss)
                 }
             )
 
@@ -248,7 +248,7 @@ module Nav_Bottom_Item =
             styles = [| if withIconBadgeOffset then Styles.labelContentWithIconBadge else Styles.labelContent |],
             children =
                 elements {
-                    LC.UiText(value = label, styles = [| Styles.labelText sizes.LabelFontSize colors.Label colors.LabelWeight |])
+                    LC.UiText(value = label, styles = [| Styles.labelText sizes.LabelFontSize colors.Label.ToCssString colors.LabelWeight |])
                 }
         )
 
@@ -257,7 +257,7 @@ module Nav_Bottom_Item =
             styles = [| Styles.iconAdjust theme.IconVerticalAdjust |],
             children =
                 elements {
-                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon |])
+                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon.ToCssString |])
                 }
         )
 
@@ -393,7 +393,7 @@ module Nav_Bottom_Item =
                                 RX.View(
                                     styles =
                                         [|
-                                            Styles.item sizes.Height colors.Border colors.Background
+                                            Styles.item sizes.Height colors.Border.ToCssString colors.Background.ToCssString
                                             yield! legacyViewStyles
                                             yield! (styles |> Option.defaultValue [||])
                                         |],

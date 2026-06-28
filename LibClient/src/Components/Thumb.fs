@@ -40,8 +40,8 @@ module LC =
                 width size
             })
 
-            let selected = ViewStyles.Memoize (fun color -> makeViewStyles {
-                borderColor color
+            let selected = ViewStyles.Memoize (fun (borderCss: string) -> makeViewStyles {
+                borderColor (Color.InternalString borderCss)
             })
 
         type Theme = {
@@ -53,7 +53,7 @@ module LC =
                 Theme.thumb this.Size
 
             member this.Selected =
-                Theme.selected this.SelectedBorderColor
+                Theme.selected this.SelectedBorderColor.ToCssString
 
 open LC.Thumb
 
@@ -70,10 +70,14 @@ module private Styles =
             trbl 0 0 0 0
         }
 
-    let corners = ViewStyles.Memoize (fun corners -> makeViewStyles {
-        if corners = Corners.Rounded then
-            borderRadius 12
-    })
+    let cornersSharp = makeViewStyles { Noop }
+
+    let cornersRounded = makeViewStyles { borderRadius 12 }
+
+    let cornersFor (corners: Corners) =
+        match corners with
+        | Corners.Sharp   -> cornersSharp
+        | Corners.Rounded -> cornersRounded
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -135,7 +139,7 @@ type LibClient.Components.Constructors.LC with
                                 if isSelected then
                                     theTheme.Selected
 
-                                Styles.corners corners
+                                Styles.cornersFor corners
                                 yield! (styles |> Option.defaultValue [||])
                             |],
                         ?onLayout = onLayoutOption,

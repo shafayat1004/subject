@@ -106,16 +106,26 @@ module private Styles =
                 offsetX
                 offsetY
 
-    let outerContainerWithOnPress = ViewStyles.Memoize (
-        fun (isHovered, isActive) -> makeViewStyles {
-            if isHovered then
-                backgroundColor MaterialDesignColors.grey.B050
+    let outerContainerWithOnPressIdle = makeViewStyles { Noop }
 
-            if isActive then
-                opacity 0.4
-                backgroundColor MaterialDesignColors.grey.B100
+    let outerContainerWithOnPressHovered =
+        makeViewStyles {
+            backgroundColor MaterialDesignColors.grey.B050
         }
-    )
+
+    let outerContainerWithOnPressActive =
+        makeViewStyles {
+            opacity 0.4
+            backgroundColor MaterialDesignColors.grey.B100
+        }
+
+    let outerContainerWithOnPressFor (isHovered: bool) (isActive: bool) =
+        if isActive then
+            outerContainerWithOnPressActive
+        elif isHovered then
+            outerContainerWithOnPressHovered
+        else
+            outerContainerWithOnPressIdle
 
 type LC with
     [<Component>]
@@ -165,7 +175,7 @@ type LC with
                         Styles.outerContainerDefaults
                         yield! outerStyles
                         Styles.outerContainerFor theTheme
-                        Styles.outerContainerWithOnPress (pointerState.IsHovered, pointerState.IsDepressed)
+                        Styles.outerContainerWithOnPressFor pointerState.IsHovered pointerState.IsDepressed
                     |],
                     children = [|
                         RX.View (

@@ -62,15 +62,15 @@ module private Styles =
 
     let view =
         ViewStyles.Memoize(
-            fun (state: ButtonLowLevelState) ->
+            fun (stateName: string) ->
                 makeViewStyles {
                     Position.Relative
                     Overflow.VisibleForTapCapture
                     minHeight 44
                     JustifyContent.Center
 
-                    match state with
-                    | Actionable _ ->
+                    match stateName with
+                    | "Actionable" ->
                         Cursor.Pointer
                     | _ ->
                         Noop
@@ -78,16 +78,16 @@ module private Styles =
         )
 
     let textTheme =
-        TextStyles.Memoize (fun (textColor: Color) (labelFontSize: int) (labelOpacity: float) ->
+        TextStyles.Memoize (fun (textColorCss: string) (labelFontSize: int) (labelOpacity: float) ->
             makeTextStyles {
-                color textColor
+                color (Color.InternalString textColorCss)
                 fontSize labelFontSize
                 opacity labelOpacity
             })
 
     let textThemeFor (theme: Theme) (level: Level) (state: ButtonLowLevelState) =
         let stateTheme = theme.StateTheme level state
-        textTheme stateTheme.TextColor stateTheme.FontSize stateTheme.Opacity
+        textTheme stateTheme.TextColor.ToCssString stateTheme.FontSize stateTheme.Opacity
 
     let spinnerBlock =
         makeViewStyles {
@@ -122,7 +122,7 @@ type LibClient.Components.Constructors.LC with
         let theA11yState = defaultArg accessibilityState AccessibilityStateRecord.empty
 
         RX.View(
-            styles = [| Styles.view lowLevelState |],
+            styles = [| Styles.view lowLevelState.GetName |],
             children =
                 elements {
                     LC.Text(

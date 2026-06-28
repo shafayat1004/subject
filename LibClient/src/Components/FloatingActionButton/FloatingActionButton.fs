@@ -66,7 +66,7 @@ module private IconA11y =
 module private Styles =
     let viewTheme =
         ViewStyles.Memoize(
-            fun (fabSize: int) (fillColor: Color) (hasLabel: bool) (stateName: string) (isDepressed: bool) (isHovered: bool) ->
+            fun (fabSize: int) (fillColorCss: string) (hasLabel: bool) (stateName: string) (isDepressed: bool) (isHovered: bool) ->
                 makeViewStyles {
                     Overflow.VisibleForTapCapture
                     FlexDirection.Row
@@ -79,7 +79,7 @@ module private Styles =
                     height          fabSize
                     minWidth        fabSize
                     borderRadius    (fabSize / 2)
-                    backgroundColor fillColor
+                    backgroundColor (Color.InternalString fillColorCss)
 
                     if hasLabel then
                         paddingHorizontal (fabSize / 4)
@@ -99,36 +99,36 @@ module private Styles =
 
     let viewThemeFor (theme: Theme) (state: ButtonLowLevelState) (hasLabel: bool) (isDepressed: bool) (isHovered: bool) =
         let stateTheme = theme.StateTheme state
-        viewTheme theme.Size stateTheme.BackgroundColor hasLabel state.GetName isDepressed isHovered
+        viewTheme theme.Size stateTheme.BackgroundColor.ToCssString hasLabel state.GetName isDepressed isHovered
 
     let iconTheme =
         TextStyles.Memoize(
-            fun (iconColor: Color) (iconFontSize: int) ->
+            fun (iconColorCss: string) (iconFontSize: int) ->
                 makeTextStyles {
-                    color    iconColor
+                    color    (Color.InternalString iconColorCss)
                     fontSize iconFontSize
                 }
         )
 
     let iconThemeFor (theme: Theme) (state: ButtonLowLevelState) =
         let stateTheme = theme.StateTheme state
-        iconTheme stateTheme.IconColor stateTheme.IconSize
+        iconTheme stateTheme.IconColor.ToCssString stateTheme.IconSize
 
     let labelBlock =
         makeViewStyles { marginLeft 8 }
 
     let labelTextTheme =
         TextStyles.Memoize(
-            fun (iconColor: Color) ->
+            fun (labelColorCss: string) ->
                 makeTextStyles {
                     fontSize 16
-                    color    iconColor
+                    color    (Color.InternalString labelColorCss)
                 }
         )
 
     let labelTextThemeFor (theme: Theme) (state: ButtonLowLevelState) =
         let stateTheme = theme.StateTheme state
-        labelTextTheme stateTheme.IconColor
+        labelTextTheme stateTheme.IconColor.ToCssString
 
     let spinnerBlock =
         makeViewStyles {

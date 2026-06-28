@@ -90,13 +90,48 @@ let private stateAppearance (levelApp: StateAppearance) (state: ButtonLowLevelSt
     | Disabled     -> levelApp.Disabled
     | InProgress   -> levelApp.InProgress
 
-let private isTertiary (level: Level) =
-    level = Tertiary
+
+let private levelTag (level: Level) =
+    match level with
+    | Primary    -> 0
+    | Secondary  -> 1
+    | PrimaryB   -> 2
+    | SecondaryB -> 3
+    | Tertiary   -> 4
+    | Cautionary -> 5
+
+let private fontWeightTag (weight: ReactXP.Styles.RulesRestricted.FontWeight) =
+    match weight with
+    | ReactXP.Styles.RulesRestricted.FontWeight.Normal -> 0
+    | ReactXP.Styles.RulesRestricted.FontWeight.Bold   -> 1
+    | ReactXP.Styles.RulesRestricted.FontWeight.W100   -> 2
+    | ReactXP.Styles.RulesRestricted.FontWeight.W200   -> 3
+    | ReactXP.Styles.RulesRestricted.FontWeight.W300   -> 4
+    | ReactXP.Styles.RulesRestricted.FontWeight.W400   -> 5
+    | ReactXP.Styles.RulesRestricted.FontWeight.W500   -> 6
+    | ReactXP.Styles.RulesRestricted.FontWeight.W600   -> 7
+    | ReactXP.Styles.RulesRestricted.FontWeight.W700   -> 8
+    | ReactXP.Styles.RulesRestricted.FontWeight.W800   -> 9
+    | ReactXP.Styles.RulesRestricted.FontWeight.W900   -> 10
+
+let private fontWeightForTag (tag: int) =
+    match tag with
+    | 1  -> ReactXP.Styles.RulesRestricted.FontWeight.Bold
+    | 2  -> ReactXP.Styles.RulesRestricted.FontWeight.W100
+    | 3  -> ReactXP.Styles.RulesRestricted.FontWeight.W200
+    | 4  -> ReactXP.Styles.RulesRestricted.FontWeight.W300
+    | 5  -> ReactXP.Styles.RulesRestricted.FontWeight.W400
+    | 6  -> ReactXP.Styles.RulesRestricted.FontWeight.W500
+    | 7  -> ReactXP.Styles.RulesRestricted.FontWeight.W600
+    | 8  -> ReactXP.Styles.RulesRestricted.FontWeight.W700
+    | 9  -> ReactXP.Styles.RulesRestricted.FontWeight.W800
+    | 10 -> ReactXP.Styles.RulesRestricted.FontWeight.W900
+    | _  -> ReactXP.Styles.RulesRestricted.FontWeight.Normal
 
 [<RequireQualifiedAccess>]
 module private Styles =
     let viewBase =
-        ViewStyles.Memoize (fun (level: Level) (stateName: string) (btnBorderColor: Color) (btnBackgroundColor: Color) (itemHeight: int) (isDesktop: bool) ->
+        ViewStyles.Memoize (fun (levelTag: int) (stateName: string) (borderCss: string) (backgroundCss: string) (itemHeight: int) (isDesktop: bool) ->
             makeViewStyles {
                 Position.Relative
                 FlexDirection.Column
@@ -105,10 +140,10 @@ module private Styles =
                 borderWidth  1
                 borderRadius 4
                 margin       4
-                borderColor     btnBorderColor
-                backgroundColor btnBackgroundColor
+                borderColor     (Color.InternalString borderCss)
+                backgroundColor (Color.InternalString backgroundCss)
 
-                if not (isTertiary level) then
+                if levelTag <> 4 then
                     paddingHV 12 4
                     shadow    (Color.BlackAlpha 0.2) 5 (0, 2)
 
@@ -125,8 +160,8 @@ module private Styles =
     let viewPointerNoop = makeViewStyles { Noop }
 
     let viewPointer =
-        ViewStyles.Memoize (fun (level: Level) (isDepressed: bool) (isHovered: bool) ->
-            if isTertiary level then
+        ViewStyles.Memoize (fun (levelTag: int) (isDepressed: bool) (isHovered: bool) ->
+            if levelTag = 4 then
                 viewPointerNoop
             elif isDepressed then
                 makeViewStyles {
@@ -150,20 +185,26 @@ module private Styles =
         }
 
     let labelText =
-        TextStyles.Memoize (fun (screenSize: ScreenSize) (textColor: Color) (fontWeight: ReactXP.Styles.RulesRestricted.FontWeight) (desktopFontSize: int) (handheldFontSize: int) ->
+        TextStyles.Memoize (fun (isDesktop: bool) (textColorCss: string) (fontWeightTag: int) (desktopFontSize: int) (handheldFontSize: int) ->
             makeTextStyles {
                 TextAlign.Center
                 flex 1
-                color      textColor
-                RulesRestricted.fontWeight fontWeight
+                color      (Color.InternalString textColorCss)
+                RulesRestricted.fontWeight (fontWeightForTag fontWeightTag)
 
-                match screenSize with
-                | ScreenSize.Desktop  -> fontSize desktopFontSize
-                | ScreenSize.Handheld -> fontSize handheldFontSize
+                if isDesktop then
+                    fontSize desktopFontSize
+                else
+                    fontSize handheldFontSize
             })
 
     let labelTextFor (screenSize: ScreenSize) (theme: Theme) (appearance: Appearance) =
-        labelText screenSize appearance.TextColor appearance.FontWeight theme.DesktopLabelFontSize theme.HandheldLabelFontSize
+        labelText
+            (screenSize = ScreenSize.Desktop)
+            appearance.TextColor.ToCssString
+            (fontWeightTag appearance.FontWeight)
+            theme.DesktopLabelFontSize
+            theme.HandheldLabelFontSize
 
     let leftIcon =
         makeViewStyles { marginRight 5 }
@@ -172,14 +213,14 @@ module private Styles =
         makeViewStyles { marginLeft 5 }
 
     let icon =
-        TextStyles.Memoize (fun (iconSize: int) (textColor: Color) ->
+        TextStyles.Memoize (fun (iconSize: int) (textColorCss: string) ->
             makeTextStyles {
-                color    textColor
+                color    (Color.InternalString textColorCss)
                 fontSize iconSize
             })
 
     let iconFor (theme: Theme) (appearance: Appearance) =
-        icon theme.IconSize appearance.TextColor
+        icon theme.IconSize appearance.TextColor.ToCssString
 
     let badge =
         makeViewStyles { marginLeft 5 }
@@ -257,13 +298,13 @@ type LibClient.Components.Constructors.LC with
                                 styles =
                                     [|
                                         Styles.viewBase
-                                            level
+                                            (levelTag level)
                                             lowLevelState.GetName
-                                            appearance.BorderColor
-                                            appearance.BackgroundColor
+                                            appearance.BorderColor.ToCssString
+                                            appearance.BackgroundColor.ToCssString
                                             itemHeight
                                             isDesktop
-                                        Styles.viewPointer level pointerState.IsDepressed pointerState.IsHovered
+                                        Styles.viewPointer (levelTag level) pointerState.IsDepressed pointerState.IsHovered
                                         yield! legacyViewStyles
                                         yield! (styles |> Option.defaultValue [||])
                                     |],

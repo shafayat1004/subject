@@ -52,7 +52,7 @@ module private Styles =
         }
 
     let viewTheme =
-        ViewStyles.Memoize (fun (btnIconSize: int) (lowLevelState: ButtonLowLevelState) (isDepressed: bool) ->
+        ViewStyles.Memoize (fun (btnIconSize: int) (stateName: string) (isDepressed: bool) ->
             makeViewStyles {
                 width btnIconSize
                 height btnIconSize
@@ -62,12 +62,12 @@ module private Styles =
                 AlignItems.Center
                 Overflow.VisibleForTapCapture
 
-                match lowLevelState with
-                | ButtonLowLevelState.Disabled ->
+                match stateName with
+                | "Disabled" ->
                     opacity 0.5
-                | ButtonLowLevelState.Actionable _ ->
+                | "Actionable" ->
                     Cursor.Pointer
-                | ButtonLowLevelState.InProgress ->
+                | _ ->
                     Noop
 
                 if isDepressed then
@@ -76,18 +76,18 @@ module private Styles =
 
     let viewThemeFor (theme: Theme) (lowLevelState: ButtonLowLevelState) (isDepressed: bool) =
         let stateTheme = theme.StateTheme lowLevelState
-        viewTheme stateTheme.IconSize lowLevelState isDepressed
+        viewTheme stateTheme.IconSize lowLevelState.GetName isDepressed
 
     let iconTheme =
-        TextStyles.Memoize (fun (iconColor: Color) (btnIconSize: int) ->
+        TextStyles.Memoize (fun (iconColorCss: string) (btnIconSize: int) ->
             makeTextStyles {
-                color iconColor
+                color (Color.InternalString iconColorCss)
                 fontSize btnIconSize
             })
 
     let iconThemeFor (theme: Theme) (lowLevelState: ButtonLowLevelState) =
         let stateTheme = theme.StateTheme lowLevelState
-        iconTheme stateTheme.IconColor stateTheme.IconSize
+        iconTheme stateTheme.IconColor.ToCssString stateTheme.IconSize
 
     let tapCaptureTheme =
         ViewStyles.Memoize (fun (marginTop: int) (marginRight: int) (marginBottom: int) (marginLeft: int) ->
