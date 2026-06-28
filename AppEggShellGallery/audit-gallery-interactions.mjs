@@ -5,7 +5,7 @@
  * ReactXP web renders most labels/buttons as [data-text-as-pseudo-element], not DOM text nodes.
  */
 
-import { archiveVisualsForReview } from './audit-gallery-visual-archive.mjs';
+import { createVisualArchiveSession } from './audit-gallery-visual-archive.mjs';
 import { runComponentAssertions, checkUnhandledVisuals } from './audit-gallery-assertions.mjs';
 import { SKIP_CLICK_LABELS } from './audit-gallery-components.mjs';
 import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
@@ -16,6 +16,19 @@ const FIXTURE_SAMPLE = join(dirname(fileURLToPath(import.meta.url)), 'audit-brow
 
 const PAUSE = 350;
 
+/** Wait then capture two mid-animation frames (Animatable* recipes). */
+async function captureAnimationMidFrames(ctx, sampleIndex) {
+  if (!ctx.visualArchive) {
+    await ctx.wait(1200);
+    return;
+  }
+  await ctx.wait(350);
+  await ctx.visualArchive.captureAnimationMid(sampleIndex, 1);
+  await ctx.wait(400);
+  await ctx.visualArchive.captureAnimationMid(sampleIndex, 2);
+  await ctx.wait(450);
+}
+
 export const SAMPLE_CELL_SELECTOR =
   '.aesg-ContentComponent-table td.vertical-align-middle, .aesg-ContentComponent-table td.vertical-align-top';
 
@@ -25,10 +38,11 @@ export const SAMPLE_CELL_SELECTOR =
 /**
  * @param {Page} page
  * @param {(msg: string) => void} log
- * @param {{ platform?: 'web' | 'android' }} [options]
+ * @param {{ platform?: 'web' | 'android', visualArchive?: ReturnType<typeof createVisualArchiveSession> | null }} [options]
  */
 export function createInteractionContext(page, log, options = {}) {
   const platform = options.platform ?? PLATFORM.WEB;
+  const visualArchive = options.visualArchive ?? null;
   const isAndroid = platform === PLATFORM.ANDROID;
   const cellSelector = sampleCellSelectorFor(platform);
   const wait = (ms = PAUSE) => page.waitForTimeout(ms);
@@ -342,6 +356,7 @@ export function createInteractionContext(page, log, options = {}) {
   return {
     page,
     platform,
+    visualArchive,
     log,
     wait,
     scrollSampleTable,
@@ -645,35 +660,40 @@ export const COMPONENT_HANDLERS = {
   },
 
   AnimatableImage: async (ctx) => {
-    await ctx.forEachVisualCell(async (cell) => {
+    await ctx.forEachVisualCell(async (cell, i) => {
       await ctx.clickButton(cell, 'Animate');
-      await ctx.wait(1200);
+      await captureAnimationMidFrames(ctx, i);
       await ctx.clickButton(cell, 'Animate');
+      await ctx.wait(800);
     });
   },
 
   AnimatableText: async (ctx) => {
-    await ctx.forEachVisualCell(async (cell) => {
+    await ctx.forEachVisualCell(async (cell, i) => {
       await ctx.clickButton(cell, 'Animate');
-      await ctx.wait(1200);
+      await captureAnimationMidFrames(ctx, i);
     });
   },
 
   AnimatableTextInput: async (ctx) => {
-    await ctx.forEachVisualCell(async (cell) => {
+    await ctx.forEachVisualCell(async (cell, i) => {
       await ctx.fillFirstInput(cell, 'Bob');
       await ctx.clickButton(cell, 'Animate');
-      await ctx.wait(1200);
+      await captureAnimationMidFrames(ctx, i);
     });
   },
 
   AnimatableView: async (ctx) => {
-    await ctx.forEachVisualCell(async (cell) => {
+    await ctx.forEachVisualCell(async (cell, i) => {
       const animateBtns = cell.getByRole('button', { name: 'Animate' });
       const n = await animateBtns.count();
-      for (let i = 0; i < n; i++) {
-        await animateBtns.nth(i).click().catch(() => {});
-        await ctx.wait(800);
+      for (let j = 0; j < n; j++) {
+        await animateBtns.nth(j).click().catch(() => {});
+        if (j === 0) {
+          await captureAnimationMidFrames(ctx, i);
+        } else {
+          await ctx.wait(800);
+        }
       }
     });
   },
@@ -913,8 +933,24 @@ export async function interactWithComponent(page, componentName, logFn, options 
   };
 
   const platform = options.platform ?? PLATFORM.WEB;
-  const ctx = createInteractionContext(page, log, { platform });
+  let visualArchiveSession = null;
+  if (options.passDir && options.visualArchive !== false) {
+    visualArchiveSession = createVisualArchiveSession(page, componentName, {
+      passDir: options.passDir,
+      passIndex: options.passIndex ?? 1,
+      baseUrl: options.baseUrl ?? '',
+      url: options.url ?? '',
+      platform,
+      log: (msg) => logFn(msg),
+    });
+  }
+
+  const ctx = createInteractionContext(page, log, { platform, visualArchive: visualArchiveSession });
   await ctx.scrollSampleTable();
+
+  if (visualArchiveSession) {
+    await visualArchiveSession.captureBefore();
+  }
 
   const handler = COMPONENT_HANDLERS[componentName] ?? COMPONENT_HANDLERS._default;
   await handler(ctx);
@@ -947,15 +983,8 @@ export async function interactWithComponent(page, componentName, logFn, options 
   });
 
   let visualArchive = null;
-  if (options.passDir && options.visualArchive !== false) {
-    visualArchive = await archiveVisualsForReview(page, componentName, {
-      passDir: options.passDir,
-      passIndex: options.passIndex ?? 1,
-      baseUrl: options.baseUrl ?? '',
-      url: options.url ?? '',
-      platform,
-      log: (msg) => logFn(msg),
-    });
+  if (visualArchiveSession) {
+    visualArchive = await visualArchiveSession.captureAfter();
   }
 
   return { actionCount, assertions, visualArchive };
