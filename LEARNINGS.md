@@ -11,6 +11,15 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 **Fable 5 cracker bug:** `dotnet fable <proj>.fsproj --configuration "Web Debug"` fails — the new MSBuild cracker runs `dotnet msbuild ... /p:Configuration=Web Debug` with the **space unquoted**, so `--getProperty:TargetFramework` throws (`MSBuildCrackerResolver`). Do **not** pass `--configuration "Web Debug"` to Fable. Compile the **src dir** with `--define DEBUG --define EGGSHELL_PLATFORM_IS_WEB --exclude FablePlugins` (what `eggshell` does — fsproj cracks with its default config, platform comes from defines). Pointing `dotnet fable LibClient/src --precompiledLib <LibStandard/.build/...>` at a stale precompiled lib just reports "outdated files ... 0 source files parsed" and compiles nothing — precompile `LibStandard/src` fresh to a scratch `-o` instead.
 
+**Pojo conversion gotchas (batch pass 2026-06-29):**
+- Wrap the whole ctor in `( … ) |> box` — do not pipe `|> box` inside a named-arg list (comma/`|>` parse bugs).
+- Mixed required + optional ctor args: pass **required positionally first**, then `?optional = …` trailing.
+- F# keywords in JS keys: escape members/args (`` ``checked`` ``, `` ``repeat`` `` for Maps IconSequence, `` ``__html`` `` for render-html).
+- Identifiers ending in `Html` / containing `html` can collide with Fable.React `html` CE — use neutral names (`markup`) or a separate `let` binding.
+- Curried lambdas for JS callbacks in Pojos: use `fun (a) (b) (c) ->` not `fun (a, b, c) ->` (tuple form is not a multi-arg JS function).
+- Precompute `?optional =` values in `let` bindings before the ctor call — inline `?x = expr |> Option.map …` inside the arg list can trigger FS691 / parse errors.
+- `eggshell build-lib` only runs render/typext codegen — **not** Fable; force-check with `dotnet fable <src> -o /tmp/… --noCache --define DEBUG --define EGGSHELL_PLATFORM_IS_WEB`.
+
 ---
 
 ## 2026-06-29 — Do not run bare `dotnet fable` from LibClient/ (wrong output dir)

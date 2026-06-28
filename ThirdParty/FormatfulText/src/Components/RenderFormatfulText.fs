@@ -31,7 +31,7 @@ type private FormatfulTextDivStyleJs(
     member val wordWrap = wordWrap
 
 [<Fable.Core.JS.Pojo>]
-type private DangerouslySetInnerHTMLJs(``__html``: string) =
+type private SetInnerContentJs(``__html``: string) =
     member val ``__html`` = ``__html``
 
 [<Fable.Core.JS.Pojo>]
@@ -70,6 +70,7 @@ type FormatfulText with
             | FormatfulTextSource.MaybeMarkdown (_, rendered) -> rendered
 
         #if EGGSHELL_PLATFORM_IS_WEB
+        let innerContentObj = SetInnerContentJs markup |> box
         let props =
             (FormatfulTextDivPropsJs(
                 (FormatfulTextDivStyleJs(
@@ -82,7 +83,7 @@ type FormatfulText with
                     "break-word"
                 ) |> box),
                 "style-hack-if-it-contains-a-pre-tag",
-                (DangerouslySetInnerHTMLJs(markup) |> box)
+                innerContentObj
             )) |> box
 
         LC.Text (?styles = styles, children = [|
