@@ -24,13 +24,11 @@ open LC.InfoMessage
 module private Styles =
     let view = makeViewStyles { marginVertical 16; paddingHorizontal 20 }
 
-    let text (theme: Theme) (level: Level) =
-        let levelColor =
-            match level with
-            | Info      -> theme.InfoColor
-            | Attention -> theme.AttentionColor
-            | Caution   -> theme.CautionColor
-        makeTextStyles { TextAlign.Center; color levelColor }
+    // Key on CSS string (primitive), not Color — fast-memoize uses reference equality on objects.
+    let textForColorCss =
+        TextStyles.Memoize (fun (colorCss: string) ->
+            makeTextStyles { TextAlign.Center; color (Color.InternalString colorCss) }
+        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -38,6 +36,11 @@ type LibClient.Components.Constructors.LC with
         key |> ignore
         let theLevel = defaultArg level Level.Info
         let theTheme = Themes.GetMaybeUpdatedWith theme
+        let levelColor =
+            match theLevel with
+            | Info      -> theTheme.InfoColor
+            | Attention -> theTheme.AttentionColor
+            | Caution   -> theTheme.CautionColor
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
@@ -48,6 +51,6 @@ type LibClient.Components.Constructors.LC with
         RX.View(
             styles = [| Styles.view; yield! legacyViewStyles |],
             children = [|
-                LC.Text(message, styles = [| Styles.text theTheme theLevel; yield! defaultArg styles [||] |])
+                LC.Text(message, styles = [| Styles.textForColorCss levelColor.ToCssString; yield! defaultArg styles [||] |])
             |]
         )
