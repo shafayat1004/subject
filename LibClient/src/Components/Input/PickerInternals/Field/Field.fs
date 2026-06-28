@@ -45,25 +45,27 @@ module private Styles =
             AlignSelf.Stretch
         }
 
-    let border (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
-        makeViewStyles {
-            borderWidth 1
-            borderRadius 4
-            paddingHorizontal 10
-            paddingVertical theTheme.TheVerticalPadding
-            backgroundColor Color.White
-            AlignItems.Center
-            FlexDirection.RowReverse
-            JustifyContent.SpaceBetween
-            borderColor (
-                if isInvalid then
-                    theTheme.BorderLabelInvalidColor
-                elif isFocused then
-                    theTheme.BorderLabelFocusColor
-                else
-                    theTheme.BorderLabelColor
-            )
-        }
+    let private outlineColorFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
+        if isInvalid then theTheme.BorderLabelInvalidColor
+        elif isFocused then theTheme.BorderLabelFocusColor
+        else theTheme.BorderLabelColor
+
+    let border =
+        ViewStyles.Memoize (fun (verticalPadding: int) (outline: Color) ->
+            makeViewStyles {
+                borderWidth 1
+                borderRadius 4
+                paddingHorizontal 10
+                paddingVertical verticalPadding
+                backgroundColor Color.White
+                AlignItems.Center
+                FlexDirection.RowReverse
+                JustifyContent.SpaceBetween
+                borderColor outline
+            })
+
+    let borderFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
+        border theTheme.TheVerticalPadding (outlineColorFor theTheme isInvalid isFocused)
 
     let pickerValues =
         makeViewStyles {
@@ -100,23 +102,26 @@ module private Styles =
             flex 1
         }
 
-    let selectedItem (theTheme: Theme) =
-        makeTextStyles {
-            flex 1
-            color theTheme.TextColor
-        }
+    let selectedItem =
+        TextStyles.Memoize (fun (textColor: Color) ->
+            makeTextStyles {
+                flex 1
+                color textColor
+            })
 
-    let icon (theTheme: Theme) =
-        makeTextStyles {
-            fontSize theTheme.IconSize
-            color theTheme.TextColor
-        }
+    let icon =
+        TextStyles.Memoize (fun (iconSize: int) (textColor: Color) ->
+            makeTextStyles {
+                fontSize iconSize
+                color textColor
+            })
 
-    let invalidReason (theTheme: Theme) =
-        makeTextStyles {
-            fontSize 12
-            color theTheme.InvalidReasonColor
-        }
+    let invalidReason =
+        TextStyles.Memoize (fun (reasonColor: Color) ->
+            makeTextStyles {
+                fontSize 12
+                color reasonColor
+            })
 
     let label =
         makeViewStyles {
@@ -127,19 +132,16 @@ module private Styles =
             backgroundColor Color.White
         }
 
-    let labelText (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
-        makeTextStyles {
-            fontSize 12
-            FontWeight.W700
-            color (
-                if isInvalid then
-                    theTheme.BorderLabelInvalidColor
-                elif isFocused then
-                    theTheme.BorderLabelFocusColor
-                else
-                    theTheme.BorderLabelColor
-            )
-        }
+    let labelText =
+        TextStyles.Memoize (fun (labelColor: Color) ->
+            makeTextStyles {
+                fontSize 12
+                FontWeight.W700
+                color labelColor
+            })
+
+    let labelTextFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
+        labelText (outlineColorFor theTheme isInvalid isFocused)
 
     let pressableOverlay =
         makeViewStyles {
@@ -196,7 +198,7 @@ module private RenderHelpers =
             | PickerItemView.Default toItemInfo ->
                 LC.UiText(
                     value = (toItemInfo item).Label,
-                    styles = [| Styles.selectedItem theTheme |]
+                    styles = [| Styles.selectedItem theTheme.TextColor |]
                 )
             | PickerItemView.Custom render ->
                 render item
@@ -218,7 +220,7 @@ module private RenderHelpers =
                 | PickerItemView.Default toItemInfo ->
                     LC.UiText(
                         value = (toItemInfo item).Label,
-                        styles = [| Styles.selectedItem theTheme |],
+                        styles = [| Styles.selectedItem theTheme.TextColor |],
                         numberOfLines = 1,
                         ellipsizeMode = EllipsizeMode.Tail
                     )
@@ -251,7 +253,7 @@ module private RenderHelpers =
                                         RX.View(
                                             children =
                                                 [|
-                                                    LC.Icon(icon = Icon.X, styles = [| Styles.icon theTheme |])
+                                                    LC.Icon(icon = Icon.X, styles = [| Styles.icon theTheme.IconSize theTheme.TextColor |])
                                                     LC.Pressable(
                                                         onPress = onUnselect item,
                                                         label = "Remove",
@@ -356,7 +358,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             children =
                 [|
                     RX.View(
-                        styles = [| Styles.border theTheme validity.IsInvalid isFocused |],
+                        styles = [| Styles.borderFor theTheme validity.IsInvalid isFocused |],
                         children =
                             [|
                                 RX.View(
@@ -370,7 +372,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                             RX.View(
                                                                 children =
                                                                     [|
-                                                                        LC.Icon(icon = Icon.X, styles = [| Styles.icon theTheme |])
+                                                                        LC.Icon(icon = Icon.X, styles = [| Styles.icon theTheme.IconSize theTheme.TextColor |])
                                                                         LC.Pressable(
                                                                             onPress = onClear,
                                                                             label = "Clear selection",
@@ -389,7 +391,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                             RX.View(
                                                 children =
                                                     [|
-                                                        LC.Icon(icon = Icon.ChevronDown, styles = [| Styles.icon theTheme |])
+                                                        LC.Icon(icon = Icon.ChevronDown, styles = [| Styles.icon theTheme.IconSize theTheme.TextColor |])
                                                         LC.Pressable(
                                                             onPress = Actions.showItemSelector model,
                                                             label = openLabel,
@@ -489,7 +491,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                     | Some reason ->
                         LC.UiText(
                             value = reason,
-                            styles = [| Styles.invalidReason theTheme |]
+                            styles = [| Styles.invalidReason theTheme.InvalidReasonColor |]
                         )
                     | None -> noElement
 
@@ -501,7 +503,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                 [|
                                     LC.UiText(
                                         value = labelText,
-                                        styles = [| Styles.labelText theTheme validity.IsInvalid isFocused |]
+                                        styles = [| Styles.labelTextFor theTheme validity.IsInvalid isFocused |]
                                     )
                                 |]
                         )

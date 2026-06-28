@@ -881,7 +881,7 @@ export const COMPONENT_HANDLERS = {
   Sidebar: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
       for (const item of ['Inbox', 'Calendar', 'Notifications', 'Log Out']) {
-        await ctx.clickText(cell, item);
+        await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('sidebar-item', item), item);
       }
     });
   },

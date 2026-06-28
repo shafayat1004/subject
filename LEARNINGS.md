@@ -1034,3 +1034,27 @@ its `styles =` array (the `{position:"relative"}` leak). Hoist to a module-level
 **Remaining console noise is NOT style leaks:** React "unique key prop" warnings (ComponentContent /
 ComponentSample children arrays) and ReactXP legacy `childContextTypes`/`contextTypes` deprecations are
 pre-existing and gallery-wide, unrelated to this fix.
+
+### 2026-06-28 — Input hot-path memo + audit Sidebar crash
+
+**Style leaks (Input_* / Button / Forms):** `Input.Text`, `PickerInternals.Field`, `Button`, and
+`LabelledFormField` still used bare `makeViewStyles`/`makeTextStyles` inside render (or memo keys on
+whole `Theme`). Wrapped in `ViewStyles.Memoize`/`TextStyles.Memoize` keyed on Color/int/bool primitives;
+`LabelledFormField.view` keys on `ScreenSize` only (layout does not use label width).
+
+**CE name clashes (build breakers):** helper functions named `borderColor` shadow the `borderColor` CE op
+inside `makeViewStyles { borderColor ... }` → FS0041/FS0003. Rename helpers to `outlineColorFor`; rename
+memo params that match CE ops (`borderRadius` → `cornerRadius`, `backgroundColor` → `fillColor`,
+`outlineColor` → `outline`). `ViewStyles.Memoize` supports at most **6** args — fold screen size into
+`itemHeight` + `isDesktop` at the call site (Button `viewBase`).
+
+**Audit pass `2026-06-28T03-00-04-731Z`:** Section_Padded completed fine; pass died on **Sidebar** (~56s
+after slow `clickText` "Inbox") when the browser context closed during assertion screenshot. Not a hang on
+Section_Padded. 63/82 routes in checkpoint; 44 pages with style leaks (top: QueryGrid 3281, Input_Picker
+3196, generic `leak` 8737, `Styles_border`/`Styles_icon`/`Styles_labelText`).
+
+**Audit harness fixes:** Sidebar handler uses `clickTestIdOrLabel` + `sidebar-item-*` slugs; fatal browser
+death during `session.recover()` now checkpoints and breaks the pass instead of uncaught throw.
+
+**After LibClient changes:** restart `eggshell dev-web` before re-audit; resume with
+`--resume=audit-browser/interactive/2026-06-28T03-00-04-731Z` from Sidebar onward.

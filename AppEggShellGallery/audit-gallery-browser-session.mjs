@@ -135,7 +135,15 @@ export async function createBrowserSession(browser, options = {}) {
         /* already closed */
       }
       alive = false;
-      return attachFresh();
+      try {
+        return await attachFresh();
+      } catch (e) {
+        alive = false;
+        if (isBrowserBlockedError(e)) {
+          throw new Error(`browser recovery failed (browser closed): ${e.message ?? e}`);
+        }
+        throw e;
+      }
     },
 
     async close() {

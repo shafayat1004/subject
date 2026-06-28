@@ -95,50 +95,64 @@ let private isTertiary (level: Level) =
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let viewBase (screenSize: ScreenSize) (theme: Theme) (level: Level) (state: ButtonLowLevelState) (appearance: Appearance) =
-        makeViewStyles {
-            Position.Relative
-            FlexDirection.Column
-            JustifyContent.Center
-            AlignItems.Center
-            borderWidth  1
-            borderRadius 4
-            margin       4
-            borderColor     appearance.BorderColor
-            backgroundColor appearance.BackgroundColor
+    let viewBase =
+        ViewStyles.Memoize (fun (level: Level) (state: ButtonLowLevelState) (btnBorderColor: Color) (btnBackgroundColor: Color) (itemHeight: int) (isDesktop: bool) ->
+            makeViewStyles {
+                Position.Relative
+                FlexDirection.Column
+                JustifyContent.Center
+                AlignItems.Center
+                borderWidth  1
+                borderRadius 4
+                margin       4
+                borderColor     btnBorderColor
+                backgroundColor btnBackgroundColor
 
-            if not (isTertiary level) then
-                paddingHV 12 4
-                shadow    (Color.BlackAlpha 0.2) 5 (0, 2)
+                if not (isTertiary level) then
+                    paddingHV 12 4
+                    shadow    (Color.BlackAlpha 0.2) 5 (0, 2)
 
-            match state with
-            | Disabled -> opacity 0.5
-            | Actionable _ -> Cursor.Pointer
-            | _ -> Noop
+                match state with
+                | Disabled -> opacity 0.5
+                | Actionable _ -> Cursor.Pointer
+                | _ -> Noop
 
+                height itemHeight
+                if isDesktop then
+                    paddingBottom 5
+            })
+
+    let viewBaseFor (screenSize: ScreenSize) (theme: Theme) (level: Level) (state: ButtonLowLevelState) (appearance: Appearance) =
+        let itemHeight =
             match screenSize with
-            | ScreenSize.Desktop ->
-                height theme.DesktopHeight
-                paddingBottom 5
-            | ScreenSize.Handheld ->
-                height theme.HandheldHeight
-        }
+            | ScreenSize.Desktop  -> theme.DesktopHeight
+            | ScreenSize.Handheld -> theme.HandheldHeight
+        let isDesktop = screenSize = ScreenSize.Desktop
+        viewBase
+            level
+            state
+            appearance.BorderColor
+            appearance.BackgroundColor
+            itemHeight
+            isDesktop
 
-    let viewPointer (level: Level) (pointerState: LC.Pointer.State.PointerState) =
-        if isTertiary level then
-            makeViewStyles { Noop }
-        elif pointerState.IsDepressed then
-            makeViewStyles {
-                shadow (Color.BlackAlpha 0.2) 3 (0, 0)
-                top    1
-            }
-        elif pointerState.IsHovered then
-            makeViewStyles {
-                shadow (Color.BlackAlpha 0.2) 5 (0, 3)
-                top    -1
-            }
-        else
-            makeViewStyles { Noop }
+    let viewPointer =
+        ViewStyles.Memoize (fun (level: Level) (isDepressed: bool) (isHovered: bool) ->
+            if isTertiary level then
+                makeViewStyles { Noop }
+            elif isDepressed then
+                makeViewStyles {
+                    shadow (Color.BlackAlpha 0.2) 3 (0, 0)
+                    top    1
+                }
+            elif isHovered then
+                makeViewStyles {
+                    shadow (Color.BlackAlpha 0.2) 5 (0, 3)
+                    top    -1
+                }
+            else
+                makeViewStyles { Noop }
+            )
 
     let labelBlock =
         makeViewStyles {
@@ -147,17 +161,21 @@ module private Styles =
             JustifyContent.Center
         }
 
-    let labelText (screenSize: ScreenSize) (theme: Theme) (appearance: Appearance) =
-        makeTextStyles {
-            TextAlign.Center
-            flex 1
-            color      appearance.TextColor
-            RulesRestricted.fontWeight appearance.FontWeight
+    let labelText =
+        TextStyles.Memoize (fun (screenSize: ScreenSize) (textColor: Color) (fontWeight: ReactXP.Styles.RulesRestricted.FontWeight) (desktopFontSize: int) (handheldFontSize: int) ->
+            makeTextStyles {
+                TextAlign.Center
+                flex 1
+                color      textColor
+                RulesRestricted.fontWeight fontWeight
 
-            match screenSize with
-            | ScreenSize.Desktop  -> fontSize theme.DesktopLabelFontSize
-            | ScreenSize.Handheld -> fontSize theme.HandheldLabelFontSize
-        }
+                match screenSize with
+                | ScreenSize.Desktop  -> fontSize desktopFontSize
+                | ScreenSize.Handheld -> fontSize handheldFontSize
+            })
+
+    let labelTextFor (screenSize: ScreenSize) (theme: Theme) (appearance: Appearance) =
+        labelText screenSize appearance.TextColor appearance.FontWeight theme.DesktopLabelFontSize theme.HandheldLabelFontSize
 
     let leftIcon =
         makeViewStyles { marginRight 5 }
@@ -165,11 +183,15 @@ module private Styles =
     let rightIcon =
         makeViewStyles { marginLeft 5 }
 
-    let icon (theme: Theme) (appearance: Appearance) =
-        makeTextStyles {
-            color    appearance.TextColor
-            fontSize theme.IconSize
-        }
+    let icon =
+        TextStyles.Memoize (fun (iconSize: int) (textColor: Color) ->
+            makeTextStyles {
+                color    textColor
+                fontSize iconSize
+            })
+
+    let iconFor (theme: Theme) (appearance: Appearance) =
+        icon theme.IconSize appearance.TextColor
 
     let badge =
         makeViewStyles { marginLeft 5 }
@@ -226,8 +248,8 @@ type LibClient.Components.Constructors.LC with
                             RX.View(
                                 styles =
                                     [|
-                                        Styles.viewBase screenSize theTheme level lowLevelState appearance
-                                        Styles.viewPointer level pointerState
+                                        Styles.viewBaseFor screenSize theTheme level lowLevelState appearance
+                                        Styles.viewPointer level pointerState.IsDepressed pointerState.IsHovered
                                         yield! legacyViewStyles
                                         yield! (styles |> Option.defaultValue [||])
                                     |],
@@ -249,7 +271,7 @@ type LibClient.Components.Constructors.LC with
                                                                 elements {
                                                                     LC.Icon(
                                                                         icon = leftIcon,
-                                                                        styles = [| Styles.icon theTheme appearance |]
+                                                                        styles = [| Styles.iconFor theTheme appearance |]
                                                                     )
                                                                 }
                                                         )
@@ -260,7 +282,7 @@ type LibClient.Components.Constructors.LC with
                                                         value = label,
                                                         numberOfLines = 1,
                                                         ellipsizeMode = EllipsizeMode.Tail,
-                                                        styles = [| Styles.labelText screenSize theTheme appearance |]
+                                                        styles = [| Styles.labelTextFor screenSize theTheme appearance |]
                                                     )
 
                                                     match icon.RightOption with
@@ -271,7 +293,7 @@ type LibClient.Components.Constructors.LC with
                                                                 elements {
                                                                     LC.Icon(
                                                                         icon = rightIcon,
-                                                                        styles = [| Styles.icon theTheme appearance |]
+                                                                        styles = [| Styles.iconFor theTheme appearance |]
                                                                     )
                                                                 }
                                                         )

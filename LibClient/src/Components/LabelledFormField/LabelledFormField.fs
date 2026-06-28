@@ -22,7 +22,7 @@ open LC.LabelledFormField
 [<RequireQualifiedAccess>]
 module private Styles =
     let view =
-        ViewStyles.Memoize (fun (screenSize: ScreenSize) (_theTheme: Theme) ->
+        ViewStyles.Memoize (fun (screenSize: ScreenSize) ->
             makeViewStyles {
                 Overflow.Visible
 
@@ -38,13 +38,13 @@ module private Styles =
             })
 
     let label =
-        TextStyles.Memoize (fun (screenSize: ScreenSize) (theTheme: Theme) ->
+        TextStyles.Memoize (fun (screenSize: ScreenSize) (labelColor: Color) (labelWidth: int) ->
             makeTextStyles {
-                color theTheme.LabelColor
+                color labelColor
 
                 match screenSize with
                 | ScreenSize.Desktop ->
-                    width theTheme.LabelWidth
+                    width labelWidth
                 | ScreenSize.Handheld ->
                     marginBottom 6
                     fontSize 14
@@ -107,7 +107,7 @@ type LibClient.Components.Constructors.LC with
                         ?testId = testId,
                         styles =
                             [|
-                                Styles.view screenSize theTheme
+                                Styles.view screenSize
                                 yield! legacyViewStyles
                             |],
                         children =
@@ -121,7 +121,7 @@ type LibClient.Components.Constructors.LC with
                                                 value = label,
                                                 styles =
                                                     [|
-                                                        Styles.label screenSize theTheme
+                                                        Styles.label screenSize theTheme.LabelColor theTheme.LabelWidth
                                                         yield! (defaultArg labelStyles [||])
                                                     |]
                                             )

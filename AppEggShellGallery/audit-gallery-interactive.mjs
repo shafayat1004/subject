@@ -530,6 +530,27 @@ async function auditPass(browser, passIndex) {
 
   for (const name of componentsToRun) {
     let result;
+    let browserFatal = false;
+
+    const trySessionRecover = async (reason) => {
+      try {
+        await waitForGalleryReady(baseUrl, {
+          log: (msg) => console.log(`  [pass ${passIndex}] [recovery] ${msg}`),
+        });
+        await session.recover(reason);
+        recoveryCount.n += 1;
+        return true;
+      } catch (e) {
+        if (isBrowserBlockedError(e)) {
+          console.log(
+            `  [pass ${passIndex}] FATAL: browser closed — stopping pass (${e.message ?? e})`
+          );
+          return false;
+        }
+        throw e;
+      }
+    };
+
     try {
       const { result: auditResult, recovered, recoveryReason } = await withBrowserRecovery(
         session,
@@ -567,6 +588,9 @@ async function auditPass(browser, passIndex) {
         uncaughtCount: 0,
         actionable: [],
       };
+      if (isBrowserBlockedError(e)) {
+        browserFatal = true;
+      }
     }
 
     if (result.appCrash) {
@@ -586,21 +610,15 @@ async function auditPass(browser, passIndex) {
         console.log(`  [pass ${passIndex}] ${msg}`)
       );
       if (!escaped) {
-        await waitForGalleryReady(baseUrl, {
-          log: (msg) => console.log(`  [pass ${passIndex}] [recovery] ${msg}`),
-        });
-        await session.recover(`app crash escape failed after ${name}`);
-        recoveryCount.n += 1;
-        await escapeFromAppCrash(session.page, safeFallbackUrl, (msg) =>
-          console.log(`  [pass ${passIndex}] ${msg}`)
-        );
+        browserFatal = !(await trySessionRecover(`app crash escape failed after ${name}`));
+        if (!browserFatal) {
+          await escapeFromAppCrash(session.page, safeFallbackUrl, (msg) =>
+            console.log(`  [pass ${passIndex}] ${msg}`)
+          );
+        }
       }
-    } else if (!session.isAlive()) {
-      await waitForGalleryReady(baseUrl, {
-        log: (msg) => console.log(`  [pass ${passIndex}] [recovery] ${msg}`),
-      });
-      await session.recover(`page not alive after ${name}`);
-      recoveryCount.n += 1;
+    } else if (!browserFatal && !session.isAlive()) {
+      browserFatal = !(await trySessionRecover(`page not alive after ${name}`));
     }
 
     results.push(result);
@@ -622,6 +640,13 @@ async function auditPass(browser, passIndex) {
       ? `${formatResultFlag(result)} [recovered]`
       : formatResultFlag(result);
     console.log(`  [pass ${passIndex}] ${name.padEnd(28)} ${flag}`);
+
+    if (browserFatal) {
+      console.log(
+        `  [pass ${passIndex}] pass interrupted after ${name} — resume with --resume=${outRoot}`
+      );
+      break;
+    }
   }
 
   await session.close();

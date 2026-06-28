@@ -276,6 +276,11 @@ module Input_TextComponent =
 
     [<RequireQualifiedAccess>]
     module private Styles =
+        let private outlineColorFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
+            if isInvalid then theTheme.BorderLabelInvalidColor
+            elif isFocused then theTheme.BorderLabelFocusedColor
+            else theTheme.BorderLabelBlurredColor
+
         let view (hasLabel: bool) =
             makeViewStyles {
                 Overflow.Visible
@@ -283,47 +288,49 @@ module Input_TextComponent =
                     marginTop 6
             }
 
-        let border (theTheme: Theme) (isInvalid: bool) (isFocused: bool) (editable: bool) =
-            makeViewStyles {
-                AlignItems.Center
-                FlexDirection.Row
-                borderWidth 1
-                borderRadius theTheme.BorderRadius
-                backgroundColor (
-                    if editable then
-                        Color.White
-                    else
-                        theTheme.NoneditableBackgroundColor
-                )
-                paddingHorizontal 10
-                paddingVertical theTheme.TheVerticalPadding
-                borderColor (
-                    if isInvalid then
-                        theTheme.BorderLabelInvalidColor
-                    elif isFocused then
-                        theTheme.BorderLabelFocusedColor
-                    else
-                        theTheme.BorderLabelBlurredColor
-                )
-            }
+        let border =
+            ViewStyles.Memoize (fun (cornerRadius: int) (verticalPadding: int) (fillColor: Color) (outlineColor: Color) ->
+                makeViewStyles {
+                    AlignItems.Center
+                    FlexDirection.Row
+                    borderWidth 1
+                    borderRadius cornerRadius
+                    backgroundColor fillColor
+                    paddingHorizontal 10
+                    paddingVertical verticalPadding
+                    borderColor outlineColor
+                })
 
-        let prefix (theTheme: Theme) =
-            makeTextStyles {
-                flex 0
-                paddingTop 1
-                color theTheme.TextColor
-            }
+        let borderFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) (editable: bool) =
+            let fillColor =
+                if editable then Color.White
+                else theTheme.NoneditableBackgroundColor
+            border
+                theTheme.BorderRadius
+                theTheme.TheVerticalPadding
+                fillColor
+                (outlineColorFor theTheme isInvalid isFocused)
 
-        let suffixText (theTheme: Theme) =
-            makeTextStyles {
-                color theTheme.TextColor
-            }
+        let prefix =
+            TextStyles.Memoize (fun (textColor: Color) ->
+                makeTextStyles {
+                    flex 0
+                    paddingTop 1
+                    color textColor
+                })
 
-        let suffixIcon (theTheme: Theme) =
-            makeTextStyles {
-                fontSize 20
-                color theTheme.TextColor
-            }
+        let suffixText =
+            TextStyles.Memoize (fun (textColor: Color) ->
+                makeTextStyles {
+                    color textColor
+                })
+
+        let suffixIcon =
+            TextStyles.Memoize (fun (textColor: Color) ->
+                makeTextStyles {
+                    fontSize 20
+                    color textColor
+                })
 
         let focusPreservingSentinel =
             makeViewStyles {
@@ -331,30 +338,28 @@ module Input_TextComponent =
                 height 0
             }
 
-        let textInput (theTheme: Theme) (editable: bool) (singleLine: bool) =
-            makeViewStyles {
-                flex 1
-                if not editable then
-                    backgroundColor theTheme.NoneditableBackgroundColor
-                if singleLine then
-                    height 21
-            }
+        let textInput =
+            ViewStyles.Memoize (fun (noneditableFill: Color) (editable: bool) (singleLine: bool) ->
+                makeViewStyles {
+                    flex 1
+                    if not editable then
+                        backgroundColor noneditableFill
+                    if singleLine then
+                        height 21
+                })
 
-        let textInputText (theTheme: Theme) (editable: bool) =
-            makeTextStyles {
-                color (
-                    if editable then
-                        theTheme.TextColor
-                    else
-                        theTheme.NoneditableTextColor
-                )
-            }
+        let textInputText =
+            TextStyles.Memoize (fun (textColor: Color) ->
+                makeTextStyles {
+                    color textColor
+                })
 
-        let invalidReason (theTheme: Theme) =
-            makeTextStyles {
-                fontSize 12
-                color theTheme.InvalidReasonColor
-            }
+        let invalidReason =
+            TextStyles.Memoize (fun (reasonColor: Color) ->
+                makeTextStyles {
+                    fontSize 12
+                    color reasonColor
+                })
 
         let label (isSmall: bool) =
             makeViewStyles {
@@ -365,20 +370,17 @@ module Input_TextComponent =
                 backgroundColor Color.White
             }
 
-        let labelText (theTheme: Theme) (isInvalid: bool) (isFocused: bool) (isSmall: bool) =
-            makeTextStyles {
-                fontSize (if isSmall then 12 else 16)
-                if isSmall then
-                    FontWeight.W700
-                color (
-                    if isInvalid then
-                        theTheme.BorderLabelInvalidColor
-                    elif isFocused then
-                        theTheme.BorderLabelFocusedColor
-                    else
-                        theTheme.BorderLabelBlurredColor
-                )
-            }
+        let labelText =
+            TextStyles.Memoize (fun (labelColor: Color) (isSmall: bool) ->
+                makeTextStyles {
+                    fontSize (if isSmall then 12 else 16)
+                    if isSmall then
+                        FontWeight.W700
+                    color labelColor
+                })
+
+        let labelTextFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) (isSmall: bool) =
+            labelText (outlineColorFor theTheme isInvalid isFocused) isSmall
 
         let pressableOverlay =
             makeViewStyles {
@@ -491,17 +493,17 @@ module Input_TextComponent =
                 children =
                     [|
                         RX.View(
-                            styles = [| Styles.border theTheme validity.IsInvalid isFocusedHook.current editable |],
+                            styles = [| Styles.borderFor theTheme validity.IsInvalid isFocusedHook.current editable |],
                             children =
                                 [|
                                     match (isLabelSmall, prefix) with
                                     | (true, Some prefixText) ->
-                                        LC.UiText(value = prefixText, styles = [| Styles.prefix theTheme |])
+                                        LC.UiText(value = prefixText, styles = [| Styles.prefix theTheme.TextColor |])
                                     | _ ->
                                         RX.View(styles = [| Styles.focusPreservingSentinel |])
 
                                     RX.TextInput(
-                                        styles = [| Styles.textInput theTheme editable (not multiline) |],
+                                        styles = [| Styles.textInput theTheme.NoneditableBackgroundColor editable (not multiline) |],
                                         value = (value |> NonemptyString.optionToString),
                                         onChangeText = (NonemptyString.ofString >> onChange),
                                         onFocus =
@@ -527,9 +529,9 @@ module Input_TextComponent =
 
                                     match (isLabelSmall, suffix) with
                                     | (true, Some (InputSuffix.Text text)) ->
-                                        LC.UiText(value = text, styles = [| Styles.suffixText theTheme |])
+                                        LC.UiText(value = text, styles = [| Styles.suffixText theTheme.TextColor |])
                                     | (true, Some (InputSuffix.Icon icon)) ->
-                                        LC.Icon(icon = icon, styles = [| Styles.suffixIcon theTheme |])
+                                        LC.Icon(icon = icon, styles = [| Styles.suffixIcon theTheme.TextColor |])
                                     | (true, Some (InputSuffix.Element element)) ->
                                         element
                                     | _ ->
@@ -539,7 +541,7 @@ module Input_TextComponent =
 
                         match validity.InvalidReason with
                         | Some reason ->
-                            LC.UiText(value = reason, styles = [| Styles.invalidReason theTheme |])
+                            LC.UiText(value = reason, styles = [| Styles.invalidReason theTheme.InvalidReasonColor |])
                         | None -> noElement
 
                         match label with
@@ -550,7 +552,7 @@ module Input_TextComponent =
                                     [|
                                         LC.UiText(
                                             value = labelText,
-                                            styles = [| Styles.labelText theTheme validity.IsInvalid isFocusedHook.current isLabelSmall |]
+                                            styles = [| Styles.labelTextFor theTheme validity.IsInvalid isFocusedHook.current isLabelSmall |]
                                         )
                                         LC.Pressable(
                                             onPress = (fun _ -> maybeTextInputHook.current |> Option.sideEffect (fun textInput -> textInput.requestFocus())),
