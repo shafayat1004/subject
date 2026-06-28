@@ -40,9 +40,12 @@ type LibClient.Components.Constructors.LC.AppShell with
             Data   = dataHook.current
         }
 
+        // Fable.React `contextProvider` renders its children collection without injecting
+        // keys, so passing a bare array triggers a dev-only "unique key" warning. Route the
+        // children through tellReactArrayKeysAreOkay (React.Children.toArray assigns keys).
         LibClient.Components.With.GlobalDataFlowControl.Context.globalDataFlowControlContextProvider
             globalDataFlowControl
-            [|
+            (tellReactArrayKeysAreOkay [|
                 RX.View(
                     styles   = [| Styles.view |],
                     children = [|
@@ -52,10 +55,10 @@ type LibClient.Components.Constructors.LC.AppShell with
                                     setGlobalExecutor makeExecutor
                                     globalExecutorContextProvider
                                         makeExecutor
-                                        [| castAsElement children |]
+                                        (tellReactArrayKeysAreOkay [| castAsElement children |])
                                 ),
                             showTopLevelSpinnerForKeys = LC.Executor.ShowTopLevelSpinnerForKeys.All
                         )
                     |]
                 )
-            |]
+            |])

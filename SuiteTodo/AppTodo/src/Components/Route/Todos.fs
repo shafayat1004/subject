@@ -408,7 +408,7 @@ type private Helpers =
                     tellReactArrayKeysAreOkay [|
                         RX.View(
                             styles = [| Styles.todoRowTop |],
-                            children = [|
+                            children = tellReactArrayKeysAreOkay [|
                                 LC.Input.Checkbox(
                                     value = Some todo.Done,
                                     onChange = (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
@@ -418,7 +418,7 @@ type private Helpers =
                                 )
                                 RX.View(
                                     styles = [| Styles.todoRowBody |],
-                                    children = [|
+                                    children = tellReactArrayKeysAreOkay [|
                                         if isEditing then
                                             LC.Input.Text(
                                                 value = Some editTitleHook.current,
@@ -460,7 +460,7 @@ type private Helpers =
                         )
                         RX.View(
                             styles = [| Styles.todoRowBody |],
-                            children = [|
+                            children = tellReactArrayKeysAreOkay [|
                                 if isEditing then
                                     LC.Input.Text(
                                         value = Some editTitleHook.current,
@@ -560,7 +560,8 @@ type Ui.Route with
                                             children = [|
                                                 RX.View(
                                                     styles = [| Styles.headerRow |],
-                                                    children = [|
+                                                    children =
+                                                        tellReactArrayKeysAreOkay [|
                                                         LC.Column(
                                                             gap = 0,
                                                             crossAxisAlignment = LC.CrossAxisAlignment.Stretch,

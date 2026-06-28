@@ -1413,3 +1413,24 @@ need for `LC.Icon` (avoids a Text→Icon compile-order dependency). `Icon.Magnif
 **Button corner radius is hardcoded (4) in `Button.fs` `Styles.viewBase`.** Not themeable, but caller
 `?styles` are appended LAST and win, so `styles = [| makeViewStyles { borderRadius 16 } |]` overrides
 it per call (define the style top-level, not in render).
+
+### 2026-06-29 — Root-causing the "unique key" warning (and where NOT to patch)
+
+**The dev-only React key warning was framework-wide, not app code.** logcat
+(`adb logcat -d | grep -A30 'unique .key.'`) gives the component stack: it named
+`Executor.DisplayErrorsManually` / `RootViewUsingStore`. Real root cause: **Fable.React's
+`contextProvider` renders its children collection without injecting keys**, so every
+`globalExecutorContextProvider`/`globalDataFlowControlContextProvider`/`screenSizeContextProvider`
+call that passes a bare `[| child |]` array trips the warning. Fix is one F# file —
+`Components/AppShell/Context/Context.fs`: wrap the provider children with
+`tellReactArrayKeysAreOkay` (runs `React.Children.toArray`, assigns keys). Clean, migration-safe.
+
+**Dead ends worth not repeating:** (1) wrapping app-side `RX.View` multi-child arrays in `Todos.fs`
+was correct hygiene but did NOT silence this warning (it was framework-level). (2) ReactXP's
+`RootView` children are JSX siblings (implicitly keyed) and popups are already `key=`'d — not the
+source. (3) Metro bundles ReactXP from **`dist/native-common/*.js`**, NOT `src/*.tsx` — verify a
+node_modules patch actually reaches the bundle with
+`curl -s 'http://localhost:8081/index.bundle?platform=android&dev=true' | grep -c <marker>` before
+believing it. (4) The `postinstall` vendor-copy mechanism (`LibClient/vendor/reactxp-native-common/`
+→ node_modules) makes ReactXP patches durable, BUT prefer an F# fix: vendored ReactXP edits are
+maintenance surface that the RNW migration deletes. Patch ReactXP only when no F# seam exists.
