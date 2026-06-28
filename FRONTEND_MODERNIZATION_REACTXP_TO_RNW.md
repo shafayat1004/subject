@@ -806,6 +806,61 @@ Fable 4.x first and add .NET 10 later.
   analysis of the clone at `/Volumes/HomeX/shafayat/Code/reactxp-fork`), the modern RN / React 19 /
   react-native-web research, the animation/gesture/graphics ecosystem research, the
   ReactXP-to-RNW transition design, the goal mapping, the phased plan, and the de-risking spike plan.
+- **2026-06-28 (16)** **Executor recipe for the TODO app + scaffold modernization written.** Added
+  **`MIGRATION_RUNBOOK.md` Phase 5** - a thorough, step-by-step recipe a lower-cost executor can follow to
+  build the full-stack TODO and modernize the `create-app` scaffold: 5A backend Todo ecosystem (modeled on
+  the in-repo SuiteJobs, with the explicit codec-gen step called out as the fiddly escalate-if), 5B backend
+  host serving the V1 API + realtime SignalR, 5C the frontend CRUD + subscription app with the
+  connection standard spelled out inline (`Config.BackendUrl` -> `AppServices.initialize` wiring
+  `HttpService` + `RealTimeService` + subject-service `provideInstances` -> components subscribe via
+  `With.Subject(s)` rendering `AsyncData`), 5D templatize into `Meta/LibScaffolding` (nested render schema,
+  pure F#, decouple from Chaldal), 5E `create-app -> dev-web` smoke test. Connection standards were derived
+  from study of external example apps but are encoded generically; **nothing in this repo references the
+  external projects** (constraint honored). Build order: concrete app to green first, then templatize.
+- **2026-06-28 (15)** **Decision: the benchmark becomes a full-stack TODO app that also fixes scaffolding
+  (goal B).** Instead of a throwaway Suite, modernize the `eggshell create-app` templates
+  (`Meta/LibScaffolding/templates`, currently broken per Section 8: flat `renderDependencies`, `.render`
+  routes, Chaldal-coupled `Bananas`/`Mangoes`, net7) AND make the default generated app a working
+  **full-stack TODO**: a backend Todo subject lifecycle (Create/SetTitle/ToggleDone/Delete + a
+  timer-driven auto-update to exercise real-time push) plus a frontend that does CRUD and **subscribes**
+  for live updates. This doubles as the modern-conventions reference, the goal-B scaffold fix, and the
+  subscriptions/SignalR validation benchmark. **Build order:** (A) build the concrete full-stack TODO app
+  in-repo and get `dev-web` green with live CRUD + subscriptions (backend modeled on the in-repo SuiteJobs
+  API); (B) templatize it into the scaffold, modernizing config (nested `render` schema, pure F#, decoupled
+  from Chaldal) and updating the scaffolding tasks; (C) add a `create-app -> dev-web` smoke test.
+  **Constraints:** F# only; nothing in `subject/` references the old Egg.Shell repo; subagents here have no
+  Bash so the compile/validate loop is done directly. Todo domain (draft): Subject `{ Id; CreatedOn;
+  Title; Done; ArchivedOn? }`; Constructor `Create of title`; Actions `SetTitle | ToggleDone | Archive |
+  Delete`; LifeEvents `Created | TitleChanged | DoneToggled | Archived`; OpError `EmptyTitle`; a View
+  listing todos; a timer auto-archiving long-completed todos (the automated-update signal).
+- **2026-06-28 (14)** **Build-hygiene quick wins applied (post-migration sweep).** Ran a full build of
+  the modularized repo and triaged warnings the Fable-5 migration left. Fixed (framework): FS3370
+  deprecated refcell ops in `LibRouter/.../LogRouteTransitions.fs` (`!`/`:=` -> `.Value`/`.Value <-`);
+  FS1182 unused-value cleanups in `LibUiAdmin/Grid.fs` (cosmetic `_content`), `LibAutoUi/ValueConstruction.fs`
+  (`| _ ->`), `LibAutoUi/InputFormElement.fs` (removed redundant outer bindings). **One real bug found and
+  fixed:** `UiAdmin.GridRow`'s `showBottomBorder` was honored on native but silently ignored on web (the
+  `dom.tr` className never reflected it) — wired it into the web className (`no-bottom-border` token; a
+  matching CSS rule should be confirmed). Left alone: `LibAutoUi/TypeExtensions.fs` unused bindings are
+  inside a deliberate `QQQ` stub (unfinished feature, not migration breakage); FS842 on `SubjectTypes.fs`
+  is a pre-existing `[<SkipCodecAutoGenerate>]`-on-interface (verify the codec-skip still takes effect).
+  **Flagged for owner (App*, not auto-fixed per framework-only rule):** `pstoreKey` unused in
+  `AppEggShellGallery` `Route/Home|Settings|Docs` smells like dropped persistent-store wiring; `Code.fs`
+  `language` unused. Process note: the unused/deprecated warnings only surface in the eggshell/Fable build
+  path (config-gated `--warnon:1182`), not a plain `dotnet build -c "Web Debug"`, which is how they slipped
+  in; surface them in CI and, once cleared, drop `--warnaserror-:1182`.
+- **2026-06-28 (13)** **Prerequisites locked BEFORE the RNW upgrade (goal H).** The following must be
+  done and signed off before starting the react-native-web seam swap; each to be discussed in its own
+  session: (a) **Libraries used** — audit + upgrade the JS and NuGet dependency surface; (b)
+  **Performance improvements** — the .NET 10 + Fable 5 wins to measure/claim; (c) **Fable 5 new syntax &
+  defaults** — adopt the new language/compiler defaults (incl. the array-equality change, TS-output, etc.);
+  (d) **our SignalR** — the vendored `LibSignalRClient`/`LibSignalRServer` (verify build+runtime, add MIT
+  attribution, decide vendor-vs-thin); (e) **.NET 10** — the full runtime TFM flip net7->net10 with Orleans
+  frozen (research in progress). RNW (Phase 4) does not start until (a)-(e) land.
+- **2026-06-28 (12)** **Backend subject-service benchmark planned.** Need a real example backend Subject
+  service in-repo (a Suite: `Ecosystem/{Types, LifeCycles, Tests}` + a Dev launcher) to serve as both a
+  worked example AND the runnable validation + performance benchmark for the net10 / Fable 5 / SignalR
+  migration (a genuine grain + views + simulation tests, not the throwaway spike). Built fresh and
+  generic; NOT derived from or referencing any existing Suite.
 - **2026-06-28 (11)** **Executor runbook written.** Created `MIGRATION_RUNBOOK.md` (this folder): a
   step-by-step, prescriptive companion for a weaker/executor model to do the mechanical bulk of the
   migration, with hard validate-after-each-step gates, inline pitfalls (from the spikes + `LEARNINGS.md`),

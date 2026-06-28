@@ -213,9 +213,6 @@ type UIAuto with
         key |> ignore
         xLegacyStyles |> ignore
 
-        let path = form.Path
-        let displayName = form.DisplayName
-
         let rec render (form: InputForm) (acc: Accumulator) : ReactElement =
             let path = form.Path
             let displayName = form.DisplayName

@@ -256,7 +256,7 @@ module private Styles =
 module private FragmentHelpers =
     /// `element { ... }` produces a React fragment; table rows need direct cell/row children.
     [<Emit("(function (el) { var c = el && el.props && el.props.children; if (c == null) return [el]; if (Array.isArray(c)) return c; return [c]; })($0)")>]
-    let unwrapFragmentChildren (content: ReactElement) : ReactElements = jsNative
+    let unwrapFragmentChildren (_content: ReactElement) : ReactElements = jsNative
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 module NativeGrid =
@@ -383,7 +383,7 @@ type UiAdmin with
         dom.tr
             [|
                 unbox ("key", rowKey)
-                ClassName ("row" + (if index % 2 = 0 then " row-alt" else ""))
+                ClassName ("row" + (if index % 2 = 0 then " row-alt" else "") + (if showBottomBorder then "" else " no-bottom-border"))
             |]
             (FragmentHelpers.unwrapFragmentChildren children)
         #else

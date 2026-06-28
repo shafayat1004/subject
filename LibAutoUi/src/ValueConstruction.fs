@@ -186,7 +186,7 @@ and getObjectAndPutInAccumulator (path: Path) (theType: Type) (acc: Accumulator)
             | StringValue null
             | StringValue ""   -> acc.UpdateDerivedValue (path, (MissingValue path))
             | StringValue v    -> acc.UpdateDerivedValue (path, v)
-            | invalidValue     ->
+            | _                ->
                 acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a valid string")))
         )
 

@@ -14,8 +14,8 @@ type LR with
         ignore key
         let location = Router.useLocation()
 
-        if !maybeLastUrl <> Some location.Url then
-            maybeLastUrl := Some location.Url
+        if maybeLastUrl.Value <> Some location.Url then
+            maybeLastUrl.Value <- Some location.Url
             Telemetry.TrackScreenView location.Url Map.empty
             LibClient.UiActionLog.setCurrentRoute location.Url
 

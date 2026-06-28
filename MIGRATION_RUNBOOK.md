@@ -183,6 +183,42 @@ could still hit it - that is a design call, escalate.
 and the PostgreSQL conversion. Those belong to the separate, later Orleans-upgrade + Postgres workstream
 (see strategy doc Section 17 / Update Log 9). Use in-memory storage for validation here.
 
+### 3d. net10 specifics from research (2026-06-28) - apply these, in this order
+
+1. **Tooling first:** keep `global.json` `10.0.301` (`rollForward: latestFeature`). Confirm the whole
+   solution still builds on net7 under the net10 SDK before flipping any TFM (isolates SDK issues).
+2. **Add Central Package Management** (`Directory.Packages.props`) with
+   `CentralPackageTransitivePinningEnabled=true`, and **pin ALL `Microsoft.Extensions.*` to one 10.x
+   version** (DI, Hosting, Logging, Options, Configuration, ObjectPool, all `.Abstractions`). Orleans 3.7
+   pulls 6.x transitively; NuGet picks lowest-applicable, so without this you get `MissingMethodException`
+   on `BuildServiceProvider`. This is the #2 risk.
+3. **Silo host (the #1 runtime risk):** net9 P7+ turns on `ValidateOnBuild` + `ValidateScopes` by default
+   in Development; Orleans 3.7's open-generic / scoped-in-singleton registrations were never validated and
+   will throw at startup. Add `UseDefaultServiceProvider(fun o -> o.ValidateScopes <- false; o.ValidateOnBuild <- false)`
+   BEFORE first run.
+4. **F# default LangVersion jumps to F# 10** on the net10 SDK. Expect source breaks: **FS0842**
+   (misapplied attribute, e.g. `[<Fact>] let x = ...` needs `()`; this is the same family as the existing
+   `SubjectTypes.fs` FS842), **FS0058** (pseudo-nested modules in types), **FS3873** (bare `{ 1..10 }`),
+   and tightened `#nowarn` syntax. Per-project escape hatch: `<LangVersion>9</LangVersion>`. NRT stays OFF
+   by default (a retarget does not introduce nullability errors).
+5. **`--warnaserror` will go red:** retargeting bumps analysis level; new SYSLIB obsoletions
+   (SYSLIB0050/0051 legacy serialization, 0057 X509 ctors, 0058-0062) + warning waves + NuGetAudit on
+   Orleans 3.7's transitive graph become errors. Stage a `<WarningsNotAsErrors>` list (keeps them visible)
+   rather than `<NoWarn>`; suppress SYSLIB by exact id (not CS0618).
+6. **Package cascade:** Giraffe -> **8.2.0** (removed Newtonsoft, STJ default, JSON via `Json.ISerializer` -
+   re-wire DI), `Microsoft.Data.SqlClient` -> **7.0.2** (`Encrypt=true` default since 4.0 -> set
+   `TrustServerCertificate=True` dev or `Encrypt=False`), `FSharp.Core` SDK-bundled 10.x (do not pin),
+   `System.Text.Json` 10.x in-fx (cache `JsonSerializerOptions`), **Fleece 0.10.0 is stale (2022, no net10
+   build) - smoke-test it**, BinaryFormatter stays removed/throws (you are shielded; do NOT add the compat
+   package).
+7. **Sequence:** SDK-first -> CPM/Extensions pinning + WarningsNotAsErrors -> pilot one leaf lib ->
+   flip TFMs leaf-first / host-last -> fix cascade -> flip silo host last (with the DI-validation opt-out)
+   -> full test suite + live silo smoke (grain round-trip, exception propagation, SIGTERM shutdown; note
+   net10 no longer installs a default SIGTERM handler).
+8. **Re-confirm via CI gate:** Orleans 3.7.2 has no vendor-documented net10 support, so pin the proven
+   build + grain round-trip behind a CI smoke test (`OrleansCodeGenLogLevel=Trace`) so a transitive bump
+   cannot silently regress it. Full research with sources is in the strategy doc / research notes.
+
 ---
 
 ## Phase 4 - ReactXP -> react-native-web seam
@@ -215,6 +251,124 @@ the F# public surface (`RX.*`/`LC.*`, the `makeViewStyles` DSL) identical.
 call.
 **FORWARD NOTE:** keep the F# API DOM-flavored (onClick/aria/css-style) so a later switch to React
 Strict DOM stays a thin re-point (strategy doc Section 16).
+
+---
+
+## Phase 5 - Full-stack TODO example app + scaffold modernization (goal B + the validation benchmark)
+
+**Owner:** weaker model for the mechanical bulk; escalate on the codec-gen / Orleans-codegen wiring and
+any framework-API mismatch. **Sequencing:** this is goal-B work and the migration's validation benchmark;
+do it AFTER Phases 1-3 (Fable 5 + net10 + SignalR) and BEFORE Phase 4 (RNW). **Build order within the
+phase: build the concrete app to green FIRST, then templatize it** (a correct template is, by definition,
+the canonical modern app).
+**Goal:** a working full-stack TODO app - a backend Todo subject lifecycle (CRUD + a timer auto-update)
+and a frontend that does CRUD and subscribes for live updates - then folded into `eggshell create-app` as
+the default modern app.
+**Reference:** model the backend on the in-repo **SuiteJobs** ecosystem (current framework API). Do NOT
+add references to any out-of-repo example project anywhere in this repo; the conventions are spelled out
+inline below.
+**Domain:** Subject `{ Id; CreatedOn; Title: NonemptyString; Done: bool; ArchivedOn: Option<DateTimeOffset> }`;
+Constructor `New of Title`; Actions `SetTitle | ToggleDone | Archive | Delete`; LifeEvents
+`Created | TitleChanged | DoneToggled of bool | Archived`; OpError `EmptyTitle`; a View listing todos; a
+timer auto-archiving todos that have been Done for > N minutes (the automated-update signal).
+
+### 5A. Backend Todo ecosystem (build to green first)
+Mirror `SuiteJobs/Ecosystem` shape: `SuiteTodo/Ecosystem/{Todo.Types, LifeCycles, Tests}`, three net7.0
+`.fsproj` with the same package/project references SuiteJobs uses.
+1. **Types** (`Todo.Types/`): `Common.fs` (the `TodoId` wrapper) + `Todo.fs` with HAND-WRITTEN
+   declarations only (mirror `SuiteJobs/.../RecurringJob.fs` shapes):
+   `[<AutoOpen; CodecLib.CodecAutoGenerate>] module SuiteTodo.Types.Todo`; the `Todo` record with
+   `interface Subject<TodoId> with member SubjectCreatedOn / SubjectId`; the Action/Constructor/LifeEvent/
+   OpError DUs each `with interface LifeAction/Constructor/LifeEvent/OpError`; the five index types
+   (start `NoNumericIndex`/`NoSearchIndex`/etc.) + `type TodoIndex() = inherit SubjectIndex<...>()`;
+   `EcosystemDef.fs` = `newEcosystemDef "Todo"` + `addLifeCycleDef ... "Todo"` + the
+   `{| EcosystemDef = ...; LifeCycles = {| todo = ... |} |}` record (mirror SuiteJobs `EcosystemDef.fs`).
+2. **GENERATE CODECS - do NOT hand-write them.** Each Types file carries a generated
+   `#if !FABLE_COMPILER ... codec { ... } ... #endif` block produced by the codec-gen tool. Wire a
+   `TypesCodecGen` Dev launcher for SuiteTodo (mirror `SuiteJobs/Launchers/Dev/TypesCodecGen`) and run it;
+   it appends the codec block. **ESCALATE-IF the codec-gen wiring is unclear - it is the fiddliest part of
+   standing up a new ecosystem.**
+3. **LifeCycle** (`LifeCycles/`): a builder module (mirror `JobsLifeCycleBuilder.fs`:
+   `LifeCycleBuilder.newLifeCycle<...,NoSession,NoRole> def` and `ViewBuilder.newView<...,NoSession,NoRole>`);
+   `TodoLifeCycle.fs` with `construction { ... }` (reject empty title -> `TodoOpError.EmptyTitle`; emit
+   `Created`) and `transition { ... }` (SetTitle/ToggleDone/Archive/Delete -> new subject + LifeEvents); a
+   **View** projecting the todo list; a **Timer** auto-archiving todos Done > N minutes; `AllLifeCycles.fs`
+   registration.
+4. **Validate:** `export DOTNET_ROOT="$HOME/.dotnet"`; `dotnet build` each project green; run the Tests
+   project simulation suite (mirror `SuiteJobs/Ecosystem/Tests` `Simulation.fs` + a test): construct,
+   act ToggleDone/SetTitle and assert state + LifeEvent; assert `EmptyTitle` on bad input; a
+   `moveTimeForwardAndRunReminders` test asserting the auto-archive timer fires (backend-level real-time proof).
+
+### 5B. Backend host/launcher (serve the V1 API + realtime SignalR)
+Add a Dev launcher that hosts the Todo ecosystem on the framework host (`LibLifeCycleHost`), exposing the
+V1 generic HTTP API (request/response) and the realtime SignalR endpoint (subscriptions). Mirror an
+existing in-repo Dev launcher. **Validate:** silo starts; the SignalR negotiate endpoint responds; a view
+query returns over HTTP.
+
+### 5C. Frontend TODO app (CRUD + live subscriptions) - the connection standard
+Encode these conventions (do not name any external project):
+- **`Config.fs`**: a `ConfigSource` record with at least `AppUrlBase` and `BackendUrl`, a `.Base` default,
+  and `withOverrides` reading `configSourceOverrides.*.js`. `BackendUrl` points the app at 5B.
+- **`AppServices.fs` `initialize config`**: build `EventBus()`; construct
+  `HttpService(eventBus, <staticResourceSettings>, (fun url -> url.StartsWith config.BackendUrl), <hashedDirPrefix>)`;
+  `LibClient.ServiceInstances.provideInstances { EventBus; Date; Http; ThothEncodedHttp; PageTitle; Image }`.
+  For live data: `RealTimeService(eventBus, config.BackendUrl)` + the Todo ecosystem's subject services
+  (`makeSubjectServices`) + that ecosystem's `provideInstances`.
+- **Components** (pure F# `[<Component>]`, NO `.render`): a TODO list route that subscribes to the Todo
+  view via `LC.With.Subject` / `With.Subjects` and renders `AsyncData<'T>`
+  (`Uninitialized | Fetching | Available | Error`); an add-todo input; per-row toggle/edit/delete that call
+  the backend actions through the subject service. CRUD goes through the HTTP request/response path; live
+  updates arrive via the subscription with no manual refresh.
+- **Validate:** `eggshell dev-web` green; in-browser add/toggle/edit/delete works; two tabs show live
+  propagation; the auto-archive timer visibly updates a Done item with no refresh (the subscription proof).
+
+### 5D. Templatize into the scaffold (modernize `create-app`)
+Fold 5A-5C into `Meta/LibScaffolding/templates` as the DEFAULT generated app, modernizing the scaffold
+(see strategy doc Section 8):
+- `eggshell.json.template`: flat `renderDependencies` -> nested
+  `render.{ dependenciesToRtCompile, additionalModulesToOpen, componentLibraryAliases, componentLibraryPaths, componentAliases }`.
+- routes/components/dialogs: pure-F# templates; DELETE the `.render` templates (`route/Route.render.template`,
+  `dialog/Dialog.render.template`, the `.typext.fs`/`.styles.fs` pairs) and emit pure F#.
+- decouple from Chaldal: remove `Bananas`/`Mangoes`/`Landing`/`DoSomething` and company-lib coupling; the
+  generated app is the generic TODO.
+- `package.json.template`: add the `webpack-dev-server` dev-web start path; drop dead `file:` deps + mobile-only bloat.
+- update the scaffolding TS tasks (`Meta/LibScaffolding/src/tasks`) for changed placeholders/structure;
+  auto-update the `.fsproj` on `create-component`.
+
+**Disposition of the EXISTING template files** (in `Meta/LibScaffolding/templates/`) - do not start from
+scratch; most of the app shell is reusable. Three buckets:
+
+- **KEEP + modernize** (the app shell / chrome / connection wiring - update to current conventions, make
+  sure each is pure F#, and re-point at the Todo routes/ecosystem): `app/src/App.fsproj` (fix the
+  `<Compile>` includes; remove demo + any `.render`/`_autogenerated_` entries), `Bootstrap.fs.template`,
+  `Config.fs.template` (add `BackendUrl`/`AppUrlBase` per 5C), `Services.fs.template` (the `initialize`
+  connection wiring per 5C), `Navigation.fs.template` (point at the Todo routes), `Components/App.fs.template`,
+  `Components/AppContext.fs.template`, `Components/Nav/Top.fs.template`, `Components/Sidebar.fs.template`,
+  `Components/With/Subjects.fs.template` (adapt to subscribe to the Todo view), `ComponentsHierarchy`,
+  `ComponentsTheme`, `Colors`, `Icons` (+ `IconSources/`), `ErrorMessages`, `I18n/{En,Bn}`,
+  `Services/SessionService.fs.template`.
+- **REPLACE with TODO content:** `Components/Route/Landing.fs.template` -> the Todo list route (subscribe to
+  the Todo view, render `AsyncData`, add/toggle/edit/delete); **delete** `Components/Route/Bananas.fs.template`
+  and `Mangoes.fs.template` and `Components/Dialog/DoSomething.fs.template` (replace the dialog with an
+  edit-todo dialog only if useful); `PlaceholderTypes.fs.template` -> drop or replace with the small client
+  types the app needs (most types come from the shared Todo ecosystem types).
+- **DELETE outright:**
+  - the **six `.render` templates** (`route/Route.render.template`, `dialog/Dialog.render.template`, and
+    `component/type/{estateful,pstateful,stateless,functional}/Component.render.template`) and their
+    `.typext.fs`/`.styles.fs` pairs - replace each with a **pure-F# template**: the `functional` variant
+    becomes the `[<Component>]` form; the stateful variants become `[<Component>]` + hooks (per the
+    `LEARNINGS.md` conversion recipe). After this, `create-route`/`create-dialog`/`create-component` emit
+    pure F#, never `.render`.
+  - the **untracked `app/src/obj/` and `app/src/bin/`** build artifacts (they are local junk, not in git);
+    remove them and make sure the template `.gitignore.template` excludes `obj/`+`bin/` so they never get
+    shipped in a scaffold.
+
+### 5E. Smoke test (so it cannot rot again)
+Add a CI check: `eggshell create-app <name>` -> `eggshell dev-web` must build green (ideally render the
+TODO list). This is the goal-B regression gate.
+
+**Escalate-if:** codec-gen / Orleans-codegen wiring for the new suite; any framework-API mismatch the
+SuiteJobs reference does not resolve; non-trivial scaffolding TS task changes.
 
 ---
 
