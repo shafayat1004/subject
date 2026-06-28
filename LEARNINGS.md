@@ -5,6 +5,18 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — Gallery audit: baseline a11y before interactions
+
+**New module:** `audit-gallery-a11y.mjs` — parses `ComponentItem.pageTitle` from `Navigation.fs`, checks `Ui.A11yPanel` (`Font scaling` / `Role` facts) and display heading **before** interaction handlers run (`runGalleryA11yBaselineAssertions`).
+
+**New routes/recipes:** `Accessibility_Group`, `Accessibility_LiveRegion`, `Accessibility_WithAccessibility`; `--only=a11y` preset in `audit-gallery-components.mjs`.
+
+**Gotcha:** running A11yPanel/heading asserts *after* handlers can false-fail (e.g. checkbox clicks, ErrorBoundary bombs). Baseline must precede `COMPONENT_HANDLERS`.
+
+**LiveRegion:** do not click Delete in the interaction handler and again in assertions — double-click expects count 2 while assert checks count 1.
+
+---
+
 ## 2026-06-29 — i18n runtime lives in LibClient, not LibUiSubject
 
 **`LibClient.I18n`** holds the portable `Language` DU + `I18n<'T>` runtime (Egg.Shell `LibUiChaldal.I18n` / scaffold convention): LocalStorage + EventBus wiring stays in each app's **`App*.I18nGlobal`** module (`I18n.fs`).
@@ -1444,3 +1456,37 @@ node_modules patch actually reaches the bundle with
 believing it. (4) The `postinstall` vendor-copy mechanism (`LibClient/vendor/reactxp-native-common/`
 → node_modules) makes ReactXP patches durable, BUT prefer an F# fix: vendored ReactXP edits are
 maintenance surface that the RNW migration deletes. Patch ReactXP only when no F# seam exists.
+
+### 2026-06-29 — Corrected: Fable-authored Reanimated worklets run on the JS thread, NOT the UI thread
+
+**What I got wrong:** I initially inferred from the rnw-spike's old screenshots ("drag = opaque") that
+Fable-emitted `useAnimatedStyle` worklets executed on the UI thread. Unsafe inference — a drag doesn't
+block the JS thread, so a JS-thread animation also looks smooth.
+
+**How it was settled** (dev build; Expo 56 / RN 0.85 / Reanimated 4.3.1 / worklets 0.8.3 / Fable 5.4.0):
+instrumented `fsharp/App.fs` with a press counter (plain React state) + a button that starts
+`withTiming(1.0, 3000ms)` then synchronously jams the JS thread for 3s. `adb screencap` is OS-level so
+it captures frames during the freeze.
+- **Mid-freeze:** counter still `0` (render blocked = JS confirmed jammed) AND box still opacity 0.3.
+- **Post-freeze:** counter `1`, box snapped to opaque.
+A real UI-thread worklet keeps animating while JS is blocked; this one froze -> **JS thread**.
+- Separately, `runOnJS` (any host-function call) inside a Fable worklet **aborts `libworklets`**:
+  `Fatal signal 6 (SIGABRT)` at `facebook::jsi::Function::getHostFunction`. Fable closures are not being
+  workletized into real UI-thread worklets.
+
+**Rule (now mandatory, was "preferred"):** animation must be **declarative** — Moti (Probe B passed) or
+Reanimated's declarative/CSS API — and any genuine UI-thread worklet authored in a **tiny JS shim**
+(`ThirdParty` recipe; spike `js/worklets.js` is the template). Do not hand-author worklets in F#
+expecting UI-thread execution. Docs updated: `MIGRATION_RUNBOOK.md` 4.6, strategy doc 19.
+
+**Verify-worklet-thread recipe:** `_WORKLET` global is true only on the UI runtime, but reading it +
+`runOnJS`-ing the result CRASHES from Fable (above) — so use the **JS-block test** (zero in-worklet
+instrumentation), or check `theClosure.__workletHash` is defined in the **Metro** bundle (NOT
+`fable_build`, which is pre-babel; the `react-native-worklets/plugin` transform runs at Metro/babel
+time).
+
+**Spike native run mechanics:** Expo Go **SIGSEGVs** on load (worklets/New-Arch) — use a **dev build**
+(`npx expo run:android`, ~10min first gradle download+build). Silence no-backend SignalR error spam with
+`LogBox.ignoreAllLogs(true)` in `App.js` so the UI is reachable. Get exact tap targets from
+`adb shell uiautomator dump` (a React `Pressable`'s `testID` shows as `resource-id`; bounds give the
+center) instead of guessing pixel coords.

@@ -353,19 +353,27 @@ the underlying import changes. Pattern (from spike `Bindings.fs`):
 | `WebView` | **`react-native-webview`** | Low-Med | Already pinned in `ThirdParty`. Native solid; RNW web support is partial (iframe-style) — verify. |
 | `Animatable{View,Text,Image,TextInput}` | **Reanimated `Animated.*` + Moti** | **High** | Replaces ReactXP's JS-thread `Animated` (driver off / no-op on web). **Default to Moti** (declarative `from`/`animate`/`transition` props — works web + native, no hand-written worklets). Use Reanimated `useSharedValue`/`useAnimatedStyle` for the rest; honor reduce-motion (`ACCESSIBILITY_PLAN.md` §4.7). |
 
-**Worklet rule (verified on the spike, with one caveat):** prefer **Moti / Reanimated's declarative
-API** so no worklet is authored in F#. **Evidence the F# worklet path works on native:** two spike
-screenshots of the "C/D Reanimated `useAnimatedStyle` + Pan" red box — `native-drag-opaque.png` (opaque
-while dragging, `withSpring 1.0`) vs `native-release-translucent.png` (translucent on release,
-`withSpring 0.3`) — produced by the **Fable-compiled** `fsharp/App.fs` with the **Plan-B JS shim NOT
-imported** (`js/worklets.js`/`opacityWorkletStyle` is declared in `Bindings.fs` but unused; `App.js`
-mounts `./fable_build/App.js` only). So a Fable-emitted closure passed to `useAnimatedStyle` did drive
-the animation. **Caveat:** a screenshot confirms the gesture->shared-value->animated-style *pipeline*,
-not that the worklet executed on the UI thread vs the JS thread (Reanimated can fall back to JS with a
-warning). **Therefore keep the Plan-B rule:** if a worklet misbehaves or the `react-native-worklets`
-Babel plugin won't treat a specific Fable closure as a UI-thread worklet, author that one worklet in a
-tiny vetted JS shim (`ThirdParty`/`TypesJs.fs` recipe) and wrap it in F#. App code stays declarative.
-(There is also a benign Metro "Require cycle: fable_build/fable_modules/…" warning in the spike build.)
+**Worklet rule (EMPIRICALLY SETTLED 2026-06-29 — Fable worklets do NOT run on the UI thread).**
+A dev-build re-run of the spike with an instrumented probe produced a definitive result:
+- **`runOnJS` (or any host-function call) inside a Fable-emitted worklet ABORTS `libworklets`** —
+  `Fatal signal 6 (SIGABRT)` at `facebook::jsi::Function::getHostFunction`. So Fable closures are not
+  being turned into real worklets that can call back to JS.
+- **The simple `useAnimatedStyle (fun () -> opacity = sv.value)` runs on the JS thread, not the UI
+  thread.** JS-block test: a button bumps a React counter, starts `withTiming(1.0, 3000ms)`, then jams
+  the JS thread for 3s. Mid-freeze (counter still `0` = JS confirmed blocked) the box stayed at
+  opacity 0.3 (frozen); post-freeze (counter `1`) it snapped to opaque. A true UI-thread worklet would
+  have kept animating while JS was blocked. The earlier "drag = opaque" screenshots were consistent
+  with JS-thread execution (a drag doesn't block JS).
+
+**Therefore the rule is mandatory, not "preferred":** author animation **declaratively** — **Moti**
+(`from`/`animate`/`transition` props; works web + native; Probe B passed cleanly) or Reanimated's
+declarative/CSS API. For any animation that genuinely needs a UI-thread worklet, **write that worklet in
+a tiny vetted JS shim** (`ThirdParty`/`TypesJs.fs` recipe; the spike's unused `js/worklets.js` is the
+template) and call it from F#. Do **not** hand-author worklets in F# expecting UI-thread execution.
+(Caveat: this is the out-of-the-box result for Expo 56 / RN 0.85 / Reanimated 4.3.1 / worklets 0.8.3 /
+Fable 5.4.0; a future `"worklet"`-directive or babel-plugin accommodation for Fable output could change
+it — re-test if that lands. Benign Metro "Require cycle: fable_build/fable_modules/…" warning is
+unrelated.)
 
 ### 4.7 RNW limitations to design around (from strategy §7)
 

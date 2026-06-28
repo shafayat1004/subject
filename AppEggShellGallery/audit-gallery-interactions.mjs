@@ -6,7 +6,7 @@
  */
 
 import { createVisualArchiveSession } from './audit-gallery-visual-archive.mjs';
-import { runComponentAssertions, checkUnhandledVisuals } from './audit-gallery-assertions.mjs';
+import { runComponentAssertions, checkUnhandledVisuals, runGalleryA11yBaselineAssertions } from './audit-gallery-assertions.mjs';
 import { SKIP_CLICK_LABELS } from './audit-gallery-components.mjs';
 import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
 import { clickLabelOrTestId, clickByTestId, findByTestId, readUiSnapshot } from './audit-gallery-selectors.mjs';
@@ -880,7 +880,7 @@ export const COMPONENT_HANDLERS = {
 
   Sidebar: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      for (const item of ['Inbox', 'Calendar', 'Notifications', 'Log Out']) {
+      for (const item of ['Inbox', 'Calendar', 'Notifications', 'Orders']) {
         await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('sidebar-item', item), item);
       }
     });
@@ -1011,6 +1011,27 @@ export const COMPONENT_HANDLERS = {
     });
   },
 
+  Accessibility_Group: async (ctx) => {
+    await ctx.forEachVisualCell(async (cell, index) => {
+      if (index >= 1) {
+        for (const choice of ['Email', 'Phone']) {
+          if (!(await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('text-button', choice), choice))) {
+            await ctx.clickPseudo(cell, choice);
+          }
+          await ctx.wait(200);
+        }
+      }
+    });
+  },
+
+  Accessibility_LiveRegion: async () => {
+    /* delete + counter assert live in audit-gallery-assertions.mjs */
+  },
+
+  Accessibility_WithAccessibility: async () => {
+    /* read-only settings display — assertions only */
+  },
+
   _default: async () => {
     /* generic sweep runs after handler */
   },
@@ -1056,16 +1077,24 @@ export async function interactWithComponent(page, componentName, logFn, options 
   }
 
   const handler = COMPONENT_HANDLERS[componentName] ?? COMPONENT_HANDLERS._default;
-  await handler(ctx);
 
   let assertions = [];
   if (options.passDir) {
-    assertions = await runComponentAssertions(page, componentName, ctx, {
+    const baseline = await runGalleryA11yBaselineAssertions(page, componentName, ctx, {
       passDir: options.passDir,
       screenshotMode: options.screenshotMode ?? 'all',
       platform,
       log: (msg) => logFn(msg),
     });
+    assertions = assertions.concat(baseline);
+
+    const post = await runComponentAssertions(page, componentName, ctx, {
+      passDir: options.passDir,
+      screenshotMode: options.screenshotMode ?? 'all',
+      platform,
+      log: (msg) => logFn(msg),
+    });
+    assertions = assertions.concat(post);
     const unhandled = await checkUnhandledVisuals(page, componentName, ctx, {
       passDir: options.passDir,
       screenshotMode: options.screenshotMode ?? 'all',
@@ -1076,7 +1105,9 @@ export async function interactWithComponent(page, componentName, logFn, options 
     assertions = assertions.concat(unhandled);
   }
 
-  // Generic sweep runs after targeted assertions so UI state checks stay meaningful.
+  await handler(ctx);
+
+  // Generic sweep runs after assertions so UI state checks are not invalidated by handlers.
   const skipGenericButtonSweep = new Set([
     'Dialogs',
     'ErrorBoundary',

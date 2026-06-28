@@ -7,6 +7,7 @@ import { mkdirSync, copyFileSync } from 'fs';
 import { join, basename } from 'path';
 import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
 import { findByTestId } from './audit-gallery-selectors.mjs';
+import { assertGalleryA11yBasics } from './audit-gallery-a11y.mjs';
 
 /** @typedef {import('playwright').Page} Page */
 /** @typedef {import('playwright').Locator} Locator */
@@ -160,6 +161,44 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
     componentName,
     hasTestId,
     a11ySlugTestId,
+  });
+
+  return results;
+}
+
+/**
+ * Baseline a11y checks (A11yPanel section + page title) before interactions mutate the page.
+ */
+export async function runGalleryA11yBaselineAssertions(page, componentName, _ctx, options) {
+  const { platform = PLATFORM.WEB, log = () => {} } = options;
+  const isAndroid = platform === PLATFORM.ANDROID;
+
+  const results = [];
+  let index = 0;
+
+  async function check(name, fn) {
+    index += 1;
+    let passed = false;
+    let message = name;
+    try {
+      const out = await fn();
+      passed = !!out.passed;
+      message = out.message ?? name;
+    } catch (e) {
+      passed = false;
+      message = `${name}: ${e.message ?? e}`;
+    }
+    const result = { id: `${componentName}-baseline-${index}`, name, passed, message, screenshotPath: null };
+    results.push(result);
+    log(passed ? `ASSERT PASS: ${name}` : `ASSERT FAIL: ${message}`);
+    return result;
+  }
+
+  await assertGalleryA11yBasics({
+    page,
+    check,
+    componentName,
+    platform: isAndroid ? PLATFORM.ANDROID : PLATFORM.WEB,
   });
 
   return results;
@@ -377,14 +416,16 @@ const ASSERTION_HANDLERS = {
     }, cell);
   },
 
-  Input_Checkbox: async ({ check, firstCell, hasPseudo }) => {
-    const cell = firstCell();
+  Input_Checkbox: async ({ check, anySampleCell, page, hasPseudo, cellContains }) => {
     await check('Input_Checkbox labels visible', async () => ({
-      passed:
+      passed: await anySampleCell(page, async (cell) =>
+        (await hasPseudo(cell, 'Accept terms')) ||
         (await hasPseudo(cell, 'Children-based Label')) ||
-        (await hasPseudo(cell, 'I want fries with that')),
-      message: 'Checkbox demo labels should be visible',
-    }), cell);
+        (await hasPseudo(cell, 'I want fries with that')) ||
+        (await cellContains(cell, 'Accept terms'))
+      ),
+      message: 'Checkbox demo labels should be visible in at least one sample cell',
+    }));
   },
 
   Input_ChoiceList: async ({ check, firstCell, hasPseudo, ctx }) => {
@@ -534,14 +575,14 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  TextButton: async ({ check, firstCell, hasPseudo, hasTestId, a11ySlugTestId }) => {
-    const cell = firstCell();
+  TextButton: async ({ check, anySampleCell, page, hasPseudo, hasTestId, a11ySlugTestId }) => {
     await check('TextButton Add to Cart visible', async () => ({
-      passed:
+      passed: await anySampleCell(page, async (cell) =>
         (await hasTestId(cell, a11ySlugTestId('text-button', 'Add to Cart'))) ||
-        (await hasPseudo(cell, 'Add to Cart')),
-      message: 'Add to Cart text button should be visible',
-    }), cell);
+        (await hasPseudo(cell, 'Add to Cart'))
+      ),
+      message: 'Add to Cart text button should be visible in at least one sample cell',
+    }));
   },
 
   Tag: async ({ check, anySampleCell, cellContains, hasTestId, page }) => {
@@ -584,6 +625,97 @@ const ASSERTION_HANDLERS = {
     await check('Executor_AlertErrors trigger visible', async () => ({
       passed: await hasPseudo(cell, 'Fail Asynchronously'),
       message: 'Fail Asynchronously button should be visible',
+    }), cell);
+  },
+
+  Accessibility_Group: async ({ check, sampleCells, cellContains, hasPseudo, ctx }) => {
+    const cells = sampleCells();
+    const groupCell = (await cells.count()) >= 1 ? cells.nth(0) : cells.first();
+    await check('Group sample shows address content', async () => ({
+      passed:
+        (await cellContains(groupCell, 'Main Street')) ||
+        (await hasPseudo(groupCell, 'Springfield')),
+      message: 'Group sample should show shipping address text',
+    }), groupCell);
+
+    const radioCell = (await cells.count()) >= 2 ? cells.nth(1) : groupCell;
+    await check('RadioGroup sample shows Email and Phone', async () => ({
+      passed:
+        ((await hasPseudo(radioCell, 'Email')) || (await cellContains(radioCell, 'Email'))) &&
+        ((await hasPseudo(radioCell, 'Phone')) || (await cellContains(radioCell, 'Phone'))),
+      message: 'RadioGroup sample should expose Email and Phone choices',
+    }), radioCell);
+
+    if (!(await ctx.clickTestIdOrLabel(radioCell, ctx.a11ySlugTestId('text-button', 'Phone'), 'Phone'))) {
+      await ctx.clickPseudo(radioCell, 'Phone');
+    }
+    await ctx.wait(250);
+    await check('RadioGroup Phone selectable', async () => ({
+      passed: await cellContains(radioCell, 'Phone'),
+      message: 'Phone option should remain visible after selection',
+    }), radioCell);
+  },
+
+  Accessibility_LiveRegion: async ({ check, firstCell, cellContains, hasPseudo, ctx, page }) => {
+    const cell = firstCell();
+    await check('LiveRegion Delete item button visible', async () => ({
+      passed:
+        (await hasPseudo(cell, 'Delete item')) || (await cellContains(cell, 'Delete item')),
+      message: 'Delete item trigger should be visible',
+    }), cell);
+
+    await ctx.clickButton(cell, 'Delete item');
+    await ctx.wait(500);
+    await check('LiveRegion delete increments counter', async () => {
+      const pageHasCount =
+        (await page.locator('body').innerText().catch(() => '')).includes('Deleted count: 1') ||
+        (await page.evaluate(() =>
+          Array.from(document.querySelectorAll('[data-text-as-pseudo-element]')).some((node) =>
+            (node.getAttribute('data-text-as-pseudo-element') ?? '').includes('Deleted count: 1')
+          )
+        ));
+      const cellHasCount =
+        (await cellContains(cell, 'Deleted count: 1')) || (await hasPseudo(cell, 'Deleted count: 1'));
+      return {
+        passed: pageHasCount || cellHasCount,
+        message: 'Deleted count should show 1 after tapping Delete item',
+      };
+    }, cell);
+  },
+
+  Accessibility_WithAccessibility: async ({ check, firstCell, cellContains }) => {
+    const cell = firstCell();
+    await check('With.Accessibility settings rendered', async () => ({
+      passed:
+        (await cellContains(cell, 'Reduce motion')) &&
+        (await cellContains(cell, 'Font scale')),
+      message: 'Settings display should show Reduce motion and Font scale',
+    }), cell);
+    await check('With.Accessibility screen reader flag shown', async () => ({
+      passed: await cellContains(cell, 'Screen reader enabled'),
+      message: 'Settings display should include Screen reader enabled',
+    }), cell);
+  },
+
+  InfoMessage: async ({ check, firstCell, cellContains, hasPseudo }) => {
+    const cell = firstCell();
+    await check('InfoMessage demo content visible', async () => ({
+      passed:
+        (await hasPseudo(cell, 'No items')) ||
+        (await cellContains(cell, 'No items')) ||
+        (await cellContains(cell, 'horrible error')) ||
+        (await cellContains(cell, 'server')),
+      message: 'InfoMessage sample should show demo message text',
+    }), cell);
+  },
+
+  Heading: async ({ check, firstCell, cellContains, hasPseudo }) => {
+    const cell = firstCell();
+    await check('Heading sample text visible', async () => ({
+      passed:
+        (await hasPseudo(cell, 'default heading')) ||
+        (await cellContains(cell, 'heading')),
+      message: 'Heading samples should show heading text',
     }), cell);
   },
 

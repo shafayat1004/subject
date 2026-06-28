@@ -86,6 +86,7 @@ All scripts live in `AppEggShellGallery/` and are run with `node`:
 |--------|---------|
 | **`audit-gallery-interactive.mjs`** | **Primary.** Headed (default) full crawl: interactions, assertions, visual archive, 2 passes |
 | **`audit-gallery-full.mjs`** | Fast headless console-only crawl; actionable vs dev noise |
+| **`audit-gallery-a11y.mjs`** | **A11yPanel + page title baseline** (parsed from `Navigation.fs`); used before interactions |
 | `audit-gallery-interactions.mjs` | Per-component interaction recipes (imported by interactive) |
 | `audit-gallery-assertions.mjs` | Post-interaction UI checks + assertion screenshots |
 | **`audit-gallery-selectors.mjs`** | **TestId-first helpers:** `clickByTestId`, `findByTestId`, `clickLabelOrTestId`, `readUiSnapshot` |
@@ -244,7 +245,11 @@ When you add a gallery page, it is picked up automatically; add recipes in `audi
 
 ### 3. Post-interaction assertions
 
-Behavioral checks only (not pixel diff): tab content after click, form values retained, grid headers after submit, AsyncData failure caught, etc.
+**Baseline (before interactions):** every ComponentContent page (except XmlDocs routes) must show the **Accessibility** section (`Ui.A11yPanel`: look for `Font scaling` / `Role` facts) and the **display heading** from `ComponentItem.pageTitle` in `Navigation.fs` (document title or header role).
+
+**After interactions:** behavioral checks only (not pixel diff): tab content after click, form values retained, grid headers after submit, LiveRegion counter after delete, `LC.With.Accessibility` settings text, etc.
+
+Use `--only=a11y` for a fast smoke of the new accessibility primitives + representative pages.
 
 Assertion screenshots: `pass-N/screenshots/{Component}/`
 

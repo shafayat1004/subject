@@ -31,12 +31,26 @@ export const STYLE_LEAK_HIGH_VALUE_SCOPE = [
   'Input_LocalTime',
 ];
 
-/** @typedef {'style-leak-fix' | 'style-leak-high-value'} AuditScopePreset */
+/** New LibClient a11y primitives + representative pages with A11yPanel. */
+export const A11Y_SCOPE = [
+  'Accessibility_Group',
+  'Accessibility_LiveRegion',
+  'Accessibility_WithAccessibility',
+  'Tabs',
+  'ToggleButtons',
+  'InfoMessage',
+  'Heading',
+  'Input_Checkbox',
+  'IconButton',
+];
+
+/** @typedef {'style-leak-fix' | 'style-leak-high-value' | 'a11y'} AuditScopePreset */
 
 /** @type {Record<AuditScopePreset, string[]>} */
 export const AUDIT_SCOPE_PRESETS = {
   'style-leak-fix': STYLE_LEAK_FIX_SCOPE,
   'style-leak-high-value': STYLE_LEAK_HIGH_VALUE_SCOPE,
+  a11y: A11Y_SCOPE,
 };
 
 /**

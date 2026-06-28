@@ -742,15 +742,19 @@ on Fable 5.4.0 (branch `modernization/fable5-migration`). The spike produced Fab
 (`fable_build/`, `dist/`) and result screenshots — `spike-web.png` (RNW web), `spike-signalr.png`
 (Fable-5 F# client <- .NET 10 SignalR), and `native-drag-opaque.png` / `native-load-translucent.png` /
 `native-release-translucent.png` (Probe C/D: an RNGH `Gesture.Pan` driving a Reanimated shared-value
-opacity — the red box is opaque while dragging, translucent on release). So **web (RNW) + native +
-SignalR + the declarative Moti path are confirmed.** For the worklet path: the two C/D screenshots were
-produced by the **Fable-compiled** `fsharp/App.fs` using the inline F# `useAnimatedStyle`, with the
-**Plan-B JS shim NOT imported** (`js/worklets.js` is declared in `Bindings.fs` but unused; `App.js`
-mounts `./fable_build/App.js` only) — so a Fable-emitted closure passed to `useAnimatedStyle` drove the
-animation. **Caveat:** the screenshots confirm the gesture->shared-value->animated-style *pipeline*, not
-UI-thread vs JS-thread execution of the worklet. Keep the Plan-B rule (declarative in F#; any stubborn
-worklet in a tiny JS shim). There is also a benign Metro "Require cycle: fable_build/fable_modules/…"
-warning in the build.
+opacity). So **web (RNW) + native + SignalR + the declarative Moti path (Probe B) are confirmed.**
+
+**Worklet thread — SETTLED 2026-06-29 (Risk 1 resolved): Fable worklets run on the JS thread, not the
+UI thread.** A dev-build re-run with an instrumented probe showed: (1) `runOnJS`/host-function calls
+inside a Fable-emitted worklet **abort `libworklets`** (`SIGABRT` at `jsi::Function::getHostFunction`);
+(2) a JS-thread-block test froze the `useAnimatedStyle` animation while JS was blocked (mid-freeze:
+React counter still `0` and box still opacity 0.3) and only snapped to opaque after JS resumed — a real
+UI-thread worklet would have kept animating. The earlier "drag = opaque" screenshots were consistent
+with JS-thread execution (a drag doesn't block JS). **Implication:** the framework rule is **declarative
+animation (Moti / Reanimated declarative API) in F#, and any genuine UI-thread worklet authored in a
+tiny JS shim** (`ThirdParty` recipe) — not hand-authored in F#. (Out-of-the-box for Expo 56 / RN 0.85 /
+Reanimated 4.3.1 / worklets 0.8.3 / Fable 5.4.0; revisit if a `"worklet"`-directive accommodation for
+Fable output lands.) Benign Metro "Require cycle: fable_build/fable_modules/…" warning is unrelated.
 Proven pins are encoded in `MIGRATION_RUNBOOK.md` §4.5-§4.8 (React 19.2.3, RN 0.85.3, RNW 0.21.2,
 Reanimated 4.3.1 + `react-native-worklets` 0.8.3, RNGH 2.31.1, Moti 0.30, Expo 56).
 
