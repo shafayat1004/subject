@@ -1,6 +1,8 @@
 const path      = require("path")
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
+const defaultConfig = getDefaultConfig(__dirname);
+
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -103,4 +105,4 @@ const config = {
   ]
 }
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(defaultConfig, config);

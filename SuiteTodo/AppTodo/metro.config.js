@@ -1,6 +1,7 @@
 const path = require('path');
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
+const defaultConfig = getDefaultConfig(__dirname);
 const libClient = path.resolve(__dirname, '../../LibClient/node_modules');
 
 const externalLibraries = {
@@ -57,4 +58,4 @@ const config = {
   ],
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(defaultConfig, config);

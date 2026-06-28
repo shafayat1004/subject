@@ -313,7 +313,7 @@ type LibClient.Components.Constructors.LC with
                         | None -> ()
                     |]
                 ),
-            children = children
+            children = tellReactArrayKeysAreOkay children
         )
 
     /// <summary>Lay out the children in a column, optionally configuring the gap beteween children, and the horizontal alignment</summary>
@@ -384,7 +384,7 @@ type LibClient.Components.Constructors.LC with
                         | None -> ()
                     |]
                 ),
-            children = children
+            children = tellReactArrayKeysAreOkay children
         )
 
     [<Component>]

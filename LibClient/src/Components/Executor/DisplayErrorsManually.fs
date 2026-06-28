@@ -129,14 +129,13 @@ type LibClient.Components.Constructors.LC.Executor with
                 RX.View(
                     styles = [| Styles.everything |],
                     children =
-                        elements {
-                            content
-                                (
-                                    Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
-                                    Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
-                                )
-
-                            if Helpers.shouldShowSpinner keys executorsHook.current then
+                        (if Helpers.shouldShowSpinner keys executorsHook.current then
+                            tellReactArrayKeysAreOkay [|
+                                content
+                                    (
+                                        Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
+                                        Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
+                                    )
                                 RX.View(
                                     styles = [| Styles.spinnerOverlay |],
                                     children =
@@ -147,7 +146,15 @@ type LibClient.Components.Constructors.LC.Executor with
                                             )
                                         }
                                 )
-                        }
+                            |]
+                         else
+                            tellReactArrayKeysAreOkay [|
+                                content
+                                    (
+                                        Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
+                                        Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
+                                    )
+                            |])
                 )
 
         if not errorsExaminedOnLastRenderHook.current then

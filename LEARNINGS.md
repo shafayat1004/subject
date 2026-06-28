@@ -1231,11 +1231,43 @@ only matched Metro *bundle* errors (`Unable to resolve module`, HTTP 500), not L
 ### 2026-06-28 — iOS `LC.Input.Text` keystrokes wiped (paste OK)
 
 **Symptom:** On iOS native, typing in `LC.Input.Text` shows no characters; paste from the context menu works.
-Android and web fine.
+Android and web fine. Appium `setValue` also worked — that is **not** the same as the software keyboard.
 
-**Cause:** ReactXP `native-common/TextInput` syncs `props.value` into internal state via
-`componentWillReceiveProps`. Parent F# state updates one frame after `onChangeText`; iOS applies the stale
-`value=""` and clears the keystroke. Paste works because it is a single `onChangeText` with the full string.
+**Cause:** ReactXP `@chaldal/reactxp` `native-common/TextInput.tsx`:
+1. Syncs `props.value` in `componentWillReceiveProps` even while focused, wiping keystrokes when F# parent
+   state lags `onChangeText` one frame.
+2. Passes **both** `value: state.inputValue` and `defaultValue: props.value` to RN TextInput (invalid on iOS).
+3. A failed workaround remounted the input on focus via `key={testId}:edit`, which detached the iOS keyboard.
 
-**Fix:** `LibClient/Components/Input/Text/Text.fs` keeps a `draftValueHook` while editing; syncs from props
-only when blurred. Applies to all `LC.Input.Text` (Todo new-title, search, etc.).
+**What did not work:**
+
+- **`draftValueHook` on native only** — ReactXP still syncs `props.value` internally; keystrokes still wiped.
+- **Uncontrolled native branch** (`defaultValue`, no `value`) — insufficient alone; ReactXP still sets internal
+  `value` from state and the erroneous `defaultValue: props.value`.
+- **Remount `key` on focus** — made iOS worse (keyboard detaches on focus).
+- **Metro `resolveRequest` → vendor patch file** — do not use. Two failure modes:
+  1. `Failed to get the SHA-1` until file is in `watchFolders` (vendor dir outside default roots).
+  2. Even with `watchFolders`, sibling imports break (`./AccessibilityUtil`, `./Styles`, … resolve relative to
+     `LibClient/vendor/reactxp-native-common/`, not `node_modules/.../native-common/`). Bundle error:
+     `Unable to resolve module ./AccessibilityUtil from .../vendor/.../TextInput.tsx`.
+  Dead helper: `LibClient/metro/reactxpTextInputPatch.js` (not wired; kept as tombstone).
+
+**Fix (LibClient) — validated with manual iOS keyboard typing:**
+
+- **Vendor patch (source of truth):** `LibClient/vendor/reactxp-native-common/TextInput.tsx` — skip prop sync while
+  `state.isFocused`; drop erroneous `defaultValue: props.value`.
+- **Apply patch:** `LibClient/package.json` `postinstall` copies vendor file into
+  `node_modules/@chaldal/reactxp/src/native-common/TextInput.tsx`. Re-run `npm install` in `LibClient/` after
+  editing vendor copy (or copy manually during dev).
+- **Native `LC.Input.Text`:** pass controlled `value` again; **no** remount `key` on focus.
+- **Web:** keep `draftValueHook` while focused.
+- **React key LogBox:** `LC.Row` / `LC.Column` wrap `children` with `tellReactArrayKeysAreOkay`.
+  `DisplayErrorsManually` spinner branch: use `tellReactArrayKeysAreOkay [| ... |]`, **not**
+  `castAsElementAckingKeysWarning` — `RX.View` `children` is `ReactChildrenProp` (`array<ReactElement>`), not
+  `ReactElement` (Fable error FS0001 on both branches of `if`).
+
+**Observe / verify gotcha (iOS):** `verify-native -p ios` can false-fail on system simulator log lines containing
+`error:` (SpringBoard, brookcompaniond, Accessibility notifications) — not RN render errors. Use `snapshot --platform ios`
+(`state: healthy`, Todo UI visible) as ground truth when verify-native reports `logcat-render-error` with simlog noise.
+
+Long-term: RNW migration (see `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md`) removes ReactXP TextInput.

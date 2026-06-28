@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "postinstall": "cp vendor/reactxp-native-common/TextInput.tsx node_modules/@chaldal/reactxp/src/native-common/TextInput.tsx"
   },
   "dependencies": {
     "@chaldal/reactxp": "^2.2.0",

@@ -452,6 +452,25 @@ module Input_TextComponent =
             let isFocusedHook = Hooks.useState false
             let maybeTextInputHook = Hooks.useState<Option<ITextInputRef>> None
 
+            #if EGGSHELL_PLATFORM_IS_WEB
+            // Web: parent value is synchronous; draft avoids flicker when props lag.
+            let draftValueHook = Hooks.useState (value |> NonemptyString.optionToString)
+
+            Hooks.useEffect(
+                (fun () ->
+                    if not isFocusedHook.current then
+                        draftValueHook.update (value |> NonemptyString.optionToString)
+                    ()),
+                [| value |]
+            )
+            #endif
+
+            let handleChangeText (text: string) : unit =
+                #if EGGSHELL_PLATFORM_IS_WEB
+                draftValueHook.update text
+                #endif
+                onChange (NonemptyString.ofString text)
+
             Hooks.useEffect(
                 (fun () ->
                     match ref with
@@ -504,10 +523,11 @@ module Input_TextComponent =
                                     | _ ->
                                         RX.View(styles = [| Styles.focusPreservingSentinel |])
 
+                                    #if EGGSHELL_PLATFORM_IS_WEB
                                     RX.TextInput(
                                         styles = [| Styles.textInput theTheme.NoneditableBackgroundColor editable (not multiline) |],
-                                        value = (value |> NonemptyString.optionToString),
-                                        onChangeText = (NonemptyString.ofString >> onChange),
+                                        value = draftValueHook.current,
+                                        onChangeText = handleChangeText,
                                         onFocus =
                                             (fun e ->
                                                 isFocusedHook.update true
@@ -528,6 +548,34 @@ module Input_TextComponent =
                                         returnKeyType = returnKeyType,
                                         autoCapitalize = autoCapitalize
                                     )
+                                    #else
+                                    // Native: ReactXP TextInput patched via LibClient/vendor (metro resolveRequest)
+                                    // to skip prop sync while focused; do not remount on focus (breaks iOS keyboard).
+                                    RX.TextInput(
+                                        styles = [| Styles.textInput theTheme.NoneditableBackgroundColor editable (not multiline) |],
+                                        value = (value |> NonemptyString.optionToString),
+                                        onChangeText = handleChangeText,
+                                        onFocus =
+                                            (fun e ->
+                                                isFocusedHook.update true
+                                                onFocus |> Option.sideEffect (fun f -> f e)),
+                                        onBlur =
+                                            (fun e ->
+                                                isFocusedHook.update false
+                                                onBlur |> Option.sideEffect (fun f -> f e)),
+                                        multiline = multiline,
+                                        autoFocus = requestFocusOnMount,
+                                        editable = editable,
+                                        blurOnSubmit = blurOnSubmit,
+                                        placeholder = (placeholder |> Option.defaultValue ""),
+                                        placeholderTextColor = theTheme.PlaceholderColor.ToReactXPString,
+                                        ``ref`` = bindTextInput,
+                                        secureTextEntry = secureTextEntry,
+                                        keyboardType = keyboardType,
+                                        returnKeyType = returnKeyType,
+                                        autoCapitalize = autoCapitalize
+                                    )
+                                    #endif
 
                                     match (isLabelSmall, suffix) with
                                     | (true, Some (InputSuffix.Text text)) ->
