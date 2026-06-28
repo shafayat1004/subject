@@ -12,8 +12,10 @@ open LibLifeCycleTypes.Api.V1
 open LibUiSubject.Services.SubjectService
 open Fable.Core.Reflection
 
-// need this because even though it's auto-opened, Fable.SignalR.Subject clobbers our Subject
+// Under Fable, lifecycle Subject lives in auto-opened LibLifeCycleTypes_SubjectTypes (see SubjectTypes.fs).
+#if !FABLE_COMPILER
 open LibLifeCycleTypes.SubjectTypes
+#endif
 
 [<AutoOpen>]
 module private Helpers =

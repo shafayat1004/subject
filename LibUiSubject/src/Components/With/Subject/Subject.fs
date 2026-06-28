@@ -4,7 +4,9 @@ module LibUiSubject.Components.With.Subject
 open Fable.React
 open LibClient
 open LibClient.Components
+#if !FABLE_COMPILER
 open LibLifeCycleTypes.SubjectTypes
+#endif
 open LibUiSubject
 open LibUiSubject.Components.Constructors
 

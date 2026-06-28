@@ -40,7 +40,7 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 --- FSharpPlus `Comonad.fs` calls `Async.AsTask` on the Fable 5 path, but FSharpPlus hides its own `AsTask` behind `#if !FABLE_COMPILER`. Interim: `Meta/LibFablePlus/src/index.ts` patches the NuGet `Comonad.fs` to use `Async.StartAsTask` before fable runs (marked `EGGSHELL_FABLE5_COMONAD_PATCH`). Long-term: bump FSharpPlus when it adds Fable 5 branches, or vendor the fable slice.
 
-**Phase 2 still required before Fable runtime:** `Fable.SignalR` 0.16.0 remains referenced for dotnet typecheck; replace with direct `@microsoft/signalr` bindings before expecting Fable 5 transpile of `RealTimeService.fs` to succeed.
+**Phase 2 still required before Fable runtime:** ~~`Fable.SignalR` 0.16.0~~ **Phase 2a client done (2026-06-28):** vendored Fable.SignalR 0.16.0 sources into `Meta/LibSignalRClient/` (Fable 5 + `@microsoft/signalr` via npm). `LibUiSubject` uses `ProjectReference` instead of NuGet `Fable.SignalR`. Renamed streaming `Subject<'T>` → `StreamSubject<'T>` to stop clobbering `LibLifeCycleTypes.Subject`. Fable 5 compiles `RealTimeService.fs` green. **Phase 2b server still pending:** `LibLifeCycleHost` still uses `Fable.SignalR.AspNetCore` 0.14.0 (private NuGet DLL); wire protocol unchanged until server migration.
 
 ---
 
