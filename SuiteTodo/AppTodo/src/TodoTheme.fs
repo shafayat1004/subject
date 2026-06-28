@@ -15,14 +15,20 @@ type TabTheme = {
     UnselectedColor: Color
 }
 
+[<RequireQualifiedAccess>]
+type MetaChipKind =
+| Priority
+| Category
+| Due
+
 module Styles =
     let page =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) (isHandheld: bool) ->
                 makeViewStyles {
                     flex 1
-                    paddingVertical (if isHandheld then 16 else 32)
-                    paddingHorizontal (if isHandheld then 16 else 32)
+                    paddingVertical (if isHandheld then 12 else 28)
+                    paddingHorizontal (if isHandheld then 12 else 28)
                     AlignItems.Center
                     backgroundColor palette.PageBackground
                 }
@@ -33,7 +39,7 @@ module Styles =
             fun (isHandheld: bool) ->
                 makeViewStyles {
                     widthPercent 100
-                    maxWidth (if isHandheld then 9999 else 720)
+                    maxWidth (if isHandheld then 9999 else 1060)
                     AlignSelf.Stretch
                 }
         )
@@ -43,51 +49,13 @@ module Styles =
             fun (palette: SemanticPalette) (isHandheld: bool) ->
                 makeViewStyles {
                     widthPercent 100
-                    padding (if isHandheld then 20 else 28)
+                    padding (if isHandheld then 18 else 32)
                     backgroundColor palette.CardBackground
-                    borderRadius 16
+                    borderRadius (if isHandheld then 24 else 26)
                     borderWidth 1
                     borderColor palette.CardBorder
                 }
         )
-
-    let headerRow =
-        ViewStyles.Memoize(
-            fun (isHandheld: bool) ->
-                makeViewStyles {
-                    if isHandheld then
-                        FlexDirection.Column
-                        AlignItems.Stretch
-                        gap 12
-                    else
-                        FlexDirection.Row
-                        JustifyContent.SpaceBetween
-                        AlignItems.Center
-                        gap 12
-                }
-        )
-
-    let headerActions =
-        makeViewStyles {
-            AlignSelf.FlexStart
-            flexShrink 0
-        }
-
-    let categoryScroll =
-        makeScrollViewStyles {
-            flexGrow 0
-            flexShrink 0
-            AlignSelf.Stretch
-            maxHeight 44
-        }
-
-    let categoryScrollContent =
-        makeViewStyles {
-            FlexDirection.Row
-            gap 8
-            paddingVertical 2
-            paddingRight 8
-        }
 
     let pageScroll =
         makeScrollViewStyles {
@@ -95,12 +63,87 @@ module Styles =
             AlignSelf.Stretch
         }
 
-    let categoryRow =
+    let pageScrollContent =
+        makeViewStyles {
+            paddingBottom 28
+        }
+
+    let headerRow =
+        makeViewStyles {
+            FlexDirection.Row
+            JustifyContent.SpaceBetween
+            AlignItems.FlexStart
+            gap 12
+        }
+
+    let headerTitleBlock =
+        makeViewStyles {
+            flex 1
+            minWidth 0
+        }
+
+    let headerActions =
+        makeViewStyles {
+            AlignSelf.FlexStart
+            flexShrink 0
+            marginTop 4
+        }
+
+    let filterTabsRow =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    FlexDirection.Row
+                    AlignSelf.Stretch
+                    borderBottomWidth 1
+                    borderColor palette.CardBorder
+                }
+        )
+
+    let filterTabCell =
+        makeViewStyles {
+            flex 1
+            AlignItems.Center
+        }
+
+    let categoryScroll =
+        makeScrollViewStyles {
+            flexGrow 0
+            flexShrink 0
+            AlignSelf.Stretch
+        }
+
+    let categoryScrollContent =
         makeViewStyles {
             FlexDirection.Row
             gap 8
-            paddingVertical 2
+            paddingVertical 4
+            paddingRight 8
         }
+
+    let categoryPill =
+        ViewStyles.Memoize(
+            fun (bg: Color) (border: Color) (isSelected: bool) ->
+                makeViewStyles {
+                    borderRadius 999
+                    borderWidth (if isSelected then 2 else 1)
+                    paddingVertical 4
+                    paddingHorizontal 10
+                    backgroundColor bg
+                    borderColor border
+                }
+        )
+
+    let headingText =
+        TextStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeTextStyles {
+                    color palette.HeadingText
+                    fontSize 28
+                    FontWeight.W700
+                    marginBottom 2
+                }
+        )
 
     let subtitle =
         TextStyles.Memoize(
@@ -112,12 +155,50 @@ module Styles =
                 }
         )
 
+    let listHeader =
+        makeViewStyles {
+            FlexDirection.Row
+            JustifyContent.SpaceBetween
+            AlignItems.Center
+            gap 12
+            marginTop 4
+            marginBottom 2
+        }
+
     let statsRow =
         makeViewStyles {
             FlexDirection.Row
             FlexWrap.Wrap
             gap 8
         }
+
+    let subFiltersRow =
+        makeViewStyles {
+            FlexDirection.Row
+            gap 8
+            FlexWrap.Wrap
+        }
+
+    let subFilterPill =
+        ViewStyles.Memoize(
+            fun (bg: Color) ->
+                makeViewStyles {
+                    paddingVertical 6
+                    paddingHorizontal 12
+                    borderRadius 999
+                    backgroundColor bg
+                }
+        )
+
+    let subFilterPillText =
+        TextStyles.Memoize(
+            fun (textColor: Color) ->
+                makeTextStyles {
+                    color textColor
+                    fontSize 12
+                    FontWeight.W500
+                }
+        )
 
     let statChip =
         ViewStyles.Memoize(
@@ -142,6 +223,19 @@ module Styles =
                 }
         )
 
+    let composerPanel =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) (isHandheld: bool) ->
+                makeViewStyles {
+                    gap (if isHandheld then 12 else 14)
+                    padding (if isHandheld then 16 else 18)
+                    borderRadius 18
+                    backgroundColor palette.FormBackground
+                    borderWidth 1
+                    borderColor palette.ChipBorder
+                }
+        )
+
     let inputFlex =
         makeViewStyles {
             flex 1
@@ -152,7 +246,7 @@ module Styles =
         ViewStyles.Memoize(
             fun (isHandheld: bool) ->
                 makeViewStyles {
-                    gap (if isHandheld then 12 else 16)
+                    gap (if isHandheld then 12 else 14)
                 }
         )
 
@@ -170,28 +264,53 @@ module Styles =
                 }
         )
 
+    let searchField =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    marginTop 4
+                    paddingVertical 2
+                    borderRadius 999
+                    backgroundColor palette.FormBackground
+                    borderWidth 1
+                    borderColor palette.ChipBorder
+                }
+        )
+
     let list =
         makeViewStyles {
-            gap 10
+            gap 12
             marginTop 4
         }
 
     let todoRow =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isDone: bool) ->
+            fun (palette: SemanticPalette) (isDone: bool) (isHandheld: bool) ->
                 makeViewStyles {
-                    FlexDirection.Row
-                    AlignItems.Center
-                    gap 12
-                    paddingVertical 14
+                    if isHandheld then
+                        FlexDirection.Column
+                        AlignItems.Stretch
+                        gap 10
+                    else
+                        FlexDirection.Row
+                        AlignItems.Center
+                        gap 12
+                    paddingVertical (if isHandheld then 16 else 14)
                     paddingHorizontal 16
                     backgroundColor palette.RowBackground
-                    borderRadius 12
+                    borderRadius 16
                     borderWidth 1
                     borderColor palette.RowBorder
                     opacity (if isDone then 0.82 else 1.0)
                 }
         )
+
+    let todoRowTop =
+        makeViewStyles {
+            FlexDirection.Row
+            AlignItems.FlexStart
+            gap 12
+        }
 
     let todoRowBody =
         makeViewStyles {
@@ -203,32 +322,31 @@ module Styles =
         makeViewStyles {
             FlexDirection.Row
             FlexWrap.Wrap
-            gap 6
-            marginTop 6
+            gap 8
+            marginTop 8
         }
 
     let metaChip =
         ViewStyles.Memoize(
-            fun (chipColor: Color) (palette: SemanticPalette) ->
+            fun (chipBg: Color) (chipBorder: Color) ->
                 makeViewStyles {
-                    paddingVertical 4
-                    paddingHorizontal 10
+                    paddingVertical 5
+                    paddingHorizontal 12
                     borderRadius 999
-                    backgroundColor palette.ChipBackground
                     borderWidth 1
-                    borderColor chipColor
+                    backgroundColor chipBg
+                    borderColor chipBorder
                     AlignSelf.FlexStart
                 }
         )
 
     let metaChipText =
         TextStyles.Memoize(
-            fun (chipColor: Color) ->
+            fun (chipText: Color) ->
                 makeTextStyles {
-                    color chipColor
-                    fontSize 11
-                    lineHeight 16
-                    FontWeight.W600
+                    color chipText
+                    fontSize 12
+                    FontWeight.W700
                 }
         )
 
@@ -238,7 +356,7 @@ module Styles =
                 makeTextStyles {
                     color palette.TextPrimary
                     fontSize 15
-                    FontWeight.W600
+                    FontWeight.W700
                 }
         )
 
@@ -255,8 +373,17 @@ module Styles =
     let rowActions =
         makeViewStyles {
             FlexDirection.Row
-            gap 4
+            gap 8
             AlignItems.Center
+        }
+
+    let rowActionsHandheld =
+        makeViewStyles {
+            FlexDirection.Row
+            gap 8
+            AlignItems.Center
+            JustifyContent.FlexEnd
+            marginLeft 36
         }
 
     let tabsTheme (palette: SemanticPalette) : TabTheme =
@@ -264,7 +391,7 @@ module Styles =
             BackgroundColor = palette.CardBackground
             BorderColor = palette.CardBorder
             SelectedColor = palette.Accent
-            UnselectedColor = palette.TextMuted
+            UnselectedColor = palette.TextSecondary
         }
 
     let filterTabTheme (tabBase: TabTheme) : LC.Tab.Theme =
@@ -285,3 +412,21 @@ module Styles =
         | TodoPriority.High -> palette.PriorityHigh
         | TodoPriority.Medium -> palette.PriorityMedium
         | TodoPriority.Low -> palette.PriorityLow
+
+    let priorityChipColors (palette: SemanticPalette) (priority: TodoPriority) =
+        match priority with
+        | TodoPriority.High -> palette.PriorityHighSoft, palette.PriorityHigh, palette.PriorityHigh
+        | TodoPriority.Medium -> palette.PriorityMediumSoft, palette.PriorityMedium, palette.PriorityMedium
+        | TodoPriority.Low -> palette.PriorityLowSoft, palette.PriorityLow, palette.PriorityLow
+
+    let categoryChipColorsByCategory (palette: SemanticPalette) (category: option<TodoCategory>) =
+        match category with
+        | Some TodoCategory.Work | Some TodoCategory.Personal ->
+            palette.CategoryBlueSoft, palette.Accent, palette.CategoryBlueText
+        | Some TodoCategory.Shopping | Some TodoCategory.Health ->
+            palette.CategoryGreenSoft, palette.Success, palette.CategoryGreenText
+        | Some TodoCategory.Other | None ->
+            palette.ChipBackground, palette.ChipBorder, palette.TextMuted
+
+    let dueChipColors (palette: SemanticPalette) =
+        palette.DueSoft, palette.Warning, palette.Warning
