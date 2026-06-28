@@ -10,6 +10,13 @@ open LibClient.Services.ImageService
 let localImage (filename: string) : ImageSource =
     match filename with
 
+    | "/images/apptodo-icon.png" ->
+        #if EGGSHELL_PLATFORM_IS_WEB
+            ImageSource.restricted_ofWebRelativePath filename
+        #else
+            ImageSource.restricted_ofNativeImport (importDefault "${entryDir}/../.build/native/assets/public-dev/images/apptodo-icon.png")
+        #endif
+
     | "/images/image-not-found.png" ->
         #if EGGSHELL_PLATFORM_IS_WEB
             ImageSource.restricted_ofWebRelativePath filename
