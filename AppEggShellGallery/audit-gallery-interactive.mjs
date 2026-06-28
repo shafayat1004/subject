@@ -114,11 +114,31 @@ function textIsDevNoise(_, text) {
   );
 }
 
-function attachConsole(page, component, passDir, entries) {
+function attachConsole(page, component, passDir, entries, maxEntries = 1000) {
   const pageLogPath = join(passDir, 'pages', `${component}.log`);
   mkdirSync(join(passDir, 'pages'), { recursive: true });
 
+  let pageCount = 0;
+  let capped = false;
+
   const onConsole = (msg) => {
+    if (capped) return;
+    if (pageCount >= maxEntries) {
+      capped = true;
+      const entry = {
+        at: ts(),
+        component,
+        source: 'console',
+        type: 'warning',
+        text: `[audit] Console log cap (${maxEntries}) reached for ${component}; further messages omitted`,
+        classify: 'console-cap',
+      };
+      entries.push(entry);
+      appendFileSync(pageLogPath, formatLogLine(entry) + '\n');
+      appendFileSync(join(passDir, 'console-full.log'), formatLogLine(entry) + '\n');
+      return;
+    }
+    pageCount += 1;
     const entry = {
       at: ts(),
       component,
@@ -133,6 +153,12 @@ function attachConsole(page, component, passDir, entries) {
   };
 
   const onPageError = (err) => {
+    if (capped) return;
+    if (pageCount >= maxEntries) {
+      capped = true;
+      return;
+    }
+    pageCount += 1;
     const entry = {
       at: ts(),
       component,

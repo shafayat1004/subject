@@ -915,3 +915,18 @@ updated to match.
 Updated gallery docs: `public-dev/docs/fsharp/component.md`, `styling.md`, `unsorted/xmldocs.md`.
 **Architecture pages** (`roadmap.md`, etc.): note **Partial** / **Not done** only — omit status for
 completed items (remove from roadmap or fold into brief intro prose).
+
+## 2026-06-29 — Input.File useEffect infinite loop + style-leak fixes
+
+**Symptom:** Gallery audit on `Input_File` hit "Maximum update depth exceeded" (~1.5M console lines;
+Playwright context died).
+
+**Cause:** `useEffect` deps included `value` (gallery passes a fresh `[]` from `Result.recover` every
+render) and unconditionally called `internalValidityHook.update`, retriggering the effect forever.
+
+**Fix:** Reset internal validity only when `value.Length` changes; skip update when already `Valid`.
+Theme-dependent styles: `ViewStyles.Memoize` / `TextStyles.Memoize` (same pattern as `Tag.fs`).
+Also memoized `LabelledFormField` view/label/field styles (overlap-review page).
+
+**Audit hardening:** per-page console cap (1000) in `audit-gallery-interactive.mjs`; `Input_File`
+interaction limited to first sample cell; `audit-gallery-full.mjs` uses `discoverGalleryComponents()`.

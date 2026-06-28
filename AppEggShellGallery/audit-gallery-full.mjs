@@ -6,30 +6,14 @@
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { discoverGalleryComponents } from './audit-gallery-components.mjs';
 
 const baseUrl = (process.argv[2] ?? 'http://127.0.0.1:8082').replace(/\/$/, '');
 const isProd = baseUrl.includes('eggshell.dev');
 const outDir = join(process.cwd(), 'audit-browser', isProd ? 'prod' : 'local');
 mkdirSync(outDir, { recursive: true });
 
-const components = [
-  'Index', 'Layout_Row', 'Layout_Column', 'Layout_Sized', 'Layout_Constrained',
-  'Buttons', 'Button', 'IconButton', 'FloatingActionButton', 'TextButton', 'ToggleButtons',
-  'Forms', 'Input_Checkbox', 'Input_ChoiceList', 'Input_Date', 'Input_DayOfTheWeek',
-  'Input_Decimal', 'Input_Duration', 'Input_EmailAddress', 'Input_LocalTime',
-  'Input_File', 'Input_Image', 'Input_Picker', 'Input_PhoneNumber', 'Input_PositiveInteger',
-  'Input_PositiveDecimal', 'Input_Quantity', 'Input_Text', 'Input_UnsignedInteger', 'Input_UnsignedDecimal',
-  'Card', 'Carousel', 'Dialogs', 'Draggable', 'ImageCard', 'InfoMessage', 'ItemList', 'Section_Padded', 'Tabs',
-  'AnimatableImage', 'AnimatableText', 'AnimatableTextInput', 'AnimatableView',
-  'Grid', 'QueryGrid',
-  'Heading', 'Pre', 'Tag', 'TimeSpan', 'Timestamp',
-  'Avatar', 'Icon', 'IconWithBadge', 'Thumb', 'Thumbs', 'Scrim', 'Stars',
-  'ContextMenu', 'Sidebar', 'Nav_Top', 'Nav_Bottom',
-  'ErrorBoundary', 'Executor_AlertErrors', 'AsyncData', 'WithContext', 'TriStateful', 'QuadStateful',
-  'Responsive', 'InProgress', 'WithExecutor', 'WithDataFlowControl',
-  'ThirdParty_Map', 'ThirdParty_Recharts',
-  'DateSelector', 'TouchableOpacity',
-];
+const components = discoverGalleryComponents();
 
 function componentPath(name) {
   const desktop = encodeURIComponent(JSON.stringify('Desktop'));

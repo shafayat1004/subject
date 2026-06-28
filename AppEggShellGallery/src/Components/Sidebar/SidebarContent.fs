@@ -239,7 +239,10 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Third Party")
+        compItemIcon "MarkdownViewer" ThirdParty_MarkdownViewer itemState
         compItemIcon "Map" ThirdParty_Map itemState
+        compItemIcon "ImagePicker" ThirdParty_ImagePicker itemState
+        compItemIcon "ReCaptcha" ThirdParty_ReCaptcha itemState
         compItemIcon "Recharts" ThirdParty_Recharts itemState
 
         LC.Sidebar.Divider()

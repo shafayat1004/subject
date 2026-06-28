@@ -110,6 +110,9 @@ and ComponentItem =
 | TimeSpan
 | Timestamp
 | ThirdParty_Map
+| ThirdParty_MarkdownViewer
+| ThirdParty_ImagePicker
+| ThirdParty_ReCaptcha
 | ThirdParty_Recharts
 | Thumb
 | Thumbs

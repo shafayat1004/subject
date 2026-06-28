@@ -20,6 +20,8 @@
     <ProjectReference Include="../../ThirdParty/SyntaxHighlighter/src/SyntaxHighlighter.fsproj" />
     <ProjectReference Include="../../ThirdParty/Showdown/src/Showdown.fsproj" />
     <ProjectReference Include="../../ThirdParty/Map/src/Map.fsproj" />
+    <ProjectReference Include="../../ThirdParty/ImagePicker/src/ImagePicker.fsproj" />
+    <ProjectReference Include="../../ThirdParty/ReCaptcha/src/ReCaptcha.fsproj" />
     <ProjectReference Include="../../ThirdParty/Recharts/src/Recharts.fsproj" />
   </ItemGroup>
 
@@ -109,6 +111,10 @@
     <Compile Include="Components/Content/ThirdParty/Map/Map.fs" />
 
     <Compile Include="Components/Content/ThirdParty/MarkdownViewer/MarkdownViewer.fs" />
+
+    <Compile Include="Components/Content/ThirdParty/ImagePicker/ImagePicker.fs" />
+
+    <Compile Include="Components/Content/ThirdParty/ReCaptcha/ReCaptcha.fs" />
 
     <Compile Include="Components/Content/ThirdParty/Recharts/Recharts.fs" />
 

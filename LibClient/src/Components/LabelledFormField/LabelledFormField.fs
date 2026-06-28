@@ -21,41 +21,44 @@ open LC.LabelledFormField
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let view (screenSize: ScreenSize) (theTheme: Theme) =
-        makeViewStyles {
-            Overflow.Visible
+    let view =
+        ViewStyles.Memoize (fun (screenSize: ScreenSize) (_theTheme: Theme) ->
+            makeViewStyles {
+                Overflow.Visible
 
-            match screenSize with
-            | ScreenSize.Desktop ->
-                FlexDirection.Row
-                AlignItems.Center
-                JustifyContent.FlexEnd
-                padding 10
-            | ScreenSize.Handheld ->
-                FlexDirection.Column
-                marginBottom 12
-        }
+                match screenSize with
+                | ScreenSize.Desktop ->
+                    FlexDirection.Row
+                    AlignItems.Center
+                    JustifyContent.FlexEnd
+                    padding 10
+                | ScreenSize.Handheld ->
+                    FlexDirection.Column
+                    marginBottom 12
+            })
 
-    let label (screenSize: ScreenSize) (theTheme: Theme) =
-        makeTextStyles {
-            color theTheme.LabelColor
+    let label =
+        TextStyles.Memoize (fun (screenSize: ScreenSize) (theTheme: Theme) ->
+            makeTextStyles {
+                color theTheme.LabelColor
 
-            match screenSize with
-            | ScreenSize.Desktop ->
-                width theTheme.LabelWidth
-            | ScreenSize.Handheld ->
-                marginBottom 6
-                fontSize 14
-        }
+                match screenSize with
+                | ScreenSize.Desktop ->
+                    width theTheme.LabelWidth
+                | ScreenSize.Handheld ->
+                    marginBottom 6
+                    fontSize 14
+            })
 
-    let field (screenSize: ScreenSize) =
-        makeViewStyles {
-            Overflow.Visible
+    let field =
+        ViewStyles.Memoize (fun (screenSize: ScreenSize) ->
+            makeViewStyles {
+                Overflow.Visible
 
-            match screenSize with
-            | ScreenSize.Desktop -> flex 1
-            | ScreenSize.Handheld -> ()
-        }
+                match screenSize with
+                | ScreenSize.Desktop -> flex 1
+                | ScreenSize.Handheld -> ()
+            })
 
 type LibClient.Components.Constructors.LC with
     [<Component>]

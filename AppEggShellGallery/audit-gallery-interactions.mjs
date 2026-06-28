@@ -503,11 +503,12 @@ export const COMPONENT_HANDLERS = {
   },
 
   Input_File: async (ctx) => {
-    await ctx.forEachVisualCell(async (cell) => {
+    await ctx.forEachVisualCell(async (cell, i) => {
+      if (i > 0) return;
       const input = cell.locator('input[type="file"]');
       if (await input.count()) {
         await input.setInputFiles(FIXTURE_SAMPLE).catch(() => {});
-        ctx.log('setInputFiles on file input (no OS picker)');
+        ctx.log('setInputFiles on file input (no OS picker, first sample only)');
       } else {
         ctx.log('skip Select File (no file input in DOM)');
       }

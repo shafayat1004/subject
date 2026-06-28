@@ -61,11 +61,11 @@ module Input_FileComponent =
 
     [<RequireQualifiedAccess>]
     module private Styles =
-        let view (_theme: Theme) = makeViewStyles { padding 5; marginTop 10; AlignItems.Center }
-        let viewInvalid (theme: Theme) = makeViewStyles { borderColor theme.InvalidColor }
+        let view = makeViewStyles { padding 5; marginTop 10; AlignItems.Center }
+        let viewInvalid = ViewStyles.Memoize (fun (theme: Theme) -> makeViewStyles { borderColor theme.InvalidColor })
         let textCenter = makeTextStyles { TextAlign.Center }
         let dragAndDropMessage = makeViewStyles { marginTop 20 }
-        let invalidReason (theme: Theme) = makeTextStyles { TextAlign.Center; color theme.InvalidColor }
+        let invalidReason = TextStyles.Memoize (fun (theme: Theme) -> makeTextStyles { TextAlign.Center; color theme.InvalidColor })
         let infoMessage = makeTextStyles { TextAlign.Center; color Color.DevOrange }
         let messageContainer = makeViewStyles { marginTop 10 }
 
@@ -153,9 +153,14 @@ module Input_FileComponent =
             let theTheme = Themes.GetMaybeUpdatedWith theme
             let internalValidityHook = Hooks.useState InputValidity.Valid
 
+            let valueLength = value.Length
             Hooks.useEffect(
-                (fun () -> internalValidityHook.update (fun (_: InputValidity) -> InputValidity.Valid)),
-                [| value; validity; acceptedTypes; selectionMode; maxFileCount; maxFileSize |]
+                (fun () ->
+                    internalValidityHook.update (fun current ->
+                        match current with
+                        | InputValidity.Valid -> current
+                        | _ -> InputValidity.Valid)),
+                [| box valueLength |]
             )
 
             let contextRef = Hooks.useRef<FileContext>((value, selectionMode, maxFileCount, maxFileSize, onChange, internalValidityHook.update))
@@ -204,7 +209,7 @@ module Input_FileComponent =
                 internalValidityHook.current.IsInvalid || validity.IsInvalid || validity = InputValidity.Missing
 
             RX.View(
-                styles = [| Styles.view theTheme; if isInvalid then Styles.viewInvalid theTheme; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
+                styles = [| Styles.view; if isInvalid then Styles.viewInvalid theTheme; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
                 children = [|
                     LC.With.RefDom(
                         onInitialize = onDropZoneInitialize,
