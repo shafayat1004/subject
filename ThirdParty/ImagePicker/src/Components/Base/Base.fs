@@ -7,6 +7,7 @@ open LibClient.Components
 open LibLifeCycleTypes.File
 open ReactXP.Styles
 open ThirdParty.ImagePicker.Components.Constructors
+open ThirdParty.ImagePicker.Components.Native.ImagePicker
 
 type SelectionMode = LibClient.Components.Input.File.SelectionMode
 let ReplacedExisting = SelectionMode.ReplacedExisting

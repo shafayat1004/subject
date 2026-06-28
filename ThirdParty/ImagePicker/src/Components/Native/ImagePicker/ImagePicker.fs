@@ -53,7 +53,7 @@ module private Styles =
             borderColor Color.DevRed
         }
 
-type ImagePicker.Native with
+type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
     [<Component>]
     static member ImagePicker(
             value:         list<File>,
