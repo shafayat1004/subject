@@ -184,7 +184,7 @@ type Ui with
 ```
 
 2. **Named private module** when you have several related styles. Use a descriptive name, not a generic
-`Styles` module (avoids collisions and matches converted LibClient components):
+`Styles` module (avoids name collisions across files):
 
 ```fsharp
 [<RequireQualifiedAccess>]
@@ -197,8 +197,10 @@ type Ui with
         LC.Text(label, styles = [| LinkDemoStyles.label |])
 ```
 
-Avoid bare `module private Styles =` in new code. Legacy converted files may still use it; prefer
-`FooStyles` or top-level `let` when touching them.
+**This is forward guidance.** Most converted LibClient components (~98 files, including the canonical
+`Tabs.fs`) currently use a generic `module private Styles =`; they are **not** being mass-migrated.
+Prefer top-level `let` or a named `FooStyles` module in *new* code, and switch when you substantially
+touch an existing file — but matching a file's existing `module private Styles =` is acceptable.
 
 The `makeTextStyles` / `makeViewStyles` computation expressions come from `open ReactXP.Styles`.
 Familiar `RX.*` and `LC.*` components accept `?styles: array<...Styles>`.

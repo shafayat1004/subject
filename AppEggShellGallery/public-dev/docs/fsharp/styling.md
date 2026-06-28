@@ -52,6 +52,11 @@ RX.View(
 
 `[<RequireQualifiedAccess>]` keeps call sites explicit (`CardStyles.view`, not bare `view`).
 
+> **Note — this is forward guidance.** Most converted LibClient components (~98 files, including the
+> canonical `Tabs.fs`) still use a generic `module private Styles =` and are not being mass-migrated.
+> Prefer the named/top-level forms in new code; matching a file's existing `module private Styles =`
+> when editing it is acceptable.
+
 ### Parametrized styles
 
 Sometimes we want to vary styles based on input parameters. E.g.

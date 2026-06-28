@@ -553,8 +553,12 @@ Scope: all framework dirs + AppEggShellGallery. Opus does a few + writes this re
    - `open Fable.React`, `open LibClient`, `open ReactXP.Components`, `open ReactXP.Styles`.
      **Do NOT `open ReactXP.LegacyStyles`** — its rule fns (flex/Overflow/FlexDirection/backgroundColor)
      shadow the new-dialect ones and break `make*Styles` CEs. Qualify legacy refs fully instead.
-   - Port `.styles.fs` class blocks → `module private Styles` with `makeViewStyles`/`makeScrollViewStyles`
+   - Port `.styles.fs` class blocks → a styles module with `makeViewStyles`/`makeScrollViewStyles`
      /`makeTextStyles`. One legacy class (e.g. `"view" => [...]`) → one style value/function.
+     *(Historically this recipe used a generic `module private Styles`; ~98 converted files do. Going
+     forward prefer a named `[<RequireQualifiedAccess>] module private FooStyles` or top-level `let` —
+     see the 2026-06-28 styling-guidance entry. Matching an existing file's `module private Styles` is
+     fine; no mass migration.)*
    - `type LibClient.Components.Constructors.LC with` + `[<Component>] static member Foo(...) : ReactElement`.
    - Render body: translate the `.render` tree to `RX.*`/`LC.*` calls, `elements { }` for children lists,
      `element { }` for single, `match` for `rt-match`.
@@ -868,10 +872,16 @@ All **69** gallery Content pages are now single `Foo.fs` files with `[<Component
 
 ## 2026-06-28 — Styling guidance for docs and gallery samples
 
-**Avoid** generic `module private Styles =` in new code and in gallery/XmlDocs **code sample strings**.
-Prefer:
+**Forward guidance** (not a mass-migration mandate). In new code and in gallery/XmlDocs **code sample
+strings**, prefer:
 1. Top-level `let foo = makeViewStyles { ... }` (see `GallerySampleImages.fs`, ImageCard code blocks)
 2. `[<RequireQualifiedAccess>] module private FooStyles =` when grouping many related styles
+
+**Reconcile with the conversion recipe (2026-06-26):** that recipe and ~**98** converted LibClient files
+(incl. canonical `Tabs.fs`) use a generic `module private Styles =`. Those are **not** being migrated.
+Matching an existing file's `module private Styles =` when editing is acceptable; the named/top-level
+forms are the preference for *new* files and substantial rewrites. CLAUDE.md component conventions
+updated to match.
 
 Updated gallery docs: `public-dev/docs/fsharp/component.md`, `styling.md`, `unsorted/xmldocs.md`.
 **Architecture pages** (`roadmap.md`, etc.): note **Partial** / **Not done** only — omit status for
