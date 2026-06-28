@@ -26,6 +26,7 @@
     "appcenter-crashes": "^5.0.3",
     "react": "file:../../LibClient/node_modules/react",
     "react-native": "0.76.5",
+    "react-native-get-random-values": "^1.11.0",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler",
     "react-native-code-push": "file:../../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push"
   },

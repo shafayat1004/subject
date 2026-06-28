@@ -29,6 +29,7 @@ const externalLibraries = {
   'react-router-native': path.resolve(__dirname, '../../LibRouter/node_modules/react-router-native'),
   '@microsoft/signalr': path.resolve(__dirname, '../../LibUiSubject/node_modules/@microsoft/signalr'),
   'fast-memoize': path.resolve(libClient, 'fast-memoize'),
+  'react-native-get-random-values': path.resolve(__dirname, './node_modules/react-native-get-random-values'),
 };
 
 const config = {

@@ -52,6 +52,7 @@ export async function runSnapshotWorkflow(options = {}) {
     const manifest = {
       command: 'snapshot',
       platform,
+      orientation: session.orientation ?? null,
       baseUrl: isNativePlatform(platform) ? null : baseUrl,
       headless: isNativePlatform(platform) ? null : headless,
       httpStatus: session.httpStatus ?? null,

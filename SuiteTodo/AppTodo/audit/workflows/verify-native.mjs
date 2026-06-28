@@ -18,7 +18,7 @@ import { HEALTH } from '../lib/app-health.mjs';
 
 /**
  * @param {'android' | 'ios'} platform
- * @param {{ timeoutMs?: number }} [options]
+ * @param {{ timeoutMs?: number, orientation?: string }} [options]
  */
 async function verifyPlatform(platform, options = {}) {
   const timeoutMs = options.timeoutMs ?? TIMEOUTS.appReadyMs;
@@ -39,6 +39,7 @@ async function verifyPlatform(platform, options = {}) {
       platform,
       outDir,
       timeoutMs,
+      orientation: options.orientation,
       log: (m) => appendRunLog(outDir, m),
     });
 
@@ -140,7 +141,7 @@ async function verifyPlatform(platform, options = {}) {
 }
 
 /**
- * @param {{ platforms?: Array<'android' | 'ios'>, timeoutMs?: number }} [options]
+ * @param {{ platforms?: Array<'android' | 'ios'>, timeoutMs?: number, orientation?: string }} [options]
  */
 export async function runVerifyNativeWorkflow(options = {}) {
   const platforms = options.platforms ?? [PLATFORM.ANDROID, PLATFORM.IOS];
@@ -149,7 +150,7 @@ export async function runVerifyNativeWorkflow(options = {}) {
 
   for (const p of platforms) {
     emitStatus('ok', `Verifying ${p}...`);
-    reports.push(await verifyPlatform(p, { timeoutMs: options.timeoutMs }));
+    reports.push(await verifyPlatform(p, { timeoutMs: options.timeoutMs, orientation: options.orientation }));
   }
 
   const allOk = reports.every((r) => r.ok);

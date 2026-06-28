@@ -1211,3 +1211,17 @@ on manifest root when using Gradle `namespace`.
 `IconCheckedColor.ToCssString` / unchecked / DevRed), not on `Theme` record. Same pattern for
 `labelTextTheme` → `LabelColor.ToCssString`. Use `Color.InternalString colorCss` inside memo body
 (see `InfoMessage.fs`).
+
+### 2026-06-28 — Native Fable 5 Guid needs `crypto` polyfill + observe LogBox gap
+
+**Symptom:** Android/iOS LogBox `Render Error: Property 'crypto' doesn't exist` in `Guid.js` when
+`PageTitleService.SetRouteName` calls `Guid.NewGuid()` on first route render (Fable 5 library uses Web Crypto).
+
+**Fix:** `import 'react-native-get-random-values'` as first line in app `index.js` (before Bootstrap);
+add dep to `package.json` + Metro `extraNodeModules`.
+
+**Observe gap:** Doctor/verify waited up to 120s for Todo testIds while LogBox was visible. Health checks
+only matched Metro *bundle* errors (`Unable to resolve module`, HTTP 500), not LogBox *render* errors
+(`Render Error`, `Property 'crypto'…`). Now `RN_RENDER_ERROR_PATTERNS` fails fast with `render_error` state.
+Also: earlier runs never reached runtime (Metro missing assets/config); verify was interrupted before this
+crash class appeared.

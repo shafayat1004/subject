@@ -11,6 +11,7 @@ import { waitForTodoReady } from './selectors.mjs';
 import { appendRunLog } from './capture.mjs';
 import { waitForHealthyApp, probeAppHealth, AppHealthError } from './app-health.mjs';
 import { createDeviceLogCollector } from './device-logs.mjs';
+import { resolveDeviceOrientation } from './device-orientation.mjs';
 import { resolveAndroidApp } from './native-config.mjs';
 
 /**
@@ -23,7 +24,7 @@ import { resolveAndroidApp } from './native-config.mjs';
  */
 
 /**
- * @param {{ platform?: string, baseUrl?: string, headless?: boolean, slowMo?: number, outDir?: string, log?: (msg: string) => void, skipNavigation?: boolean, timeoutMs?: number }} options
+ * @param {{ platform?: string, baseUrl?: string, headless?: boolean, slowMo?: number, outDir?: string, log?: (msg: string) => void, skipNavigation?: boolean, timeoutMs?: number, orientation?: string }} options
  * @returns {Promise<ObserveSession>}
  */
 export async function openObserveSession(options = {}) {
@@ -33,6 +34,7 @@ export async function openObserveSession(options = {}) {
   const slowMo = options.slowMo ?? DEFAULTS.slowMo;
   const baseUrl = options.baseUrl ?? DEFAULTS.baseUrl;
   const timeoutMs = options.timeoutMs ?? TIMEOUTS.appReadyMs;
+  const orientation = resolveDeviceOrientation(options);
 
   if (platform === PLATFORM.WEB) {
     const ready = await waitForAppReady(baseUrl, { log, maxWaitMs: timeoutMs });
@@ -66,12 +68,14 @@ export async function openObserveSession(options = {}) {
 
     const page = await connectAndroidPage({
       log,
+      orientation,
       launchTimeoutMs: options.timeoutMs ?? TIMEOUTS.sessionConnectMs,
     });
 
     return {
       platform,
       page,
+      orientation,
       logs: logCollector?.toSessionLogs() ?? { consoleLines: [], pageErrors: [], networkErrors: [] },
       logCollector,
       async close() {
@@ -83,11 +87,12 @@ export async function openObserveSession(options = {}) {
 
   if (platform === PLATFORM.IOS) {
     const { connectIosPage, disconnectIosPage } = await import('./ios-driver.mjs');
-    const page = await connectIosPage({ log });
+    const page = await connectIosPage({ log, orientation });
 
     return {
       platform,
       page,
+      orientation,
       logs: { consoleLines: [], pageErrors: [], networkErrors: [] },
       logCollector: null,
       async close() {

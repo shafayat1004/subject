@@ -20,6 +20,7 @@ export const HEALTH = {
   TOP_LEVEL_ERROR: 'top_level_error',
   WEBPACK_OVERLAY: 'webpack_overlay',
   REACT_RUNTIME_OVERLAY: 'react_runtime_overlay',
+  RENDER_ERROR: 'render_error',
 };
 
 /** Metro / RN dev error screen text (Android RedBox, iOS LogBox). */
@@ -38,6 +39,15 @@ export const METRO_ERROR_PATTERNS = [
   'Exception in HostFunction',
   'TransformError',
   'SyntaxError',
+];
+
+/** RN LogBox render / runtime error UI (bundle loaded, app crashed on render). */
+export const RN_RENDER_ERROR_PATTERNS = [
+  'Render Error',
+  'Uncaught Error',
+  "Property 'crypto' doesn't exist",
+  'ReferenceError',
+  'TypeError',
 ];
 
 /** EggShell TopLevelErrorMessage markers (web + native text). */
@@ -104,13 +114,25 @@ export async function isTodoUiVisible(page, platform = PLATFORM.WEB) {
 }
 
 /**
- * Detect Metro RedBox / bundle failure on native.
+ * Detect Metro RedBox / LogBox render error on native.
  * @param {import('./android-driver.mjs').AndroidPage | import('./ios-driver.mjs').IosPage} page
  */
 export async function detectMetroRedbox(page) {
   const metro = await anyTextVisible(page, METRO_ERROR_PATTERNS);
   if (metro) {
     return { state: HEALTH.METRO_REDBOX, kind: 'metro-redbox', detail: metro };
+  }
+
+  const renderErr = await anyTextVisible(page, RN_RENDER_ERROR_PATTERNS);
+  if (renderErr) {
+    return { state: HEALTH.RENDER_ERROR, kind: 'logbox-render-error', detail: renderErr };
+  }
+
+  // LogBox title is often split; "Render Error" + stack sections is a strong signal.
+  const hasRenderTitle = (await page.getByText('Render Error', { exact: true }).count()) > 0;
+  const hasCallStack = (await page.getByText('Call Stack', { exact: false }).count()) > 0;
+  if (hasRenderTitle && hasCallStack) {
+    return { state: HEALTH.RENDER_ERROR, kind: 'logbox-render-error', detail: 'Render Error (LogBox)' };
   }
 
   let dismissReload = 0;
@@ -243,6 +265,7 @@ export async function waitForHealthyApp(page, platform, options = {}) {
 
       if (
         probe.state === HEALTH.METRO_REDBOX ||
+        probe.state === HEALTH.RENDER_ERROR ||
         probe.state === HEALTH.TOP_LEVEL_ERROR ||
         probe.state === HEALTH.WEBPACK_OVERLAY ||
         probe.state === HEALTH.REACT_RUNTIME_OVERLAY ||

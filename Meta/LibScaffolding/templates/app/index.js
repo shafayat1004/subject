@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { LogBox } from 'react-native';
 
 // ReactXP + React 18 emit legacy contextTypes warnings on every View/Text/Button

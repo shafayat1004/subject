@@ -12,6 +12,8 @@ export const DEFAULTS = {
   bootstrapWaitMs: 8000,
   viewport: { width: 1280, height: 900 },
   platform: 'web',
+  /** Native phone tests default to portrait; override via --orientation or native.local.json */
+  deviceOrientation: 'portrait',
 };
 
 /** Timeouts for observe workflows — override via CLI `--timeout-ms`. */

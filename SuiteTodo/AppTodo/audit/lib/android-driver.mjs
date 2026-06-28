@@ -8,6 +8,12 @@ import { resolveAndroidApp, APPIUM } from './native-config.mjs';
 import { TIMEOUTS } from './config.mjs';
 import { resolveAndroidSessionUdid } from './device-targets.mjs';
 import {
+  resolveDeviceOrientation,
+  setAndroidOrientationViaAdb,
+  ensureDeviceOrientation,
+  toAppiumOrientation,
+} from './device-orientation.mjs';
+import {
   ensureAppForeground,
   waitForHealthyApp,
   isTodoUiVisible as isTodoUiVisibleHealth,
@@ -215,7 +221,10 @@ export async function connectAndroidPage(options = {}) {
   const port = Number(options.appiumPort ?? APPIUM.port);
   const log = options.log ?? (() => {});
   const udid = options.udid ?? (await getDefaultAndroidUdid({ log }));
-  log(`adb device: ${udid}, package: ${app.package}`);
+  const orientation = resolveDeviceOrientation(options);
+  log(`adb device: ${udid}, package: ${app.package}, orientation: ${orientation}`);
+
+  setAndroidOrientationViaAdb(orientation, udid);
 
   const driver = await remote({
     hostname: host,
@@ -235,11 +244,13 @@ export async function connectAndroidPage(options = {}) {
       'appium:appWaitActivity': app.activity,
       'appium:appWaitPackage': app.package,
       'appium:appWaitDuration': options.launchTimeoutMs ?? 120_000,
+      'appium:orientation': toAppiumOrientation(orientation),
       'wdio:enforceWebDriverClassic': true,
     },
   });
 
   const page = new AndroidPage(driver);
+  await ensureDeviceOrientation(driver, 'android', orientation, { udid, log });
   await ensureAppForeground(page, app, log);
   await waitForTodoAppReady(page, {
     log,

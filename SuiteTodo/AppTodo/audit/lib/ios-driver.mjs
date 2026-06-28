@@ -7,6 +7,11 @@ import { spawn, execSync } from 'child_process';
 import { resolveIosApp, APPIUM } from './native-config.mjs';
 import { TIMEOUTS } from './config.mjs';
 import { resolveIosSessionUdid } from './device-targets.mjs';
+import {
+  resolveDeviceOrientation,
+  ensureDeviceOrientation,
+  toAppiumOrientation,
+} from './device-orientation.mjs';
 import { waitForHealthyApp, probeAppHealth, detectMetroRedbox, isTodoUiVisible } from './app-health.mjs';
 
 class IosLocator {
@@ -156,7 +161,8 @@ export async function connectIosPage(options = {}) {
   const udid = options.udid ?? getDefaultIosUdid({ log, bootIfNeeded: options.bootIfNeeded });
   if (!udid) throw new Error('No iOS simulator available. Set defaultIosSimulator: npm run observe -- setup-devices');
 
-  log(`ios simulator: ${udid}, bundle: ${app.bundleId}`);
+  const orientation = resolveDeviceOrientation(options);
+  log(`ios simulator: ${udid}, bundle: ${app.bundleId}, orientation: ${orientation}`);
 
   const driver = await remote({
     hostname: host,
@@ -170,11 +176,13 @@ export async function connectIosPage(options = {}) {
       'appium:bundleId': app.bundleId,
       'appium:noReset': true,
       'appium:newCommandTimeout': 600,
+      'appium:orientation': toAppiumOrientation(orientation),
       'wdio:enforceWebDriverClassic': true,
     },
   });
 
   const page = new IosPage(driver);
+  await ensureDeviceOrientation(driver, 'ios', orientation, { udid, log });
   try {
     await driver.activateApp(app.bundleId);
   } catch {

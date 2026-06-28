@@ -110,10 +110,12 @@ cp audit/native.local.json.example audit/native.local.json
 npm run observe:setup-devices                              # list all
 npm run observe -- setup-devices --android Android_Desktop
 npm run observe -- setup-devices --ios "iPhone 16"
+npm run observe -- setup-devices --orientation portrait   # default for phone tests
 ```
 
 - **Android:** matches connected emulator to `defaultAndroidAvd`; errors if multiple adb devices without a default
 - **iOS:** uses `defaultIosSimulator` when set (boots it if shut down); warns when multiple simulators are booted
+- **Orientation:** defaults to **portrait** for native sessions. Override per run: `--orientation landscape`, or set `deviceOrientation` in `native.local.json`, or env `APPTODO_DEVICE_ORIENTATION`
 
 Toolchain PATH checks: `adb`, `emulator`, `eggshell`, `node`, `npx`, `react-native`, `ANDROID_SDK`, `xcrun`, `pod`, etc.
 
@@ -164,6 +166,7 @@ npm run observe -- snapshot --platform android
 npm run observe -- workflow layout-check --platform android
 npm run observe -- workflow verify-native --platform android
 npm run observe -- snapshot --timeout-ms 60000   # shorter wait
+npm run observe -- snapshot --orientation landscape -p android
 npm run observe -- snapshot --headless true      # web CI
 ```
 

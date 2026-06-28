@@ -2,7 +2,8 @@
   "androidPackage": "com.eggshell.apptodo",
   "androidActivity": "com.eggshell.apptodo.MainActivity",
   "iosBundleId": "com.eggshell.apptodo",
-  "defaultAndroidAvd": "Android_Desktop",
+  "defaultAndroidAvd": "Medium_Phone_API_35",
   "defaultIosSimulator": "iPhone 16",
-  "defaultAndroidUdid": null
+  "defaultAndroidUdid": null,
+  "deviceOrientation": "portrait"
 }

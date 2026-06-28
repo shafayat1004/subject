@@ -17,8 +17,8 @@ export function classifyConsole(text, type) {
   if (t.includes('development server returned response error') || t.includes('transformerror')) {
     return { bucket: 'actionable', kind: 'metro-server' };
   }
-  if (t.includes('androidruntime') || t.includes('fatal exception')) {
-    return { bucket: 'actionable', kind: 'native-crash' };
+  if (t.includes('property \'crypto\' doesn\'t exist') || t.includes('render error')) {
+    return { bucket: 'actionable', kind: 'native-render' };
   }
   if (t.includes('objects are not valid as a react child')) return { bucket: 'actionable', kind: 'react-child' };
   if (t.includes('typeerror') || t.includes('referenceerror')) return { bucket: 'actionable', kind: 'runtime' };

@@ -7,6 +7,8 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execSync, spawnSync } from 'child_process';
 import { loadNativeLocal, saveNativeLocal } from './native-config.mjs';
+import { normalizeOrientation } from './device-orientation.mjs';
+import { DEFAULTS } from './config.mjs';
 
 const auditRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -111,6 +113,10 @@ export function collectDeviceInventory(run = defaultRun) {
     prefs,
     defaultAndroidAvd: prefs.defaultAndroidAvd ?? null,
     defaultIosSimulator: prefs.defaultIosSimulator ?? null,
+    deviceOrientation: normalizeOrientation(
+      /** @type {string | undefined} */ (prefs.deviceOrientation),
+      DEFAULTS.deviceOrientation
+    ),
     multipleIosBooted: bootedSimulators.length > 1,
   };
 }
@@ -355,11 +361,18 @@ export function buildDeviceChecks(inventory) {
     });
   }
 
+  checks.push({
+    id: 'device-orientation',
+    ok: true,
+    informational: true,
+    detail: `deviceOrientation: ${inventory.deviceOrientation} (override: --orientation landscape)`,
+  });
+
   return checks;
 }
 
 /**
- * @param {{ android?: string, ios?: string, list?: boolean, json?: boolean }} options
+ * @param {{ android?: string, ios?: string, orientation?: string, list?: boolean, json?: boolean }} options
  */
 export function runDeviceSetup(options = {}) {
   const inventory = collectDeviceInventory();
@@ -380,6 +393,10 @@ export function runDeviceSetup(options = {}) {
         defaultAndroidAvd: prefs.defaultAndroidAvd ?? null,
         defaultIosSimulator: prefs.defaultIosSimulator ?? null,
         defaultAndroidUdid: prefs.defaultAndroidUdid ?? null,
+        deviceOrientation: normalizeOrientation(
+          /** @type {string | undefined} */ (prefs.deviceOrientation),
+          DEFAULTS.deviceOrientation
+        ),
       },
     };
     if (options.json) {
@@ -394,6 +411,10 @@ export function runDeviceSetup(options = {}) {
       console.log('\nCurrent defaults (audit/native.local.json):');
       console.log('  defaultAndroidAvd:', prefs.defaultAndroidAvd ?? '(not set)');
       console.log('  defaultIosSimulator:', prefs.defaultIosSimulator ?? '(not set)');
+      console.log(
+        '  deviceOrientation:',
+        normalizeOrientation(/** @type {string | undefined} */ (prefs.deviceOrientation), DEFAULTS.deviceOrientation)
+      );
     }
     return payload;
   }
@@ -418,7 +439,11 @@ export function runDeviceSetup(options = {}) {
     updates.defaultIosSimulator = options.ios;
   }
 
-  if (!options.android && !options.ios) {
+  if (options.orientation) {
+    updates.deviceOrientation = normalizeOrientation(options.orientation);
+  }
+
+  if (!options.android && !options.ios && !options.orientation) {
     return runDeviceSetup({ ...options, list: true });
   }
 
@@ -436,6 +461,7 @@ export function runDeviceSetup(options = {}) {
     console.log(`Saved device defaults → ${result.path}`);
     if (updates.defaultAndroidAvd) console.log(`  defaultAndroidAvd: ${updates.defaultAndroidAvd}`);
     if (updates.defaultIosSimulator) console.log(`  defaultIosSimulator: ${updates.defaultIosSimulator}`);
+    if (updates.deviceOrientation) console.log(`  deviceOrientation: ${updates.deviceOrientation}`);
   }
 
   return result;

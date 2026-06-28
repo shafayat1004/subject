@@ -55,6 +55,7 @@ function workflowOptions(args) {
     outDir: args.out,
     title: args.title,
     timeoutMs: args.timeoutMs,
+    orientation: args.orientation,
   };
 }
 
@@ -83,6 +84,11 @@ const argv = yargs(hideBin(process.argv))
     default: undefined,
     describe: 'Max wait for healthy app / end states (default: 120000ms)',
   })
+  .option('orientation', {
+    type: 'string',
+    choices: ['portrait', 'landscape'],
+    describe: 'Native device orientation (default: portrait; or audit/native.local.json deviceOrientation)',
+  })
   .command(
     'setup-devices',
     'List emulators/simulators and set defaults in audit/native.local.json',
@@ -91,13 +97,19 @@ const argv = yargs(hideBin(process.argv))
         .option('list', { type: 'boolean', default: false, describe: 'List available devices (default when no --android/--ios)' })
         .option('android', { type: 'string', describe: 'Default Android AVD name (emulator -list-avds)' })
         .option('ios', { type: 'string', describe: 'Default iOS simulator name (e.g. iPhone 16)' })
+        .option('orientation', {
+          type: 'string',
+          choices: ['portrait', 'landscape'],
+          describe: 'Default device orientation for native observe sessions',
+        })
         .option('json', { type: 'boolean', default: false }),
     async (args) => {
       try {
         runDeviceSetup({
           android: args.android,
           ios: args.ios,
-          list: args.list || (!args.android && !args.ios),
+          orientation: args.orientation,
+          list: args.list || (!args.android && !args.ios && !args.orientation),
           json: args.json,
         });
       } catch (e) {
