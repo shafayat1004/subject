@@ -38,7 +38,12 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 **Native build — ImagePicker FS0039 (pre-existing, fixed 2026-06-28):** `dotnet build -c "Native Debug"` failed in `ThirdParty/ImagePicker/.../Base.fs`: `Native` does not define member `ImagePicker`. Cause: native `ImagePicker.fs` type extension was not visible to `Base.fs` (same pattern as Map — need fully qualified extension target + `open` the native impl module). Fix: `type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with` in `ImagePicker.fs`; add `open ThirdParty.ImagePicker.Components.Native.ImagePicker` in `Base.fs`. Then `eggshell build-native` on gallery: 682/682 Fable + 685 Babel commonjs files green (`fable-library-js.5.4.0`).
 
-**Phase 2 SignalR modularization (2026-06-28):** Moved client + server out of `subject/Meta/` into sibling repo `../eggshell-signalr/` (`LibSignalRClient`, `LibSignalRServer`). `LibUiSubject` / `LibLifeCycleHost` use `ProjectReference` to `../../eggshell-signalr/src/...`. MIT `LICENSE` + `NOTICE.md` in that repo (derived from Shmew/Fable.SignalR). Pin `FSharp.Core` 9.0.201 in `eggshell-signalr/Directory.Build.targets` so NU1605 does not break `LibLifeCycleHost` (TreatWarningsAsErrors). Server `streamFrom` retains EggShell 0.14.0 `CancellationToken` extension; `Microsoft.IO.RecyclableMemoryStream` 2.3.2. Validated: `dotnet build EggShellSignalR.sln`, `dotnet build LibLifeCycleHost`, `dotnet build LibUiSubject -c "Web Debug"`, `eggshell build-lib` (LibUiSubject). Fable path: `dotnet fable LibUiSubject.fsproj` emits `RealTimeService.js`. E2E live push still needs gallery + backend runtime.
+**Phase 5-6 TODO template (2026-06-28):** North star is `./dev-stack up` after `eggshell create-app` (web:
+docker SQL stub + backend + dev-web; native: gallery three-terminal recipe). Reference app `SuiteTodo`
+demonstrates lifecycle + View projection + Timer + simulation tests + SignalR subscription + Playwright
+audit + a11y testIds + UiActionLog. Templatize only after concrete app is green on web + Android + iOS
+smoke. Phase 6 adds real docker SQL persistence. Plan in `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` §21
+and `MIGRATION_RUNBOOK.md` Phase 5-6. In-repo patterns: `SuiteJobs`, `AppEggShellGallery` only.
 
 **Phase 2b SignalR server (2026-06-28):** (superseded by modular repo above) Vendored `Fable.SignalR.AspNetCore` — now lives in `eggshell-signalr/src/LibSignalRServer/`.
 

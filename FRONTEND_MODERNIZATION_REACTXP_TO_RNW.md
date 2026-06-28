@@ -42,7 +42,8 @@ familiarity.
 18. [Non-React F# alternatives (food for thought)](#18-non-react-f-alternatives-food-for-thought)
 19. [Spike status and the confirmed Fable 5 / .NET 10 gate](#19-spike-status-and-the-confirmed-fable-5--net-10-gate)
 20. [Sources](#20-sources)
-21. [Update Log](#21-update-log)
+21. [The TODO reference app and one-command bootstrap (goal B)](#21-the-todo-reference-app-and-one-command-bootstrap-goal-b)
+22. [Update Log](#22-update-log)
 
 ---
 
@@ -458,21 +459,37 @@ Because the framework is used for **greenfield projects only** (no legacy apps t
 **zero migration debt**. This is the cheapest possible version of the project: rebuild one framework
 seam and set the template for new apps, rather than porting hundreds of live screens.
 
-**Phased plan:**
+**Phased plan (updated 2026-06-28):**
 
-1. **Spike the worklet question (1-2 weeks, do first).** A throwaway standalone project (see Section
-   14) that answers: can Fable F# drive Reanimated declaratively, and where exactly do we need a JS
-   shim? De-risk the only genuine unknown before committing.
-2. **Land the platform baseline.** Fable 5, .NET 10, RN bumped to a New-Architecture release, React 19.
-3. **Re-implement the primitives seam.** `ReactXPBindings.fs` to RN/RNW; port `Components/*` keeping F#
-   signatures; bundler-alias `react-native` to `react-native-web` for web. Validate with the gallery
-   and its existing audit harness.
-4. **Re-target the style DSL.** `Styles/{Legacy,New}` emit RN style objects; decide web-only vs native
-   for nested selectors and breakpoints.
-5. **Build the animation layer.** F# wrappers over Reanimated 4 + RNGH 3 + Moti; Motion for web; Skia
-   as an optional `ThirdParty` wrapper. This is where the modern-features payoff lands.
-6. **Bake it into scaffolding.** The corrected `create-app` template ships the RNW/RN stack as the
-   canonical modern EggShell app, so every greenfield project starts here.
+| Phase | What | Validates |
+|---|---|---|
+| **0** | De-risking spikes (worklets, SignalR, Orleans-on-net10) | Modern stack is viable |
+| **1** | Fable 5 + .NET 10 SDK (TFMs stay net7 until Phase 3) | Gallery + libs compile |
+| **2** | SignalR modular repo (`eggshell-signalr` sibling) | Typed streaming transport |
+| **3** | Backend net10 (Orleans 3.7.2 frozen) | Silo + simulation tests |
+| **4** | ReactXP → RN/RNW seam swap | Gallery + native on modern RN |
+| **5** | **Full-stack TODO reference app + templatized bootstrap** | **Goal B: `create-app` works end to end** |
+| **6** | Docker SQL Server + persistent dev stack | Real DB, not just in-memory |
+
+Phases 1-3 and 5-6 can overlap once Phase 1 gates are green. Phase 4 stays after the platform baseline.
+Phase 5 is the **validation benchmark** for the whole modernization: if the TODO app runs on web, iOS,
+and Android with simulation tests and UI automation green, the framework story is proven for greenfield
+work.
+
+Legacy numbered steps (still accurate within phases):
+
+1. **Spike the worklet question (done).** See Section 14 and Update Log entry (6).
+2. **Land the platform baseline (Phase 1 + 3).** Fable 5, .NET 10 SDK, net10 backend when ready.
+3. **Re-implement the primitives seam (Phase 4).** `ReactXPBindings.fs` to RN/RNW; validate with gallery
+   audit harness.
+4. **Re-target the style DSL + animation layer (Phase 4).** Reanimated 4 / RNGH 3 / Moti wrappers.
+5. **Bake into scaffolding (Phase 5).** The TODO app becomes the default `eggshell create-app` output.
+6. **Docker SQL + one-command dev stack (Phase 6).** Persistent Orleans storage for the template; see
+   Section 21.
+
+**Why Phase 5 before Phase 4:** the TODO app proves Fable 5, net10, SignalR, lifecycle simulation,
+scaffolding, and multi-platform dev on the *current* ReactXP seam. That de-risks goal B independently of
+the RNW swap. Phase 4 then re-points the seam without re-proving the app architecture.
 
 ---
 
@@ -800,8 +817,130 @@ Fable 4.x first and add .NET 10 later.
 
 ---
 
-## 21. Update Log
+## 21. The TODO reference app and one-command bootstrap (goal B)
 
+This section is the **product outcome** of the modernization: a greenfield developer runs one command and
+gets a working full-stack app on web, iOS, and Android, with tests and automation wired. Detailed steps
+live in `MIGRATION_RUNBOOK.md` Phase 5-6; this section states intent and coverage.
+
+### 21.1 North-star developer experience
+
+After repo bootstrap (`./initialize` at monorepo root), a new project should be:
+
+```bash
+eggshell create-app Todo          # scaffolds SuiteTodo/ + ecosystem + app (pure F#, no .render)
+cd SuiteTodo/AppTodo
+./dev-stack up                    # ONE command: SQL (docker) + backend silo + dev-web
+# OR for native:
+./dev-stack up --native           # adds dev-native + Metro; prints iOS/Android launch commands
+```
+
+**Phase 5 deliverable:** `./dev-stack up` may start as a template shell script; **Phase 6** folds it into
+`eggshell dev-stack` in the CLI. Until then, the script in the generated app is the contract.
+
+**Platforms (all must work from the same scaffold):**
+
+| Platform | Command(s) | Proof |
+|---|---|---|
+| Web | `eggshell dev-web` (port 9080 default) | CRUD + live subscription in browser |
+| Android | `eggshell dev-native` + Metro + `run-android` | Same flows on emulator |
+| iOS | `eggshell dev-native` + Metro + `run-ios` | Same flows on simulator |
+
+Native wiring follows `AppEggShellGallery` (three terminals, `configSourceOverrides.native.js`,
+`adb reverse` on Android). The template ships those files pre-generated.
+
+### 21.2 What the TODO app demonstrates (framework feature matrix)
+
+The domain is intentionally small (todos) so the **machinery** is what we showcase. In-repo references:
+`SuiteJobs` (backend patterns), `AppEggShellGallery` (frontend + audit patterns). Do not name or link
+external legacy repos in generated template code.
+
+**Backend (Orleans lifecycle stack):**
+
+| Feature | TODO showcase |
+|---|---|
+| Subject lifecycle | `Todo` record: Create, SetTitle, ToggleDone, Archive, Delete |
+| Constructors + OpErrors | `New of Title`; reject `EmptyTitle` |
+| LifeEvents | `Created`, `TitleChanged`, `DoneToggled`, `Archived` (audit trail) |
+| **View projection** | `TodoListView` read model (all active todos, sorted) |
+| **Timers / reminders** | Auto-archive todos `Done` longer than N minutes (`moveTimeForward` in tests) |
+| **Simulation tests** | `LibLifeCycleTest` suite: construct, act, assert state + events + timer |
+| Codec generation | `TypesCodecGen` launcher (not hand-written codecs) |
+| V1 HTTP API | Generic request/response for actions |
+| **Real-time push** | SignalR subscription on view (`ClientStreamApi.ObserveSubjectV2`) |
+| EcosystemDef | `SuiteTodo` ecosystem registered in Dev launcher |
+| Indexes | Minimal index set (extend if search demo needed) |
+
+**Frontend (Fable + LibClient/LibUiSubject):**
+
+| Feature | TODO showcase |
+|---|---|
+| Pure F# `[<Component>]` | All routes/dialogs; zero `.render` |
+| Typed routing | `LibRouter` routes: list, settings |
+| **Live subscription** | `LC.With.Subjects` on view; `AsyncData` loading/error/empty states |
+| HTTP actions | Toggle/edit/delete via subject service |
+| Dialog | Edit-todo dialog (optional archive confirm) |
+| Forms | `LC.Input.Text`, validation feedback for empty title |
+| **Accessibility** | `A11ySlug.testId` / `?testId` on every interactive control |
+| **Observability** | `UiActionLog` on user actions; structured logs on backend |
+| i18n | `I18n` En (Bn stub optional) |
+| Error boundary | Top-level + per-route |
+| Responsive layout | `LC.With.ScreenSize` for handheld vs desktop list |
+| Session | `NoSession` initially (session slot reserved in template for extension) |
+
+**Automation (shipped in template `audit/` folder):**
+
+| Layer | Tool | What it proves |
+|---|---|---|
+| Web UI | Playwright (gallery pattern) | Add todo, toggle, edit; assert DOM + no console errors |
+| Web a11y smoke | Playwright + testId selectors | Stable automation hooks |
+| Backend simulation | `dotnet test` on ecosystem Tests | Lifecycle + timer without UI |
+| Android smoke | adb + optional Maestro/Appium script | App launches, list renders (gallery `audit-gallery-*` pattern) |
+| CI | GitHub Actions workflow in template | `create-app` -> build -> simulation -> Playwright |
+
+### 21.3 Build order (concrete first, template second)
+
+1. **`SuiteTodo/` in-repo reference implementation** - working app, not scaffold output yet.
+2. **Green on all platforms** - web CRUD + subscription; native smoke; simulation tests pass.
+3. **Templatize** into `Meta/LibScaffolding/templates` - replace Chaldal demo routes with TODO content.
+4. **Smoke gate** - CI runs `eggshell create-app` in temp dir -> `./dev-stack up` -> Playwright pass.
+5. **Docker SQL (Phase 6)** - swap Dev launcher from in-memory to ADO.NET + dockerized SQL Server.
+
+### 21.4 Scaffolding modernization (ties to EGGSHELL_ARCHITECTURE Section 8)
+
+The current `create-app` templates are broken (flat `eggshell.json`, `.render` routes, Chaldal coupling,
+missing webpack). Phase 5 fixes them by **copying the working TODO app**, not patching incrementally:
+
+- Nested `render` schema in `eggshell.json.template` (or empty render block when pure F# only).
+- `App.fsproj.template` with correct compile order, no stale `_autogenerated_` render entries.
+- `package.json.template` with webpack dev-server, Playwright devDep, native scripts.
+- Delete all `.render` templates; `create-component/route/dialog` emit pure F#.
+- Generic app shell (Bootstrap, Config, Navigation, Services) kept; demo routes replaced.
+- `android/` + `ios/` native project templates (from gallery, parameterized app name).
+- `docker-compose.yml` + `sql/` init scripts (Phase 6).
+
+### 21.5 Modular dependencies
+
+- **SignalR:** sibling repo `eggshell-signalr` (ProjectReference), not in-tree vendoring.
+- **Spikes:** external reference only in these strategy docs; template README points to in-repo docs.
+
+### 21.6 Documentation hygiene
+
+Strategy/runbook files currently live at repo root with absolute machine paths to external spikes.
+**Action:** move to `docs/modernization/` and relativize paths (`../eggshell-rnw-spike`, etc.) in a
+follow-up doc pass. Generated apps must not embed external absolute paths.
+
+---
+
+## 22. Update Log
+
+- **2026-06-28 (17)** **Phase 5-6 plan expanded: full-stack TODO + one-command bootstrap.** Section 21
+  added; Section 13 phased table updated (Phases 5-6: TODO reference app, templatized `create-app`,
+  Playwright/Android audit, simulation tests, docker SQL). `MIGRATION_RUNBOOK.md` Phase 5 expanded with
+  native iOS/Android, UI automation, a11y/observability matrix, and Phase 6 docker SQL. SignalR moved to
+  modular `eggshell-signalr` sibling repo. Build order reaffirmed: concrete `SuiteTodo` to green first,
+  then templatize. Inspired by in-repo `SuiteJobs` + gallery patterns only (no external repo references
+  in subject code).
 - **2026-06-28 (1)** Document created. Incorporates: the `@chaldal/reactxp` fork audit (read-only
   analysis of the clone at `/Volumes/HomeX/shafayat/Code/reactxp-fork`), the modern RN / React 19 /
   react-native-web research, the animation/gesture/graphics ecosystem research, the

@@ -4,9 +4,10 @@
 > react-native-web modernization. It is a step-by-step companion to the strategy doc
 > `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` (read that for the *why*; this is the *how*).
 >
-> **Scope:** this is the **later** initiative (architecture goals F/G/H). The repo's *current* phase is
-> A-E on Fable 4 (see `subject/CLAUDE.md`). **Do not start this runbook unless explicitly told the
-> modernization phase has begun.**
+> **Scope:** Phases 1-4 are framework modernization (goals F/G/H). Phases 5-6 are **goal B**: the full-stack
+> TODO reference app, templatized `create-app`, multi-platform dev, UI automation, and docker SQL. The
+> repo's *current* initiative A-E on Fable 4 (see `subject/CLAUDE.md`) continues in parallel until
+> modernization is explicitly started.
 >
 > **Proven on spikes (do not re-litigate):** the whole path is already validated end to end in
 > `/Volumes/HomeX/shafayat/Code/eggshell-rnw-spike` (frontend: Fable 5 + RNW + Reanimated + RNGH + Moti +
@@ -25,7 +26,8 @@
 3. **One change at a time.** Bump one thing, build, confirm green, then the next. Do not batch unrelated
    edits.
 4. **Work framework-only** (`Lib*`, `LibUi*`, `LibRouter`, `LibAutoUi`, `LibLifeCycleUi`, `ThirdParty`,
-   `Meta/*`). Do not touch `App*`/`Suite*` unless explicitly told (per `CLAUDE.md` rule 8).
+   `Meta/*`) by default. **Exception:** Phase 5-6 explicitly create `SuiteTodo/` + `AppTodo/` as the
+   reference implementation and update scaffolding; that is the allowed app/suite touch.
 5. **No em-dash in prose. No banned NuGet packages (Moq, AutoMapper).** (Org rules.)
 6. **Environment:** always `export DOTNET_ROOT="$HOME/.dotnet"` before dotnet/fable/eggshell commands
    (the toolchain apphosts need it; see `LEARNINGS.md`).
@@ -254,121 +256,270 @@ Strict DOM stays a thin re-point (strategy doc Section 16).
 
 ---
 
-## Phase 5 - Full-stack TODO example app + scaffold modernization (goal B + the validation benchmark)
+## Phase 5 - Full-stack TODO reference app + templatized bootstrap (goal B)
 
-**Owner:** weaker model for the mechanical bulk; escalate on the codec-gen / Orleans-codegen wiring and
-any framework-API mismatch. **Sequencing:** this is goal-B work and the migration's validation benchmark;
-do it AFTER Phases 1-3 (Fable 5 + net10 + SignalR) and BEFORE Phase 4 (RNW). **Build order within the
-phase: build the concrete app to green FIRST, then templatize it** (a correct template is, by definition,
-the canonical modern app).
-**Goal:** a working full-stack TODO app - a backend Todo subject lifecycle (CRUD + a timer auto-update)
-and a frontend that does CRUD and subscribes for live updates - then folded into `eggshell create-app` as
-the default modern app.
-**Reference:** model the backend on the in-repo **SuiteJobs** ecosystem (current framework API). Do NOT
-add references to any out-of-repo example project anywhere in this repo; the conventions are spelled out
-inline below.
-**Domain:** Subject `{ Id; CreatedOn; Title: NonemptyString; Done: bool; ArchivedOn: Option<DateTimeOffset> }`;
-Constructor `New of Title`; Actions `SetTitle | ToggleDone | Archive | Delete`; LifeEvents
-`Created | TitleChanged | DoneToggled of bool | Archived`; OpError `EmptyTitle`; a View listing todos; a
-timer auto-archiving todos that have been Done for > N minutes (the automated-update signal).
+**Owner:** weaker model for mechanical bulk; escalate on codec-gen / Orleans wiring / native template
+parameterization.
+**Sequencing:** after Phases 1-3 (Fable 5 + net10 + SignalR). **Before** Phase 4 (RNW seam). Phase 5
+proves the stack on the current ReactXP seam; Phase 4 re-points the seam without re-proving app architecture.
+**North star:** one command from fresh scaffold to running web stack; documented three-terminal recipe for
+native; CI runs simulation + Playwright.
+**Strategy doc:** `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` Section 21 (feature matrix + DX target).
+**In-repo references only:** `SuiteJobs` (backend), `AppEggShellGallery` (frontend, native, Playwright audits).
+Do not name or link external legacy repos in generated template code or app sources.
+
+### Feature coverage checklist (must demonstrate)
+
+Use this as the acceptance checklist for the reference `SuiteTodo` app AND the templatized output:
+
+| Area | Must show |
+|---|---|
+| Lifecycle | Subject CRUD, OpErrors, LifeEvents, constructor validation |
+| Projection | `View` returning a list read model consumed by the frontend |
+| Timer | Auto-archive after N minutes Done; proven via `moveTimeForwardAndRunReminders` |
+| Simulation | `LibLifeCycleTest` tests for actions + timer (no UI) |
+| HTTP API | V1 generic endpoints for actions |
+| Real-time | SignalR view subscription; two browser tabs stay in sync |
+| Frontend subscription | `AsyncData`, `With.Subjects`, reconnect on session change |
+| Routing | Typed routes, nav shell |
+| Dialog / forms | Edit todo; empty-title validation |
+| Accessibility | `A11ySlug.testId` on list items, inputs, buttons, dialog actions |
+| Observability | `UiActionLog` on FE; structured backend logs on lifecycle transitions |
+| Web | `eggshell dev-web` green |
+| Native | `eggshell dev-native` + Metro + Android emulator + iOS simulator smoke |
+| UI automation | Playwright web audit script; simulation tests in CI |
+| Scaffold | `eggshell create-app` reproduces the above (minus SuiteTodo-specific naming) |
+
+---
 
 ### 5A. Backend Todo ecosystem (build to green first)
-Mirror `SuiteJobs/Ecosystem` shape: `SuiteTodo/Ecosystem/{Todo.Types, LifeCycles, Tests}`, three net7.0
-`.fsproj` with the same package/project references SuiteJobs uses.
-1. **Types** (`Todo.Types/`): `Common.fs` (the `TodoId` wrapper) + `Todo.fs` with HAND-WRITTEN
-   declarations only (mirror `SuiteJobs/.../RecurringJob.fs` shapes):
-   `[<AutoOpen; CodecLib.CodecAutoGenerate>] module SuiteTodo.Types.Todo`; the `Todo` record with
-   `interface Subject<TodoId> with member SubjectCreatedOn / SubjectId`; the Action/Constructor/LifeEvent/
-   OpError DUs each `with interface LifeAction/Constructor/LifeEvent/OpError`; the five index types
-   (start `NoNumericIndex`/`NoSearchIndex`/etc.) + `type TodoIndex() = inherit SubjectIndex<...>()`;
-   `EcosystemDef.fs` = `newEcosystemDef "Todo"` + `addLifeCycleDef ... "Todo"` + the
-   `{| EcosystemDef = ...; LifeCycles = {| todo = ... |} |}` record (mirror SuiteJobs `EcosystemDef.fs`).
-2. **GENERATE CODECS - do NOT hand-write them.** Each Types file carries a generated
-   `#if !FABLE_COMPILER ... codec { ... } ... #endif` block produced by the codec-gen tool. Wire a
-   `TypesCodecGen` Dev launcher for SuiteTodo (mirror `SuiteJobs/Launchers/Dev/TypesCodecGen`) and run it;
-   it appends the codec block. **ESCALATE-IF the codec-gen wiring is unclear - it is the fiddliest part of
-   standing up a new ecosystem.**
-3. **LifeCycle** (`LifeCycles/`): a builder module (mirror `JobsLifeCycleBuilder.fs`:
-   `LifeCycleBuilder.newLifeCycle<...,NoSession,NoRole> def` and `ViewBuilder.newView<...,NoSession,NoRole>`);
-   `TodoLifeCycle.fs` with `construction { ... }` (reject empty title -> `TodoOpError.EmptyTitle`; emit
-   `Created`) and `transition { ... }` (SetTitle/ToggleDone/Archive/Delete -> new subject + LifeEvents); a
-   **View** projecting the todo list; a **Timer** auto-archiving todos Done > N minutes; `AllLifeCycles.fs`
-   registration.
-4. **Validate:** `export DOTNET_ROOT="$HOME/.dotnet"`; `dotnet build` each project green; run the Tests
-   project simulation suite (mirror `SuiteJobs/Ecosystem/Tests` `Simulation.fs` + a test): construct,
-   act ToggleDone/SetTitle and assert state + LifeEvent; assert `EmptyTitle` on bad input; a
-   `moveTimeForwardAndRunReminders` test asserting the auto-archive timer fires (backend-level real-time proof).
 
-### 5B. Backend host/launcher (serve the V1 API + realtime SignalR)
-Add a Dev launcher that hosts the Todo ecosystem on the framework host (`LibLifeCycleHost`), exposing the
-V1 generic HTTP API (request/response) and the realtime SignalR endpoint (subscriptions). Mirror an
-existing in-repo Dev launcher. **Validate:** silo starts; the SignalR negotiate endpoint responds; a view
-query returns over HTTP.
+Mirror `SuiteJobs/Ecosystem` layout:
 
-### 5C. Frontend TODO app (CRUD + live subscriptions) - the connection standard
-Encode these conventions (do not name any external project):
-- **`Config.fs`**: a `ConfigSource` record with at least `AppUrlBase` and `BackendUrl`, a `.Base` default,
-  and `withOverrides` reading `configSourceOverrides.*.js`. `BackendUrl` points the app at 5B.
-- **`AppServices.fs` `initialize config`**: build `EventBus()`; construct
-  `HttpService(eventBus, <staticResourceSettings>, (fun url -> url.StartsWith config.BackendUrl), <hashedDirPrefix>)`;
-  `LibClient.ServiceInstances.provideInstances { EventBus; Date; Http; ThothEncodedHttp; PageTitle; Image }`.
-  For live data: `RealTimeService(eventBus, config.BackendUrl)` + the Todo ecosystem's subject services
-  (`makeSubjectServices`) + that ecosystem's `provideInstances`.
-- **Components** (pure F# `[<Component>]`, NO `.render`): a TODO list route that subscribes to the Todo
-  view via `LC.With.Subject` / `With.Subjects` and renders `AsyncData<'T>`
-  (`Uninitialized | Fetching | Available | Error`); an add-todo input; per-row toggle/edit/delete that call
-  the backend actions through the subject service. CRUD goes through the HTTP request/response path; live
-  updates arrive via the subscription with no manual refresh.
-- **Validate:** `eggshell dev-web` green; in-browser add/toggle/edit/delete works; two tabs show live
-  propagation; the auto-archive timer visibly updates a Done item with no refresh (the subscription proof).
+```
+SuiteTodo/
+  Ecosystem/
+    Todo.Types/          # types + EcosystemDef + codec-gen input
+    LifeCycles/          # TodoLifeCycle, AllLifeCycles, View
+    Tests/               # Simulation + unit tests
+  Launchers/Dev/
+    TypesCodecGen/       # codec generation launcher
+    Host/                # Dev silo + V1 API + SignalR (Phase 5B)
+```
 
-### 5D. Templatize into the scaffold (modernize `create-app`)
-Fold 5A-5C into `Meta/LibScaffolding/templates` as the DEFAULT generated app, modernizing the scaffold
-(see strategy doc Section 8):
-- `eggshell.json.template`: flat `renderDependencies` -> nested
-  `render.{ dependenciesToRtCompile, additionalModulesToOpen, componentLibraryAliases, componentLibraryPaths, componentAliases }`.
-- routes/components/dialogs: pure-F# templates; DELETE the `.render` templates (`route/Route.render.template`,
-  `dialog/Dialog.render.template`, the `.typext.fs`/`.styles.fs` pairs) and emit pure F#.
-- decouple from Chaldal: remove `Bananas`/`Mangoes`/`Landing`/`DoSomething` and company-lib coupling; the
-  generated app is the generic TODO.
-- `package.json.template`: add the `webpack-dev-server` dev-web start path; drop dead `file:` deps + mobile-only bloat.
-- update the scaffolding TS tasks (`Meta/LibScaffolding/src/tasks`) for changed placeholders/structure;
-  auto-update the `.fsproj` on `create-component`.
+1. **Types** (`Todo.Types/`): hand-written declarations only (mirror `SuiteJobs/.../Job.fs` shapes):
+   - `TodoId`, `Todo` record (`Title: NonemptyString`, `Done`, `ArchivedOn`, `CreatedOn`)
+   - `TodoAction`: `SetTitle | ToggleDone | Archive | Delete`
+   - `TodoConstructor`: `New of Title`
+   `TodoLifeEvent`: `Created | TitleChanged | DoneToggled of bool | Archived`
+   - `TodoOpError`: `EmptyTitle`
+   - Index types + `TodoIndex()` inheriting `SubjectIndex<...>`
+   - `EcosystemDef.fs`: `newEcosystemDef "Todo"` + life cycle registration
+2. **Codec gen:** wire `TypesCodecGen` Dev launcher (mirror `SuiteJobs/Launchers/Dev/TypesCodecGen`).
+   Run it; commit generated `#if !FABLE_COMPILER` codec blocks. **ESCALATE-IF** wiring is unclear.
+3. **LifeCycle** (`LifeCycles/`):
+   - `LifeCycleBuilder` + `ViewBuilder` (mirror `JobsLifeCycleBuilder.fs`)
+   - `construction`: reject empty title; emit `Created`
+   - `transition`: actions update subject + emit LifeEvents
+   - **View** `TodoListView`: projection of active todos (sorted by `CreatedOn`)
+   - **Timer**: when `Done && not Archived`, schedule archive after N minutes (`LifeCycleBuilder.withTimers`)
+   - `AllLifeCycles.fs` registration
+4. **Tests** (`Tests/`): mirror `SuiteJobs/Ecosystem/Tests/Simulation.fs`:
+   - Simulation builder with ecosystem initializer
+   - Test: construct todo, toggle, assert LifeEvent + state
+   - Test: `EmptyTitle` rejected
+   - Test: `Ecosystem.moveTimeForwardAndRunReminders` fires auto-archive timer
 
-**Disposition of the EXISTING template files** (in `Meta/LibScaffolding/templates/`) - do not start from
-scratch; most of the app shell is reusable. Three buckets:
+**VALIDATE:** `dotnet build` each project green; `dotnet test SuiteTodo/Ecosystem/Tests` passes.
 
-- **KEEP + modernize** (the app shell / chrome / connection wiring - update to current conventions, make
-  sure each is pure F#, and re-point at the Todo routes/ecosystem): `app/src/App.fsproj` (fix the
-  `<Compile>` includes; remove demo + any `.render`/`_autogenerated_` entries), `Bootstrap.fs.template`,
-  `Config.fs.template` (add `BackendUrl`/`AppUrlBase` per 5C), `Services.fs.template` (the `initialize`
-  connection wiring per 5C), `Navigation.fs.template` (point at the Todo routes), `Components/App.fs.template`,
-  `Components/AppContext.fs.template`, `Components/Nav/Top.fs.template`, `Components/Sidebar.fs.template`,
-  `Components/With/Subjects.fs.template` (adapt to subscribe to the Todo view), `ComponentsHierarchy`,
-  `ComponentsTheme`, `Colors`, `Icons` (+ `IconSources/`), `ErrorMessages`, `I18n/{En,Bn}`,
-  `Services/SessionService.fs.template`.
-- **REPLACE with TODO content:** `Components/Route/Landing.fs.template` -> the Todo list route (subscribe to
-  the Todo view, render `AsyncData`, add/toggle/edit/delete); **delete** `Components/Route/Bananas.fs.template`
-  and `Mangoes.fs.template` and `Components/Dialog/DoSomething.fs.template` (replace the dialog with an
-  edit-todo dialog only if useful); `PlaceholderTypes.fs.template` -> drop or replace with the small client
-  types the app needs (most types come from the shared Todo ecosystem types).
-- **DELETE outright:**
-  - the **six `.render` templates** (`route/Route.render.template`, `dialog/Dialog.render.template`, and
-    `component/type/{estateful,pstateful,stateless,functional}/Component.render.template`) and their
-    `.typext.fs`/`.styles.fs` pairs - replace each with a **pure-F# template**: the `functional` variant
-    becomes the `[<Component>]` form; the stateful variants become `[<Component>]` + hooks (per the
-    `LEARNINGS.md` conversion recipe). After this, `create-route`/`create-dialog`/`create-component` emit
-    pure F#, never `.render`.
-  - the **untracked `app/src/obj/` and `app/src/bin/`** build artifacts (they are local junk, not in git);
-    remove them and make sure the template `.gitignore.template` excludes `obj/`+`bin/` so they never get
-    shipped in a scaffold.
+---
 
-### 5E. Smoke test (so it cannot rot again)
-Add a CI check: `eggshell create-app <name>` -> `eggshell dev-web` must build green (ideally render the
-TODO list). This is the goal-B regression gate.
+### 5B. Backend Dev host (V1 HTTP + SignalR)
 
-**Escalate-if:** codec-gen / Orleans-codegen wiring for the new suite; any framework-API mismatch the
-SuiteJobs reference does not resolve; non-trivial scaffolding TS task changes.
+Add `SuiteTodo/Launchers/Dev/Host/` mirroring an existing in-repo Dev launcher pattern:
+
+- Registers `SuiteTodo` ecosystem on `LibLifeCycleHost`
+- Exposes V1 generic HTTP API + `/api/v1/realTime` SignalR (via `eggshell-signalr` server)
+- **Phase 5:** in-memory Orleans storage (fast, no Docker)
+- `appsettings.Development.json` with URLs the frontend `Config.BackendUrl` expects
+
+**VALIDATE:** host starts; negotiate endpoint responds; HTTP view query returns JSON; SignalR push works
+(add todo in one client, subscription updates in another).
+
+---
+
+### 5C. Frontend TODO app (`SuiteTodo/AppTodo/`)
+
+Pure F# only. Connection standard (encode inline, no external references):
+
+**Config.fs:** `AppUrlBase`, `BackendUrl`, `withOverrides` from `configSourceOverrides.*.js`.
+
+**AppServices.fs `initialize`:**
+- `EventBus()`, `HttpService`, `ThothEncodedHttp`, `PageTitle`, `Image`
+- `RealTimeService(eventBus, config.BackendUrl)` (Phase 2 SignalR client)
+- Todo subject services via `makeSubjectServices` + `provideInstances`
+- `LibClient.ServiceInstances.provideInstances { ... }`
+
+**Components:**
+- `Route/Todos.fs`: subscribe to `TodoListView` via `LC.With.Subjects`; render `AsyncData` (loading,
+  empty, error, list); add-todo input; per-row toggle/edit/archive/delete
+- `Dialog/EditTodo.fs`: edit title with validation feedback
+- `Route/Settings.fs`: minimal settings (archive delay display, backend URL readout for dev)
+- Every interactive control: `?testId` via `A11ySlug.testId "todo-*" ...`
+- User actions: log via `UiActionLog` (mirror gallery patterns)
+
+**Native files:** copy gallery `android/` + `ios/` structure into `AppTodo/`, parameterized at template
+time (`AppName`, bundle id placeholders). Ship `configSourceOverrides.native.js.template`.
+
+**VALIDATE:**
+
+| Check | Command / action |
+|---|---|
+| Web build | `cd SuiteTodo/AppTodo && eggshell dev-web` |
+| CRUD + live push | Browser: add/toggle/edit; second tab updates without refresh |
+| Timer | Mark done, wait or shorten N in dev; item archives via subscription |
+| Native Fable | `eggshell dev-native` compiles |
+| Android smoke | Metro + `npx react-native run-android` (emulator) |
+| iOS smoke | Metro + `npx react-native run-ios --no-packager` (simulator) |
+
+---
+
+### 5D. UI automation (`SuiteTodo/AppTodo/audit/`)
+
+Mirror `AppEggShellGallery` audit scripts (adapt selectors to todo testIds):
+
+1. **`audit-todo-web.mjs`** (Playwright):
+   - Preconditions: dev-web running on `:9080`, backend host running
+   - Add todo, assert row appears
+   - Toggle done, assert UI state
+   - Open edit dialog, change title, save
+   - Assert no console errors; capture screenshot on failure
+2. **`audit-todo-android.mjs`** (optional v1): adb launch + logcat grep for `Running "RXApp"` (gallery pattern)
+3. **`.github/workflows/todo-app.yml`** (in template):
+   - Job 1: `dotnet test` simulation
+   - Job 2: scaffold smoke (`eggshell create-app TodoCI` in temp dir -> build)
+   - Job 3: Playwright against reference `SuiteTodo/AppTodo` (not ephemeral scaffold until stable)
+
+**VALIDATE:** `node audit/audit-todo-web.mjs http://127.0.0.1:9080` passes with stack running.
+
+---
+
+### 5E. Templatize into `Meta/LibScaffolding` (after 5A-5D green)
+
+**Rule:** templatize the working `SuiteTodo/AppTodo`, do not patch old templates incrementally.
+
+**`dev-stack` script (template `dev-stack.sh.template`):**
+
+```bash
+#!/usr/bin/env bash
+# Starts docker SQL (Phase 6), backend host, dev-web — one command for web dev
+set -euo pipefail
+docker compose up -d sql          # no-op until Phase 6; stub with in-memory message
+./Launchers/Dev/Host/run.sh &     # backend
+eggshell dev-web                  # foreground
+```
+
+Native variant documents the three-terminal flow (gallery README table).
+
+**Template buckets** (see prior Phase 5D disposition list in runbook history):
+
+- **KEEP + modernize:** app shell, Bootstrap, Config, Services, Navigation, I18n, Icons, ErrorMessages
+- **REPLACE:** Landing/Bananas/Mangoes/DoSomething -> Todo routes + EditTodo dialog
+- **DELETE:** all `.render` templates; Chaldal-specific lib refs; stale `obj/`/`bin/` in templates
+- **ADD:** `audit/`, `docker-compose.yml.template` (Phase 6), `android/`/`ios/` skeletons,
+  `configSourceOverrides.native.js.template`, `dev-stack.sh.template`, GitHub workflow template
+
+**Scaffolding TS updates** (`Meta/LibScaffolding/src/tasks/createApp.ts`):
+- Parameterize suite name (`SuiteTodo` default)
+- Emit pure F# route/component templates only
+- Auto-update `.fsproj` on `create-component` / `create-route`
+
+**VALIDATE:** `eggshell create-app TodoSmoke` in temp directory -> `./initialize` -> `./dev-stack up`
+-> Playwright smoke passes.
+
+---
+
+### 5F. Accessibility and observability standards (template enforces)
+
+**Accessibility (required in generated components):**
+- All pressables: `?testId = Some (A11ySlug.testId "<slug>" labelOrValue)`
+- Dialog actions: stable slugs (`todo-edit-save`, `todo-edit-cancel`)
+- Headings: use `LC.Heading` with level appropriate to page structure
+- Loading states: expose `testId` on skeleton/empty states for automation
+- Reference: gallery converted components + `LEARNINGS.md` Batch 3 nav/UI testId slugs
+
+**Observability (required in generated app):**
+- Frontend: `UiActionLog.logUserAction` on create/toggle/edit/archive (with testId)
+- Backend: lifecycle transition logs at Debug for action + LifeEvent (use existing `IFsLogger` patterns)
+- Dev host: optional Application Insights stub in `appsettings` (connection string empty by default)
+- Template README section: "Tracing a user action end to end"
+
+---
+
+### 5G. Smoke gate (CI must not rot)
+
+Minimum CI for the monorepo (add to existing pipeline or new workflow):
+
+1. `dotnet build eggshell-signalr/EggShellSignalR.sln`
+2. `dotnet test SuiteTodo/Ecosystem/Tests`
+3. `eggshell create-app TodoCI` (temp dir) -> `dotnet build` + `eggshell build-lib`
+4. Playwright audit against pinned `SuiteTodo/AppTodo` with services up
+
+**ESCALATE-IF:** codec-gen / Orleans codegen for new suite; Giraffe/API wiring; native template
+parameterization beyond search-replace; Playwright flakes without deterministic testIds.
+
+---
+
+## Phase 6 - Docker SQL Server + persistent dev stack
+
+**Owner:** weaker model OK.
+**Sequencing:** after Phase 5 reference app is green on in-memory storage.
+**Goal:** `./dev-stack up` brings up SQL Server in Docker, Orleans uses ADO.NET persistence, Mac ARM dev
+is unblocked without native SQL install.
+
+### 6a. Docker compose
+
+Add to `SuiteTodo/` (and template `docker-compose.yml.template`):
+
+```yaml
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "EggShell_Dev_123!"   # dev only; document in README
+    ports:
+      - "1433:1433"
+    volumes:
+      - todo-sql-data:/var/opt/mssql
+volumes:
+  todo-sql-data:
+```
+
+**Mac ARM note:** use Azure SQL Edge if standard SQL Server image fails on ARM (`mcr.microsoft.com/azure-sql-edge`).
+
+### 6b. Orleans ADO.NET clustering + storage
+
+- Update Dev host `appsettings.Development.json` connection string -> `localhost,1433`
+- Wire Orleans ADO.NET clustering + grain storage (mirror K8S/Fabric patterns simplified for Dev)
+- Run DB init/migrations script in `sql/init.sql` (create database, Orleans tables if not auto-created)
+
+**VALIDATE:** `docker compose up -d sql`; host starts; grain state survives host restart; simulation
+tests still pass (may use in-memory override in Tests project).
+
+### 6c. Fold into one command
+
+Update `dev-stack.sh`:
+1. `docker compose up -d sql` + wait-for-health script
+2. Start backend host (SQL connection)
+3. Start `eggshell dev-web`
+
+Optional `eggshell dev-stack` CLI command wraps the same (later).
+
+**VALIDATE:** fresh clone -> `./initialize` -> `./dev-stack up` -> todo CRUD persists across host restart.
+
+**OUT OF SCOPE:** Postgres migration, production K8S/Fabric deploy templates, SQL Server on CI (use
+in-memory or container service in CI if needed).
 
 ---
 
@@ -385,10 +536,12 @@ SuiteJobs reference does not resolve; non-trivial scaffolding TS task changes.
 
 ## Reference artifacts (copy-from)
 
-- Frontend spike: `/Volumes/HomeX/shafayat/Code/eggshell-rnw-spike/` (`fsharp/Bindings.fs`, `App.fs`,
-  `SignalRProbe.fs`; `verify-web.mjs`; native + web screenshots).
-- Backend spike: `/Volumes/HomeX/shafayat/Code/orleans-net10-spike/` (`Program.cs`,
-  `Types/SubjectExceptions.fs`).
-- Strategy + verdicts + full findings: `/Volumes/HomeX/shafayat/Code/FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md`.
-- Existing conversion recipe + past pitfalls: `subject/LEARNINGS.md` (the `[<Component>]` recipe,
-  2026-06-26).
+- **SignalR (modular):** `../eggshell-signalr/` (`LibSignalRClient`, `LibSignalRServer`, MIT + NOTICE)
+- **Backend patterns:** in-repo `SuiteJobs/` (lifecycle, view, timer, simulation tests, codec-gen)
+- **Frontend + native + audit:** in-repo `AppEggShellGallery/` (`GALLERY-AUDIT.md`, `audit-gallery-*.mjs`,
+  `android/`, `ios/`, native README)
+- **Target output:** `SuiteTodo/` (Phase 5 reference; becomes scaffold source)
+- Frontend spike: `../eggshell-rnw-spike/` (transport + animation probes only)
+- Backend spike: `../orleans-net10-spike/` (Orleans 3.7.2 on net10)
+- Strategy: `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` Section 21 (feature matrix + one-command DX)
+- Conversion recipe + pitfalls: `LEARNINGS.md`
