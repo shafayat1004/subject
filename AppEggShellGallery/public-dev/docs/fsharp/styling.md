@@ -120,6 +120,56 @@ As the `styles` parameter takes an array, you can pass multiple styles.
 
 `makeViewStyles` makes styles to be used with RX.View, and `makeTextStyles` is used for LC.Text.
 
+## Avoiding style leaks (the standard)
+
+A "style leak" is ReactXP telling you that the *same* call site produced the *same* style content more
+than once as a *new* object — i.e. a `makeViewStyles`/`makeTextStyles` ran inside render instead of once.
+It is a correctness/perf smell, not just noise: each leak is a style ReactXP can no longer cache.
+
+Follow these rules and you will not produce leaks:
+
+1. **Never build a style inside render.** Every `makeViewStyles {...}` / `makeTextStyles {...}` must be
+   reached through a top-level `let`, a named styles module, or a `*.Memoize` wrapper — never inline in a
+   `styles = [| ... |]` array or inside a component body / `Pointer.State` / `With.ScreenSize` callback.
+
+   ```fsharp
+   // ✗ leaks — a fresh object every render
+   RX.View(styles = [| makeViewStyles { Position.Relative } |], ...)
+
+   // ✓ built once
+   let relative = makeViewStyles { Position.Relative }
+   RX.View(styles = [| relative |], ...)
+   ```
+
+2. **Parametrized styles must be memoized** (see the previous section), and **key on primitives, not
+   records.** Memoization keys are serialized; a whole `Theme`/`Colors` record is large and a fresh
+   instance each render can defeat the cache. Pass the specific fields you use:
+
+   ```fsharp
+   // ✗ keyed on whole records
+   let item = fun (theme: Theme) (colors: Colors) -> makeViewStyles { height theme.ItemHeight; ... }
+
+   // ✓ memoized, keyed on the primitives actually used
+   let item =
+       ViewStyles.Memoize (fun (itemHeight: int) (border: Color) (background: Color) ->
+           makeViewStyles { height itemHeight; borderColor border; backgroundColor background }
+       )
+   // call site: Styles.item theme.ItemHeight colors.Border colors.Background
+   ```
+
+   `Color`, `int`, `bool`, and small DUs (e.g. `FontWeight`, `ScreenSize`) are good keys.
+
+3. **A memoized lambda parameter may not share a name with a builder operation.** Inside
+   `makeViewStyles`/`makeTextStyles`, `height`, `color`, `fontSize`, `top`, `left`, `bottom`, ... are
+   custom operations. A parameter of the same name shadows the operation, so `height height` is read as
+   *applying* the int and fails to compile (`This value is not a function and cannot be applied`). Give
+   parameters distinct names: `itemHeight`, `labelColor`, `iconFontSize`, `badgeTop`, ...
+
+4. **Reading the warning.** The first stack frame after `createViewStyle`/`createTextStyle` names the
+   leaking style (e.g. `Sidebar_Item_Styles_labelText`). Find that `let`, apply rule 1 or 2. The same
+   warning re-fires on every render of a leaky site, so under a re-render loop a single offender looks
+   like "tons" of leaks — fix the loop *and* the style.
+
 ## Applying styles to custom components
 
 In general, the visuals of the component is its own business, and "injecting" styles into it should

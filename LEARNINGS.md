@@ -1002,3 +1002,35 @@ appeared stuck on first fill/screenshot.
 records — new theme refs bypass memo). Stable `onChange` via `Hooks.useMemo` in gallery sample.
 **Restart `eggshell dev-web`** after LibClient/LibAutoUi changes — `eggshell build-lib` does not
 refresh `LibStandard/.build/web/fable` (webpack serves stale JS otherwise).
+
+## 2026-06-28 — Gallery-wide style leaks from per-render style builders (shell components)
+
+**Symptom:** Visiting `AutoUi_InputForm` (and in fact every gallery page) flooded the console with
+ReactXP "Possible style leak" warnings for `Sidebar.Item`, `Nav.Top.Item`, `ToggleButton`,
+`GalleryHeadings` — not InputForm itself. These shell components (sidebar, top nav, headings) are
+mounted on every page, so the leaks are page-independent; InputForm was just where they were noticed
+(its own contributors — DateSelector cells + re-render loop — were already fixed earlier the same day).
+
+**Cause:** `StyleLeakDetector.detectLeaks` keys on `errorStack + JSON.stringify(style)` and warns the
+**2nd+** time a given call site produces the same style content. Style builders written as
+`let foo (theme) (colors) = makeViewStyles {...}` run **inside** the component's render/`Pointer.State`
+callback, so every render (and every list item) re-invokes `createViewStyle` → repeat warning.
+
+**Fix:** Wrap each per-render builder in `ViewStyles.Memoize` / `TextStyles.Memoize`, keyed on
+**primitive values** (Color / int / bool / FontWeight DU), never whole `Theme`/`Colors` records.
+`fast-memoize` serializes args via `JSON.stringify`; small primitive keys are cheap and the cached
+style object is returned by identity, so `createViewStyle` runs once → no repeat → no leak. Call sites
+pass the extracted fields, e.g. `Styles.item theTheme.ItemHeight colors.Border colors.Background`.
+
+**Gotcha (cost me a build):** a memoized lambda param must NOT share a name with a CE custom operation,
+or `makeViewStyles { height height }` parses as applying the int param as a function →
+`error FSHARP: This value is not a function and cannot be applied`. Rename the param
+(`itemHeight`, `iconFontSize`, `badgeTop`, `sentinelColor`, …). Affected ops seen: `height`, `color`,
+`fontSize`, `top`, `left`. `bottom verticalAdjust` was fine because the param was already renamed.
+
+**Inline styles leak too:** `ToggleButton` had a bare `makeViewStyles { Position.Relative }` literal in
+its `styles =` array (the `{position:"relative"}` leak). Hoist to a module-level `let relative = ...`.
+
+**Remaining console noise is NOT style leaks:** React "unique key prop" warnings (ComponentContent /
+ComponentSample children arrays) and ReactXP legacy `childContextTypes`/`contextTypes` deprecations are
+pre-existing and gallery-wide, unrelated to this fix.
