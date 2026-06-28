@@ -30,6 +30,14 @@ ensure_app_initialized () {
   fi
 }
 
+write_backend_dev_config () {
+  cat > "$APP_DIR/configSourceOverrides.dev.js" <<'EOF'
+eggshell.AppTodo.configSourceOverrides.InitializeReactXPInDevMode = "true";
+eggshell.AppTodo.configSourceOverrides.AppUrlBase = location.origin;
+eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001";
+EOF
+}
+
 start_sql () {
   if ! command -v docker >/dev/null 2>&1; then
     echo "Docker not found — skipping SQL container. Use local SQL or install Docker."
@@ -80,6 +88,7 @@ cmd_up () {
   start_sql
   start_host
   ensure_app_initialized
+  write_backend_dev_config
   echo "Starting AppTodo dev-web (Ctrl+C stops webpack; run ./dev-stack.sh down to stop host/SQL)..."
   trap 'stop_pids' EXIT INT TERM
   (cd "$APP_DIR" && "$EGGSHELL" dev-web)

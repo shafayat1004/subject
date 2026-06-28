@@ -2,12 +2,17 @@ module AppTodo.AppServices
 
 open System
 open AppTodo
+open LibClient
 open LibClient.EventBus
 open LibClient.Services.HttpService.HttpService
 open LibUiSubject.Services.RealTimeService
 open LibUiSubject.Services.SubjectService
 open LibUiSubject.Services.ViewService
 open SuiteTodo.Types
+
+#if DEBUG
+open AppTodo.FakeData
+#endif
 
 let mutable private maybeConfig: Option<Config> = None
 
@@ -19,7 +24,16 @@ let initialize (config: Config) : unit =
     let httpService =
         let staticResourceUrlTransformSettings =
             StaticResourceUrlTransformSettings.Pattern (config.MaybeInBundleStaticResourceUrlPattern, config.MaybeExternalStaticResourceUrlPattern)
-        HttpService (eventBus, staticResourceUrlTransformSettings, (fun url -> url.StartsWith(config.BackendUrl)), config.MaybeInBundleResourceUrlHashedDirectoryPrefix)
+
+        HttpService (
+            eventBus,
+            staticResourceUrlTransformSettings,
+            (fun url ->
+                match config.BackendUrl with
+                | None -> false
+                | Some backendUrl -> url.StartsWith backendUrl),
+            config.MaybeInBundleResourceUrlHashedDirectoryPrefix
+        )
 
     LibClient.ServiceInstances.provideInstances {
         EventBus         = eventBus
@@ -35,32 +49,65 @@ let private reasonablyFreshTTLs = {
     Query   = TimeSpan.FromSeconds 30.
 }
 
+type TodoService =
+    ISubjectService<Todo, Todo, TodoId, TodoIndex, TodoConstructor, TodoAction, TodoLifeEvent, TodoOpError>
+
+type TodoListViewService =
+    IViewService<NoInput, TodoListViewOutput, NoViewError>
+
 let private lazyServices = lazy (
     match maybeConfig with
     | None -> failwith "AppTodo.AppServices.initialize was never called"
     | Some config ->
         let eventBus                = LibClient.ServiceInstances.services().EventBus
         let thothEncodedHttpService = LibClient.ServiceInstances.services().ThothEncodedHttp
-        let realTimeService         = RealTimeService (eventBus, config.BackendUrl)
 
-        {|
-            Http             = LibClient.ServiceInstances.services().Http
-            ThothEncodedHttp = thothEncodedHttpService
-            RealTime         = realTimeService
-            Todo =
+        let todoService: TodoService =
+            match config.BackendUrl with
+            | Some backendUrl ->
+                let realTimeService = RealTimeService (eventBus, backendUrl)
                 SubjectService.Create
                     todoDef.LifeCycles.todo
                     reasonablyFreshTTLs
                     realTimeService
                     thothEncodedHttpService
                     eventBus
-                    config.BackendUrl
-            TodoListView =
+                    backendUrl
+                :> TodoService
+#if DEBUG
+            | None ->
+                FakeTodoService.service :> TodoService
+#else
+            | None ->
+                failwith "No BackendUrl is set"
+#endif
+
+        let todoListViewService: TodoListViewService =
+            match config.BackendUrl with
+            | Some backendUrl ->
                 ViewService.Create<NoInput, TodoListViewOutput, NoViewError>
                     "TodoList"
                     (TimeSpan.FromSeconds 30.)
                     thothEncodedHttpService
-                    config.BackendUrl
+                    backendUrl
+                :> TodoListViewService
+#if DEBUG
+            | None ->
+                FakeViewService<NoInput, TodoListViewOutput, NoViewError> (
+                    FakeDelay.NoDelay,
+                    fun _ -> AsyncData.Available { Items = [] }
+                )
+                :> TodoListViewService
+#else
+            | None ->
+                failwith "No BackendUrl is set"
+#endif
+
+        {|
+            Http             = LibClient.ServiceInstances.services().Http
+            ThothEncodedHttp = thothEncodedHttpService
+            Todo             = todoService
+            TodoListView     = todoListViewService
         |}
 )
 

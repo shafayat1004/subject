@@ -5,7 +5,15 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-28 — DevelopmentHost NU1605 (FSharp.Core) + Directory.Build.targets XML
+## 2026-06-28 — Fake subject services (LibUiSubject)
+
+Added **`FakeSubjectService`** / **`FakeViewService`** in **`LibUiSubject`** (`#if DEBUG` in source; always listed in `.fsproj` so Fable includes them). Apps switch real vs fake via **`Config.BackendUrl: Option<string>`** — `None` → in-memory fake (DEBUG), `Some url` → HTTP + RealTime.
+
+**AppTodo:** `FakeData/FakeTodoService.fs` implements construct / toggle / delete / indexed active+title search. Default `configSourceOverrides.dev.js` omits `BackendUrl` (UI-only dev); `./dev-stack.sh up` writes `BackendUrl = http://localhost:5001` before `dev-web`.
+
+**Gotchas:** (1) Do not gate fake `.fs` files on `Web Debug` in `.fsproj` only — `eggshell dev-web` runs Fable without that MSBuild configuration, so the files vanish from the graph while app code under `#if DEBUG` still compiles. Always list the files; keep `#if DEBUG` in source. Pass `--define DEBUG` in Fable dev (`LibFablePlus`). (2) `IndexQuery` union constructor is private — `GetIndexedCount` must count via `GetIndexQueryResults` + predicate. (3) Do not name a helper module `Helpers` inside `LibUiSubject.Services.SubjectService` — collides with `SubjectService.fs`. (4) `ShouldRemoveProjectionAfterAct` hook for delete (remove from map + notify subscribers).
+
+---
 
 **NU1605 FSharp.Core 9.0.201 vs 7.0.403:** `LibSignalRServer` (eggshell-signalr) pulls `FSharp.Core >= 9.0.201`; net7.0 SDK implicit reference is `7.0.403`. Pin must live in **`Directory.Build.props`** (not only `.targets`) so restore sees it before implicit references. Also **`export PATH="$DOTNET_ROOT:$PATH"`** — setting `DOTNET_ROOT` alone is not enough if system `dotnet` (7.x, MSBuild 17.7) is first on PATH.
 

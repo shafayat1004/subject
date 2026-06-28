@@ -1,3 +1,4 @@
 eggshell.AppTodo.configSourceOverrides.InitializeReactXPInDevMode = "true";
 eggshell.AppTodo.configSourceOverrides.AppUrlBase = location.origin;
-eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001";
+// Fake in-memory services (no backend). For DevelopmentHost:
+// eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001";

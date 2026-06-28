@@ -13,7 +13,7 @@ type ConfigSource = {
 } with
     static member Base : ConfigSource = {
         AppUrlBase                                    = None
-        BackendUrl                                    = Some "http://localhost:5001"
+        BackendUrl                                    = None
         InitializeReactXPInDevMode                    = Some "false"
         InitializeReactXPInDebugMode                  = Some "false"
         MaybeInBundleImageServiceBaseUrl              = None
@@ -28,7 +28,7 @@ type ConfigSource = {
 
 type Config = {
     AppUrlBase:                                    string
-    BackendUrl:                                    string
+    BackendUrl:                                    Option<string>
     InitializeReactXPInDevMode:                    bool
     InitializeReactXPInDebugMode:                  bool
     MaybeInBundleImageServiceBaseUrl:              Option<string>
@@ -40,13 +40,12 @@ type Config = {
     static member tryOfSource (source: ConfigSource) : Result<Config, string> =
         resultful {
             let! theAppUrlBase                   = source.AppUrlBase |> Result.ofOption "Missing AppUrlBase"
-            let! theBackendUrl                   = source.BackendUrl |> Result.ofOption "Missing BackendUrl"
             let! theInitializeReactXPInDevMode   = source.InitializeReactXPInDevMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDevMode"
             let! theInitializeReactXPInDebugMode = source.InitializeReactXPInDebugMode |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDebugMode"
 
             return {
                 AppUrlBase                                    = theAppUrlBase
-                BackendUrl                                    = theBackendUrl
+                BackendUrl                                    = source.BackendUrl
                 InitializeReactXPInDevMode                    = theInitializeReactXPInDevMode
                 InitializeReactXPInDebugMode                  = theInitializeReactXPInDebugMode
                 MaybeInBundleImageServiceBaseUrl              = source.MaybeInBundleImageServiceBaseUrl

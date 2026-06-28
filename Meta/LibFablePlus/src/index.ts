@@ -153,6 +153,8 @@ function getFableArgs(project: AppProject, target: BuildTarget, config: BuildCon
             "--noCache"
         ] : [])
         .concat(config === "dev" ? [
+            "--define",
+            "DEBUG",
             // Fable 3.7 runs F# type checking and Fable compilation in parallel, however this can cause Webpack
             // to trigger too many times which is annoying, so we disable it.
             "--noParallelTypeCheck",

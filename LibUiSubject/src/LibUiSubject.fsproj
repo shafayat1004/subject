@@ -30,9 +30,11 @@
     <Compile Include="Services/SubjectService/Caching.fs" />
     <Compile Include="Services/SubjectService/Throttling.fs" />
     <Compile Include="Services/SubjectService/SubjectService.fs" />
+    <Compile Include="Services/SubjectService/FakeSubjectService.fs" />
     <Compile Include="Services/ViewService/Caching.fs" />
     <Compile Include="Services/ViewService/Throttling.fs" />
     <Compile Include="Services/ViewService/ViewService.fs" />
+    <Compile Include="Services/ViewService/FakeViewService.fs" />
     <Compile Include="Services/BlobService/BlobService.fs" />
   </ItemGroup>
 

@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="FakeData/FakeTodoService.fs" />
     <Compile Include="Services.fs" />
     <Compile Include="Navigation.fs" />
     <Compile Include="Colors.fs" />
