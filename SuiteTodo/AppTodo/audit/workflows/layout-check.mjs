@@ -8,7 +8,7 @@ import {
   clickAddTodo,
 } from '../lib/selectors.mjs';
 import { captureState, writeManifest, appendRunLog, writeJson } from '../lib/capture.mjs';
-import { diffLayoutMetrics } from '../lib/dom-analysis.mjs';
+import { diffLayoutMetrics, cardWidthFromMetrics } from '../lib/dom-analysis.mjs';
 import { emitReport, emitStatus } from '../lib/report.mjs';
 
 /**
@@ -55,8 +55,8 @@ export async function runLayoutCheckWorkflow(options = {}) {
       headless,
       todoTitle: title,
       outDir,
-      cardWidthBefore: before.layoutMetrics.regions.find((r) => r.testId === 'todo-card')?.width ?? null,
-      cardWidthAfter: after.layoutMetrics.regions.find((r) => r.testId === 'todo-card')?.width ?? null,
+      cardWidthBefore: cardWidthFromMetrics(before.layoutMetrics),
+      cardWidthAfter: cardWidthFromMetrics(after.layoutMetrics),
       layoutDiff: diff,
       regressionLikely: diff.regressionLikely,
       artifacts: {
@@ -110,7 +110,7 @@ export async function runAddTodoWorkflow(options = {}) {
       command: 'add-todo',
       title,
       outDir,
-      cardWidth: capture.layoutMetrics.regions.find((r) => r.testId === 'todo-card')?.width ?? null,
+      cardWidth: cardWidthFromMetrics(capture.layoutMetrics),
     };
     writeManifest(outDir, report);
     emitReport(report);

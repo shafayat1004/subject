@@ -5,6 +5,20 @@
 import { LAYOUT_DIFF_THRESHOLD_PX } from './config.mjs';
 import { TEST_IDS } from './selectors.mjs';
 
+/** Region ids used for card width regression (testId or heuristic). */
+export const CARD_REGION_IDS = ['todo-card', 'todo-card-panel'];
+
+/**
+ * @param {{ regions: Array<{ testId: string, width: number }> }} metrics
+ */
+export function cardWidthFromMetrics(metrics) {
+  for (const id of CARD_REGION_IDS) {
+    const region = metrics.regions.find((r) => r.testId === id);
+    if (region) return region.width;
+  }
+  return null;
+}
+
 /**
  * Collect bounding boxes for key AppTodo regions.
  * @param {import('playwright').Page} page
@@ -39,9 +53,41 @@ export async function collectLayoutMetrics(page) {
       };
     }
 
+    /** ReactXP web often omits data-testid; find the white rounded todo card by layout. */
+    function rectForTodoCardPanel() {
+      /** @type {Element | null} */
+      let best = null;
+      let bestArea = 0;
+
+      for (const el of document.querySelectorAll('div')) {
+        const r = el.getBoundingClientRect();
+        if (r.width < 400 || r.width > 620 || r.height < 120) continue;
+        const s = getComputedStyle(el);
+        if (s.backgroundColor !== 'rgb(255, 255, 255)') continue;
+        if (!s.borderRadius.includes('12')) continue;
+        if (!el.textContent?.includes('Todos')) continue;
+        const area = r.width * r.height;
+        if (area > bestArea) {
+          bestArea = area;
+          best = el;
+        }
+      }
+
+      if (!best) return null;
+      const r = best.getBoundingClientRect();
+      return {
+        testId: 'todo-card-panel',
+        x: Math.round(r.x),
+        y: Math.round(r.y),
+        width: Math.round(r.width),
+        height: Math.round(r.height),
+      };
+    }
+
     const regions = [
       rectForTestId(testIds.page),
       rectForTestId(testIds.card),
+      rectForTodoCardPanel(),
       rectForTestId(testIds.newTitle),
       rectForTestId(testIds.add),
       rectForSelector('input', 'first-input-fallback'),
@@ -150,7 +196,9 @@ export function diffLayoutMetrics(before, after, options = {}) {
   }
 
   const flagged = changes.filter((c) => c.flagged);
-  const cardWidthChange = changes.find((c) => c.testId === 'todo-card' && c.field === 'width');
+  const cardWidthChange = changes.find(
+    (c) => CARD_REGION_IDS.includes(c.testId) && c.field === 'width'
+  );
 
   return {
     thresholdPx,
@@ -159,10 +207,12 @@ export function diffLayoutMetrics(before, after, options = {}) {
     flagged,
     changes,
     summary: cardWidthChange
-      ? `todo-card width ${cardWidthChange.before}px → ${cardWidthChange.after}px (Δ${cardWidthChange.delta}px)`
+      ? `${cardWidthChange.testId} width ${cardWidthChange.before}px → ${cardWidthChange.after}px (Δ${cardWidthChange.delta}px)`
       : flagged.length
         ? `${flagged.length} layout change(s) exceed ${thresholdPx}px`
         : 'No significant layout changes',
-    regressionLikely: flagged.some((c) => c.testId === 'todo-card' && (c.field === 'width' || c.field === 'height')),
+    regressionLikely: flagged.some(
+      (c) => CARD_REGION_IDS.includes(c.testId) && (c.field === 'width' || c.field === 'height')
+    ),
   };
 }

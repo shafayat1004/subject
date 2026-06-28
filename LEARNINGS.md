@@ -1186,3 +1186,12 @@ content appeared. Replaced with `cardShell` (`widthPercent 100`, `maxWidth 560`,
 
 **Gotcha:** `RX.View` optional `testId` is `?testId: string` — pass `A11ySlug.testId ...` directly, not
 `Some (...)`.
+
+### 2026-06-28 — Checkbox iconTheme style leak (LibClient)
+
+**Symptom:** `{ fontSize: 20, color: "#00bcd4" }` leak when todo rows render `LC.Input.Checkbox`.
+
+**Fix:** `TextStyles.Memoize` keyed on `(iconSize: int)` + `colorCss: string` (from
+`IconCheckedColor.ToCssString` / unchecked / DevRed), not on `Theme` record. Same pattern for
+`labelTextTheme` → `LabelColor.ToCssString`. Use `Color.InternalString colorCss` inside memo body
+(see `InfoMessage.fs`).

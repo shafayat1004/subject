@@ -4,6 +4,8 @@ import { createRunDir } from '../lib/paths.mjs';
 import { createWebSession, waitForAppReady } from '../lib/web-session.mjs';
 import { waitForTodoReady } from '../lib/selectors.mjs';
 import { captureState, writeManifest, appendRunLog } from '../lib/capture.mjs';
+import { cardWidthFromMetrics } from '../lib/dom-analysis.mjs';
+import { summarizeConsole } from '../lib/log-classify.mjs';
 import { emitReport, emitStatus } from '../lib/report.mjs';
 
 /**
@@ -39,6 +41,13 @@ export async function runSnapshotWorkflow(options = {}) {
       logs: session.logs,
     });
 
+    const consoleSummary = summarizeConsole(
+      session.logs.consoleLines.map((line) => {
+        const m = line.match(/^\[(\w+)\]\s(.*)$/);
+        return { type: m?.[1] ?? 'log', text: m?.[2] ?? line };
+      })
+    );
+
     const manifest = {
       command: 'snapshot',
       baseUrl,
@@ -54,8 +63,8 @@ export async function runSnapshotWorkflow(options = {}) {
         pageErrors: `${label}-page-errors.log`,
         networkErrors: `${label}-network-errors.log`,
       },
-      cardWidth: capture.layoutMetrics.regions.find((r) => r.testId === 'todo-card')?.width ?? null,
-      consoleErrorCount: session.logs.consoleLines.filter((l) => l.startsWith('[error]')).length,
+      cardWidth: cardWidthFromMetrics(capture.layoutMetrics),
+      consoleSummary,
       pageErrorCount: session.logs.pageErrors.length,
     };
 

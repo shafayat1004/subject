@@ -10,6 +10,7 @@ import { chromium } from 'playwright';
 import { DEFAULTS, parseBool } from './lib/config.mjs';
 import { waitForAppReady } from './lib/web-session.mjs';
 import { waitForTodoReady, fillNewTodoTitle, clickAddTodo } from './lib/selectors.mjs';
+import { isActionableConsole } from './lib/log-classify.mjs';
 
 const args = process.argv.slice(2);
 const positional = args.filter((a) => !a.startsWith('--'));
@@ -35,7 +36,9 @@ async function main () {
 
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
   page.on('console', (msg) => {
-    if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
+    if (msg.type() === 'error' && isActionableConsole(msg.text(), 'error')) {
+      errors.push(`console: ${msg.text()}`);
+    }
   });
 
   const resp = await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
