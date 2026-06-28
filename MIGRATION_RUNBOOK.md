@@ -128,18 +128,17 @@ error at the very end is EXPECTED/benign - the plugin's own source is not meant 
 and use Microsoft's maintained `@microsoft/signalr` (client) + stock ASP.NET Core SignalR (server).
 
 ### 2a. Client (frontend)
-- Copy the binding pattern from `eggshell-rnw-spike/fsharp/SignalRProbe.fs` (the `HubConnection` /
-  `HubConnectionBuilder` interfaces + `emitJsExpr ... "new $0()"` + `conn.on/start/stop`).
-- Add `@microsoft/signalr` to the relevant lib's `package.json` / `initialize`.
-- Replace `Fable.SignalR` client usages in `LibClient`/`LibUiSubject` with the direct binding, preserving
-  the existing F# call surface where possible.
-- Remove the `Fable.SignalR` PackageReference (`LibUiSubject`).
-**VALIDATE:** `dotnet build` + `eggshell build-lib`; then exercise a live subscription in `dev-web`.
+- Source lives in sibling repo **`../eggshell-signalr/src/LibSignalRClient/`** (not in `subject/Meta/`). Clone `eggshell-signalr` next to `subject/`; see that repo's `README.md` and `NOTICE.md` (MIT, Shmew/Fable.SignalR).
+- `@microsoft/signalr` remains in `LibClient/package.json`.
+- `LibUiSubject` → `ProjectReference` to `../../eggshell-signalr/src/LibSignalRClient/LibSignalRClient.fsproj`.
+**VALIDATE:** `dotnet build ../eggshell-signalr/EggShellSignalR.sln`; `dotnet build LibLifeCycleHost`; `dotnet build LibUiSubject -c "Web Debug"`; `eggshell build-lib` (LibUiSubject); gallery `dev-web` fable watch green. E2E live push still required before merge.
 
 ### 2b. Server (backend)
-- Replace `Fable.SignalR.AspNetCore` (in `LibLifeCycleHost`) with stock `Microsoft.AspNetCore.SignalR`
-  (a `Hub` + `IHubContext`, see `eggshell-rnw-spike/signalr-server/Program.fs` for the minimal shape).
-- Keep the same wire contract the client expects (`/api/v1/realTime` endpoints, message names).
+- Source lives in **`../eggshell-signalr/src/LibSignalRServer/`** (typed `FableHub` + streaming; EggShell
+  `CancellationToken` on `streamFrom`). Not the thin stock hub from `eggshell-rnw-spike/signalr-server/`
+  (that spike only proved transport viability).
+- `LibLifeCycleHost` → `ProjectReference` to `../../eggshell-signalr/src/LibSignalRServer/LibSignalRServer.fsproj`.
+- Keep wire contract (`/api/v1/realTime`, message names) unchanged.
 **VALIDATE:** backend builds; a client connects and receives a pushed update end to end (the spike
 proved counter 251 -> 254). 
 **ESCALATE-IF:** the typed-hub message contract was relied on in a way that does not map cleanly to a
