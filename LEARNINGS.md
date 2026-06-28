@@ -5,7 +5,15 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-29 — Fable 5 `[<Pojo>]` for JS prop bags + `--configuration "Web Debug"` cracker bug
+## 2026-06-29 — `build-native` / `package-web` must pass `--define DEBUG` for `#if DEBUG` fake services
+
+**Symptom:** AppTodo runtime throws `"No BackendUrl is set"` even though `Services.fs` has `#if DEBUG` → `FakeTodoService` — compile is green.
+
+**Cause:** `Meta/LibFablePlus/src/index.ts` only passed `--define DEBUG` when `config === "dev"` (`dev-native`, `dev-web`). `build-native` and `package-web` use `config === "package"`, so Fable stripped the fake-service branch. Symbol is **`DEBUG`**, not `FABLE_DEBUG` (that symbol does not exist in Fable 5 or this repo).
+
+**Fix:** pass `--define DEBUG` for both `dev` and `package` configs; keep `-s`/`--watch` dev-only. After editing `LibFablePlus/src/index.ts`, run `npm run build` in `Meta/LibFablePlus` — eggshell loads `dist/index.js`, not TS source.
+
+---
 
 **`[<Fable.Core.JS.Pojo>]` (Fable.Core 5.0.0)** turns a class into a plain JS object literal: class decl erased, `None` optional ctor args **omitted** (not `undefined`), `member val` names set JS key casing. Verified emit: `Foo()` → `{}`, `Foo(?disabled = Some true, ?``checked`` = Some false)` → `{ disabled: true, checked: false }`. Drop-in replacement for hand-built `createObj [ yield! (x |> Option.map (fun v -> ("k", box v)) |> Option.toList) ]` bags. Reference conversion: `LibClient/src/Accessibility.fs` (`AccessibilityStateJs`). Full recipe + when-to/when-not-to + the 165-site analysis: `FABLE5_POJO_PLAYBOOK.md`. **No automated codemod** — sites are too heterogeneous (computed keys, nested `==>`, dynamic `?` assign); convert by judgment, validate each via IDE diagnostics + emit diff.
 

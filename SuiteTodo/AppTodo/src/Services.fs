@@ -74,11 +74,10 @@ let private lazyServices = lazy (
                     eventBus
                     backendUrl
                 :> TodoService
-#if DEBUG
             | None ->
+#if DEBUG
                 FakeTodoService.service :> TodoService
 #else
-            | None ->
                 failwith "No BackendUrl is set"
 #endif
 
@@ -91,15 +90,14 @@ let private lazyServices = lazy (
                     thothEncodedHttpService
                     backendUrl
                 :> TodoListViewService
-#if DEBUG
             | None ->
+#if DEBUG
                 FakeViewService<NoInput, TodoListViewOutput, NoViewError> (
                     FakeDelay.NoDelay,
                     fun _ -> AsyncData.Available { Items = [] }
                 )
                 :> TodoListViewService
 #else
-            | None ->
                 failwith "No BackendUrl is set"
 #endif
 

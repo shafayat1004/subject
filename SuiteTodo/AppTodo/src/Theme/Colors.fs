@@ -60,9 +60,13 @@ type SemanticPalette = {
     DueSoft: Color
     ChipBackground: Color
     ChipBorder: Color
+    ThemeTrackBackground: Color
+    ThemeToggleSelected: Color
     InputBackground: Color
     InputBorder: Color
     StatBackground: Color
+    StatText: Color
+    TabBorder: Color
 }
 
 module SemanticPalette =
@@ -96,9 +100,13 @@ module SemanticPalette =
             DueSoft = Color.Hex "#f6e2d0"
             ChipBackground = Color.Hex "#f5f0ec"
             ChipBorder = Color.Hex "#ede4dc"
-            InputBackground = Color.White
-            InputBorder = Color.Hex "#e2d8cf"
+            ThemeTrackBackground = Color.Hex "#eae0d9"
+            ThemeToggleSelected = Color.Hex "#2d4c4c"
+            InputBackground = Color.Hex "#faf6f3"
+            InputBorder = Color.Hex "#0000001a"
             StatBackground = Color.Hex "#deecf0"
+            StatText = Color.Hex "#3b6b78"
+            TabBorder = Color.Hex "#eae0d9"
         }
 
     let dark =
@@ -111,7 +119,7 @@ module SemanticPalette =
             TextSecondary = Color.Hex "#c4a898"
             TextMuted = Color.Hex "#7a5f54"
             HeadingText = Color.Hex "#c4927e"
-            RowBackground = Color.Hex "#1c1008"
+            RowBackground = Color.Hex "#251510"
             RowBorder = Color.Hex "#3d2217"
             Accent = Color.Hex "#5ba5a6"
             AccentSoft = Color.Hex "#1a3840"
@@ -131,9 +139,13 @@ module SemanticPalette =
             DueSoft = Color.Hex "#3d2810"
             ChipBackground = Color.Hex "#2a1a10"
             ChipBorder = Color.Hex "#3d2217"
+            ThemeTrackBackground = Color.Hex "#2a1a10"
+            ThemeToggleSelected = Color.Hex "#5ba5a6"
             InputBackground = Color.Hex "#2a1a10"
             InputBorder = Color.Hex "#43271a"
-            StatBackground = Color.Hex "#1b3540"
+            StatBackground = Color.Hex "#1f3f4c"
+            StatText = Color.Hex "#9ddce9"
+            TabBorder = Color.Hex "#3d2217"
         }
 
     let forMode mode =

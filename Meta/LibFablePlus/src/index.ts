@@ -152,9 +152,11 @@ function getFableArgs(project: AppProject, target: BuildTarget, config: BuildCon
         .concat(noCache === true ? [
             "--noCache"
         ] : [])
-        .concat(config === "dev" ? [
+        .concat(config === "dev" || config === "package" ? [
             "--define",
             "DEBUG",
+        ] : [])
+        .concat(config === "dev" ? [
             // Source maps
             "-s",
             "--watch",

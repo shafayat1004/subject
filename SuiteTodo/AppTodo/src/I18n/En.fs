@@ -2,7 +2,7 @@ module AppTodo.I18n.Languages.En
 
 let strings = {|
     PageTitle = "Todos"
-    PageSubtitle = "Plan, prioritize, and track work across devices."
+    PageSubtitle = "Plan, prioritize, and track work effortlessly."
     AppPageTitle = "Todo"
     RouteNotFound = "Route Not Found"
 
@@ -13,8 +13,8 @@ let strings = {|
     FilterArchived = "Archived"
 
     ThemeGroupLabel = "Appearance"
-    ThemeLight = "Light theme"
-    ThemeDark = "Dark theme"
+    ThemeLight = "Light"
+    ThemeDark = "Dark"
 
     CategoryGroupLabel = "Category"
     CategoryNone = "No category"
@@ -31,7 +31,7 @@ let strings = {|
     PriorityFieldLabel = "Priority"
 
     ComposerGroupLabel = "Add a new todo"
-    TitleLabel = "Title"
+    TitleLabel = "Todo title"
     TitlePlaceholder = "What needs doing?"
     DueLabel = "Due date"
     DuePlaceholder = "Due date (optional)"
@@ -44,6 +44,7 @@ let strings = {|
 
     ActiveFiltersLabel = "Active filters"
     ViewFilterFormat = "View: {0}"
+    DeviceHandheld = "Device: Handheld"
 
     StatsFormat = "{0} open, {1} done"
     StatOpenFormat = "{0} open"

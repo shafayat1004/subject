@@ -27,8 +27,8 @@ module Styles =
             fun (palette: SemanticPalette) (isHandheld: bool) ->
                 makeViewStyles {
                     flex 1
-                    paddingVertical (if isHandheld then 12 else 28)
-                    paddingHorizontal (if isHandheld then 12 else 28)
+                    paddingVertical (if isHandheld then 0 else 28)
+                    paddingHorizontal (if isHandheld then 0 else 28)
                     AlignItems.Center
                     backgroundColor palette.PageBackground
                 }
@@ -41,6 +41,8 @@ module Styles =
                     widthPercent 100
                     maxWidth (if isHandheld then 9999 else 1060)
                     AlignSelf.Stretch
+                    if isHandheld then
+                        flex 1
                 }
         )
 
@@ -49,11 +51,15 @@ module Styles =
             fun (palette: SemanticPalette) (isHandheld: bool) ->
                 makeViewStyles {
                     widthPercent 100
-                    padding (if isHandheld then 18 else 32)
-                    backgroundColor palette.CardBackground
-                    borderRadius (if isHandheld then 24 else 26)
-                    borderWidth 1
-                    borderColor palette.CardBorder
+                    padding (if isHandheld then 24 else 32)
+                    if isHandheld then
+                        backgroundColor palette.PageBackground
+                        borderWidth 0
+                    else
+                        backgroundColor palette.CardBackground
+                        borderRadius 26
+                        borderWidth 1
+                        borderColor palette.CardBorder
                 }
         )
 
@@ -96,10 +102,9 @@ module Styles =
                 makeViewStyles {
                     FlexDirection.Row
                     borderRadius 999
-                    padding 3
-                    backgroundColor palette.ChipBackground
-                    borderWidth 1
-                    borderColor palette.ChipBorder
+                    padding 4
+                    backgroundColor palette.ThemeTrackBackground
+                    borderWidth 0
                 }
         )
 
@@ -109,14 +114,12 @@ module Styles =
                 makeViewStyles {
                     minHeight 44
                     paddingVertical 6
-                    paddingHorizontal 14
+                    paddingHorizontal 12
                     borderRadius 999
                     JustifyContent.Center
-                    // Android: a backgroundColor + borderRadius View needs Overflow.Hidden
-                    // to actually clip the fill to the rounded box (otherwise square).
                     Overflow.Hidden
                     if isActive then
-                        backgroundColor palette.Accent
+                        backgroundColor palette.ThemeToggleSelected
                 }
         )
 
@@ -135,6 +138,7 @@ module Styles =
     let addButton =
         makeViewStyles {
             borderRadius 16
+            AlignSelf.Stretch
         }
 
     // Composer field cell: full-width stacked on handheld, equal flex columns when wide.
@@ -156,8 +160,9 @@ module Styles =
                 makeViewStyles {
                     FlexDirection.Row
                     AlignSelf.Stretch
-                    borderBottomWidth 1
-                    borderColor palette.CardBorder
+                    borderBottomWidth 2
+                    borderColor palette.TabBorder
+                    paddingBottom 8
                 }
         )
 
@@ -180,7 +185,7 @@ module Styles =
         makeViewStyles {
             FlexDirection.Row
             gap 8
-            paddingVertical 4
+            paddingBottom 14
             paddingRight 8
         }
 
@@ -205,8 +210,8 @@ module Styles =
                 makeTextStyles {
                     color palette.HeadingText
                     fontSize 28
-                    FontWeight.W700
-                    marginBottom 2
+                    FontWeight.Normal
+                    marginBottom 4
                 }
         )
 
@@ -214,11 +219,27 @@ module Styles =
         TextStyles.Memoize(
             fun (palette: SemanticPalette) ->
                 makeTextStyles {
-                    marginTop 4
-                    color palette.TextSecondary
+                    color palette.TextPrimary
                     fontSize 14
+                    lineHeight 20
                 }
         )
+
+    let fieldLabel =
+        TextStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeTextStyles {
+                    color palette.TextPrimary
+                    fontSize 14
+                    FontWeight.W500
+                    marginBottom 6
+                }
+        )
+
+    let fieldStack =
+        makeViewStyles {
+            AlignSelf.Stretch
+        }
 
     let listHeader =
         makeViewStyles {
@@ -282,9 +303,9 @@ module Styles =
         TextStyles.Memoize(
             fun (palette: SemanticPalette) ->
                 makeTextStyles {
-                    color palette.TextSecondary
+                    color palette.StatText
                     fontSize 12
-                    FontWeight.W600
+                    FontWeight.W500
                 }
         )
 
@@ -293,11 +314,10 @@ module Styles =
             fun (palette: SemanticPalette) (isHandheld: bool) ->
                 makeViewStyles {
                     gap (if isHandheld then 12 else 14)
-                    padding (if isHandheld then 16 else 18)
+                    padding 16
                     borderRadius 24
                     backgroundColor palette.FormBackground
-                    borderWidth 1
-                    borderColor palette.ChipBorder
+                    borderWidth 0
                 }
         )
 
@@ -332,65 +352,88 @@ module Styles =
     let searchField =
         makeViewStyles {
             marginTop 4
+            AlignSelf.Stretch
+        }
+
+    let searchInputWrap =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    borderRadius 999
+                    backgroundColor palette.FormBackground
+                    Overflow.Hidden
+                }
+        )
+
+    let searchInput =
+        makeViewStyles {
+            borderRadius 999
         }
 
     let list =
         makeViewStyles {
-            gap 12
+            gap 10
             marginTop 4
         }
 
     let todoRow =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isDone: bool) (isHandheld: bool) ->
+            fun (palette: SemanticPalette) (isDone: bool) (_isHandheld: bool) ->
                 makeViewStyles {
-                    if isHandheld then
-                        FlexDirection.Column
-                        AlignItems.Stretch
-                        gap 10
-                    else
-                        FlexDirection.Row
-                        AlignItems.Center
-                        gap 12
-                    paddingVertical (if isHandheld then 16 else 14)
-                    paddingHorizontal 16
+                    FlexDirection.Column
+                    AlignItems.Stretch
+                    gap 8
+                    paddingVertical 10
+                    paddingHorizontal 12
                     backgroundColor palette.RowBackground
                     borderRadius 16
-                    borderWidth 1
-                    borderColor palette.RowBorder
-                    opacity (if isDone then 0.82 else 1.0)
+                    borderWidth 0
+                    opacity (if isDone then 0.65 else 1.0)
                 }
         )
-
-    let todoRowTop =
-        makeViewStyles {
-            FlexDirection.Row
-            AlignItems.FlexStart
-            gap 12
-        }
-
-    let todoRowBody =
-        makeViewStyles {
-            flex 1
-            minWidth 0
-        }
 
     let todoMetaRow =
         makeViewStyles {
             FlexDirection.Row
             FlexWrap.Wrap
-            gap 8
-            marginTop 8
+            gap 4
         }
+
+    let todoBodyRow =
+        makeViewStyles {
+            FlexDirection.Row
+            AlignItems.Center
+            gap 10
+            minHeight 44
+        }
+
+    let todoContent =
+        makeViewStyles {
+            flex 1
+            minWidth 0
+        }
+
+    let actionIconButton =
+        ViewStyles.Memoize(
+            fun (_palette: SemanticPalette) ->
+                makeViewStyles {
+                    width 44
+                    height 44
+                    borderRadius 8
+                    JustifyContent.Center
+                    AlignItems.Center
+                    flexShrink 0
+                }
+        )
 
     let metaChip =
         ViewStyles.Memoize(
             fun (chipBg: Color) (chipBorder: Color) ->
                 makeViewStyles {
-                    paddingVertical 5
-                    paddingHorizontal 12
+                    paddingVertical 2
+                    paddingHorizontal 6
                     borderRadius 999
-                    borderWidth 1
+                    borderWidth 0
                     backgroundColor chipBg
                     borderColor chipBorder
                     AlignSelf.FlexStart
@@ -402,8 +445,9 @@ module Styles =
             fun (chipText: Color) ->
                 makeTextStyles {
                     color chipText
-                    fontSize 12
-                    FontWeight.W700
+                    fontSize 10
+                    FontWeight.W600
+                    lineHeight 14
                 }
         )
 
@@ -413,7 +457,7 @@ module Styles =
                 makeTextStyles {
                     color palette.TextPrimary
                     fontSize 15
-                    FontWeight.W700
+                    FontWeight.W500
                 }
         )
 
@@ -422,8 +466,9 @@ module Styles =
             fun (palette: SemanticPalette) ->
                 makeTextStyles {
                     textDecorationLine TextDecorationLine.LineThrough
-                    color palette.TextMuted
+                    color palette.TextPrimary
                     fontSize 15
+                    FontWeight.W500
                 }
         )
 
@@ -454,7 +499,7 @@ module Styles =
     let filterTabTheme (tabBase: TabTheme) : LC.Tab.Theme =
         {
             SelectedColor = tabBase.SelectedColor
-            UnselectedColor = tabBase.UnselectedColor
+            UnselectedColor = Color.Hex "#666666"
         }
 
     let tabsScrollTheme (tabBase: TabTheme) : Theme =
