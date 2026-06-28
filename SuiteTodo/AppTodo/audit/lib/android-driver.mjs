@@ -120,11 +120,30 @@ class AndroidLocator {
 
   /** @param {string} value @param {{ timeout?: number }} [opts] */
   async fill(value, opts = {}) {
-    const el = (await this._resolveRaw())[0];
-    if (!el) throw new Error(`No element to fill: ${this.selector}`);
-    await el.waitForDisplayed({ timeout: opts.timeout ?? 8000 }).catch(() => {});
-    await el.clearValue().catch(() => {});
-    await el.setValue(value);
+    const timeout = opts.timeout ?? 15000;
+    const deadline = Date.now() + timeout;
+    let lastErr;
+
+    while (Date.now() < deadline) {
+      const el = (await this._resolveRaw())[0];
+      if (!el) {
+        await this.driver.pause(250);
+        continue;
+      }
+      try {
+        await el.waitForDisplayed({ timeout: Math.min(4000, deadline - Date.now()) });
+        await clickNativeElement(el);
+        await this.driver.pause(200);
+        await el.clearValue().catch(() => {});
+        await el.setValue(value);
+        return;
+      } catch (e) {
+        lastErr = e;
+        await this.driver.pause(300);
+      }
+    }
+
+    throw lastErr ?? new Error(`No element to fill: ${this.selector}`);
   }
 
   async waitFor({ timeout = 30000 } = {}) {

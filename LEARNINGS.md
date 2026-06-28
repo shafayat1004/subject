@@ -1227,3 +1227,15 @@ only matched Metro *bundle* errors (`Unable to resolve module`, HTTP 500), not L
 - `render_error` state from UI (`Render Error`, stack sections), page-source scan, and **streaming logs**
 - Android logcat must include `ReactNativeJS:E` (errors were filtered out when only `ReactNativeJS:I` was captured)
 - Native health poll uses `crashPollMs` (200ms) and throws `AppHealthError` immediately on first signal
+
+### 2026-06-28 — iOS `LC.Input.Text` keystrokes wiped (paste OK)
+
+**Symptom:** On iOS native, typing in `LC.Input.Text` shows no characters; paste from the context menu works.
+Android and web fine.
+
+**Cause:** ReactXP `native-common/TextInput` syncs `props.value` into internal state via
+`componentWillReceiveProps`. Parent F# state updates one frame after `onChangeText`; iOS applies the stale
+`value=""` and clears the keystroke. Paste works because it is a single `onChangeText` with the full string.
+
+**Fix:** `LibClient/Components/Input/Text/Text.fs` keeps a `draftValueHook` while editing; syncs from props
+only when blurred. Applies to all `LC.Input.Text` (Todo new-title, search, etc.).

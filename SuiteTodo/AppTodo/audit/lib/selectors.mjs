@@ -18,6 +18,21 @@ export function escapeAttr(text) {
 
 /**
  * @param {string} testId
+ * @param {'android' | 'ios'} platform
+ */
+export function editableUnderTestIdSelector(testId, platform) {
+  const id = escapeAttr(testId);
+  if (platform === PLATFORM.ANDROID) {
+    return `android=new UiSelector().resourceId("${id}").childSelector(new UiSelector().className("android.widget.EditText"))`;
+  }
+  if (platform === PLATFORM.IOS) {
+    return `-ios class chain:**[\`${id}\`]/XCUIElementTypeTextField`;
+  }
+  return testIdSelector(testId, platform);
+}
+
+/**
+ * @param {string} testId
  * @param {'web' | 'android' | 'ios'} [platform]
  */
 export function testIdSelector(testId, platform = PLATFORM.WEB) {
@@ -58,9 +73,9 @@ export async function clickByTestId(page, testId, options = {}) {
  */
 export async function fillNewTodoTitle(page, value, platform = PLATFORM.WEB) {
   if (isNativePlatform(platform)) {
-    const byTestId = findByTestId(page, TEST_IDS.newTitle, platform);
-    if (await byTestId.count()) {
-      await byTestId.first().fill(value);
+    const input = page.locator(editableUnderTestIdSelector(TEST_IDS.newTitle, platform));
+    if (await input.count()) {
+      await input.first().fill(value);
       return;
     }
     await page.locator('input').first().fill(value);

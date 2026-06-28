@@ -136,6 +136,10 @@ export async function prepareTodoUi(session, options = {}) {
 
   if (isNativePlatform(session.platform)) {
     const app = session.platform === PLATFORM.ANDROID ? resolveAndroidApp() : null;
+    if (session.platform === PLATFORM.ANDROID) {
+      const { setAndroidOrientationViaAdb, resolveDeviceOrientation } = await import('./device-orientation.mjs');
+      setAndroidOrientationViaAdb(resolveDeviceOrientation(session), null);
+    }
     try {
       await waitForHealthyApp(session.page, session.platform, {
         timeoutMs,

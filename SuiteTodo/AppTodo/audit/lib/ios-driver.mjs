@@ -14,6 +14,12 @@ import {
 } from './device-orientation.mjs';
 import { waitForHealthyApp, probeAppHealth, detectMetroRedbox, isTodoUiVisible } from './app-health.mjs';
 
+/** @param {import('webdriverio').Element} el */
+async function elementRect(el) {
+  const [loc, size] = await Promise.all([el.getLocation(), el.getSize()]);
+  return { x: loc.x, y: loc.y, width: size.width, height: size.height };
+}
+
 class IosLocator {
   /** @param {import('webdriverio').Browser} driver @param {string} selector @param {{ index?: number }} [meta] */
   constructor(driver, selector, meta = {}) {
@@ -61,11 +67,30 @@ class IosLocator {
   }
 
   async fill(value, opts = {}) {
-    const el = (await this._resolveRaw())[0];
-    if (!el) throw new Error(`No element to fill: ${this.selector}`);
-    await el.waitForDisplayed({ timeout: opts.timeout ?? 8000 }).catch(() => {});
-    await el.clearValue().catch(() => {});
-    await el.setValue(value);
+    const timeout = opts.timeout ?? 15000;
+    const deadline = Date.now() + timeout;
+    let lastErr;
+
+    while (Date.now() < deadline) {
+      const el = (await this._resolveRaw())[0];
+      if (!el) {
+        await this.driver.pause(250);
+        continue;
+      }
+      try {
+        await el.waitForDisplayed({ timeout: Math.min(4000, deadline - Date.now()) });
+        await el.click().catch(() => {});
+        await this.driver.pause(200);
+        await el.clearValue().catch(() => {});
+        await el.setValue(value);
+        return;
+      } catch (e) {
+        lastErr = e;
+        await this.driver.pause(300);
+      }
+    }
+
+    throw lastErr ?? new Error(`No element to fill: ${this.selector}`);
   }
 
   async waitFor({ timeout = 30000 } = {}) {
@@ -80,8 +105,11 @@ class IosLocator {
   async boundingBox() {
     const el = (await this._resolveRaw())[0];
     if (!el) return null;
-    const rect = await el.getRect();
-    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    try {
+      return await elementRect(el);
+    } catch {
+      return null;
+    }
   }
 }
 
