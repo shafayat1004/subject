@@ -42,7 +42,23 @@ type Ui.Content with
     static member AutoUi_InputForm () : ReactElement =
         Ui.ComponentContent(
             displayName = "AutoUi InputForm",
-            props = ComponentContent.ForFullyQualifiedName "LibAutoUi.Components.InputForm",
+            props =
+                ComponentContent.Manual(
+                    element {
+                        Ui.Code(
+                            language = ComponentSample.Fsharp,
+                            children =
+                                [| LC.Text """
+UIAuto.InputForm(
+    formWrapper: FormWrapper<'T>,
+    settings: Settings,
+    onChange: InputValidationResult<'T> -> unit,
+    ?key: string
+)
+""" |]
+                        )
+                    }
+                ),
             notes =
                 element {
                     LC.UiText(

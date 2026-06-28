@@ -331,6 +331,11 @@ export function createInteractionContext(page, log, options = {}) {
       else if (placeholder?.toLowerCase().includes('name')) value = 'Alice';
       else if (type === 'tel') value = '+1 555 0100';
       await input.click({ force: true, timeout: 2000 }).catch(() => {});
+      if (type === 'date' || type === 'datetime-local') {
+        log(`input[${i}] type=${type} skipped (date picker)`);
+        await page.keyboard.press('Escape').catch(() => {});
+        continue;
+      }
       await input.fill(value, { timeout: 3000 }).catch(() => {});
       log(`input[${i}] type=${type} <- "${value}"`);
       await wait(200);
@@ -916,6 +921,15 @@ export const COMPONENT_HANDLERS = {
     await ctx.forEachVisualCell(async (cell) => {
       await ctx.clickButton(cell, 'Trigger AsyncData failure');
       await ctx.wait(600);
+      await ctx.page.keyboard.press('Escape').catch(() => {});
+    });
+  },
+
+  AutoUi_InputForm: async (ctx) => {
+    await ctx.forEachVisualCell(async (cell) => {
+      await ctx.fillFirstInput(cell, 'Alice');
+      await ctx.page.keyboard.press('Escape').catch(() => {});
+      await ctx.wait(200);
     });
   },
 
@@ -1052,9 +1066,20 @@ export async function interactWithComponent(page, componentName, logFn, options 
   }
 
   // Generic sweep runs after targeted assertions so UI state checks stay meaningful.
+  const skipGenericButtonSweep = new Set([
+    'Dialogs',
+    'ErrorBoundary',
+    'Executor_AlertErrors',
+    'ThirdParty_Map',
+    'AutoUi_InputForm',
+    'Input_Date',
+    'DateSelector',
+  ]);
   await ctx.forEachVisualCell(async (cell, index) => {
-    await ctx.interactInputsInCell(cell);
-    if (!['Dialogs', 'ErrorBoundary', 'Executor_AlertErrors', 'ThirdParty_Map'].includes(componentName)) {
+    if (componentName !== 'AutoUi_InputForm') {
+      await ctx.interactInputsInCell(cell);
+    }
+    if (!skipGenericButtonSweep.has(componentName)) {
       await ctx.clickAllActionableButtons(cell, 6);
     }
     log(`completed sample column ${index + 1}`);
