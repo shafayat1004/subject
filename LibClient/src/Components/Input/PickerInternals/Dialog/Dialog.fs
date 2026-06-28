@@ -26,25 +26,27 @@ type Parameters<'Item when 'Item : comparison> = {
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let textInput (screenSize: ScreenSize) =
-        makeViewStyles {
-            paddingHV 12 4
-            marginBottom 10
-            borderRadius 4
-            borderWidth 1
-            borderColor (Color.Grey "cc")
+    let textInput =
+        ViewStyles.Memoize (fun (screenSize: ScreenSize) ->
+            makeViewStyles {
+                paddingHV 12 4
+                marginBottom 10
+                borderRadius 4
+                borderWidth 1
+                borderColor (Color.Grey "cc")
 
-            match screenSize with
-            | ScreenSize.Desktop -> height 46
-            | ScreenSize.Handheld -> height 40
-        }
+                match screenSize with
+                | ScreenSize.Desktop -> height 46
+                | ScreenSize.Handheld -> height 40
+            })
 
-    let textInputFont (screenSize: ScreenSize) =
-        makeTextStyles {
-            match screenSize with
-            | ScreenSize.Desktop -> fontSize 20
-            | ScreenSize.Handheld -> fontSize 16
-        }
+    let textInputFont =
+        TextStyles.Memoize (fun (screenSize: ScreenSize) ->
+            makeTextStyles {
+                match screenSize with
+                | ScreenSize.Desktop -> fontSize 20
+                | ScreenSize.Handheld -> fontSize 16
+            })
 
     let itemList =
         makeViewStyles {

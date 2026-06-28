@@ -19,6 +19,7 @@
  *   --visual-archive=on|off          Archival PNGs for human/AI review (default: on)
  *   --resume=DIR                     Continue an interrupted run (reads pass-N/checkpoint.json)
  *   --interaction-timeout-ms=N       Override per-page interaction wall clock (default 90s; AutoUi 45s)
+ *   --only=NAME[,NAME]|PRESET        Subset of routes (presets: style-leak-fix, style-leak-high-value)
  */
 import { writeVisualArchiveReadme } from './audit-gallery-visual-archive.mjs';
 import {
@@ -52,6 +53,7 @@ import { interactWithComponent, COMPONENT_HANDLERS } from './audit-gallery-inter
 import {
   discoverGalleryComponents,
   buildCoverageReport,
+  resolveAuditComponentScope,
 } from './audit-gallery-components.mjs';
 import { listAssertionComponents } from './audit-gallery-assertions.mjs';
 import { classifyTag, isActionable, textIsDevNoise } from './audit-gallery-classify.mjs';
@@ -84,6 +86,7 @@ const resumeDir = flags.resume ?? null;
 const interactionTimeoutOverride = flags['interaction-timeout-ms']
   ? Number(flags['interaction-timeout-ms'])
   : undefined;
+const onlyScope = flags.only ?? null;
 if (!['all', 'failures', 'none'].includes(screenshotMode)) {
   console.error(`Invalid --screenshots=${screenshotMode}; use all, failures, or none`);
   process.exit(1);
@@ -104,7 +107,9 @@ if (!resumeDir) {
   writeFileSync(join(outRoot, 'coverage-report.json'), JSON.stringify(coverageAtStart, null, 2));
 }
 
-const COMPONENTS = discoveredComponents;
+const COMPONENTS = onlyScope
+  ? resolveAuditComponentScope(onlyScope, discoveredComponents)
+  : discoveredComponents;
 
 /** @type {Set<string>} */
 let blockedComponents = loadBlockedComponents(outRoot);
@@ -836,6 +841,9 @@ console.log(`  Passes:   ${passCount}`);
 console.log(`  Screenshots: ${screenshotMode}`);
 console.log(`  Visual archive: ${visualArchiveEnabled ? 'on' : 'off'}`);
 if (resumeDir) console.log(`  Resume:   ${outRoot}`);
+if (onlyScope) {
+  console.log(`  Only:     ${onlyScope} (${COMPONENTS.length} route(s))`);
+}
 if (blockedComponents.size) {
   console.log(`  Blocked components: ${[...blockedComponents].join(', ')}`);
 }

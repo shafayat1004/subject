@@ -52,53 +52,52 @@ module private Styles =
         }
 
     let viewTheme =
-        ViewStyles.Memoize(
-            fun (theme: Theme) (lowLevelState: ButtonLowLevelState) (isDepressed: bool) ->
-                let stateTheme = theme.StateTheme(lowLevelState)
+        ViewStyles.Memoize (fun (btnIconSize: int) (lowLevelState: ButtonLowLevelState) (isDepressed: bool) ->
+            makeViewStyles {
+                width btnIconSize
+                height btnIconSize
 
-                makeViewStyles {
-                    width stateTheme.IconSize
-                    height stateTheme.IconSize
+                FlexDirection.Row
+                JustifyContent.Center
+                AlignItems.Center
+                Overflow.VisibleForTapCapture
 
-                    FlexDirection.Row
-                    JustifyContent.Center
-                    AlignItems.Center
-                    Overflow.VisibleForTapCapture
+                match lowLevelState with
+                | ButtonLowLevelState.Disabled ->
+                    opacity 0.5
+                | ButtonLowLevelState.Actionable _ ->
+                    Cursor.Pointer
+                | ButtonLowLevelState.InProgress ->
+                    Noop
 
-                    match lowLevelState with
-                    | ButtonLowLevelState.Disabled ->
-                        opacity 0.5
-                    | ButtonLowLevelState.Actionable _ ->
-                        Cursor.Pointer
-                    | ButtonLowLevelState.InProgress ->
-                        Noop
+                if isDepressed then
+                    opacity 0.5
+            })
 
-                    if isDepressed then
-                        opacity 0.5
-                }
-        )
+    let viewThemeFor (theme: Theme) (lowLevelState: ButtonLowLevelState) (isDepressed: bool) =
+        let stateTheme = theme.StateTheme lowLevelState
+        viewTheme stateTheme.IconSize lowLevelState isDepressed
 
     let iconTheme =
-        TextStyles.Memoize(
-            fun (theme: Theme) (lowLevelState: ButtonLowLevelState) ->
-                let stateTheme = theme.StateTheme(lowLevelState)
+        TextStyles.Memoize (fun (iconColor: Color) (btnIconSize: int) ->
+            makeTextStyles {
+                color iconColor
+                fontSize btnIconSize
+            })
 
-                makeTextStyles {
-                    color stateTheme.IconColor
-                    fontSize stateTheme.IconSize
-                }
-        )
+    let iconThemeFor (theme: Theme) (lowLevelState: ButtonLowLevelState) =
+        let stateTheme = theme.StateTheme lowLevelState
+        iconTheme stateTheme.IconColor stateTheme.IconSize
 
     let tapCaptureTheme =
-        ViewStyles.Memoize(
-            fun (theme: Theme) (lowLevelState: ButtonLowLevelState) ->
-                let stateTheme = theme.StateTheme(lowLevelState)
-                let (t, r, b, l) = stateTheme.TapTargetMargin
+        ViewStyles.Memoize (fun (marginTop: int) (marginRight: int) (marginBottom: int) (marginLeft: int) ->
+            makeViewStyles {
+                trbl marginTop marginRight marginBottom marginLeft
+            })
 
-                makeViewStyles {
-                    trbl t r b l
-                }
-        )
+    let tapCaptureThemeFor (theme: Theme) (lowLevelState: ButtonLowLevelState) =
+        let (t, r, b, l) = (theme.StateTheme lowLevelState).TapTargetMargin
+        tapCaptureTheme t r b l
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -125,13 +124,13 @@ type LibClient.Components.Constructors.LC with
                     RX.View(
                         styles =
                             [|
-                                Styles.viewTheme theTheme lowLevelState isDepressed
+                                Styles.viewThemeFor theTheme lowLevelState isDepressed
                                 yield! (styles |> Option.defaultValue [||])
                             |],
                         children =
                             elements {
                                 LC.Icon(
-                                    styles = [| Styles.iconTheme theTheme lowLevelState |],
+                                    styles = [| Styles.iconThemeFor theTheme lowLevelState |],
                                     icon = icon
                                 )
 
@@ -159,7 +158,7 @@ type LibClient.Components.Constructors.LC with
                                         role = AccessibilityRole.Button,
                                         overlay = true,
                                         pointerState = pointerState,
-                                        ?styles = (Some [| Styles.tapCaptureTheme theTheme lowLevelState |]),
+                                        ?styles = (Some [| Styles.tapCaptureThemeFor theTheme lowLevelState |]),
                                         componentName = "LC.IconButton"
                                     )
                                 | _ ->

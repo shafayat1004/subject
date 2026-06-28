@@ -26,33 +26,45 @@ open LC.Badge
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let view (theme: Theme) =
-        makeViewStyles {
-            flex              0
-            minHeight         22
-            minWidth          22
-            paddingHorizontal 6
-            borderRadius      11
-            JustifyContent.Center
-            backgroundColor   theme.BackgroundColor
-        }
+    let view =
+        ViewStyles.Memoize (fun (fillColor: Color) ->
+            makeViewStyles {
+                flex              0
+                minHeight         22
+                minWidth          22
+                paddingHorizontal 6
+                borderRadius      11
+                JustifyContent.Center
+                backgroundColor   fillColor
+            })
 
-    let noContent (theme: Theme) =
-        makeViewStyles {
-            minHeight         10
-            minWidth          10
-            borderRadius      5
-            JustifyContent.Center
-            backgroundColor   theme.BackgroundColor
-        }
+    let viewFor (theme: Theme) =
+        view theme.BackgroundColor
 
-    let text (theme: Theme) =
-        makeTextStyles {
-            TextAlign.Center
-            fontSize                   theme.FontSize
-            RulesRestricted.fontWeight theme.FontWeight
-            color                      theme.FontColor
-        }
+    let noContent =
+        ViewStyles.Memoize (fun (fillColor: Color) ->
+            makeViewStyles {
+                minHeight         10
+                minWidth          10
+                borderRadius      5
+                JustifyContent.Center
+                backgroundColor   fillColor
+            })
+
+    let noContentFor (theme: Theme) =
+        noContent theme.BackgroundColor
+
+    let text =
+        TextStyles.Memoize (fun (labelFontSize: int) (weight: RulesRestricted.FontWeight) (labelColor: Color) ->
+            makeTextStyles {
+                TextAlign.Center
+                fontSize                   labelFontSize
+                RulesRestricted.fontWeight weight
+                color                      labelColor
+            })
+
+    let textFor (theme: Theme) =
+        text theme.FontSize theme.FontWeight theme.FontColor
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -80,25 +92,25 @@ type LibClient.Components.Constructors.LC with
         match badge with
         | Badge.Count count ->
             RX.View(
-                styles = [| Styles.view theTheme; yield! legacyViewStyles; yield! extraStyles |],
+                styles = [| Styles.viewFor theTheme; yield! legacyViewStyles; yield! extraStyles |],
                 children =
                     elements {
-                        LC.UiText(value = string count, styles = [| Styles.text theTheme |])
+                        LC.UiText(value = string count, styles = [| Styles.textFor theTheme |])
                     }
             )
         | Badge.Text text ->
             RX.View(
-                styles = [| Styles.view theTheme; yield! legacyViewStyles; yield! extraStyles |],
+                styles = [| Styles.viewFor theTheme; yield! legacyViewStyles; yield! extraStyles |],
                 children =
                     elements {
                         LC.UiText(
                             value = text,
                             numberOfLines = 1,
-                            styles = [| Styles.text theTheme |]
+                            styles = [| Styles.textFor theTheme |]
                         )
                     }
             )
         | Badge.NoContent ->
             RX.View(
-                styles = [| Styles.noContent theTheme; yield! legacyViewStyles; yield! extraStyles |]
+                styles = [| Styles.noContentFor theTheme; yield! legacyViewStyles; yield! extraStyles |]
             )

@@ -281,12 +281,13 @@ module Input_TextComponent =
             elif isFocused then theTheme.BorderLabelFocusedColor
             else theTheme.BorderLabelBlurredColor
 
-        let view (hasLabel: bool) =
-            makeViewStyles {
-                Overflow.Visible
-                if hasLabel then
-                    marginTop 6
-            }
+        let view =
+            ViewStyles.Memoize (fun (hasLabel: bool) ->
+                makeViewStyles {
+                    Overflow.Visible
+                    if hasLabel then
+                        marginTop 6
+                })
 
         let border =
             ViewStyles.Memoize (fun (cornerRadius: int) (verticalPadding: int) (fillColor: Color) (outlineColor: Color) ->
@@ -361,14 +362,15 @@ module Input_TextComponent =
                     color reasonColor
                 })
 
-        let label (isSmall: bool) =
-            makeViewStyles {
-                Position.Absolute
-                top (if isSmall then -6 else 13)
-                left 10
-                paddingHorizontal 3
-                backgroundColor Color.White
-            }
+        let label =
+            ViewStyles.Memoize (fun (isSmall: bool) ->
+                makeViewStyles {
+                    Position.Absolute
+                    top (if isSmall then -6 else 13)
+                    left 10
+                    paddingHorizontal 3
+                    backgroundColor Color.White
+                })
 
         let labelText =
             TextStyles.Memoize (fun (labelColor: Color) (isSmall: bool) ->

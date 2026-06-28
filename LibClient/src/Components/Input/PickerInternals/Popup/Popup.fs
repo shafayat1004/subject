@@ -13,15 +13,27 @@ open ReactXP.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let scrollView (maybeFieldWidth: Option<int>) =
-        makeScrollViewStyles {
-            maxHeight 400
-            shadow (Color.BlackAlpha 0.3) 5 (0, 2)
+    let private scrollViewCache = System.Collections.Generic.Dictionary<int, ScrollViewStyles>()
 
-            match maybeFieldWidth with
-            | Some fieldWidth -> width (fieldWidth - 4)
-            | None            -> ()
-        }
+    let scrollView (fieldWidth: int) : ScrollViewStyles =
+        match scrollViewCache.TryGetValue fieldWidth with
+        | true, styles -> styles
+        | false, _ ->
+            let styles =
+                makeScrollViewStyles {
+                    maxHeight 400
+                    shadow (Color.BlackAlpha 0.3) 5 (0, 2)
+
+                    if fieldWidth >= 0 then
+                        width (fieldWidth - 4)
+                }
+            scrollViewCache.[fieldWidth] <- styles
+            styles
+
+    let scrollViewFor (maybeFieldWidth: Option<int>) =
+        match maybeFieldWidth with
+        | Some fieldWidth -> scrollView fieldWidth
+        | None            -> scrollView -1
 
     let view =
         makeViewStyles {
@@ -30,23 +42,24 @@ module private Styles =
             Overflow.VisibleForScrolling
         }
 
-    let item (isFirst: bool) (isHighlighted: bool) =
-        makeViewStyles {
-            FlexDirection.Row
-            AlignItems.Center
-            Cursor.Pointer
-            paddingHorizontal 18
-            paddingLeft 16
-            paddingRight 8
-            paddingVertical 9
-            borderTop 1 (Color.Grey "cc")
+    let item =
+        ViewStyles.Memoize (fun (isFirst: bool) (isHighlighted: bool) ->
+            makeViewStyles {
+                FlexDirection.Row
+                AlignItems.Center
+                Cursor.Pointer
+                paddingHorizontal 18
+                paddingLeft 16
+                paddingRight 8
+                paddingVertical 9
+                borderTop 1 (Color.Grey "cc")
 
-            if isFirst then
-                borderTopWidth 0
+                if isFirst then
+                    borderTopWidth 0
 
-            if isHighlighted then
-                backgroundColor (Color.Grey "ee")
-        }
+                if isHighlighted then
+                    backgroundColor (Color.Grey "ee")
+            })
 
     let itemSelectedness =
         makeViewStyles {
@@ -65,16 +78,17 @@ module private Styles =
             color (Color.Grey "cc")
         }
 
-    let itemLabel (isHighlighted: bool) =
-        makeTextStyles {
-            color (
-                if isHighlighted then
-                    Color.Grey "33"
-                else
-                    Color.Grey "66"
-            )
-            fontSize 16
-        }
+    let itemLabel =
+        TextStyles.Memoize (fun (isHighlighted: bool) ->
+            makeTextStyles {
+                color (
+                    if isHighlighted then
+                        Color.Grey "33"
+                    else
+                        Color.Grey "66"
+                )
+                fontSize 16
+            })
 
     let noItemsMessage =
         makeViewStyles {
@@ -201,7 +215,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
 
         RX.ScrollView(
             vertical = true,
-            styles = [| Styles.scrollView modelState.MaybeFieldWidth |],
+            styles = [| Styles.scrollViewFor modelState.MaybeFieldWidth |],
             children =
                 [|
                     RX.View(

@@ -76,16 +76,16 @@ module private Styles =
         )
 
     let textTheme =
-        TextStyles.Memoize(
-            fun (theme: Theme) (level: Level) (state: ButtonLowLevelState) ->
-                let stateTheme = theme.StateTheme level state
+        TextStyles.Memoize (fun (textColor: Color) (labelFontSize: int) (labelOpacity: float) ->
+            makeTextStyles {
+                color textColor
+                fontSize labelFontSize
+                opacity labelOpacity
+            })
 
-                makeTextStyles {
-                    color stateTheme.TextColor
-                    fontSize stateTheme.FontSize
-                    opacity stateTheme.Opacity
-                }
-        )
+    let textThemeFor (theme: Theme) (level: Level) (state: ButtonLowLevelState) =
+        let stateTheme = theme.StateTheme level state
+        textTheme stateTheme.TextColor stateTheme.FontSize stateTheme.Opacity
 
     let spinnerBlock =
         makeViewStyles {
@@ -123,7 +123,7 @@ type LibClient.Components.Constructors.LC with
                         value = label,
                         styles =
                             [|
-                                Styles.textTheme theTheme level lowLevelState
+                                Styles.textThemeFor theTheme level lowLevelState
                                 yield! (styles |> Option.defaultValue [||])
                             |],
                         ?numberOfLines = numberOfLines

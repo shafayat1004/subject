@@ -1058,3 +1058,18 @@ death during `session.recover()` now checkpoints and breaks the pass instead of 
 
 **After LibClient changes:** restart `eggshell dev-web` before re-audit; resume with
 `--resume=audit-browser/interactive/2026-06-28T03-00-04-731Z` from Sidebar onward.
+
+### 2026-06-28 — Scoped style-leak audit + QueryGrid/Grid fixes
+
+**Audit `--only` flag:** `audit-gallery-interactive.mjs --only=style-leak-fix` (Button,
+LabelledFormField, Input_Text, Input_Picker) or `--only=style-leak-high-value` (+ Forms, Grid,
+QueryGrid, Input_LocalTime). Comma-separated route names also work.
+
+**Additional memo fixes:** `PickerInternals.Popup` (scrollView cache, item/itemLabel),
+`PickerInternals.Dialog` (textInput/textInputFont), `IconButton` + `TextButton` + `Badge` (primitive
+keys, not whole Theme), `Input.Text` label/view, `Field` tag.
+
+**High-value scope results (vs full crawl 2026-06-28T03-00-04-731Z):** QueryGrid 3281→326 hits,
+Input_Picker 3196→0, Input_Text 704→129, Button 441→25, Grid 953→101, Forms 757→94. Remaining
+`{overflow:visible}` hits on composite pages are mostly gallery chrome (sidebar/nav); Input_Text
+`marginTop:6` fixed via memo on `Styles.view hasLabel`.

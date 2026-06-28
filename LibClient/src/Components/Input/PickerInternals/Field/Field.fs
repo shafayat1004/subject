@@ -79,18 +79,19 @@ module private Styles =
             FlexDirection.Row
         }
 
-    let tag (isHighlighted: bool) =
-        makeViewStyles {
-            marginRight 4
-            borderRadius 3
-            borderWidth 1
-            borderColor (Color.Grey "e8")
-            backgroundColor (Color.Grey "e8")
-            FlexDirection.Row
+    let tag =
+        ViewStyles.Memoize (fun (isHighlighted: bool) ->
+            makeViewStyles {
+                marginRight 4
+                borderRadius 3
+                borderWidth 1
+                borderColor (Color.Grey "e8")
+                backgroundColor (Color.Grey "e8")
+                FlexDirection.Row
 
-            if isHighlighted then
-                borderColor Color.DevRed
-        }
+                if isHighlighted then
+                    borderColor Color.DevRed
+            })
 
     let tagText =
         makeViewStyles {
