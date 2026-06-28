@@ -113,7 +113,7 @@ type Ui.Content with
                 ),
             notes =
                 element {
-                    LC.Text "Use LC.Tab.Selected for the active tab and LC.Tab.Unselected with an onPress handler for inactive tabs. Only unselected tabs render a Pressable overlay."
+                    LC.Text "Use LC.Tab.Selected for the active tab and LC.Tab.Unselected with an onPress handler for inactive tabs. Only unselected tabs render a Pressable overlay. Each tab gets testId via A11ySlug (e.g. tab-home)."
                 },
             samples =
                 element {

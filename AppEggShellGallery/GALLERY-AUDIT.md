@@ -88,6 +88,7 @@ All scripts live in `AppEggShellGallery/` and are run with `node`:
 | **`audit-gallery-full.mjs`** | Fast headless console-only crawl; actionable vs dev noise |
 | `audit-gallery-interactions.mjs` | Per-component interaction recipes (imported by interactive) |
 | `audit-gallery-assertions.mjs` | Post-interaction UI checks + assertion screenshots |
+| **`audit-gallery-selectors.mjs`** | **TestId-first helpers:** `clickByTestId`, `findByTestId`, `clickLabelOrTestId`, `readUiSnapshot` |
 | `audit-gallery-visual-archive.mjs` | Archival PNGs + manifests for human/AI review |
 | `audit-gallery-components.mjs` | Route discovery from router; skip lists; coverage report |
 
@@ -233,8 +234,9 @@ When you add a gallery page, it is picked up automatically; add recipes in `audi
 
 ### 2. Interactions
 
-- Scoped to demo **visuals** cells: `.aesg-ContentComponent-table td.vertical-align-middle/top`
-- ReactXP labels use `[data-text-as-pseudo-element="..."]` (not DOM text nodes)
+- Scoped to demo **visuals** cells: `.aesg-ContentComponent-table td.vertical-align-middle/top` (web) or `~aesg-sample-visuals` (Android)
+- **TestId-first:** use `audit-gallery-selectors.mjs` (`clickLabelOrTestId`, `clickByTestId`) before pseudo-element heuristics
+- ReactXP labels use `[data-text-as-pseudo-element="..."]` (not DOM text nodes) as fallback on web
 - Horizontal sample scrolling before interacting
 - **File inputs:** never clicks `Select File` (OS picker); uses `setInputFiles` on hidden `<input type="file">`
 - **Native dialogs:** `window.alert/confirm` auto-accepted/dismissed → `native-dialogs.log`
@@ -300,7 +302,7 @@ After interactions, **archival PNGs** for qualitative review (overlap, spacing, 
 2. Add the route case in `Components.fs` (`renderContent` match).
 3. In `audit-gallery-interactions.mjs`, add `COMPONENT_HANDLERS.YourComponent`:
    - scope clicks/fills to `cell` (visuals column)
-   - use `clickPseudo`, `fillLabel`, not raw `getByText` when possible
+   - prefer `clickLabelOrTestId` / `clickByTestId` from `audit-gallery-selectors.mjs`; fall back to `clickPseudo`, `fillLabel`
 4. In `audit-gallery-assertions.mjs`, add `ASSERTION_HANDLERS.YourComponent`:
    - verify post-interaction state in the sample cell
 5. Re-run audit; check `coverage-report.json` and `REVIEW` lines.

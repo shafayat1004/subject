@@ -4,6 +4,7 @@ module LibClient.Components.Thumbs
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Services.ImageService
 
 open ReactXP.Styles
@@ -47,6 +48,7 @@ type LibClient.Components.Constructors.LC with
             ``for``: For<'T>,
             ?selected: Set<'T>,
             ?onPress: 'T -> uint32 -> ReactEvent.Action -> unit,
+            ?testIdPrefix: string,
             ?styles: array<ViewStyles>,
             ?key: string
         ) : ReactElement =
@@ -67,6 +69,11 @@ type LibClient.Components.Constructors.LC with
                         items
                         |> Seq.mapi (fun index item ->
                             let isLastThumb = index = (itemsLength - 1)
+                            let thumbTestId =
+                                match (testIdPrefix, onPress) with
+                                | (Some prefix, Some _) -> Some (sprintf "%s-%i" prefix index)
+                                | (_, Some _)           -> Some (A11ySlug.testId "thumb" (string index))
+                                | _                     -> None
 
                             LC.Thumb(
                                 ``for`` = LC.Thumb.For.Of(item, ``for``.ToSource),
@@ -76,6 +83,7 @@ type LibClient.Components.Constructors.LC with
                                             Styles.notLastThumb
                                     |],
                                 isSelected = (selected.Contains item),
+                                ?testId = thumbTestId,
                                 ?onPress = (onPress |> Option.map (fun onPress -> onPress item (uint32 index)))
                             )
                         )

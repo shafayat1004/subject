@@ -106,6 +106,11 @@ module private Helpers =
         (onToggle: int -> 'Item -> ReactEvent.Action -> unit)
         (items: seq<'Item>)
         : ReactElement =
+        let itemLabel (item: 'Item) =
+            match itemView with
+            | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
+            | PickerItemView.Custom _           -> "Select item"
+
         LC.ItemList(
             style = ItemList.Raw,
             items = items,
@@ -145,7 +150,8 @@ module private Helpers =
                                         )
                                         LC.Pressable(
                                             onPress = onToggle index item,
-                                            label = (match itemView with PickerItemView.Default toItemInfo -> (toItemInfo item).Label | PickerItemView.Custom _ -> "Select item"),
+                                            label = itemLabel item,
+                                            testId = A11ySlug.testId "picker-item" (itemLabel item),
                                             role = AccessibilityRole.Button,
                                             overlay = true,
                                             styles = [| Styles.pressableOverlay |],

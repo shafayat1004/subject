@@ -37,7 +37,11 @@ type private Helpers =
                                 }
                         )
 
-                        LC.Scrim(isVisible = isScrimVisible.current, styles = [| Styles.scrim |])
+                        LC.Scrim(
+                            isVisible = isScrimVisible.current,
+                            onPress = (fun _ -> isScrimVisible.update false),
+                            styles = [| Styles.scrim |]
+                        )
                     }
             )
 
@@ -85,6 +89,7 @@ RX.View(
         )
         LC.Scrim(
             isVisible = isScrimVisible.current,
+            onPress = (fun _ -> isScrimVisible.update false),
             styles = [| makeViewStyles { Position.Absolute; trbl 0 0 0 0 } |]
         )
     }

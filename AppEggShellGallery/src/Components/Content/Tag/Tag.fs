@@ -3,6 +3,7 @@ module AppEggShellGallery.Components.Content_Tag
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 
 let private cautionTheme (theme: LC.Tag.Theme) : LC.Tag.Theme =
@@ -91,7 +92,7 @@ LC.Tags(
                                     elements {
                                         LC.Tag(text = "View Only", state = LC.Tag.ViewOnly)
                                         LC.Tag(text = "Selected", state = LC.Tag.ViewOnly, isSelected = true)
-                                        LC.Tag(text = "Actionable", state = LC.Tag.Actionable (fun _ -> Action.alert "You pressed a tag"))
+                                        LC.Tag(text = "Actionable", state = LC.Tag.Actionable (fun _ -> Action.alert "You pressed a tag"), testId = A11ySlug.testId "tag" "Actionable")
                                         LC.Tag(text = "InProgress", state = LC.Tag.InProgress)
                                         LC.Tag(text = "Disabled", state = LC.Tag.Disabled)
                                     }
@@ -104,7 +105,7 @@ LC.Tags(
     children = elements {
         LC.Tag(text = "View Only",  state = LC.Tag.ViewOnly)
         LC.Tag(text = "Selected",   state = LC.Tag.ViewOnly, isSelected = true)
-        LC.Tag(text = "Actionable", state = LC.Tag.Actionable (fun _ -> Action.alert "You pressed a tag"))
+        LC.Tag(text = "Actionable", state = LC.Tag.Actionable (fun _ -> Action.alert "You pressed a tag"), testId = A11ySlug.testId "tag" "Actionable")
         LC.Tag(text = "InProgress", state = LC.Tag.InProgress)
         LC.Tag(text = "Disabled",   state = LC.Tag.Disabled)
     }
@@ -121,7 +122,7 @@ LC.Tags(
                                     elements {
                                         LC.Tag(text = "View Only", theme = cautionTheme, state = LC.Tag.ViewOnly)
                                         LC.Tag(text = "Selected", theme = cautionTheme, state = LC.Tag.ViewOnly, isSelected = true)
-                                        LC.Tag(text = "Actionable", theme = cautionTheme, state = LC.Tag.Actionable (fun _ -> Action.alert "You pressed a themed tag"))
+                                        LC.Tag(text = "Actionable", theme = cautionTheme, state = LC.Tag.Actionable (fun _ -> Action.alert "You pressed a themed tag"), testId = A11ySlug.testId "tag" "Actionable")
                                         LC.Tag(text = "InProgress", theme = cautionTheme, state = LC.Tag.InProgress)
                                         LC.Tag(text = "Disabled", theme = cautionTheme, state = LC.Tag.Disabled)
                                     }

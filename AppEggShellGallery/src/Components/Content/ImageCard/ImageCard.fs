@@ -3,6 +3,7 @@ module AppEggShellGallery.Components.Content_ImageCard
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open AppEggShellGallery.LocalImages
 open AppEggShellGallery
@@ -24,6 +25,31 @@ type Ui.Content with
             notes = LC.Text "ImageCard displays a background image with an optional label overlay. Use ImageCard.Text for simple captions or ImageCard.Children for custom metadata.",
             samples = (
                 element {
+                    Ui.ComponentSampleGroup(
+                        heading = "Pressable",
+                        samples = (
+                            element {
+                                Ui.ComponentSample(
+                                    visuals = LC.ImageCard(
+                                        source = localImage "/images/wlop4.jpg",
+                                        label  = ImageCard.Text ("Painting", ImageCard.UseScrim.Yes),
+                                        onPress = (fun _ -> Action.alert "Image opened"),
+                                        testId = A11ySlug.testId "image-card" "Painting",
+                                        styles = [| sampleImageCardStyles |]
+                                    ),
+                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+LC.ImageCard(
+    source = localImage "/images/wlop4.jpg",
+    label  = ImageCard.Text ("Painting", ImageCard.UseScrim.Yes),
+    onPress = (fun _ -> Action.alert "Image opened"),
+    testId = A11ySlug.testId "image-card" "Painting",
+    styles = [| sampleImageCardStyles |]
+)""")
+                                )
+                            }
+                        )
+                    )
+
                     Ui.ComponentSampleGroup(
                         heading = "Basics",
                         samples = (

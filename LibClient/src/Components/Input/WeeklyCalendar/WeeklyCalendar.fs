@@ -13,6 +13,7 @@ namespace LibClient.Components
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components.Input.WeeklyCalendar
 open LibClient.Responsive
 open LibClient.ServiceInstances
@@ -54,6 +55,7 @@ module Input_WeeklyCalendarComponent =
         let day (screenSize: ScreenSize) =
             makeViewStyles {
                 FlexDirection.Column; AlignItems.Center; height 60
+                Overflow.VisibleForTapCapture
                 width (if screenSize = ScreenSize.Desktop then dayWidthDesktop else dayWidthHandheld)
             }
 
@@ -132,15 +134,25 @@ module Input_WeeklyCalendarComponent =
                                         (generateWeek startDateHook.current
                                          |> Seq.map (fun day ->
                                             let isSelected = Set.contains day value
+                                            let dayName = unionCaseName day.DayOfTheWeek
+                                            let dayLabel = sprintf "%s %i" dayName day.Day
                                             RX.View(styles = [| Styles.day screenSize |], children = [|
                                                 LC.LegacyText(styles = [| Styles.dayOfWeek theTheme |], children = [|
-                                                    makeTextNode2 (Some "LibClient.Components.LegacyText") ((unionCaseName day.DayOfTheWeek).Substring(0, 3))
+                                                    makeTextNode2 (Some "LibClient.Components.LegacyText") (dayName.Substring(0, 3))
                                                 |])
                                                 RX.View(styles = [| Styles.date |], children = [|
                                                     if isSelected then RX.View(styles = [| Styles.circle theTheme screenSize |]) else noElement
                                                     LC.UiText(value = string day.Day, styles = [| Styles.dateText theTheme isSelected |])
                                                 |])
-                                                LC.Pressable(onPress = (fun _ -> onChange (value.Toggle day)), overlay = true, componentName = "LC.Input.WeeklyCalendar")
+                                                LC.Pressable(
+                                                    onPress = (fun _ -> onChange (value.Toggle day)),
+                                                    label = dayLabel,
+                                                    testId = A11ySlug.testId "weekly-calendar" dayLabel,
+                                                    role = AccessibilityRole.Button,
+                                                    state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                                                    overlay = true,
+                                                    componentName = "LC.Input.WeeklyCalendar"
+                                                )
                                             |])
                                          )
                                          |> Array.ofSeq)

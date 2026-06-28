@@ -37,6 +37,7 @@ let renderPickerBase<'Item when 'Item : comparison>(
         showSearchBar: bool,
         label: string option,
         placeholder: string option,
+        testId: string option,
         pickerId: string option,
         styles: ViewStyles array option,
         xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option
@@ -117,6 +118,7 @@ let renderPickerBase<'Item when 'Item : comparison>(
                     model = modelRef.current,
                     ?label = label,
                     ?placeholder = placeholder,
+                    ?testId = testId,
                     value = value,
                     validity = validity,
                     itemView = itemView,
@@ -137,6 +139,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             showSearchBar: bool,
             ?label: string,
             ?placeholder: string,
+            ?testId: string,
             ?pickerId: string,
             ?styles: array<ViewStyles>,
             ?key: string,
@@ -153,6 +156,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             showSearchBar,
             label,
             placeholder,
+            testId,
             pickerId,
             styles,
             xLegacyStyles

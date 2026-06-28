@@ -85,6 +85,7 @@ module private Styles =
         backgroundColor (Color.Rgba (226, 47, 47, 0.85))
     }
     let retryButtonContainer = makeViewStyles {
+        Position.Relative
         margin          20
         padding         12
         borderRadius    5
@@ -259,6 +260,7 @@ type private Helpers =
                                 LC.Pressable (
                                     onPress = (fun _ -> retry () |> startSafely),
                                     label = "Retry",
+                                    testId = A11ySlug.testId "paginated-virtual-list-view" "Retry",
                                     role = AccessibilityRole.Button,
                                     overlay = true,
                                     componentName = "LC.PaginatedVirtualListView"

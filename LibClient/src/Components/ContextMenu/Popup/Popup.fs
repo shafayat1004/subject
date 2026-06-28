@@ -29,6 +29,7 @@ module private Styles =
 
     let button (isFirst: bool) =
         makeViewStyles {
+            Position.Relative
             FlexDirection.Row
             AlignItems.Center
             Cursor.Pointer

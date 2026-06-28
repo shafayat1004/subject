@@ -144,6 +144,7 @@ module Nav_Bottom_Item =
     module private Styles =
         let item (sizes: ScreenSizes) (colors: AppearanceColors) =
             makeViewStyles {
+                Position.Relative
                 AlignItems.Center
                 JustifyContent.SpaceAround
                 marginHorizontal 5
@@ -326,6 +327,7 @@ module Nav_Bottom_Item =
         static member Item(
                 state: State,
                 style: Style,
+                ?testId: string,
                 ?children: ReactChildrenProp,
                 ?styles: array<ViewStyles>,
                 ?theme: Theme -> Theme,
@@ -336,6 +338,9 @@ module Nav_Bottom_Item =
             children |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith theme
+            let pressLabelValue = pressLabel style
+            let itemTestId =
+                testId |> Option.defaultValue (A11ySlug.testId "nav-bottom-item" pressLabelValue)
 
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
@@ -369,8 +374,9 @@ module Nav_Bottom_Item =
                                             | Some onPress ->
                                                 LC.Pressable(
                                                     onPress = onPress,
-                                                    label = pressLabel style,
+                                                    label = pressLabelValue,
                                                     role = AccessibilityRole.Button,
+                                                    testId = itemTestId,
                                                     state =
                                                         { AccessibilityStateRecord.empty with
                                                             Selected = Some (isSelectedState state)

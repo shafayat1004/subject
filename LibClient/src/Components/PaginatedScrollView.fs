@@ -71,6 +71,7 @@ module private Styles =
     }
 
     let retryButtonContainer = makeViewStyles {
+        Position.Relative
         margin          20
         padding         12
         borderRadius    5
@@ -266,6 +267,7 @@ type LibClient.Components.Constructors.LC with
                                                                 LC.Pressable (
                                                                     onPress = (fun _ -> loadNextPage () |> startSafely),
                                                                     label = "Retry",
+                                                                    testId = A11ySlug.testId "paginated-scroll-view" "Retry",
                                                                     role = AccessibilityRole.Button,
                                                                     overlay = true,
                                                                     componentName = "LC.PaginatedScrollView"

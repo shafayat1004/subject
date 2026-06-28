@@ -145,6 +145,7 @@ namespace LibClient.Components
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open ReactXP.Components
 open ReactXP.Styles
 
@@ -164,6 +165,11 @@ module Input_LocalTimeComponent =
                 AlignItems.Center
             }
 
+        let pressableOverlay =
+            makeViewStyles {
+                opacity 0.
+            }
+
         // field, colon, picker, label, and invalid-reason styling are handled via
         // xLegacyStyles passed from the caller's render DSL class attributes.
 
@@ -174,6 +180,7 @@ module Input_LocalTimeComponent =
                 validity:            InputValidity,
                 onChange:            Value -> unit,
                 ?label:              string,
+                ?testId:              string,
                 ?onEnterKeyPress:    (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
                 ?xLegacyStyles:      List<ReactXP.LegacyStyles.RuntimeStyles>,
@@ -208,7 +215,7 @@ module Input_LocalTimeComponent =
             let onBlur (_e: Browser.Types.FocusEvent) : unit =
                 isFocusedHook.update false
 
-            let focusHoursInput (_e: Browser.Types.Event) : unit =
+            let focusHoursInput () : unit =
                 maybeHoursInput.current |> Option.sideEffect (fun input ->
                     input.RequestFocus()
                 )
@@ -223,14 +230,19 @@ module Input_LocalTimeComponent =
             let isLabelInvalid = (value.InternalValidity.Or validity).IsInvalid
             let isFocused      = isFocusedHook.current
 
+            let resolvedTestId =
+                testId
+                |> Option.orElse (label |> Option.map (A11ySlug.testId "input"))
+                |> Option.defaultValue "input-local-time"
+
             RX.View(
+                testId = resolvedTestId,
                 styles = [| yield! legacyViewStyles |],
                 children =
                     [|
                         (match label with
                          | Some lbl ->
                             RX.View(
-                                onPress  = focusHoursInput,
                                 children =
                                     [|
                                         LC.LegacyText(
@@ -242,6 +254,15 @@ module Input_LocalTimeComponent =
                                                      + (if isFocused      then " focused" else "")),
                                             children =
                                                 [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", lbl)) |]
+                                        )
+                                        LC.Pressable(
+                                            onPress = (fun _ -> focusHoursInput ()),
+                                            label = lbl,
+                                            testId = sprintf "%s-focus" resolvedTestId,
+                                            role = AccessibilityRole.Button,
+                                            overlay = true,
+                                            styles = [| Styles.pressableOverlay |],
+                                            componentName = "LC.Input.LocalTime.Focus"
                                         )
                                     |]
                             )
@@ -257,6 +278,7 @@ module Input_LocalTimeComponent =
                                         validity            = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
                                         maxLength           = 2,
                                         placeholder         = "00",
+                                        testId              = A11ySlug.testId resolvedTestId "hours",
                                         requestFocusOnMount = requestFocusOnMount,
                                         onFocus             = onFocus,
                                         onBlur              = onBlur,
@@ -281,6 +303,7 @@ module Input_LocalTimeComponent =
                                         validity         = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
                                         maxLength        = 2,
                                         placeholder      = "00",
+                                        testId           = A11ySlug.testId resolvedTestId "minutes",
                                         onFocus          = onFocus,
                                         onBlur           = onBlur,
                                         ?onEnterKeyPress = onEnterKeyPress,
@@ -295,6 +318,7 @@ module Input_LocalTimeComponent =
                                         value    = ExactlyOne (Some rawPeriodOffset, fun offset -> value.SetPeriod offset |> onChange),
                                         validity = externalValidityForFields,
                                         showSearchBar = false,
+                                        testId   = A11ySlug.testId resolvedTestId "period",
                                         ?xLegacyStyles =
                                             (let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "picker"
                                              if s.IsEmpty then None else Some s)

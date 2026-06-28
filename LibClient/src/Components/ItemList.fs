@@ -64,6 +64,7 @@ type private Helpers =
 
 and private HelperStyles() =
     static member val SeeAllContainer = makeViewStyles {
+        Position.Relative
         AlignItems.Center
         FlexDirection.Column
         JustifyContent.Center

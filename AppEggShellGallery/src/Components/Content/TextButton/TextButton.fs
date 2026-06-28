@@ -25,6 +25,8 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "TextButton",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.TextButton",
+            notes =
+                LC.Text "Actionable text buttons auto-slug testId from the label (text-button-add-to-cart). Pass ?testId to override.",
             samples =
                 element {
                     Ui.ComponentSample(

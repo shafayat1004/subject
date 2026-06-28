@@ -2,9 +2,9 @@
 module LibClient.Components.HandheldListItem
 
 open Fable.React
-open Browser.Types
 
 open LibClient
+open LibClient.Accessibility
 
 open ReactXP.Components
 open ReactXP.Styles
@@ -16,7 +16,7 @@ open ReactXP.Styles
 module LC =
     module HandheldListItem =
         type State =
-        | Actionable of OnPress: (Browser.Types.Event -> unit)
+        | Actionable of OnPress: (ReactEvent.Action -> unit)
         | InProgress
         | Disabled
         with
@@ -38,6 +38,7 @@ open LC.HandheldListItem
 module private Styles =
     let view =
         makeViewStyles {
+            Position.Relative
             FlexDirection.Row
             AlignItems.Center
             minHeight    42
@@ -61,6 +62,21 @@ module private Styles =
 
     let numberText = makeTextStyles { color Color.White }
 
+let private a11yLabel (label: Label) =
+    match label with
+    | Label.Text text -> text
+    | Label.Children  -> "List item"
+
+let private itemA11yState (state: State) =
+    match state with
+    | Disabled   -> AccessibilityStateRecord.disabled true
+    | InProgress -> AccessibilityStateRecord.busy true
+    | _          -> AccessibilityStateRecord.empty
+
+let private itemTestId (label: Label) (testId: string option) =
+    let text = a11yLabel label
+    testId |> Option.orElse (Some (A11ySlug.testId "handheld-list-item" text))
+
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member HandheldListItem(
@@ -69,6 +85,7 @@ type LibClient.Components.Constructors.LC with
             ?children:      array<ReactElement>,
             ?leftIcon:      int -> LibClient.Icons.Icon,
             ?right:         Right,
+            ?testId:        string,
             ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
@@ -83,14 +100,13 @@ type LibClient.Components.Constructors.LC with
                 | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
             | None -> [||]
 
-        let onPress : Option<PointerEvent -> unit> =
+        let onPress =
             match state with
-            | Actionable onPress -> Some (fun (e: PointerEvent) -> e.stopPropagation(); onPress e)
+            | Actionable onPress -> Some onPress
             | _                  -> None
 
         RX.View(
             styles   = [| Styles.view; yield! legacyViewStyles |],
-            ?onPress = onPress,
             children =
                 [|
                     (match leftIcon with
@@ -124,5 +140,19 @@ type LibClient.Components.Constructors.LC with
                                      |])
                         )
                      | None -> noElement)
+
+                    match onPress with
+                    | Some onPress ->
+                        LC.Pressable(
+                            onPress = onPress,
+                            label = a11yLabel label,
+                            role = AccessibilityRole.Button,
+                            state = itemA11yState state,
+                            testId = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "handheld-list-item" (a11yLabel label))),
+                            overlay = true,
+                            componentName = "LC.HandheldListItem"
+                        )
+                    | None ->
+                        noElement
                 |]
         )

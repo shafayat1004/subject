@@ -7,7 +7,6 @@ open ReactXP.Styles
 open LibClient.Components
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Styles.RulesRestricted
 
 module LC =
     module Card =
@@ -60,6 +59,7 @@ open LC.Card
 [<RequireQualifiedAccess>]
 module private Styles =
     let outerContainerDefaults = makeViewStyles {
+        Position.Relative
         backgroundColor Color.White
         margin 8
     }
@@ -67,7 +67,7 @@ module private Styles =
     let outerContainer = ViewStyles.Memoize (
         fun (theme: Theme) -> makeViewStyles {
             padding 0
-            overflow Overflow.Visible
+            Overflow.Visible
             borderRadius theme.BorderRadius
 
             match theme.CardType with
@@ -85,7 +85,7 @@ module private Styles =
     let contentContainer = ViewStyles.Memoize (
         fun (theme: Theme) -> makeViewStyles {
             borderRadius theme.BorderRadius
-            overflow Overflow.Hidden
+            Overflow.Hidden
             padding theme.Padding
         }
     )
@@ -139,6 +139,10 @@ type LC with
                 |]
             )
         | Some onPress ->
+            let a11yLabel = defaultArg label "Open"
+            let resolvedTestId =
+                testId |> Option.orElse (Some (A11ySlug.testId "card" a11yLabel))
+
             LC.Pointer.State (fun pointerState ->
                 RX.View (
                     styles = [|
@@ -154,8 +158,8 @@ type LC with
                         )
                         LC.Pressable (
                             onPress      = onPress,
-                            label        = defaultArg label "Open",
-                            ?testId      = testId,
+                            label        = a11yLabel,
+                            testId       = resolvedTestId.Value,
                             role         = AccessibilityRole.Button,
                             overlay      = true,
                             pointerState = pointerState,

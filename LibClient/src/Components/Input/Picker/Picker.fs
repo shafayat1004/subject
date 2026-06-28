@@ -51,12 +51,12 @@ type LibClient.Components.Constructors.LC.Input with
             ?showSearchBar: bool,
             ?label: string,
             ?placeholder: string,
+            ?testId: string,
             ?styles: array<ViewStyles>,
             ?key: string,
             ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
-        xLegacyStyles |> ignore
 
         let showSearchBar = defaultArg showSearchBar true
         let pickerIdHook = Hooks.useState (System.Guid.NewGuid())
@@ -73,8 +73,9 @@ type LibClient.Components.Constructors.LC.Input with
                         showSearchBar,
                         label,
                         placeholder,
+                        testId,
                         Some (pickerIdHook.current.ToString()),
                         styles,
-                        None
+                        xLegacyStyles
                     )
         )

@@ -64,6 +64,7 @@ module private Styles =
         ViewStyles.Memoize(
             fun (state: ButtonLowLevelState) ->
                 makeViewStyles {
+                    Position.Relative
                     Overflow.VisibleForTapCapture
 
                     match state with
@@ -102,6 +103,7 @@ type LibClient.Components.Constructors.LC with
             label: string,
             ?level: Level,
             ?numberOfLines: int,
+            ?testId: string,
             ?styles: array<TextStyles>,
             ?theme:   Theme -> Theme,
             ?key: string
@@ -111,6 +113,7 @@ type LibClient.Components.Constructors.LC with
         let level = defaultArg level Primary
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let lowLevelState = state.ToLowLevel
+        let theTestId = testId |> Option.defaultValue (A11ySlug.testId "text-button" label)
 
         RX.View(
             styles = [| Styles.view lowLevelState |],
@@ -147,6 +150,7 @@ type LibClient.Components.Constructors.LC with
                             onPress = onPress,
                             label = label,
                             role = AccessibilityRole.Button,
+                            testId = theTestId,
                             overlay = true,
                             styles = [| Styles.tapCapture |],
                             componentName = "LC.TextButton"

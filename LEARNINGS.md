@@ -5,6 +5,32 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-28 — Batch 3 nav/UI §10: testId slugs + overlay parents
+
+**Slug prefixes (auto via `A11ySlug.testId` unless `?testId` passed):** `tab-{label}`, `toggle-button-{label|value}`, `nav-top-item-{label}`, `nav-bottom-item-{label}`, `text-button-{label}`, `touchable-opacity-{label}`, `scrim-dismiss` (Scrim default when `onPress` set), `thumb-{index}` (Thumbs), `context-menu-item-{label}` (Popup + Dialog).
+
+**Icon-only `ToggleButton`:** no label text — derive a11y label + slug from `sprintf "%A" value` (e.g. `Fruit.Mango` → `toggle-button-mango`).
+
+**Selected `LC.Tab`:** no Pressable overlay; expose `accessibilityRole`/`accessibilityState`/`testId` on the outer `RX.View`. Unselected tabs keep Pressable with matching `testId` + `Selected = false`.
+
+**Overlay parent rule:** add `Position.Relative` on Tab, TextButton, Scrim root, TouchableOpacity container, ContextMenu popup row, Thumb, AppleAppStoreButton image wrapper, Nav.Bottom.Item (Nav.Top already had it).
+
+**Gallery audit:** `audit-gallery-interactions.mjs` uses `clickTestIdOrLabel` / `ctx.a11ySlugTestId` (testId-first, pseudo/text fallback). Scrim gallery sample must pass `onPress` for `scrim-dismiss` to mount.
+
+---
+
+## 2026-06-28 — Input/form §10: composite testId suffixes
+
+**Picker `Field`:** root `testId` defaults via `A11ySlug.testId "input-picker" label` (or explicit `?testId`). Sub-controls append suffixes: `-open`, `-open-handheld`, `-clear`, `-focus`, `-unselect-{item-slug}`. Dialog list toggles use `A11ySlug.testId "picker-item" itemLabel`. Pass `?testId` on `LC.Input.Picker` (threads through `PickerInternals.Base` → `Field`).
+
+**Duration / LocalTime:** root slug from `A11ySlug.testId "input" label` (e.g. `"Duration"` → `input-duration`, `"Start Time"` → `input-start-time`). Child `LC.Input.Text` fields use `{root}-{hours|minutes|days}`; period picker uses `{root}-period` → `{root}-period-open`.
+
+**Text label tap target:** floating-label focus overlay uses `{root}-focus` (same pattern as Duration/LocalTime label pressables).
+
+**Thumbs in `Input.Image`:** pass `testIdPrefix = resolvedTestId` on `LC.Thumbs` so thumb pressables become `{root}-0`, `{root}-1`, …
+
+---
+
 ## 2026-06-28 — LibUiSubject With/* pure-F# conversion gotchas
 
 **`UiSubject.With` `[<Component>]` members** must `open LibUiSubject.Components.Constructors` (same pattern as `LR.With` + `open LibRouter.Components.Constructors` in `Location.fs`).

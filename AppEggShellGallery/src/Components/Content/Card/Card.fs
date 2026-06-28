@@ -3,6 +3,7 @@ module AppEggShellGallery.Components.Content_Card
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Components.Legacy
 
@@ -60,12 +61,14 @@ LC.Legacy.Card(
                                 Ui.ComponentSample(
                                     visuals = LC.Legacy.Card(
                                         children = [| LC.Text "This is a card that you can press" |],
-                                        onPress = (fun _ -> Action.alert "hello")
+                                        onPress = (fun _ -> Action.alert "hello"),
+                                        testId = A11ySlug.testId "legacy-card" "Open"
                                     ),
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Legacy.Card(
     children = [| LC.Text "This is a card that you can press" |],
-    onPress = (fun _ -> Action.alert "hello")
+    onPress = (fun _ -> Action.alert "hello"),
+    testId = A11ySlug.testId "legacy-card" "Open"
 )""")
                                 )
                             }

@@ -24,6 +24,7 @@ module private Styles =
     }
 
     let thumb = ViewStyles.Memoize (fun thumbPosition -> makeViewStyles {
+        Position.Relative
         AlignSelf.Stretch
         width 112
         minHeight 112
@@ -42,7 +43,8 @@ type private Helpers =
     static member Thumb (
         imageSource:   LibClient.Services.ImageService.ImageSource,
         thumbPosition: ThumbPosition,
-        ?onPress:      ReactEvent.Action -> unit
+        ?onPress:      ReactEvent.Action -> unit,
+        ?testId:       string
     ) : ReactElement =
         LC.With.Layout(
             initialOnly = true,
@@ -62,9 +64,12 @@ type private Helpers =
 
                                 match onPress with
                                 | Some onPress ->
+                                    let resolvedTestId =
+                                        testId |> Option.orElse (Some (A11ySlug.testId "thumb-card" "Open image"))
                                     LC.Pressable(
                                         onPress = onPress,
                                         label = "Open image",
+                                        testId = resolvedTestId.Value,
                                         role = AccessibilityRole.Button,
                                         overlay = true,
                                         componentName = "LC.ThumbCard"
@@ -85,9 +90,12 @@ type LC with
         child:          ReactElement,
         ?thumbPosition: ThumbPosition,
         ?onPress:       ReactEvent.Action -> unit,
+        ?label:         string,
+        ?testId:        string,
         ?styles:        array<ViewStyles>
     ) : ReactElement =
         let thumbPosition = defaultArg thumbPosition ThumbPosition.Left
+        let a11yLabel = defaultArg label "Open card"
         LC.Card (
             theme    = Helpers.CustomCardTheme,
             children = [|
@@ -109,6 +117,8 @@ type LC with
                 )
             |],
             ?outerStyles = styles,
-            ?onPress     = onPress
+            ?onPress     = onPress,
+            label        = a11yLabel,
+            ?testId      = testId
         )
 

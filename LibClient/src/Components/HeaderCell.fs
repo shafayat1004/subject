@@ -51,6 +51,7 @@ type LibClient.Components.Constructors.LC with
             ?numberOfLines: int,
             ?styles: array<ViewStyles>,
             ?theme: Theme -> Theme,
+            ?testId: string,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -61,6 +62,10 @@ type LibClient.Components.Constructors.LC with
             | false -> setSort (field, SortDirection.Ascending)
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
+        let resolvedTestId =
+            testId
+            |> Option.orElse (Some (A11ySlug.testId "header-cell" label))
+            |> Option.defaultValue "header-cell"
         let numberOfLines =
             match numberOfLines with
             | Some numberOfLines -> Some numberOfLines
@@ -99,6 +104,7 @@ type LibClient.Components.Constructors.LC with
                         LC.Pressable(
                             onPress = maybeSort sortField currSortField currSortDirection setSort,
                             label = label,
+                            testId = resolvedTestId,
                             role = AccessibilityRole.Button,
                             overlay = true,
                             componentName = "LC.HeaderCell"

@@ -30,6 +30,7 @@ module Legacy_Card =
     [<RequireQualifiedAccess>]
     module private Styles =
         let shadowed = makeViewStyles {
+            Position.Relative
             margin          8
             padding         8
             backgroundColor Color.White
@@ -43,6 +44,7 @@ module Legacy_Card =
             ViewStyles.Memoize(
                 fun (theme: Card.Theme) ->
                     makeViewStyles {
+                        Position.Relative
                         margin          8
                         padding         8
                         backgroundColor Color.White
@@ -65,6 +67,7 @@ module Legacy_Card =
                 ?theme:         Card.Theme -> Card.Theme,
                 ?onPress:       (ReactEvent.Action -> unit),
                 ?label:         string,
+                ?testId:        string,
                 ?styles:        array<ViewStyles>,
                 ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
                 ?key:           string
@@ -79,9 +82,13 @@ module Legacy_Card =
                     yield! children
                     match onPress with
                     | Some f ->
+                        let a11yLabel = defaultArg label "Open"
+                        let resolvedTestId =
+                            testId |> Option.orElse (Some (A11ySlug.testId "legacy-card" a11yLabel))
                         LC.Pressable(
                             onPress = f,
-                            label = defaultArg label "Open",
+                            label = a11yLabel,
+                            testId = resolvedTestId.Value,
                             role = AccessibilityRole.Button,
                             overlay = true,
                             componentName = "LC.Legacy.Card"

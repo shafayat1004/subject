@@ -6,12 +6,22 @@
 import { mkdirSync, copyFileSync } from 'fs';
 import { join, basename } from 'path';
 import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
+import { findByTestId } from './audit-gallery-selectors.mjs';
 
 /** @typedef {import('playwright').Page} Page */
 /** @typedef {import('playwright').Locator} Locator */
 
 function sanitize(name) {
   return name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
+}
+
+function a11ySlugTestId(prefix, label) {
+  const slug = String(label)
+    .toLowerCase()
+    .replace(/\./g, '-')
+    .replace(/ /g, '-')
+    .replace(/\//g, '-');
+  return `${prefix}-${slug}`;
 }
 
 /**
@@ -33,6 +43,10 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
 
   const sampleCells = () => page.locator(cellSelector);
   const firstCell = () => sampleCells().first();
+
+  async function hasTestId(scope, testId) {
+    return (await findByTestId(page, testId, { platform, scope }).count()) > 0;
+  }
 
   async function hasPseudo(scope, text) {
     if (isAndroid) return cellContains(scope, text);
@@ -144,6 +158,8 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
     anySampleCell,
     inputValueForLabel,
     componentName,
+    hasTestId,
+    a11ySlugTestId,
   });
 
   return results;
@@ -162,9 +178,17 @@ const ASSERTION_HANDLERS = {
     }
   },
 
-  Tabs: async ({ check, firstCell, cellContains, ctx }) => {
+  Tabs: async ({ check, firstCell, cellContains, hasPseudo, hasTestId, ctx, a11ySlugTestId }) => {
     const cell = firstCell();
-    await ctx.clickPseudo(cell, 'Profile');
+    await check('Tabs expose tab testIds', async () => ({
+      passed:
+        (await hasTestId(cell, a11ySlugTestId('tab', 'Home'))) ||
+        (await hasPseudo(cell, 'Home')),
+      message: 'Basics sample should expose tab-home testId or Home label',
+    }), cell);
+    if (!(await ctx.clickTestIdOrLabel(cell, a11ySlugTestId('tab', 'Profile'), 'Profile'))) {
+      await ctx.clickPseudo(cell, 'Profile');
+    }
     await ctx.wait(300);
     await check('Profile tab content visible', async () => ({
       passed:
@@ -172,7 +196,9 @@ const ASSERTION_HANDLERS = {
         (await hasPseudo(cell, 'This is the PROFILE tab')),
       message: 'After clicking Profile, PROFILE tab content should show',
     }), cell);
-    await ctx.clickPseudo(cell, 'Contact');
+    if (!(await ctx.clickTestIdOrLabel(cell, a11ySlugTestId('tab', 'Contact'), 'Contact'))) {
+      await ctx.clickPseudo(cell, 'Contact');
+    }
     await ctx.wait(300);
     await check('Contact tab content visible', async () => ({
       passed:
@@ -182,14 +208,18 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  ToggleButtons: async ({ check, firstCell, hasPseudo, ctx }) => {
+  ToggleButtons: async ({ check, firstCell, hasPseudo, hasTestId, ctx, a11ySlugTestId }) => {
     const cell = firstCell();
     for (const fruit of ['Mango', 'Peach', 'Banana']) {
-      await ctx.clickPseudo(cell, fruit);
+      if (!(await ctx.clickTestIdOrLabel(cell, a11ySlugTestId('toggle-button', fruit), fruit))) {
+        await ctx.clickPseudo(cell, fruit);
+      }
       await ctx.wait(200);
       await check(`ToggleButtons ${fruit} selectable`, async () => ({
-        passed: await hasPseudo(cell, fruit),
-        message: `${fruit} toggle label should remain visible after click`,
+        passed:
+          (await hasTestId(cell, a11ySlugTestId('toggle-button', fruit))) ||
+          (await hasPseudo(cell, fruit)),
+        message: `${fruit} toggle should remain visible after click`,
       }), cell);
     }
   },
@@ -395,11 +425,17 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  Scrim: async ({ check, firstCell, hasPseudo }) => {
+  Scrim: async ({ check, firstCell, hasPseudo, hasTestId, ctx }) => {
     const cell = firstCell();
     await check('Scrim demo controls visible', async () => ({
       passed: (await hasPseudo(cell, 'Toggle')) && (await hasPseudo(cell, 'Greet')),
       message: 'Scrim Toggle and Greet buttons should be visible',
+    }), cell);
+    await ctx.clickButton(cell, 'Toggle');
+    await ctx.wait(400);
+    await check('Scrim dismiss testId present when visible', async () => ({
+      passed: await hasTestId(cell, 'scrim-dismiss'),
+      message: 'Visible scrim with onPress should expose scrim-dismiss testId',
     }), cell);
   },
 
@@ -414,12 +450,13 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  Card: async ({ check, anySampleCell, cellContains, page }) => {
+  Card: async ({ check, anySampleCell, cellContains, hasTestId, page }) => {
     await check('Card pressable sample visible', async () => ({
       passed: await anySampleCell(page, async (cell) =>
-        cellContains(cell, 'This is a card that you can press')
+        (await hasTestId(cell, 'legacy-card-open')) ||
+        (await cellContains(cell, 'This is a card that you can press'))
       ),
-      message: 'Pressable card sample text should be visible',
+      message: 'Pressable card sample (testId or label) should be visible',
     }));
   },
 
@@ -465,34 +502,55 @@ const ASSERTION_HANDLERS = {
     }), cell);
   },
 
-  Nav_Top: async ({ check, firstCell, hasPseudo }) => {
+  Nav_Top: async ({ check, firstCell, hasPseudo, hasTestId, a11ySlugTestId }) => {
     const cell = firstCell();
     await check('Nav_Top items visible', async () => ({
-      passed: (await hasPseudo(cell, 'Design')) || (await hasPseudo(cell, 'Home')),
+      passed:
+        (await hasTestId(cell, a11ySlugTestId('nav-top-item', 'Design'))) ||
+        (await hasPseudo(cell, 'Design')) ||
+        (await hasPseudo(cell, 'Home')),
       message: 'Top nav demo items should be visible',
     }), cell);
   },
 
-  Nav_Bottom: async ({ check, firstCell, hasPseudo }) => {
+  Nav_Bottom: async ({ check, firstCell, hasPseudo, hasTestId, a11ySlugTestId }) => {
     const cell = firstCell();
     await check('Nav_Bottom items visible', async () => ({
-      passed: (await hasPseudo(cell, 'Design')) || (await hasPseudo(cell, 'Store')),
+      passed:
+        (await hasTestId(cell, a11ySlugTestId('nav-bottom-item', 'Design'))) ||
+        (await hasPseudo(cell, 'Design')) ||
+        (await hasPseudo(cell, 'Store')),
       message: 'Bottom nav demo items should be visible',
     }), cell);
   },
 
-  TouchableOpacity: async ({ check, firstCell, cellContains }) => {
+  TouchableOpacity: async ({ check, firstCell, cellContains, hasTestId }) => {
     const cell = firstCell();
     await check('TouchableOpacity Click Me visible', async () => ({
-      passed: await cellContains(cell, 'Click Me'),
-      message: 'Click Me label should be visible',
+      passed:
+        (await hasTestId(cell, 'touchable-opacity-click-me')) ||
+        (await cellContains(cell, 'Click Me')),
+      message: 'Click Me sample should expose testId or visible label',
     }), cell);
   },
 
-  Tag: async ({ check, anySampleCell, cellContains, page }) => {
+  TextButton: async ({ check, firstCell, hasPseudo, hasTestId, a11ySlugTestId }) => {
+    const cell = firstCell();
+    await check('TextButton Add to Cart visible', async () => ({
+      passed:
+        (await hasTestId(cell, a11ySlugTestId('text-button', 'Add to Cart'))) ||
+        (await hasPseudo(cell, 'Add to Cart')),
+      message: 'Add to Cart text button should be visible',
+    }), cell);
+  },
+
+  Tag: async ({ check, anySampleCell, cellContains, hasTestId, page }) => {
     await check('Tag Actionable sample visible', async () => ({
-      passed: await anySampleCell(page, async (cell) => cellContains(cell, 'Actionable')),
-      message: 'Actionable tag should be visible',
+      passed: await anySampleCell(page, async (cell) =>
+        (await hasTestId(cell, 'tag-actionable')) ||
+        (await cellContains(cell, 'Actionable'))
+      ),
+      message: 'Actionable tag (testId or label) should be visible',
     }));
   },
 

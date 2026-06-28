@@ -113,9 +113,13 @@ type ImagePicker.Native with
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/ImagePicker/images/camera.png"
                 )
-                LC.TapCapture (onPress = (fun e ->
-                    selectImage ImagePickingSource.Camera e
-                ))
+                LC.Pressable(
+                    onPress = (fun e -> selectImage ImagePickingSource.Camera e),
+                    label = "Take Photo",
+                    testId = "image-picker-take-photo",
+                    overlay = true,
+                    componentName = "ImagePicker.Native.ReactNativeImagePicker"
+                )
             |])
 
             RX.View(styles = [|Styles.photoSource|], children = [|
@@ -125,9 +129,13 @@ type ImagePicker.Native with
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/ImagePicker/images/gallery.png"
                 )
-                LC.TapCapture (onPress = (fun e ->
-                    selectImage ImagePickingSource.Gallary e
-                ))
+                LC.Pressable(
+                    onPress = (fun e -> selectImage ImagePickingSource.Gallary e),
+                    label = "Photo Gallery",
+                    testId = "image-picker-gallery",
+                    overlay = true,
+                    componentName = "ImagePicker.Native.ReactNativeImagePicker"
+                )
             |])
         |])
 #endif

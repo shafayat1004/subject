@@ -45,6 +45,7 @@ module private Styles =
     // per-Corners and per-Style variants are applied as separate style objects.
     let view =
         makeViewStyles {
+            Position.Relative
             FlexDirection.Column
             JustifyContent.FlexEnd
         }
@@ -79,6 +80,7 @@ type LibClient.Components.Constructors.LC with
             ?style:         Style,
             ?corners:       Corners,
             ?onPress:       ReactEvent.Action -> unit,
+            ?testId:        string,
             ?styles:        array<ViewStyles>,
             ?labelStyles:   array<TextStyles>,
             ?children:      array<ReactElement>,
@@ -156,9 +158,12 @@ type LibClient.Components.Constructors.LC with
                                         | Some (Label.Text (text, _)) -> text
                                         | Some (Label.Children _) -> "Image"
                                         | None -> "Open image"
+                                    let resolvedTestId =
+                                        testId |> Option.orElse (Some (A11ySlug.testId "image-card" a11yLabel))
                                     LC.Pressable(
                                         onPress = f,
                                         label = a11yLabel,
+                                        testId = resolvedTestId.Value,
                                         role = AccessibilityRole.Button,
                                         overlay = true,
                                         componentName = "LC.ImageCard"

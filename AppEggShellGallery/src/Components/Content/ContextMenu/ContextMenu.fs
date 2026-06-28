@@ -40,7 +40,9 @@ type Ui.Content with
             displayName = "Context Menu",
             isResponsive = true,
             notes =
-                LC.Text "We support buttons, cautionary buttons, dividers, and headings. You can add items conditionally or using a match statement.",
+                element {
+                    LC.Text "We support buttons, cautionary buttons, dividers, and headings. Menu items expose testId context-menu-item-{slug} for automation."
+                },
             samples =
                 element {
                     Ui.ComponentSample(

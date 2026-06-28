@@ -9,12 +9,23 @@ import { createVisualArchiveSession } from './audit-gallery-visual-archive.mjs';
 import { runComponentAssertions, checkUnhandledVisuals } from './audit-gallery-assertions.mjs';
 import { SKIP_CLICK_LABELS } from './audit-gallery-components.mjs';
 import { PLATFORM, sampleCellSelectorFor } from './audit-gallery-platform.mjs';
+import { clickLabelOrTestId, clickByTestId, findByTestId, readUiSnapshot } from './audit-gallery-selectors.mjs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const FIXTURE_SAMPLE = join(dirname(fileURLToPath(import.meta.url)), 'audit-browser/fixtures/sample.txt');
 
 const PAUSE = 350;
+
+/** Match LibClient.Accessibility.A11ySlug.testId */
+function a11ySlugTestId(prefix, label) {
+  const slug = String(label)
+    .toLowerCase()
+    .replace(/\./g, '-')
+    .replace(/ /g, '-')
+    .replace(/\//g, '-');
+  return `${prefix}-${slug}`;
+}
 
 /** Wait then capture two mid-animation frames (Animatable* recipes). */
 async function captureAnimationMidFrames(ctx, sampleIndex) {
@@ -97,29 +108,26 @@ export function createInteractionContext(page, log, options = {}) {
     }
   }
 
-  /** Click ReactXP pseudo-element label or fall back to role/text. */
-  async function clickPseudo(scope, text, exact = true) {
-    if (isAndroid) return clickPressable(scope, text, exact);
-    const escaped = text.replace(/"/g, '\\"');
-    const pseudo = scope.locator(`[data-text-as-pseudo-element="${escaped}"]`).first();
-    if (await pseudo.count()) {
-      await pseudo.click({ force: true, timeout: 5000 });
-      log(`click pseudo "${text}"`);
-      await wait();
-      return true;
-    }
-    const loose = scope.locator(`[data-text-as-pseudo-element="${text}"]`).first();
-    if (!exact && (await loose.count())) {
-      await loose.click({ force: true, timeout: 5000 });
-      log(`click pseudo "${text}"`);
-      await wait();
-      return true;
-    }
-    return false;
+  /** Click ReactXP pseudo-element label or fall back to role/text (testId-first when provided). */
+  async function clickPseudo(scope, text, exact = true, testId = undefined) {
+    const clicked = await clickLabelOrTestId(page, {
+      testId,
+      label: text,
+      platform,
+      scope,
+      exact,
+      log,
+      timeout: 5000,
+    });
+    if (clicked) await wait();
+    return clicked;
   }
 
   async function clickButton(scope, name, opts = {}) {
-    if (typeof name === 'string' && (await clickPseudo(scope, name, opts.exact !== false))) {
+    if (
+      typeof name === 'string' &&
+      (await clickPseudo(scope, name, opts.exact !== false, opts.testId))
+    ) {
       return true;
     }
     const btn = scope.getByRole('button', { name, ...opts });
@@ -140,40 +148,36 @@ export function createInteractionContext(page, log, options = {}) {
   }
 
   /**
-   * Click label text backed by LC.TapCapture (absolute RX.Button overlay on web).
+   * Click label text backed by LC.Pressable overlay (or legacy TapCapture) on web.
    * Plain getByText clicks the visible div and fail when the empty button intercepts.
    */
-  async function clickPressable(scope, text, exact = false) {
-    if (isAndroid) {
-      const label = scope.getByText(text, { exact });
-      if (await label.count()) {
-        await label.first().click({ force: true, timeout: 5000 });
-        log(`click text "${text}"`);
-        await wait();
-        return true;
-      }
-      return false;
-    }
-    if (await clickPseudo(scope, text, exact)) return true;
+  async function clickPressable(scope, text, exact = false, testId = undefined) {
+    const clicked = await clickLabelOrTestId(page, {
+      testId,
+      label: text,
+      platform,
+      scope,
+      exact,
+      log,
+      timeout: 5000,
+    });
+    if (clicked) await wait();
+    return clicked;
+  }
 
-    const label = scope.getByText(text, { exact });
-    if (!(await label.count())) return false;
-
-    const target = label.first();
-    const button = target
-      .locator('xpath=ancestor::*[.//button[@role="button"]][1]//button[@role="button"]')
-      .first();
-    if (await button.count()) {
-      await button.click({ force: true, timeout: 5000 });
-      log(`click pressable "${text}"`);
+  /**
+   * Click by stable testId (data-testid), falling back to label-based pressable click.
+   */
+  async function clickTestId(scope, testId, fallbackText, exact = false) {
+    const byId = scope.locator(`[data-testid="${testId}"]`).first();
+    if (await byId.count()) {
+      await byId.click({ force: true, timeout: 5000 });
+      log(`click testId "${testId}"`);
       await wait();
       return true;
     }
-
-    await target.click({ force: true, timeout: 5000 });
-    log(`click text "${text}"`);
-    await wait();
-    return true;
+    if (fallbackText) return clickPressable(scope, fallbackText, exact);
+    return false;
   }
 
   async function clickText(scope, text, exact = false) {
@@ -353,6 +357,24 @@ export function createInteractionContext(page, log, options = {}) {
     await wait();
   }
 
+  async function clickTestIdOrLabel(scope, testId, label, exact = false) {
+    return clickPressable(scope, label, exact, testId);
+  }
+
+  async function fillTestId(scope, testId, value) {
+    const container = findByTestId(page, testId, { platform, scope });
+    if (!(await container.count())) return false;
+    const input = container.locator('input:not([type="file"]):not([type="hidden"]), textarea').first();
+    if (await input.count()) {
+      await input.click({ force: true, timeout: 3000 }).catch(() => {});
+      await input.fill(value, { timeout: 5000 });
+      log(`fill testId "${testId}" = "${value}"`);
+      await wait();
+      return true;
+    }
+    return false;
+  }
+
   return {
     page,
     platform,
@@ -365,6 +387,10 @@ export function createInteractionContext(page, log, options = {}) {
     clickText,
     clickPseudo,
     clickPressable,
+    clickTestId,
+    clickTestIdOrLabel,
+    fillTestId,
+    a11ySlugTestId,
     fillLabel,
     fillFirstInput,
     dismissOverlays,
@@ -372,6 +398,9 @@ export function createInteractionContext(page, log, options = {}) {
     interactInputsInCell,
     dragInCell,
     visualsCells,
+    findByTestId: (testId, scope = null) => findByTestId(page, testId, { platform, scope }),
+    clickByTestId: (testId, scope = null) => clickByTestId(page, testId, { platform, scope, log }).then((ok) => { if (ok) return wait().then(() => ok); return ok; }),
+    readUiSnapshot: () => (isAndroid ? Promise.resolve(null) : readUiSnapshot(page)),
   };
 }
 
@@ -425,15 +454,19 @@ export const COMPONENT_HANDLERS = {
 
   TextButton: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickButton(cell, 'Add to Cart');
-      await ctx.clickButton(cell, 'Special Add to Cart');
+      await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('text-button', 'Add to Cart'), 'Add to Cart');
+      await ctx.clickTestIdOrLabel(
+        cell,
+        ctx.a11ySlugTestId('text-button', 'Special Add to Cart'),
+        'Special Add to Cart',
+      );
     });
   },
 
   ToggleButtons: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
       for (const fruit of ['Mango', 'Peach', 'Banana']) {
-        await ctx.clickButton(cell, fruit);
+        await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('toggle-button', fruit), fruit);
       }
     });
   },
@@ -450,15 +483,21 @@ export const COMPONENT_HANDLERS = {
 
   Input_Checkbox: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickText(cell, 'Children-based Label');
-      await ctx.clickText(cell, 'I want fries with that');
+      if (!(await ctx.clickTestId(cell, 'input-checkbox-children-based-label'))) {
+        await ctx.clickText(cell, 'Children-based Label');
+      }
+      if (!(await ctx.clickTestId(cell, 'input-checkbox-i-want-fries-with-that'))) {
+        await ctx.clickText(cell, 'I want fries with that');
+      }
     });
   },
 
   Input_ChoiceList: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      for (const item of ['Mango', 'Peach', 'Banana']) {
-        await ctx.clickText(cell, item);
+      for (const item of ['mango', 'peach', 'banana']) {
+        if (!(await ctx.clickTestId(cell, `choice-list-item-${item}`))) {
+          await ctx.clickText(cell, item.charAt(0).toUpperCase() + item.slice(1));
+        }
       }
     });
   },
@@ -488,11 +527,15 @@ export const COMPONENT_HANDLERS = {
   Input_Duration: async (ctx) => {
     await ctx.forEachVisualCell(async (cell, i) => {
       if (i === 0) {
-        await ctx.fillLabel(cell, 'Duration', '2');
-        const inputs = cell.getByLabel('Duration').locator('input');
-        if (await inputs.count()) {
-          await inputs.nth(0).fill('1');
-          if ((await inputs.count()) > 1) await inputs.nth(1).fill('30');
+        if (!(await ctx.fillTestId(cell, 'input-duration-hours', '1'))) {
+          await ctx.fillLabel(cell, 'Duration', '2');
+          const inputs = cell.getByTestId('input-duration').locator('input');
+          if (await inputs.count()) {
+            await inputs.nth(0).fill('1');
+            if ((await inputs.count()) > 1) await inputs.nth(1).fill('30');
+          }
+        } else {
+          await ctx.fillTestId(cell, 'input-duration-minutes', '30');
         }
       }
     });
@@ -532,23 +575,35 @@ export const COMPONENT_HANDLERS = {
 
   Input_Image: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      const input = cell.locator('input[type="file"]');
+      const input = cell.getByTestId('input-image').locator('input[type="file"]');
       if (await input.count()) {
         await input.setInputFiles(FIXTURE_SAMPLE).catch(() => {});
         ctx.log('setInputFiles on image input (no OS picker)');
       } else {
-        ctx.log('skip Select File on image input');
+        const fallback = cell.locator('input[type="file"]');
+        if (await fallback.count()) {
+          await fallback.setInputFiles(FIXTURE_SAMPLE).catch(() => {});
+          ctx.log('setInputFiles on image input (no OS picker, fallback)');
+        } else {
+          ctx.log('skip Select File on image input');
+        }
       }
     });
   },
 
   Input_Picker: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickText(cell, 'Fruit', true);
+      if (!(await ctx.clickTestId(cell, 'input-picker-fruit-open'))) {
+        await ctx.clickText(cell, 'Fruit', true);
+      }
       await ctx.fillLabel(cell, 'Fruit', 'App');
       await ctx.page.keyboard.press('ArrowDown').catch(() => {});
       await ctx.page.keyboard.press('Enter').catch(() => {});
-      await ctx.fillLabel(cell, 'Many Choices', 'a');
+      if (!(await ctx.clickTestId(cell, 'input-picker-many-choices-open'))) {
+        await ctx.fillLabel(cell, 'Many Choices', 'a');
+      } else {
+        await ctx.clickTestId(cell, 'input-picker-many-choices-open');
+      }
       await ctx.wait(500);
       await ctx.page.keyboard.press('Escape');
     });
@@ -609,7 +664,7 @@ export const COMPONENT_HANDLERS = {
 
   Card: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickText(cell, 'This is a card that you can press');
+      await ctx.clickTestIdOrLabel(cell, 'legacy-card-open', 'This is a card that you can press');
       await ctx.dismissOverlays();
     });
   },
@@ -647,14 +702,20 @@ export const COMPONENT_HANDLERS = {
     });
   },
 
-  ImageCard: async () => {},
+  ImageCard: async (ctx) => {
+    await ctx.forEachVisualCell(async (cell) => {
+      if (await ctx.clickTestIdOrLabel(cell, 'image-card-painting', 'Painting')) {
+        await ctx.dismissOverlays();
+      }
+    });
+  },
   InfoMessage: async () => {},
   Section_Padded: async () => {},
 
   Tabs: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
       for (const tab of ['Home', 'Profile', 'Contact']) {
-        await ctx.clickText(cell, tab);
+        await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('tab', tab), tab);
       }
     });
   },
@@ -728,9 +789,8 @@ export const COMPONENT_HANDLERS = {
   Pre: async () => {},
   Tag: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      if (await ctx.clickPressable(cell, 'Actionable')) {
-        await ctx.dismissOverlays();
-      }
+      await ctx.clickTestIdOrLabel(cell, 'tag-actionable', 'Actionable');
+      await ctx.dismissOverlays();
     });
   },
   TimeSpan: async () => {},
@@ -742,6 +802,17 @@ export const COMPONENT_HANDLERS = {
 
   Thumbs: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
+      const byTestId = cell.locator('[data-testid^="thumb-"]:visible');
+      const nById = await byTestId.count();
+      if (nById > 0) {
+        const n = Math.min(nById, 3);
+        for (let i = 0; i < n; i++) {
+          await byTestId.nth(i).click().catch(() => {});
+          await ctx.wait();
+          await ctx.dismissOverlays();
+        }
+        return;
+      }
       const imgs = cell.locator('img:visible');
       const n = Math.min(await imgs.count(), 3);
       for (let i = 0; i < n; i++) {
@@ -754,8 +825,10 @@ export const COMPONENT_HANDLERS = {
 
   Scrim: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
+      await ctx.clickTestIdOrLabel(cell, 'scrim-dismiss', 'Dismiss');
       await ctx.clickButton(cell, 'Toggle');
       await ctx.clickButton(cell, 'Greet');
+      await ctx.clickTestIdOrLabel(cell, 'scrim-dismiss', 'Dismiss');
       await ctx.clickButton(cell, 'Toggle');
     });
   },
@@ -768,13 +841,18 @@ export const COMPONENT_HANDLERS = {
         if (await ctx.clickButton(cell, openLabel)) {
           await ctx.wait(400);
           for (const item of [
-            'Continue shopping',
             'Continue shopping, please',
+            'Continue shopping',
             'Buy more dammit!',
             'Save Cart',
             'Checkout',
             'Empty Cart',
           ]) {
+            const testId = ctx.a11ySlugTestId('context-menu-item', item);
+            if (await ctx.clickTestId(ctx.page, testId)) {
+              logMenu(ctx, item);
+              break;
+            }
             const menuItem = ctx.page.getByText(item, { exact: false });
             if (await menuItem.count()) {
               await menuItem.first().click({ timeout: 2000 }).catch(() => {});
@@ -799,7 +877,7 @@ export const COMPONENT_HANDLERS = {
   Nav_Top: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
       for (const item of ['Design', 'Develop', 'Cart', 'Home']) {
-        await ctx.clickText(cell, item);
+        await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('nav-top-item', item), item);
       }
     });
   },
@@ -807,9 +885,9 @@ export const COMPONENT_HANDLERS = {
   Nav_Bottom: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
       for (const item of ['Design', 'Develop', 'Store']) {
-        await ctx.clickText(cell, item);
+        await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('nav-bottom-item', item), item);
       }
-      await ctx.clickButton(cell, 'Cart');
+      await ctx.clickTestIdOrLabel(cell, ctx.a11ySlugTestId('nav-bottom-item', 'Cart'), 'Cart');
     });
   },
 
@@ -904,7 +982,7 @@ export const COMPONENT_HANDLERS = {
 
   TouchableOpacity: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.clickText(cell, 'Click Me');
+      await ctx.clickTestIdOrLabel(cell, 'touchable-opacity-click-me', 'Click Me');
     });
   },
 

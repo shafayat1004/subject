@@ -22,6 +22,7 @@ type private Helpers =
         element {
             LC.TouchableOpacity(
                 onPress = (fun _ -> isPressed.update true),
+                testId = "touchable-opacity-click-me",
                 children = [|
                     RX.View(
                         styles = [| Styles.view |],
@@ -39,6 +40,7 @@ type private Helpers =
         LC.TouchableOpacity(
             onPress = (fun _ -> ()),
             label = "Submit order",
+            testId = "touchable-opacity-submit-order",
             children = [|
                 RX.View(
                     styles = [| Styles.view |],

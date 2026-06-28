@@ -189,6 +189,7 @@ module private RenderHelpers =
         (itemView: PickerItemView<'Item>)
         (modelState: PickerState<'Item>)
         (onUnselect: 'Item -> ReactEvent.Action -> unit)
+        (resolvedTestId: string)
         : ReactElement =
         let renderItem (item: 'Item) =
             match itemView with
@@ -199,6 +200,11 @@ module private RenderHelpers =
                 )
             | PickerItemView.Custom render ->
                 render item
+
+        let itemLabel (item: 'Item) =
+            match itemView with
+            | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
+            | PickerItemView.Custom _           -> "item"
 
         match value with
         | AtMostOne (maybeSelectedValue, _) ->
@@ -249,6 +255,7 @@ module private RenderHelpers =
                                                     LC.Pressable(
                                                         onPress = onUnselect item,
                                                         label = "Remove",
+                                                        testId = A11ySlug.testId (sprintf "%s-unselect" resolvedTestId) (itemLabel item),
                                                         role = AccessibilityRole.Button,
                                                         overlay = true,
                                                         styles = [| Styles.pressableOverlay |],
@@ -273,6 +280,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             itemView: PickerItemView<'Item>,
             ?label: string,
             ?placeholder: string,
+            ?testId: string,
             ?styles: array<ViewStyles>,
             ?theme: Theme -> Theme,
             ?key: string,
@@ -334,7 +342,15 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
 
         let placeholderTextColor = theTheme.PlaceholderColor.ToReactXPString
 
+        let resolvedTestId =
+            testId
+            |> Option.orElse (label |> Option.map (A11ySlug.testId "input-picker"))
+            |> Option.defaultValue "input-picker"
+
+        let openLabel = defaultArg label "Open picker"
+
         RX.View(
+            testId = resolvedTestId,
             onLayout = onLayout,
             styles = [| Styles.view; yield! legacyStyles; yield! (defaultArg styles [||]) |],
             children =
@@ -358,6 +374,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                                         LC.Pressable(
                                                                             onPress = onClear,
                                                                             label = "Clear selection",
+                                                                            testId = sprintf "%s-clear" resolvedTestId,
                                                                             role = AccessibilityRole.Button,
                                                                             overlay = true,
                                                                             styles = [| Styles.pressableOverlay |],
@@ -375,7 +392,8 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                         LC.Icon(icon = Icon.ChevronDown, styles = [| Styles.icon theTheme |])
                                                         LC.Pressable(
                                                             onPress = Actions.showItemSelector model,
-                                                            label = defaultArg label "Open picker",
+                                                            label = openLabel,
+                                                            testId = sprintf "%s-open" resolvedTestId,
                                                             role = AccessibilityRole.Button,
                                                             overlay = true,
                                                             styles = [| Styles.pressableOverlay |],
@@ -433,7 +451,8 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                             )
                                                         LC.Pressable(
                                                             onPress = Actions.showItemSelector model,
-                                                            label = defaultArg label "Open picker",
+                                                            label = openLabel,
+                                                            testId = sprintf "%s-open-handheld" resolvedTestId,
                                                             role = AccessibilityRole.Button,
                                                             overlay = true,
                                                             styles = [| Styles.pressableOverlay |],
@@ -448,11 +467,12 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                         styles = [| Styles.pickerValues |],
                                         children =
                                             [|
-                                                RenderHelpers.renderSelectedValue theTheme value itemView modelState onUnselect
+                                                RenderHelpers.renderSelectedValue theTheme value itemView modelState onUnselect resolvedTestId
                                                 LC.Pressable(
                                                     onPress =
                                                         Actions.requestFocus model maybeTextInputHook isFocusedHook,
-                                                    label = defaultArg label "Focus picker",
+                                                    label = openLabel,
+                                                    testId = sprintf "%s-focus" resolvedTestId,
                                                     role = AccessibilityRole.Button,
                                                     overlay = true,
                                                     styles = [| Styles.pressableOverlay |],

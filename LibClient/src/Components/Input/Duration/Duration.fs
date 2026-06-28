@@ -136,6 +136,7 @@ namespace LibClient.Components
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open ReactXP.Components
 open ReactXP.Styles
 
@@ -160,6 +161,11 @@ module Input_DurationComponent =
                 width 44
             }
 
+        let pressableOverlay =
+            makeViewStyles {
+                opacity 0.
+            }
+
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member Duration(
@@ -167,6 +173,7 @@ module Input_DurationComponent =
                 validity:            InputValidity,
                 onChange:            Value -> unit,
                 ?label:              string,
+                ?testId:              string,
                 ?onEnterKeyPress:    (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
                 ?shouldDisplayDays:  bool,
@@ -212,7 +219,7 @@ module Input_DurationComponent =
             let onBlur (_e: Browser.Types.FocusEvent) : unit =
                 isFocusedHook.update false
 
-            let focusHoursInput (_e: Browser.Types.Event) : unit =
+            let focusHoursInput () : unit =
                 maybeHoursInput.current |> Option.sideEffect (fun input ->
                     input.RequestFocus()
                 )
@@ -227,14 +234,19 @@ module Input_DurationComponent =
             let isLabelInvalid = (value.InternalValidity.Or validity).IsInvalid
             let isFocused      = isFocusedHook.current
 
+            let resolvedTestId =
+                testId
+                |> Option.orElse (label |> Option.map (A11ySlug.testId "input"))
+                |> Option.defaultValue "input-duration"
+
             RX.View(
+                testId = resolvedTestId,
                 styles = [| yield! legacyViewStyles |],
                 children =
                     [|
                         (match label with
                          | Some lbl ->
                             RX.View(
-                                onPress  = focusHoursInput,
                                 children =
                                     [|
                                         LC.LegacyText(
@@ -246,6 +258,15 @@ module Input_DurationComponent =
                                                      + (if isFocused      then " focused" else "")),
                                             children =
                                                 [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", lbl)) |]
+                                        )
+                                        LC.Pressable(
+                                            onPress = (fun _ -> focusHoursInput ()),
+                                            label = lbl,
+                                            testId = sprintf "%s-focus" resolvedTestId,
+                                            role = AccessibilityRole.Button,
+                                            overlay = true,
+                                            styles = [| Styles.pressableOverlay |],
+                                            componentName = "LC.Input.Duration.Focus"
                                         )
                                     |]
                             )
@@ -262,6 +283,7 @@ module Input_DurationComponent =
                                             validity         = ((value.InternalFieldValidity Days).Or externalValidityForFields),
                                             maxLength        = 3,
                                             placeholder      = "00",
+                                            testId           = A11ySlug.testId resolvedTestId "days",
                                             onFocus          = onFocus,
                                             onBlur           = onBlur,
                                             ref              = refDaysInput,
@@ -283,6 +305,7 @@ module Input_DurationComponent =
                                         validity            = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
                                         maxLength           = 2,
                                         placeholder         = "00",
+                                        testId              = A11ySlug.testId resolvedTestId "hours",
                                         requestFocusOnMount = requestFocusOnMount,
                                         onFocus             = onFocus,
                                         onBlur              = onBlur,
@@ -302,6 +325,7 @@ module Input_DurationComponent =
                                         validity         = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
                                         maxLength        = 2,
                                         placeholder      = "00",
+                                        testId           = A11ySlug.testId resolvedTestId "minutes",
                                         onFocus          = onFocus,
                                         onBlur           = onBlur,
                                         styles           = [| Styles.field |],

@@ -3,6 +3,7 @@ module AppEggShellGallery.Components.Content_Input_Text
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Icons
 
@@ -16,15 +17,18 @@ type private Helpers =
         ?placeholder: string,
         ?prefix: string,
         ?suffix: InputSuffix,
-        ?requestFocusOnMount: bool
+        ?requestFocusOnMount: bool,
+        ?testId: string
     ) : ReactElement =
         let value = Hooks.useState (NonemptyString.ofString initialText)
+        let resolvedTestId = testId |> Option.defaultValue (A11ySlug.testId "input" label)
 
         LC.Input.Text(
             label               = label,
             value               = value.current,
             validity            = validity,
             onChange            = value.update,
+            testId              = resolvedTestId,
             ?multiline          = multiline,
             ?placeholder         = placeholder,
             ?prefix              = prefix,
@@ -63,6 +67,7 @@ LC.Input.Text(
     value               = value,
     validity            = Valid,
     requestFocusOnMount = true,
+    testId              = A11ySlug.testId "input" "Name",
     onChange            = setValue
 )"""
                                         )

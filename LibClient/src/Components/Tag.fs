@@ -70,6 +70,7 @@ module private Styles =
 
     let view =
         makeViewStyles {
+            Position.Relative
             // TODO it's wrong to specify margin internally — LC.Tags should specify margin
             marginHorizontal 6
             marginVertical 6
@@ -149,6 +150,7 @@ type LibClient.Components.Constructors.LC with
             text: string,
             ?state: State,
             ?isSelected: bool,
+            ?testId: string,
             ?theme: Theme -> Theme,
             ?styles: array<ViewStyles>,
             ?key: string
@@ -193,11 +195,19 @@ type LibClient.Components.Constructors.LC with
 
                                     match state with
                                     | State.Actionable onPress ->
+                                        let resolvedTestId =
+                                            testId |> Option.orElse (Some (A11ySlug.testId "tag" text))
+                                        let pressState =
+                                            match isSelected with
+                                            | true -> AccessibilityStateRecord.selected true
+                                            | false -> AccessibilityStateRecord.empty
                                         LC.Pressable(
                                             key = "tap capture",
                                             onPress = onPress,
                                             label = text,
+                                            testId = resolvedTestId.Value,
                                             role = AccessibilityRole.Button,
+                                            state = pressState,
                                             overlay = true,
                                             pointerState = pointerState,
                                             componentName = "LC.Tag"

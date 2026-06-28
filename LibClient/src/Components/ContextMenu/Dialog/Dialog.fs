@@ -4,6 +4,7 @@ open Fable.React
 
 open LibLang
 open LibClient
+open LibClient.Accessibility
 open LibClient.Dialogs
 open LibClient.ContextMenus.Types
 open LibClient.Components
@@ -113,6 +114,7 @@ type private DialogContent =
                                                         LC.Button(
                                                             label = label,
                                                             level = Primary,
+                                                            ?testId = Some (A11ySlug.testId "context-menu-item" label),
                                                             theme =
                                                                 (if isSelected then
                                                                      ButtonThemes.normalSelected
@@ -127,6 +129,7 @@ type private DialogContent =
                                                         LC.Button(
                                                             label = label,
                                                             level = Cautionary,
+                                                            ?testId = Some (A11ySlug.testId "context-menu-item" label),
                                                             theme = ButtonThemes.cautionary,
                                                             state =
                                                                 Button.PropStateFactory.MakeLowLevel (

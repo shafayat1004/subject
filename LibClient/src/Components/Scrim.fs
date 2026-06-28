@@ -14,6 +14,11 @@ open ReactXP.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
+    let root =
+        makeViewStyles {
+            Position.Relative
+        }
+
     let gestureView =
         makeViewStyles {
             Position.Absolute
@@ -63,6 +68,7 @@ type LibClient.Components.Constructors.LC with
             ?onPress: ReactEvent.Action -> unit,
             ?onPanVertical: ReactXP.Components.GestureView.PanGestureState -> unit,
             ?onPanHorizontal: ReactXP.Components.GestureView.PanGestureState -> unit,
+            ?testId: string,
             ?styles: array<ViewStyles>,
             ?key: string) : ReactElement =
         key |> ignore
@@ -93,7 +99,11 @@ type LibClient.Components.Constructors.LC with
 
         if isMountedHook.current then
             RX.View(
-                styles = (styles |> Option.defaultValue [||]),
+                styles =
+                    [|
+                        Styles.root
+                        yield! (styles |> Option.defaultValue [||])
+                    |],
                 children =
                     elements {
                         RX.AnimatableView (
@@ -108,6 +118,7 @@ type LibClient.Components.Constructors.LC with
                                     onPress = onPress,
                                     label = "Dismiss",
                                     role = AccessibilityRole.Button,
+                                    testId = (testId |> Option.defaultValue "scrim-dismiss"),
                                     overlay = true,
                                     componentName = "LC.Scrim"
                                 )

@@ -33,6 +33,7 @@ module private Styles =
         ViewStyles.Memoize(
             fun (theme: Theme) (state: State) ->
                 makeViewStyles {
+                    Position.Relative
                     FlexDirection.Row
                     AlignItems.Stretch
                     borderBottomWidth 3
@@ -66,6 +67,7 @@ type LibClient.Components.Constructors.LC with
     static member Tab(
             label: string,
             state: State,
+            ?testId: string,
             ?styles: array<ViewStyles>,
             ?theme: Theme -> Theme,
             ?key: string
@@ -73,6 +75,15 @@ type LibClient.Components.Constructors.LC with
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
+        let theTestId = testId |> Option.defaultValue (A11ySlug.testId "tab" label)
+
+        let isSelected =
+            match state with
+            | Selected -> true
+            | Unselected _ -> false
+
+        let tabState =
+            { AccessibilityStateRecord.empty with Selected = Some isSelected }
 
         RX.View(
             styles =
@@ -80,6 +91,10 @@ type LibClient.Components.Constructors.LC with
                     Styles.viewTheme theTheme state
                     yield! styles |> Option.defaultValue [||]
                 |],
+            accessibilityLabel = label,
+            accessibilityRole = AccessibilityRole.Tab,
+            accessibilityState = AccessibilityStateRecord.toJs tabState,
+            testId = theTestId,
             children =
                 elements {
                     RX.View(
@@ -102,6 +117,8 @@ type LibClient.Components.Constructors.LC with
                             onPress = onPress,
                             label = label,
                             role = AccessibilityRole.Tab,
+                            state = tabState,
+                            testId = theTestId,
                             overlay = true,
                             componentName = "LC.Tab"
                         )

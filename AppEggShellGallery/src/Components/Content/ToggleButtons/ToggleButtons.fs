@@ -95,6 +95,8 @@ type Ui.Content with
                         )
                     }
                 ),
+            notes =
+                LC.Text "Each toggle button auto-slugs testId from its label (toggle-button-mango) or from the value for icon-only styles (toggle-button-mango).",
             samples =
                 element {
                     Ui.ComponentSampleGroup(

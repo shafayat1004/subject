@@ -555,6 +555,7 @@ module Input_TextComponent =
                                         LC.Pressable(
                                             onPress = (fun _ -> maybeTextInputHook.current |> Option.sideEffect (fun textInput -> textInput.requestFocus())),
                                             label = labelText,
+                                            testId = sprintf "%s-focus" resolvedTestId,
                                             role = AccessibilityRole.Button,
                                             overlay = true,
                                             styles = [| Styles.pressableOverlay |],

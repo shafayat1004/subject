@@ -70,7 +70,13 @@ let private desktopNav (maybeCurrentRoute: Option<Route>) (maybeCurrentActualRou
                 children =
                     [|
                         LC.Icon(icon = AppEggShellGallery.Icons.Icon.EggShell, styles = [| Styles.logoIcon |])
-                        LC.TapCapture(onPress = nav.Go (maybeCurrentRoute, Home))
+                        LC.Pressable(
+                            onPress = nav.Go (maybeCurrentRoute, Home),
+                            label = "Home",
+                            testId = "topnav-logo-home",
+                            overlay = true,
+                            componentName = "Ui.TopNav"
+                        )
                     |]
             )
 

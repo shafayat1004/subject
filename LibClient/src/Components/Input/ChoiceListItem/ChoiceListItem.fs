@@ -103,10 +103,25 @@ module ChoiceListItem_fs =
             | Label.String text -> Some text
             | Label.Children -> None
 
-        let resolveTestId (maybeLabel: Option<string>) (value: 'T) =
-            match maybeLabel with
-            | Some label -> Some (A11ySlug.testId "choice-list-item" label)
-            | None -> Some (sprintf "choice-list-item-%A" value)
+        let resolveAccessibilityLabel (label: Label) (accessibilityLabel: string option) (resolvedTestId: string) : string =
+            match label with
+            | Label.String text -> text
+            | Label.Children ->
+                accessibilityLabel
+                |> Option.orElse (Some resolvedTestId)
+                |> Option.defaultValue "Choice item"
+
+        let resolveTestId (testId: string option) (maybeLabel: Option<string>) (value: 'T) (accessibilityLabel: string option) : string =
+            testId
+            |> Option.orElse (
+                match maybeLabel with
+                | Some label -> Some (A11ySlug.testId "choice-list-item" label)
+                | None ->
+                    accessibilityLabel
+                    |> Option.map (A11ySlug.testId "choice-list-item")
+            )
+            |> Option.orElse (Some (sprintf "choice-list-item-%A" value))
+            |> Option.defaultValue "choice-list-item"
 
     type Constructors.LC.Input with
         [<Component>]
@@ -115,6 +130,8 @@ module ChoiceListItem_fs =
                 group: Group<'T>,
                 ?children: ReactChildrenProp,
                 ?label: Label,
+                ?accessibilityLabel: string,
+                ?testId: string,
                 ?iconPosition: IconPosition,
                 ?styles: array<ViewStyles>,
                 ?key: string,
@@ -127,6 +144,8 @@ module ChoiceListItem_fs =
             let iconPosition = defaultArg iconPosition IconPosition.Left
             let isSelected = group.IsSelected value
             let maybeLabelString = ChoiceListItemHelpers.maybeLabelString label
+            let resolvedTestId = ChoiceListItemHelpers.resolveTestId testId maybeLabelString value accessibilityLabel
+            let a11yLabel = ChoiceListItemHelpers.resolveAccessibilityLabel label accessibilityLabel resolvedTestId
             let a11yRole = ChoiceListItemHelpers.accessibilityRole group.Value
             let a11yState = ChoiceListItemHelpers.accessibilityState group.Value isSelected
             let iconStyles = if isSelected then ChoiceListItemStyles.iconChecked else ChoiceListItemStyles.iconUnchecked
@@ -165,8 +184,8 @@ module ChoiceListItem_fs =
 
                         LC.Pressable(
                             onPress = group.Toggle value,
-                            ?label = maybeLabelString,
-                            ?testId = ChoiceListItemHelpers.resolveTestId maybeLabelString value,
+                            label = a11yLabel,
+                            testId = resolvedTestId,
                             role = a11yRole,
                             state = a11yState,
                             overlay = true,

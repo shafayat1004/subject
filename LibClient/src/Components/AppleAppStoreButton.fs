@@ -12,6 +12,11 @@ open ReactXP.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
+    let imageContainer =
+        makeViewStyles {
+            Position.Relative
+        }
+
     let desktopImage =
         makeViewStyles {
             size 145 47
@@ -30,7 +35,11 @@ type LibClient.Components.Constructors.LC with
         LC.With.ScreenSize(
             fun screenSize ->
                 RX.View(
-                    styles = (styles |> Option.defaultValue [||]),
+                    styles =
+                        [|
+                            Styles.imageContainer
+                            yield! (styles |> Option.defaultValue [||])
+                        |],
                     children =
                         elements {
                             RX.Image(

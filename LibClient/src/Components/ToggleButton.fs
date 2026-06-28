@@ -114,6 +114,7 @@ type LibClient.Components.Constructors.LC with
             value: 'T,
             group: ToggleButtons.Group<'T>,
             ?position: Position,
+            ?testId: string,
             ?theme: Theme -> Theme,
             ?styles : array<ViewStyles>,
             ?key: string
@@ -125,6 +126,13 @@ type LibClient.Components.Constructors.LC with
 
         let isSelected = group.IsSelected value
         let (maybeLabel, maybeIcon) = style.Parts
+
+        let a11yLabel =
+            maybeLabel
+            |> Option.orElse (maybeIcon |> Option.map (fun _ -> sprintf "%A" value))
+            |> Option.defaultValue "Toggle option"
+
+        let defaultTestId = A11ySlug.testId "toggle-button" a11yLabel
 
         RX.View(
             styles =
@@ -172,10 +180,11 @@ type LibClient.Components.Constructors.LC with
                     )
 
                     LC.Pressable(
-                        group.Toggle value,
-                        ?label = maybeLabel,
+                        onPress = group.Toggle value,
+                        label = a11yLabel,
                         role = AccessibilityRole.ToggleButton,
                         state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                        testId = (testId |> Option.defaultValue defaultTestId),
                         overlay = true,
                         componentName = "LC.ToggleButton"
                     )

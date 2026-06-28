@@ -115,6 +115,8 @@ let private renderCodeAndNotes (code: Code) (notes: ReactElement) =
     )
 
 let private renderVisuals (visuals: ReactElement) =
+    // Automation testId: scopes audit recipes to demo visuals (web `[data-testid]`, Android resource-id).
+    // Sidebar nav testIds: eggshell-sidebar-menu, sidebar-blade-*, sidebar-component-{CaseName} (SidebarContent.fs).
     RX.View(
         testId = "aesg-sample-visuals",
         styles = [| Styles.visuals |],

@@ -3,6 +3,7 @@ module AppEggShellGallery.Components.Content_Thumb
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open AppEggShellGallery.LocalImages
 
@@ -53,17 +54,19 @@ LC.Thumb(
                     Ui.ComponentSample(
                         visuals =
                             LC.Thumb(
-                                ``for`` = LC.Thumb.For.Of (banana, fun fruit -> localImage fruit.ImageUrl)
+                                ``for`` = LC.Thumb.For.Of (localImage "/images/yuumei1.jpg"),
+                                onPress = (fun _ -> Action.alert "Thumbnail selected"),
+                                testId = A11ySlug.testId "thumb" "select"
                             ),
                         code =
                             ComponentSample.SingleBlock(
                                 ComponentSample.Fsharp,
                                 LC.Text """
-type Fruit = { Name: string; ImageUrl: string }
-let banana = { Name = "banana"; ImageUrl = "/images/yuumei1.jpg" }
-
-LC.Thumb(``for`` = LC.Thumb.For.Of (banana, fun fruit -> localImage fruit.ImageUrl))
-"""
+LC.Thumb(
+    ``for`` = LC.Thumb.For.Of (localImage "/images/yuumei1.jpg"),
+    onPress = (fun _ -> Action.alert "Thumbnail selected"),
+    testId = A11ySlug.testId "thumb" "select"
+)"""
                             )
                     )
                 },

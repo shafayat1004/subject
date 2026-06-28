@@ -10,6 +10,7 @@ import { join } from 'path';
 import { discoverGalleryComponents } from './audit-gallery-components.mjs';
 import { connectAndroidPage, disconnectAndroidPage } from './audit-gallery-android-driver.mjs';
 import { navigateToComponent, sidebarLabelFor } from './audit-gallery-nav-native.mjs';
+import { clickLabelOrTestId } from './audit-gallery-selectors.mjs';
 import { LogcatCapture, filterActionable, assertAdbReady } from './audit-gallery-android-logcat.mjs';
 import { classifyForFullAudit } from './audit-gallery-classify.mjs';
 import { PLATFORM } from './audit-gallery-platform.mjs';
@@ -53,20 +54,14 @@ async function auditComponent(page, logcat, name) {
     });
 
     if (name === 'QueryGrid') {
-      const submit = page.getByText('Submit', { exact: true });
-      if (await submit.count()) {
-        await submit.first().click().catch(() => {});
-        await page.waitForTimeout(2500);
-      }
+      await clickLabelOrTestId(page, { label: 'Submit', platform: PLATFORM.ANDROID, exact: true });
+      await page.waitForTimeout(2500);
     }
 
     if (name === 'Dialogs') {
-      const alert = page.getByText('Alert', { exact: true });
-      if (await alert.count()) {
-        await alert.first().click().catch(() => {});
-        await page.waitForTimeout(800);
-        await page.keyboard.press('Escape').catch(() => {});
-      }
+      await clickLabelOrTestId(page, { label: 'Alert', platform: PLATFORM.ANDROID, exact: true });
+      await page.waitForTimeout(800);
+      await page.keyboard.press('Escape').catch(() => {});
     }
   } catch (e) {
     loadError = String(e.message ?? e);

@@ -12,6 +12,7 @@ type private Helpers =
         let state = Hooks.useState (Ok [])
         LC.Input.Image(
             onChange = state.update,
+            testId = "input-image",
             value =
                 (state.current
                  |> Result.recover (fun _ -> [])),

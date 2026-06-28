@@ -338,6 +338,7 @@ module Nav_Top_Item =
         static member Item(
                 state: State,
                 style: Style,
+                ?testId: string,
                 ?children: ReactChildrenProp,
                 ?styles: array<ViewStyles>,
                 ?theme: Theme -> Theme,
@@ -348,6 +349,9 @@ module Nav_Top_Item =
             children |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith theme
+            let pressLabelValue = pressLabel style
+            let itemTestId =
+                testId |> Option.defaultValue (A11ySlug.testId "nav-top-item" pressLabelValue)
 
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
@@ -381,8 +385,9 @@ module Nav_Top_Item =
                                             | Some onPress ->
                                                 LC.Pressable(
                                                     onPress = onPress,
-                                                    label = pressLabel style,
+                                                    label = pressLabelValue,
                                                     role = AccessibilityRole.Button,
+                                                    testId = itemTestId,
                                                     state =
                                                         { AccessibilityStateRecord.empty with
                                                             Selected = Some (isSelectedState state)

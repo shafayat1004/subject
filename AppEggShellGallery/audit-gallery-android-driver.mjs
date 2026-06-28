@@ -6,21 +6,24 @@
 import { remote } from 'webdriverio';
 import { spawn } from 'child_process';
 import { ANDROID_APP } from './audit-gallery-platform.mjs';
+import {
+  escapeUi,
+  testIdSelector,
+  testIdClickSelector,
+  findByTestId,
+  clickByTestId,
+  clickLabelOrTestId,
+  readUiSnapshot,
+} from './audit-gallery-selectors.mjs';
 
-function escapeUi(text) {
-  return String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
-/** RN testID → Android resource-id (not accessibility id). WebdriverIO `~` uses the wrong strategy. */
-export function testIdSelector(testId) {
-  return `android=new UiSelector().resourceId("${escapeUi(testId)}")`;
-}
-
-/** Clickable target inside a testID wrapper (wrapper is often not clickable). */
-function testIdClickSelector(testId) {
-  const id = escapeUi(testId);
-  return `android=new UiSelector().resourceId("${id}").childSelector(new UiSelector().clickable(true))`;
-}
+export {
+  testIdSelector,
+  testIdClickSelector,
+  findByTestId,
+  clickByTestId,
+  clickLabelOrTestId,
+  readUiSnapshot,
+} from './audit-gallery-selectors.mjs';
 
 /**
  * @param {import('webdriverio').Element} el

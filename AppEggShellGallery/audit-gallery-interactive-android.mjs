@@ -8,6 +8,9 @@
  *   - adb device connected, `adb reverse tcp:8081 tcp:8081`
  *   - Rebuild native after ComponentSample testID change (`../eggshell dev-native`)
  *
+ * Shared recipes use testId-first selectors (audit-gallery-selectors.mjs) via audit-gallery-interactions.mjs.
+ * Navigation: audit-gallery-nav-native.mjs (~eggshell-sidebar-menu, ~sidebar-component-*).
+ *
  * Usage:
  *   node audit-gallery-interactive-android.mjs
  *   node audit-gallery-interactive-android.mjs --passes=1 --slow-mo=200

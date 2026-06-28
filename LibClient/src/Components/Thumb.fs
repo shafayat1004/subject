@@ -32,6 +32,7 @@ module LC =
 
         module private Theme =
             let thumb = ViewStyles.Memoize (fun size -> makeViewStyles {
+                Position.Relative
                 flex 0
                 borderWidth 2
                 borderColor Color.Transparent
@@ -80,6 +81,7 @@ type LibClient.Components.Constructors.LC with
             source:      ImageSource,
             ?isSelected: bool,
             ?onPress:    ReactEvent.Action -> unit,
+            ?testId:     string,
             ?styles:     array<ViewStyles>,
             ?theme:      Theme -> Theme,
             ?corners:    Corners,
@@ -91,6 +93,7 @@ type LibClient.Components.Constructors.LC with
             ``for``     = For.Of source,
             ?isSelected = isSelected,
             ?onPress    = onPress,
+            ?testId     = testId,
             ?styles     = styles,
             ?theme      = theme,
             ?corners    = corners,
@@ -102,6 +105,7 @@ type LibClient.Components.Constructors.LC with
             ``for``:     For<'T>,
             ?isSelected: bool,
             ?onPress:    ReactEvent.Action -> unit,
+            ?testId:     string,
             ?styles:     array<ViewStyles>,
             ?theme:      Theme -> Theme,
             ?corners:    Corners,
@@ -112,6 +116,12 @@ type LibClient.Components.Constructors.LC with
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let isSelected = defaultArg isSelected false
         let corners    = defaultArg corners    Corners.Sharp
+        let thumbTestId =
+            testId
+            |> Option.orElse (
+                onPress
+                |> Option.map (fun _ -> A11ySlug.testId "thumb" "select")
+            )
 
         LC.With.Layout(
             initialOnly = true,
@@ -144,6 +154,11 @@ type LibClient.Components.Constructors.LC with
                                         onPress = onPress,
                                         label = "Select thumbnail",
                                         role = AccessibilityRole.Button,
+                                        state =
+                                            { AccessibilityStateRecord.empty with
+                                                Selected = Some isSelected
+                                            },
+                                        ?testId = thumbTestId,
                                         overlay = true,
                                         componentName = "LC.Thumb"
                                     )

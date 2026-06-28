@@ -122,6 +122,7 @@ module Input_ImageComponent =
                         if showPreview then
                             LC.Thumbs(
                                 onPress  = (fun _ index e -> toggleSelectedFilesForRemoval index e),
+                                testIdPrefix = resolvedTestId,
                                 ``for``  = LC.Thumbs.For.Of(value |> List.map (fun file -> file.ToDataUri |> ImageSource.ofUrl)),
                                 selected = selectedFilesHook.current,
                                 styles   = [| Styles.imageThumbs |]
