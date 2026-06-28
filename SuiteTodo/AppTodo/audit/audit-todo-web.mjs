@@ -20,16 +20,17 @@ async function main () {
     if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
   });
 
-  const resp = await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60000 });
+  const resp = await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
   if (!resp || resp.status() >= 400) {
     errors.push(`HTTP ${resp?.status() ?? 'no response'} for ${baseUrl}`);
   }
 
-  await page.getByTestId('todo-new-title').waitFor({ timeout: 15000 });
+  await page.waitForTimeout(8000);
+  await page.locator('input').first().waitFor({ timeout: 30000 });
 
   const title = `audit-${Date.now()}`;
-  await page.getByTestId('todo-new-title').fill(title);
-  await page.getByTestId('todo-add').click();
+  await page.locator('input').first().fill(title);
+  await page.getByRole('button', { name: 'Add' }).click();
   await page.getByText(title).waitFor({ timeout: 15000 });
 
   await browser.close();

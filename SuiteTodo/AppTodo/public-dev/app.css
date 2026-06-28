@@ -465,6 +465,10 @@ html {
   -webkit-tap-highlight-color: transparent;
   /* For some Androids */
 }
+body.page--basic {
+  background-color: #f3f5f8;
+}
+
 body,
 .app-container {
   height: 100%;

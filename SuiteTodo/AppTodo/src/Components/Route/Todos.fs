@@ -17,31 +17,70 @@ open AppTodo.TodoQueries
 open SuiteTodo.Types
 
 module private Styles =
-    let row = makeViewStyles {
+    let page = makeViewStyles {
+        flex 1
+        paddingVertical 48
+        paddingHorizontal 24
+        AlignItems.Center
+        backgroundColor (Color.Hex "#f3f5f8")
+    }
+
+    let card = makeViewStyles {
+        widthPercent 100
+        padding 28
+        backgroundColor Color.White
+        borderRadius 12
+        borderWidth 1
+        borderColor (Color.Hex "#e4e8ee")
+    }
+
+    let subtitle = makeTextStyles {
+        marginTop 4
+        marginBottom 8
+        color (Color.Grey "66")
+        fontSize 14
+    }
+
+    let inputFlex = makeViewStyles {
+        flex 1
+        minWidth 0
+    }
+
+    let list = makeViewStyles {
+        gap 8
+        marginTop 8
+    }
+
+    let todoRow = makeViewStyles {
         FlexDirection.Row
         AlignItems.Center
-        paddingVertical 8
         gap 12
+        paddingVertical 12
+        paddingHorizontal 16
+        backgroundColor (Color.Hex "#fafbfc")
+        borderRadius 8
+        borderWidth 1
+        borderColor (Color.Hex "#e8ecf1")
+    }
+
+    let todoTitleWrap = makeViewStyles {
+        flex 1
+        minWidth 0
     }
 
     let titleTextActive = makeTextStyles {
-        color Color.Black
+        color (Color.Hex "#1a1f2e")
+        fontSize 15
     }
 
     let titleTextDone = makeTextStyles {
         textDecorationLine TextDecorationLine.LineThrough
         color (Color.Grey "99")
+        fontSize 15
     }
 
-    let list = makeViewStyles {
-        gap 4
-    }
-
-    let fieldRow = makeViewStyles {
-        FlexDirection.Row
-        AlignItems.Center
-        gap 12
-        marginBottom 16
+    let listSection = makeViewStyles {
+        marginTop 8
     }
 
 type private Helpers =
@@ -68,7 +107,7 @@ type private Helpers =
             }
 
         RX.View(
-            styles = [| Styles.row |],
+            styles = [| Styles.todoRow |],
             children = [|
                 LC.Input.Checkbox(
                     value = Some todo.Done,
@@ -77,9 +116,14 @@ type private Helpers =
                     accessibilityLabel = todo.Title.Value,
                     testId = A11ySlug.testId "todo-item" "toggle"
                 )
-                LC.Text(
-                    styles = [| if todo.Done then Styles.titleTextDone else Styles.titleTextActive |],
-                    value = todo.Title.Value
+                RX.View(
+                    styles = [| Styles.todoTitleWrap |],
+                    children = [|
+                        LC.Text(
+                            styles = [| if todo.Done then Styles.titleTextDone else Styles.titleTextActive |],
+                            value = todo.Title.Value
+                        )
+                    |]
                 )
                 LC.TextButton(
                     label = "Delete",
@@ -120,93 +164,121 @@ type Ui.Route with
                             return result
                     }
 
-                LC.Section.Padded(
+                RX.View(
+                    styles = [| Styles.page |],
                     children = [|
-                        LC.Heading(
-                            level = Heading.Level.Secondary,
-                            children = [| LC.Text "Todos" |]
-                        )
+                        LC.Constrained(
+                            maxWidth = 560,
+                            child =
+                                RX.View(
+                                    styles = [| Styles.card |],
+                                    children = [|
+                                        LC.Column(
+                                            gap = 20,
+                                            children = [|
+                                                LC.Column(
+                                                    gap = 0,
+                                                    crossAxisAlignment = LC.CrossAxisAlignment.Stretch,
+                                                    children = [|
+                                                        LC.Heading(
+                                                            level = Heading.Level.Primary,
+                                                            children = [| LC.Text "Todos" |]
+                                                        )
+                                                        LC.Text(
+                                                            styles = [| Styles.subtitle |],
+                                                            value = "Stay on top of what needs doing."
+                                                        )
+                                                    |]
+                                                )
 
-                        RX.View(
-                            styles = [| Styles.fieldRow |],
-                            children = [|
-                                LC.Input.Text(
-                                    value = titleInput.current,
-                                    onChange = titleInput.update,
-                                    validity = Valid,
-                                    placeholder = "What needs doing?",
-                                    testId = A11ySlug.testId "todo" "new-title"
-                                )
-                                LC.Button(
-                                    label = "Add",
-                                    state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
-                                    testId = A11ySlug.testId "todo" "add"
-                                )
-                            |]
-                        )
+                                                LC.Row(
+                                                    gap = 12,
+                                                    crossAxisAlignment = LC.CrossAxisAlignment.Center,
+                                                    children = [|
+                                                        LC.Input.Text(
+                                                            value = titleInput.current,
+                                                            onChange = titleInput.update,
+                                                            validity = Valid,
+                                                            placeholder = "What needs doing?",
+                                                            styles = [| Styles.inputFlex |],
+                                                            testId = A11ySlug.testId "todo" "new-title"
+                                                        )
+                                                        LC.Button(
+                                                            label = "Add",
+                                                            state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                            testId = A11ySlug.testId "todo" "add"
+                                                        )
+                                                    |]
+                                                )
 
-                        RX.View(
-                            styles = [| Styles.fieldRow |],
-                            children = [|
-                                LC.Input.Text(
-                                    value = searchInput.current,
-                                    onChange = searchInput.update,
-                                    validity = Valid,
-                                    placeholder = "Search titles (full-text)",
-                                    testId = A11ySlug.testId "todo" "search"
-                                )
-                            |]
-                        )
+                                                LC.Input.Text(
+                                                    value = searchInput.current,
+                                                    onChange = searchInput.update,
+                                                    validity = Valid,
+                                                    placeholder = "Search todos...",
+                                                    styles = [| Styles.inputFlex |],
+                                                    testId = A11ySlug.testId "todo" "search"
+                                                )
 
-                        UiSubject.With.Subjects(
-                            key = listKey,
-                            service = AppTodo.AppServices.services().Todo,
-                            by = By.Indexed indexedQuery,
-                            useCache = UseCache.IfReasonablyFresh,
-                            treatFetchingSomeAsAvailable = true,
-                            whenAvailable =
-                                (fun subjects ->
-                                    let todos =
-                                        subjects
-                                        |> Subjects.available
-                                        |> Seq.sortBy (fun t -> t.CreatedOn)
-                                        |> Seq.toList
+                                                RX.View(
+                                                    styles = [| Styles.listSection |],
+                                                    children = [|
+                                                        UiSubject.With.Subjects(
+                                                            key = listKey,
+                                                            service = AppTodo.AppServices.services().Todo,
+                                                            by = By.Indexed indexedQuery,
+                                                            useCache = UseCache.IfReasonablyFresh,
+                                                            treatFetchingSomeAsAvailable = true,
+                                                            whenAvailable =
+                                                                (fun subjects ->
+                                                                    let todos =
+                                                                        subjects
+                                                                        |> Subjects.available
+                                                                        |> Seq.sortBy (fun t -> t.CreatedOn)
+                                                                        |> Seq.toList
 
-                                    if List.isEmpty todos then
-                                        LC.InfoMessage(
-                                            level = InfoMessage.Level.Info,
-                                            message =
-                                                match searchInput.current with
-                                                | None -> "No todos yet. Add one above."
-                                                | Some _ -> "No todos match your search."
+                                                                    if List.isEmpty todos then
+                                                                        LC.InfoMessage(
+                                                                            level = InfoMessage.Level.Info,
+                                                                            message =
+                                                                                match searchInput.current with
+                                                                                | None -> "No todos yet. Add one above."
+                                                                                | Some _ -> "No todos match your search."
+                                                                        )
+                                                                    else
+                                                                        RX.View(
+                                                                            styles = [| Styles.list |],
+                                                                            children =
+                                                                                [| castAsElementAckingKeysWarning (
+                                                                                    todos
+                                                                                    |> List.map (fun todo ->
+                                                                                        Helpers.TodoRow(
+                                                                                            todo = todo,
+                                                                                            makeExecutor = makeExecutor,
+                                                                                            onMutated = bumpList
+                                                                                        ))
+                                                                                    |> List.toArray
+                                                                                ) |]
+                                                                        )),
+                                                            whenFetching =
+                                                                (fun _ ->
+                                                                    LC.InfoMessage(
+                                                                        level = InfoMessage.Level.Info,
+                                                                        message = "Loading todos..."
+                                                                    )),
+                                                            whenFailed =
+                                                                (fun failure ->
+                                                                    LC.InfoMessage(
+                                                                        level = InfoMessage.Level.Caution,
+                                                                        message = "Failed to load todos: " + failure.DisplayReason
+                                                                    ))
+                                                        )
+                                                    |]
+                                                )
+                                            |]
                                         )
-                                    else
-                                        RX.View(
-                                            styles = [| Styles.list |],
-                                            children =
-                                                [| castAsElementAckingKeysWarning (
-                                                    todos
-                                                    |> List.map (fun todo ->
-                                                        Helpers.TodoRow(
-                                                            todo = todo,
-                                                            makeExecutor = makeExecutor,
-                                                            onMutated = bumpList
-                                                        ))
-                                                    |> List.toArray
-                                                ) |]
-                                        )),
-                            whenFetching =
-                                (fun _ ->
-                                    LC.InfoMessage(
-                                        level = InfoMessage.Level.Info,
-                                        message = "Loading todos..."
-                                    )),
-                            whenFailed =
-                                (fun failure ->
-                                    LC.InfoMessage(
-                                        level = InfoMessage.Level.Caution,
-                                        message = "Failed to load todos: " + failure.DisplayReason
-                                    ))
+                                    |]
+                                )
                         )
                     |]
                 )
