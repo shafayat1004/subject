@@ -89,8 +89,9 @@ and ComponentItem =
 | Input_UnsignedDecimal
 | InProgress
 | ItemList
-| Forms
-| LabelledFormField
+    | Forms
+    | AutoUi_InputForm
+    | LabelledFormField
 | LabelledValue
 | Nav_Top
 | Nav_Bottom
@@ -128,6 +129,11 @@ and ComponentItem =
 | AnimatableTextInput
 | AnimatableView
 | TouchableOpacity
+| LibRouter_Dialogs
+| LibRouter_LogRouteTransitions
+| LibRouter_NativeBackButton
+| LibRouter_WithLocation
+| LibRouter_WithRoute
 
 let navigationState = LibRouter.RoutesSpec.NavigationState<Route, ResultlessDialog, ResultfulDialog>()
 

@@ -5,6 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibRouter.Components
+open LibUiSubject.Components.Constructors
+open LibUiSubject.Components.With.Subject
 open LibUiSubjectAdmin.Components
 
 module UiSubjectAdmin =
@@ -104,7 +106,7 @@ type UiSubjectAdmin.Route.Debug with
                     buttons.Additional
                 })
 
-                LibUiSubject.Components.With.Subject.C.Subject (service, id, (fun (subject: 'Projection) ->
+                UiSubject.With.Subject (service = service, id = id, whenAvailable = (fun (subject: 'Projection) ->
                     match render with
                     | AsJson toString ->
                         LC.Pre(text = toString subject)

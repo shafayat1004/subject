@@ -365,17 +365,18 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         TopNavHeight = 44
     }
 
-    Input.TextStyles.Theme.All(
-        borderLabelBlurredColor    = neutral.B500,
-        borderLabelFocusedColor    = secondary.Main,
-        borderLabelInvalidColor    = caution.Main,
-        textColor                  = neutral.Main,
-        noneditableTextColor       = neutral.B500,
-        noneditableBackgroundColor = neutral.B200,
-        invalidReasonColor         = caution.Main,
-        placeholderColor           = neutral.B300,
-        theVerticalPadding         = 10
-    )
+    Themes.Set<LC.Input.Text.Theme> {
+        BorderLabelBlurredColor    = neutral.B500
+        BorderLabelFocusedColor    = secondary.Main
+        BorderLabelInvalidColor    = caution.Main
+        TextColor                  = neutral.Main
+        NoneditableTextColor       = neutral.B500
+        NoneditableBackgroundColor = neutral.B200
+        InvalidReasonColor         = caution.Main
+        PlaceholderColor           = neutral.B300
+        TheVerticalPadding         = 10
+        BorderRadius               = 4
+    }
 
     Themes.Set<LC.Input.DecimalTypes.Theme> {
         BorderLabelBlurredColor    = neutral.B500
@@ -420,24 +421,16 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         InvalidReasonColor = caution.Main
     }
 
-    Legacy.Input.PickerStyles.Theme.All(
-        borderLabelColor        = neutral.B500,
-        borderLabelInvalidColor = caution.Main,
-        textColor               = neutral.Main,
-        invalidReasonColor      = caution.Main,
-        iconSize                = 20
-    )
-
-    Input.PickerInternals.FieldStyles.Theme.All(
-        borderLabelColor        = neutral.B500,
-        borderLabelFocusColor   = secondary.Main,
-        borderLabelInvalidColor = caution.Main,
-        textColor               = neutral.Main,
-        invalidReasonColor      = caution.Main,
-        placeholderColor        = neutral.B300,
-        iconSize                = 20,
-        theVerticalPadding      = 10
-    )
+    Themes.Set<LibClient.Components.Input.PickerInternals.Field.Theme> {
+        BorderLabelColor        = neutral.B500
+        BorderLabelFocusColor   = secondary.Main
+        BorderLabelInvalidColor = caution.Main
+        TextColor               = neutral.Main
+        InvalidReasonColor      = caution.Main
+        PlaceholderColor        = neutral.B300
+        IconSize                = 20
+        TheVerticalPadding      = 10
+    }
 
     Themes.Set<LC.Input.Checkbox.Theme>(
         {

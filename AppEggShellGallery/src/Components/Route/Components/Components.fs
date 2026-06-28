@@ -34,6 +34,7 @@ let private renderContent (content: ComponentItem) : ReactElement =
     | ErrorBoundary                 -> Ui.Content.ErrorBoundary()
     | FloatingActionButton          -> Ui.Content.FloatingActionButton()
     | Forms                         -> Ui.Content.Forms()
+    | AutoUi_InputForm              -> Ui.Content.AutoUi_InputForm()
     | Grid                          -> Ui.Content.Grid()
     | ComponentItem.Heading           -> Ui.Content.Heading()
     | Icon                          -> Ui.Content.Icon()
@@ -93,6 +94,11 @@ let private renderContent (content: ComponentItem) : ReactElement =
     | AnimatableTextInput           -> Ui.Content.AnimatableTextInput()
     | AnimatableView                -> Ui.Content.AnimatableView()
     | TouchableOpacity              -> Ui.Content.TouchableOpacity()
+    | LibRouter_Dialogs             -> Ui.Content.LibRouter.Dialogs()
+    | LibRouter_LogRouteTransitions -> Ui.Content.LibRouter.LogRouteTransitions()
+    | LibRouter_NativeBackButton    -> Ui.Content.LibRouter.NativeBackButton()
+    | LibRouter_WithLocation        -> Ui.Content.LibRouter.WithLocation()
+    | LibRouter_WithRoute           -> Ui.Content.LibRouter.WithRoute()
     | _                             -> LC.Text "Docs not available yet — why don't you add it?"
 
 type Ui.Route with

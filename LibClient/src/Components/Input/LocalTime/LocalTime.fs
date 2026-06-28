@@ -3,6 +3,7 @@ namespace LibClient.Components.Input
 
 open System
 open LibClient
+open LibClient.Components.Input.PickerModel
 
 module LocalTime =
 
@@ -57,10 +58,14 @@ module LocalTime =
         | _ -> return None
     }
 
-    let periodPickerItems: List<LibClient.Components.Legacy.Input.Picker.PickerItem<int>> = [
-        { Label = "AM"; Item = 0  }
-        { Label = "PM"; Item = 12 }
-    ]
+    let periodItems : OrderedSet<int> =
+        OrderedSet.ofList [ 0; 12 ]
+
+    let periodToFilterString (offset: int) : string =
+        if offset = 0 then "AM" else "PM"
+
+    let periodItemVisuals (offset: int) : PickerItemVisuals =
+        {| Label = periodToFilterString offset |}
 
     type Value = {
         Raw:                      Option<NonemptyString> * Option<NonemptyString> * int
@@ -148,6 +153,8 @@ module Input_LocalTimeComponent =
 
     open LibClient.Components.Input.LocalTime
     open LibClient.Components.Input.Text
+    open LibClient.Components.Input_Picker
+    open LibClient.Components.Input.PickerModel
 
     [<RequireQualifiedAccess>]
     module private Styles =
@@ -282,11 +289,12 @@ module Input_LocalTimeComponent =
                                              if s.IsEmpty then None else Some s)
                                     )
 
-                                    LC.Legacy.Input.Picker(
-                                        items    = periodPickerItems,
-                                        value    = (LibClient.Components.Legacy.Input.Picker.ByItem rawPeriodOffset |> Some),
-                                        onChange = (LibClient.Components.Legacy.Input.Picker.CannotUnselect (snd >> value.SetPeriod >> onChange)),
+                                    LC.Input.Picker(
+                                        items    = Static (periodItems, periodToFilterString),
+                                        itemView = Default periodItemVisuals,
+                                        value    = ExactlyOne (Some rawPeriodOffset, fun offset -> value.SetPeriod offset |> onChange),
                                         validity = externalValidityForFields,
+                                        showSearchBar = false,
                                         ?xLegacyStyles =
                                             (let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "picker"
                                              if s.IsEmpty then None else Some s)

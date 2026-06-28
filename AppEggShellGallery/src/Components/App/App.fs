@@ -7,6 +7,8 @@ open LibLang
 open LibClient
 open LibClient.Components
 open LibRouter.Components
+open LibRouter.Components.Constructors
+open LibRouter.Components.With.Route
 open LibRouter.RoutesSpec
 open AppEggShellGallery.Colors
 open AppEggShellGallery.Navigation

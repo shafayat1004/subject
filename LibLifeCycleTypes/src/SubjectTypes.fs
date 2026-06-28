@@ -715,6 +715,11 @@ with
         }
         ResultSetOptions_ options
 
+    // Used by LibUiSubject Throttling to erase 'SubjectIndex for Fable endpoint binding (see Fable #3607).
+    member this.EraseIndexArgumentToAvoidStackOverflow : ResultSetOptions<unit> =
+        match this with
+        | ResultSetOptions_ x -> ResultSetOptions_ x
+
 type IndexQuery<'SubjectIndex> =
 #if !FABLE_COMPILER
     private
@@ -726,6 +731,11 @@ with
 
     member this.ResultSetOptions =
         let (IndexQuery (_, resultSetOptions)) = this in resultSetOptions
+
+    // Used by LibUiSubject Throttling to erase 'SubjectIndex for Fable endpoint binding (see Fable #3607).
+    member this.EraseIndexArgumentToAvoidStackOverflow : IndexQuery<unit> =
+        match this with
+        | IndexQuery (x1, x2) -> IndexQuery (x1, x2)
 
 type PreparedIndexPredicate<'SubjectIndex> =
 #if !FABLE_COMPILER
@@ -739,6 +749,11 @@ with
     member this.PrepareQuery options =
         let (PreparedIndexPredicate predicate) = this
         IndexQuery(predicate, options)
+
+    // Used by LibUiSubject Throttling to erase 'SubjectIndex for Fable endpoint binding (see Fable #3607).
+    member this.EraseIndexArgumentToAvoidStackOverflow : PreparedIndexPredicate<unit> =
+        match this with
+        | PreparedIndexPredicate x -> PreparedIndexPredicate x
 
 #if FABLE_COMPILER
 let rec (* want private but need for inline *) toUntypedPredicate (caseNameNumeric) (caseNameString) typedPredicate =

@@ -5,6 +5,7 @@ open Fable.React
 open System
 open LibClient
 open LibUiSubjectAdmin.Components
+open LibUiSubjectAdmin.Components.Audit.Generic
 open LibClient.Services.HttpService.ThothEncodedHttpService
 
 type EndpointParams = {

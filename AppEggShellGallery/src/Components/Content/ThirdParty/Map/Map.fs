@@ -7,6 +7,8 @@ open LibClient.Components
 open ThirdParty.Map
 open ThirdParty.Map.Components
 open AppEggShellGallery.Config
+
+module B = ThirdParty.Map.TypesBuilders
 open ReactXP.Components
 open ReactXP.Styles
 
@@ -64,9 +66,9 @@ let private customStyles =
     ]
 
 let private getMarkerWithInfoWindow () =
-    Marker.init MarkerPosition.Centered
-    |> Marker.withInfoWindow (
-        InfoWindow.init (fun handle -> Ui.Content.ThirdParty.ToolWindowContent(handle))
+    B.Marker.init MarkerPosition.Centered
+    |> B.Marker.withInfoWindow (
+        B.InfoWindow.init (fun handle -> Ui.Content.ThirdParty.ToolWindowContent(handle))
     )
 
 type private Helpers =
@@ -152,8 +154,8 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             markers =
                                                 [
-                                                    Marker.init MarkerPosition.Centered
-                                                    |> Marker.withTooltip "Centered Marker"
+                                                    B.Marker.init MarkerPosition.Centered
+                                                    |> B.Marker.withTooltip "Centered Marker"
                                                 ]
                                         ),
                                     code =
@@ -180,11 +182,11 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                             markers =
                                                 [
                                                     MarkerPosition.LatLng (-27.1687243, 152.9308381)
-                                                    |> Marker.init
-                                                    |> Marker.withLabel (MarkerLabel.init "A")
+                                                    |> B.Marker.init
+                                                    |> B.Marker.withLabel (B.MarkerLabel.init "A")
                                                     MarkerPosition.LatLng (-27.2, 153.0)
-                                                    |> Marker.init
-                                                    |> Marker.withLabel (MarkerLabel.init "B")
+                                                    |> B.Marker.init
+                                                    |> B.Marker.withLabel (B.MarkerLabel.init "B")
                                                 ]
                                         ),
                                     code =
@@ -211,24 +213,24 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                             markers =
                                                 [
                                                     MarkerPosition.LatLng (-27.1687243, 152.9308381)
-                                                    |> Marker.init
-                                                    |> Marker.withLabel (MarkerLabel.init "A")
-                                                    |> Marker.withImage (
-                                                        Icon.init "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-                                                        |> Icon.withAnchor (0, 32)
-                                                        |> ThirdParty.Map.Components.Base.Icon
+                                                    |> B.Marker.init
+                                                    |> B.Marker.withLabel (B.MarkerLabel.init "A")
+                                                    |> B.Marker.withImage (
+                                                        B.Icon.init "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                                                        |> B.Icon.withAnchor (0, 32)
+                                                        |> Icon
                                                     )
                                                     MarkerPosition.LatLng (-27.2, 153.0)
-                                                    |> Marker.init
-                                                    |> Marker.withLabel (MarkerLabel.init "B")
-                                                    |> Marker.withImage (
-                                                        Symbol.init "M10.453 14.016l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM12 2.016q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z"
-                                                        |> Symbol.withAnchor (15, 30)
-                                                        |> Symbol.withFillColor "blue"
-                                                        |> Symbol.withFillOpacity 0.8
-                                                        |> Symbol.withStrokeColor "red"
-                                                        |> Symbol.withStrokeOpacity 0.5
-                                                        |> ThirdParty.Map.Components.Base.Symbol
+                                                    |> B.Marker.init
+                                                    |> B.Marker.withLabel (B.MarkerLabel.init "B")
+                                                    |> B.Marker.withImage (
+                                                        B.Symbol.init "M10.453 14.016l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM12 2.016q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z"
+                                                        |> B.Symbol.withAnchor (15, 30)
+                                                        |> B.Symbol.withFillColor "blue"
+                                                        |> B.Symbol.withFillOpacity 0.8
+                                                        |> B.Symbol.withStrokeColor "red"
+                                                        |> B.Symbol.withStrokeOpacity 0.5
+                                                        |> Symbol
                                                     )
                                                 ]
                                         ),
@@ -258,11 +260,11 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                             shapes =
                                                 [
                                                     [ (-27.1687243, 152.9308381); (-27.1, 153.1); (-27.1, 152.8) ]
-                                                    |> Polyline.init
-                                                    |> Polyline.withStrokeColor "#1000CF"
-                                                    |> Polyline.withStrokeWeight 2
-                                                    |> Polyline.withStrokeOpacity 0.75
-                                                    |> ThirdParty.Map.Components.Base.Polyline
+                                                    |> B.Polyline.init
+                                                    |> B.Polyline.withStrokeColor "#1000CF"
+                                                    |> B.Polyline.withStrokeWeight 2
+                                                    |> B.Polyline.withStrokeOpacity 0.75
+                                                    |> Polyline
                                                 ]
                                         ),
                                     code =
@@ -292,11 +294,11 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                             shapes =
                                                 [
                                                     [ seq { (-27.1687243, 152.9308381); (-27.1, 153.1); (-27.1, 152.8) } ]
-                                                    |> Polygon.init
-                                                    |> Polygon.withStrokeColor "#1000CF"
-                                                    |> Polygon.withStrokeWeight 2
-                                                    |> Polygon.withStrokeOpacity 0.75
-                                                    |> ThirdParty.Map.Components.Base.Polygon
+                                                    |> B.Polygon.init
+                                                    |> B.Polygon.withStrokeColor "#1000CF"
+                                                    |> B.Polygon.withStrokeWeight 2
+                                                    |> B.Polygon.withStrokeOpacity 0.75
+                                                    |> Polygon
                                                 ]
                                         ),
                                     code =
@@ -323,14 +325,14 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             shapes =
                                                 [
-                                                    Circle.init (-27.1687243, 152.9308381) 500
-                                                    |> Circle.withFillColor "#401020"
-                                                    |> Circle.withFillOpacity 0.3
-                                                    |> Circle.withStrokeColor "#1000CF"
-                                                    |> Circle.withStrokeWeight 2
-                                                    |> Circle.withStrokeOpacity 0.75
-                                                    |> Circle.withEditable true
-                                                    |> ThirdParty.Map.Components.Base.Circle
+                                                    B.Circle.init (-27.1687243, 152.9308381) 500
+                                                    |> B.Circle.withFillColor "#401020"
+                                                    |> B.Circle.withFillOpacity 0.3
+                                                    |> B.Circle.withStrokeColor "#1000CF"
+                                                    |> B.Circle.withStrokeWeight 2
+                                                    |> B.Circle.withStrokeOpacity 0.75
+                                                    |> B.Circle.withEditable true
+                                                    |> Circle
                                                 ]
                                         ),
                                     code =

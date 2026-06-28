@@ -21,13 +21,22 @@ type Profile = {
     WantsSpam: bool
 }
 
-type PickerItem<'T> = LibClient.Components.Legacy.Input.Picker.PickerItem<'T>
+open LibClient.Components.Input_Picker
+open LibClient.Components.Input.PickerModel
 
 [<RequireQualifiedAccess>]
 type Field = Name | Age | Gender | WantsSpam
 
+let private genderItems : OrderedSet<Gender> =
+    [ Male; Female; Other; Undisclosed ] |> OrderedSet.ofList
+
+let private genderToFilterString (gender: Gender) : string =
+    gender.ToString()
+
+let private genderItemView =
+    PropItemViewFactory.Make (fun (gender: Gender) -> gender.ToString())
+
 type Acc = {
-    GenderChoices: List<PickerItem<Gender>>
     Name:          Option<NonemptyString>
     Age:           LibClient.Components.Input.PositiveInteger.Value
     Gender:        Option<Gender>
@@ -35,7 +44,6 @@ type Acc = {
 } with
     static member Initial : Acc =
         {
-            GenderChoices = [ Male; Female; Other; Undisclosed ] |> List.map (fun g -> { Item = g; Label = g.ToString() })
             Name          = None
             Age           = LibClient.Components.Input.PositiveInteger.empty
             Gender        = None
@@ -85,15 +93,12 @@ module private FormSample =
                             onEnterKeyPress = (ReactEvent.Action.Make >> form.TrySubmitLowLevel),
                             onChange = (fun value -> form.UpdateAcc (fun acc -> { acc with Age = value }))
                         )
-                        LC.Legacy.Input.Picker(
+                        LC.Input.Picker(
                             label = "Gender",
                             validity = form.FieldValidity Field.Gender,
-                            items = form.Acc.GenderChoices,
-                            value = (form.Acc.Gender |> Option.map LibClient.Components.Legacy.Input.Picker.ByItem),
-                            onChange =
-                                LibClient.Components.Legacy.Input.Picker.CannotUnselect (
-                                    fun (_, value) -> form.UpdateAcc (fun acc -> { acc with Gender = Some value })
-                                )
+                            items = Static (genderItems, genderToFilterString),
+                            itemView = genderItemView,
+                            value = ExactlyOne (form.Acc.Gender, fun gender -> form.UpdateAcc (fun acc -> { acc with Gender = Some gender }))
                         )
                         LC.Input.Checkbox(
                             label = Label.String "Subscribe to email",
@@ -157,7 +162,7 @@ LC.Form.Base(
         element {
             LC.Input.Text(...)
             LC.Input.PositiveInteger(...)
-            LC.Legacy.Input.Picker(...)
+            LC.Input.Picker(...)
             LC.Input.Checkbox(...)
             LC.Buttons [ LC.Button(label = "Submit", state = Button.PropStateFactory.Make form.TrySubmit) ]
         }

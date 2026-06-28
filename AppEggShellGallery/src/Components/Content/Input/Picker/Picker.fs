@@ -5,7 +5,7 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open LibClient.Components.Input.Picker
+open LibClient.Components.Input_Picker
 open LibClient.Components.Input.PickerModel
 
 type private Fruit =
@@ -27,8 +27,8 @@ let private manyItems : OrderedSet<string> =
     |> Array.toList
     |> OrderedSet.ofList
 
-let private fruitItemVisuals (fruit: Fruit) : PickerItemVisuals =
-    {| Label = fruit.GetName.Value |}
+let private fruitItemView =
+    PropItemViewFactory.Make (fun (fruit: Fruit) -> fruit.GetName.Value)
 
 let private fruitToFilterString (fruit: Fruit) : string =
     fruit.GetName.Value
@@ -38,8 +38,8 @@ let private fruitToFilterStringWithAdditionalText (fruit: Fruit) : string =
     |> List.find (fun (item, _) -> item = fruit)
     |> fun (fruit: Fruit, searchText: string) -> sprintf "%s %s" fruit.GetName.Value searchText
 
-let private stringItemVisuals (item: string) : PickerItemVisuals =
-    {| Label = item |}
+let private stringItemView =
+    PropItemViewFactory.Make (fun (item: string) -> item)
 
 let private fetchFruitsAllOnNoQuery (maybeQuery: Option<NonemptyString>) : Async<OrderedSet<Fruit>> =
     async {
@@ -77,7 +77,7 @@ type private Helpers =
         LC.Input.Picker(
             label    = "Fruit",
             items    = Static (fruits, fruitToFilterString),
-            itemView = Default fruitItemVisuals,
+            itemView = fruitItemView,
             value    = AtMostOne (selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
@@ -89,7 +89,7 @@ type private Helpers =
         LC.Input.Picker(
             label    = "Fruit",
             items    = Static (fruits, fruitToFilterString),
-            itemView = Default fruitItemVisuals,
+            itemView = fruitItemView,
             value    = ExactlyOne (selectedFruit.current, fun fruit -> selectedFruit.update (Some fruit)),
             validity = Valid
         )
@@ -105,7 +105,7 @@ type private Helpers =
                      Static (fruits, fruitToFilterStringWithAdditionalText)
                  else
                      Static (fruits, fruitToFilterString)),
-            itemView = Default fruitItemVisuals,
+            itemView = fruitItemView,
             value    = AtLeastOne (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits.ToOrderedSet)),
             validity = Valid
         )
@@ -118,7 +118,7 @@ type private Helpers =
         LC.Input.Picker(
             label    = "Fruit",
             items    = Static (fruits, fruitToFilterString),
-            itemView = Default fruitItemVisuals,
+            itemView = fruitItemView,
             value    = Any (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits)),
             validity = validity
         )
@@ -148,7 +148,7 @@ type private Helpers =
         LC.Input.Picker(
             label    = "Fruit",
             items    = Async fetchFruitsAllOnNoQuery,
-            itemView = Default fruitItemVisuals,
+            itemView = fruitItemView,
             value    = AtMostOne (selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
@@ -160,7 +160,7 @@ type private Helpers =
         LC.Input.Picker(
             label    = "Fruit",
             items    = Async fetchFruitsEmptyOnNoQuery,
-            itemView = Default fruitItemVisuals,
+            itemView = fruitItemView,
             value    = AtMostOne (selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
@@ -172,7 +172,7 @@ type private Helpers =
         LC.Input.Picker(
             label    = "Many Choices",
             items    = Static (manyItems, id),
-            itemView = Default stringItemVisuals,
+            itemView = stringItemView,
             value    = Any (selectedItems.current, fun items -> selectedItems.update (Some items)),
             validity = Valid
         )

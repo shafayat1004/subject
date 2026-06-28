@@ -60,7 +60,7 @@ let (* want private but called by inline *) maybePropagateInternalNodeSettingsTo
         match maybeValue with
         | Some value ->
             let pathToValue: Map<Path, InputValue> = generateLeafValues path theType value Map.empty
-            match Set.intersect acc.UserInputValues.Keys pathToValue.Keys |> Set.isEmpty with
+            match Set.intersect (Set.ofSeq acc.UserInputValues.Keys) (Set.ofSeq pathToValue.Keys) |> Set.isEmpty with
             | false -> acc
             | true ->
                 pathToValue

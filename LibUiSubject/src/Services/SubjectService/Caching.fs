@@ -27,6 +27,7 @@ type internal InMemoryCache<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, '
                       and  'Id           :  comparison
                       and  'OpError      :> OpError
                       and  'Index        :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                      and  'Index        : (new: unit -> 'Index)
                       and  'NumericIndex :> SubjectNumericIndex<'OpError>
                       and  'StringIndex  :> SubjectStringIndex<'OpError>
                       and  'SearchIndex  :> SubjectSearchIndex

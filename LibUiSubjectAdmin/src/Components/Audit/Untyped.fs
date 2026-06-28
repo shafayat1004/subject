@@ -7,6 +7,7 @@ open LibClient
 open LibClient.Components
 open LibClient.Services.DateService
 open LibUiSubjectAdmin.Components
+open LibUiSubjectAdmin.Components.Audit.Generic
 open LibClient.Services.HttpService.ThothEncodedHttpService
 
 module dom = Fable.React.Standard

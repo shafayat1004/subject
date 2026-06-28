@@ -13,7 +13,7 @@ open LibUiSubject.Services.SubjectService
 open Fable.Core.Reflection
 
 // need this because even though it's auto-opened, Fable.SignalR.Subject clobbers our Subject
-open LibLifeCycleTypes_SubjectTypes
+open LibLifeCycleTypes.SubjectTypes
 
 [<AutoOpen>]
 module private Helpers =
@@ -128,6 +128,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
                       and  'Event        :> LifeEvent
                       and  'OpError      :> OpError
                       and  'Index        :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                      and  'Index        : (new: unit -> 'Index)
                       and  'NumericIndex :> SubjectNumericIndex<'OpError>
                       and  'StringIndex  :> SubjectStringIndex<'OpError>
                       and  'SearchIndex  :> SubjectSearchIndex
@@ -1248,6 +1249,7 @@ type SubjectService private () =
                 and 'Event: comparison
                 and 'OpError :> OpError
                 and 'Index :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                and 'Index : (new: unit -> 'Index)
                 and 'NumericIndex :> SubjectNumericIndex<'OpError>
                 and 'StringIndex :> SubjectStringIndex<'OpError>
                 and 'SearchIndex :> SubjectSearchIndex
@@ -1288,6 +1290,7 @@ type SubjectService private () =
                 and 'Event: comparison
                 and 'OpError :> OpError
                 and 'Index :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                and 'Index : (new: unit -> 'Index)
                 and 'NumericIndex :> SubjectNumericIndex<'OpError>
                 and 'StringIndex :> SubjectStringIndex<'OpError>
                 and 'SearchIndex :> SubjectSearchIndex

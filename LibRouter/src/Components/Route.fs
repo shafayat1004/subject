@@ -10,6 +10,8 @@ open LibClient
 open LibClient.Components
 
 open LibRouter.Components
+open LibRouter.Components.Constructors
+open LibRouter.Components.With.Location
 
 type Scroll = ScrollView.Scroll
 

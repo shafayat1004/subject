@@ -10,29 +10,6 @@ open LibLifeCycleTypes.Api.V1
 open LibUiSubject
 
 [<AutoOpen>]
-module private ThrottlingHelpers =
-    type ResultSetOptions<'SubjectIndex> with
-        member inline this.EraseIndexArgumentToAvoidStackOverflow : ResultSetOptions<unit> =
-            match this with
-            // attempt to reflect a concrete 'SubjectIndex in fable will stack overflow
-            // See: https://github.com/fable-compiler/Fable/issues/3607 remove the hack when root cause fixed
-            | ResultSetOptions_ x -> ResultSetOptions_ x
-
-    type IndexQuery<'SubjectIndex> with
-        member inline this.EraseIndexArgumentToAvoidStackOverflow : IndexQuery<unit> =
-            match this with
-            // attempt to reflect a concrete 'SubjectIndex in fable will stack overflow
-            // See: https://github.com/fable-compiler/Fable/issues/3607 remove the hack when root cause fixed
-            | IndexQuery (x1, x2) -> IndexQuery (x1, x2)
-
-    type PreparedIndexPredicate<'SubjectIndex> with
-        member inline this.EraseIndexArgumentToAvoidStackOverflow : PreparedIndexPredicate<unit> =
-            match this with
-            // attempt to reflect a concrete 'SubjectIndex in fable will stack overflow
-            // See: https://github.com/fable-compiler/Fable/issues/3607 remove the hack when root cause fixed
-            | PreparedIndexPredicate x -> PreparedIndexPredicate x
-
-[<AutoOpen>]
 module NecessarilyPublicHelpers =
     let defaultIdToString<'Id when 'Id :> SubjectId> (id: 'Id) : string =
         id.IdString
@@ -137,6 +114,7 @@ type internal Throttling<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'Str
                       and  'Event        :> LifeEvent
                       and  'OpError      :> OpError
                       and  'Index        :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                      and  'Index        : (new: unit -> 'Index)
                       and  'NumericIndex :> SubjectNumericIndex<'OpError>
                       and  'StringIndex  :> SubjectStringIndex<'OpError>
                       and  'SearchIndex  :> SubjectSearchIndex

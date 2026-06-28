@@ -8,6 +8,7 @@ open Fable.React.Props
 
 open LibClient
 open LibClient.Components
+open LibClient.Components.Input_Picker
 open LibClient.ColorScheme
 open LibClient.RenderHelpers
 
@@ -597,11 +598,12 @@ type UiAdmin with
                                                 value  = "Page Size",
                                                 styles = [| Styles.pageSizeText |]
                                             )
-                                            LibClient.Components.Constructors.LC.Legacy.Input.Picker (
-                                                pageSizeChoices |> List.map (fun size -> { Label = size.Value.ToString(); Item = size }),
-                                                LibClient.Components.Legacy.Input.Picker.ByItem data.PageSize |> Some,
-                                                LibClient.Components.Legacy.Input.Picker.CannotUnselect (fun (index, _) -> data.GoToPage (pageSizeChoices.Item index) PositiveInteger.One None),
-                                                InputValidity.Valid,
+                                            LC.Input.Picker (
+                                                items = LibClient.Components.Input_Picker.Static (pageSizeChoices |> OrderedSet.ofList, fun size -> size.Value.ToString()),
+                                                itemView = LibClient.Components.Input_Picker.Default (fun size -> {| Label = size.Value.ToString() |}),
+                                                value = LibClient.Components.Input_Picker.ExactlyOne (Some data.PageSize, fun size -> data.GoToPage size PositiveInteger.One None),
+                                                validity = InputValidity.Valid,
+                                                showSearchBar = false,
                                                 styles = [| Styles.picker |]
                                             )
                                         |]

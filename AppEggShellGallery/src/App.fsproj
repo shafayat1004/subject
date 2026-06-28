@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="../../LibLangFsharp/src/LibLangFsharp.fsproj" />
     <ProjectReference Include="../../LibClient/src/LibClient.fsproj" />
+    <ProjectReference Include="../../LibAutoUi/src/LibAutoUi.fsproj" />
     <ProjectReference Include="../../LibUiAdmin/src/LibUiAdmin.fsproj" />
     <ProjectReference Include="../../LibRouter/src/LibRouter.fsproj" />
     <ProjectReference Include="../../Meta/LibRenderDSL/src/Types/Types.fsproj" />
@@ -107,6 +108,8 @@
 
     <Compile Include="Components/Content/ThirdParty/Map/Map.fs" />
 
+    <Compile Include="Components/Content/ThirdParty/MarkdownViewer/MarkdownViewer.fs" />
+
     <Compile Include="Components/Content/ThirdParty/Recharts/Recharts.fs" />
 
     <Compile Include="Components/Content/Tag/Tag.fs" />
@@ -196,6 +199,7 @@
     <Compile Include="Components/Content/Input/Duration/Duration.fs" />
 
     <Compile Include="Components/Content/Forms/Forms.fs" />
+    <Compile Include="Components/Content/AutoUi/InputForm/InputForm.fs" />
 
     <Compile Include="Components/Content/Input/Picker/Picker.fs" />
 
@@ -214,6 +218,8 @@
     <Compile Include="Components/Content/Nav/Bottom.fs" />
 
     <Compile Include="Components/Content/Dialogs/Dialogs.fs" />
+
+    <Compile Include="Components/Content/LibRouter/LibRouter.fs" />
 
     <Compile Include="Components/Content/Tabs/Tabs.fs" />
 

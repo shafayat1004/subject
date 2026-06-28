@@ -142,6 +142,7 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Input")
         compItemIcon "Forms" Forms itemState
+        compItemIcon "AutoUi.InputForm" AutoUi_InputForm itemState
         compItemIcon "Input.Checkbox" Input_Checkbox itemState
         compItemIcon "Input.ChoiceList" Input_ChoiceList itemState
         compItemIcon "Input.Date" Input_Date itemState
@@ -227,6 +228,14 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         LC.Sidebar.Heading(text = "With")
         compItem "WithContext" WithContext itemState
         compItem "DataFlowControl" WithDataFlowControl itemState
+
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "LibRouter")
+        compItem "LR.Dialogs" LibRouter_Dialogs itemState
+        compItem "LR.LogRouteTransitions" LibRouter_LogRouteTransitions itemState
+        compItem "LR.NativeBackButton" LibRouter_NativeBackButton itemState
+        compItem "LR.With.Location" LibRouter_WithLocation itemState
+        compItem "LR.With.Route" LibRouter_WithRoute itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Third Party")
