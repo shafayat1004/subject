@@ -142,35 +142,34 @@ module Nav_Bottom_Item =
 
     [<RequireQualifiedAccess>]
     module private Styles =
-        let item (sizes: ScreenSizes) (colors: AppearanceColors) =
-            makeViewStyles {
-                Position.Relative
-                AlignItems.Center
-                JustifyContent.SpaceAround
-                marginHorizontal 5
-                borderRadius 4
-                height (sizes.Height - 2)
-                borderColor     colors.Border
-                backgroundColor colors.Background
-            }
-
-        let contentContainer (labelPosition: LabelPosition) =
+        let contentContainerSide =
             makeViewStyles {
                 Overflow.Visible
                 AlignItems.Center
-                match labelPosition with
-                | LabelPosition.SideLabel   -> FlexDirection.Row
-                | LabelPosition.BottomLabel -> FlexDirection.Column
+                FlexDirection.Row
             }
 
-        let contentContainerWithBadge (labelPosition: LabelPosition) =
+        let contentContainerBottom =
+            makeViewStyles {
+                Overflow.Visible
+                AlignItems.Center
+                FlexDirection.Column
+            }
+
+        let contentContainerWithBadgeSide =
             makeViewStyles {
                 Overflow.Visible
                 AlignItems.Center
                 left 5
-                match labelPosition with
-                | LabelPosition.SideLabel   -> FlexDirection.Row
-                | LabelPosition.BottomLabel -> FlexDirection.Column
+                FlexDirection.Row
+            }
+
+        let contentContainerWithBadgeBottom =
+            makeViewStyles {
+                Overflow.Visible
+                AlignItems.Center
+                left 5
+                FlexDirection.Column
             }
 
         let labelContent =
@@ -190,23 +189,43 @@ module Nav_Bottom_Item =
                 left -10
             }
 
-        let label (sizes: ScreenSizes) (colors: AppearanceColors) =
-            makeTextStyles {
-                fontSize                   sizes.LabelFontSize
-                RulesRestricted.fontWeight colors.LabelWeight
-                color                      colors.Label
-            }
+        let item =
+            ViewStyles.Memoize (fun (itemHeight: int) (border: Color) (background: Color) ->
+                makeViewStyles {
+                    Position.Relative
+                    AlignItems.Center
+                    JustifyContent.SpaceAround
+                    marginHorizontal 5
+                    borderRadius 4
+                    height (itemHeight - 2)
+                    borderColor     border
+                    backgroundColor background
+                }
+            )
 
-        let iconAdjust (theme: Theme) =
-            makeViewStyles {
-                bottom theme.IconVerticalAdjust
-            }
+        let labelText =
+            TextStyles.Memoize (fun (labelFontSize: int) (labelColor: Color) (weight: RulesRestricted.FontWeight) ->
+                makeTextStyles {
+                    fontSize                   labelFontSize
+                    RulesRestricted.fontWeight weight
+                    color                      labelColor
+                }
+            )
 
-        let iconText (sizes: ScreenSizes) (colors: AppearanceColors) =
-            makeTextStyles {
-                fontSize sizes.IconFontSize
-                color    colors.Icon
-            }
+        let iconAdjust =
+            ViewStyles.Memoize (fun (verticalAdjust: int) ->
+                makeViewStyles {
+                    bottom verticalAdjust
+                }
+            )
+
+        let iconText =
+            TextStyles.Memoize (fun (iconFontSize: int) (iconColor: Color) ->
+                makeTextStyles {
+                    fontSize iconFontSize
+                    color    iconColor
+                }
+            )
 
         let badgeHandheld =
             makeViewStyles {
@@ -216,27 +235,29 @@ module Nav_Bottom_Item =
                 paddingHorizontal 4
             }
 
-        let badgePosition (sizes: ScreenSizes) =
-            makeViewStyles {
-                top  sizes.BadgeTop
-                left sizes.BadgeLeft
-            }
+        let badgePosition =
+            ViewStyles.Memoize (fun (badgeTop: int) (badgeLeft: int) ->
+                makeViewStyles {
+                    top  badgeTop
+                    left badgeLeft
+                }
+            )
 
     let private renderLabel (sizes: ScreenSizes) (colors: AppearanceColors) (label: string) (withIconBadgeOffset: bool) =
         RX.View(
             styles = [| if withIconBadgeOffset then Styles.labelContentWithIconBadge else Styles.labelContent |],
             children =
                 elements {
-                    LC.UiText(value = label, styles = [| Styles.label sizes colors |])
+                    LC.UiText(value = label, styles = [| Styles.labelText sizes.LabelFontSize colors.Label colors.LabelWeight |])
                 }
         )
 
     let private renderIcon (sizes: ScreenSizes) (colors: AppearanceColors) (theme: Theme) (icon: LibClient.Icons.IconConstructor) =
         RX.View(
-            styles = [| Styles.iconAdjust theme |],
+            styles = [| Styles.iconAdjust theme.IconVerticalAdjust |],
             children =
                 elements {
-                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes colors |])
+                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon |])
                 }
         )
 
@@ -244,7 +265,7 @@ module Nav_Bottom_Item =
         RX.View(
             styles =
                 [|
-                    Styles.badgePosition sizes
+                    Styles.badgePosition sizes.BadgeTop sizes.BadgeLeft
                     if screenSize = ScreenSize.Handheld then Styles.badgeHandheld
                 |],
             children =
@@ -265,10 +286,20 @@ module Nav_Bottom_Item =
         let sizes = screenSizes theme screenSize
         let (maybeLabel, maybeIcon, labelPosition, maybeBadge) = styleParts style
 
+        let contentContainerStyle (labelPosition: LabelPosition) =
+            match labelPosition with
+            | LabelPosition.SideLabel   -> Styles.contentContainerSide
+            | LabelPosition.BottomLabel -> Styles.contentContainerBottom
+
+        let contentContainerWithBadgeStyle (labelPosition: LabelPosition) =
+            match labelPosition with
+            | LabelPosition.SideLabel   -> Styles.contentContainerWithBadgeSide
+            | LabelPosition.BottomLabel -> Styles.contentContainerWithBadgeBottom
+
         match maybeLabel, maybeIcon, maybeBadge with
         | Some label, Some icon, Some badge ->
             RX.View(
-                styles = [| Styles.contentContainerWithBadge labelPosition |],
+                styles = [| contentContainerWithBadgeStyle labelPosition |],
                 children =
                     elements {
                         renderIcon sizes colors theme icon
@@ -278,7 +309,7 @@ module Nav_Bottom_Item =
             )
         | Some label, Some icon, None ->
             RX.View(
-                styles = [| Styles.contentContainer labelPosition |],
+                styles = [| contentContainerStyle labelPosition |],
                 children =
                     elements {
                         renderIcon sizes colors theme icon
@@ -287,7 +318,7 @@ module Nav_Bottom_Item =
             )
         | None, Some icon, Some badge ->
             RX.View(
-                styles = [| Styles.contentContainerWithBadge LabelPosition.SideLabel |],
+                styles = [| Styles.contentContainerWithBadgeSide |],
                 children =
                     elements {
                         renderIcon sizes colors theme icon
@@ -296,7 +327,7 @@ module Nav_Bottom_Item =
             )
         | Some label, None, Some badge ->
             RX.View(
-                styles = [| Styles.contentContainerWithBadge LabelPosition.SideLabel |],
+                styles = [| Styles.contentContainerWithBadgeSide |],
                 children =
                     elements {
                         renderLabel sizes colors label false
@@ -305,7 +336,7 @@ module Nav_Bottom_Item =
             )
         | Some label, None, None ->
             RX.View(
-                styles = [| Styles.contentContainer LabelPosition.SideLabel |],
+                styles = [| Styles.contentContainerSide |],
                 children =
                     elements {
                         renderLabel sizes colors label false
@@ -313,7 +344,7 @@ module Nav_Bottom_Item =
             )
         | None, Some icon, None ->
             RX.View(
-                styles = [| Styles.contentContainer LabelPosition.SideLabel |],
+                styles = [| Styles.contentContainerSide |],
                 children =
                     elements {
                         renderIcon sizes colors theme icon
@@ -362,7 +393,7 @@ module Nav_Bottom_Item =
                                 RX.View(
                                     styles =
                                         [|
-                                            Styles.item sizes colors
+                                            Styles.item sizes.Height colors.Border colors.Background
                                             yield! legacyViewStyles
                                             yield! (styles |> Option.defaultValue [||])
                                         |],

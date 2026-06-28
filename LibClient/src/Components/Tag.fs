@@ -101,25 +101,25 @@ module private Styles =
 
     let textTheme =
         TextStyles.Memoize(
-            fun (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) ->
-                let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
-
+            fun (textColor: Color) (labelFontSize: int) ->
                 makeTextStyles {
-                    color tagTheme.TextColor
-                    fontSize sizeTheme.FontSize
+                    color textColor
+                    fontSize labelFontSize
                 }
         )
 
+    let textThemeFor (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) =
+        let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
+        textTheme tagTheme.TextColor sizeTheme.FontSize
+
     let viewTheme =
         ViewStyles.Memoize(
-            fun (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) (isHovered: bool) (isDepressed: bool) (state: ThemeState) ->
-                let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
-
+            fun (padHorizontal: int) (padVertical: int) (fillColor: Color) (isHovered: bool) (isDepressed: bool) (state: ThemeState) ->
                 makeViewStyles {
-                    paddingHorizontal sizeTheme.PaddingHorizontal
-                    paddingVertical sizeTheme.PaddingVertical
+                    paddingHorizontal padHorizontal
+                    paddingVertical padVertical
 
-                    backgroundColor tagTheme.BackgroundColor
+                    backgroundColor fillColor
 
                     if isHovered then
                         shadow (Color.BlackAlpha 0.2) 5 (0, 3)
@@ -136,6 +136,10 @@ module private Styles =
                         Noop
                 }
         )
+
+    let viewThemeFor (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) (isHovered: bool) (isDepressed: bool) (state: ThemeState) =
+        let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
+        viewTheme sizeTheme.PaddingHorizontal sizeTheme.PaddingVertical tagTheme.BackgroundColor isHovered isDepressed state
 
 type private State with
     member private this.ToThemeState() =
@@ -173,7 +177,7 @@ type LibClient.Components.Constructors.LC with
                             styles =
                                 [|
                                     Styles.view
-                                    Styles.viewTheme theTheme screenSize isSelected isHovered isDepressed (state.ToThemeState())
+                                    Styles.viewThemeFor theTheme screenSize isSelected isHovered isDepressed (state.ToThemeState())
                                     yield! styles
                                 |],
                             children =
@@ -187,7 +191,7 @@ type LibClient.Components.Constructors.LC with
                                                     styles =
                                                         [|
                                                             Styles.labelText
-                                                            Styles.textTheme theTheme screenSize isSelected
+                                                            Styles.textThemeFor theTheme screenSize isSelected
                                                         |]
                                                 )
                                             }

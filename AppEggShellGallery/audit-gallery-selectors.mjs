@@ -1,7 +1,7 @@
 /**
  * TestId-first selectors for gallery audits (Playwright web + Appium Android).
  *
- * Web: ReactXP `testId` → `[data-testid]`.
+ * Web: ReactXP `testId` → `[data-test-id]` (not RNW's `data-testid`).
  * Android: `~testId` → UiAutomator resource-id (see audit-gallery-android-driver.mjs).
  */
 
@@ -30,7 +30,7 @@ export function testIdLocatorSelector(testId, platform = PLATFORM.WEB) {
   if (platform === PLATFORM.ANDROID) {
     return `~${testId}`;
   }
-  return `[data-testid="${escapeUi(testId)}"]`;
+  return `[data-test-id="${escapeUi(testId)}"]`;
 }
 
 /**

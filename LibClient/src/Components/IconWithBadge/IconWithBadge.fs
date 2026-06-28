@@ -31,16 +31,20 @@ module private Styles =
             AlignItems.Center
         }
 
-    let badgeWrap (theme: Theme) =
-        makeViewStyles {
-            marginLeft theme.BadgeMarginLeft
-        }
+    let badgeWrap =
+        ViewStyles.Memoize (fun (badgeMarginLeft: int) ->
+            makeViewStyles {
+                marginLeft badgeMarginLeft
+            }
+        )
 
-    let iconText (theme: Theme) =
-        makeTextStyles {
-            fontSize theme.IconSize
-            color    theme.IconColor
-        }
+    let iconText =
+        TextStyles.Memoize (fun (iconSize: int) (iconColor: Color) ->
+            makeTextStyles {
+                fontSize iconSize
+                color    iconColor
+            }
+        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -67,9 +71,9 @@ type LibClient.Components.Constructors.LC with
             styles = [| Styles.row; yield! legacyViewStyles |],
             children =
                 elements {
-                    LC.Icon(icon = icon, styles = [| Styles.iconText theTheme |])
+                    LC.Icon(icon = icon, styles = [| Styles.iconText theTheme.IconSize theTheme.IconColor |])
                     RX.View(
-                        styles = [| Styles.badgeWrap theTheme |],
+                        styles = [| Styles.badgeWrap theTheme.BadgeMarginLeft |],
                         children =
                             elements {
                                 LC.Badge(

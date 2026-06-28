@@ -166,10 +166,10 @@ export function createInteractionContext(page, log, options = {}) {
   }
 
   /**
-   * Click by stable testId (data-testid), falling back to label-based pressable click.
+   * Click by stable testId (ReactXP data-test-id), falling back to label-based pressable click.
    */
   async function clickTestId(scope, testId, fallbackText, exact = false) {
-    const byId = scope.locator(`[data-testid="${testId}"]`).first();
+    const byId = scope.locator(`[data-test-id="${testId}"]`).first();
     if (await byId.count()) {
       await byId.click({ force: true, timeout: 5000 });
       log(`click testId "${testId}"`);
@@ -814,7 +814,7 @@ export const COMPONENT_HANDLERS = {
 
   Thumbs: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      const byTestId = cell.locator('[data-testid^="thumb-"]:visible');
+      const byTestId = cell.locator('[data-test-id^="thumb-"]:visible');
       const nById = await byTestId.count();
       if (nById > 0) {
         const n = Math.min(nById, 3);

@@ -66,9 +66,7 @@ module private IconA11y =
 module private Styles =
     let viewTheme =
         ViewStyles.Memoize(
-            fun (theme: Theme) (state: ButtonLowLevelState) (hasLabel: bool) (pointerState: LC.Pointer.State.PointerState) ->
-                let stateTheme = theme.StateTheme state
-
+            fun (fabSize: int) (fillColor: Color) (hasLabel: bool) (stateName: string) (isDepressed: bool) (isHovered: bool) ->
                 makeViewStyles {
                     Overflow.VisibleForTapCapture
                     FlexDirection.Row
@@ -78,51 +76,59 @@ module private Styles =
 
                     shadow (Color.BlackAlpha 0.3) 5 (0, 1)
 
-                    height          theme.Size
-                    minWidth        theme.Size
-                    borderRadius    (theme.Size / 2)
-                    backgroundColor stateTheme.BackgroundColor
+                    height          fabSize
+                    minWidth        fabSize
+                    borderRadius    (fabSize / 2)
+                    backgroundColor fillColor
 
                     if hasLabel then
-                        paddingHorizontal (theme.Size / 4)
+                        paddingHorizontal (fabSize / 4)
 
-                    match state with
-                    | ButtonLowLevelState.Disabled     -> opacity 0.5
-                    | ButtonLowLevelState.Actionable _ -> Cursor.Pointer
-                    | ButtonLowLevelState.InProgress   -> Noop
+                    match stateName with
+                    | "Disabled"     -> opacity 0.5
+                    | "Actionable"   -> Cursor.Pointer
+                    | _              -> Noop
 
-                    if pointerState.IsDepressed then
+                    if isDepressed then
                         shadow (Color.BlackAlpha 0.2) 3 (0, 0)
                         opacity 0.5
-                    elif pointerState.IsHovered && not pointerState.IsDepressed then
+                    elif isHovered && not isDepressed then
                         shadow (Color.BlackAlpha 0.3) 6 (0, 3)
                 }
         )
 
+    let viewThemeFor (theme: Theme) (state: ButtonLowLevelState) (hasLabel: bool) (isDepressed: bool) (isHovered: bool) =
+        let stateTheme = theme.StateTheme state
+        viewTheme theme.Size stateTheme.BackgroundColor hasLabel state.GetName isDepressed isHovered
+
     let iconTheme =
         TextStyles.Memoize(
-            fun (theme: Theme) (state: ButtonLowLevelState) ->
-                let stateTheme = theme.StateTheme state
-
+            fun (iconColor: Color) (iconFontSize: int) ->
                 makeTextStyles {
-                    color    stateTheme.IconColor
-                    fontSize stateTheme.IconSize
+                    color    iconColor
+                    fontSize iconFontSize
                 }
         )
+
+    let iconThemeFor (theme: Theme) (state: ButtonLowLevelState) =
+        let stateTheme = theme.StateTheme state
+        iconTheme stateTheme.IconColor stateTheme.IconSize
 
     let labelBlock =
         makeViewStyles { marginLeft 8 }
 
     let labelTextTheme =
         TextStyles.Memoize(
-            fun (theme: Theme) (state: ButtonLowLevelState) ->
-                let stateTheme = theme.StateTheme state
-
+            fun (iconColor: Color) ->
                 makeTextStyles {
                     fontSize 16
-                    color    stateTheme.IconColor
+                    color    iconColor
                 }
         )
+
+    let labelTextThemeFor (theme: Theme) (state: ButtonLowLevelState) =
+        let stateTheme = theme.StateTheme state
+        labelTextTheme stateTheme.IconColor
 
     let spinnerBlock =
         makeViewStyles {
@@ -174,10 +180,13 @@ type LibClient.Components.Constructors.LC with
 
         LC.Pointer.State(
             fun pointerState ->
+                let isDepressed = pointerState.IsDepressed
+                let isHovered = pointerState.IsHovered && not isDepressed
+
                 RX.View(
                     styles =
                         [|
-                            Styles.viewTheme theTheme lowLevelState hasLabel pointerState
+                            Styles.viewThemeFor theTheme lowLevelState hasLabel isDepressed isHovered
                             yield! legacyViewStyles
                             yield! (styles |> Option.defaultValue [||])
                         |],
@@ -185,7 +194,7 @@ type LibClient.Components.Constructors.LC with
                         elements {
                             LC.Icon(
                                 icon = icon,
-                                styles = [| Styles.iconTheme theTheme lowLevelState |]
+                                styles = [| Styles.iconThemeFor theTheme lowLevelState |]
                             )
 
                             match label with
@@ -196,7 +205,7 @@ type LibClient.Components.Constructors.LC with
                                         elements {
                                             LC.UiText(
                                                 value = labelText,
-                                                styles = [| Styles.labelTextTheme theTheme lowLevelState |]
+                                                styles = [| Styles.labelTextThemeFor theTheme lowLevelState |]
                                             )
                                         }
                                 )

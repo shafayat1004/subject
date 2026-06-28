@@ -472,11 +472,15 @@ const ASSERTION_HANDLERS = {
       passed: (await hasPseudo(cell, 'Toggle')) && (await hasPseudo(cell, 'Greet')),
       message: 'Scrim Toggle and Greet buttons should be visible',
     }), cell);
-    await ctx.clickButton(cell, 'Toggle');
-    await ctx.wait(400);
     await check('Scrim dismiss testId present when visible', async () => ({
       passed: await hasTestId(cell, 'scrim-dismiss'),
       message: 'Visible scrim with onPress should expose scrim-dismiss testId',
+    }), cell);
+    await ctx.clickButton(cell, 'Toggle');
+    await ctx.wait(600);
+    await check('Scrim dismiss testId absent when hidden', async () => ({
+      passed: !(await hasTestId(cell, 'scrim-dismiss')),
+      message: 'Hidden scrim should not expose scrim-dismiss testId',
     }), cell);
   },
 

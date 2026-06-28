@@ -27,13 +27,14 @@ module private Styles =
 
     let text =
         TextStyles.Memoize(
-            fun (theme: Theme) (level: Level) ->
-                let (textColor, fontSz) =
-                    match level with
-                    | Primary   -> (theme.PrimaryTextColor,   theme.PrimaryFontSize)
-                    | Secondary -> (theme.SecondaryTextColor, theme.SecondaryFontSize)
-                makeTextStyles { color textColor; fontSize fontSz }
+            fun (textColor: Color) (labelFontSize: int) ->
+                makeTextStyles { color textColor; fontSize labelFontSize }
         )
+
+    let textFor (theme: Theme) (level: Level) =
+        match level with
+        | Primary   -> text theme.PrimaryTextColor theme.PrimaryFontSize
+        | Secondary -> text theme.SecondaryTextColor theme.SecondaryFontSize
 
 type LibClient.Components.Constructors.LC.Sidebar with
     [<Component>]
@@ -51,6 +52,6 @@ type LibClient.Components.Constructors.LC.Sidebar with
         RX.View(
             styles = [| Styles.view; yield! legacyViewStyles |],
             children = [|
-                LC.UiText(text, styles = [| Styles.text theTheme theLevel; yield! defaultArg styles [||] |])
+                LC.UiText(text, styles = [| Styles.textFor theTheme theLevel; yield! defaultArg styles [||] |])
             |]
         )

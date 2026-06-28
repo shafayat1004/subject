@@ -64,31 +64,47 @@ module private Styles =
         margin 8
     }
 
-    let outerContainer = ViewStyles.Memoize (
-        fun (theme: Theme) -> makeViewStyles {
+    let outerContainerFlat = ViewStyles.Memoize (
+        fun (cornerRadius: int) (borderWidth: int) (outlineColor: Color) -> makeViewStyles {
             padding 0
             Overflow.Visible
-            borderRadius theme.BorderRadius
-
-            match theme.CardType with
-            | Flat flatTheme ->
-                border flatTheme.BorderWidth flatTheme.BorderColor
-            | Shadowed shadowedTheme ->
-                shadow
-                    shadowedTheme.ShadowColor
-                    shadowedTheme.ShadowRadius
-                    shadowedTheme.ShadowOffset
-                elevation shadowedTheme.Elevation
+            borderRadius cornerRadius
+            border borderWidth outlineColor
         }
+    )
+
+    let outerContainerShadowed = ViewStyles.Memoize (
+        fun (cornerRadius: int) (shadowColor: Color) (cardElevation: int) (shadowRadius: int) (offsetX: int) (offsetY: int) ->
+            makeViewStyles {
+                padding 0
+                Overflow.Visible
+                borderRadius cornerRadius
+                shadow shadowColor shadowRadius (offsetX, offsetY)
+                elevation cardElevation
+            }
     )
 
     let contentContainer = ViewStyles.Memoize (
-        fun (theme: Theme) -> makeViewStyles {
-            borderRadius theme.BorderRadius
+        fun (cornerRadius: int) (contentPadding: int) -> makeViewStyles {
+            borderRadius cornerRadius
             Overflow.Hidden
-            padding theme.Padding
+            padding contentPadding
         }
     )
+
+    let outerContainerFor (theme: Theme) =
+        match theme.CardType with
+        | Flat flatTheme ->
+            outerContainerFlat theme.BorderRadius flatTheme.BorderWidth flatTheme.BorderColor
+        | Shadowed shadowedTheme ->
+            let (offsetX, offsetY) = shadowedTheme.ShadowOffset
+            outerContainerShadowed
+                theme.BorderRadius
+                shadowedTheme.ShadowColor
+                shadowedTheme.Elevation
+                shadowedTheme.ShadowRadius
+                offsetX
+                offsetY
 
     let outerContainerWithOnPress = ViewStyles.Memoize (
         fun (isHovered, isActive) -> makeViewStyles {
@@ -129,12 +145,12 @@ type LC with
                 styles = [|
                     Styles.outerContainerDefaults
                     yield! outerStyles
-                    Styles.outerContainer theTheme
+                    Styles.outerContainerFor theTheme
                 |],
                 children = [|
                     RX.View (
                         children = children,
-                        styles   = [| Styles.contentContainer theTheme |]
+                        styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                     )
                 |]
             )
@@ -148,13 +164,13 @@ type LC with
                     styles = [|
                         Styles.outerContainerDefaults
                         yield! outerStyles
-                        Styles.outerContainer theTheme
+                        Styles.outerContainerFor theTheme
                         Styles.outerContainerWithOnPress (pointerState.IsHovered, pointerState.IsDepressed)
                     |],
                     children = [|
                         RX.View (
                             children = children,
-                            styles   = [| Styles.contentContainer theTheme |]
+                            styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                         )
                         LC.Pressable (
                             onPress      = onPress,

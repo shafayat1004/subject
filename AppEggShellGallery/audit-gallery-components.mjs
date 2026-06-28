@@ -31,6 +31,33 @@ export const STYLE_LEAK_HIGH_VALUE_SCOPE = [
   'Input_LocalTime',
 ];
 
+/** All gallery pages with style leaks from a full crawl (see pass-1/style-leaks.json). */
+export const STYLE_LEAK_FULL_SCOPE = [
+  'AnimatableImage',
+  'Button',
+  'Buttons',
+  'Card',
+  'ContextMenu',
+  'DateSelector',
+  'Dialogs',
+  'Draggable',
+  'Executor_AlertErrors',
+  'FloatingActionButton',
+  'IconWithBadge',
+  'ImageCard',
+  'Input_Checkbox',
+  'Input_DayOfTheWeek',
+  'Input_Quantity',
+  'Nav_Bottom',
+  'Nav_Top',
+  'Sidebar',
+  'Tag',
+  'TextButton',
+  'Thumb',
+  'Thumbs',
+  'WithExecutor',
+];
+
 /** New LibClient a11y primitives + representative pages with A11yPanel. */
 export const A11Y_SCOPE = [
   'Accessibility_Group',
@@ -44,12 +71,13 @@ export const A11Y_SCOPE = [
   'IconButton',
 ];
 
-/** @typedef {'style-leak-fix' | 'style-leak-high-value' | 'a11y'} AuditScopePreset */
+/** @typedef {'style-leak-fix' | 'style-leak-high-value' | 'style-leak-full' | 'a11y'} AuditScopePreset */
 
 /** @type {Record<AuditScopePreset, string[]>} */
 export const AUDIT_SCOPE_PRESETS = {
   'style-leak-fix': STYLE_LEAK_FIX_SCOPE,
   'style-leak-high-value': STYLE_LEAK_HIGH_VALUE_SCOPE,
+  'style-leak-full': STYLE_LEAK_FULL_SCOPE,
   a11y: A11Y_SCOPE,
 };
 
@@ -60,8 +88,15 @@ export const AUDIT_SCOPE_PRESETS = {
  */
 export function resolveAuditComponentScope(onlyFlag, discovered) {
   if (!onlyFlag) return discovered;
-  const preset = AUDIT_SCOPE_PRESETS[/** @type {AuditScopePreset} */ (onlyFlag)];
-  const names = preset ?? onlyFlag.split(',').map((s) => s.trim()).filter(Boolean);
+  const parts = onlyFlag.split(',').map((s) => s.trim()).filter(Boolean);
+  /** @type {string[]} */
+  let names = [];
+  for (const part of parts) {
+    const preset = AUDIT_SCOPE_PRESETS[/** @type {AuditScopePreset} */ (part)];
+    if (preset) names.push(...preset);
+    else names.push(part);
+  }
+  names = [...new Set(names)];
   const discoveredSet = new Set(discovered);
   const unknown = names.filter((n) => !discoveredSet.has(n));
   if (unknown.length) {

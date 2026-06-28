@@ -42,7 +42,7 @@ module Legacy_Card =
 
         let flat =
             ViewStyles.Memoize(
-                fun (theme: Card.Theme) ->
+                fun (flatBorderColor: Color) ->
                     makeViewStyles {
                         Position.Relative
                         margin          8
@@ -50,14 +50,14 @@ module Legacy_Card =
                         backgroundColor Color.White
                         borderWidth     1
                         borderRadius    6
-                        borderColor     theme.FlatBorderColor
+                        borderColor     flatBorderColor
                     }
             )
 
         let view (style: Card.Style) (theme: Card.Theme) =
             match style with
             | Card.Shadowed -> shadowed
-            | Card.Flat     -> flat theme
+            | Card.Flat     -> flat theme.FlatBorderColor
 
     type LibClient.Components.Constructors.LC.Legacy with
         [<Component>]

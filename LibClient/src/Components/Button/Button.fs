@@ -96,7 +96,7 @@ let private isTertiary (level: Level) =
 [<RequireQualifiedAccess>]
 module private Styles =
     let viewBase =
-        ViewStyles.Memoize (fun (level: Level) (state: ButtonLowLevelState) (btnBorderColor: Color) (btnBackgroundColor: Color) (itemHeight: int) (isDesktop: bool) ->
+        ViewStyles.Memoize (fun (level: Level) (stateName: string) (btnBorderColor: Color) (btnBackgroundColor: Color) (itemHeight: int) (isDesktop: bool) ->
             makeViewStyles {
                 Position.Relative
                 FlexDirection.Column
@@ -112,9 +112,9 @@ module private Styles =
                     paddingHV 12 4
                     shadow    (Color.BlackAlpha 0.2) 5 (0, 2)
 
-                match state with
-                | Disabled -> opacity 0.5
-                | Actionable _ -> Cursor.Pointer
+                match stateName with
+                | "Disabled" -> opacity 0.5
+                | "Actionable" -> Cursor.Pointer
                 | _ -> Noop
 
                 height itemHeight
@@ -122,24 +122,12 @@ module private Styles =
                     paddingBottom 5
             })
 
-    let viewBaseFor (screenSize: ScreenSize) (theme: Theme) (level: Level) (state: ButtonLowLevelState) (appearance: Appearance) =
-        let itemHeight =
-            match screenSize with
-            | ScreenSize.Desktop  -> theme.DesktopHeight
-            | ScreenSize.Handheld -> theme.HandheldHeight
-        let isDesktop = screenSize = ScreenSize.Desktop
-        viewBase
-            level
-            state
-            appearance.BorderColor
-            appearance.BackgroundColor
-            itemHeight
-            isDesktop
+    let viewPointerNoop = makeViewStyles { Noop }
 
     let viewPointer =
         ViewStyles.Memoize (fun (level: Level) (isDepressed: bool) (isHovered: bool) ->
             if isTertiary level then
-                makeViewStyles { Noop }
+                viewPointerNoop
             elif isDepressed then
                 makeViewStyles {
                     shadow (Color.BlackAlpha 0.2) 3 (0, 0)
@@ -151,7 +139,7 @@ module private Styles =
                     top    -1
                 }
             else
-                makeViewStyles { Noop }
+                viewPointerNoop
             )
 
     let labelBlock =
@@ -245,6 +233,12 @@ type LibClient.Components.Constructors.LC with
                 fun screenSize ->
                     LC.Pointer.State(
                         fun pointerState ->
+                            let itemHeight =
+                                match screenSize with
+                                | ScreenSize.Desktop  -> theTheme.DesktopHeight
+                                | ScreenSize.Handheld -> theTheme.HandheldHeight
+                            let isDesktop = screenSize = ScreenSize.Desktop
+
                             let maybeContainerRole, maybeContainerLabel, maybeContainerState, maybeContainerTestId =
                                 match lowLevelState with
                                 | Actionable _ -> None, None, None, None
@@ -262,7 +256,13 @@ type LibClient.Components.Constructors.LC with
                             RX.View(
                                 styles =
                                     [|
-                                        Styles.viewBaseFor screenSize theTheme level lowLevelState appearance
+                                        Styles.viewBase
+                                            level
+                                            lowLevelState.GetName
+                                            appearance.BorderColor
+                                            appearance.BackgroundColor
+                                            itemHeight
+                                            isDesktop
                                         Styles.viewPointer level pointerState.IsDepressed pointerState.IsHovered
                                         yield! legacyViewStyles
                                         yield! (styles |> Option.defaultValue [||])

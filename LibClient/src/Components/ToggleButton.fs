@@ -52,18 +52,20 @@ open LC.ToggleButton
 module private Styles =
     let viewTheme =
         ViewStyles.Memoize(
-            fun (theme: Theme) (isSelected: bool) ->
-                let colorTheme = theme.ColorTheme isSelected
-
+            fun (outlineColor: Color) (fillColor: Color) ->
                 makeViewStyles {
                     paddingHV 12 4
                     borderWidth 1
                     marginLeft -1
                     Cursor.Pointer
-                    borderColor colorTheme.BorderColor
-                    backgroundColor colorTheme.BackgroundColor
+                    borderColor outlineColor
+                    backgroundColor fillColor
                 }
         )
+
+    let viewThemeFor (theme: Theme) (isSelected: bool) =
+        let colorTheme = theme.ColorTheme isSelected
+        viewTheme colorTheme.BorderColor colorTheme.BackgroundColor
 
     let firstView =
         makeViewStyles {
@@ -142,7 +144,7 @@ type LibClient.Components.Constructors.LC with
         RX.View(
             styles =
                 [|
-                    Styles.viewTheme theTheme isSelected
+                    Styles.viewThemeFor theTheme isSelected
                     Styles.relative
 
                     match position with

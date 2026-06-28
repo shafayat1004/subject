@@ -249,7 +249,7 @@ When you add a gallery page, it is picked up automatically; add recipes in `audi
 
 **After interactions:** behavioral checks only (not pixel diff): tab content after click, form values retained, grid headers after submit, LiveRegion counter after delete, `LC.With.Accessibility` settings text, etc.
 
-Use `--only=a11y` for a fast smoke of the new accessibility primitives + representative pages.
+Scope presets (`audit-gallery-components.mjs`): `--only=a11y` (accessibility smoke), `--only=style-leak-fix` / `--only=style-leak-high-value` (targeted memo-fix validation), `--only=style-leak-full` (all 23 pages from a full-crawl `style-leaks.json` rollup).
 
 Assertion screenshots: `pass-N/screenshots/{Component}/`
 

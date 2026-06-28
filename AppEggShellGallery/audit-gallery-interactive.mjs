@@ -19,7 +19,7 @@
  *   --visual-archive=on|off          Archival PNGs for human/AI review (default: on)
  *   --resume=DIR                     Continue an interrupted run (reads pass-N/checkpoint.json)
  *   --interaction-timeout-ms=N       Override per-page interaction wall clock (default 90s; AutoUi 45s)
- *   --only=NAME[,NAME]|PRESET        Subset of routes (presets: style-leak-fix, style-leak-high-value, a11y)
+ *   --only=NAME[,NAME]|PRESET        Subset of routes (presets: style-leak-fix, style-leak-high-value, style-leak-full, a11y)
  */
 import { writeVisualArchiveReadme } from './audit-gallery-visual-archive.mjs';
 import {

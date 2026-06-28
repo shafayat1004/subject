@@ -410,10 +410,13 @@ Net deletion of code.
 Because the non-negotiable is F#-only, the real risk is not the primitives, it is how F# / Fable meets
 the modern animation libraries.
 
-- **Risk 1: Reanimated "worklets" from F# (the one to de-risk first).** Reanimated runs animations on
-  the UI thread by compiling specially-marked JS functions ("worklets") via a Babel plugin. Fable
-  emits JS, then Metro/Babel runs. The open question is whether the Reanimated Babel plugin reliably
-  recognizes Fable-generated function shapes as worklets.
+- **Risk 1: Reanimated "worklets" from F# (RESOLVED 2026-06-29; full analysis in Section 24).** Reanimated
+  runs animations on the UI thread by compiling specially-marked JS functions ("worklets") via a Babel
+  plugin. Fable emits JS, then Metro/Babel runs. The open question was whether the Babel plugin
+  recognizes Fable-generated function shapes as worklets. **Answer (measured on a dev build): no — Fable
+  closures run on the JS thread, not the UI thread, and a `runOnJS` call inside one aborts `libworklets`.
+  Root cause is the FSharp.Core dependency of compiled F#. See Section 24 for the mechanism, the
+  use-case-to-alternative table, and the ROI verdict.**
   - **Mitigation (and probably the right pattern regardless):** do not author worklets in F#. Use the
     declarative APIs that need no hand-written worklets, namely Reanimated 4's CSS-style / Layout
     Animation API and **Moti** (style objects as props, works on web via RNW). For the rare imperative
@@ -985,8 +988,120 @@ out of animation, so the a11y hook and the animation rework share one switch.
 checklist on native to the template's audit layer; the a11y-rich `SuiteTodo/AppTodo/suggestions/ui2.html`
 is the web bar.
 
+## 24. Worklets, Fable, and the FSharp.Core ceiling (animation and beyond)
+
+This section settles Risk 1 (Section 11) with the measured result, explains *why* in accessible terms,
+and maps every worklet use case (not just animation) to the alternative the framework should use. Read
+this before considering any "run F# on another thread" idea.
+
+### 24.1 What a worklet is (plain terms)
+
+A React Native app runs your program logic as JavaScript on one thread (the **JS thread**); the screen
+is drawn on a separate **UI thread**. When the JS thread is busy, anything that needs it stutters. A
+**worklet** is a small piece of JavaScript that the system copies to run on a **different runtime** (a
+fresh, minimal JavaScript engine instance) on the UI thread, or on a background worker thread. That
+separate runtime is isolated: it has only primitive operations, a few injected globals, and whatever you
+explicitly hand in (the "closure"). It has **no access** to your main app bundle's modules or helper
+functions unless those were themselves turned into worklets. That isolation is the point (the UI thread
+stays smooth no matter what the JS thread is doing), and it is also the constraint: **a worklet can only
+call other worklets and use primitive values.**
+
+Reanimated (animation), React Native Gesture Handler (gestures), vision-camera (frame processors),
+Skia (graphics), and `react-native-worklets` (general background runtimes) all use this mechanism.
+
+### 24.2 The measured result (dev build, 2026-06-29)
+
+Stack: Expo 56 / RN 0.85 / Reanimated 4.3.1 / `react-native-worklets` 0.8.3 / Fable 5.4.0, on an Android
+dev build of `eggshell-rnw-spike` (Expo Go SIGSEGVs on load; a dev build is required).
+
+- A `runOnJS` (or any host-function) call inside a Fable-emitted worklet **aborts the worklets runtime**:
+  `Fatal signal 6 (SIGABRT)` at `facebook::jsi::Function::getHostFunction`.
+- The simple `useAnimatedStyle (fun () -> opacity = sv.value)` **runs on the JS thread, not the UI
+  thread.** Proof: a button bumped a plain-React counter, started `withTiming(1.0, 3000ms)`, then jammed
+  the JS thread for 3s. Mid-freeze (counter still `0`, i.e. JS confirmed blocked) the box stayed at
+  opacity 0.3 (frozen); only after JS resumed did it move. A genuine UI-thread worklet keeps animating
+  while JS is blocked. The earlier "drag = opaque" screenshots were consistent with JS-thread execution
+  (a drag does not block JS).
+
+So Fable closures are **not** being turned into real UI-thread worklets.
+
+### 24.3 Why FSharp.Core is the blocker (the mechanism)
+
+Fable compiles F# to JavaScript, but almost anything non-trivial does not become plain inline JS. It
+becomes **calls into a runtime support library, FSharp.Core** (plus Fable's `fable-library`):
+
+- `match x with Some v -> ...` calls FSharp.Core option helpers
+- `items |> List.map f` calls FSharp.Core `List.map`
+- `sprintf "%d" n` calls FSharp.Core formatting code
+- comparing records/DUs with `=` calls FSharp.Core structural-equality helpers
+
+Those helpers live in the **main bundle** as ordinary JavaScript functions; they are **not** worklets.
+When an F#-authored worklet runs in the isolated worklet runtime and tries to call, say, `List.map`, that
+function does not exist there, and the worklet fails (the `getHostFunction` abort above). A worklet
+written directly in plain JavaScript only uses basic operations, so it has nothing to "fetch from next
+door" and works.
+
+Analogy: the worklet runtime is a sealed clean room with a basic toolkit. A plain-JS worklet is a recipe
+that uses only those basic tools. An F#-compiled worklet keeps saying "go borrow the `List.map` tool from
+the main workshop," but there is no door from the clean room to the workshop.
+
+The only F# that escapes this is a **tiny primitive subset** (arithmetic, comparisons, if/then, reading
+and writing shared values), which compiles to plain JS with no FSharp.Core calls. Anything richer pulls
+FSharp.Core back in. Removing the limit generally would require making FSharp.Core itself run inside the
+worklet runtime (workletizing the whole F# runtime library), which is impractical.
+
+### 24.4 Could we make Fable workletizable? Ownership and ceiling
+
+It would **not** require forking the upstream Fable compiler. It is **our framework choice**, doable as a
+`[<Worklet>]` attribute in the existing in-house `Meta/FablePlugins` (same mechanism as `[<Component>]`)
+that prepends a `'worklet'` directive to the emitted function, and/or a small Babel accommodation. Once
+the directive is present, the worklets Babel plugin handles closure capture from the JS AST normally.
+**But** the FSharp.Core ceiling (24.3) still caps it to the primitive subset, so even after the work,
+only simple numeric/shared-value worklets would run UI-thread. Net ROI is low; see 24.6.
+
+### 24.5 Alternatives for the high-value worklet use cases
+
+Worklets power more than animation. For each, the framework's better-suited path avoids the FSharp.Core
+problem entirely:
+
+| Use case | Best path in EggShell | Why it sidesteps the ceiling |
+|---|---|---|
+| Animation, transitions, layout motion | **Moti / Reanimated declarative API** from F# | Worklets are authored by the library; F# only passes data props. UI-thread, no penalty. (Probe B passed.) |
+| Gesture / scroll / per-frame interaction (snapping, drag math, parallax) | **Tiny JS/TS worklet shim** (10-20 lines, framework-owned), orchestrated from F# | Plain JS, no FSharp.Core dependency, guaranteed UI-thread. The `ThirdParty`/`TypesJs.fs` recipe. |
+| Camera frame processing (QR, OCR, face/ML per frame) | **Native module** (vision-camera + plugins / MLKit), bound from F# | Runs in native C++/Kotlin/Swift, not a JS worklet. Faster, and F# just calls it. |
+| Heavy data compute (filter/aggregate big sets, crypto, diff) | **Backend (Orleans)** primarily; push results via SignalR | EggShell is backend-centric; this is the natural home. No device worklet needed. |
+| Heavy compute that must be client-side on **web** | **Web Worker** (browser background thread); Fable can target a worker bundle | A Web Worker loads a *full* JS bundle, so **FSharp.Core IS available there**. The ceiling is specific to the minimal Reanimated runtime, not web workers. Rich F# off-thread works on web. |
+| Heavy compute that must be on-device native | **Native module / TurboModule** | Native code, no JS worklet. |
+| Custom GPU graphics, charts, shaders | **React Native Skia** declarative API; any hot inner worklet as a JS shim | Library-authored worklets run UI-thread; configure from F#. |
+| Real-time audio DSP | **Native audio module** | Native thread, not a JS worklet. |
+
+### 24.6 ROI verdict
+
+- **No performance loss on the default path.** Declarative animations (Moti / Reanimated declarative) run
+  their worklets on the UI thread; F# only passes props. This is also strictly better than today's
+  ReactXP `Animated` (JS-thread, native driver off).
+- **The high-value heavy cases (camera ML, big compute) are blocked by FSharp.Core anyway**, and are
+  better served by native modules, the Orleans backend, or (on web) Web Workers. So workletizing Fable
+  would not unlock them.
+- **What workletizing Fable *would* unlock is only the simple worklet subset** (per-frame/gesture math),
+  which is already cheap to write as a small JS shim. So the strategic ROI is **low**.
+- **Revisit only if** EggShell later builds a gesture/interaction-heavy native surface (custom draggable
+  canvases, interactive charts, a game-like screen) where the *volume* of small worklets makes the
+  `[<Worklet>]` plugin pay for itself in F# ergonomics. Not part of the migration.
+
 ## 22. Update Log
 
+- **2026-06-29 (19)** **Risk 1 (worklets from F#) RESOLVED + Section 24 added.** Measured on an Android
+  dev build of the spike: Fable-emitted Reanimated worklets run on the **JS thread, not the UI thread**
+  (JS-block test froze the animation while JS was blocked), and `runOnJS` inside a Fable worklet aborts
+  `libworklets` (`SIGABRT` at `getHostFunction`). Root cause documented: compiled F# depends on
+  **FSharp.Core** helpers that do not exist on the isolated worklet runtime. New Section 24 explains the
+  mechanism in plain terms, maps every worklet use case (animation, gesture/scroll/frame, camera ML,
+  heavy compute, Skia, audio) to the alternative the framework should use (Moti/Reanimated declarative,
+  tiny JS shims, native modules, Orleans backend, Web Workers on web), and gives the ROI verdict (low;
+  a `[<Worklet>]` Fable plugin is feasible in-house but capped to a primitive subset by FSharp.Core).
+  Risk 1 in Section 11 updated to point at Section 24. Also corrected Section 19 and `MIGRATION_RUNBOOK.md`
+  §4.6, and logged in `LEARNINGS.md`.
 - **2026-06-29 (18)** **Accessibility made a first-class, migration-aligned effort.** Added Section 23
   and the standalone `ACCESSIBILITY_PLAN.md`. The plan now covers the **full spectrum** (vision
   blind/low-vision/color, motor, hearing, cognitive, vestibular/motion, seizure, speech, situational,

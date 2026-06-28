@@ -38,18 +38,20 @@ open LC.Input.QuantityTypes
 module private Styles =
     let field =
         ViewStyles.Memoize(
-            fun (theme: Theme) (isInvalid: bool) ->
+            fun (outlineColor: Color) ->
                 makeViewStyles {
                     FlexDirection.Row
                     AlignItems.Stretch
                     borderWidth  1
                     borderRadius 4
                     size         96 32
-
-                    borderColor
-                        (if isInvalid then theme.InvalidColors.Border else theme.NormalColors.Border)
+                    borderColor outlineColor
                 }
         )
+
+    let fieldFor (theme: Theme) (isInvalid: bool) =
+        let colors = if isInvalid then theme.InvalidColors else theme.NormalColors
+        field colors.Border
 
 
     let side =
@@ -69,21 +71,23 @@ module private Styles =
 
     let centerText =
         TextStyles.Memoize(
-            fun (theme: Theme) (isInvalid: bool) ->
+            fun (valueColor: Color) ->
                 makeTextStyles {
                     fontSize 16
-
-                    color
-                        (if isInvalid then theme.InvalidColors.Value else theme.NormalColors.Value)
+                    color valueColor
                 }
         )
 
+    let centerTextFor (theme: Theme) (isInvalid: bool) =
+        let colors = if isInvalid then theme.InvalidColors else theme.NormalColors
+        centerText colors.Value
+
     let invalidReason =
         TextStyles.Memoize(
-            fun (theme: Theme) ->
+            fun (reasonColor: Color) ->
                 makeTextStyles {
                     fontSize 12
-                    color theme.InvalidMessageColor
+                    color reasonColor
                 }
         )
 
@@ -122,7 +126,7 @@ type LibClient.Components.Constructors.LC.Input with
                 elements {
                     RX.View(
                         styles = [|
-                            Styles.field theTheme isInvalid
+                            Styles.fieldFor theTheme isInvalid
                             yield! styles |> Option.defaultValue [||]
                         |],
                         children =
@@ -163,7 +167,7 @@ type LibClient.Components.Constructors.LC.Input with
                                             | Some value ->
                                                 LC.Text(
                                                     value = (string value.Value),
-                                                    styles = [| Styles.centerText theTheme isInvalid |]
+                                                    styles = [| Styles.centerTextFor theTheme isInvalid |]
                                                 )
                                             | None ->
                                                 noElement
@@ -210,7 +214,7 @@ type LibClient.Components.Constructors.LC.Input with
                                 elements {
                                     LC.Text(
                                         reason,
-                                        styles = [| Styles.invalidReason theTheme |]
+                                        styles = [| Styles.invalidReason theTheme.InvalidMessageColor |]
                                     )
                                 }
                         )
