@@ -681,11 +681,43 @@ highest-visibility frontend feature win.
 Verify and fix §11 #1 (default-allow) and #2 (SQL identifier interpolation) first; the rest are
 hardening.
 
+### I. Frontend render hygiene — key warnings + style leaks  *(incremental, ships alongside A/C; low risk)*
+Two classes of dev-console warnings recur across the frontend and the gallery. Both have cheap,
+mechanical fixes and a "make-it-unforgettable" follow-up.
+
+**Unique "key" prop warnings.** Cause: a static `[| el1; el2; ... |]` array of sibling elements is handed
+to a component as children via a bare cast (`castAsElement` / implicit `!!`), so React renders a keyless
+list. The fix already exists in `LibClient/src/EggShellReact.fs`: `tellReactArrayKeysAreOkay`
+(`React.Children.toArray`, which injects stable keys) and its element-returning wrapper
+`castAsElementAckingKeysWarning`. Plan:
+1. **Convert offenders** to route static child arrays through `castAsElementAckingKeysWarning` instead of
+   `castAsElement`/`[| |]`. Start with the shared gallery shells that fan out to every page —
+   `ComponentContent` (its top-level `children` array) and `ComponentSample` — then grep the gallery +
+   framework for `castAsElement`/raw children arrays and convert.
+2. **Make it structural (preferred long-term).** Have the `element`/`elements` CE builder auto-key its
+   multi-child output so authors physically cannot emit a keyless sibling list. This folds into goal C
+   (verbosity) and the DSL retirement (A); once the builder keys for you, rule 1 becomes unnecessary.
+3. **Don't mass-suppress.** `castAsElementAckingKeysWarning` assigns real keys (good); never silence the
+   warning by other means without keys.
+
+**Style leaks.** Cause: a `makeViewStyles`/`makeTextStyles` runs inside render (inline in a `styles`
+array, or in a component/`Pointer.State`/`With.ScreenSize` callback), so ReactXP re-allocates an
+uncacheable style every render. Worst when amplified by a re-render loop (one offender then looks like
+"tons"). Plan:
+1. **Codify the rule** (done): see `docs/fsharp/styling.md` "Avoiding style leaks" and the CLAUDE.md hard
+   rule — static → top-level `let`; parametrized → `*.Memoize` keyed on primitives, never whole `Theme`
+   records; param names must not collide with CE operations.
+2. **Sweep the framework** for leaky per-render builders and memoize them (already done for `Sidebar.Item`,
+   `Nav.Top.Item`, `ToggleButton`, `DateSelector`, `GalleryHeadings`; see `LEARNINGS.md` 2026-06-28).
+3. **Keep the audit honest:** the gallery audit scripts already dedupe/track `STYLE-LEAK:N` per page
+   (`audit-gallery-style-leaks.mjs`); use a clean run as the regression gate so new leaks can't creep in.
+
 ### Suggested sequencing
 1. **Now (independent, high value):** security verification/fixes (§11 #1, #2); build quick-wins (E);
    start the scaffolding fix (B).
 2. **Near-term (reinforce each other, low risk):** retire render DSL (A) + scaffolding (B) + structure
-   standardization (D) + verbosity wins (C). DSL retirement also speeds builds.
+   standardization (D) + verbosity wins (C) + render hygiene (I). DSL retirement also speeds builds, and
+   the `element`/`elements` auto-keying in (I) rides along with C/A.
 3. **Platform baseline:** .NET 10 + Fable 5 (F) — unblocks the rest and clears the EOL liability.
 4. **Decision point:** ReactXP fork-vs-migrate (H).
 5. **Larger initiative:** Orleans upgrade + PostgreSQL (G) as one coordinated storage workstream, on
