@@ -13,7 +13,6 @@ interface Answers {
     name:                string
     type:                'stateless' | 'estateful' | 'pstateful' | 'functional'
     maybeTypeParameters: string
-    hasStyles:           boolean
 }
 
 type TypeParameters = {
@@ -52,11 +51,6 @@ export function createComponent(closestUptreeProject: Project) : Promise<void> {
                     type:    "input",
                     message: "Type parameters (e.g. \"'Item\" or \"'T, 'U\", without the quotes; leave blank for none)",
                 },
-                {
-                    name:    "hasStyles",
-                    type:    "confirm",
-                    message: "Will your component have styles?",
-                },
             ]);
             return actuallyCreateComponent(answers, closestUptreeProject.config.name, closestUptreeProject.srcPath, templatesDir);
         },
@@ -86,7 +80,6 @@ async function actuallyCreateComponent(answers: Answers, appName: string, srcDir
         componentName:       rawName,
         componentNameLeaf:   nameLeaf,
         type:                answers.type,
-        hasStyles:           answers.hasStyles,
         typeParameters,
         numberOfParameters
     };
@@ -97,31 +90,23 @@ async function actuallyCreateComponent(answers: Answers, appName: string, srcDir
         return Promise.reject(`Directory for component name already exists: ${componentDirectory}`)
     }
 
-    const getTemplateFileFromType = ({type, hasStyles} : Answers) => {
+    const getTemplateFileFromType = ({type} : Answers) => {
         switch (type) {
             case "stateless":
                 return [
-                    templateFile(gulp, `${templatesDir}/component/type/stateless/Component.typext.fs.template`, `${componentDirectory}/${nameLeaf}.typext.fs`, data),
-                    templateFile(gulp, `${templatesDir}/component/type/stateless/Component.render.template`, `${componentDirectory}/${nameLeaf}.render`, data),
-                    ... hasStyles ? [templateFile(gulp, `${templatesDir}/component/type/stateless/Component.styles.fs.template`, `${componentDirectory}/${nameLeaf}.styles.fs`, data)] : [],
+                    templateFile(gulp, `${templatesDir}/component/type/stateless/Component.fs.template`, `${componentDirectory}/${nameLeaf}.fs`, data),
                 ]
             case "estateful":
                 return [
-                    templateFile(gulp, `${templatesDir}/component/type/estateful/Component.typext.fs.template`, `${componentDirectory}/${nameLeaf}.typext.fs`, data),
-                    templateFile(gulp, `${templatesDir}/component/type/estateful/Component.render.template`, `${componentDirectory}/${nameLeaf}.render`, data),
-                    ... hasStyles ? [templateFile(gulp, `${templatesDir}/component/type/estateful/Component.styles.fs.template`, `${componentDirectory}/${nameLeaf}.styles.fs`, data)] : [],
+                    templateFile(gulp, `${templatesDir}/component/type/estateful/Component.fs.template`, `${componentDirectory}/${nameLeaf}.fs`, data),
                 ]
             case "pstateful":
                 return [
-                    templateFile(gulp, `${templatesDir}/component/type/pstateful/Component.typext.fs.template`, `${componentDirectory}/${nameLeaf}.typext.fs`, data),
-                    templateFile(gulp, `${templatesDir}/component/type/pstateful/Component.render.template`, `${componentDirectory}/${nameLeaf}.render`, data),
-                    ... hasStyles ? [templateFile(gulp, `${templatesDir}/component/type/pstateful/Component.styles.fs.template`, `${componentDirectory}/${nameLeaf}.styles.fs`, data)] : [],
+                    templateFile(gulp, `${templatesDir}/component/type/pstateful/Component.fs.template`, `${componentDirectory}/${nameLeaf}.fs`, data),
                 ]
             case "functional":
                 return [
-                    templateFile(gulp, `${templatesDir}/component/type/functional/Component.typext.fs.template`, `${componentDirectory}/${nameLeaf}.typext.fs`, data),
-                    templateFile(gulp, `${templatesDir}/component/type/functional/Component.render.template`, `${componentDirectory}/${nameLeaf}.render`, data),
-                    ... hasStyles ? [templateFile(gulp, `${templatesDir}/component/type/functional/Component.styles.fs.template`, `${componentDirectory}/${nameLeaf}.styles.fs`, data)] : [],
+                    templateFile(gulp, `${templatesDir}/component/type/functional/Component.fs.template`, `${componentDirectory}/${nameLeaf}.fs`, data),
                 ]
         }
     }
@@ -131,10 +116,10 @@ async function actuallyCreateComponent(answers: Answers, appName: string, srcDir
 
     await Promises.inSeries(promiseMakers);
 
-    console.log(generateFinalMessage(namePrefix, nameLeaf, answers.hasStyles));
+    console.log(generateFinalMessage(namePrefix, nameLeaf));
 }
 
-function generateFinalMessage(namePrefix: Seq<string>, nameLeaf: string, hasStyles: boolean) : string {
+function generateFinalMessage(namePrefix: Seq<string>, nameLeaf: string) : string {
     let namePrefixDir =
         namePrefix.length === 0
         ? ""
@@ -150,10 +135,7 @@ function generateFinalMessage(namePrefix: Seq<string>, nameLeaf: string, hasStyl
         "will be referencing this one is a good place. This part isn't automated yet, sorry.",
         "",
         "",
-        `    <Compile Include=\"Components/${namePrefixDir}${nameLeaf}/${nameLeaf}.typext.fs\" />`,
-        hasStyles ? `    <Compile Include=\"Components/${namePrefixDir}${nameLeaf}/${nameLeaf}.styles.fs\" />` : undefined,
-        `    <Compile Include=\"_autogenerated_/Components/${namePrefixDir}${nameLeaf}/${nameLeaf}.TypeExtensions.fs\" />`,
-        `    <Compile Include=\"_autogenerated_/Components/${namePrefixDir}${nameLeaf}/${nameLeaf}.Render.fs\" />`,
+        `    <Compile Include=\"Components/${namePrefixDir}${nameLeaf}/${nameLeaf}.fs\" />`,
         "",
         "",
     ]

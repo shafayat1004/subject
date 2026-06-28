@@ -50,6 +50,16 @@ module private Styles =
         flex 1
     }
 
+    // -1 = no layout yet (height 0); otherwise minHeight from measured layout height.
+    let scroll_view_with_footer_height =
+        ViewStyles.Memoize (fun (layoutHeightOrMinusOne: int) ->
+            makeViewStyles {
+                if layoutHeightOrMinusOne >= 0 then
+                    minHeight layoutHeightOrMinusOne
+                else
+                    height 0
+            })
+
     let no_scroll_view = makeViewStyles {
         FlexDirection.Column
         flex 1
@@ -194,7 +204,7 @@ type LR with
                                                                 scroll        = scroll,
                                                                 scrollViewRef = bindScrollView,
                                                                 children      = [|
-                                                                    RX.View (styles = [| Styles.scroll_view_with_footer; makeViewStyles { maybeLayout |> Option.map (fun l -> minHeight l.Height) |> Option.getOrElse (height 0) } |], children = [|
+                                                                    RX.View (styles = [| Styles.scroll_view_with_footer; Styles.scroll_view_with_footer_height (maybeLayout |> Option.map (fun l -> l.Height) |> Option.getOrElse -1) |], children = [|
                                                                         RX.View (styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
                                                                             RX.View (styles = [| Styles.content contentWidth |], children = children)
                                                                         |])

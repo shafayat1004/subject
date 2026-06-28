@@ -173,6 +173,11 @@ module private Styles =
             Overflow.Visible
         }
 
+    let wrapper =
+        makeViewStyles {
+            Overflow.Visible
+        }
+
     let contents (aniValueX: AnimatableValue) (aniValueY: AnimatableValue) =
         makeAnimatableViewStyles {
             Overflow.Visible
@@ -409,7 +414,7 @@ type LibClient.Components.Constructors.LC with
 
         RX.View(
             ?testId = testId,
-            styles = [| makeViewStyles { Overflow.Visible } |],
+            styles = [| Styles.wrapper |],
             children =
                 [|
                     RX.AnimatableView(

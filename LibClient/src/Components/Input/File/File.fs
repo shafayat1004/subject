@@ -62,10 +62,15 @@ module Input_FileComponent =
     [<RequireQualifiedAccess>]
     module private Styles =
         let view = makeViewStyles { padding 5; marginTop 10; AlignItems.Center }
-        let viewInvalid = ViewStyles.Memoize (fun (theme: Theme) -> makeViewStyles { borderColor theme.InvalidColor })
+        // Key on CSS string (primitive), not Theme — fast-memoize uses reference equality on records.
+        let viewInvalid =
+            ViewStyles.Memoize (fun (invalidColorCss: string) ->
+                makeViewStyles { borderColor (Color.InternalString invalidColorCss) })
         let textCenter = makeTextStyles { TextAlign.Center }
         let dragAndDropMessage = makeViewStyles { marginTop 20 }
-        let invalidReason = TextStyles.Memoize (fun (theme: Theme) -> makeTextStyles { TextAlign.Center; color theme.InvalidColor })
+        let invalidReason =
+            TextStyles.Memoize (fun (invalidColorCss: string) ->
+                makeTextStyles { TextAlign.Center; color (Color.InternalString invalidColorCss) })
         let infoMessage = makeTextStyles { TextAlign.Center; color Color.DevOrange }
         let messageContainer = makeViewStyles { marginTop 10 }
 
@@ -209,7 +214,7 @@ module Input_FileComponent =
                 internalValidityHook.current.IsInvalid || validity.IsInvalid || validity = InputValidity.Missing
 
             RX.View(
-                styles = [| Styles.view; if isInvalid then Styles.viewInvalid theTheme; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
+                styles = [| Styles.view; if isInvalid then Styles.viewInvalid theTheme.InvalidColor.ToCssString; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
                 children = [|
                     LC.With.RefDom(
                         onInitialize = onDropZoneInitialize,
@@ -279,7 +284,7 @@ module Input_FileComponent =
                                             RX.View(
                                                 children = [|
                                                     LC.LegacyText(
-                                                        styles = [| Styles.invalidReason theTheme |],
+                                                        styles = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
                                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") reason |]
                                                     )
                                                 |]
@@ -290,7 +295,7 @@ module Input_FileComponent =
                                             RX.View(
                                                 children = [|
                                                     LC.LegacyText(
-                                                        styles = [| Styles.invalidReason theTheme |],
+                                                        styles = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
                                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "This field is required" |]
                                                     )
                                                 |]

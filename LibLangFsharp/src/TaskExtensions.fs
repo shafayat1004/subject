@@ -14,13 +14,11 @@ module Task =
             return f value
         }
 
-    let iter (f: 'T -> unit) (t: Task<'T>) : Task<unit> =
-        map f t
+    let iter (f: 'T -> unit) (t: Task<'T>) : Task<unit> = map f t
 
     let fireAndForget (_: Task<_>) : unit = ()
 
-    let unwrap (task: Task<Task<'T>>) : Task<'T> =
-        task.Unwrap()
+    let unwrap (task: Task<Task<'T>>) : Task<'T> = task.Unwrap()
 
     let map2 (f: 'T1 -> 'T2 -> 'U) (t1: Task<'T1>) (t2: Task<'T2>) : Task<'U> =
         backgroundTask {
@@ -38,8 +36,7 @@ module Task =
     let ignoreHandleError (handleError: 'Error -> unit) (task: Task<Result<'T, 'Error>>) : Task =
         backgroundTask {
             match! task with
-            | Ok _ ->
-                Noop
+            | Ok _ -> Noop
             | Error err ->
                 handleError err
                 Noop
@@ -56,21 +53,18 @@ module Task =
     let batched (batchSize: int) (taskFactories: seq<unit -> Task<'T>>) : Task<list<'T>> =
         taskFactories
         |> Seq.chunkBySize batchSize
-        |> Seq.fold (
-            fun (prevTask: Task<list<'T>>) chunk ->
+        |> Seq.fold
+            (fun (prevTask: Task<list<'T>>) chunk ->
                 backgroundTask {
                     let! prevTaskResult = prevTask
-                    let! thisTaskResult =
-                        chunk
-                        |> Seq.map (fun factory -> factory())
-                        |> Task.WhenAll
+                    let! thisTaskResult = chunk |> Seq.map (fun factory -> factory ()) |> Task.WhenAll
 
                     return prevTaskResult @ (Array.toList thisTaskResult)
-                }) (Task.FromResult [])
+                })
+            (Task.FromResult [])
 
 type Task with
     // Too many existing references to move to Task.ignore, so going to leave this as-is
-    static member Ignore (task: Task<'T>) : Task =
-        task :> Task
+    static member Ignore(task: Task<'T>) : Task = task :> Task
 
 #endif

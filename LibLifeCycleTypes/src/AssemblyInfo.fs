@@ -20,4 +20,4 @@ open System.Runtime.CompilerServices
 [<assembly: AutoOpen("LibLifeCycleTypes.Exceptions")>]
 #endif
 
-do()
+do ()

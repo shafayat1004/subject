@@ -16,9 +16,10 @@ type TransientSubjectException =
     inherit Exception
     // can't wrap typed Exception because if inner exception has type unknown to client
     // then client will not deserialize it and exception details will be lost
-    new (exceptionSource: string, innerExceptionDetails: string) =
-        { inherit Exception ($"`%s{exceptionSource}` exception:\n%s{innerExceptionDetails}") }
-    new (info: SerializationInfo, context: StreamingContext) = { inherit Exception (info, context) }
+    new(exceptionSource: string, innerExceptionDetails: string) =
+        { inherit Exception($"`%s{exceptionSource}` exception:\n%s{innerExceptionDetails}") }
+
+    new(info: SerializationInfo, context: StreamingContext) = { inherit Exception(info, context) }
 
 /// Wrapper exception type to distinguish exceptions that cannot be compensated by retrying
 /// If caught inside Subject's side effect processor, the side effect will fail permanently.
@@ -28,10 +29,11 @@ type PermanentSubjectException =
     inherit Exception
     // can't wrap typed Exception because if inner exception has type unknown to client
     // then client will not deserialize it and exception details will be lost
-    new (exceptionSource: string, innerExceptionDetails: string) =
+    new(exceptionSource: string, innerExceptionDetails: string) =
         // TODO: review innerExceptionDetails if this exception will ever be served to a public client, it's not secure.
-        { inherit Exception ($"`%s{exceptionSource}` exception:\n%s{innerExceptionDetails}") }
-    new (info: SerializationInfo, context: StreamingContext) = { inherit Exception (info, context) }
+        { inherit Exception($"`%s{exceptionSource}` exception:\n%s{innerExceptionDetails}") }
+
+    new(info: SerializationInfo, context: StreamingContext) = { inherit Exception(info, context) }
 
 
 /// Currently unused, reserved for future when the type propagated to all biosphere
@@ -42,9 +44,10 @@ type InconclusiveSubjectException =
     inherit Exception
     // can't wrap typed Exception because if inner exception has type unknown to client
     // then client will not deserialize it and exception details will be lost
-    new (exceptionSource: string, innerExceptionDetails: string) =
+    new(exceptionSource: string, innerExceptionDetails: string) =
         // TODO: review innerExceptionDetails if this exception will ever be served to a public client, it's not secure.
-        { inherit Exception ($"`%s{exceptionSource}` exception:\n%s{innerExceptionDetails}") }
-    new (info: SerializationInfo, context: StreamingContext) = { inherit Exception (info, context) }
+        { inherit Exception($"`%s{exceptionSource}` exception:\n%s{innerExceptionDetails}") }
+
+    new(info: SerializationInfo, context: StreamingContext) = { inherit Exception(info, context) }
 
 #endif

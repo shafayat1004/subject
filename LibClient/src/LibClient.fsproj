@@ -113,8 +113,7 @@
 
     <Compile Include="ReactXP/Components/Button/Button.fs" />
     <Compile Include="ReactXP/Components/Text/Text.fs" />
-    <Compile Include="ReactXP/Components/UiText/UiText.typext.fs" />
-    <Compile Include="ReactXP/Components/Image/Image.fs" />
+<Compile Include="ReactXP/Components/Image/Image.fs" />
     <Compile Include="ReactXP/Components/ActivityIndicator/ActivityIndicator.fs" />
     <Compile Include="ReactXP/Components/Link/Link.fs" />
     <Compile Include="ReactXP/Components/TextInput/TextInput.fs" />

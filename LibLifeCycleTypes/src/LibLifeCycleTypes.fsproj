@@ -3,6 +3,8 @@
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Configurations>Debug;Release;Fable Debug;Fable Release</Configurations>
+    <!-- Fantomas cannot safely format 4 files here (produces invalid F#); suppress until upstream is fixed -->
+    <EggShellFmtSeverity>none</EggShellFmtSeverity>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Fable Debug' Or '$(Configuration)'=='Fable Release'">

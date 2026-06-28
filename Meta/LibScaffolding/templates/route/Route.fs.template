@@ -1,0 +1,41 @@
+[<AutoOpen>]
+module <%= appName %>.Components.Route_<%= componentNameLeaf %>
+
+open Fable.React
+open LibClient
+open LibClient.Components
+open LibRouter.Components
+open ReactXP.Styles
+open <%= appName %>.Navigation
+
+type Ui.Route with
+    [<Component>]
+ZAP<% if (hasParameters) { %>
+    static member <%= componentNameLeaf %>(someParam: int, ?key: string) : ReactElement =
+ZAP<% } else { %>
+    static member <%= componentNameLeaf %>(?key: string) : ReactElement =
+ZAP<% } %>
+        key |> ignore
+        LR.Route(
+            scroll = ScrollView.Vertical,
+            children = [|
+                LC.Section.Padded(
+                    elements {
+ZAP<% if (hasParameters) { %>
+                        LC.InfoMessage(
+                            level = InfoMessage.Level.Info,
+                            message = $"Welcome to <%= componentName %>: {someParam}"
+                        )
+ZAP<% } else { %>
+                        LC.InfoMessage(
+                            level = InfoMessage.Level.Info,
+                            message = "Welcome to <%= componentName %>"
+                        )
+ZAP<% } %>
+                    }
+                )
+            |]
+        )
+
+and private Styles() =
+    class end
