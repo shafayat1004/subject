@@ -1,0 +1,37 @@
+---
+description: Accessible design is the default and mandatory for every UI change — full-spectrum, not lazy. Follow ACCESSIBILITY_PLAN.md.
+alwaysApply: true
+---
+
+# Accessibility is the default and a must — do not be lazy
+
+Every UI change ships **accessible by default**. Accessibility is not optional, not a "later" task, and
+not something to skip because it's tedious. An LLM (or human) that omits a11y to save effort is doing the
+task wrong. Read `ACCESSIBILITY_PLAN.md` first — especially **§13 (the "pit of success": make the
+accessible path the default, lowest-effort path)** and **§7–§8 (recipes + per-component playbook)**.
+
+## Full spectrum, every time
+Cover all dimensions, not just screen readers (`ACCESSIBILITY_PLAN.md` §4): vision (blind / low-vision /
+color), motor/dexterity, hearing, cognitive, vestibular/motion, seizure/photosensitivity, speech,
+situational — plus RTL/text-expansion.
+
+## Non-negotiable checklist for any interactive UI
+- **Name + role + state** on every control (`LC.Pressable(label, role, state)` /
+  `RX.View(accessibilityLabel/Role/State)`); the visible text is contained in the accessible name.
+- **Decorative icons hidden** (`importantForAccessibility = No`); never the sole content of a control.
+- **Text scales** with OS font size without clipping (keep `allowFontScaling`; no clipping fixed heights).
+- **Color meets WCAG AA** and is **never the only** signal (pair with text/icon/shape).
+- **Targets ≥44px**; **every gesture has a non-gesture alternative** (tap/keyboard/rotor action).
+- **Dynamic changes announce** via a live region (counts, errors, "deleted X").
+- **Honor OS settings** (reduce-motion, bold-text, reduce-transparency) where the hook exists.
+
+## Default-first, not per-call
+Prefer baking semantics/behavior into the **primitive** so apps get it free (plan §9 #9), over patching
+each call site. The friction test for any new component/API: *"does the developer have to do anything
+beyond writing the visible content to get an accessible result?"* If yes, redesign.
+
+## Honesty over silent skipping
+If a capability is genuinely `[rnw-blocked]`/`[web-only]` (landmarks, skip links, focus-visible styling,
+roving-tabindex — see plan §10/§14), implement the **portable subset now** and say what's deferred and
+why. Do **not** silently drop accessibility. New a11y gotchas → update `ACCESSIBILITY_PLAN.md` /
+`LEARNINGS.md` in the same change.

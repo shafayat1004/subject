@@ -932,8 +932,56 @@ follow-up doc pass. Generated apps must not embed external absolute paths.
 
 ---
 
+## 23. Accessibility as a first-class, migration-aligned effort
+
+Full plan, recipes, and backlog: **`ACCESSIBILITY_PLAN.md`** (repo root). Summary of how the a11y
+effort aligns with this migration so we don't build throwaway work:
+
+**The seam design (§10) makes most a11y work migration-safe.** The framework primitives already expose
+**RN-native a11y prop names** — `LC.Pressable(label, role, state, liveRegion, importantForAccessibility,
+tabIndex, actions)` and `RX.View(accessibilityLabel, accessibilityRole, accessibilityState,
+accessibilityLiveRegion, importantForAccessibility, accessibilityActions)` — backed by
+`LibClient.Accessibility` (`AccessibilityRole`, `AccessibilityStateRecord`, `AccessibilityLiveRegion`,
+`ImportantForAccessibility`). These are exactly RN's props; RNW maps them to ARIA. Because the migration
+keeps the F# constructor surface and only re-points the binding underneath, **anything expressed through
+these props survives the migration unchanged** (tagged `[safe]` in the plan). So the high-leverage item
+— baking correct `role`/`state`/`label` into the primitives (`Tab`, `Checkbox`, `Picker`, `Button`,
+`Heading`) so apps get semantics for free — should be done **now**, on ReactXP, and carries over.
+
+**What is gated and must NOT be hand-rolled now** (tagged `[rnw-blocked]`/`[web-only]`): true landmarks
+(`main`/`nav`/`section`) and heading levels, skip links, `:focus-visible` ring *styling*, and
+roving-tabindex keyboard mechanics. These are web-DOM-shaped or depend on the host-element seam that
+only exists after the RNW move. The migration *unlocks* them: a single RNW host-element seam to emit
+ARIA/landmarks once, UI-thread-safe focus/announce via the New Architecture, and real
+`prefers-reduced-motion`/`announceForAccessibility` on both targets. Deferring them is correct
+sequencing, not lost work.
+
+**Capability-gap note (ties to §9):** reduced-motion is also an animation concern — the
+`LC.With.ReducedMotion` hook (plan §6 item 7) lets the future Reanimated/Moti motion layer (§9/§11) opt
+out of animation, so the a11y hook and the animation rework share one switch.
+
+**Verification ties to §21.2 `audit/`:** add axe-core (Playwright) on web and a TalkBack/VoiceOver
+checklist on native to the template's audit layer; the a11y-rich `SuiteTodo/AppTodo/suggestions/ui2.html`
+is the web bar.
+
 ## 22. Update Log
 
+- **2026-06-29 (18)** **Accessibility made a first-class, migration-aligned effort.** Added Section 23
+  and the standalone `ACCESSIBILITY_PLAN.md`. The plan now covers the **full spectrum** (vision
+  blind/low-vision/color, motor, hearing, cognitive, vestibular/motion, seizure, speech, situational,
+  RTL) mapped to WCAG + RN/RNW APIs, a per-component conversion playbook written for bulk LLM conversion,
+  and a backlog tagged `[safe]`/`[web-only]`/`[rnw-blocked]`/`[lib]`. Two driving lenses added: **§13 the
+  "pit of success"** (accessible-by-default primitives so idiomatic EggShell ships WCAG-AA with ~0 extra
+  developer effort — infer name/role/state, require labels at the type level, contrast-lint the build)
+  and **§14 the post-migration target** (New-Arch focus mgmt, RN `role`+`aria-*` cross-platform props,
+  RNW real ARIA + `<dialog>`/`inert`/focus-visible/landmarks, React 19 form actions + `<title>`,
+  Reanimated/Moti reduce-motion-aware motion, RNGH gesture+alternative) — showing how today's `[safe]`
+  investment makes most `[rnw-blocked]` items resolve for free behind unchanged F# call sites. Key
+  finding: the framework already exposes RN-native a11y props, so the bulk of a11y work is migration-safe
+  and should be done now. Benchmark: `SuiteTodo/AppTodo/suggestions/ui2.html`. Also recorded: the dev-only
+  React "unique key" warning was root-caused to Fable.React `contextProvider` not keying children and
+  fixed at the F# seam (`AppShell/Context/Context.fs`), explicitly **not** by patching vendored ReactXP
+  (LEARNINGS 2026-06-29).
 - **2026-06-28 (17)** **Phase 5-6 plan expanded: full-stack TODO + one-command bootstrap.** Section 21
   added; Section 13 phased table updated (Phases 5-6: TODO reference app, templatized `create-app`,
   Playwright/Android audit, simulation tests, docker SQL). `MIGRATION_RUNBOOK.md` Phase 5 expanded with

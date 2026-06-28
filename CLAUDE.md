@@ -12,8 +12,15 @@ Executing goals A–E together (see `EGGSHELL_ARCHITECTURE.md` §12):
 - **D** Standardize frontend directory structure.
 - **E** Speed up the frontend build.
 
-(Goals F/G/H — .NET 10, Fable 5, Orleans/Postgres, ReactXP swap — are LATER. Do not start them now.
-We stay on **current Fable (v4)** for this phase.)
+**Toolchain (migrated):** the frontend is on **Fable 5** (`fable` tool 5.4.0, `Fable.Core` 5.0.0,
+`Fable.React` 10.0.0-alpha.1), built with the **.NET 10 SDK** (`global.json` 10.0.301). Write Fable-5
+code; do not target Fable 4.
+
+(Still LATER — do not start now: full **.NET 10 TFM migration** is NOT complete repo-wide and **no
+.NET-10-specific features** have been adopted yet (the net10 SDK is the build host; many projects still
+target older TFMs). The **ReactXP → react-native-web swap** (still on `@chaldal/reactxp`) and the
+**Orleans/Postgres** workstream are also later. See `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` +
+`MIGRATION_RUNBOOK.md` for phase status.)
 
 ## Working rules
 
@@ -27,8 +34,9 @@ We stay on **current Fable (v4)** for this phase.)
 4. **Validate the build.** Before calling any change done, build the affected framework project(s) and
    confirm green. See "Build & validate" below for exact commands. Report failures with output; never
    claim done on an unverified change.
-5. **Consult Fable docs regularly** (current v4). Don't guess Fable/Fable.React API — look it up. Local
-   clone (if present): see `LEARNINGS.md` for path; otherwise fetch from https://fable.io/docs.
+5. **Consult Fable docs regularly** (we are on **Fable 5**; `Fable.React` 10.x). Don't guess
+   Fable/Fable.React API — look it up. Local clone (if present): see `LEARNINGS.md` for path; otherwise
+   fetch from https://fable.io/docs.
 6. **Render-DSL conversion must be drop-in.** Converted F# must be semantically identical to what the
    `.render` compiled to. When in doubt, diff the generated `.Render.fs` against the new F#.
 7. **Do not edit `.render` for feature work — convert to pure F# instead.** Goal A is retiring the
@@ -47,6 +55,24 @@ We stay on **current Fable (v4)** for this phase.)
    to pure F#, its corresponding `AppEggShellGallery/src/Components/Content/` page must be updated to
    use the new F# API and be written in pure F# (not render DSL). If no gallery page exists for the
    component, add one. No new render DSL in the gallery; convert existing pages when touching them.
+11. **Check the runbooks before repeated work.** Before any dev-loop / device-debugging / build /
+   observe task — running, launching, screenshotting, tapping/rotating a device, reading runtime
+   errors, killing stale watches, targeted rebuilds, "did my patch reach the bundle" — read
+   `DEV_RUNBOOK.md` and follow its commands + decision tree instead of improvising. Also consult
+   `LEARNINGS.md` (newest first), `ACCESSIBILITY_PLAN.md`, `APP_STRUCTURE.md`,
+   `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md`, and `SuiteTodo/AppTodo/README.md` per
+   `.cursor/rules/runbooks-first.mdc`. When you hit a new gotcha or a runbook step is wrong, fix the doc
+   in the same change.
+12. **Accessible design is the default and is mandatory — do not be lazy.** Every UI change ships
+   accessible by default across the full spectrum (screen readers, low vision / text scaling, color &
+   contrast, motor / target size & gesture alternatives, hearing, cognitive, motion / reduce-motion,
+   seizure), per `ACCESSIBILITY_PLAN.md` (read §13 "pit of success" and §7–§8 recipes/playbook).
+   Accessibility is not optional, not a follow-up, and not "good enough without it." Concretely: every
+   interactive element exposes name + role + state; decorative icons are hidden; text scales without
+   clipping; colors meet WCAG AA and are never the sole signal; targets are ≥44px; any gesture has a
+   non-gesture alternative; dynamic changes announce via a live region. Prefer baking semantics into the
+   primitive over per-call patching. If a piece is genuinely `[rnw-blocked]`/`[web-only]`, say so and use
+   the portable subset — never silently skip a11y.
 
 ## Component conventions (frontend)
 

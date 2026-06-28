@@ -14,6 +14,16 @@
 > SignalR) and `/Volumes/HomeX/shafayat/Code/orleans-net10-spike` (backend: Orleans 3.7.2 on .NET 10).
 > Use those as copy-from references.
 
+> **CURRENT BRANCH STATUS (`modernization/fable5-migration`, 2026-06-29):** the toolchain is **already
+> Fable 5.4.0 on .NET 10 (10.0.301)** — `Fable.Core` 5.0.0, `Fable.React` 10.0.0-alpha.1; native + web
+> build green this session. So **Phase 1 (Fable 5 + .NET 10 build host) is effectively DONE on this
+> branch**, and SignalR is on the modular `eggshell-signalr` bindings (**Phase 2 done**). **Phase 4 (RNW
+> seam) is NOT started — still `@chaldal/reactxp`** (this session even patched vendored ReactXP, then
+> reverted in favor of an F# fix). Phase 3 (backend net10 TFMs) status: SDK is net10; per-project TFMs
+> unverified here. Treat Phases 1-2 as recipe/history for re-runs; the live frontier is Phase 4 (+ Phase
+> 5 app work, ongoing). NOTE: `subject/CLAUDE.md`'s "stay on current Fable (v4)" line is **stale on this
+> branch** — confirm with the owner before treating v4 as current.
+
 ---
 
 ## 0. Golden rules (apply to every step, no exceptions)
@@ -32,6 +42,18 @@
 6. **Environment:** always `export DOTNET_ROOT="$HOME/.dotnet"` before dotnet/fable/eggshell commands
    (the toolchain apphosts need it; see `LEARNINGS.md`).
 7. **Keep `LEARNINGS.md` updated** with anything you got wrong and corrected (CLAUDE.md rule 1).
+8. **Accessibility is the default and mandatory — do not be lazy.** Every UI you build or port ships
+   accessible across the full spectrum (name+role+state, text scaling, AA contrast and never
+   color-alone, ≥44px targets, gesture alternatives, live-region announcements, reduce-motion). Follow
+   `ACCESSIBILITY_PLAN.md` (read §13 "pit of success" + §7–§8 recipes). Prefer baking semantics into the
+   primitive over per-call patching. Never silently skip a11y; for `[rnw-blocked]`/`[web-only]` bits use
+   the portable subset and say what's deferred. (CLAUDE.md rule 12, `.cursor/rules/accessibility-default.mdc`.)
+9. **Use the dev runbook for any device/build/observe loop.** Before running/launching/screenshotting/
+   tapping/rotating a device, reading runtime errors, killing stale watches, or targeted rebuilds, follow
+   `DEV_RUNBOOK.md` (Android/iOS/web inner loop, "verify a patch reached the bundle", gotchas, decision
+   tree). Debug with raw `adb`/`simctl`/browser (Tier 1); verify/gate with the `audit/` toolkit
+   (`npm run observe -- …`, Appium/Playwright — Tier 2). (CLAUDE.md rule 11,
+   `.cursor/rules/runbooks-first.mdc`.)
 
 **Build/validate commands (memorize):**
 - Frontend lib type-check/build: `cd <lib> && ../eggshell build-lib` (or from repo per project layout).
@@ -254,6 +276,31 @@ call.
 **FORWARD NOTE:** keep the F# API DOM-flavored (onClick/aria/css-style) so a later switch to React
 Strict DOM stays a thin re-point (strategy doc Section 16).
 
+**Knowledge from the a11y/theming work done on the current ReactXP seam (already Fable 5.4.0 / .NET 10;
+carry into the seam port):**
+- **Preserve the accessibility prop surface verbatim.** The current bindings already expose RN-native
+  a11y props — `LC.Pressable(label, role, state, liveRegion, importantForAccessibility, tabIndex,
+  actions)` and `RX.View(accessibilityLabel/Role/State/LiveRegion, importantForAccessibility,
+  accessibilityActions, ariaRoleDescription)` plus `LibClient.Accessibility` types. The RNW port maps
+  these to RN `role`+`aria-*` (cross-platform) / real ARIA; **do not rename or drop them** (it is the
+  a11y migration-safety contract — `ACCESSIBILITY_PLAN.md` §3/§14). Adopting RN's newer unified `role` +
+  `aria-*` props underneath is a seam-internal upgrade the call sites never see.
+- **Preserve themeable input fields.** `Input.Text.Theme` gained `EditableBackgroundColor` /
+  `LabelBackgroundColor`; `PickerInternals.Field.Theme` gained `BackgroundColor` / `BorderRadius` /
+  `LabelBackgroundColor` (Fable-4 change so dark mode works — they were hardcoded `Color.White`). Keep
+  these fields in the RN port; default them to white for back-compat (`LEARNINGS.md` 2026-06-28).
+- **Metro bundles ReactXP from `dist/native-common/*.js`, NOT `src/*.tsx`.** When re-pointing
+  `ReactXPBindings.fs` and removing `@chaldal/reactxp`, verify the bundle actually changed
+  (`DEV_RUNBOOK.md` §7.4). The old `LibClient/vendor/reactxp-native-common/` + `postinstall` copy
+  mechanism goes away with ReactXP.
+- **Fix render-hygiene at the F# seam, never by patching vendored ReactXP.** Example: the dev-only
+  "unique key" warning was Fable.React `contextProvider` not keying children — fixed in
+  `AppShell/Context/Context.fs` with `tellReactArrayKeysAreOkay`, not in node_modules
+  (`LEARNINGS.md` 2026-06-29).
+- **Android `borderRadius` needs `Overflow.Hidden`** on filled views to clip the background; **`LC.Row`
+  appends its own `FlexDirection.Row` last** (use `RX.View` + a direction-correct style for responsive
+  stacking). Re-verify these behave the same (or better) on RN/RNW after the port.
+
 ---
 
 ## Phase 5 - Full-stack TODO reference app + templatized bootstrap (goal B)
@@ -384,9 +431,21 @@ time (`AppName`, bundle id placeholders). Ship `configSourceOverrides.native.js.
 | Android smoke | Metro + `npx react-native run-android` (emulator) |
 | iOS smoke | Metro + `npx react-native run-ios --no-packager` (simulator) |
 
+For the **native dev/observe loop** (boot emulator/sim, `adb reverse`, launch/reload, screenshot,
+tap/rotate, read `logcat`/`simctl log`, kill stale watches, targeted rebuilds, fix the AVD
+sideways-orientation gotcha) follow `DEV_RUNBOOK.md` rather than improvising. Confirm a green Fable build
+actually reached the device (reload; Metro `--reset-cache` if stale).
+
 ---
 
 ### 5D. UI automation (`SuiteTodo/AppTodo/audit/`)
+
+> **A richer observe toolkit already exists** in `SuiteTodo/AppTodo/audit/` (`todo-observe.mjs`,
+> `npm run observe -- doctor|snapshot|add-todo|workflow|diff`, plus `audit-todo-web.mjs`). It drives
+> native via **Appium** and web via **Playwright**, by **`testId`**, emitting structured JSON
+> (layout-metrics, DOM/hierarchy, health, classified logs) for LLM/CI consumption — see `DEV_RUNBOOK.md`
+> §0/§6 (Tier 2) and `audit/README.md`. Use/extend it; the scripts below are the minimum the template
+> must ship.
 
 Mirror `AppEggShellGallery` audit scripts (adapt selectors to todo testIds):
 
@@ -443,12 +502,24 @@ Native variant documents the three-terminal flow (gallery README table).
 
 ### 5F. Accessibility and observability standards (template enforces)
 
-**Accessibility (required in generated components):**
-- All pressables: `?testId = Some (A11ySlug.testId "<slug>" labelOrValue)`
-- Dialog actions: stable slugs (`todo-edit-save`, `todo-edit-cancel`)
-- Headings: use `LC.Heading` with level appropriate to page structure
-- Loading states: expose `testId` on skeleton/empty states for automation
-- Reference: gallery converted components + `LEARNINGS.md` Batch 3 nav/UI testId slugs
+**Accessibility (required in generated components — full spectrum, not just testIds):**
+testIds are for *automation hooks*, not accessibility. Generated apps must be **accessible by default**
+per `ACCESSIBILITY_PLAN.md` (mandatory — Golden Rule 8). Required in every generated component:
+- **Name + role + state** on every control via `LC.Pressable(label, role, state)` /
+  `RX.View(accessibilityLabel/Role/State)`; the visible text is contained in the accessible name.
+- **Decorative icons hidden** (`importantForAccessibility = No`); never the sole content of a control.
+- **Text scales** with OS font size without clipping (keep `allowFontScaling`; no clipping fixed heights).
+- **Color meets WCAG AA** and is never the only signal (priority/status pair color with text/icon).
+- **Targets ≥44px**; **every gesture has a non-gesture alternative** (tap/keyboard/rotor action).
+- **Dynamic changes announce** via a live region (counts, validation, "deleted X").
+- **Plus** the automation hooks: `?testId = Some (A11ySlug.testId "<slug>" labelOrValue)`; dialog actions
+  use stable slugs (`todo-edit-save`, `todo-edit-cancel`); skeleton/empty states expose `testId`.
+- **Highest leverage:** bake role/state into the primitives (`Tab`/`Checkbox`/`Picker`/`Button`/
+  `Heading`) so generated apps get semantics free (`ACCESSIBILITY_PLAN.md` §9 #9). This is `[safe]` —
+  do it on the current ReactXP seam; it carries through Phase 4.
+- **Benchmark:** `SuiteTodo/AppTodo/suggestions/ui2.html` (a11y-rich light+dark mockup).
+- Reference: `ACCESSIBILITY_PLAN.md` §7–§8 (recipes + per-component playbook), gallery converted
+  components, `LEARNINGS.md` testId slugs.
 
 **Observability (required in generated app):**
 - Frontend: `UiActionLog.logUserAction` on create/toggle/edit/archive (with testId)

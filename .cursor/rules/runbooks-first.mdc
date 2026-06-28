@@ -1,0 +1,30 @@
+---
+description: Consult the runbooks/strategy docs before repeated or known-category work (dev loop, device debugging, a11y, structure, migration) — don't re-derive gotchas.
+alwaysApply: true
+---
+
+# Check the runbooks before repeated work
+
+Before starting any task that falls into a known category, **read the relevant doc first** and follow
+its recipe. These docs capture hard-won gotchas; re-deriving them wastes time and reintroduces fixed
+bugs.
+
+| If the task involves… | Read first |
+|---|---|
+| Running/launching/reloading the app, screenshotting, tapping/rotating a device, reading runtime errors/logs, killing stale watches, targeted rebuilds, "verify a patch reached the bundle", web/iOS/Android debug loop | `DEV_RUNBOOK.md` |
+| A build quirk, cache false-green, a bug/convention you suspect was hit before | `LEARNINGS.md` (newest entries first) |
+| Accessibility (any dimension), converting components for a11y, OS-setting handling, contrast, what survives the RNW migration | `ACCESSIBILITY_PLAN.md` |
+| Where app source files go, `.fsproj` compile order, layering | `APP_STRUCTURE.md` |
+| ReactXP→RNW migration scope, the seam, what to defer vs build now | `FRONTEND_MODERNIZATION_REACTXP_TO_RNW.md` |
+| Device setup (install, native project gen, day-to-day commands) | `SuiteTodo/AppTodo/README.md` |
+
+Rules:
+- **Repeated work = check the runbook.** If you are about to do something you (or a prior session) have
+  done before — especially device/build/observe loops — open `DEV_RUNBOOK.md` and use its commands and
+  decision tree rather than improvising.
+- **Tier 1 vs Tier 2 observation:** debug with raw `adb`/`simctl`/browser (fast, no setup); verify/gate
+  with the `audit/` toolkit (`npm run observe -- …`, Appium/Playwright) for `testId` interaction,
+  structured JSON, layout diffs, and CI. See `DEV_RUNBOOK.md` §0.
+- **When you discover a new gotcha or a runbook step is wrong/missing, update the doc** (append to
+  `LEARNINGS.md`; fix the relevant runbook) in the same change, so the next run benefits.
+- If a runbook and live reality disagree (e.g. a path/flag changed), trust reality, fix it, and note it.
