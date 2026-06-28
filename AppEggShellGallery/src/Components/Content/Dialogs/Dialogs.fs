@@ -17,6 +17,15 @@ type Ui.Content with
     static member Dialogs () : ReactElement =
         Ui.ComponentContent(
             displayName = "Dialogs",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Dialog.* (Alert, Confirm, ImageViewer, …)",
+                    role = "dialog on modal shells",
+                    namePattern = "accessibilityLabel from heading + details on Confirm/Alert; action buttons use visible label",
+                    stateNotes = "Confirm shell cycles InProgress/Error modes; dismiss via history back where allowed",
+                    scalesWithFont = true,
+                    contrastNotes = "Dialog body text and button pairs meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

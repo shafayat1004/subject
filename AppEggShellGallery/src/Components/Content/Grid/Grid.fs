@@ -154,6 +154,16 @@ type Ui.Content with
             notes =
                 LC.Text
                     "The grid is currently fairly basic, we're building it out as we go. If you have needs that are currently not supported, tell Anton and we'll make it happen. Also see QueryGrid and WithSortAndFilter for additional options.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "Grid",
+                    role = "table/grid (data display)",
+                    namePattern = "Column headers label each column; row cells inherit cell content",
+                    stateNotes = "Pagination controls are pressable buttons; sortable headers expose sort state",
+                    scalesWithFont = true,
+                    contrastNotes = "Header and cell text colors meet WCAG AA",
+                    deferredTags = ["[web-only] table semantics"]
+                ),
             samples =
                 element {
                     LC.Fragment(

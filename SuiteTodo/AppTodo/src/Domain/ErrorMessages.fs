@@ -1,13 +1,14 @@
 [<AutoOpen>]
 module AppTodo.ErrorMessages
 
+open AppTodo.I18nGlobal
 open LibUiSubject.Services.SubjectService
 open SuiteTodo.Types
 
 type TodoOpError with
     member this.ToDisplayString : string =
         match this with
-        | TodoOpError.EmptyTitle -> "Title cannot be empty"
+        | TodoOpError.EmptyTitle -> i18n.t.TitleEmpty
 
 type OpErrors =
     static member ToDisplayString (value: TodoOpError) : string =

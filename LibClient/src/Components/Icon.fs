@@ -5,7 +5,9 @@ open Fable.Core.JsInterop
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
+open ReactXP.Components
 open ReactXP.LegacyStyles
 open ReactXP.Styles
 
@@ -66,7 +68,7 @@ module private Helpers =
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
-    static member Icon(icon: LibClient.Icons.IconConstructor, ?styles: array<TextStyles>, ?xLegacyStyles: List<RuntimeStyles>) : ReactElement =
+    static member Icon(icon: LibClient.Icons.IconConstructor, ?styles: array<TextStyles>, ?decorative: bool, ?xLegacyStyles: List<RuntimeStyles>) : ReactElement =
 #if DEBUG
         // snooze for a while
         if System.DateTime.Now > System.DateTime.Parse "2024-03-01" then
@@ -79,5 +81,14 @@ type LibClient.Components.Constructors.LC with
                 |> Option.iter (fun _ -> Browser.Dom.console.warn "LC.Icon is being used with legacy styles. Please update all usages to use styles rather than classes.")
 #endif
 
+        let decorative = defaultArg decorative false
         let color, size = (Helpers.extractColorAndSize styles xLegacyStyles)
-        icon color size
+        let iconElement = icon color size :> ReactElement
+
+        if decorative then
+            RX.View(
+                importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
+                children = [| iconElement |]
+            )
+        else
+            iconElement

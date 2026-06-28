@@ -37,6 +37,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Carousel",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Carousel",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Carousel",
+                    role = "none (scroll container)",
+                    namePattern = "Child slide content provides names; carousel itself is unlabeled",
+                    stateNotes = "Swipe/scroll navigation; ensure non-gesture alternatives for slide content",
+                    scalesWithFont = true,
+                    contrastNotes = "Slide content inherits child contrast"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

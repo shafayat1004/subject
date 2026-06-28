@@ -21,6 +21,15 @@ type Ui.Content.LibRouter with
                     LC.Text "Renders the router dialog stack (resultless, resultful, ad-hoc, and system dialogs)."
                     LC.Text "In this gallery app it is wired once in App.fs inside LC.AppShell.Content.dialogs."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LR.Dialogs",
+                    role = "none (dialog stack renderer)",
+                    namePattern = "Each open dialog provides its own title and content",
+                    stateNotes = "Manages modal dialog stack; focus moves to top dialog",
+                    scalesWithFont = true,
+                    contrastNotes = "Dialog content meets WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(
@@ -53,6 +62,15 @@ LR.Dialogs(
                     LC.Text "Invisible helper mounted at the app root. On each URL change it tracks a screen view and calls UiActionLog.setCurrentRoute."
                     LC.Text "In DEBUG builds, inspect window.__eggshell.AppEggShellGallery.uiLog() after navigating."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LR.LogRouteTransitions",
+                    role = "none (invisible route tracker)",
+                    namePattern = "N/A — renders nothing",
+                    stateNotes = "Logs route changes for analytics and debugging",
+                    scalesWithFont = false,
+                    contrastNotes = "N/A — no visible UI"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(
@@ -79,6 +97,15 @@ LR.LogRouteTransitions()
                     LC.Text "React Native only. Registers a hardware back handler that calls the supplied goBack callback."
                     LC.Text "Must appear once in the tree (typically in AppContext). Duplicate LR.Router instances break back navigation."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LR.NativeBackButton",
+                    role = "none (hardware back handler)",
+                    namePattern = "N/A — native hardware back button",
+                    stateNotes = "Registers Android back handler; web is no-op",
+                    scalesWithFont = false,
+                    contrastNotes = "N/A — no visible UI"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(
@@ -100,6 +127,15 @@ LR.NativeBackButton(nav.GoBack)
         Ui.ComponentContent(
             displayName = "LR.With.Location",
             props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.With.Location",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LR.With.Location",
+                    role = "none (location provider)",
+                    namePattern = "Child render function displays location data",
+                    stateNotes = "Re-renders when URL location changes",
+                    scalesWithFont = true,
+                    contrastNotes = "Child content contrast unchanged by wrapper"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(
@@ -137,6 +173,15 @@ LR.With.Location (fun location ->
         Ui.ComponentContent(
             displayName = "LR.With.Route",
             props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.With.Route",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LR.With.Route",
+                    role = "none (route decoder provider)",
+                    namePattern = "Child render function displays decoded route",
+                    stateNotes = "Re-renders when navigation frame changes",
+                    scalesWithFont = true,
+                    contrastNotes = "Child content contrast unchanged by wrapper"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

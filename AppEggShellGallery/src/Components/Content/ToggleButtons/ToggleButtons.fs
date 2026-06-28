@@ -17,6 +17,7 @@ type private Helpers =
         let selected = Hooks.useState None
 
         LC.ToggleButtons(
+            label = "Fruit",
             value = LC.ToggleButtons.AtMostOne (selected.current, selected.update),
             buttons =
                 fun group ->
@@ -32,6 +33,7 @@ type private Helpers =
         let selected = Hooks.useState None
 
         LC.ToggleButtons(
+            label = "Fruit",
             value = LC.ToggleButtons.ExactlyOne (selected.current, fun fruit -> selected.update (Some fruit)),
             buttons =
                 fun group ->
@@ -47,6 +49,7 @@ type private Helpers =
         let selected = Hooks.useState None
 
         LC.ToggleButtons(
+            label = "Fruit",
             value =
                 LC.ToggleButtons.AtLeastOne (
                     selected.current,
@@ -66,6 +69,7 @@ type private Helpers =
         let selected = Hooks.useState None
 
         LC.ToggleButtons(
+            label = "Fruit",
             value = LC.ToggleButtons.Any (selected.current, fun fruits -> selected.update (Some fruits)),
             buttons =
                 fun group ->
@@ -96,7 +100,16 @@ type Ui.Content with
                     }
                 ),
             notes =
-                LC.Text "Each toggle button auto-slugs testId from its label (toggle-button-mango) or from the value for icon-only styles (toggle-button-mango).",
+                LC.Text "Each toggle button auto-slugs testId from its label (toggle-button-mango) or from the value for icon-only styles (toggle-button-mango). Pass label on LC.ToggleButtons to name the radio group.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.ToggleButtons / LC.ToggleButton",
+                    role = "radiogroup (LC.ToggleButtons); radio (LC.ToggleButton)",
+                    namePattern = "Button label or icon+value; group named via label prop on LC.ToggleButtons",
+                    stateNotes = "selected toggle exposes selected state via accessibilityState",
+                    scalesWithFont = true,
+                    contrastNotes = "Selected/unselected states use theme colors with non-color selected indicator"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(
@@ -114,6 +127,7 @@ type Fruit = Mango | Peach | Banana
 let selected = Hooks.useState None
 
 LC.ToggleButtons(
+    label = "Fruit",
     value = LC.ToggleButtons.AtMostOne (selected.current, selected.update),
     buttons = fun group ->
         element {
@@ -134,6 +148,7 @@ LC.ToggleButtons(
 let selected = Hooks.useState None
 
 LC.ToggleButtons(
+    label = "Fruit",
     value = LC.ToggleButtons.ExactlyOne (selected.current, fun fruit -> selected.update (Some fruit)),
     buttons = fun group ->
         element {
@@ -154,6 +169,7 @@ LC.ToggleButtons(
 let selected = Hooks.useState None
 
 LC.ToggleButtons(
+    label = "Fruit",
     value = LC.ToggleButtons.AtLeastOne (selected.current, fun fruits -> selected.update (Some fruits.ToOrderedSet)),
     buttons = fun group ->
         element {
@@ -174,6 +190,7 @@ LC.ToggleButtons(
 let selected = Hooks.useState None
 
 LC.ToggleButtons(
+    label = "Fruit",
     value = LC.ToggleButtons.Any (selected.current, fun fruits -> selected.update (Some fruits)),
     buttons = fun group ->
         element {

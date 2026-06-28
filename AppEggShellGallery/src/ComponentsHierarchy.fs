@@ -23,6 +23,7 @@ module Ui =
         type With = class end
         type Executor = class end
         type LibRouter = class end
+        type Accessibility = class end
 
     module XmlDocsContent =
         type LC = class end

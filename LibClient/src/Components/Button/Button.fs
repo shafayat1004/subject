@@ -245,6 +245,20 @@ type LibClient.Components.Constructors.LC with
                 fun screenSize ->
                     LC.Pointer.State(
                         fun pointerState ->
+                            let maybeContainerRole, maybeContainerLabel, maybeContainerState, maybeContainerTestId =
+                                match lowLevelState with
+                                | Actionable _ -> None, None, None, None
+                                | Disabled ->
+                                    Some AccessibilityRole.Button,
+                                    Some label,
+                                    Some (AccessibilityStateRecord.toJs (AccessibilityStateRecord.disabled true)),
+                                    testId
+                                | InProgress ->
+                                    Some AccessibilityRole.Button,
+                                    Some label,
+                                    Some (AccessibilityStateRecord.toJs (AccessibilityStateRecord.busy true)),
+                                    testId
+
                             RX.View(
                                 styles =
                                     [|
@@ -253,6 +267,10 @@ type LibClient.Components.Constructors.LC with
                                         yield! legacyViewStyles
                                         yield! (styles |> Option.defaultValue [||])
                                     |],
+                                ?accessibilityRole = maybeContainerRole,
+                                ?accessibilityLabel = maybeContainerLabel,
+                                ?accessibilityState = maybeContainerState,
+                                ?testId = maybeContainerTestId,
                                 children =
                                     elements {
                                         RX.View(
@@ -271,6 +289,7 @@ type LibClient.Components.Constructors.LC with
                                                                 elements {
                                                                     LC.Icon(
                                                                         icon = leftIcon,
+                                                                        decorative = true,
                                                                         styles = [| Styles.iconFor theTheme appearance |]
                                                                     )
                                                                 }
@@ -293,6 +312,7 @@ type LibClient.Components.Constructors.LC with
                                                                 elements {
                                                                     LC.Icon(
                                                                         icon = rightIcon,
+                                                                        decorative = true,
                                                                         styles = [| Styles.iconFor theTheme appearance |]
                                                                     )
                                                                 }

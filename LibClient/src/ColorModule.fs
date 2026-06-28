@@ -102,3 +102,41 @@ with
             | _    -> ()
 
             InternalHex (sprintf "#%s%s%s" value value value)
+
+/// WCAG relative luminance + contrast helpers (ACCESSIBILITY_PLAN backlog #13).
+module Contrast =
+    let private channel (c: int) : float =
+        let s = float c / 255.0
+        if s <= 0.03928 then s / 12.92 else ((s + 0.055) / 1.055) ** 2.4
+
+    let private luminanceOfRgb (r: int, g: int, b: int) : float =
+        0.2126 * channel r + 0.7152 * channel g + 0.0722 * channel b
+
+    let private parseRgb (color: Color) : Option<int * int * int> =
+        match color with
+        | Color.Rgb (r, g, b) -> Some (r, g, b)
+        | Color.InternalHex hex ->
+            let h = hex.TrimStart('#')
+            if h.Length >= 6 then
+                Some (Convert.ToInt32(h.[0..1], 16), Convert.ToInt32(h.[2..3], 16), Convert.ToInt32(h.[4..5], 16))
+            else
+                None
+        | _ -> None
+
+    let relativeLuminance (color: Color) : Option<float> =
+        parseRgb color |> Option.map luminanceOfRgb
+
+    /// WCAG contrast ratio (1:1 .. 21:1). Returns None when either color is not RGB/hex.
+    let contrastRatio (foreground: Color) (background: Color) : Option<float> =
+        match relativeLuminance foreground, relativeLuminance background with
+        | Some fg, Some bg ->
+            let lighter = max fg bg
+            let darker = min fg bg
+            Some ((lighter + 0.05) / (darker + 0.05))
+        | _ -> None
+
+    let meetsAaNormalText (foreground: Color) (background: Color) : bool =
+        contrastRatio foreground background |> Option.map (fun r -> r >= 4.5) |> Option.defaultValue false
+
+    let meetsAaLargeText (foreground: Color) (background: Color) : bool =
+        contrastRatio foreground background |> Option.map (fun r -> r >= 3.0) |> Option.defaultValue false

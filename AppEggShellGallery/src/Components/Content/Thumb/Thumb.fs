@@ -23,6 +23,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Thumb",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Thumb",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Thumb",
+                    role = "image or button when pressable",
+                    namePattern = "?accessibilityLabel describing the thumbnail content",
+                    stateNotes = "Pressable thumbs expose button role",
+                    scalesWithFont = false,
+                    contrastNotes = "N/A — image content"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

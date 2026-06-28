@@ -225,6 +225,12 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         compItem "With.Executor" WithExecutor itemState
 
         LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Accessibility")
+        compItem "Group" Accessibility_Group itemState
+        compItem "LiveRegion" Accessibility_LiveRegion itemState
+        compItem "With.Accessibility" Accessibility_WithAccessibility itemState
+
+        LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "With")
         compItem "WithContext" WithContext itemState
         compItem "DataFlowControl" WithDataFlowControl itemState

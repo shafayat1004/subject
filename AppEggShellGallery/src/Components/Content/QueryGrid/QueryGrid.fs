@@ -118,6 +118,16 @@ type Ui.Content with
             notes =
                 LC.Text
                     "QueryGrid is a paginated Grid that is type parametrized by 'Query, taking as props a chunk of UI through which the user inputs the query, and a query execution function.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "QueryGrid",
+                    role = "table/grid with query form",
+                    namePattern = "Query inputs and column headers label the grid; results announced via child content",
+                    stateNotes = "Loading and empty states surfaced by AsyncData wrapper; pagination controls are buttons",
+                    scalesWithFont = true,
+                    contrastNotes = "Query form and grid text colors meet WCAG AA",
+                    deferredTags = ["[web-only] table semantics"]
+                ),
             samples =
                 element {
                     LC.Fragment(

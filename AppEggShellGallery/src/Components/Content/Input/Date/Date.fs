@@ -47,6 +47,15 @@ type Ui.Content.Input with
         Ui.ComponentContent(
             displayName = "Input.Date",
             props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Date",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.Date",
+                    role = "text field with date picker",
+                    namePattern = "Floating label text",
+                    stateNotes = "Invalid/Missing validity surfaces error text below the field",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                ),
             samples     =
                 element {
                     Ui.ComponentSampleGroup(

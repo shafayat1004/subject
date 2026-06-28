@@ -3,8 +3,6 @@ module LibClient.Accessibility
 
 open Fable.Core
 open Fable.Core.JsInterop
-
-/// Matches ReactXP Types.AccessibilityRole (priority-ordered enum values).
 type AccessibilityRole =
 | Alert = 0
 | Imagebutton = 1
@@ -122,3 +120,25 @@ module A11ySlug =
             .Replace("/", "-")
 
     let testId prefix label = sprintf "%s-%s" prefix (fromLabel label)
+
+/// Reactive OS accessibility flags (§6 / ACCESSIBILITY_PLAN backlog #7).
+type AccessibilitySettings = {
+    ScreenReaderEnabled: bool
+    ReduceMotion: bool
+    BoldText: bool
+    ReduceTransparency: bool
+    InvertColors: bool
+    Grayscale: bool
+    FontScale: float
+}
+
+module AccessibilitySettings =
+    let defaults = {
+        ScreenReaderEnabled = false
+        ReduceMotion = false
+        BoldText = false
+        ReduceTransparency = false
+        InvertColors = false
+        Grayscale = false
+        FontScale = 1.0
+    }

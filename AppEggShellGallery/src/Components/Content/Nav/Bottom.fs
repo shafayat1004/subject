@@ -22,6 +22,15 @@ type Ui.Content.Nav with
                 Ui.ScrapedComponentProps (heading = "Nav.Bottom.Button", fullyQualifiedName = "LibClient.Components.Nav.Bottom.Button")
                 Ui.ScrapedComponentProps (heading = "Nav.Bottom.Filler", fullyQualifiedName = "LibClient.Components.Nav.Bottom.Filler")
             }),
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Nav.Bottom.*",
+                    role = "tab bar (Nav.Bottom.Base); items expose tab/button roles",
+                    namePattern = "Item label text; icon-only items need accessibilityLabel",
+                    stateNotes = "Selected tab exposes selected state; disabled items are not actionable",
+                    scalesWithFont = true,
+                    contrastNotes = "Tab labels and icons use theme colors meeting WCAG AA"
+                ),
             samples = (element {
                 Ui.ComponentSampleGroup (
                     samples = (element {

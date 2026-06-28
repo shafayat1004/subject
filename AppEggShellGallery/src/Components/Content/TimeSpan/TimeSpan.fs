@@ -14,6 +14,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "TimeSpan",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.TimeSpan",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.TimeSpan",
+                    role = "text (formatted duration)",
+                    namePattern = "Formatted time span text from value prop",
+                    stateNotes = "Static formatted text; no interactive state",
+                    scalesWithFont = true,
+                    contrastNotes = "Text color meets WCAG AA on typical backgrounds"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

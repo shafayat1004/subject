@@ -23,6 +23,15 @@ type Ui.Content.Input with
         Ui.ComponentContent (
             displayName = "Input.Duration",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Duration",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.Duration",
+                    role = "text field (duration)",
+                    namePattern = "Floating label text",
+                    stateNotes = "Invalid/Missing validity surfaces error text below the field",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

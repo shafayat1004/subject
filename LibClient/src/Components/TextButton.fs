@@ -57,7 +57,7 @@ type PropStateFactory = LC.TextButton.PropStateFactory
 module private Styles =
     let tapCapture =
         makeViewStyles {
-            trbl -4 -12 -4 -12
+            trbl -12 -12 -12 -12
         }
 
     let view =
@@ -66,6 +66,8 @@ module private Styles =
                 makeViewStyles {
                     Position.Relative
                     Overflow.VisibleForTapCapture
+                    minHeight 44
+                    JustifyContent.Center
 
                     match state with
                     | Actionable _ ->
@@ -104,6 +106,8 @@ type LibClient.Components.Constructors.LC with
             ?level: Level,
             ?numberOfLines: int,
             ?testId: string,
+            ?role: AccessibilityRole,
+            ?accessibilityState: AccessibilityStateRecord,
             ?styles: array<TextStyles>,
             ?theme:   Theme -> Theme,
             ?key: string
@@ -114,6 +118,8 @@ type LibClient.Components.Constructors.LC with
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let lowLevelState = state.ToLowLevel
         let theTestId = testId |> Option.defaultValue (A11ySlug.testId "text-button" label)
+        let theRole = defaultArg role AccessibilityRole.Button
+        let theA11yState = defaultArg accessibilityState AccessibilityStateRecord.empty
 
         RX.View(
             styles = [| Styles.view lowLevelState |],
@@ -149,7 +155,8 @@ type LibClient.Components.Constructors.LC with
                         LC.Pressable(
                             onPress = onPress,
                             label = label,
-                            role = AccessibilityRole.Button,
+                            role = theRole,
+                            state = theA11yState,
                             testId = theTestId,
                             overlay = true,
                             styles = [| Styles.tapCapture |],

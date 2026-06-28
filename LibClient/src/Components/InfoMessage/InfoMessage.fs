@@ -3,6 +3,7 @@ module LibClient.Components.InfoMessage
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open ReactXP.Components
 open ReactXP.Styles
 
@@ -50,6 +51,8 @@ type LibClient.Components.Constructors.LC with
             | None -> [||]
         RX.View(
             styles = [| Styles.view; yield! legacyViewStyles |],
+            accessibilityRole = AccessibilityRole.Status,
+            accessibilityLiveRegion = unbox<ReactXP.Components.View.AccessibilityLiveRegion> (int AccessibilityLiveRegion.Polite),
             children = [|
                 LC.Text(message, styles = [| Styles.textForColorCss levelColor.ToCssString; yield! defaultArg styles [||] |])
             |]

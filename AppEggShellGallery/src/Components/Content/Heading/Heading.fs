@@ -17,6 +17,15 @@ type Ui.Content with
             displayName = "Heading",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Heading",
             notes = LC.Text "Heading is a very common component and you should not arbitrarily apply style to it. Use themed styles.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Heading",
+                    role = "header (AccessibilityRole.Header)",
+                    namePattern = "Text content of children (typically LC.Text)",
+                    stateNotes = "Static text; no interactive state",
+                    scalesWithFont = true,
+                    contrastNotes = "Themed heading colors meet WCAG AA on typical page backgrounds"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

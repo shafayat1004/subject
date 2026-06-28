@@ -84,6 +84,15 @@ type Ui.Content.Input with
                 Ui.ScrapedComponentProps(heading = "ChoiceListItem", fullyQualifiedName = "LibClient.Components.Input.ChoiceListItem")
             }),
             notes = LC.Text "For 'AtMostOne' and 'ExactlyOne', Radio Button is rendered, and for 'AtLeastOne' and 'Any' we render checkboxes.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.ChoiceList / LC.Input.ChoiceListItem",
+                    role = "checkbox or radio per item (mode-dependent)",
+                    namePattern = "Item label or ?accessibilityLabel; selection icons are decorative",
+                    stateNotes = "selected/checked per item via group value; invalid reason shown when validity is Invalid",
+                    scalesWithFont = true,
+                    contrastNotes = "Label text and selection icons meet WCAG AA; invalid state adds error text"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

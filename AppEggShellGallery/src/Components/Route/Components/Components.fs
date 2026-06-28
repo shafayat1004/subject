@@ -88,6 +88,9 @@ let private renderContent (content: ComponentItem) : ReactElement =
     | Thumb                         -> Ui.Content.Thumb()
     | Thumbs                        -> Ui.Content.Thumbs()
     | ToggleButtons                 -> Ui.Content.ToggleButtons()
+    | Accessibility_Group           -> Ui.Content.Accessibility.Group()
+    | Accessibility_LiveRegion      -> Ui.Content.Accessibility.LiveRegion()
+    | Accessibility_WithAccessibility -> Ui.Content.Accessibility.WithAccessibility()
     | WithDataFlowControl           -> Ui.Content.With.DataFlowControl()
     | WithExecutor                  -> Ui.XmlDocsContent.LC.With_Executor()
     | WithSortAndFilter             -> Ui.Content.WithSortAndFilter()
@@ -109,7 +112,7 @@ type Ui.Route with
     static member Components(pstoreKey: string, sampleVisualsScreenSize: ScreenSize, content: ComponentItem) : ReactElement =
         sampleVisualsScreenSizeContextProvider sampleVisualsScreenSize [|
             element {
-                LC.SetPageMetadata(title = "Components")
+                LC.SetPageMetadata(title = ComponentItem.pageTitle content)
                 LR.Route(
                     scroll = LibRouter.Components.Route.Vertical,
                     children = [|

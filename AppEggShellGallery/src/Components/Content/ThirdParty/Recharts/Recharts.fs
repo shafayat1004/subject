@@ -243,6 +243,16 @@ type Ui.Content.ThirdParty with
                         Ui.ScrapedComponentProps(heading = "YAxis", fullyQualifiedName = "ThirdParty.Recharts.Components.YAxis")
                     }
                 ),
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "Recharts.*",
+                    role = "none (chart visualization)",
+                    namePattern = "Provide textual summary or data table alongside charts",
+                    stateNotes = "Interactive tooltips on hover; keyboard access limited",
+                    scalesWithFont = true,
+                    contrastNotes = "Chart colors should meet WCAG AA; pair with labels/legend text",
+                    deferredTags = ["[web-only] accessible chart patterns"]
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

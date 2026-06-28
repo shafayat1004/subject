@@ -129,6 +129,14 @@ type Ui.Content with
                     LC.Text "We think of forms as a chunk of UI whose job is to produce a value of type 'T. The main building block for a form is the accumulator (Acc), which holds partially filled data and provides Validate."
                     LC.Text "Form elements are regular input elements bound to the form's validation. Currently we have Text, PositiveInteger, UnsignedDecimal, and Picker wrapped."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Form.Base",
+                    role = "none (form container)",
+                    namePattern = "N/A — bound LC.Input.* fields expose their own names",
+                    stateNotes = "Submit button reflects form TrySubmit state; field validity via form.FieldValidity",
+                    scalesWithFont = true
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

@@ -167,6 +167,7 @@ module Input_CheckboxComponent =
                                 elements {
                                     LC.Icon(
                                         icon = checkboxIcon,
+                                        decorative = true,
                                         styles = [| Styles.iconTheme theTheme.IconSize iconColorCss |]
                                     )
 

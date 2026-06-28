@@ -30,6 +30,15 @@ type Ui.Content with
                 Ui.ScrapedComponentProps (heading = "Sidebar.Heading", fullyQualifiedName = "LibClient.Components.Sidebar.Heading")
                 Ui.ScrapedComponentProps (heading = "Sidebar.Divider", fullyQualifiedName = "LibClient.Components.Sidebar.Divider")
             }),
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Sidebar.*",
+                    role = "navigation (Sidebar.Base); items expose button roles",
+                    namePattern = "Sidebar.Item label text; Sidebar.Heading for section headers",
+                    stateNotes = "Selected item exposes selected state; disabled items are not actionable",
+                    scalesWithFont = true,
+                    contrastNotes = "Sidebar text and selection highlight meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

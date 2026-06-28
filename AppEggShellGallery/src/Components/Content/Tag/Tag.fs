@@ -37,6 +37,15 @@ type Ui.Content with
             displayName = "Tag",
             isResponsive = true,
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Tag",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Tag",
+                    role = "text (ViewOnly) or button (Actionable/Removable)",
+                    namePattern = "text prop; removable tags announce remove action",
+                    stateNotes = "ViewOnly is static; Actionable and Removable expose pressable state",
+                    scalesWithFont = true,
+                    contrastNotes = "Tag text and background colors meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

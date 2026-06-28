@@ -37,6 +37,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Pre",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Pre",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Pre",
+                    role = "text (preformatted/code block)",
+                    namePattern = "text prop content read as preformatted text",
+                    stateNotes = "Static text; selectable",
+                    scalesWithFont = true,
+                    contrastNotes = "Preformatted text color meets WCAG AA on background"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

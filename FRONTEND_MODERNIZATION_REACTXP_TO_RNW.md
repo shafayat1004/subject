@@ -737,6 +737,23 @@ do not pursue MAUI, Uno, or Fable-to-Flutter.
 **Open decision:** install .NET 10 SDK now (run the spike on Fable 5 as intended), or run the spike on
 Fable 4.x first and add .NET 10 later.
 
+**UPDATE (2026-06-29): gate cleared, spike RAN.** .NET 10 (10.0.301) is installed and `subject/` is now
+on Fable 5.4.0 (branch `modernization/fable5-migration`). The spike produced Fable build output
+(`fable_build/`, `dist/`) and result screenshots — `spike-web.png` (RNW web), `spike-signalr.png`
+(Fable-5 F# client <- .NET 10 SignalR), and `native-drag-opaque.png` / `native-load-translucent.png` /
+`native-release-translucent.png` (Probe C/D: an RNGH `Gesture.Pan` driving a Reanimated shared-value
+opacity — the red box is opaque while dragging, translucent on release). So **web (RNW) + native +
+SignalR + the declarative Moti path are confirmed.** For the worklet path: the two C/D screenshots were
+produced by the **Fable-compiled** `fsharp/App.fs` using the inline F# `useAnimatedStyle`, with the
+**Plan-B JS shim NOT imported** (`js/worklets.js` is declared in `Bindings.fs` but unused; `App.js`
+mounts `./fable_build/App.js` only) — so a Fable-emitted closure passed to `useAnimatedStyle` drove the
+animation. **Caveat:** the screenshots confirm the gesture->shared-value->animated-style *pipeline*, not
+UI-thread vs JS-thread execution of the worklet. Keep the Plan-B rule (declarative in F#; any stubborn
+worklet in a tiny JS shim). There is also a benign Metro "Require cycle: fable_build/fable_modules/…"
+warning in the build.
+Proven pins are encoded in `MIGRATION_RUNBOOK.md` §4.5-§4.8 (React 19.2.3, RN 0.85.3, RNW 0.21.2,
+Reanimated 4.3.1 + `react-native-worklets` 0.8.3, RNGH 2.31.1, Moti 0.30, Expo 56).
+
 ---
 
 ## 20. Sources

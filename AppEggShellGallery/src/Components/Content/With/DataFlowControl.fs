@@ -24,6 +24,15 @@ type Ui.Content.With with
                     LC.Text "PropagateWhenConfirmed: a confirmation prompt appears when new data differs from what the child currently shows."
                     LC.Text "PropagateWhenResolved: propagation waits until the supplied Deferred resolves (e.g. after an async action completes)."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.With.DataFlowControl",
+                    role = "none (data propagation wrapper)",
+                    namePattern = "Child render function content provides accessible names",
+                    stateNotes = "May block or delay data propagation; confirmation prompts are dialogs",
+                    scalesWithFont = true,
+                    contrastNotes = "Child content contrast unchanged by wrapper"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

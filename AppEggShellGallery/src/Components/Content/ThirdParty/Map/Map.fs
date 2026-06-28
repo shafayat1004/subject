@@ -99,6 +99,16 @@ type Ui.Content.ThirdParty with
         Ui.ComponentContent(
             displayName = "Map",
             props = ComponentContent.ForFullyQualifiedName "ThirdParty.Map.Components.Base",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "Map",
+                    role = "none (interactive map)",
+                    namePattern = "Map markers and controls need accessibilityLabel; not fully wired",
+                    stateNotes = "Pan/zoom gestures; provide text alternatives for map data",
+                    scalesWithFont = false,
+                    contrastNotes = "Map styling is visual; pair with textual location info",
+                    deferredTags = ["[rnw-blocked] full map a11y"]
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

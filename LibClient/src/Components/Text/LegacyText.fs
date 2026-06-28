@@ -29,7 +29,7 @@ let private baseThemeStyle = lazy (
 )
 
 type LibClient.Components.Constructors.LC with
-    static member LegacyText(children: ReactChildrenProp, ?selectable: bool, ?numberOfLines: int, ?allowFontScaling: bool, ?maxContentSizeMultiplier: float, ?ellipsizeMode: EllipsizeMode, ?textBreakStrategy: TextBreakStrategy, ?importantForAccessibility: ImportantForAccessibility, ?accessibilityId: string, ?autoFocus: bool, ?onPress: (PointerEvent -> unit), ?id: string, ?onContextMenu: (MouseEvent -> unit), ?key: string, ?xLegacyStyles: List<RuntimeStyles>, ?xLegacyClassName: string, ?theme: LibClient.Components.Text.LC.Text.Theme -> LibClient.Components.Text.LC.Text.Theme, ?styles: array<ReactXP.Styles.FSharpDialect.TextStyles>) =
+    static member LegacyText(children: ReactChildrenProp, ?selectable: bool, ?numberOfLines: int, ?allowFontScaling: bool, ?maxContentSizeMultiplier: float, ?ellipsizeMode: EllipsizeMode, ?textBreakStrategy: TextBreakStrategy, ?importantForAccessibility: ImportantForAccessibility, ?accessibilityId: string, ?accessibilityLabel: string, ?accessibilityRole: LibClient.Accessibility.AccessibilityRole, ?autoFocus: bool, ?onPress: (PointerEvent -> unit), ?id: string, ?onContextMenu: (MouseEvent -> unit), ?key: string, ?xLegacyStyles: List<RuntimeStyles>, ?xLegacyClassName: string, ?theme: LibClient.Components.Text.LC.Text.Theme -> LibClient.Components.Text.LC.Text.Theme, ?styles: array<ReactXP.Styles.FSharpDialect.TextStyles>) =
         ignore xLegacyClassName
         let themeStyles =
             match theme with
@@ -65,6 +65,8 @@ type LibClient.Components.Constructors.LC with
         __props?textBreakStrategy <- textBreakStrategy |> Option.orElse (Undefined)
         __props?importantForAccessibility <- importantForAccessibility |> Option.orElse (Undefined)
         __props?accessibilityId <- accessibilityId |> Option.orElse (Undefined)
+        accessibilityLabel |> Option.iter (fun v -> __props?accessibilityLabel <- v)
+        accessibilityRole |> Option.iter (fun v -> __props?accessibilityRole <- v)
         __props?autoFocus <- autoFocus |> Option.orElse (Undefined)
         __props?onPress <- onPress |> Option.orElse (Undefined)
         __props?id <- id |> Option.orElse (Undefined)

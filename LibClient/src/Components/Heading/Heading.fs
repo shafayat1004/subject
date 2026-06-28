@@ -4,6 +4,7 @@ module LibClient.Components.Heading
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Responsive
 
 open ReactXP.Components
@@ -134,6 +135,7 @@ type LibClient.Components.Constructors.LC with
 
         LC.With.ScreenSize (fun screenSize ->
             LC.LegacyText(
+                accessibilityRole = AccessibilityRole.Header,
                 children = children,
                 styles   =
                     [|

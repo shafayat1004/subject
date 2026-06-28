@@ -71,6 +71,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "ErrorBoundary",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.ErrorBoundary",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.ErrorBoundary",
+                    role = "none (error recovery wrapper)",
+                    namePattern = "Fallback UI provides accessible error message when child throws",
+                    stateNotes = "Catches render errors; shows fallback instead of crashing",
+                    scalesWithFont = true,
+                    contrastNotes = "Fallback error text meets WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

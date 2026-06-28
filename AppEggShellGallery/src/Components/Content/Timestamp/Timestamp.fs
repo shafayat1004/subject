@@ -12,6 +12,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Timestamp",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Timestamp",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Timestamp",
+                    role = "text (formatted date/time)",
+                    namePattern = "Formatted timestamp text from value prop",
+                    stateNotes = "Static formatted text; no interactive state",
+                    scalesWithFont = true,
+                    contrastNotes = "Text color meets WCAG AA on typical backgrounds"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

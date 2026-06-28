@@ -43,6 +43,15 @@ type Ui.Content with
             props =
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.DateSelector",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.DateSelector",
+                    role = "button per selectable day; LC.IconButton for month navigation",
+                    namePattern = "Day cells use formatted day label; prev/next month use label prop on IconButton",
+                    stateNotes = "selected day exposes Selected; out-of-range days are not pressable",
+                    scalesWithFont = true,
+                    contrastNotes = "Header, weekday, and selected-day colors meet WCAG AA (theme customizable)"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

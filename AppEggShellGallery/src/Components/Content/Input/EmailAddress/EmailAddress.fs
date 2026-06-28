@@ -24,6 +24,15 @@ type Ui.Content.Input with
         Ui.ComponentContent(
             displayName = "Input.EmailAddress",
             props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.EmailAddress",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.EmailAddress",
+                    role = "text field (email)",
+                    namePattern = "Floating label text",
+                    stateNotes = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                ),
             samples     =
                 element {
                     Ui.ComponentSampleGroup(

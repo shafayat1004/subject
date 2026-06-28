@@ -26,6 +26,15 @@ type Ui.Content with
             props =
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.FloatingActionButton",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.FloatingActionButton",
+                    role = "button",
+                    namePattern = "label prop when set; otherwise derived from icon (IconA11y.labelFromIcon)",
+                    stateNotes = "disabled when MakeDisabled; busy when InProgress",
+                    scalesWithFont = true,
+                    contrastNotes = "Themed icon/background pairs meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

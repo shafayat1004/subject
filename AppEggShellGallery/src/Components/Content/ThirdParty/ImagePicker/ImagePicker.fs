@@ -36,6 +36,15 @@ type Ui.Content.ThirdParty with
             notes =
                 LC.Text
                     "ImagePicker wraps LC.Input.Image on web and a native picker on mobile. Same value/validity/onChange contract as Input.File.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "ImagePicker",
+                    role = "button (file picker) with image preview",
+                    namePattern = "Inherits LC.Input.Image label pattern",
+                    stateNotes = "Invalid/Missing validity surfaces error text; selected files shown as thumbnails",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, button text, and error colors meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

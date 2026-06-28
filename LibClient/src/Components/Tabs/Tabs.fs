@@ -4,6 +4,7 @@ module LibClient.Components.Tabs
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
 open ReactXP.Components
 open ReactXP.Styles
@@ -45,6 +46,7 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tabs(
             children: array<ReactElement>,
+            ?label: string,
             ?styles: array<ScrollViewStyles>,
             ?theme: Theme -> Theme,
             ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
@@ -77,6 +79,8 @@ type LibClient.Components.Constructors.LC with
                 elements {
                     RX.View(
                         styles   = [| Styles.view |],
+                        ?accessibilityLabel = label,
+                        accessibilityRole = AccessibilityRole.TabList,
                         children = children
                     )
                 }

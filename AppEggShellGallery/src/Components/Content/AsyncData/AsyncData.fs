@@ -44,6 +44,15 @@ type Ui.Content with
             notes =
                 LC.Text
                     "An AsyncData component is typically used in conjunction with a component that provides data asynchronously, such as With.Subject or QueryGrid. Such components will typically handle the async life cycle on your behalf, automatically transitioning between different AsyncData<'T> values. For the sake of simplicity, the examples below provide AsyncData<'T> values to the AsyncData component directly.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.AsyncData",
+                    role = "none (async state wrapper)",
+                    namePattern = "Loading/error/empty messages from child render props",
+                    stateNotes = "Transitions between Available, Loading, Failed, and Uninitialized states",
+                    scalesWithFont = true,
+                    contrastNotes = "Status and error message text meet WCAG AA"
+                ),
             samples =
                 element {
                     LC.Fragment(

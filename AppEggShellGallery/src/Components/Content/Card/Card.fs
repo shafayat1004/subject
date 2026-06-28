@@ -14,6 +14,15 @@ type Ui.Content with
             displayName = "Card",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Legacy.Card",
             notes = LC.Text "Legacy.Card wraps content in a bordered container. Use style for shadow vs flat appearance; pass onPress to make the whole card tappable.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Legacy.Card",
+                    role = "none (static) or button when onPress is provided",
+                    namePattern = "Child text content; card is labeled by its children",
+                    stateNotes = "Pressable cards expose button role and disabled state when applicable",
+                    scalesWithFont = true,
+                    contrastNotes = "Card content text meets WCAG AA on card backgrounds"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

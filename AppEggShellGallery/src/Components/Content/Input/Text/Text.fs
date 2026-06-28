@@ -18,7 +18,10 @@ type private Helpers =
         ?prefix: string,
         ?suffix: InputSuffix,
         ?requestFocusOnMount: bool,
-        ?testId: string
+        ?testId: string,
+        ?prefixIcon: LibClient.Icons.IconConstructor,
+        ?accessibilityRole: AccessibilityRole,
+        ?accessibilityLabel: string
     ) : ReactElement =
         let value = Hooks.useState (NonemptyString.ofString initialText)
         let resolvedTestId = testId |> Option.defaultValue (A11ySlug.testId "input" label)
@@ -33,7 +36,10 @@ type private Helpers =
             ?placeholder         = placeholder,
             ?prefix              = prefix,
             ?suffix              = suffix,
-            ?requestFocusOnMount = requestFocusOnMount
+            ?requestFocusOnMount = requestFocusOnMount,
+            ?prefixIcon          = prefixIcon,
+            ?accessibilityRole   = accessibilityRole,
+            ?accessibilityLabel  = accessibilityLabel
         )
 
 type Ui.Content.Input with
@@ -43,7 +49,16 @@ type Ui.Content.Input with
             displayName = "Input.Text",
             props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Text",
             notes       =
-                LC.Text "This component is a work in progress. If there's a feature that's not already supported, check if RX.TextInput supports it, and if so, plumb it through.",
+                LC.Text "This component is a work in progress. If there's a feature that's not already supported, check if RX.TextInput supports it, and if so, plumb it through. Decorative prefixIcon is hidden from screen readers (importantForAccessibility = No).",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.Text",
+                    role = "text field (default); search when ?accessibilityRole = AccessibilityRole.Search",
+                    namePattern = "Floating label text; override with ?accessibilityLabel",
+                    stateNotes = "Invalid/Missing validity surfaces error text below the field",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, input text, and error colors meet WCAG AA; invalid state adds error icon plus text"
+                ),
             samples     =
                 element {
                     Ui.ComponentSampleGroup(
@@ -113,6 +128,40 @@ LC.Input.Text(
     validity    = Valid,
     onChange    = setValue,
     placeholder = "e.g. Kafka on the Shore"
+)"""
+                                        )
+                                )
+                            }
+                    )
+
+                    Ui.ComponentSampleGroup(
+                        heading = "Search",
+                        samples =
+                            element {
+                                Ui.ComponentSample(
+                                    visuals =
+                                        Helpers.Sample(
+                                            label               = "Search",
+                                            initialText         = "",
+                                            validity            = Valid,
+                                            placeholder         = "Search todos",
+                                            prefixIcon          = Icon.MagnifyingGlass,
+                                            accessibilityRole   = AccessibilityRole.Search,
+                                            accessibilityLabel  = "Search todos"
+                                        ),
+                                    code =
+                                        ComponentSample.SingleBlock(
+                                            ComponentSample.Fsharp,
+                                            LC.Text """
+LC.Input.Text(
+    label              = "Search",
+    value              = value,
+    validity           = Valid,
+    onChange           = setValue,
+    placeholder        = "Search todos",
+    prefixIcon         = Icon.MagnifyingGlass,
+    accessibilityRole  = AccessibilityRole.Search,
+    accessibilityLabel = "Search todos"
 )"""
                                         )
                                 )

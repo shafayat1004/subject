@@ -93,6 +93,15 @@ type Ui.Content with
                 })
             ),
             notes = LC.Text """RX.AnimatableTextInput is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated input styles.""",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "RX.AnimatableTextInput",
+                    role = "text field",
+                    namePattern = "placeholder or value text; pair with visible label in production",
+                    stateNotes = "Animated input styles; honor reduce-motion where wired",
+                    scalesWithFont = true,
+                    contrastNotes = "Input text and placeholder colors meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

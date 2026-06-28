@@ -43,6 +43,19 @@ type Ui.Content with
                 element {
                     LC.Text "We support buttons, cautionary buttons, dividers, and headings. Menu items expose testId context-menu-item-{slug} for automation."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "ContextMenu (Popup / Dialog)",
+                    role = "menuitem on actionable items; headings and dividers non-interactive",
+                    namePattern = "Visible label text on each ContextMenuItem.Button",
+                    stateNotes = "ButtonCautionary items styled red; popup items expose selected state when isSelected",
+                    scalesWithFont = true,
+                    contrastNotes = "Normal and cautionary item text colors meet WCAG AA",
+                    deferredTags =
+                        [
+                            "[rnw-blocked] desktop popup menu landmark and focus management pending RNW migration"
+                        ]
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

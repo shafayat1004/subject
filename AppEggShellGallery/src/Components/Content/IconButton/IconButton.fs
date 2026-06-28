@@ -23,6 +23,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "IconButton",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconButton",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.IconButton",
+                    role = "button",
+                    namePattern = "?label prop (defaults to \"Icon button\"); icon is decorative",
+                    stateNotes = "disabled when MakeDisabled; busy when InProgress",
+                    scalesWithFont = false,
+                    contrastNotes = "Themed icon color meets WCAG AA on typical backgrounds"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

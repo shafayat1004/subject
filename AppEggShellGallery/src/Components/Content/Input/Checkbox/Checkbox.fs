@@ -51,6 +51,15 @@ type Ui.Content.Input with
             displayName = "Input.Checkbox",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Checkbox",
             notes = LC.Text "Label defaulting to Children is for backwards compatibility. When using Children for the visual label, pass accessibilityLabel and testId for a11y and automation.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.Checkbox",
+                    role = "checkbox",
+                    namePattern = "label prop or ?accessibilityLabel when using children for the visible label",
+                    stateNotes = "checked/unchecked via value; invalid when validity is Invalid",
+                    scalesWithFont = true,
+                    contrastNotes = "Checked/unchecked icon colors and error text meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

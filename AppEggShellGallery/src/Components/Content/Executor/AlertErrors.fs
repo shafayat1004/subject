@@ -20,6 +20,15 @@ type Ui.Content.Executor with
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.Executor.AlertErrors",
             notes = LC.Text "Executor.AlertErrors wraps async operations and shows an alert when they fail. Pass makeExecutor from the with callback to run keyed operations.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Executor.AlertErrors",
+                    role = "none (async error handler)",
+                    namePattern = "Alert dialog title and message on failure",
+                    stateNotes = "Shows system alert when executor operation fails",
+                    scalesWithFont = true,
+                    contrastNotes = "Alert text meets WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

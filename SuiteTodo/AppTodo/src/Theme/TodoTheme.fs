@@ -107,9 +107,11 @@ module Styles =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) (isActive: bool) ->
                 makeViewStyles {
+                    minHeight 44
                     paddingVertical 6
                     paddingHorizontal 14
                     borderRadius 999
+                    JustifyContent.Center
                     // Android: a backgroundColor + borderRadius View needs Overflow.Hidden
                     // to actually clip the fill to the rounded box (otherwise square).
                     Overflow.Hidden
@@ -162,7 +164,9 @@ module Styles =
     let filterTabCell =
         makeViewStyles {
             flex 1
+            minHeight 44
             AlignItems.Center
+            JustifyContent.Center
         }
 
     let categoryScroll =
@@ -184,10 +188,12 @@ module Styles =
         ViewStyles.Memoize(
             fun (bg: Color) (border: Color) (isSelected: bool) ->
                 makeViewStyles {
+                    minHeight 44
                     borderRadius 999
                     borderWidth (if isSelected then 2 else 1)
                     paddingVertical 4
                     paddingHorizontal 10
+                    JustifyContent.Center
                     backgroundColor bg
                     borderColor border
                 }

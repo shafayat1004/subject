@@ -35,6 +35,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Thumbs",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Thumbs",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Thumbs",
+                    role = "none (container for thumbnail images)",
+                    namePattern = "Each LC.Thumb child provides its own label",
+                    stateNotes = "Static gallery of thumbnails",
+                    scalesWithFont = false,
+                    contrastNotes = "N/A — image content"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

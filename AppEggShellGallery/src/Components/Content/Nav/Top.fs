@@ -46,6 +46,15 @@ type Ui.Content.Nav with
                 Ui.ScrapedComponentProps (heading = "Nav.Top.Filler",            fullyQualifiedName = "LibClient.Components.Nav.Top.Filler")
                 Ui.ScrapedComponentProps (heading = "Nav.Top.ShowSidebarButton", fullyQualifiedName = "LibClient.Components.Nav.Top.ShowSidebarButton")
             }),
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Nav.Top.*",
+                    role = "header bar (Nav.Top.Base); nav items expose button/link roles",
+                    namePattern = "Item label text; headings via Nav.Top.Heading",
+                    stateNotes = "Selected nav items expose selected state; ShowSidebarButton is a button",
+                    scalesWithFont = true,
+                    contrastNotes = "Nav item text and backgrounds use theme colors meeting WCAG AA"
+                ),
             samples = (element {
                 Ui.ComponentSampleGroup (
                     samples = (element {

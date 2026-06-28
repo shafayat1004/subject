@@ -11,6 +11,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Stars",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Stars",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Stars",
+                    role = "text (rating display)",
+                    namePattern = "count prop rendered as star icons plus implicit rating value",
+                    stateNotes = "Static rating indicator; pair with visible numeric rating for color-blind users",
+                    scalesWithFont = true,
+                    contrastNotes = "Star fill color is paired with count; not the sole signal"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

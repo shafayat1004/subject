@@ -33,6 +33,14 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Buttons",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Buttons",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Buttons",
+                    role = "none (layout container)",
+                    namePattern = "N/A — child LC.Button elements supply names",
+                    stateNotes = "N/A — child buttons expose disabled and busy state",
+                    scalesWithFont = false
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

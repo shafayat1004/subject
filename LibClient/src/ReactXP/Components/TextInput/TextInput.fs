@@ -81,6 +81,8 @@ type ReactXP.Components.Constructors.RX with
         ?onSubmitEditing:          unit -> unit,
         ?onScroll:                 float -> float -> unit,
         ?ref:                      LibClient.JsInterop.JsNullable<ITextInputRef> -> unit,
+        ?accessibilityLabel:       string,
+        ?accessibilityRole:        LibClient.Accessibility.AccessibilityRole,
         ?key:                      string,
         ?styles:                   array<ReactXP.Styles.FSharpDialect.ViewStyles>,
         ?xLegacyStyles:            List<ReactXP.LegacyStyles.RuntimeStyles>
@@ -119,6 +121,8 @@ type ReactXP.Components.Constructors.RX with
         __props?onSubmitEditing          <- onSubmitEditing
         __props?onScroll                 <- onScroll
         __props?ref                      <- ref
+        __props?accessibilityLabel       <- accessibilityLabel
+        __props?accessibilityRole        <- accessibilityRole
         __props?key                      <- key
         __props?style                    <- styles
 

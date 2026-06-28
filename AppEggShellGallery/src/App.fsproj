@@ -71,6 +71,8 @@
 
     <Compile Include="Components/GalleryHeadings/GalleryHeadings.fs" />
 
+    <Compile Include="Components/ComponentContent/A11yPanel.fs" />
+
     <Compile Include="Components/ComponentContent/ComponentContent.fs" />
 
     <Compile Include="Components/ComponentSampleGroup/ComponentSampleGroup.fs" />
@@ -181,6 +183,12 @@
     <Compile Include="Components/Content/ImageCard/ImageCard.fs" />
 
     <Compile Include="Components/Content/ToggleButtons/ToggleButtons.fs" />
+
+    <Compile Include="Components/Content/Accessibility/Group.fs" />
+
+    <Compile Include="Components/Content/Accessibility/LiveRegion.fs" />
+
+    <Compile Include="Components/Content/Accessibility/WithAccessibility.fs" />
 
     <Compile Include="Components/Content/Pre/Pre.fs" />
 

@@ -31,6 +31,9 @@
 
   <!-- Domain: error display, todo actions, queries, and display helpers. -->
   <ItemGroup>
+    <Compile Include="I18n/En.fs" />
+    <Compile Include="I18n/Bn.fs" />
+    <Compile Include="I18n.fs" />
     <Compile Include="Domain/ErrorMessages.fs" />
   </ItemGroup>
 

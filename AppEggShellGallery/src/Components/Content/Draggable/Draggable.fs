@@ -16,6 +16,15 @@ type Ui.Content with
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.Draggable",
             notes = LC.Text "Draggable wraps content that can be swiped or programmatically moved via a ref. Thresholds and offsets control how far each swipe moves the element.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Draggable",
+                    role = "none (gesture container)",
+                    namePattern = "Child content provides accessible name; expose non-gesture controls for swipe actions",
+                    stateNotes = "Swipe gestures move content; pair with buttons for motor-accessible alternatives",
+                    scalesWithFont = true,
+                    contrastNotes = "Child content contrast unchanged by drag wrapper"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

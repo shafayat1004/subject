@@ -120,6 +120,20 @@ type LibClient.Components.Constructors.LC with
             fun pointerState ->
                 let isDepressed = pointerState.IsDepressed
 
+                let maybeContainerRole, maybeContainerLabel, maybeContainerState, maybeContainerTestId =
+                    match lowLevelState with
+                    | Actionable _ -> None, None, None, None
+                    | Disabled ->
+                        Some AccessibilityRole.Button,
+                        Some a11yLabel,
+                        Some (AccessibilityStateRecord.toJs (AccessibilityStateRecord.disabled true)),
+                        testId
+                    | InProgress ->
+                        Some AccessibilityRole.Button,
+                        Some a11yLabel,
+                        Some (AccessibilityStateRecord.toJs (AccessibilityStateRecord.busy true)),
+                        testId
+
                 element {
                     RX.View(
                         styles =
@@ -127,6 +141,10 @@ type LibClient.Components.Constructors.LC with
                                 Styles.viewThemeFor theTheme lowLevelState isDepressed
                                 yield! (styles |> Option.defaultValue [||])
                             |],
+                        ?accessibilityRole = maybeContainerRole,
+                        ?accessibilityLabel = maybeContainerLabel,
+                        ?accessibilityState = maybeContainerState,
+                        ?testId = maybeContainerTestId,
                         children =
                             elements {
                                 LC.Icon(

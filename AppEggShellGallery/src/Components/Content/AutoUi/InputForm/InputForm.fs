@@ -73,6 +73,14 @@ UIAuto.InputForm(
                             + "Primitive fields map to registered input components (string, date/time, etc.)."
                     )
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "UIAuto.InputForm",
+                    role = "none (auto-generated form)",
+                    namePattern = "Field names from F# record properties via reflection",
+                    stateNotes = "Validation surfaced via onChange InputValidationResult",
+                    scalesWithFont = true
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

@@ -8,13 +8,14 @@ open LibClient.Components
 open LibRouter.Components
 open AppTodo.Navigation
 open AppTodo.Components
+open AppTodo.I18nGlobal
 
 type Ui.App with
     [<Component>]
     static member Root () : ReactElement =
         element {
             LR.LogRouteTransitions()
-            LC.SetPageMetadata(title = "Todo")
+            LC.SetPageMetadata(title = i18n.t.PageTitle)
 
             let maybeNavigationFrame = LR.UseRoute (routesSpec())
 
@@ -36,7 +37,7 @@ type Ui.App with
                 onError = LC.AppShell.TopLevelErrorMessage,
                 content =
                     match maybeNavigationFrame |> Option.map NavigationFrame.route with
-                    | None -> LC.InfoMessage(level = InfoMessage.Level.Attention, message = "Route Not Found")
+                    | None -> LC.InfoMessage(level = InfoMessage.Level.Attention, message = i18n.t.RouteNotFound)
                     | Some Todos -> Ui.Route.Todos()
             )
         }

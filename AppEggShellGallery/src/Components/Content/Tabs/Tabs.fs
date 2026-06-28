@@ -24,6 +24,7 @@ type private Helpers =
 
         element {
             LC.Tabs(
+                label = "Section tabs",
                 children = [|
                     LC.Tab(
                         label = "Home",
@@ -75,6 +76,7 @@ type private Helpers =
 
         element {
             LC.Tabs(
+                label = "Section tabs",
                 children =
                     (labels
                      |> Array.mapi (fun i label ->
@@ -113,8 +115,17 @@ type Ui.Content with
                 ),
             notes =
                 element {
-                    LC.Text "Use LC.Tab.Selected for the active tab and LC.Tab.Unselected with an onPress handler for inactive tabs. Only unselected tabs render a Pressable overlay. Each tab gets testId via A11ySlug (e.g. tab-home)."
+                    LC.Text "Use LC.Tab.Selected for the active tab and LC.Tab.Unselected with an onPress handler for inactive tabs. Only unselected tabs render a Pressable overlay. Each tab gets testId via A11ySlug (e.g. tab-home). Pass label on LC.Tabs to name the tablist for screen readers."
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Tabs / LC.Tab",
+                    role = "tablist (LC.Tabs); tab (LC.Tab)",
+                    namePattern = "Tab label text; tablist named via label prop on LC.Tabs",
+                    stateNotes = "selected tab exposes selected state; inactive tabs are pressable",
+                    scalesWithFont = true,
+                    contrastNotes = "Active tab underline and text use theme colors meeting WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(
@@ -132,6 +143,7 @@ type TabItem = Home | Profile | Contact
 let selectedTab = Hooks.useState Home
 
 LC.Tabs(
+    label = "Section tabs",
     children = [|
         LC.Tab(label = "Home",    state = (if selectedTab.current = Home    then LC.Tab.Selected else LC.Tab.Unselected (fun _ -> selectedTab.update Home)))
         LC.Tab(label = "Profile", state = (if selectedTab.current = Profile then LC.Tab.Selected else LC.Tab.Unselected (fun _ -> selectedTab.update Profile)))
@@ -162,6 +174,7 @@ let selectedTab = Hooks.useState 0
 let labels = [| "Overview"; "Details"; "Settings"; "History"; "Reports"; "Analytics"; "Help" |]
 
 LC.Tabs(
+    label = "Section tabs",
     children =
         labels
         |> Array.mapi (fun i label ->
@@ -182,6 +195,7 @@ LC.Tabs(
                     Ui.ComponentSample(
                         visuals =
                             LC.Tabs(
+                                label = "Section tabs",
                                 theme = Styles.specialTheme,
                                 children = [|
                                     LC.Tab(label = "Active", state = LC.Tab.Selected)

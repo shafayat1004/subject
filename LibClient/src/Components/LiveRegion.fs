@@ -28,8 +28,4 @@ type LibClient.Components.Constructors.LC with
 module LC =
     module LiveRegion =
         let announce (message: string) (politeness: LibClient.Accessibility.AccessibilityLiveRegion) =
-            UiActionLog.UiObservability.announce message politeness
-            try
-                ReactXP.Helpers.ReactXPRaw?Accessibility?announceForAccessibility(message) |> ignore
-            with _ ->
-                Noop
+            LibClient.AccessibilityAnnounce.announce message politeness

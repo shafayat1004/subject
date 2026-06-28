@@ -74,6 +74,15 @@ type Ui.Content with
                 ComponentContent.ForFullyQualifiedName
                     "LibClient.Components.LabelledFormField",
             notes = LC.Text "LabelledFormField lays out a label beside (desktop) or above (handheld) a form control. Pass theme to customize label width and color.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.LabelledFormField",
+                    role = "none (layout); label view exposes accessibilityLabel",
+                    namePattern = "label prop on field; child input supplies control name and role",
+                    stateNotes = "Invalid state comes from child input validity",
+                    scalesWithFont = true,
+                    contrastNotes = "Themed label color meets WCAG AA on typical backgrounds"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

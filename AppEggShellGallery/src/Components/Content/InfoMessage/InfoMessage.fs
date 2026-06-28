@@ -11,6 +11,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "InfoMessage",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.InfoMessage",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.InfoMessage",
+                    role = "text (informational status)",
+                    namePattern = "message prop text",
+                    stateNotes = "Static informational text; no interactive state",
+                    scalesWithFont = true,
+                    contrastNotes = "Message text color meets WCAG AA on typical backgrounds"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

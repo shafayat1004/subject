@@ -3,6 +3,7 @@ module AppEggShellGallery.Components.ComponentContentHeading
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Responsive
 open ReactXP.Components
@@ -46,7 +47,11 @@ type AppEggShellGallery.Components.Constructors.Ui with
                         styles = [| Styles.view |],
                         children =
                             [|
-                                LC.Text(displayName, styles = [| Styles.text screenSize |])
+                                LC.LegacyText(
+                                    accessibilityRole = AccessibilityRole.Header,
+                                    styles = [| Styles.text screenSize |],
+                                    children = [| Fable.React.Helpers.str displayName |]
+                                )
 
                                 if isResponsive then
                                     LC.Tag(text = "Responsive")

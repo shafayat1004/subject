@@ -201,6 +201,15 @@ let fruitToFilterString (fruit: Fruit) = fruit.GetName.Value"""
                         |]
                     )
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.Picker",
+                    role = "button to open selector; items use button role in picker dialog",
+                    namePattern = "Floating label prop; open control labeled with label text or \"Open picker\"",
+                    stateNotes = "selected tags expose Remove buttons; invalid reason below field",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, field text, and error colors meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

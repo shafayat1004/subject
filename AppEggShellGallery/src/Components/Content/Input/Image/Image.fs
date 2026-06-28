@@ -33,6 +33,15 @@ type Ui.Content.Input with
             displayName = "Input.Image",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Image",
             notes = LC.Text "Input.Image wraps Input.File with image preview thumbs. Use maxFileCount and maxFileSize to constrain uploads, same as Input.File.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.Image",
+                    role = "button (file picker) with image preview",
+                    namePattern = "Floating label text",
+                    stateNotes = "Invalid/Missing validity surfaces error text; selected files shown as thumbnails",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, button text, and error colors meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

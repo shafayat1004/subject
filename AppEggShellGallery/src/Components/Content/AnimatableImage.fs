@@ -87,6 +87,15 @@ type Ui.Content with
                 })
             ),
             notes = LC.Text """RX.AnimatableImage is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated image styles.""",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "RX.AnimatableImage",
+                    role = "image",
+                    namePattern = "?accessibilityLabel when image conveys meaning",
+                    stateNotes = "Animated transforms/opacity; honor reduce-motion where wired",
+                    scalesWithFont = false,
+                    contrastNotes = "N/A — image content"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

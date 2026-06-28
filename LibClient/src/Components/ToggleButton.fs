@@ -187,7 +187,7 @@ type LibClient.Components.Constructors.LC with
                     LC.Pressable(
                         onPress = group.Toggle value,
                         label = a11yLabel,
-                        role = AccessibilityRole.ToggleButton,
+                        role = AccessibilityRole.Radio,
                         state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
                         testId = (testId |> Option.defaultValue defaultTestId),
                         overlay = true,

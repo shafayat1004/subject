@@ -70,6 +70,15 @@ let fruits = [
 """ |]
                     )
                 },
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.ItemList",
+                    role = "list (container); list items inherit child semantics",
+                    namePattern = "Empty-state message via emptyMessage prop; list items use child content",
+                    stateNotes = "SeeAll link is a pressable button when present",
+                    scalesWithFont = true,
+                    contrastNotes = "List text and empty-state message colors meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

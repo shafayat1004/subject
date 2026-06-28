@@ -26,6 +26,15 @@ type Ui.Content with
             displayName = "IconWithBadge",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconWithBadge",
             notes = LC.Text "IconWithBadge overlays a count or text badge on an icon. Use theme to customize icon and badge styling.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.IconWithBadge",
+                    role = "text (status indicator)",
+                    namePattern = "Badge count/text combined with icon label via accessibilityLabel",
+                    stateNotes = "Static indicator; not pressable by default",
+                    scalesWithFont = true,
+                    contrastNotes = "Badge text/background pairs meet WCAG AA"
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

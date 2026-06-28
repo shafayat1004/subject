@@ -80,6 +80,15 @@ type Ui.Content with
                 })
             ),
             notes = LC.Text """RX.AnimatableText is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated text styles.""",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "RX.AnimatableText",
+                    role = "text",
+                    namePattern = "Child text content",
+                    stateNotes = "Animated font size/color; honor reduce-motion via LC.With.ReducedMotion where wired",
+                    scalesWithFont = true,
+                    contrastNotes = "Animated text colors should meet WCAG AA at rest"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

@@ -23,6 +23,15 @@ type Ui.Content.Input with
         Ui.ComponentContent (
             displayName = "Input.PositiveDecimal",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.PositiveDecimal",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.PositiveDecimal",
+                    role = "text field (numeric)",
+                    namePattern = "Floating label text",
+                    stateNotes = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

@@ -301,6 +301,92 @@ carry into the seam port):**
   appends its own `FlexDirection.Row` last** (use `RX.View` + a direction-correct style for responsive
   stacking). Re-verify these behave the same (or better) on RN/RNW after the port.
 
+### 4.5 Proven stack + tooling (from the `eggshell-rnw-spike`, do not re-research)
+
+The spike integration-tested Fable-compiled F# against the modern RN/RNW stack and ran on web + native +
+SignalR. **Pin these exact versions** (Expo aligns native lib versions to its SDK — install RN libs with
+`npx expo install`, not raw `npm install`, so versions stay compatible):
+
+| Package | Version | Note |
+|---|---|---|
+| `react` / `react-dom` | **19.2.3** | React 19 (form Actions, `<title>` metadata, ref-as-prop) |
+| `react-native` | **0.85.3** | **New Architecture is default** (Fabric/TurboModules/JSI) |
+| `react-native-web` | **^0.21.2** | maintenance mode (Oct 2024 latest); stable, production-proven |
+| `react-native-reanimated` | **4.3.1** | **v4 = New-Arch only**; UI-thread animation |
+| `react-native-worklets` | **0.8.3** | **NEW split package** — Reanimated 4 moved its worklet runtime + **Babel plugin** here |
+| `react-native-gesture-handler` | **~2.31.1** | replaces RN `PanResponder` (UI-thread gestures) |
+| `moti` | **^0.30.0** | declarative animation (props), works on web via RNW — **the default animation path** |
+| `expo` (+ `@expo/metro-runtime`, `babel-preset-expo`) | **~56.x** | toolchain: Metro for native AND web (`expo start --web`) |
+
+**Tooling changes vs today's ReactXP/webpack web build:**
+- **Bundler:** ReactXP's web build shipped a bespoke DOM renderer + inline-style engine + its own
+  animation engine. The RNW path uses **Metro** (via Expo) for both native and web; `react-native` is
+  aliased to `react-native-web` for the web target (standard ecosystem trick — **no `#if` split needed
+  for primitives**). Net deletion of EggShell's web engine. (If keeping webpack instead of Expo-web,
+  add the `react-native` -> `react-native-web` alias + `react-native-web` babel; the spike used Expo.)
+- **babel.config.js:** `presets: ['babel-preset-expo']`, `plugins: ['react-native-worklets/plugin']`
+  — the worklets plugin **must be listed last** (it is the Reanimated-4 worklet transformer, moved out
+  of `react-native-reanimated`).
+- **App root:** wrap the tree in `GestureHandlerRootView` (RNGH requirement) at the JS root.
+- **The current `LibClient/vendor/reactxp-native-common/` + `postinstall` copy mechanism is deleted**
+  with ReactXP (it patched `@chaldal/reactxp`). Render-hygiene fixes move to the F# seam.
+
+### 4.6 Per-primitive mapping (EggShell's `LibClient/src/ReactXP/Components/` -> RN/RNW)
+
+Port these 16 wrappers. Keep the F# signature/DU paths identical (Golden Rules + a11y contract); only
+the underlying import changes. Pattern (from spike `Bindings.fs`):
+`let RNView : obj = import "View" "react-native"` then `ReactBindings.React.createElement(comp, props, children)`.
+
+| EggShell wrapper | RN/RNW target | Effort | What to expect / what breaks |
+|---|---|---|---|
+| `View` | RN `View` (RNW -> `<div>`) | Low | 1:1 flex/spacing/color. Web-only style features (hover, nested `&&`/`=>` selectors, breakpoints) become RNW-web-only; handle native variants via `LC.With.ScreenSize` (already used). |
+| `Text` / `UiText` | RN `Text` (RNW -> `<span>`) | Low | `allowFontScaling`/`maxFontSizeMultiplier` carry over (good for a11y text scaling). **RNW `Text` lacks `onLongPress`** — plan around. |
+| `Button` | RN **`Pressable`** | Low | EggShell already routes taps through `LC.Pressable`; there is no styled RN `Button` worth using. Keep the F# `LC.Button` surface; back it with `Pressable`. |
+| `TextInput` | RN `TextInput` | Med | `placeholderTextColor`, `secureTextEntry`, `keyboardType` map. **RNW lacks rich text.** Re-evaluate the current focus-sync vendor patch — RN's real `TextInput` may not need it. Preserve the themeable bg/label fields (§4.4 note). |
+| `ScrollView` | RN `ScrollView` | Low | Maps. **`RefreshControl` is NOT implemented on RNW** — gate pull-to-refresh to native. |
+| `Image` | RN `Image` | Low | `source`/`resizeMode` map; check remote-vs-local source shapes and `ImageSource` interop. |
+| `ActivityIndicator` | RN `ActivityIndicator` | Low | 1:1 (`size`, `color`). |
+| `GestureView` | **RNGH `Gesture` + `GestureDetector`** | **High** | Biggest behavior change: RN `PanResponder` is gone; rebuild gestures with the RNGH builder API (`Gesture.Pan()/Tap()`), pairing with Reanimated. **Every gesture must keep a non-gesture alternative** (a11y 2.5.1). |
+| `Picker` | custom (View/Pressable/Modal) or `@react-native-picker/picker` | Med | EggShell's Picker is already a custom Field+Popup over View/Pressable, so it mostly rides the View/Pressable ports. Only the native `<select>`-style dropdown needs the community package. |
+| `Link` | router `Link` (web `react-router-dom`, native `react-router-native`) | Low | No RN `Link` primitive; keep `LibRouter` as-is (strategy §10 keeps the routers). |
+| `VirtualListView` | RN **`FlatList`/`VirtualizedList`** | **Med-High** | Real port: ReactXP's VirtualListView API differs from FlatList (`data`/`renderItem`/`keyExtractor`, windowing props). Re-map the F# surface to FlatList semantics. |
+| `WebView` | **`react-native-webview`** | Low-Med | Already pinned in `ThirdParty`. Native solid; RNW web support is partial (iframe-style) — verify. |
+| `Animatable{View,Text,Image,TextInput}` | **Reanimated `Animated.*` + Moti** | **High** | Replaces ReactXP's JS-thread `Animated` (driver off / no-op on web). **Default to Moti** (declarative `from`/`animate`/`transition` props — works web + native, no hand-written worklets). Use Reanimated `useSharedValue`/`useAnimatedStyle` for the rest; honor reduce-motion (`ACCESSIBILITY_PLAN.md` §4.7). |
+
+**Worklet rule (verified on the spike, with one caveat):** prefer **Moti / Reanimated's declarative
+API** so no worklet is authored in F#. **Evidence the F# worklet path works on native:** two spike
+screenshots of the "C/D Reanimated `useAnimatedStyle` + Pan" red box — `native-drag-opaque.png` (opaque
+while dragging, `withSpring 1.0`) vs `native-release-translucent.png` (translucent on release,
+`withSpring 0.3`) — produced by the **Fable-compiled** `fsharp/App.fs` with the **Plan-B JS shim NOT
+imported** (`js/worklets.js`/`opacityWorkletStyle` is declared in `Bindings.fs` but unused; `App.js`
+mounts `./fable_build/App.js` only). So a Fable-emitted closure passed to `useAnimatedStyle` did drive
+the animation. **Caveat:** a screenshot confirms the gesture->shared-value->animated-style *pipeline*,
+not that the worklet executed on the UI thread vs the JS thread (Reanimated can fall back to JS with a
+warning). **Therefore keep the Plan-B rule:** if a worklet misbehaves or the `react-native-worklets`
+Babel plugin won't treat a specific Fable closure as a UI-thread worklet, author that one worklet in a
+tiny vetted JS shim (`ThirdParty`/`TypesJs.fs` recipe) and wrap it in F#. App code stays declarative.
+(There is also a benign Metro "Require cycle: fable_build/fable_modules/…" warning in the spike build.)
+
+### 4.7 RNW limitations to design around (from strategy §7)
+
+Plan native-only fallbacks for these on web: **`Animated` has no native driver** (use Moti/Reanimated/
+Motion); **`KeyboardAvoidingView`, `StatusBar`, `LayoutAnimation`, `NativeModules`** are mocked/partial;
+**`RefreshControl`, `TouchableNativeFeedback`, `Alert`** are not implemented; **`Text` lacks
+`onLongPress`**; **`TextInput` lacks rich text**. If a primitive depends on one of these, branch with
+`LC.With.ScreenSize`/platform or provide a web alternative — do not assume parity.
+
+### 4.8 What to expect after the port (set expectations for the executor)
+
+- **Web:** real RNW DOM (`<div>`/`<span>`) + a maintained CSS/animation engine; EggShell's bespoke web
+  renderer/inline-style/animation code is deleted (net simplification).
+- **Native:** New-Architecture real native views (Fabric), synchronous layout, JSI — strictly better than
+  ReactXP's lowest-common-denominator bridge.
+- **Animation/gesture:** moves to the UI thread (smooth regardless of JS work).
+- **Accessibility:** the `accessibility*`/`aria-*` props map to real ARIA on web and native AT — this is
+  exactly the `ACCESSIBILITY_PLAN.md` §14 unlock (focus management, `<dialog>`/`inert`, landmarks).
+- **Forward note:** keep the F# API DOM-flavored so a later React Strict DOM swap stays a thin re-point
+  (strategy §16).
+
 ---
 
 ## Phase 5 - Full-stack TODO reference app + templatized bootstrap (goal B)

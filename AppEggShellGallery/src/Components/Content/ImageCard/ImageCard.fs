@@ -23,6 +23,15 @@ type Ui.Content with
             displayName = "ImageCard",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.ImageCard",
             notes = LC.Text "ImageCard displays a background image with an optional label overlay. Use ImageCard.Text for simple captions or ImageCard.Children for custom metadata.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.ImageCard",
+                    role = "image (decorative when no label) or button when onPress is provided",
+                    namePattern = "ImageCard.Text content or accessibilityLabel on pressable cards",
+                    stateNotes = "Pressable cards expose button role; decorative images hidden when labeled overlay present",
+                    scalesWithFont = true,
+                    contrastNotes = "Overlay text on images uses high-contrast colors meeting WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

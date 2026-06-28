@@ -7,6 +7,7 @@ open LibClient.Components
 open ReactXP.Components
 open ReactXP.Helpers
 open AppTodo.Components
+open AppTodo.I18nGlobal
 open AppTodo.AppServices
 
 LibClient.Initialize.initialize AppTodo.LocalImages.localImage
@@ -32,7 +33,12 @@ let init (configRes: Result<AppTodo.Config, string>) =
             let pstore = InitializePersistentStore initialPstoreData
             pstore |> ignore
 
+            let mutable rootElement = None
+            i18n.StartWithDefault ((fun () -> rootElement.Value), LibClient.I18n.Language.En)
+            AppTodo.I18nGlobal.start ()
+
             let element = Ui.App.Root()
+            rootElement <- Some element
 
             ReactXPRaw?App?initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
 

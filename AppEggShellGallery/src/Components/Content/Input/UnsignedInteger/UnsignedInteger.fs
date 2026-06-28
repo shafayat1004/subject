@@ -23,6 +23,15 @@ type Ui.Content.Input with
         Ui.ComponentContent (
             displayName = "Input.UnsignedInteger",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.UnsignedInteger",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.UnsignedInteger",
+                    role = "text field (numeric)",
+                    namePattern = "Floating label text",
+                    stateNotes = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
+                    scalesWithFont = true,
+                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

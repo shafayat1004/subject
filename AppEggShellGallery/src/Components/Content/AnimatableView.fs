@@ -407,6 +407,15 @@ type Ui.Content with
                 })
             ),
             notes = LC.Text """RX.AnimatableView is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing/Sequence/Parallel, InterpolationConfig, Easing) to drive animated view styles.""",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "RX.AnimatableView",
+                    role = "none (animated container)",
+                    namePattern = "Child content provides accessible names",
+                    stateNotes = "Animated opacity/transform; honor reduce-motion where wired",
+                    scalesWithFont = true,
+                    contrastNotes = "Child content contrast unchanged by animation wrapper"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

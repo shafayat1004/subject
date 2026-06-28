@@ -58,7 +58,7 @@ module TextStyles =
         ]
 
         "single-line" => [
-            height 21
+            minHeight 21
         ]
 
         "text-input-noneditable" => [
@@ -356,7 +356,7 @@ module Input_TextComponent =
                     if not editable then
                         backgroundColor noneditableFill
                     if singleLine then
-                        height 21
+                        minHeight 21
                 })
 
         let textInputText =
@@ -414,6 +414,8 @@ module Input_TextComponent =
                 onChange: Option<NonemptyString> -> unit,
                 validity: InputValidity,
                 ?label: string,
+                ?accessibilityLabel: string,
+                ?accessibilityRole: AccessibilityRole,
                 ?onKeyPress: KeyboardEvent -> unit,
                 ?onEnterKeyPress: ReactEvent.Keyboard -> unit,
                 ?onFocus: FocusEvent -> unit,
@@ -519,6 +521,11 @@ module Input_TextComponent =
                 |> Option.orElse (label |> Option.map (A11ySlug.testId "input"))
                 |> Option.defaultValue "input-text"
 
+            let inputA11yLabel =
+                accessibilityLabel
+                |> Option.orElse label
+                |> Option.orElse placeholder
+
             RX.View(
                 testId = resolvedTestId,
                 styles = [| Styles.view label.IsSome; yield! legacyStyles; yield! (defaultArg styles [||]) |],
@@ -531,6 +538,7 @@ module Input_TextComponent =
                                     match prefixIcon with
                                     | Some iconCtor ->
                                         RX.View(
+                                            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
                                             styles = [| Styles.prefixIconWrap |],
                                             children = [| iconCtor theTheme.PlaceholderColor 16 |]
                                         )
@@ -548,6 +556,8 @@ module Input_TextComponent =
                                         styles = [| Styles.textInput theTheme.NoneditableBackgroundColor editable (not multiline) |],
                                         value = draftValueHook.current,
                                         onChangeText = handleChangeText,
+                                        ?accessibilityLabel = inputA11yLabel,
+                                        ?accessibilityRole = accessibilityRole,
                                         onFocus =
                                             (fun e ->
                                                 isFocusedHook.update true
@@ -575,6 +585,8 @@ module Input_TextComponent =
                                         styles = [| Styles.textInput theTheme.NoneditableBackgroundColor editable (not multiline) |],
                                         value = (value |> NonemptyString.optionToString),
                                         onChangeText = handleChangeText,
+                                        ?accessibilityLabel = inputA11yLabel,
+                                        ?accessibilityRole = accessibilityRole,
                                         onFocus =
                                             (fun e ->
                                                 isFocusedHook.update true

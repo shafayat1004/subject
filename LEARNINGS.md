@@ -5,6 +5,16 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — i18n runtime lives in LibClient, not LibUiSubject
+
+**`LibClient.I18n`** holds the portable `Language` DU + `I18n<'T>` runtime (Egg.Shell `LibUiChaldal.I18n` / scaffold convention): LocalStorage + EventBus wiring stays in each app's **`App*.I18nGlobal`** module (`I18n.fs`).
+
+**Do not** put i18n in **`LibUiSubject`** — that lib is for backend-interacting UI (subject services, projections, admin chrome). String catalogs remain app-local (`I18n/En.fs`, `I18n/Bn.fs`).
+
+Scaffold template: `Meta/LibScaffolding/templates/app/src/I18n.fs.template` → `open LibClient.I18n`.
+
+---
+
 ## 2026-06-28 — AppTodo dev: use the user's terminals, do not fork the stack
 
 When the user already runs **`eggshell dev-native`** (T1) and **Metro `:8081`** (T2) in their own terminals, the agent must **not** start parallel copies of those services or run competing builds.

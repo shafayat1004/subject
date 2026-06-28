@@ -91,6 +91,14 @@ type Ui.Content with
                 ),
             notes =
                 LC.Text "TouchableOpacity renders children and adds an overlay LC.Pressable on top (overlay = true) so the entire region is tappable while children remain visible underneath.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.TouchableOpacity",
+                    role = "button",
+                    namePattern = "?label prop (defaults to \"Button\")",
+                    stateNotes = "N/A — no disabled or busy states",
+                    scalesWithFont = false
+                ),
             samples =
                 element {
                     Ui.ComponentSampleGroup(

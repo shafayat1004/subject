@@ -12,6 +12,15 @@ type Ui.Content with
         Ui.ComponentContent(
             displayName = "Avatar",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Avatar",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Avatar",
+                    role = "image",
+                    namePattern = "?accessibilityLabel for the person or entity depicted",
+                    stateNotes = "Static image; no interactive state",
+                    scalesWithFont = false,
+                    contrastNotes = "N/A — photographic content"
+                ),
             samples =
                 element {
                     Ui.ComponentSample(

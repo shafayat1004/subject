@@ -40,6 +40,15 @@ type Ui.Content.Input with
         Ui.ComponentContent(
             displayName = "Input.DayOfTheWeek",
             props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.DayOfTheWeek",
+            a11y =
+                Ui.A11yPanel(
+                    componentName = "LC.Input.DayOfTheWeek",
+                    role = "group of checkboxes or radio buttons",
+                    namePattern = "label prop names the group; each day button labeled by day name",
+                    stateNotes = "Selected days expose checked/selected state; Invalid/Missing validity surfaces error text",
+                    scalesWithFont = true,
+                    contrastNotes = "Day labels and selection highlight meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(

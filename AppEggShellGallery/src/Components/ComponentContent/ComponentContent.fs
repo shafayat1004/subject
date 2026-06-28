@@ -80,6 +80,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?children:    ReactChildrenProp,
             ?isResponsive: bool,
             ?notes:        ReactElement,
+            ?a11y:         ReactElement,
             ?themeSamples: ReactElement,
             ?props:        PropsConfig,
             ?key:          string,
@@ -89,6 +90,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
 
         let isResponsive = defaultArg isResponsive false
         let notes = defaultArg notes noElement
+        let a11y = defaultArg a11y noElement
         let themeSamples = defaultArg themeSamples noElement
 
         RX.View(
@@ -105,6 +107,15 @@ type AppEggShellGallery.Components.Constructors.Ui with
                             [|
                                 sectionHeading "Notes"
                                 RX.View(children = [| notes |])
+                            |]
+                    else
+                        noElement
+
+                    if a11y <> noElement then
+                        castAsElementAckingKeysWarning
+                            [|
+                                sectionHeading "Accessibility"
+                                RX.View(children = [| a11y |])
                             |]
                     else
                         noElement

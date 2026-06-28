@@ -163,8 +163,10 @@
     <Compile Include="Components/Icon.fs" />
     <Compile Include="Components/Pointer/State.fs" />
     <Compile Include="Components/Pressable.fs" />
+    <Compile Include="AccessibilityAnnounce.fs" />
     <Compile Include="Components/LiveRegion.fs" />
     <Compile Include="Components/TapCapture.fs" />
+    <Compile Include="Components/Group.fs" />
 
     <Compile Include="Components/Stencil.fs" />
 
@@ -176,6 +178,8 @@
     <Compile Include="Components/With/Context.fs" />
     <Compile Include="Components/With/GlobalExecutor.fs" />
     <Compile Include="Components/With/ScreenSize.fs" />
+    <Compile Include="Components/With/Accessibility.fs" />
+    <Compile Include="Components/With/ReducedMotion.fs" />
 
     <Compile Include="Components/Responsive.fs" />
     <Compile Include="Components/ForceContext.fs" />
@@ -431,6 +435,7 @@
     <Compile Include="DefaultComponentsTheme.fs" />
     <Compile Include="initialize.fs" />
     <Compile Include="restart.fs" />
+    <Compile Include="I18n.fs" />
     <Compile Include="ReactNative/ComponentsHierarchy.fs" />
     <Compile Include="ReactNative/ReactNativeBindings.fs" />
     <Compile Include="ReactNative/TouchableWithoutFeedback.fs" />
