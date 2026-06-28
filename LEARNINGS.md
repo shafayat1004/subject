@@ -1166,3 +1166,23 @@ Password `EggShell_Dev_123!` in `docker-compose.yml` and `template.appsettings.D
 **SQL FTS:** Reference apps on SQL Server should define a real `SubjectSearchIndex` (not `NoSearchIndex`)
 so `LibLifeCycleHost` creates `SubjectSearchCatalog` + `_SearchIndex` tables. SuiteTodo uses
 `TodoSearchIndex.Title` indexed from todo title text.
+
+### 2026-06-28 — AppTodo dev observability (`audit/todo-observe.mjs`)
+
+**CLI:** `npm run observe -- snapshot|state|add-todo|workflow layout-check|diff|open|logs` from
+`SuiteTodo/AppTodo`. **Headed browser is default** (`--headless true` for CI). Artifacts land in
+`audit/out/<timestamp>-*/` with `manifest.json` for LLM agents (screenshot, layout metrics, DOM summary,
+`uiSnapshot`, console/page/network logs).
+
+**Layout regression workflow:** `workflow layout-check` captures before/after add-todo and diffs
+`todo-card` bounding box (`layout-diff.json`; exit code 2 if width/height delta &gt; 2px).
+
+**Card shrink fix:** `LC.Constrained` under `AlignItems.Center` let the card shrink-wrap when list
+content appeared. Replaced with `cardShell` (`widthPercent 100`, `maxWidth 560`, `AlignSelf.Stretch`) and
+`testId`s `todo-page` / `todo-card` on `RX.View`.
+
+**Platforms:** Web (Playwright) only for now; `--platform android|ios` prints stub message (gallery
+`audit-gallery-android-driver.mjs` is the template for later scaffolding).
+
+**Gotcha:** `RX.View` optional `testId` is `?testId: string` — pass `A11ySlug.testId ...` directly, not
+`Some (...)`.

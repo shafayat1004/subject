@@ -1,18 +1,36 @@
 #!/usr/bin/env node
 /**
- * Smoke audit for AppTodo (Phase 5D stub).
- * Requires dev-web on baseUrl and Todo DevelopmentHost on localhost:5001.
+ * Smoke audit for AppTodo.
+ * Requires dev-web on baseUrl (fake backend works without Todo DevelopmentHost).
  *
- * Usage: node audit/audit-todo-web.mjs http://127.0.0.1:9081
+ * Usage: npm run audit:web
+ *        node audit/audit-todo-web.mjs http://127.0.0.1:9080 --headless
  */
 import { chromium } from 'playwright';
+import { DEFAULTS, parseBool } from './lib/config.mjs';
+import { waitForAppReady } from './lib/web-session.mjs';
+import { waitForTodoReady, fillNewTodoTitle, clickAddTodo } from './lib/selectors.mjs';
 
-const baseUrl = (process.argv[2] ?? 'http://127.0.0.1:9080').replace(/\/$/, '');
+const args = process.argv.slice(2);
+const positional = args.filter((a) => !a.startsWith('--'));
+const headlessFlag = args.find((a) => a.startsWith('--headless'));
+const headless = headlessFlag
+  ? parseBool(headlessFlag.replace(/^--headless=*/, ''), true)
+  : true;
 
+const baseUrl = (positional[0] ?? DEFAULTS.baseUrl).replace(/\/$/, '');
+
+/** @type {string[]} */
 const errors = [];
 
 async function main () {
-  const browser = await chromium.launch();
+  const ready = await waitForAppReady(baseUrl);
+  if (!ready) {
+    console.error(`AppTodo not reachable at ${baseUrl}`);
+    process.exit(1);
+  }
+
+  const browser = await chromium.launch({ headless });
   const page = await browser.newPage();
 
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
@@ -25,12 +43,11 @@ async function main () {
     errors.push(`HTTP ${resp?.status() ?? 'no response'} for ${baseUrl}`);
   }
 
-  await page.waitForTimeout(8000);
-  await page.locator('input').first().waitFor({ timeout: 30000 });
+  await waitForTodoReady(page, { bootstrapWaitMs: DEFAULTS.bootstrapWaitMs });
 
   const title = `audit-${Date.now()}`;
-  await page.locator('input').first().fill(title);
-  await page.getByRole('button', { name: 'Add' }).click();
+  await fillNewTodoTitle(page, title);
+  await clickAddTodo(page);
   await page.getByText(title).waitFor({ timeout: 15000 });
 
   await browser.close();

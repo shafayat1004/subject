@@ -25,6 +25,12 @@ module private Styles =
         backgroundColor (Color.Hex "#f3f5f8")
     }
 
+    let cardShell = makeViewStyles {
+        widthPercent 100
+        maxWidth 560
+        AlignSelf.Stretch
+    }
+
     let card = makeViewStyles {
         widthPercent 100
         padding 28
@@ -166,10 +172,12 @@ type Ui.Route with
 
                 RX.View(
                     styles = [| Styles.page |],
+                    testId = A11ySlug.testId "todo" "page",
                     children = [|
-                        LC.Constrained(
-                            maxWidth = 560,
-                            child =
+                        RX.View(
+                            styles = [| Styles.cardShell |],
+                            testId = A11ySlug.testId "todo" "card",
+                            children = [|
                                 RX.View(
                                     styles = [| Styles.card |],
                                     children = [|
@@ -279,6 +287,7 @@ type Ui.Route with
                                         )
                                     |]
                                 )
+                            |]
                         )
                     |]
                 )

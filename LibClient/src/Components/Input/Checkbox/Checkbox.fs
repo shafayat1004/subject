@@ -63,29 +63,21 @@ module Input_CheckboxComponent =
                 color Color.DevRed
             }
 
+        // Key on primitives (CSS string, int), not Theme — fresh Theme refs defeat fast-memoize.
         let iconTheme =
             TextStyles.Memoize(
-                fun (theme: Theme) (isInvalid: bool) (value: Option<bool>) ->
+                fun (iconSize: int) (colorCss: string) ->
                     makeTextStyles {
-                        fontSize theme.IconSize
-
-                        color (
-                            if isInvalid then
-                                Color.DevRed
-                            else
-                                match value with
-                                | Some true -> theme.IconCheckedColor
-                                | Some false
-                                | None        -> theme.IconUncheckedColor
-                        )
+                        fontSize iconSize
+                        color (Color.InternalString colorCss)
                     }
             )
 
         let labelTextTheme =
             TextStyles.Memoize(
-                fun (theme: Theme) ->
+                fun (labelColorCss: string) ->
                     makeTextStyles {
-                        color theme.LabelColor
+                        color (Color.InternalString labelColorCss)
                     }
             )
 
@@ -151,6 +143,15 @@ module Input_CheckboxComponent =
                 | Some false -> Icon.CheckboxEmpty
                 | None       -> Icon.CheckboxUnknown
 
+            let iconColorCss =
+                if isInvalid then
+                    Color.DevRed.ToCssString
+                else
+                    match value with
+                    | Some true -> theTheme.IconCheckedColor.ToCssString
+                    | Some false
+                    | None        -> theTheme.IconUncheckedColor.ToCssString
+
             RX.View(
                 styles =
                     [|
@@ -166,7 +167,7 @@ module Input_CheckboxComponent =
                                 elements {
                                     LC.Icon(
                                         icon = checkboxIcon,
-                                        styles = [| Styles.iconTheme theTheme isInvalid value |]
+                                        styles = [| Styles.iconTheme theTheme.IconSize iconColorCss |]
                                     )
 
                                     match label with
@@ -177,7 +178,7 @@ module Input_CheckboxComponent =
                                                 elements {
                                                     LC.UiText(
                                                         text,
-                                                        styles = [| Styles.labelTextTheme theTheme |]
+                                                        styles = [| Styles.labelTextTheme theTheme.LabelColor.ToCssString |]
                                                     )
                                                 }
                                         )
