@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <PlatformTarget>x64</PlatformTarget>
+    <!-- Match LibLifeCycleHost: x64 on Windows, AnyCPU elsewhere (Apple Silicon dev host) -->
+    <PlatformTarget Condition="$([MSBuild]::IsOsPlatform('Windows'))">x64</PlatformTarget>
+    <PlatformTarget Condition="!$([MSBuild]::IsOsPlatform('Windows'))">AnyCPU</PlatformTarget>
 	<NoWarn>ORL1001</NoWarn>
 	<Configurations>Debug;Release</Configurations>
   </PropertyGroup>

@@ -35,7 +35,7 @@ module Build =
 
                 [
                     ("./fsharplint.json", "../../Meta/fsharplint.json")
-                    ("./public-dev/configSourceOverrides.dev.js", "./configSourceOverrides.dev.js")
+                    ("./public-dev/configSourceOverrides.dev.js", "../../configSourceOverrides.dev.js")
                 ]
                 |> List.map (fun (relativePath, relativeTargetPath) -> (normalizeDir relativePath, normalizeDir relativeTargetPath))
                 |> List.iter (fun (path, targetPath) ->

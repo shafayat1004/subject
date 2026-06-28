@@ -2,7 +2,7 @@
   "name": "AppTodo",
   "private": true,
   "scripts": {
-    "audit:web": "node audit/audit-todo-web.mjs http://127.0.0.1:9081"
+    "audit:web": "node audit/audit-todo-web.mjs http://127.0.0.1:9080"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

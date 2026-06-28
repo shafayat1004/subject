@@ -4,6 +4,7 @@ npm link ../../LibClient/node_modules/react
 
 export MSYS=winsymlinks:nativestrict
 ln -sf ../../Meta/fsharplint.json ./fsharplint.json 2>/dev/null || true
-ln -sf ./configSourceOverrides.dev.js ./public-dev/configSourceOverrides.dev.js 2>/dev/null || true
+rm -f ./public-dev/configSourceOverrides.dev.js
+ln -sf ../configSourceOverrides.dev.js ./public-dev/configSourceOverrides.dev.js
 
 dotnet restore src/App.fsproj

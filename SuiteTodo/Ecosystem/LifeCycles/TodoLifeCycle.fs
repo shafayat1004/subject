@@ -114,6 +114,14 @@ let private shouldSendTelemetry =
     | ShouldSendTelemetryFor.LifeEvent _ ->
         true
 
+let private lifeEventSatisfies (input: LifeEventSatisfiesInput<TodoLifeEvent>) =
+    match input.Subscribed, input.Raised with
+    | TodoLifeEvent.Created, TodoLifeEvent.Created -> true
+    | TodoLifeEvent.TitleChanged _, TodoLifeEvent.TitleChanged _ -> true
+    | TodoLifeEvent.DoneToggled _, TodoLifeEvent.DoneToggled _ -> true
+    | TodoLifeEvent.Archived, TodoLifeEvent.Archived -> true
+    | _ -> false
+
 let todoLifeCycle =
     newTodoLifeCycle todoDef.LifeCycles.todo
     |> LifeCycleBuilder.withTransition transition
@@ -121,6 +129,7 @@ let todoLifeCycle =
     |> LifeCycleBuilder.withConstruction construction
     |> LifeCycleBuilder.withIndices indices
     |> LifeCycleBuilder.withTimers timers
+    |> LifeCycleBuilder.withLifeEventSatisfies lifeEventSatisfies
     |> LifeCycleBuilder.withoutApiAccess
     |> LifeCycleBuilder.withStorage
         (StorageType.Persistent

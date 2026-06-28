@@ -7,7 +7,7 @@
  */
 import { chromium } from 'playwright';
 
-const baseUrl = (process.argv[2] ?? 'http://127.0.0.1:9081').replace(/\/$/, '');
+const baseUrl = (process.argv[2] ?? 'http://127.0.0.1:9080').replace(/\/$/, '');
 
 const errors = [];
 

@@ -11,6 +11,8 @@ PID_FILE="$ROOT/.dev-stack.pids"
 SA_PASSWORD="${SA_PASSWORD:-EggShell_Dev_123!}"
 
 export DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
+export PATH="$DOTNET_ROOT:$PATH"
+DOTNET="$DOTNET_ROOT/dotnet"
 EGGSHELL="$REPO_ROOT/eggshell"
 
 ensure_appsettings () {
@@ -53,9 +55,15 @@ stop_sql () {
 start_host () {
   ensure_appsettings
   echo "Starting DevelopmentHost on http://localhost:5001 ..."
-  dotnet run --project "$HOST_DIR/DevelopmentHost.fsproj" &
+  local host_bin="$HOST_DIR/bin/Debug/net7.0"
+  "$DOTNET" build "$HOST_DIR/DevelopmentHost.fsproj" -c Debug -v q
+  if [[ ! -f "$host_bin/LibLifeCycleHost.dll" ]]; then
+    echo "DevelopmentHost build output missing LibLifeCycleHost.dll at $host_bin" >&2
+    exit 1
+  fi
+  (cd "$host_bin" && ASPNETCORE_ENVIRONMENT=Development "$DOTNET" exec DevelopmentHost.dll) &
   echo "host=$!" >> "$PID_FILE"
-  sleep 3
+  sleep 5
 }
 
 stop_pids () {
@@ -95,12 +103,42 @@ cmd_status () {
   fi
 }
 
+cmd_validate () {
+  ensure_appsettings
+  echo "Checking DevelopmentHost http://localhost:5001 ..."
+  if curl -sf -o /dev/null -w "%{http_code}" "http://localhost:5001/api/v1/realTime/negotiate" | grep -qE '^[24]'; then
+    echo "  Backend negotiate: OK"
+  else
+    echo "  Backend not reachable. Run: ./dev-stack.sh up (or start DevelopmentHost manually)" >&2
+    exit 1
+  fi
+
+  local web_port="${APP_PORT:-9080}"
+  echo "Checking AppTodo http://127.0.0.1:${web_port} ..."
+  if curl -sf -o /dev/null "http://127.0.0.1:${web_port}/"; then
+    echo "  Frontend: OK"
+  else
+    echo "  Frontend not reachable on port ${web_port}." >&2
+    exit 1
+  fi
+
+  if [[ -f "$APP_DIR/node_modules/playwright/package.json" ]]; then
+    echo "Running Playwright smoke audit..."
+    (cd "$APP_DIR" && node audit/audit-todo-web.mjs "http://127.0.0.1:${web_port}")
+  else
+    echo "Skipping Playwright (npm install in AppTodo first)."
+  fi
+
+  echo "Validation passed."
+}
+
 case "${1:-up}" in
   up)     cmd_up ;;
   down)   cmd_down ;;
   status) cmd_status ;;
+  validate) cmd_validate ;;
   *)
-    echo "Usage: $0 up|down|status"
+    echo "Usage: $0 up|down|status|validate"
     exit 1
     ;;
 esac

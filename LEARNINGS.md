@@ -5,7 +5,17 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-28 — Fable 5 migration (Phase 1): SDK 10, FSharp.Core 9, SubjectIndex constraint
+## 2026-06-28 — DevelopmentHost NU1605 (FSharp.Core) + Directory.Build.targets XML
+
+**NU1605 FSharp.Core 9.0.201 vs 7.0.403:** `LibSignalRServer` (eggshell-signalr) pulls `FSharp.Core >= 9.0.201`; net7.0 SDK implicit reference is `7.0.403`. Pin must live in **`Directory.Build.props`** (not only `.targets`) so restore sees it before implicit references. Also **`export PATH="$DOTNET_ROOT:$PATH"`** — setting `DOTNET_ROOT` alone is not enough if system `dotnet` (7.x, MSBuild 17.7) is first on PATH.
+
+**Broken `Directory.Build.targets`:** Nested `<!-- -->` inside the Fantomas comment block (lines 9–10) makes MSBuild fail with MSB4024; use plain text in the outer comment instead.
+
+**DevelopmentHost on Apple Silicon:** `LibLifeCycleHost` / `LibLifeCycleHostBuild` used `<PlatformTarget>x64</PlatformTarget>` while `DevelopmentHost` was AnyCPU — runtime error `Could not load file or assembly 'LibLifeCycleHost'` even though the DLL is in the output dir. Fix: conditional platform in those two projects (`x64` on Windows, `AnyCPU` elsewhere). Also wire `withLifeEventSatisfies` when `TodoLifeEvent` is not the default `NoLifeEvent` union.
+
+**Service Fabric removed from `LibLifeCycleHost`:** Fabric host entrypoints (`Host/Fabric/*`) and NuGet packages dropped; dev/K8S hosts only. Orleans codegen was pulling `Microsoft.ServiceFabric.Services` at silo startup. Legacy `Meta/Templates/.../Launchers/Fabric` and `AppEggShellGallery/Fabric` are obsolete (not updated in this pass).
+
+---
 
 **Fable 5 tool needs SDK 10 in `global.json`.** Bumping `.config/dotnet-tools.json` to Fable 5.4.0 fails restore while `global.json` pins 7.x (`NU1202: Package Fable 5.4.0 is not compatible with net7.0`). Flip `global.json` to `10.0.x` before `dotnet tool restore`. **Also flip nested manifests:** `LibStandard/global.json`, `AppEggShellGallery/global.json`, and `Meta/FablePlugins/global.json` still pinned 7.0.300 — `eggshell dev-web` runs `dotnet fable` from `LibStandard/` and picks up the nested file, so root-only bump is not enough.
 

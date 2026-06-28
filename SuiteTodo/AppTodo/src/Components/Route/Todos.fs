@@ -8,11 +8,12 @@ open LibClient.Components
 open LibClient.Components.Input
 open LibUiSubject
 open LibUiSubject.Components.Constructors
+open LibUiSubject.Components.With.Subjects
 open LibClient.Services.Subscription
-open LibUiSubject.Components.With.View
 open ReactXP.Components
 open ReactXP.Styles
 open AppTodo.Actions
+open AppTodo.TodoQueries
 open SuiteTodo.Types
 
 module private Styles =
@@ -36,7 +37,7 @@ module private Styles =
         gap 4
     }
 
-    let addRow = makeViewStyles {
+    let fieldRow = makeViewStyles {
         FlexDirection.Row
         AlignItems.Center
         gap 12
@@ -46,22 +47,22 @@ module private Styles =
 type private Helpers =
     [<Component>]
     static member TodoRow(
-            item: TodoListItem,
+            todo: Todo,
             makeExecutor: MakeExecutor,
             onMutated: unit -> unit)
         : ReactElement =
-        let executor = makeExecutor ("todo-" + (item.Id :> SubjectId).IdString)
+        let executor = makeExecutor ("todo-" + (todo.Id :> SubjectId).IdString)
 
         let toggleAction () : UDActionResult =
             async {
-                let! result = toggleTodo item.Id
+                let! result = toggleTodo todo.Id
                 if Result.isOk result then onMutated()
                 return result
             }
 
         let deleteAction () : UDActionResult =
             async {
-                let! result = deleteTodo item.Id
+                let! result = deleteTodo todo.Id
                 if Result.isOk result then onMutated()
                 return result
             }
@@ -70,15 +71,15 @@ type private Helpers =
             styles = [| Styles.row |],
             children = [|
                 LC.Input.Checkbox(
-                    value = Some item.Done,
+                    value = Some todo.Done,
                     onChange = (fun _ -> executor.MaybeExecute toggleAction |> ignore),
                     validity = Valid,
-                    accessibilityLabel = item.Title.Value,
+                    accessibilityLabel = todo.Title.Value,
                     testId = A11ySlug.testId "todo-item" "toggle"
                 )
                 LC.Text(
-                    styles = [| if item.Done then Styles.titleTextDone else Styles.titleTextActive |],
-                    value = item.Title.Value
+                    styles = [| if todo.Done then Styles.titleTextDone else Styles.titleTextActive |],
+                    value = todo.Title.Value
                 )
                 LC.TextButton(
                     label = "Delete",
@@ -92,8 +93,16 @@ type Ui.Route with
     [<Component>]
     static member Todos () : ReactElement =
         let titleInput = Hooks.useState None
+        let searchInput = Hooks.useState None
         let listVersion = Hooks.useState 0
         let bumpList () = listVersion.update (listVersion.current + 1)
+
+        let indexedQuery = queryForSearchInput searchInput.current
+        let searchKey =
+            searchInput.current
+            |> Option.map (fun s -> s.Value)
+            |> Option.defaultValue ""
+        let listKey = listVersion.current.ToString() + "-" + searchKey
 
         LC.Executor.AlertErrors (fun makeExecutor ->
             element {
@@ -119,7 +128,7 @@ type Ui.Route with
                         )
 
                         RX.View(
-                            styles = [| Styles.addRow |],
+                            styles = [| Styles.fieldRow |],
                             children = [|
                                 LC.Input.Text(
                                     value = titleInput.current,
@@ -136,31 +145,50 @@ type Ui.Route with
                             |]
                         )
 
-                        UiSubject.With.View(
-                            key = string listVersion.current,
-                            service = AppTodo.AppServices.services().TodoListView,
-                            input = NoInput,
-                            useCache = UseCache.No,
-                            whenAvailable =
-                                (fun output ->
-                                    let items =
-                                        output.Items
-                                        |> List.sortBy (fun item -> item.CreatedOn)
+                        RX.View(
+                            styles = [| Styles.fieldRow |],
+                            children = [|
+                                LC.Input.Text(
+                                    value = searchInput.current,
+                                    onChange = searchInput.update,
+                                    validity = Valid,
+                                    placeholder = "Search titles (full-text)",
+                                    testId = A11ySlug.testId "todo" "search"
+                                )
+                            |]
+                        )
 
-                                    if List.isEmpty items then
+                        UiSubject.With.Subjects(
+                            key = listKey,
+                            service = AppTodo.AppServices.services().Todo,
+                            by = By.Indexed indexedQuery,
+                            useCache = UseCache.IfReasonablyFresh,
+                            treatFetchingSomeAsAvailable = true,
+                            whenAvailable =
+                                (fun subjects ->
+                                    let todos =
+                                        subjects
+                                        |> Subjects.available
+                                        |> Seq.sortBy (fun t -> t.CreatedOn)
+                                        |> Seq.toList
+
+                                    if List.isEmpty todos then
                                         LC.InfoMessage(
                                             level = InfoMessage.Level.Info,
-                                            message = "No todos yet. Add one above."
+                                            message =
+                                                match searchInput.current with
+                                                | None -> "No todos yet. Add one above."
+                                                | Some _ -> "No todos match your search."
                                         )
                                     else
                                         RX.View(
                                             styles = [| Styles.list |],
                                             children =
                                                 [| castAsElementAckingKeysWarning (
-                                                    items
-                                                    |> List.map (fun item ->
+                                                    todos
+                                                    |> List.map (fun todo ->
                                                         Helpers.TodoRow(
-                                                            item = item,
+                                                            todo = todo,
                                                             makeExecutor = makeExecutor,
                                                             onMutated = bumpList
                                                         ))

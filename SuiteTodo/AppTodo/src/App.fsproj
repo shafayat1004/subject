@@ -39,6 +39,7 @@
     <Compile Include="Icons.fs" />
     <Compile Include="LocalImagesRegistration.fs" />
     <Compile Include="Actions.fs" />
+    <Compile Include="TodoQueries.fs" />
     <Compile Include="ComponentsHierarchy.fs" />
   </ItemGroup>
 
