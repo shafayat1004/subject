@@ -23,7 +23,7 @@ if [[ ! -d "$ROOT/android" ]]; then
     "$ROOT/android/"
   find "$ROOT/android" -type f \( -name '*.gradle' -o -name '*.xml' -o -name '*.kt' -o -name '*.properties' -o -name '*.bzl' -o -name 'BUCK' \) \
     -exec sed -i '' "s/com.company.appwhatever/$PKG/g" {} +
-  sed -i '' "s/rootProject.name = 'Dispather'/rootProject.name = '$APP'/" "$ROOT/android/settings.gradle"
+  sed -i '' "s/rootProject.name = 'EggShellApp'/rootProject.name = '$APP'/" "$ROOT/android/settings.gradle"
 
   mkdir -p "$ROOT/android/app/src/main/java/com/eggshell/apptodo"
   mv "$ROOT/android/app/src/main/java/com/appname/"*.kt "$ROOT/android/app/src/main/java/com/eggshell/apptodo/"

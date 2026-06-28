@@ -475,10 +475,7 @@ body,
 }
 
 body.page--electron {
-  background-image: url(../images/firstrun/startup_background.png);
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-color: #eef2f7;
 }
 textarea {
   -webkit-appearance: none;

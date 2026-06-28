@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Replace AppDispatcher-era native branding with AppTodo launch + launcher assets.
+# Install AppTodo native launch screen + launcher icons.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
