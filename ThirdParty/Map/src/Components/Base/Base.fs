@@ -147,7 +147,7 @@ type ThirdParty.Map.Components.Constructors.Map with
                         ?zoom = zoom,
                         value =
                             (match position with
-                             | MapPosition.LatLng latLng -> Some latLng
+                             | MapPosition.LatLng latLng -> latLng
                              | MapPosition.Auto -> failwith "MapPosition.Auto not supported on native"),
                         ?markers = markers,
                         fullScreen = isFullScreen,

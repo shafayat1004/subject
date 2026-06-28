@@ -88,7 +88,7 @@ flowchart TB
 | Live region | `LibClient/src/Components/LiveRegion.fs` | `LC.LiveRegion.announce` |
 | **UiActionLog** | `LibClient/src/UiActionLog.fs` | Ring buffer, interactive registry, route tracking |
 | RX forwarding | `LibClient/src/ReactXP/Components/View/View.fs`, `Button.fs`, ScrollView | `accessibilityLabel`, `accessibilityRole`, `accessibilityState`, `testId` |
-| Route logging | `LibRouter/.../LogRouteTransitions.typext.fs` | `UiActionLog.setCurrentRoute` |
+| Route logging | `LibRouter/.../LogRouteTransitions.fs` | `UiActionLog.setCurrentRoute` |
 | Docs | `LibClient/ACCESSIBILITY.md` | API + migration checklist |
 
 **Dev hook (DEBUG only):**
@@ -328,7 +328,19 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 - **LibUiSubject:** legacy `LC.Subscribe` wrappers removed; `UiSubject.With.{Subject,Subjects,SubjectsWithCount,View}` hook-based.
 - **ThirdParty Map:** largest conversion (~1000-line web map controller preserved); gallery Map page updated for `TypesBuilders` alias pattern.
 
-### 5.5 Gallery modernization (2026-06-28 → 29)
+### 5.5 Gallery validation results (2026-06-29)
+
+**Web — console sweep (`audit-gallery-full.mjs`):** **75/75 hardcoded routes**, **0 actionable** console errors. Note: script list is **stale** (missing LibRouter×5, AutoUi, LabelledFormField, etc.) — use `audit-gallery-interactive.mjs` (discovers routes from `Components.fs`).
+
+**Web — interactive audit (`audit-gallery-interactive.mjs`, 2026-06-28 run):** **79/79 routes** discovered; **~35 pages fully tested** before **Input_File crashed the browser** (~1.57M console events → Playwright closed context; remaining 44 routes = LOAD FAIL, not app bugs). **18 actionable** console pages, **3 assertion failures** (AutoUi_InputForm, ContextMenu, Input_Checkbox). Report: `audit-browser/interactive/2026-06-28T00-55-58-429Z/final-report.md`. **Fix Input_File recipe / console cap and re-run** before trusting full-crawl results.
+
+**Style leaks:** classified as **dev noise** on every page in full audit (`style-leak` bucket alongside HMR, legacy context, telemetry). Not treated as actionable by scripts; manual triage via visual-archive `overlapReviewPriority` still pending when interactive run completes.
+
+**Native — compile:** `Native Debug` build initially **failed** on `ThirdParty/Map/Base.fs` (`Option<LatLng>` passed where `LatLng` expected) — **fixed** 2026-06-29.
+
+**Native — runtime audit:** **Not run** — no `adb` device attached, Appium not installed in this environment. Follow `GALLERY-AUDIT.md` § Android when emulator available.
+
+### 5.6 Gallery modernization (2026-06-28 → 29)
 
 **Added routes:** LibRouter.{Dialogs, LogRouteTransitions, NativeBackButton, WithLocation, WithRoute}, AutoUi_InputForm.
 
@@ -341,13 +353,13 @@ Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adopt
 | Native audit | Pending — requires Metro + emulator + Appium |
 | Known dev-web gotcha | Incomplete Fable output → webpack `Module not found`; restart dev-web |
 
-### 5.6 TapCapture → Pressable
+### 5.7 TapCapture → Pressable
 
 - **Done on:** Button, Nav.Top.Item, Sidebar.Item, TextButton, IconButton internals, Pressable/TapCapture shim
 - **Remaining:** grep `LC.TapCapture` in `LibClient/src` — ~16 pure-F# components still call shim directly (semantically safe via Pressable redirect; should gain explicit label/role/testId)
 - **Definition of "swept":** zero `TapCapture` outside shim + style rule files; delete `TapCapture.fs`
 
-### 5.7 Phase summary table
+### 5.8 Phase summary table
 
 | Phase | Description | Status |
 |-------|-------------|--------|
