@@ -4,7 +4,7 @@
     By default, pin all projects to use a specific version of these packages.
     -->
 
-    <PackageReference Update="FSharp.Core" Version="7.0.403" />
+    <PackageReference Update="FSharp.Core" Version="9.0.201" />
 
     <!--
     But for exceptions, allow projects to override the version.

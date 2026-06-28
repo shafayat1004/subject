@@ -58,6 +58,26 @@ const REPO_ROOT_PATH = path.dirname(findUpwards("global.json"));
 const LIB_STANDARD_PATH = path.join(REPO_ROOT_PATH, "LibStandard");
 const LIB_STANDARD_BUILD_PATH = (target: BuildTarget) => path.join(LIB_STANDARD_PATH, ".build", target, "fable");
 
+/** FSharpPlus Comonad.fs uses Async.AsTask on the Fable 5 path; FSharpPlus hides AsTask behind !FABLE_COMPILER. */
+function patchFSharpPlusComonadForFable5(): void {
+    const home = process.env.HOME || process.env.USERPROFILE || "";
+    if (!home) return;
+    const filePath = path.join(home, ".nuget/packages/fsharpplus/1.6.1/fable/Control/Comonad.fs");
+    if (!fs.existsSync(filePath)) return;
+    let src = fs.readFileSync(filePath, "utf8");
+    if (src.includes("EGGSHELL_FABLE5_COMONAD_PATCH")) return;
+    const patched = src.replace(
+            /static member\s+Extract \(x: Async<'T>\) =[\s\S]*?(?=static member\s+Extract \(x: Lazy)/,
+            `static member        Extract (x: Async<'T>) =
+        failwith "Comonad Extract on Async is unused on Fable (EGGSHELL_FABLE5_COMONAD_PATCH)"
+    `
+        );
+    if (patched !== src) {
+        fs.writeFileSync(filePath, patched);
+        console.log(`Patched FSharpPlus Comonad for Fable 5: ${filePath}`);
+    }
+}
+
 function getNodeModulesBin(exeFile: string): string {
     return path.join(TOOL_PATH, "node_modules", ".bin", exeFile);
 }
@@ -153,6 +173,7 @@ function getFableArgs(project: AppProject, target: BuildTarget, config: BuildCon
 }
 
 async function precompileLibStandard(target: BuildTarget): Promise<string> {
+    patchFSharpPlusComonadForFable5();
     const precompiledLib = LIB_STANDARD_BUILD_PATH(target);
     const args = getFableDotnetCommand()
         .concat([
@@ -184,6 +205,7 @@ async function precompileLibStandard(target: BuildTarget): Promise<string> {
 }
 
 export default async function runFable(project: AppProject, target: BuildTarget = "web", config: BuildConfig = "dev", noPrecompile: boolean, noCache: boolean, callBack?: (stdout: string)=>void) : Promise<void> {
+    patchFSharpPlusComonadForFable5();
     // There are issues with Fable precompilation and Metro bundler, disable the feature for now
     // in native platform until further investigation.
     noPrecompile = target === "web" ? noPrecompile : true;

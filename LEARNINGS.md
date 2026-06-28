@@ -5,6 +5,43 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-28 — Fable 5 migration (Phase 1): SDK 10, FSharp.Core 9, SubjectIndex constraint
+
+**Fable 5 tool needs SDK 10 in `global.json`.** Bumping `.config/dotnet-tools.json` to Fable 5.4.0 fails restore while `global.json` pins 7.x (`NU1202: Package Fable 5.4.0 is not compatible with net7.0`). Flip `global.json` to `10.0.x` before `dotnet tool restore`. **Also flip nested manifests:** `LibStandard/global.json`, `AppEggShellGallery/global.json`, and `Meta/FablePlugins/global.json` still pinned 7.0.300 — `eggshell dev-web` runs `dotnet fable` from `LibStandard/` and picks up the nested file, so root-only bump is not enough.
+
+**Always `export DOTNET_ROOT="$HOME/.dotnet"`** before dotnet/fable/eggshell (see existing LEARNINGS entry).
+
+**SDK 10 rejects `LangVersion 7.0`.** After the SDK flip, every project with `<LangVersion>7.0</LangVersion>` fails with FS3880. Fix: set `<LangVersion>8.0</LangVersion>` in `Directory.Build.props` and bulk-replace per-project overrides (mechanical, ~70 fsprojs).
+
+**FSharp.Core must track Fable.React 10.** `Directory.Build.targets` pin `7.0.403` conflicts with `Fable.React 10.0.0-alpha.1` (needs `>= 9.0.201`). Bump the central pin to `9.0.201`.
+
+**F# 9 FS3868 on `SubjectIndex<'OpError>` in LibUiSubject.** `dotnet build LibUiSubject -c "Web Debug"` references `LibLifeCycleTypes` compiled *without* `FABLE_COMPILER` (Web Debug is not mapped to Fable Debug when building a single fsproj). The referenced `SubjectIndex<'OpError>` interface then includes static abstract members; F# 9 rejects it as a generic constraint in `SubjectEndpoints.Make`. Fix: drop `and 'Index :> SubjectIndex<'OpError>` from `SubjectEndpoints` type + `Make` in `Throttling.fs` (LibUiSubject always defines `FABLE_COMPILER`; the constraint is backend-only). Do **not** fix by forcing `FABLE_COMPILER` on `LibLifeCycleTypes` for Web Debug — that renames the module to `LibLifeCycleTypes_SubjectTypes` and breaks `open LibLifeCycleTypes.SubjectTypes` at the dotnet-build reference boundary.
+
+**FablePlugins gate (3 edits, validated):** `Fable.AST` 5.0.0, `FableMinimumVersion "5.0"`, `Ident.IsInlineIfLambda = false` in `AstUtils.makeIdent`.
+
+**Fable transpile end errors on FablePlugins are benign** (plugin source is not meant to be transpiled); LibClient components still emit (e.g. `/tmp/.../Components/Tabs/Tabs.js`).
+
+**Stuck Fable precompile / wrong Fable version:** If `eggshell dev-web` hangs on `Directory is locked, waiting for max 600s` (Fable prints: delete `.build/web/fable/fable.lock`), a prior `dotnet fable` run left the lock behind — **delete `LibStandard/.build/web/fable/fable.lock`** (and kill stray `dotnet fable` processes if needed). Also verify `dotnet fable --version` from repo root is **5.4.0**, not 4.18.0; a reverted `.config/dotnet-tools.json` restores the old tool and the hung lock then blocks the new run. **Stale `fable_modules/fable-library-js.4.18.0`** under `.build/web/fable` means Fable 4 ran last — wipe the whole `.build/web/fable` dir after bumping the tool; Fable 5 emits `fable-library-js.5.4.0` (not an `npm install` fix; the JS runtime is copied by the `dotnet fable` tool). Always `export DOTNET_ROOT="$HOME/.dotnet"` before `dotnet tool restore` / `dotnet fable`.
+
+**Fable 5 gallery compile — deferred cleanup (non-blocking warnings):**
+- **FS1182 unused bindings** in LibUiAdmin/Grid, LibAutoUi, gallery route pages (`pstoreKey`, etc.) — pre-existing; fix when touching those files.
+- **`LogRouteTransitions.fs` ref-cell `!` / `:=`** (FS3370) — migrate to `.Value` / `<-` when editing LibRouter.
+- **`SubjectTypes.fs` `[<ComponentModel.EditorBrowsable>]` on interfaces** (FS842) — backend/Fable shared; cosmetic on Fable path.
+- **Fable `FSharpType.IsUnion/GetUnionCases` second-arg ignored** — known Fable 5 behavior in codec/reflection code; no action unless logic breaks.
+- **`ThirdParty/Map/Types.fs`**: CompareTo duplicate + generic type-test ignored — add `[<Mangle>]` / review when touching Map.
+- **`Meta/LibFablePlus` still passes `--noParallelTypeCheck`** — flag gone in Fable 5 CLI; remove from `index.ts` when cleaning eggshell args (harmless if ignored).
+- **Fantomas / FablePlugins FS1182** (`memoEq` unused) — plugin-only warning.
+
+**Fable 5 gallery compile — fixed blocker:** `ThirdParty/ImagePicker/.../ReactNativeImagePicker.fs` web stub used `type ImagePicker.Native with` indented inside `#if EGGSHELL_PLATFORM_IS_WEB` immediately after `type Asset`; Fable 5 rejects as nested type (FS58). Dedented to module-level extension (same shape as native `#else` branch).
+
+**Fable 5 blank white page (runtime):** Webpack green but `.app-container` empty. Console: `ReferenceError: map is not defined` at `AsyncData.js` line ~237. Cause: corrupted generated JS — file ends with `//# sourceMappingURL=AsyncData.js.map` then a stray literal line `map` (invalid top-level statement). Likely Fable watch partial write during incremental recompile. Fix: delete `AppEggShellGallery/.build/web/fable/Components/Content/AsyncData/AsyncData.js` and run full `dotnet fable src ... --noCache`, or restart `eggshell dev-web` after clean. Symptom check: `tail -3 .../AsyncData.js` must not end with bare `map`. After clean compile, page title becomes "Home - EggShell Gallery" and `.app-container` has children.
+
+--- FSharpPlus `Comonad.fs` calls `Async.AsTask` on the Fable 5 path, but FSharpPlus hides its own `AsTask` behind `#if !FABLE_COMPILER`. Interim: `Meta/LibFablePlus/src/index.ts` patches the NuGet `Comonad.fs` to use `Async.StartAsTask` before fable runs (marked `EGGSHELL_FABLE5_COMONAD_PATCH`). Long-term: bump FSharpPlus when it adds Fable 5 branches, or vendor the fable slice.
+
+**Phase 2 still required before Fable runtime:** `Fable.SignalR` 0.16.0 remains referenced for dotnet typecheck; replace with direct `@microsoft/signalr` bindings before expecting Fable 5 transpile of `RealTimeService.fs` to succeed.
+
+---
+
 ## 2026-06-28 — Batch 3 nav/UI §10: testId slugs + overlay parents
 
 **Slug prefixes (auto via `A11ySlug.testId` unless `?testId` passed):** `tab-{label}`, `toggle-button-{label|value}`, `nav-top-item-{label}`, `nav-bottom-item-{label}`, `text-button-{label}`, `touchable-opacity-{label}`, `scrim-dismiss` (Scrim default when `onPress` set), `thumb-{index}` (Thumbs), `context-menu-item-{label}` (Popup + Dialog).

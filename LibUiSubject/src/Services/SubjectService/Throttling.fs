@@ -28,8 +28,7 @@ type SubjectEndpoints<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action,
                         and  'Constructor  :> Constructor
                         and  'Action       :> LifeAction
                         and  'Event        :> LifeEvent
-                        and  'OpError      :> OpError
-                        and  'Index        :> SubjectIndex<'OpError>> = {
+                        and  'OpError      :> OpError> = {
     Get: ApiEndpoint<unit, 'Id, VersionedData<'Projection>>
     GetMaybeConstruct: ApiEndpoint<unit, GetMaybeConstruct<'Id, 'Constructor>, VersionedData<'Projection>>
     GetMany: ApiEndpoint<unit, NonemptySet<'Id>, List<AccessControlled<VersionedData<'Projection>, 'Id>>>
@@ -57,8 +56,7 @@ type SubjectEndpoints<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action,
                         and  'Constructor1  :> Constructor
                         and  'Action1       :> LifeAction
                         and  'Event1        :> LifeEvent
-                        and  'OpError1      :> OpError
-                        and  'Index1        :> SubjectIndex<'OpError1>> (
+                        and  'OpError1      :> OpError> (
         lifeCycleName: string,
         maybeProjectionName: Option<string>,
         subjectUrlBase: string,

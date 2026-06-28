@@ -21,11 +21,13 @@ type Asset = {
 }
 
 #if EGGSHELL_PLATFORM_IS_WEB
-    type ImagePicker.Native with
-        [<Component>]
-        static member ReactNativeImagePicker (onImageSelect: Option<list<Asset>> -> Unit) =
-            ignore onImageSelect
-            nothing
+
+type ImagePicker.Native with
+    [<Component>]
+    static member ReactNativeImagePicker (onImageSelect: Option<list<Asset>> -> Unit) =
+        ignore onImageSelect
+        nothing
+
 #else
 module private Styles =
 

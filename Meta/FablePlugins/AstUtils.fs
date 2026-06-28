@@ -15,6 +15,7 @@ let makeIdent name: Fable.Ident =
       IsCompilerGenerated = true
       IsThisArgument = false
       IsMutable = false
+      IsInlineIfLambda = false
       Range = None }
 
 let makeUniqueIdent (name: string) =

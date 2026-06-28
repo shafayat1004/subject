@@ -1,4 +1,7 @@
 <Project ToolsVersion="15.0">
+  <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'!='Release'">
     <!-- Suppress QQQs during development -->
     <OtherFlags>--warnon:3390 --warnon:1182 --warnaserror+ --nowarn:3186;3511;3535;3536;3548;3560;10666;10667 --warnaserror-:44;1182 $(OtherFlags)</OtherFlags>
