@@ -38,9 +38,12 @@ open LC.Input.PickerInternals.Field
 [<RequireQualifiedAccess>]
 module private Styles =
     let view =
-        makeViewStyles {
-            paddingTop 6
-        }
+        ViewStyles.Memoize (fun (hasLabel: bool) ->
+            makeViewStyles {
+                Overflow.Visible
+                if hasLabel then
+                    marginTop 6
+            })
 
     let handheldFullWidthTapArea =
         makeViewStyles {
@@ -131,7 +134,7 @@ module private Styles =
         ViewStyles.Memoize (fun (labelBg: Color) ->
             makeViewStyles {
                 Position.Absolute
-                top -8
+                top -6
                 left 10
                 paddingHorizontal 3
                 backgroundColor labelBg
@@ -359,7 +362,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
         RX.View(
             testId = resolvedTestId,
             onLayout = onLayout,
-            styles = [| Styles.view; yield! legacyStyles; yield! (defaultArg styles [||]) |],
+            styles = [| Styles.view label.IsSome; yield! legacyStyles; yield! (defaultArg styles [||]) |],
             children =
                 [|
                     RX.View(

@@ -3,6 +3,7 @@ module LibClient.Memoize
 open Fable.Core
 
 [<Import("default","fast-memoize")>]
+// Do not remove — Emit strings below reference this import as `fast_memoize`.
 let private fastMemoize (fn: obj) : obj = jsNative
 
 let memoize (fn: 'a -> 'b) : ('a -> 'b) =

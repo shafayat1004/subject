@@ -24,7 +24,7 @@ Gallery full crawl (`style-leaks.json`, 819 hits / 4 keys) traced mostly to **`V
 
 **Shadow `top: 1` bulk leak (809):** depressed pointer styles on **Tag**, **FAB**, **Button** (`ButtonLowLevelState` DU also carried a fresh `Actionable` callback ref — key on `state.GetName` string instead).
 
-**Fix recipe:** extract **primitives** (`Color`, `int`, `bool`, enum/`GetName`) at the call site; thin `*For` helpers pull fields from `Theme` then call memo. **Card** split flat vs shadowed memo (6-arg limit). **Do not** pass whole `Theme` or `PointerState` into memo keys.
+**Fix recipe:** extract **primitives** (`Color`, `int`, `bool`, enum/`GetName`) at the call site; thin `*For` helpers pull fields from `Theme` then call memo. **Card** split flat vs shadowed memo (6-arg limit). **Do not** pass whole `Theme`, `PointerState`, or Fable **`Union`** DU values (e.g. `Level`, `ScreenSize`, `FontWeight`) into memo keys — `JSON.stringify` on Union instances is unreliable for `fast-memoize`.
 
 **Gallery audit scope:** `--only=style-leak-full` in `audit-gallery-components.mjs` — all 23 pages from the rollup.
 
@@ -34,7 +34,7 @@ Gallery full crawl (`style-leaks.json`, 819 hits / 4 keys) traced mostly to **`V
 
 **Gallery audit testId:** ReactXP emits **`data-test-id`** on web, not RNW's `data-testid`. `audit-gallery-selectors.mjs` must query `[data-test-id="…"]` — wrong attribute caused Scrim (and all Pressable testId) false-fails.
 
-**`memoize2`–`memoize6` cache never hit (2026-06-29):** curried F# lambdas compile to **length-1** JS functions; `fast-memoize` then uses **monadic** caching on a fresh `(a,b,…)` tuple each call, so every render was a cache miss (Button `viewBase`, etc.). Fix: `Emit` wrappers that pass true **N-arg** JS functions into `fast-memoize` (variadic strategy + `JSON.stringify` on primitive args), then re-wrap with curried F# (`fun a b -> mem a b`) so existing `f a b` / partial-apply call sites keep working.
+**`memoize2`–`memoize6` variadic + curried wrappers (2026-06-29):** Fable compiles multi-arg F# lambdas to **length-1** curried JS functions, so `fast-memoize` picks **monadic** strategy (one arg) instead of **variadic** (N args). The old tuple wrapper `(fun (a,b) -> …)` / `mem (a,b)` still serialized tuple **contents** via `JSON.stringify` for cache keys — so "cache never hit every render" was overstated. The durable fixes: pass true **N-arg** JS functions into `fast-memoize` (variadic + `JSON.stringify` on args), re-wrap with curried F# (`invoke2`…`invoke6`) for `f a b` call sites, and key on **primitives** (strings/ints/bools), not Theme/Union refs. **`Memoize.fs`:** keep the `fastMemoize` import — `Emit("fast_memoize(…)")` strings depend on Fable naming it exactly that.
 
 ---
 
