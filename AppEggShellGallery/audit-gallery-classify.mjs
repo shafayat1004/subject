@@ -18,6 +18,7 @@ export function normalizeLogText(text) {
 export function classifyTag(text, type) {
   const t = text.toLowerCase();
   if (type === 'pageerror') return 'uncaught';
+  if (t.includes('possible style leak')) return 'style-leak';
   if (t.includes('objects are not valid as a react child')) return 'react-child';
   if (t.includes('validatedomnesting') || t.includes('validateomnesting')) return 'dom-nesting';
   if (t.includes('invalidvalueerror') || t.includes('typeerror') || t.includes('referenceerror')) {
@@ -68,7 +69,7 @@ export function classifyForFullAudit(text, type) {
     return { bucket: 'noise', kind: 'missing-react-key', summary: n.slice(0, 120) };
   }
   if (t.includes('possible style leak')) {
-    return { bucket: 'noise', kind: 'style-leak', summary: n.slice(0, 120) };
+    return { bucket: 'style-leak', kind: 'style-leak', summary: n.slice(0, 120) };
   }
   if (t.includes('react router future flag')) {
     return { bucket: 'noise', kind: 'react-router-future', summary: '' };

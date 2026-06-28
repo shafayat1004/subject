@@ -99,15 +99,17 @@ module Sidebar_Item =
 
     [<RequireQualifiedAccess>]
     module private Styles =
-        let item (theme: Theme) (colors: Colors) =
-            makeViewStyles {
-                FlexDirection.Row
-                flex              1
-                height            theme.ItemHeight
-                paddingHorizontal 18
-                borderColor       colors.Border
-                backgroundColor   colors.Background
-            }
+        let item =
+            ViewStyles.Memoize (fun (itemHeight: int) (border: Color) (background: Color) ->
+                makeViewStyles {
+                    FlexDirection.Row
+                    flex              1
+                    height            itemHeight
+                    paddingHorizontal 18
+                    borderColor       border
+                    backgroundColor   background
+                }
+            )
 
         let left =
             makeViewStyles {
@@ -132,36 +134,44 @@ module Sidebar_Item =
                 flex 0
             }
 
-        let iconText (theme: Theme) (iconColor: Color) =
-            makeTextStyles {
-                fontSize theme.IconFontSize
-                color    iconColor
-            }
+        let iconText =
+            TextStyles.Memoize (fun (iconFontSize: int) (iconColor: Color) ->
+                makeTextStyles {
+                    fontSize iconFontSize
+                    color    iconColor
+                }
+            )
 
-        let labelText (theme: Theme) (colors: Colors) =
-            makeTextStyles {
-                fontSize theme.LabelFontSize
-                color    colors.Label
-                RulesRestricted.fontWeight colors.LabelWeight
-            }
+        let labelText =
+            TextStyles.Memoize (fun (labelFontSize: int) (labelColor: Color) (weight: RulesRestricted.FontWeight) ->
+                makeTextStyles {
+                    fontSize labelFontSize
+                    color    labelColor
+                    RulesRestricted.fontWeight weight
+                }
+            )
 
-        let badgeContainer (colors: Colors) =
-            makeViewStyles {
-                AlignItems.Center
-                JustifyContent.Center
-                flex              0
-                height            28
-                minWidth          28
-                paddingHorizontal 8
-                borderRadius      14
-                backgroundColor   colors.BadgeBackground
-            }
+        let badgeContainer =
+            ViewStyles.Memoize (fun (background: Color) ->
+                makeViewStyles {
+                    AlignItems.Center
+                    JustifyContent.Center
+                    flex              0
+                    height            28
+                    minWidth          28
+                    paddingHorizontal 8
+                    borderRadius      14
+                    backgroundColor   background
+                }
+            )
 
-        let badgeTextStyle (theme: Theme) (colors: Colors) =
-            makeTextStyles {
-                fontSize theme.BadgeFontSize
-                color colors.BadgeText
-            }
+        let badgeTextStyle =
+            TextStyles.Memoize (fun (badgeFontSize: int) (badgeColor: Color) ->
+                makeTextStyles {
+                    fontSize badgeFontSize
+                    color badgeColor
+                }
+            )
 
     type Constructors.LC.Sidebar with
         [<Component>]
@@ -204,7 +214,7 @@ module Sidebar_Item =
                     RX.View(
                         styles =
                             [|
-                                Styles.item theTheme colors
+                                Styles.item theTheme.ItemHeight colors.Border colors.Background
                                 yield! legacyViewStyles
                                 yield! (styles |> Option.defaultValue [||])
                             |],
@@ -218,7 +228,7 @@ module Sidebar_Item =
                                             elements {
                                                 LC.Icon(
                                                     icon = icon,
-                                                    styles = [| Styles.iconText theTheme colors.LeftIcon |]
+                                                    styles = [| Styles.iconText theTheme.IconFontSize colors.LeftIcon |]
                                                 )
                                             }
                                     )
@@ -232,7 +242,7 @@ module Sidebar_Item =
                                             LC.UiText(
                                                 value = label,
                                                 selectable = true,
-                                                styles = [| Styles.labelText theTheme colors |]
+                                                styles = [| Styles.labelText theTheme.LabelFontSize colors.Label colors.LabelWeight |]
                                             )
                                         }
                                 )
@@ -254,12 +264,12 @@ module Sidebar_Item =
                                             children =
                                                 elements {
                                                     RX.View(
-                                                        styles = [| Styles.badgeContainer colors |],
+                                                        styles = [| Styles.badgeContainer colors.BadgeBackground |],
                                                         children =
                                                             elements {
                                                                 LC.UiText(
                                                                     value = badgeText count,
-                                                                    styles = [| Styles.badgeTextStyle theTheme colors |]
+                                                                    styles = [| Styles.badgeTextStyle theTheme.BadgeFontSize colors.BadgeText |]
                                                                 )
                                                             }
                                                     )
@@ -272,7 +282,7 @@ module Sidebar_Item =
                                                 elements {
                                                     LC.Icon(
                                                         icon = icon,
-                                                        styles = [| Styles.iconText theTheme colors.RightIcon |]
+                                                        styles = [| Styles.iconText theTheme.IconFontSize colors.RightIcon |]
                                                     )
                                                 }
                                         )

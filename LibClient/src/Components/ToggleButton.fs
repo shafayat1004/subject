@@ -92,6 +92,11 @@ module private Styles =
     let iconTheme =
         fun (_theme: Theme) (_isSelected: bool) -> whiteIcon
 
+    let relative =
+        makeViewStyles {
+            Position.Relative
+        }
+
     let leftIcon =
         makeViewStyles {
             marginHorizontal 2
@@ -138,7 +143,7 @@ type LibClient.Components.Constructors.LC with
             styles =
                 [|
                     Styles.viewTheme theTheme isSelected
-                    makeViewStyles { Position.Relative }
+                    Styles.relative
 
                     match position with
                     | Position.First -> Styles.firstView

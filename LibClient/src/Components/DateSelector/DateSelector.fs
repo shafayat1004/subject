@@ -90,13 +90,15 @@ module private Styles =
             height   330
         }
 
-    let header (theme: Theme) =
-        makeViewStyles {
-            paddingTop        40
-            paddingBottom     5
-            paddingHorizontal 10
-            backgroundColor   theme.HeaderBackgroundColor
-        }
+    let header =
+        ViewStyles.Memoize (fun (headerBackgroundColor: Color) ->
+            makeViewStyles {
+                paddingTop        40
+                paddingBottom     5
+                paddingHorizontal 10
+                backgroundColor   headerBackgroundColor
+            }
+        )
 
     let headerText =
         makeTextStyles {
@@ -158,18 +160,20 @@ module private Styles =
             JustifyContent.SpaceBetween
         }
 
-    let day (theme: Theme) (isSelected: bool) =
-        makeViewStyles {
-            JustifyContent.Center
-            Cursor.Pointer
-            height dayWidth
-            width  dayWidth
+    let day =
+        ViewStyles.Memoize (fun (selectedDateBackgroundColor: Color) (isSelected: bool) ->
+            makeViewStyles {
+                JustifyContent.Center
+                Cursor.Pointer
+                height dayWidth
+                width  dayWidth
 
-            if isSelected then
-                borderColor  (Color.Hex "#c5d7ff")
-                borderRadius (dayWidth / 2)
-                backgroundColor theme.SelectedDateBackgroundColor
-        }
+                if isSelected then
+                    borderColor  (Color.Hex "#c5d7ff")
+                    borderRadius (dayWidth / 2)
+                    backgroundColor selectedDateBackgroundColor
+            }
+        )
 
     let dayOtherMonth =
         makeViewStyles {
@@ -179,19 +183,21 @@ module private Styles =
             Cursor.Default
         }
 
-    let dayText (isToday: bool) (isDisabled: bool) =
-        makeTextStyles {
-            TextAlign.Center
-            fontSize 12
+    let dayText =
+        TextStyles.Memoize (fun (isToday: bool) (isDisabled: bool) ->
+            makeTextStyles {
+                TextAlign.Center
+                fontSize 12
 
-            if isDisabled then
-                color (Color.Grey "cc")
-            elif isToday then
-                FontWeight.Bold
-                color Color.Black
-            else
-                color Color.Black
-        }
+                if isDisabled then
+                    color (Color.Grey "cc")
+                elif isToday then
+                    FontWeight.Bold
+                    color Color.Black
+                else
+                    color Color.Black
+            }
+        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -270,7 +276,7 @@ type LibClient.Components.Constructors.LC with
                     let label = Helpers.dayLabel day
 
                     RX.View(
-                        styles = [| Styles.day theTheme isSelected |],
+                        styles = [| Styles.day theTheme.SelectedDateBackgroundColor isSelected |],
                         children =
                             elements {
                                 LC.UiText(
@@ -302,7 +308,7 @@ type LibClient.Components.Constructors.LC with
             children =
                 [|
                     RX.View(
-                        styles = [| Styles.header theTheme |],
+                        styles = [| Styles.header theTheme.HeaderBackgroundColor |],
                         children =
                             elements {
                                 match maybeSelected with

@@ -133,17 +133,19 @@ module Nav_Top_Item =
 
     [<RequireQualifiedAccess>]
     module private Styles =
-        let item (sizes: ScreenSizes) (state: State) (colors: AppearanceColors) =
-            makeViewStyles {
-                Position.Relative
-                paddingHorizontal 10
-                JustifyContent.SpaceAround
-                AlignItems.Center
-                height (sizes.Height - 2)
-                borderColor     colors.Border
-                backgroundColor colors.Background
-                borderBottom    3 (bottomBorderColor state colors)
-            }
+        let item =
+            ViewStyles.Memoize (fun (itemHeight: int) (border: Color) (background: Color) (bottomBorder: Color) ->
+                makeViewStyles {
+                    Position.Relative
+                    paddingHorizontal 10
+                    JustifyContent.SpaceAround
+                    AlignItems.Center
+                    height (itemHeight - 2)
+                    borderColor     border
+                    backgroundColor background
+                    borderBottom    3 bottomBorder
+                }
+            )
 
         let contentRow =
             makeViewStyles {
@@ -168,10 +170,12 @@ module Nav_Top_Item =
                 gap 5
             }
 
-        let iconAdjust (theme: Theme) =
-            makeViewStyles {
-                bottom theme.IconVerticalAdjust
-            }
+        let iconAdjust =
+            ViewStyles.Memoize (fun (verticalAdjust: int) ->
+                makeViewStyles {
+                    bottom verticalAdjust
+                }
+            )
 
         let labelContent =
             makeViewStyles {
@@ -188,27 +192,33 @@ module Nav_Top_Item =
                 left -10
             }
 
-        let labelSentinel (sizes: ScreenSizes) (colors: AppearanceColors) =
-            makeTextStyles {
-                fontSize sizes.LabelFontSize
-                color colors.Background
-                FontWeight.W900
-            }
+        let labelSentinel =
+            TextStyles.Memoize (fun (labelFontSize: int) (sentinelColor: Color) ->
+                makeTextStyles {
+                    fontSize labelFontSize
+                    color sentinelColor
+                    FontWeight.W900
+                }
+            )
 
-        let labelVisible (sizes: ScreenSizes) (colors: AppearanceColors) =
-            makeTextStyles {
-                Position.Absolute
-                trbl 0 0 0 0
-                fontSize sizes.LabelFontSize
-                color colors.Label
-                RulesRestricted.fontWeight colors.LabelWeight
-            }
+        let labelVisible =
+            TextStyles.Memoize (fun (labelFontSize: int) (labelColor: Color) (weight: RulesRestricted.FontWeight) ->
+                makeTextStyles {
+                    Position.Absolute
+                    trbl 0 0 0 0
+                    fontSize labelFontSize
+                    color labelColor
+                    RulesRestricted.fontWeight weight
+                }
+            )
 
-        let iconText (sizes: ScreenSizes) (colors: AppearanceColors) =
-            makeTextStyles {
-                fontSize sizes.IconFontSize
-                color colors.Icon
-            }
+        let iconText =
+            TextStyles.Memoize (fun (iconFontSize: int) (iconColor: Color) ->
+                makeTextStyles {
+                    fontSize iconFontSize
+                    color iconColor
+                }
+            )
 
         let badgeHandheld =
             makeViewStyles {
@@ -218,28 +228,30 @@ module Nav_Top_Item =
                 paddingHorizontal 4
             }
 
-        let badgePosition (sizes: ScreenSizes) =
-            makeViewStyles {
-                top  sizes.BadgeTop
-                left sizes.BadgeLeft
-            }
+        let badgePosition =
+            ViewStyles.Memoize (fun (badgeTop: int) (badgeLeft: int) ->
+                makeViewStyles {
+                    top  badgeTop
+                    left badgeLeft
+                }
+            )
 
     let private renderLabelBlock (sizes: ScreenSizes) (colors: AppearanceColors) (label: string) (withIconBadgeOffset: bool) =
         RX.View(
             styles = [| if withIconBadgeOffset then Styles.labelContentIconBadge else Styles.labelContent |],
             children =
                 elements {
-                    LC.UiText(value = label, styles = [| Styles.labelSentinel sizes colors |])
-                    LC.UiText(value = label, styles = [| Styles.labelVisible sizes colors |])
+                    LC.UiText(value = label, styles = [| Styles.labelSentinel sizes.LabelFontSize colors.Background |])
+                    LC.UiText(value = label, styles = [| Styles.labelVisible sizes.LabelFontSize colors.Label colors.LabelWeight |])
                 }
         )
 
     let private renderIcon (sizes: ScreenSizes) (colors: AppearanceColors) (theme: Theme) (icon: LibClient.Icons.IconConstructor) =
         RX.View(
-            styles = [| Styles.iconAdjust theme |],
+            styles = [| Styles.iconAdjust theme.IconVerticalAdjust |],
             children =
                 elements {
-                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes colors |])
+                    LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon |])
                 }
         )
 
@@ -255,7 +267,7 @@ module Nav_Top_Item =
         RX.View(
             styles =
                 [|
-                    Styles.badgePosition sizes
+                    Styles.badgePosition sizes.BadgeTop sizes.BadgeLeft
                     if screenSize = ScreenSize.Handheld then Styles.badgeHandheld
                 |],
             children =
@@ -373,7 +385,7 @@ module Nav_Top_Item =
                                 RX.View(
                                     styles =
                                         [|
-                                            Styles.item sizes state colors
+                                            Styles.item sizes.Height colors.Border colors.Background (bottomBorderColor state colors)
                                             yield! legacyViewStyles
                                             yield! (styles |> Option.defaultValue [||])
                                         |],

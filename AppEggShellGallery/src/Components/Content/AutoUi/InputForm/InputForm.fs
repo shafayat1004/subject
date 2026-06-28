@@ -15,17 +15,23 @@ type SampleRecord = {
 }
 
 module private Sample =
+    let formWrapper = FormWrapper.Make<SampleRecord> "SampleRecord"
+
     [<Component>]
     let Render () : ReactElement =
         let validationResultHook = Hooks.useState (None: Option<InputValidationResult<SampleRecord>>)
 
-        let formWrapper = FormWrapper.Make<SampleRecord> "SampleRecord"
+        let onChange =
+            Hooks.useMemo(
+                (fun () -> fun (result: InputValidationResult<SampleRecord>) -> validationResultHook.update (Some result)),
+                [||]
+            )
 
         element {
             UIAuto.InputForm(
                 formWrapper = formWrapper,
                 settings = List.empty,
-                onChange = (fun result -> validationResultHook.update (Some result))
+                onChange = onChange
             )
 
             match validationResultHook.current with

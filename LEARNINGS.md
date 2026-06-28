@@ -956,3 +956,49 @@ Also memoized `LabelledFormField` view/label/field styles (overlap-review page).
 
 **Audit hardening:** per-page console cap (1000) in `audit-gallery-interactive.mjs`; `Input_File`
 interaction limited to first sample cell; `audit-gallery-full.mjs` uses `discoverGalleryComponents()`.
+
+## 2026-06-28 — AutoUi_InputForm audit hang + resilience
+
+**Symptom:** Headed interactive audit stuck on `AutoUi_InputForm` after `found 1 visual sample cell(s)`;
+`interactions.log` never reached `fill first input`. Page log hit the 1000-message console cap in ~300ms.
+
+**Cause:** `InputForm` sample embeds `LC.DateSelector` for `CreatedAt`. `DateSelector` created fresh
+`Styles.day` / `Styles.dayText` per calendar cell each render → ReactXP "possible style leak" spam (~42
+cells × 2 styles). Browser main thread saturated; Playwright `fill`/`count` calls wedged before their
+timeouts fired reliably.
+
+**Fixes:**
+- Memoize `DateSelector` `day` / `dayText` styles (`ViewStyles.Memoize` / `TextStyles.Memoize`).
+- Audit: per-component wall-clock timeout (`audit-gallery-page-issues.mjs`); on timeout log +
+  screenshot + `tracked-issues.json`, press Escape, **continue crawl**. Track `consoleCapHit` separately.
+- `AutoUi_InputForm` handler: dismiss overlays, `fillLabel('Name')` first, skip date inputs in
+  `fillFirstInput`, shorter fill timeouts with `.catch`.
+
+**Resume:** `--resume=audit-browser/interactive/<stamp>` skips checkpoint-completed routes; timed-out
+pages are marked complete (with `interactionTimeout` in result) so resume does not retry them unless
+you delete the checkpoint entry.
+
+## 2026-06-28 — Style leak detection in gallery audits (deduplicated)
+
+**Problem:** ReactXP style-leak warnings are actionable for modernization (need `*.Memoize`) but repeat
+per render (e.g. 42× `Styles_day` on one page), blowing the 1000-line console cap and hiding real errors.
+
+**Fix:** `audit-gallery-style-leaks.mjs` parses `Styles_*` + optional `LC.*` source component, dedupes by
+key per gallery page (one log line + hit count), rolls up to `pass-N/style-leaks.json`. Interactive +
+full audits report `STYLE-LEAK:N (M hits)` per page; repeats omitted from `console-full.log`.
+
+## 2026-06-28 — AutoUi_InputForm infinite re-render (audit stall root cause)
+
+**Symptom:** Gallery + audit still wedged on `AutoUi_InputForm` even after DateSelector memoization and
+interaction timeouts.
+
+**Cause:** Gallery sample called `FormWrapper.Make` **inside** `Sample.Render()` → new record every render.
+`UIAuto.InputForm` `useEffect` depended on `[| box formWrapper |]` → effect re-ran every render →
+`reprocessAccumulator` → `onChange` → parent state update → loop. Browser main thread saturated; Playwright
+appeared stuck on first fill/screenshot.
+
+**Fix:** Gallery: module-level `let formWrapper = FormWrapper.Make<...>`. LibAutoUi: effect deps
+`[||]` (run once on mount). DateSelector: memoize `header`/`day` with **Color** keys (not Theme
+records — new theme refs bypass memo). Stable `onChange` via `Hooks.useMemo` in gallery sample.
+**Restart `eggshell dev-web`** after LibClient/LibAutoUi changes — `eggshell build-lib` does not
+refresh `LibStandard/.build/web/fable` (webpack serves stale JS otherwise).

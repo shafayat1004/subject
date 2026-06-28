@@ -111,7 +111,7 @@ type UIAuto with
 
         Hooks.useEffect(
             (fun () -> reprocessAccumulator estateHook.current.Accumulator),
-            [| box formWrapper |]
+            [||]
         )
 
         let onChangePath (path: Path) (value: InputValue) : unit =

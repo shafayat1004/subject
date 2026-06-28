@@ -1,12 +1,19 @@
 #!/usr/bin/env node
 /**
  * Full gallery audit: visit every component page, classify console output,
- * report actionable issues only (+ summary of dev noise).
+ * report actionable issues + deduplicated style-leak tracking.
  */
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { discoverGalleryComponents } from './audit-gallery-components.mjs';
+import { classifyForFullAudit } from './audit-gallery-classify.mjs';
+import {
+  aggregateStyleLeaks,
+  createStyleLeakTracker,
+  formatStyleLeakSummaryLine,
+  parseStyleLeak,
+} from './audit-gallery-style-leaks.mjs';
 
 const baseUrl = (process.argv[2] ?? 'http://127.0.0.1:8082').replace(/\/$/, '');
 const isProd = baseUrl.includes('eggshell.dev');
@@ -21,53 +28,30 @@ function componentPath(name) {
   return `${baseUrl}/${desktop}/Components/${comp}`;
 }
 
-function normalize(text) {
-  return text
-    .replace(/webpack-internal:\/\/\/\S+/g, '<bundle>')
-    .replace(/https?:\/\/[^\s)]+/g, '<url>')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function classify(text, type) {
-  const t = text.toLowerCase();
-  const n = normalize(text);
-
-  // Uncaught / hard failures
-  if (type === 'pageerror') return { bucket: 'actionable', kind: 'uncaught-exception', summary: n.slice(0, 200) };
-  if (t.includes('objects are not valid as a react child')) return { bucket: 'actionable', kind: 'invalid-react-child', summary: n.slice(0, 200) };
-  if (t.includes('validatereactnesting') || t.includes('validateomnesting')) return { bucket: 'actionable', kind: 'invalid-dom-nesting', summary: n.slice(0, 200) };
-  if (t.includes('invalidvalueerror') || t.includes('typeerror') || t.includes('referenceerror')) return { bucket: 'actionable', kind: 'runtime-error', summary: n.slice(0, 200) };
-  if (t.includes('minified react error') || /error #\d+/.test(t)) return { bucket: 'actionable', kind: 'react-minified-error', summary: n.slice(0, 200) };
-  if (t.includes('failed to load') && t.includes('chunk')) return { bucket: 'actionable', kind: 'chunk-load-failure', summary: n.slice(0, 200) };
-
-  // Dev noise (not actionable for gallery upgrade work)
-  if (t.includes('legacy childcontexttypes') || t.includes('legacy contexttypes')) return { bucket: 'noise', kind: 'reactxp-legacy-context', summary: '' };
-  if (t.includes('finddomnode is deprecated')) return { bucket: 'noise', kind: 'finddomnode-deprecated', summary: '' };
-  if (t.includes('unique "key" prop')) return { bucket: 'noise', kind: 'missing-react-key', summary: n.slice(0, 120) };
-  if (t.includes('possible style leak')) return { bucket: 'noise', kind: 'style-leak', summary: n.slice(0, 120) };
-  if (t.includes('react router future flag')) return { bucket: 'noise', kind: 'react-router-future', summary: '' };
-  if (t.includes('[hmr]') || t.includes('webpack-dev-server')) return { bucket: 'noise', kind: 'webpack-hmr', summary: '' };
-  if (t.includes('[consolestelemetrysink]') || t.includes('screenview:')) return { bucket: 'noise', kind: 'telemetry', summary: '' };
-  if (t.includes('disallowed rule') && t.includes('filtered out')) return { bucket: 'noise', kind: 'filtered-css-rule', summary: n.slice(0, 120) };
-
-  if (type === 'error' && t.startsWith('warning:')) return { bucket: 'noise', kind: 'react-dev-warning', summary: n.slice(0, 120) };
-  if (type === 'warning') return { bucket: 'noise', kind: 'browser-warning', summary: n.slice(0, 120) };
-
-  return { bucket: 'other', kind: 'log', summary: n.slice(0, 120) };
-}
-
 async function auditComponent(browser, name) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
   const url = componentPath(name);
 
   const raw = [];
+  const styleLeakTracker = createStyleLeakTracker();
+
   page.on('console', (msg) => {
     if (msg.type() === 'debug' || msg.type() === 'log') return;
-    raw.push({ type: msg.type(), text: msg.text() });
+    const text = msg.text();
+    const leak = parseStyleLeak(text);
+    if (leak) {
+      const { isNew } = styleLeakTracker.record(leak);
+      if (isNew) {
+        raw.push({ type: msg.type(), text, bucket: 'style-leak', kind: 'style-leak', summary: leak.sample });
+      }
+      return;
+    }
+    raw.push({ type: msg.type(), text, ...classifyForFullAudit(text, msg.type()) });
   });
-  page.on('pageerror', (err) => raw.push({ type: 'pageerror', text: err.message }));
+  page.on('pageerror', (err) => {
+    raw.push({ type: 'pageerror', text: err.message, ...classifyForFullAudit(err.message, 'pageerror') });
+  });
 
   let httpStatus = 0;
   let loadError = null;
@@ -96,9 +80,10 @@ async function auditComponent(browser, name) {
     loadError = String(e.message ?? e);
   }
 
-  const classified = raw.map((e) => ({ ...e, ...classify(e.text, e.type) }));
+  const classified = raw;
   const actionable = classified.filter((e) => e.bucket === 'actionable');
   const noise = classified.filter((e) => e.bucket === 'noise');
+  const styleLeaks = styleLeakTracker.summary();
 
   await context.close();
 
@@ -111,6 +96,7 @@ async function auditComponent(browser, name) {
     actionableCount: actionable.length,
     noiseCount: noise.length,
     noiseKinds: [...new Set(noise.map((e) => e.kind))],
+    styleLeaks,
   };
 }
 
@@ -133,7 +119,10 @@ console.log(`Auditing ${components.length} pages on ${baseUrl} ...\n`);
 for (const name of components) {
   const r = await auditComponent(browser, name);
   results.push(r);
-  const flag = r.loadError ? 'LOAD FAIL' : r.actionableCount ? `ACTIONABLE: ${r.actionableCount}` : 'ok';
+  let flag = r.loadError ? 'LOAD FAIL' : r.actionableCount ? `ACTIONABLE: ${r.actionableCount}` : 'ok';
+  if (r.styleLeaks.uniqueCount) {
+    flag = r.actionableCount ? `${flag} + STYLE-LEAK:${r.styleLeaks.uniqueCount}` : `STYLE-LEAK:${r.styleLeaks.uniqueCount} (${r.styleLeaks.totalCount} hits)`;
+  }
   console.log(`${name.padEnd(28)} ${flag}`);
 }
 
@@ -154,10 +143,18 @@ for (const a of allActionable) {
   byKind.get(key).push(a);
 }
 
+const styleLeakRollup = aggregateStyleLeaks(results);
+
 const report = {
   baseUrl,
   auditedAt: new Date().toISOString(),
   pageCount: components.length,
+  pagesWithStyleLeaks: results.filter((r) => r.styleLeaks.uniqueCount > 0).map((r) => ({
+    component: r.component,
+    summary: formatStyleLeakSummaryLine(r.styleLeaks, r.component),
+    styleLeaks: r.styleLeaks,
+  })),
+  styleLeakRollup,
   pagesWithActionable: results.filter((r) => r.actionableCount > 0).map((r) => ({
     component: r.component,
     count: r.actionableCount,
@@ -181,13 +178,16 @@ const report = {
     actionableCount: r.actionableCount,
     noiseCount: r.noiseCount,
     noiseKinds: r.noiseKinds,
+    styleLeaks: r.styleLeaks,
     actionable: r.actionable.map((a) => ({ kind: a.kind, summary: a.summary })),
   })),
 };
 
 const outFile = join(outDir, 'full-audit.json');
 const mdFile = join(outDir, 'full-audit.md');
+const styleLeaksFile = join(outDir, 'style-leaks.json');
 writeFileSync(outFile, JSON.stringify(report, null, 2));
+writeFileSync(styleLeaksFile, JSON.stringify(styleLeakRollup, null, 2));
 
 let md = `# Gallery audit — ${baseUrl}\n\n`;
 md += `Date: ${report.auditedAt}\n\n`;
@@ -213,11 +213,20 @@ if (!kinds.length) {
   }
 }
 
+if (report.pagesWithStyleLeaks.length) {
+  md += `## Style leaks (deduplicated)\n\n`;
+  for (const p of report.pagesWithStyleLeaks) {
+    md += `- **${p.component}**: ${p.summary}\n`;
+  }
+  md += `\nSee \`style-leaks.json\` for cross-page keys.\n\n`;
+}
+
 md += `## Per-page summary\n\n`;
-md += `| Component | HTTP | Actionable | Noise kinds |\n`;
-md += `|-----------|------|------------|-------------|\n`;
+md += `| Component | HTTP | Actionable | Style leaks | Noise kinds |\n`;
+md += `|-----------|------|------------|-------------|-------------|\n`;
 for (const r of report.fullResults) {
-  md += `| ${r.component} | ${r.httpStatus} | ${r.actionableCount} | ${r.noiseKinds.join(', ') || '—'} |\n`;
+  const leakNote = r.styleLeaks?.uniqueCount ? `${r.styleLeaks.uniqueCount} (${r.styleLeaks.totalCount} hits)` : '—';
+  md += `| ${r.component} | ${r.httpStatus} | ${r.actionableCount} | ${leakNote} | ${r.noiseKinds.join(', ') || '—'} |\n`;
 }
 
 writeFileSync(mdFile, md);
@@ -234,4 +243,5 @@ if (!kinds.length) {
 }
 
 console.log(`\nWrote ${outFile}`);
+console.log(`Wrote ${styleLeaksFile}`);
 console.log(`Wrote ${mdFile}`);

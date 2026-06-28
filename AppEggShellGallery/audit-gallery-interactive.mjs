@@ -18,6 +18,7 @@
  *   --screenshots=all|failures|none  Screenshot per assertion (default: all)
  *   --visual-archive=on|off          Archival PNGs for human/AI review (default: on)
  *   --resume=DIR                     Continue an interrupted run (reads pass-N/checkpoint.json)
+ *   --interaction-timeout-ms=N       Override per-page interaction wall clock (default 90s; AutoUi 45s)
  */
 import { writeVisualArchiveReadme } from './audit-gallery-visual-archive.mjs';
 import {
@@ -35,6 +36,15 @@ import {
   saveBlockedComponents,
   screenshotAppCrash,
 } from './audit-gallery-app-crash.mjs';
+import {
+  InteractionTimeoutError,
+  escapeFromStuckInteraction,
+  interactionTimeoutMsFor,
+  logInteractionTimeout,
+  saveTrackedIssue,
+  screenshotInteractionTimeout,
+  withInteractionTimeout,
+} from './audit-gallery-page-issues.mjs';
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, appendFileSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -44,6 +54,13 @@ import {
   buildCoverageReport,
 } from './audit-gallery-components.mjs';
 import { listAssertionComponents } from './audit-gallery-assertions.mjs';
+import { classifyTag, isActionable, textIsDevNoise } from './audit-gallery-classify.mjs';
+import {
+  aggregateStyleLeaks,
+  createStyleLeakTracker,
+  formatStyleLeakSummaryLine,
+  parseStyleLeak,
+} from './audit-gallery-style-leaks.mjs';
 
 const args = process.argv.slice(2);
 const positional = args.filter((a) => !a.startsWith('--'));
@@ -64,6 +81,9 @@ const pauseMs = Number(flags['pause-ms'] ?? 800);
 const screenshotMode = flags.screenshots ?? 'all';
 const visualArchiveEnabled = flags['visual-archive'] !== 'off';
 const resumeDir = flags.resume ?? null;
+const interactionTimeoutOverride = flags['interaction-timeout-ms']
+  ? Number(flags['interaction-timeout-ms'])
+  : undefined;
 if (!['all', 'failures', 'none'].includes(screenshotMode)) {
   console.error(`Invalid --screenshots=${screenshotMode}; use all, failures, or none`);
   process.exit(1);
@@ -100,42 +120,8 @@ function ts() {
 }
 
 function formatLogLine(entry) {
-  return `[${entry.at}] [${entry.source}] [${entry.type}] ${entry.text}`;
-}
-
-function classify(text, type) {
-  const t = text.toLowerCase();
-  if (type === 'pageerror') return 'uncaught';
-  if (t.includes('objects are not valid as a react child')) return 'react-child';
-  if (t.includes('validatedomnesting')) return 'dom-nesting';
-  if (t.includes('invalidvalueerror') || t.includes('typeerror') || t.includes('referenceerror')) return 'runtime';
-  if (t.includes('minified react error') || /error #\d+/.test(t)) return 'react-minified';
-  if (type === 'error') return 'console-error';
-  if (type === 'warning') return 'console-warning';
-  if (type === 'info') return 'info';
-  return 'log';
-}
-
-function isActionable(classifyTag, type, text = '') {
-  if (type === 'pageerror' || classifyTag === 'uncaught') return true;
-  if (['react-child', 'dom-nesting', 'runtime', 'react-minified'].includes(classifyTag)) return true;
-  if (classifyTag === 'console-error' && !textIsDevNoise(classifyTag, text)) return true;
-  return false;
-}
-
-function textIsDevNoise(_, text) {
-  const t = text.toLowerCase();
-  return (
-    t.includes('legacy childcontexttypes') ||
-    t.includes('finddomnode is deprecated') ||
-    t.includes('unique "key" prop') ||
-    t.includes('possible style leak') ||
-    t.includes('react router future flag') ||
-    t.includes('[hmr]') ||
-    t.includes('webpack-dev-server') ||
-    t.includes('[consolestelemetrysink]') ||
-    t.includes('screenview:')
-  );
+  const tag = entry.classify ? ` [${entry.classify}]` : '';
+  return `[${entry.at}] [${entry.source}] [${entry.type}]${tag} ${entry.text}`;
 }
 
 function attachConsole(page, component, passDir, entries, maxEntries = 1000) {
@@ -144,64 +130,116 @@ function attachConsole(page, component, passDir, entries, maxEntries = 1000) {
 
   let pageCount = 0;
   let capped = false;
+  const styleLeakTracker = createStyleLeakTracker();
+
+  function writeEntry(entry, { countTowardCap = true } = {}) {
+    if (capped) return;
+    if (countTowardCap) {
+      if (pageCount >= maxEntries) {
+        capped = true;
+        const capEntry = {
+          at: ts(),
+          component,
+          source: 'console',
+          type: 'warning',
+          text: `[audit] Console log cap (${maxEntries}) reached for ${component}; further messages omitted`,
+          classify: 'console-cap',
+        };
+        entries.push(capEntry);
+        appendFileSync(pageLogPath, formatLogLine(capEntry) + '\n');
+        appendFileSync(join(passDir, 'console-full.log'), formatLogLine(capEntry) + '\n');
+        return;
+      }
+      pageCount += 1;
+    }
+    entries.push(entry);
+    appendFileSync(pageLogPath, formatLogLine(entry) + '\n');
+    appendFileSync(join(passDir, 'console-full.log'), formatLogLine(entry) + '\n');
+  }
 
   const onConsole = (msg) => {
     if (capped) return;
-    if (pageCount >= maxEntries) {
-      capped = true;
-      const entry = {
-        at: ts(),
-        component,
-        source: 'console',
-        type: 'warning',
-        text: `[audit] Console log cap (${maxEntries}) reached for ${component}; further messages omitted`,
-        classify: 'console-cap',
-      };
-      entries.push(entry);
-      appendFileSync(pageLogPath, formatLogLine(entry) + '\n');
-      appendFileSync(join(passDir, 'console-full.log'), formatLogLine(entry) + '\n');
+    const text = msg.text();
+    const leak = parseStyleLeak(text);
+    if (leak) {
+      const { isNew, count } = styleLeakTracker.record(leak);
+      if (isNew) {
+        writeEntry({
+          at: ts(),
+          component,
+          source: 'console',
+          type: msg.type(),
+          text,
+          classify: 'style-leak',
+          styleLeakKey: leak.key,
+          styleName: leak.styleName,
+          sourceComponent: leak.sourceComponent,
+        });
+      } else if (count === 2 || count === 10 || count === 100 || count % 500 === 0) {
+        writeEntry(
+          {
+            at: ts(),
+            component,
+            source: 'console',
+            type: 'info',
+            text: `[audit] style leak repeat ${leak.key} (${count} hits on ${component}; further repeats omitted from log)`,
+            classify: 'style-leak-repeat',
+            styleLeakKey: leak.key,
+          },
+          { countTowardCap: false }
+        );
+      }
       return;
     }
-    pageCount += 1;
-    const entry = {
+
+    writeEntry({
       at: ts(),
       component,
       source: 'console',
       type: msg.type(),
-      text: msg.text(),
-      classify: classify(msg.text(), msg.type()),
-    };
-    entries.push(entry);
-    appendFileSync(pageLogPath, formatLogLine(entry) + '\n');
-    appendFileSync(join(passDir, 'console-full.log'), formatLogLine(entry) + '\n');
+      text,
+      classify: classifyTag(text, msg.type()),
+    });
   };
 
   const onPageError = (err) => {
     if (capped) return;
-    if (pageCount >= maxEntries) {
-      capped = true;
-      return;
-    }
-    pageCount += 1;
-    const entry = {
+    writeEntry({
       at: ts(),
       component,
       source: 'pageerror',
       type: 'pageerror',
       text: err.message,
-      classify: classify(err.message, 'pageerror'),
-    };
-    entries.push(entry);
-    appendFileSync(pageLogPath, formatLogLine(entry) + '\n');
-    appendFileSync(join(passDir, 'console-full.log'), formatLogLine(entry) + '\n');
+      classify: classifyTag(err.message, 'pageerror'),
+    });
   };
 
   page.on('console', onConsole);
   page.on('pageerror', onPageError);
 
-  return () => {
-    page.off('console', onConsole);
-    page.off('pageerror', onPageError);
+  return {
+    detach: () => {
+      page.off('console', onConsole);
+      page.off('pageerror', onPageError);
+      const summary = styleLeakTracker.summary();
+      if (summary.uniqueCount) {
+        const line = formatStyleLeakSummaryLine(summary, component);
+        const summaryEntry = {
+          at: ts(),
+          component,
+          source: 'audit',
+          type: 'info',
+          text: `[audit] style leaks on ${component}: ${line}`,
+          classify: 'style-leak-summary',
+        };
+        writeEntry(summaryEntry, { countTowardCap: false });
+      }
+    },
+    getStats: () => ({
+      capped,
+      count: pageCount,
+      styleLeaks: styleLeakTracker.summary(),
+    }),
   };
 }
 
@@ -223,16 +261,19 @@ function saveCheckpoint(passDir, data) {
  * Audit one gallery component page.
  * @param {import('playwright').Page} page
  */
-async function auditOneComponent(page, name, passDir, passIndex, allEntries) {
+async function auditOneComponent(page, name, passDir, passIndex, allEntries, outRoot) {
   const url = componentPath(name);
   const entriesBefore = allEntries.length;
   const interactionsLogPath = join(passDir, 'interactions.log');
   const assertionsLogPath = join(passDir, 'assertions.log');
-  const detach = attachConsole(page, name, passDir, allEntries);
+  const detachConsole = attachConsole(page, name, passDir, allEntries);
 
   let httpStatus = 0;
   let loadError = null;
   let interactionError = null;
+  let interactionTimeout = null;
+  let consoleCapHit = false;
+  let styleLeaks = { uniqueCount: 0, totalCount: 0, leaks: [] };
   let interactionActions = 0;
   let assertions = [];
   let failedAssertions = [];
@@ -257,24 +298,30 @@ async function auditOneComponent(page, name, passDir, passIndex, allEntries) {
         screenshotPath: await screenshotAppCrash(page, passDir, name),
       };
     } else {
+      const timeoutMs = interactionTimeoutMsFor(name, interactionTimeoutOverride);
       try {
-        const outcome = await interactWithComponent(
-          page,
-          name,
-          (msg) => {
-            appendFileSync(interactionsLogPath, `[${ts()}] ${name}: ${msg}\n`);
-            if (msg.startsWith('ASSERT ') || msg.startsWith('visual archive:')) {
-              appendFileSync(assertionsLogPath, `[${ts()}] ${name}: ${msg}\n`);
-            }
-          },
-          {
-            passDir,
-            screenshotMode,
-            visualArchive: visualArchiveEnabled,
-            passIndex,
-            baseUrl,
-            url,
-          }
+        const outcome = await withInteractionTimeout(
+          () =>
+            interactWithComponent(
+              page,
+              name,
+              (msg) => {
+                appendFileSync(interactionsLogPath, `[${ts()}] ${name}: ${msg}\n`);
+                if (msg.startsWith('ASSERT ') || msg.startsWith('visual archive:')) {
+                  appendFileSync(assertionsLogPath, `[${ts()}] ${name}: ${msg}\n`);
+                }
+              },
+              {
+                passDir,
+                screenshotMode,
+                visualArchive: visualArchiveEnabled,
+                passIndex,
+                baseUrl,
+                url,
+              }
+            ),
+          timeoutMs,
+          name
         );
         interactionActions = outcome.actionCount;
         assertions = outcome.assertions ?? [];
@@ -282,8 +329,30 @@ async function auditOneComponent(page, name, passDir, passIndex, allEntries) {
         failedAssertions = assertions.filter((a) => !a.passed && !a.reviewOnly);
         reviewItems = assertions.filter((a) => a.reviewOnly);
       } catch (e) {
-        interactionError = String(e.message ?? e);
-        if (isBrowserBlockedError(e)) throw e;
+        if (e instanceof InteractionTimeoutError) {
+          interactionTimeout = { timeoutMs: e.timeoutMs, phase: e.phase ?? 'interact' };
+          interactionError = e.message;
+          logInteractionTimeout(passDir, name, interactionTimeout);
+          const screenshotPath = await screenshotInteractionTimeout(page, passDir, name);
+          saveTrackedIssue(outRoot, {
+            component: name,
+            kind: 'interaction-timeout',
+            detail: e.message,
+            at: ts(),
+            passIndex,
+            screenshotPath,
+          });
+          appendFileSync(
+            interactionsLogPath,
+            `[${ts()}] ${name}: INTERACTION TIMEOUT after ${e.timeoutMs}ms — continuing crawl\n`
+          );
+          await escapeFromStuckInteraction(page, (msg) =>
+            appendFileSync(interactionsLogPath, `[${ts()}] ${name}: ${msg}\n`)
+          );
+        } else {
+          interactionError = String(e.message ?? e);
+          if (isBrowserBlockedError(e)) throw e;
+        }
       }
 
       const crashAfterInteract = await detectAppCrashOverlay(page, { componentName: name });
@@ -302,7 +371,19 @@ async function auditOneComponent(page, name, passDir, passIndex, allEntries) {
     loadError = String(e.message ?? e);
     if (isBrowserBlockedError(e)) throw e;
   } finally {
-    detach();
+    const stats = detachConsole.getStats();
+    consoleCapHit = stats.capped;
+    styleLeaks = stats.styleLeaks;
+    if (consoleCapHit) {
+      saveTrackedIssue(outRoot, {
+        component: name,
+        kind: 'console-cap',
+        detail: `Console log cap (${stats.count}+ messages) reached on ${name}`,
+        at: ts(),
+        passIndex,
+      });
+    }
+    detachConsole.detach();
   }
 
   const pageEntries = allEntries.slice(entriesBefore);
@@ -317,6 +398,9 @@ async function auditOneComponent(page, name, passDir, passIndex, allEntries) {
     httpStatus,
     loadError,
     interactionError,
+    interactionTimeout,
+    consoleCapHit,
+    styleLeaks,
     interactionActions,
     assertionCount: assertions.length,
     failedAssertionCount: failedAssertions.length,
@@ -341,6 +425,11 @@ async function auditOneComponent(page, name, passDir, passIndex, allEntries) {
 function formatResultFlag(result) {
   if (result.skippedBlocked) return 'SKIPPED (app crash blocked)';
   if (result.appCrash) return `APP CRASH (${result.appCrash.kind})`;
+  if (result.interactionTimeout) return `TIMEOUT (${result.interactionTimeout.timeoutMs}ms)`;
+  if (result.consoleCapHit) return `CONSOLE CAP${result.actionableCount ? ` + ACTIONABLE:${result.actionableCount}` : ''}`;
+  if (result.styleLeaks?.uniqueCount) {
+    return `STYLE-LEAK:${result.styleLeaks.uniqueCount} (${result.styleLeaks.totalCount} hits)`;
+  }
   if (result.loadError) return 'LOAD FAIL';
   if (result.failedAssertionCount) return `ASSERT:${result.failedAssertionCount}`;
   if (result.reviewCount) return `REVIEW:${result.reviewCount}`;
@@ -416,6 +505,9 @@ async function auditPass(browser, passIndex) {
       httpStatus: 0,
       loadError: null,
       interactionError: null,
+      interactionTimeout: null,
+      consoleCapHit: false,
+      styleLeaks: { uniqueCount: 0, totalCount: 0, leaks: [] },
       interactionActions: 0,
       assertionCount: 0,
       failedAssertionCount: 0,
@@ -442,7 +534,7 @@ async function auditPass(browser, passIndex) {
       const { result: auditResult, recovered, recoveryReason } = await withBrowserRecovery(
         session,
         name,
-        () => auditOneComponent(session.page, name, passDir, passIndex, allEntries),
+        () => auditOneComponent(session.page, name, passDir, passIndex, allEntries, outRoot),
         {
           baseUrl,
           log: (msg) => console.log(`  [pass ${passIndex}] ${msg}`),
@@ -457,6 +549,9 @@ async function auditPass(browser, passIndex) {
         httpStatus: 0,
         loadError: String(e.message ?? e),
         interactionError: null,
+        interactionTimeout: null,
+        consoleCapHit: false,
+        styleLeaks: { uniqueCount: 0, totalCount: 0, leaks: [] },
         interactionActions: 0,
         assertionCount: 0,
         failedAssertionCount: 0,
@@ -531,6 +626,9 @@ async function auditPass(browser, passIndex) {
 
   await session.close();
 
+  const styleLeakRollup = aggregateStyleLeaks(results);
+  writeFileSync(join(passDir, 'style-leaks.json'), JSON.stringify(styleLeakRollup, null, 2));
+
   const summary = {
     baseUrl,
     passIndex,
@@ -545,8 +643,12 @@ async function auditPass(browser, passIndex) {
     totalConsoleEvents: allEntries.length,
     pagesWithActionable: results.filter((r) => r.actionableCount > 0),
     pagesWithLoadErrors: results.filter((r) => r.loadError),
+    pagesWithInteractionTimeouts: results.filter((r) => r.interactionTimeout),
+    pagesWithConsoleCap: results.filter((r) => r.consoleCapHit),
+    pagesWithStyleLeaks: results.filter((r) => r.styleLeaks?.uniqueCount > 0),
     pagesWithUncaught: results.filter((r) => r.uncaughtCount > 0),
     pagesWithFailedAssertions: results.filter((r) => r.failedAssertionCount > 0),
+    styleLeakRollup,
     results,
   };
 
@@ -572,6 +674,44 @@ function renderPassMarkdown(summary) {
   md += `Base URL: ${summary.baseUrl}\n\n`;
   md += `Finished: ${summary.finishedAt}\n\n`;
   md += `Console events: ${summary.totalConsoleEvents}\n\n`;
+
+  if (summary.pagesWithInteractionTimeouts?.length) {
+    md += `## Interaction timeouts\n\n`;
+    md += `These pages exceeded the per-component wall-clock budget. The crawl continued; see \`interaction-timeouts.log\`, \`../tracked-issues.json\`, and \`screenshots/timeouts/\`.\n\n`;
+    for (const p of summary.pagesWithInteractionTimeouts) {
+      md += `- **${p.component}**: ${p.interactionTimeout.timeoutMs}ms`;
+      if (p.interactionError) md += ` — ${p.interactionError}`;
+      md += `\n`;
+    }
+    md += `\n`;
+  }
+
+  if (summary.pagesWithConsoleCap?.length) {
+    md += `## Console log cap hit\n\n`;
+    md += `Dev-web console flooded on these pages before deduplication could help. See \`style-leaks.json\` for unique leak keys.\n\n`;
+    md += summary.pagesWithConsoleCap.map((p) => p.component).join(', ') + '\n\n';
+  }
+
+  if (summary.pagesWithStyleLeaks?.length) {
+    md += `## Style leaks (deduplicated)\n\n`;
+    md += `Unique ReactXP style-leak keys per page (repeat hits counted, not logged). Full rollup: \`style-leaks.json\`.\n\n`;
+    for (const p of summary.pagesWithStyleLeaks) {
+      md += `- **${p.component}**: ${formatStyleLeakSummaryLine(p.styleLeaks, p.component)}\n`;
+    }
+    md += `\n`;
+  }
+
+  if (summary.styleLeakRollup?.uniqueLeakKeys) {
+    md += `### Cross-page style leak keys\n\n`;
+    for (const leak of summary.styleLeakRollup.leaks.slice(0, 20)) {
+      const who = leak.sourceComponent ?? 'unknown component';
+      md += `- \`${leak.key}\` (${who}): ${leak.totalCount} hit(s) on ${leak.galleryPages.join(', ')}\n`;
+    }
+    if (summary.styleLeakRollup.leaks.length > 20) {
+      md += `\n… and ${summary.styleLeakRollup.leaks.length - 20} more keys in \`style-leaks.json\`.\n`;
+    }
+    md += `\n`;
+  }
 
   if (summary.pagesWithLoadErrors.length) {
     md += `## Load failures\n\n`;
@@ -622,10 +762,19 @@ function renderPassMarkdown(summary) {
     md += `## Actionable issues\n\nNone.\n\n`;
   }
 
-  md += `## All pages\n\n| Component | HTTP | Actions | Asserts | Failed | Console | Actionable | Uncaught |\n`;
-  md += `|-----------|------|---------|---------|--------|---------|------------|----------|\n`;
+  md += `## All pages\n\n| Component | HTTP | Actions | Asserts | Failed | Console | Actionable | Uncaught | Notes |\n`;
+  md += `|-----------|------|---------|---------|--------|---------|------------|----------|-------|\n`;
   for (const r of summary.results) {
-    md += `| ${r.component} | ${r.httpStatus} | ${r.interactionActions ?? 0} | ${r.assertionCount ?? 0} | ${r.failedAssertionCount ?? 0} | ${r.consoleCount} | ${r.actionableCount} | ${r.uncaughtCount} |\n`;
+    const notes = [
+      r.interactionTimeout ? 'timeout' : '',
+      r.consoleCapHit ? 'console-cap' : '',
+      r.styleLeaks?.uniqueCount ? `style-leak:${r.styleLeaks.uniqueCount}` : '',
+      r.skippedBlocked ? 'blocked' : '',
+      r.appCrash ? 'crash' : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+    md += `| ${r.component} | ${r.httpStatus} | ${r.interactionActions ?? 0} | ${r.assertionCount ?? 0} | ${r.failedAssertionCount ?? 0} | ${r.consoleCount} | ${r.actionableCount} | ${r.uncaughtCount} | ${notes || '—'} |\n`;
   }
   return md;
 }
@@ -693,6 +842,10 @@ const finalReport = {
     actionablePages: s.pagesWithActionable.length,
     failedAssertionPages: s.pagesWithFailedAssertions?.length ?? 0,
     loadErrors: s.pagesWithLoadErrors.length,
+    interactionTimeouts: s.pagesWithInteractionTimeouts?.length ?? 0,
+    consoleCapPages: s.pagesWithConsoleCap?.length ?? 0,
+    styleLeakPages: s.pagesWithStyleLeaks?.length ?? 0,
+    uniqueStyleLeakKeys: s.styleLeakRollup?.uniqueLeakKeys ?? 0,
   })),
 };
 
@@ -704,10 +857,10 @@ writeFileSync(join(outRoot, 'final-report.json'), JSON.stringify(finalReport, nu
 
 let finalMd = `# Interactive gallery audit\n\n`;
 finalMd += `Output: \`${outRoot}\`\n\n`;
-finalMd += `| Pass | Console events | Actionable pages | Failed asserts | Load errors | App crashes |\n`;
-finalMd += `|------|----------------|------------------|----------------|-------------|-------------|\n`;
+finalMd += `| Pass | Console events | Actionable pages | Failed asserts | Load errors | Timeouts | Style leaks | App crashes |\n`;
+finalMd += `|------|----------------|------------------|----------------|-------------|----------|-------------|-------------|\n`;
   for (const s of passSummaries) {
-    finalMd += `| ${s.passIndex} | ${s.totalConsoleEvents} | ${s.pagesWithActionable.length} | ${s.pagesWithFailedAssertions?.length ?? 0} | ${s.pagesWithLoadErrors.length} | ${s.pagesWithAppCrashes?.length ?? 0} |\n`;
+    finalMd += `| ${s.passIndex} | ${s.totalConsoleEvents} | ${s.pagesWithActionable.length} | ${s.pagesWithFailedAssertions?.length ?? 0} | ${s.pagesWithLoadErrors.length} | ${s.pagesWithInteractionTimeouts?.length ?? 0} | ${s.pagesWithStyleLeaks?.length ?? 0} (${s.styleLeakRollup?.uniqueLeakKeys ?? 0} keys) | ${s.pagesWithAppCrashes?.length ?? 0} |\n`;
   }
 if (finalReport.passComparison) {
   const c = finalReport.passComparison;

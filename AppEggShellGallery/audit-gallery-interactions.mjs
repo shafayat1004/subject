@@ -211,33 +211,40 @@ export function createInteractionContext(page, log, options = {}) {
       ).first();
       if (await input.count()) {
         await input.click({ force: true, timeout: 3000 }).catch(() => {});
-        await input.fill(value, { timeout: 5000 });
-        log(`fill "${label}" = "${value}"`);
-        await wait();
-        return true;
+        const filled = await input.fill(value, { timeout: 3000, noWaitAfter: true }).then(() => true).catch(() => false);
+        if (filled) {
+          log(`fill "${label}" = "${value}"`);
+          await wait();
+          return true;
+        }
       }
     }
     const field = scope.getByLabel(label);
     if (await field.count()) {
       await field.first().click({ timeout: 3000 }).catch(() => {});
-      await field.first().fill(value, { timeout: 5000 });
-      log(`fill "${label}" = "${value}"`);
-      await wait();
-      return true;
+      const filled = await field.first().fill(value, { timeout: 3000, noWaitAfter: true }).then(() => true).catch(() => false);
+      if (filled) {
+        log(`fill "${label}" = "${value}"`);
+        await wait();
+        return true;
+      }
     }
     return false;
   }
 
-  async function fillFirstInput(scope, value) {
-    const input = scope.locator('input:not([type="file"]):not([type="hidden"]), textarea').first();
-    if (await input.count()) {
-      await input.click({ force: true, timeout: 3000 }).catch(() => {});
-      await input.fill(value, { timeout: 5000 });
+  async function fillFirstInput(scope, value, options = {}) {
+    const timeoutMs = options.timeoutMs ?? 3000;
+    const input = scope.locator('input:not([type="file"]):not([type="hidden"]):not([type="date"]):not([type="datetime-local"]), textarea').first();
+    if (!(await input.count())) return false;
+    await input.click({ force: true, timeout: timeoutMs }).catch(() => {});
+    const filled = await input.fill(value, { timeout: timeoutMs, noWaitAfter: true }).then(() => true).catch(() => false);
+    if (filled) {
       log(`fill first input = "${value}"`);
       await wait();
-      return true;
+    } else {
+      log(`fill first input skipped (timeout or not editable)`);
     }
-    return false;
+    return filled;
   }
 
   async function dismissOverlays() {
@@ -926,8 +933,12 @@ export const COMPONENT_HANDLERS = {
   },
 
   AutoUi_InputForm: async (ctx) => {
+    await ctx.dismissOverlays();
     await ctx.forEachVisualCell(async (cell) => {
-      await ctx.fillFirstInput(cell, 'Alice');
+      const filled =
+        (await ctx.fillLabel(cell, 'Name', 'Alice')) ||
+        (await ctx.fillFirstInput(cell, 'Alice', { timeoutMs: 2500 }));
+      if (!filled) ctx.log('AutoUi Name field not filled — skipped');
       await ctx.page.keyboard.press('Escape').catch(() => {});
       await ctx.wait(200);
     });
