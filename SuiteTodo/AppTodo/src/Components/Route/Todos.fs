@@ -67,12 +67,13 @@ type private Helpers =
 
         LC.Tabs(
             theme = (fun _ -> Styles.tabsScrollTheme tabTheme),
-            children = [|
-                mkTab TodoListFilter.Open "open"
-                mkTab TodoListFilter.Done "done"
-                mkTab TodoListFilter.All "all"
-                mkTab TodoListFilter.Archived "archived"
-            |]
+            children =
+                tellReactArrayKeysAreOkay [|
+                    mkTab TodoListFilter.Open "open"
+                    mkTab TodoListFilter.Done "done"
+                    mkTab TodoListFilter.All "all"
+                    mkTab TodoListFilter.Archived "archived"
+                |]
         )
 
     [<Component>]
@@ -85,7 +86,7 @@ type private Helpers =
             styles = [| Styles.categoryScroll |],
             children = [|
                 RX.View(
-                    styles = [| Styles.categoryRow |],
+                    styles = [| Styles.categoryScrollContent |],
                     children =
                         tellReactArrayKeysAreOkay [|
                             LC.TextButton(
@@ -251,6 +252,33 @@ type private Helpers =
 
         let priorityColor = Styles.priorityColor palette todo.Priority
 
+        let metaChip (chipLabel: string) chipColor =
+            RX.View(
+                styles = [| Styles.metaChip chipColor palette |],
+                children = [|
+                    LC.Text(
+                        styles = [| Styles.metaChipText chipColor |],
+                        value = chipLabel
+                    )
+                |]
+            )
+
+        let metaChips =
+            [
+                metaChip (priorityLabel todo.Priority) priorityColor
+            ]
+            @ (
+                match todo.Category with
+                | Some category -> [ metaChip (categoryLabel category) palette.Accent ]
+                | None -> []
+            )
+            @ (
+                match todo.DueOn with
+                | Some dueOn -> [ metaChip ("Due " + formatDueOn dueOn) palette.Warning ]
+                | None -> []
+            )
+            |> List.toArray
+
         RX.View(
             testId = todoItemTestId todo "row",
             styles = [| Styles.todoRow palette todo.Done |],
@@ -264,7 +292,7 @@ type private Helpers =
                 )
 
                 RX.View(
-                    styles = [| makeViewStyles { flex 1; minWidth 0 } |],
+                    styles = [| Styles.todoRowBody |],
                     children = [|
                         if isEditing then
                             LC.Input.Text(
@@ -286,41 +314,7 @@ type private Helpers =
 
                         RX.View(
                             styles = [| Styles.todoMetaRow |],
-                            children = [|
-                                RX.View(
-                                    styles = [| Styles.metaChip priorityColor palette |],
-                                    children = [|
-                                        LC.Text(
-                                            styles = [| Styles.metaChipText priorityColor |],
-                                            value = priorityLabel todo.Priority
-                                        )
-                                    |]
-                                )
-                                match todo.Category with
-                                | Some category ->
-                                    RX.View(
-                                        styles = [| Styles.metaChip palette.Accent palette |],
-                                        children = [|
-                                            LC.Text(
-                                                styles = [| Styles.metaChipText palette.Accent |],
-                                                value = categoryLabel category
-                                            )
-                                        |]
-                                    )
-                                | None -> noElement
-                                match todo.DueOn with
-                                | Some dueOn ->
-                                    RX.View(
-                                        styles = [| Styles.metaChip palette.Warning palette |],
-                                        children = [|
-                                            LC.Text(
-                                                styles = [| Styles.metaChipText palette.Warning |],
-                                                value = "Due " + formatDueOn dueOn
-                                            )
-                                        |]
-                                    )
-                                | None -> noElement
-                            |]
+                            children = tellReactArrayKeysAreOkay metaChips
                         )
                     |]
                 )
@@ -328,67 +322,69 @@ type private Helpers =
                 if not isHandheld then
                     RX.View(
                         styles = [| Styles.rowActions |],
-                        children = [|
-                            if isEditing then
+                        children =
+                            tellReactArrayKeysAreOkay [|
+                                if isEditing then
+                                    LC.TextButton(
+                                        label = "Save",
+                                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ ->
+                                            runAction (fun () -> setTodoTitle todo.Id editTitleHook.current) |> ignore
+                                            setEditingId None)),
+                                        testId = todoItemTestId todo "save"
+                                    )
+                                else
+                                    LC.TextButton(
+                                        label = "Edit",
+                                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
+                                        testId = todoItemTestId todo "edit"
+                                    )
+                                if todo.Done && todo.ArchivedOn.IsNone then
+                                    LC.TextButton(
+                                        label = "Archive",
+                                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ ->
+                                            runAction (fun () -> archiveTodo todo.Id) |> ignore)),
+                                        testId = todoItemTestId todo "archive"
+                                    )
                                 LC.TextButton(
-                                    label = "Save",
-                                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ ->
-                                        runAction (fun () -> setTodoTitle todo.Id editTitleHook.current) |> ignore
-                                        setEditingId None)),
-                                    testId = todoItemTestId todo "save"
+                                    label = "Delete",
+                                    state = ButtonHighLevelStateFactory.Make (fun () -> async {
+                                        let! result = deleteTodo todo.Id
+                                        if Result.isOk result then onMutated()
+                                        return result |> Result.map ignore
+                                    }, executor),
+                                    testId = todoItemTestId todo "delete"
                                 )
-                            else
-                                LC.TextButton(
-                                    label = "Edit",
-                                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
-                                    testId = todoItemTestId todo "edit"
-                                )
-                            if todo.Done && todo.ArchivedOn.IsNone then
-                                LC.TextButton(
-                                    label = "Archive",
-                                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ ->
-                                        runAction (fun () -> archiveTodo todo.Id) |> ignore)),
-                                    testId = todoItemTestId todo "archive"
-                                )
-                            LC.TextButton(
-                                label = "Delete",
-                                state = ButtonHighLevelStateFactory.Make (fun () -> async {
-                                    let! result = deleteTodo todo.Id
-                                    if Result.isOk result then onMutated()
-                                    return result |> Result.map ignore
-                                }, executor),
-                                testId = todoItemTestId todo "delete"
-                            )
-                        |]
+                            |]
                     )
                 else
                     RX.View(
                         styles = [| Styles.rowActions |],
-                        children = [|
-                            if isEditing then
+                        children =
+                            tellReactArrayKeysAreOkay [|
+                                if isEditing then
+                                    LC.TextButton(
+                                        label = "Save",
+                                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ ->
+                                            runAction (fun () -> setTodoTitle todo.Id editTitleHook.current) |> ignore
+                                            setEditingId None)),
+                                        testId = todoItemTestId todo "save"
+                                    )
+                                else
+                                    LC.TextButton(
+                                        label = "Edit",
+                                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
+                                        testId = todoItemTestId todo "edit"
+                                    )
                                 LC.TextButton(
-                                    label = "Save",
-                                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ ->
-                                        runAction (fun () -> setTodoTitle todo.Id editTitleHook.current) |> ignore
-                                        setEditingId None)),
-                                    testId = todoItemTestId todo "save"
+                                    label = "Delete",
+                                    state = ButtonHighLevelStateFactory.Make (fun () -> async {
+                                        let! result = deleteTodo todo.Id
+                                        if Result.isOk result then onMutated()
+                                        return result |> Result.map ignore
+                                    }, executor),
+                                    testId = todoItemTestId todo "delete"
                                 )
-                            else
-                                LC.TextButton(
-                                    label = "Edit",
-                                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
-                                    testId = todoItemTestId todo "edit"
-                                )
-                            LC.TextButton(
-                                label = "Delete",
-                                state = ButtonHighLevelStateFactory.Make (fun () -> async {
-                                    let! result = deleteTodo todo.Id
-                                    if Result.isOk result then onMutated()
-                                    return result |> Result.map ignore
-                                }, executor),
-                                testId = todoItemTestId todo "delete"
-                            )
-                        |]
+                            |]
                     )
             |]
         )
@@ -428,7 +424,7 @@ type Ui.Route with
             let listKey =
                 sprintf "%i-%s-%s" listVersion.current searchKey (filterLabel listFilterHook.current)
 
-            LC.Executor.AlertErrors (fun makeExecutor ->
+            LC.With.GlobalExecutor (fun makeExecutor ->
                 element {
                     let addExecutor = makeExecutor "add-todo"
 
@@ -450,170 +446,179 @@ type Ui.Route with
                                 return result
                         }
 
+                    let cardContent =
+                        RX.View(
+                            styles = [| Styles.cardShell isHandheld |],
+                            testId = A11ySlug.testId "todo" "card",
+                            children = [|
+                                RX.View(
+                                    styles = [| Styles.card palette isHandheld |],
+                                    children = [|
+                                        LC.Column(
+                                            gap = 20,
+                                            children = [|
+                                                RX.View(
+                                                    styles = [| Styles.headerRow isHandheld |],
+                                                    children = [|
+                                                        LC.Column(
+                                                            gap = 0,
+                                                            crossAxisAlignment = LC.CrossAxisAlignment.Stretch,
+                                                            styles = [| Styles.inputFlex |],
+                                                            children = [|
+                                                                LC.Heading(
+                                                                    level = Heading.Level.Primary,
+                                                                    children = [| LC.Text "Todos" |]
+                                                                )
+                                                                LC.Text(
+                                                                    styles = [| Styles.subtitle palette |],
+                                                                    value = "Plan, prioritize, and track work across devices."
+                                                                )
+                                                            |]
+                                                        )
+                                                        RX.View(
+                                                            styles = [| Styles.headerActions |],
+                                                            children = [|
+                                                                LC.Button(
+                                                                    label =
+                                                                        (match appearanceHook.current with
+                                                                         | AppearanceMode.Light -> "Dark"
+                                                                         | AppearanceMode.Dark -> "Light"),
+                                                                    level = Button.Level.Secondary,
+                                                                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> toggleAppearance ())),
+                                                                    testId = A11ySlug.testId "todo" "theme-toggle"
+                                                                )
+                                                            |]
+                                                        )
+                                                    |]
+                                                )
+
+                                                Helpers.FilterTabs(
+                                                    palette = palette,
+                                                    tabTheme = tabTheme,
+                                                    current = listFilterHook.current,
+                                                    onSelect = (fun f ->
+                                                        listFilterHook.update f
+                                                        editingIdHook.update None)
+                                                )
+
+                                                RX.View(
+                                                    styles = [| Styles.statsRow |],
+                                                    testId = A11ySlug.testId "todo" "stats",
+                                                    children = elements {
+                                                        Helpers.StatChip(palette, "Filters: " + filterLabel listFilterHook.current)
+                                                        Helpers.StatChip(palette, if isHandheld then "Handheld layout" else "Desktop layout")
+                                                    }
+                                                )
+
+                                                LC.Column(
+                                                    gap = 12,
+                                                    styles = [| Styles.composerGrid isHandheld |],
+                                                    children = [|
+                                                        LC.Row(
+                                                            gap = 12,
+                                                            crossAxisAlignment = LC.CrossAxisAlignment.Center,
+                                                            styles = [| Styles.composerRow isHandheld |],
+                                                            children = [|
+                                                                LC.Input.Text(
+                                                                    value = titleInput.current,
+                                                                    onChange = titleInput.update,
+                                                                    validity = Valid,
+                                                                    placeholder = "What needs doing?",
+                                                                    styles = [| Styles.inputFlex |],
+                                                                    testId = A11ySlug.testId "todo" "new-title"
+                                                                )
+                                                                if not isHandheld then
+                                                                    LC.Button(
+                                                                        label = "Add",
+                                                                        state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                                        testId = A11ySlug.testId "todo" "add"
+                                                                    )
+                                                            |]
+                                                        )
+
+                                                        LC.Row(
+                                                            gap = 12,
+                                                            crossAxisAlignment = LC.CrossAxisAlignment.Stretch,
+                                                            styles = [| Styles.composerRow isHandheld |],
+                                                            children = [|
+                                                                LC.Input.Picker(
+                                                                    items = Static (OrderedSet.ofList allPriorities, priorityLabel),
+                                                                    itemView = PropItemViewFactory.Make priorityLabel,
+                                                                    value = SelectableValue.ExactlyOne (Some priorityHook.current, priorityHook.update),
+                                                                    validity = Valid,
+                                                                    label = "Priority",
+                                                                    showSearchBar = false,
+                                                                    testId = A11ySlug.testId "todo" "new-priority"
+                                                                )
+                                                                LC.Input.Text(
+                                                                    value = dueInput.current,
+                                                                    onChange = dueInput.update,
+                                                                    validity = Valid,
+                                                                    placeholder = "Due date (optional)",
+                                                                    styles = [| Styles.inputFlex |],
+                                                                    testId = A11ySlug.testId "todo" "new-due"
+                                                                )
+                                                            |]
+                                                        )
+
+                                                        Helpers.NewCategoryPicker(
+                                                            selected = categoryHook.current,
+                                                            onSelect = categoryHook.update
+                                                        )
+
+                                                        if isHandheld then
+                                                            LC.Button(
+                                                                label = "Add todo",
+                                                                state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                                testId = A11ySlug.testId "todo" "add-mobile"
+                                                            )
+
+                                                        LC.Input.Text(
+                                                            value = searchInput.current,
+                                                            onChange = searchInput.update,
+                                                            validity = Valid,
+                                                            placeholder = "Search todos...",
+                                                            styles = [| Styles.inputFlex |],
+                                                            testId = A11ySlug.testId "todo" "search"
+                                                        )
+                                                    |]
+                                                )
+
+                                                RX.View(
+                                                    styles = [| Styles.list |],
+                                                    testId = A11ySlug.testId "todo" "list",
+                                                    children = [|
+                                                        Helpers.TodoList(
+                                                            listKey = listKey,
+                                                            listFilter = listFilterHook.current,
+                                                            searchTerm = searchInput.current,
+                                                            palette = palette,
+                                                            isHandheld = isHandheld,
+                                                            makeExecutor = makeExecutor,
+                                                            onMutated = bumpList,
+                                                            editingId = editingIdHook.current,
+                                                            setEditingId = editingIdHook.update
+                                                        )
+                                                    |]
+                                                )
+                                            |]
+                                        )
+                                    |]
+                                )
+                            |]
+                        )
+
                     RX.View(
                         styles = [| Styles.page palette isHandheld |],
                         testId = A11ySlug.testId "todo" "page",
                         children = [|
-                            RX.View(
-                                styles = [| Styles.cardShell isHandheld |],
-                                testId = A11ySlug.testId "todo" "card",
-                                children = [|
-                                    RX.View(
-                                        styles = [| Styles.card palette isHandheld |],
-                                        children = [|
-                                            LC.Column(
-                                                gap = 20,
-                                                children = [|
-                                                    RX.View(
-                                                        styles = [| Styles.headerRow isHandheld |],
-                                                        children = [|
-                                                            LC.Column(
-                                                                gap = 0,
-                                                                crossAxisAlignment = LC.CrossAxisAlignment.Stretch,
-                                                                styles = [| Styles.inputFlex |],
-                                                                children = [|
-                                                                    LC.Heading(
-                                                                        level = Heading.Level.Primary,
-                                                                        children = [| LC.Text "Todos" |]
-                                                                    )
-                                                                    LC.Text(
-                                                                        styles = [| Styles.subtitle palette |],
-                                                                        value = "Plan, prioritize, and track work across devices."
-                                                                    )
-                                                                |]
-                                                            )
-                                                            RX.View(
-                                                                styles = [| Styles.headerActions |],
-                                                                children = [|
-                                                                    LC.Button(
-                                                                        label =
-                                                                            (match appearanceHook.current with
-                                                                             | AppearanceMode.Light -> "Dark"
-                                                                             | AppearanceMode.Dark -> "Light"),
-                                                                        level = Button.Level.Secondary,
-                                                                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> toggleAppearance ())),
-                                                                        testId = A11ySlug.testId "todo" "theme-toggle"
-                                                                    )
-                                                                |]
-                                                            )
-                                                        |]
-                                                    )
-
-                                                    Helpers.FilterTabs(
-                                                        palette = palette,
-                                                        tabTheme = tabTheme,
-                                                        current = listFilterHook.current,
-                                                        onSelect = (fun f ->
-                                                            listFilterHook.update f
-                                                            editingIdHook.update None)
-                                                    )
-
-                                                    RX.View(
-                                                        styles = [| Styles.statsRow |],
-                                                        testId = A11ySlug.testId "todo" "stats",
-                                                        children = elements {
-                                                            Helpers.StatChip(palette, "Filters: " + filterLabel listFilterHook.current)
-                                                            Helpers.StatChip(palette, if isHandheld then "Handheld layout" else "Desktop layout")
-                                                        }
-                                                    )
-
-                                                    LC.Column(
-                                                        gap = 12,
-                                                        styles = [| Styles.composerGrid isHandheld |],
-                                                        children = [|
-                                                            LC.Row(
-                                                                gap = 12,
-                                                                crossAxisAlignment = LC.CrossAxisAlignment.Center,
-                                                                styles = [| Styles.composerRow isHandheld |],
-                                                                children = [|
-                                                                    LC.Input.Text(
-                                                                        value = titleInput.current,
-                                                                        onChange = titleInput.update,
-                                                                        validity = Valid,
-                                                                        placeholder = "What needs doing?",
-                                                                        styles = [| Styles.inputFlex |],
-                                                                        testId = A11ySlug.testId "todo" "new-title"
-                                                                    )
-                                                                    if not isHandheld then
-                                                                        LC.Button(
-                                                                            label = "Add",
-                                                                            state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
-                                                                            testId = A11ySlug.testId "todo" "add"
-                                                                        )
-                                                                |]
-                                                            )
-
-                                                            LC.Row(
-                                                                gap = 12,
-                                                                crossAxisAlignment = LC.CrossAxisAlignment.Stretch,
-                                                                styles = [| Styles.composerRow isHandheld |],
-                                                                children = [|
-                                                                    LC.Input.Picker(
-                                                                        items = Static (OrderedSet.ofList allPriorities, priorityLabel),
-                                                                        itemView = PropItemViewFactory.Make priorityLabel,
-                                                                        value = SelectableValue.ExactlyOne (Some priorityHook.current, priorityHook.update),
-                                                                        validity = Valid,
-                                                                        label = "Priority",
-                                                                        showSearchBar = false,
-                                                                        testId = A11ySlug.testId "todo" "new-priority"
-                                                                    )
-                                                                    LC.Input.Text(
-                                                                        value = dueInput.current,
-                                                                        onChange = dueInput.update,
-                                                                        validity = Valid,
-                                                                        placeholder = "Due date (optional)",
-                                                                        styles = [| Styles.inputFlex |],
-                                                                        testId = A11ySlug.testId "todo" "new-due"
-                                                                    )
-                                                                |]
-                                                            )
-
-                                                            Helpers.NewCategoryPicker(
-                                                                selected = categoryHook.current,
-                                                                onSelect = categoryHook.update
-                                                            )
-
-                                                            if isHandheld then
-                                                                LC.Button(
-                                                                    label = "Add todo",
-                                                                    state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
-                                                                    testId = A11ySlug.testId "todo" "add-mobile"
-                                                                )
-
-                                                            LC.Input.Text(
-                                                                value = searchInput.current,
-                                                                onChange = searchInput.update,
-                                                                validity = Valid,
-                                                                placeholder = "Search todos...",
-                                                                styles = [| Styles.inputFlex |],
-                                                                testId = A11ySlug.testId "todo" "search"
-                                                            )
-                                                        |]
-                                                    )
-
-                                                    RX.View(
-                                                        styles = [| Styles.list |],
-                                                        testId = A11ySlug.testId "todo" "list",
-                                                        children = [|
-                                                            Helpers.TodoList(
-                                                                listKey = listKey,
-                                                                listFilter = listFilterHook.current,
-                                                                searchTerm = searchInput.current,
-                                                                palette = palette,
-                                                                isHandheld = isHandheld,
-                                                                makeExecutor = makeExecutor,
-                                                                onMutated = bumpList,
-                                                                editingId = editingIdHook.current,
-                                                                setEditingId = editingIdHook.update
-                                                            )
-                                                        |]
-                                                    )
-                                                |]
-                                            )
-                                        |]
-                                    )
-                                |]
-                            )
+                            if isHandheld then
+                                RX.ScrollView(
+                                    styles = [| Styles.pageScroll |],
+                                    children = [| cardContent |]
+                                )
+                            else
+                                cardContent
                         |]
                     )
                 }

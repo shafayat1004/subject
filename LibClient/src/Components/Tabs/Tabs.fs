@@ -23,13 +23,16 @@ type Theme = {
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let scrollView (theme: Theme) =
-        makeScrollViewStyles {
-            Overflow.Visible
-            flex 0
-            backgroundColor theme.BackgroundColor
-            borderBottom    theme.BorderWidth theme.BorderColor
-        }
+    let scrollView =
+        ScrollViewStyles.Memoize(
+            fun (bgColor: Color) (edgeColor: Color) (bottomBorderWidth: int) ->
+                makeScrollViewStyles {
+                    Overflow.Visible
+                    flex 0
+                    backgroundColor bgColor
+                    borderBottom bottomBorderWidth edgeColor
+                }
+        )
 
     let view =
         makeViewStyles {
@@ -66,7 +69,7 @@ type LibClient.Components.Constructors.LC with
             horizontal = true,
             styles =
                 [|
-                    Styles.scrollView theTheme
+                    Styles.scrollView theTheme.BackgroundColor theTheme.BorderColor theTheme.BorderWidth
                     yield! legacyScrollViewStyles
                     yield! (styles |> Option.defaultValue [||])
                 |],

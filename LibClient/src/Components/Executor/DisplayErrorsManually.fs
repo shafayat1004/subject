@@ -134,22 +134,19 @@ type LibClient.Components.Constructors.LC.Executor with
                         )
 
                 if Helpers.shouldShowSpinner keys executorsHook.current then
-                    LC.Fragment(
-                        children =
-                            tellReactArrayKeysAreOkay [|
-                                pageContent
-                                RX.View(
-                                    styles = [| Styles.spinnerOverlay |],
-                                    children =
-                                        elements {
-                                            RX.ActivityIndicator(
-                                                size = Size.Medium,
-                                                color = "#cccccc"
-                                            )
-                                        }
-                                )
-                            |]
-                    )
+                    castAsElementAckingKeysWarning [|
+                        pageContent
+                        RX.View(
+                            styles = [| Styles.spinnerOverlay |],
+                            children =
+                                elements {
+                                    RX.ActivityIndicator(
+                                        size = Size.Medium,
+                                        color = "#cccccc"
+                                    )
+                                }
+                        )
+                    |]
                 else
                     pageContent
 

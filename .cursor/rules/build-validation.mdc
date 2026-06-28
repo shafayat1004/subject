@@ -19,6 +19,18 @@ That is **not** validation. Before calling a frontend change done:
 
 If the user has **`eggshell watch-*` / dev stack running**, treat **their watch terminal** as ground truth over a separate cached `build-native` you ran.
 
+## Use the user's dev stack — do not fork it
+
+When the user already has **`eggshell dev-native`** (T1) and **Metro on `:8081`** (T2) in their own terminals:
+
+- **Do not** start parallel `dev-native`, Metro, `dev-web`, or Appium.
+- **Do not** run `build-native` or `rm -rf .build/native` while their `dev-native` watch is active.
+- **Read** their terminal files first; **code only**; ask them to press **`r`** in Metro to reload.
+- **Observe** only against their running stack; ask before starting Appium/`dev-web`.
+- Their **Metro terminal** is ground truth for LogBox / render errors.
+
+See `LEARNINGS.md` (2026-06-28 — AppTodo dev: use the user's terminals).
+
 ## Check terminal output early
 
 - Use **30–45s** initial waits on builds; read output as soon as lines appear.

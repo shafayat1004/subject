@@ -5,6 +5,28 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-28 — AppTodo dev: use the user's terminals, do not fork the stack
+
+When the user already runs **`eggshell dev-native`** (T1) and **Metro `:8081`** (T2) in their own terminals, the agent must **not** start parallel copies of those services or run competing builds.
+
+**Do not:**
+- Start another `dev-native`, `dev-web`, Metro, or Appium without explicit ask.
+- Run `../../eggshell build-native` or `rm -rf .build/native` while the user's `dev-native` watch is running — races Fable output and can leave apps on a half-old bundle.
+- Treat a separate agent-started `build-native` as ground truth when the user's watch terminal exists.
+
+**Do:**
+1. **Read the user's terminal files first** (`terminals/*.txt`) — T1 = Fable watch, T2 = Metro.
+2. **Code changes only**; tell the user to reload in **their** Metro terminal (`r`, or device reload).
+3. Wait for T1 **`Watching ...`** and the changed file in `Compiled N/M:` before asking for reload.
+4. **Observe** (`npm run observe:*`) only against the user's already-running stack; ask before starting Appium or `dev-web`.
+5. Metro log in the **user's** T2 is ground truth for runtime errors (LogBox, keys, render crashes).
+
+**Unstick (user terminals only):** T1 watching → T2 press `r` → if still broken, force-quit app and relaunch via Metro `a`/`i` (not a fresh agent build).
+
+Also documented in `.cursor/rules/build-validation.mdc`.
+
+---
+
 ## 2026-06-28 — Fake subject services (LibUiSubject)
 
 Added **`FakeSubjectService`** / **`FakeViewService`** in **`LibUiSubject`** (`#if DEBUG` in source; always listed in `.fsproj` so Fable includes them). Apps switch real vs fake via **`Config.BackendUrl: Option<string>`** — `None` → in-memory fake (DEBUG), `Some url` → HTTP + RealTime.

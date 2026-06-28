@@ -76,7 +76,23 @@ module Styles =
     let categoryScroll =
         makeScrollViewStyles {
             flexGrow 0
-            flexShrink 1
+            flexShrink 0
+            AlignSelf.Stretch
+            maxHeight 44
+        }
+
+    let categoryScrollContent =
+        makeViewStyles {
+            FlexDirection.Row
+            gap 8
+            paddingVertical 2
+            paddingRight 8
+        }
+
+    let pageScroll =
+        makeScrollViewStyles {
+            flex 1
+            AlignSelf.Stretch
         }
 
     let categoryRow =
@@ -177,24 +193,31 @@ module Styles =
                 }
         )
 
+    let todoRowBody =
+        makeViewStyles {
+            flex 1
+            minWidth 0
+        }
+
     let todoMetaRow =
         makeViewStyles {
             FlexDirection.Row
             FlexWrap.Wrap
             gap 6
-            marginTop 4
+            marginTop 6
         }
 
     let metaChip =
         ViewStyles.Memoize(
             fun (chipColor: Color) (palette: SemanticPalette) ->
                 makeViewStyles {
-                    paddingVertical 2
-                    paddingHorizontal 8
+                    paddingVertical 4
+                    paddingHorizontal 10
                     borderRadius 999
                     backgroundColor palette.ChipBackground
                     borderWidth 1
                     borderColor chipColor
+                    AlignSelf.FlexStart
                 }
         )
 
@@ -204,6 +227,7 @@ module Styles =
                 makeTextStyles {
                     color chipColor
                     fontSize 11
+                    lineHeight 16
                     FontWeight.W600
                 }
         )
