@@ -1,6 +1,6 @@
 # EggShell Frontend Modernization Plan
 
-Consolidated reference for **render-DSL retirement (Goal A)**, **accessibility + UI observability**, and **automation/OS support**. Synthesized from `EGGSHELL_ARCHITECTURE.md` §12, `CLAUDE.md`, `LEARNINGS.md`, `LibClient/ACCESSIBILITY.md`, and gallery audit work (through 2026-06-28).
+Consolidated reference for **render-DSL retirement (Goal A)**, **accessibility + UI observability**, and **automation/OS support**. Synthesized from `EGGSHELL_ARCHITECTURE.md` §12, `CLAUDE.md`, `LEARNINGS.md`, `LibClient/ACCESSIBILITY.md`, and gallery audit work (through 2026-06-29).
 
 ---
 
@@ -23,7 +23,7 @@ From `EGGSHELL_ARCHITECTURE.md` §12 and `CLAUDE.md`. **Goals F–H are explicit
 
 | Goal | Summary | Status |
 |------|---------|--------|
-| **A** | Retire render DSL; convert framework `.render` → pure F# `[<Component>]` | **In progress** — **9** `.render` left in LibClient (Picker cluster + Input.Text + Dialog.Base + ContextMenu.Dialog); see §5 |
+| **A** | Retire render DSL; convert framework `.render` → pure F# `[<Component>]` | **Done (product code)** — **0** framework/app `.render` files; compiler test fixtures only in `Meta/AppRenderDslCompiler`; see §5 |
 | **B** | Fix `eggshell create-app` scaffolding (modern app, no `.render`) | Not started (this phase) |
 | **C** | Reduce component verbosity (hooks, fewer Estate/Pstate/Actions) | Incremental alongside A |
 | **D** | Standardize frontend directory structure | Incremental alongside A |
@@ -248,97 +248,106 @@ dotnet build AppEggShellGallery/src/App.fsproj -c "Web Debug"   # or a full `egg
 
 ---
 
-## 5. Current state (2026-06-28)
+## 5. Current state (2026-06-29)
 
-### 5.0 Framework vs gallery (do not conflate)
+### 5.0 Goal A — render DSL retirement (**done for product code**)
+
+All **40** framework-owned `.render` components converted to pure F# `[<Component>]` (2026-06-28/29):
+
+| Library | Converted | Notes |
+|---------|----------:|-------|
+| **LibClient** | 9 | Picker cluster, Input.Text, Dialog.Base, ContextMenu.Dialog; **Legacy.Input.Picker deleted** |
+| **LibRouter** | 5 | Dialogs, LogRouteTransitions, NativeBackButton, With.{Location,Route} |
+| **LibAutoUi** | 5 | InputForm*, DialogInputForm; modern `LC.Input.Picker` |
+| **LibUiSubject** | 4 | Hook-based `UiSubject.With.*` |
+| **LibUiSubjectAdmin** | 2 | Subject, Audit.Generic |
+| **LibLifeCycleUi** | 1 | IndexQuery placeholder |
+| **ThirdParty** | 14 | Map, ReCaptcha, ImagePicker, Showdown MarkdownViewer, GA/FB ViewContent |
+
+**Remaining `.render` files:** **41** — all under `Meta/AppRenderDslCompiler/compiler.Tests/tests/` (compiler fixtures). **Zero** under `Lib*`, `ThirdParty/`, or `AppEggShellGallery/`.
+
+**Build status (Web Debug, 2026-06-29):** LibClient, LibRouter, LibUiSubject, LibUiSubjectAdmin, LibLifeCycleUi, LibAutoUi, all converted ThirdParty packages, AppEggShellGallery — **green**.
+
+**Still to do for Goal A closure:** delete DSL machinery (`Meta/AppRenderDslCompiler`, render steps in build, `eggshell renderdsl` / `convert-component` write path) — deferred until audit pass confirms no regressions.
+
+### 5.0b Framework vs gallery (do not conflate)
 
 Two different trees share names like `Button`:
 
 | What you open | Path | Status |
 |---------------|------|--------|
-| **Framework component** (what apps import as `LC.Button`) | `LibClient/src/Components/Button/Button.fs` | **Converted** — pure F# `[<Component>]`, Pressable, themes |
-| **Gallery showcase page** (docs/samples for that component) | `AppEggShellGallery/src/Components/Content/Button/Button.fs` | **Converted** — pure F# page, F# code samples |
+| **Framework component** (what apps import as `LC.Button`) | `LibClient/src/Components/Button/Button.fs` | Pure F# `[<Component>]`, Pressable, themes |
+| **Gallery showcase page** (docs/samples) | `AppEggShellGallery/src/Components/Content/Button/Button.fs` | Pure F# page, F# code samples |
 
-All **69** gallery Content showcase pages are now pure F# (`type Ui.Content with [<Component>]`). `ComponentRegistration.fs` in the gallery has **zero** `RegisterRender` entries. LibClient may still be render DSL for a few twins (Input.Text, Picker) while the gallery page is already F# calling `LC.*`.
+Gallery app: **zero** `.render` files; `ComponentRegistration.fs` has **zero** `RegisterRender` entries.
 
-### 5.1 LibClient render DSL remaining
+### 5.1 LibAutoUi (**partial — not the old “1–2 week” milestone**)
 
-**9** `.render` files (matches `LibClient/src/ComponentRegistration.fs`):
+| Item | Status |
+|------|--------|
+| Render DSL retired | **Done** — 5 pure-F# `UIAuto.*` components |
+| Builds | **Green** |
+| Gallery reference | **Partial** — `AutoUi_InputForm` route (string + DateTimeOffset demo) |
+| Production app adoption | **None** — Suite apps still use `LC.Form.Base` + typed inputs |
+| Primitive UI wiring | **Partial** — only `StringInput` + `DateTimeInput` in `defaultPrimitiveInputComponents`; bool/numeric/file still show “No input component found…” |
 
-| Cluster | Files |
-|---------|--------|
-| **Input.Text** | `Input/Text/Text.render` |
-| **Picker** | `Input/Picker/Picker.render`, `Input/PickerInternals/{Base,Dialog,Field,Popup}.render`, `Legacy/Input/Picker/Picker.render` |
-| **Dialog shell** | `Dialog/Base/Base.render` |
-| **Context menu** | `ContextMenu/Dialog/Dialog.render` |
+Roadmap “finish LibAutoUi (~1–2 weeks)” = **product completion + app adoption**, not render-DSL conversion. Estimate **~3–5 days** to wire remaining primitives + richer gallery samples + one real app screen.
 
-Everything else under `LibClient/src/Components/` is pure F# or lives outside the render compiler (ReactXP bindings, etc.). Confirm, Prompt, Shell, Form/Base, Draggable, Badge, Nav, AppShell/Content, most inputs, and **Button** are converted.
+### 5.2 Gallery coverage vs framework components
 
-**Next LibClient cluster to retire:** Input.Text + Picker internals (gallery Input.Text/Picker showcase pages are already pure F#; framework twins still render DSL).
+**Routed component demos** (`Components.fs`): **79** routes (including Index markdown, layout/executor XmlDocs pages, LibRouter cluster).
 
-### 5.2 LibClient converted to pure F# `[<Component>]` (representative)
+**Content showcase pages** (`Components/Content/**/*.fs`): **~75** pure-F# pages; all use `[<Component>]`.
 
-**Layout / chrome:** Tabs, Tab, VerticallyScrollable, Sidebar.{Base, Item, Heading, Divider, WithClose}, Section/Padded, HandheldListItem, Card, FlexFiller, ScrollView, ItemList, …
+**ScrapedData.fs** prop tables: **~179** FQN keys (includes infra, dialog shells, picker internals, LibRouter, LibAutoUi — not all need a sidebar demo).
 
-**Nav (modern):** Nav.Top.{Item, Heading, Filler, Image, ShowSidebarButton}, Nav.Bottom.Filler
+**Coverage gaps (intentional or pending):**
 
-**Inputs (modern leaf):** Most `Input/*.fs` leaves (Date, Quantity, Guid, PhoneNumber, Duration, Checkbox, ChoiceList, File, Image, …) — composite **Picker** + **Text** still render DSL
+| Component | In ScrapedData | Gallery route | Notes |
+|-----------|:--------------:|:-------------:|-------|
+| `Dialog.Base`, `ContextMenu.Dialog` | yes | indirect | Exercised via Dialogs / ContextMenu pages |
+| Picker internals | partial | indirect | Via Input_Picker page |
+| `ThirdParty.MarkdownViewer` | yes | **missing route** | Page exists (`Content/ThirdParty/MarkdownViewer.fs`) but not wired in `Components.fs` / sidebar |
+| `ThirdParty.ImagePicker`, `ReCaptcha` | yes | **missing** | No gallery project ref or showcase yet |
+| `LibUiSubject.With.*` | no | **missing** | Needs Subject stack demo / fake service |
+| Infra (`Pressable`, `Subscribe`, `AppShell.*`, …) | yes | **N/A** | Documented in ScrapedData; no interactive demo expected |
 
-**Interactive / state:** TriStateful.{Abstract, Simple}, QuadStateful, Pointer.State, Pressable, TextButton, ToggleButton, **Button**, IconButton, **Draggable** (`draggableRef` prop — not `ref`; React 18 strips `ref` from function-component props)
+**Validation in progress (2026-06-29):** Playwright interactive audit (`audit-gallery-interactive.mjs`) + Android Appium audit for console errors, assertion failures, style-leak warnings, overlap review.
 
-**Dialogs (modern):** Confirm, Prompt, Shell variants, ImageViewer, etc. — **Dialog.Base** still render DSL
+### 5.3 LibClient — all product components pure F#
 
-**Infrastructure:** Accessibility.*, UiActionLog, LiveRegion, AsyncData, With.*, …
+**Converted clusters (2026-06-29):** Input.Text, full Picker stack (Base/Field/Popup/Dialog/Picker), Dialog.Base, ContextMenu.Dialog. Module rename: `LibClient.Components.Input_Picker` (avoids `Input.Picker` module shadowing `[<Component>]`).
 
-**LibUiAdmin:** Grid, QueryGrid (native table fix + pure F#)
+**Legacy removed:** `Legacy/Input/Picker` deleted; callers migrated (Forms, LocalTime, Grid, LibAutoUi).
 
-**LibRouter:** BackButton (uses `?theme` → `LC.Nav.Top.Item`)
+**Still incremental:** TapCapture → direct Pressable on ~16 pure-F# components; optional props on Input.Text (`onKeyPress`, `maxLength`, `tabIndex`).
 
-### 5.3 End-to-end caller upgrades (latest)
+### 5.4 LibRouter, LibUi*, ThirdParty
 
-**Button** and **Nav.Top.Item** no longer have parallel legacy modules:
+- **LibRouter:** all 5 render components pure F#; `LR.With.{Location,Route,CurrentRoute}` use `LibRouter.Components.Constructors.LR.With` extensions (see `LEARNINGS.md`).
+- **LibUiSubject:** legacy `LC.Subscribe` wrappers removed; `UiSubject.With.{Subject,Subjects,SubjectsWithCount,View}` hook-based.
+- **ThirdParty Map:** largest conversion (~1000-line web map controller preserved); gallery Map page updated for `TypesBuilders` alias pattern.
 
-- Deleted `Button.styles.fs`, `Nav/Top/Item/Item.styles.fs`
-- Removed duplicate `ButtonStyles` / `ItemStyles` blocks from `DefaultComponentsTheme.fs`
-- **Callers migrated:** ContextMenu Dialog (`ButtonThemes`), PickerInternals Dialog (dead styles removed), Nav.Bottom.Button (`BadgeStyles`), LibRouter BackButton, ShowSidebarButton, gallery Nav/Top (`?theme` for icon adjust)
+### 5.5 Gallery modernization (2026-06-28 → 29)
 
-**Draggable ref fix (2026-06-28):** renamed `?ref` → `?draggableRef` on `LC.Draggable` (and gallery + AppShell callers). React 18 never delivers `ref` as a normal prop to memoized function components, so `LC.With.Ref` + programmatic gallery buttons stayed permanently `Disabled`.
+**Added routes:** LibRouter.{Dialogs, LogRouteTransitions, NativeBackButton, WithLocation, WithRoute}, AutoUi_InputForm.
 
-### 5.4 Gallery modernization
-
-**Shell / infra (converted to pure F#):** `App.fs`, `TopNav.fs`, `Route/*` (Components, Docs, Tools, Design, HowTo, Legacy), `Sidebar/SidebarContent.fs`, `ComponentContent*.fs`, `ComponentSample*.fs`, `GalleryHeadings.fs`, `Code.fs`, `ColorVariants.fs`, … Stale `_autogenerated_` for converted infra and orphan `.fs.js` emit under `src/` were removed; audit scripts point at `Route/Components/Components.fs`.
-
-**Content showcase pages** (routed from `Components.fs`):
-
-| State | Count | Code samples in UI |
-|-------|------:|--------------------|
-| **Pure F# page** (`Content/.../Foo.fs`) | **69** | F# (`ComponentSample.Fsharp`) |
-| **Still render DSL** (`Content/.../Foo.render`) | **0** | — |
-
-**Batch converted (2026-06-28):** all remaining 33 pages — Avatar, Button, Buttons, Carousel, ColorVariants, ContextMenu, Dialogs, ErrorBoundary, Icon, IconButton, Icons, InfoMessage, ItemList, Pre, Scrim, Stars, Tag, TextButton, Thumb, Thumbs, TimeSpan, Timestamp, ToggleButtons, WithSortAndFilter, Input.{Date, EmailAddress, PhoneNumber, Picker, Quantity, Text}, ThirdParty.{Map, Recharts, ToolWindowContent}. Stateful pages use `Hooks.useState`; theme samples preserved where present (Avatar, Stars, Button).
-
-**Recent gallery work (2026-06-28):**
-
-- **All Content showcase pages** converted to pure F#; zero `.render` under `AppEggShellGallery/`
-- `GalleryHeadings.fs` — explicit heading font sizes (Props/Samples 24px, sample titles 14px); fixes nested `LC.Text` in `LC.Heading` ignoring level styles on web
-- `GallerySampleImages.fs` — fixed-size `ImageCard` demos (Draggable, ImageCard) where parent layout had zero height
-- Enriched sparse converted pages (Card, ImageCard, Tabs, LabelledFormField, Animatable*, TouchableOpacity, DataFlowControl, AlertErrors, Input.* samples)
-- Carousel — local `/images/wlop*.jpg` instead of dead example.com URLs
+**Shell / infra:** all pure F# (App, routes, sidebar, ComponentContent*, audit scripts read `Components.fs`).
 
 | Area | State |
 |------|--------|
-| Audit tooling | Web + Android scripts; testId-first nav documented in `GALLERY-AUDIT.md` |
-| Known dev-web gotcha | Incomplete Fable output (missing `fable-library-js` in `.build/.../fable_modules`) → webpack mass `Module not found`; restart dev-web or copy from `src/fable_modules/` |
+| Audit tooling | Web Playwright + Android Appium scripts in `GALLERY-AUDIT.md` |
+| Web audit run | **In progress** (2026-06-29) — interactive crawl, console + assertions + visual archive |
+| Native audit | Pending — requires Metro + emulator + Appium |
+| Known dev-web gotcha | Incomplete Fable output → webpack `Module not found`; restart dev-web |
 
-### 5.5 TapCapture → Pressable
+### 5.6 TapCapture → Pressable
 
-- **Done on:** Button, Nav.Top.Item, Sidebar.Item, TextButton, IconButton (component internals), Pressable/TapCapture shim
-- **Real surface (grep `TapCapture` in `LibClient/src`, 2026-06-28): 46 references.** `LC.Pressable` has only **11** callers, so adoption is still early.
-  - **~14 `.render` / autogenerated** trees: FloatingActionButton, WeeklyCalendar, ChoiceListItem, Checkbox, PickerInternals.{Dialog,Field}, Legacy.Input.Picker, Input.Text, ContextMenu.Popup, Nav.Bottom.Item, plus already-converted Button/Sidebar.Item/Nav.Top.Item autogen left on disk.
-  - **~16 pure-F# components still calling `LC.TapCapture` directly:** `Tag`, `TouchableOpacity`, `AppleAppStoreButton`, `GooglePlayStoreButton`, `TextButton`, `ThumbCard`, `Thumb`, `ItemList`, `HeaderCell`, `PaginatedVirtualListView`, `PaginatedScrollView`, `Scrim`, `IconButton`, `Input/DayOfTheWeek`, `Legacy/Card`, `Dialogs.fs`. (TapCapture is now a Pressable shim, so these are *semantically* a11y-safe but should still gain explicit `label`/`role`/`testId` via direct `LC.Pressable` calls.)
-- **Definition of "swept":** zero `TapCapture` matches outside `TapCapture.fs` / `TapCaptureDebugVisibility.fs` / the two `RulesBasic.fs` style files; then delete the shim.
+- **Done on:** Button, Nav.Top.Item, Sidebar.Item, TextButton, IconButton internals, Pressable/TapCapture shim
+- **Remaining:** grep `LC.TapCapture` in `LibClient/src` — ~16 pure-F# components still call shim directly (semantically safe via Pressable redirect; should gain explicit label/role/testId)
+- **Definition of "swept":** zero `TapCapture` outside shim + style rule files; delete `TapCapture.fs`
 
-### 5.6 Phase summary table
+### 5.7 Phase summary table
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -346,19 +355,24 @@ Everything else under `LibClient/src/Components/` is pure F# or lives outside th
 | 1 | Pressable, UiActionLog, RX bindings, core types | Done |
 | 2 | Tier-1 labels + Button/Nav.Top.Item/Sidebar.Item Pressable + F# conversion | Done |
 | 3 | Gallery testIds + route/action logging | Mostly done |
-| 4 | Audit harness testId-first | Partial (scripts exist; full validation pending) |
-| — | End-to-end caller upgrade (no legacy shims) | Done for Button + Nav.Top.Item |
-| — | Goal A bulk `.render` retirement | **LibClient ~95%** (9 render files); **gallery showcase 100%** (69/69 pages) |
+| 4 | Audit harness (web + Android) | **In progress** — scripts exist; full validation run 2026-06-29 |
+| — | Goal A framework `.render` retirement | **Done** (product code) |
+| — | Goal A DSL machinery deletion | Not started |
+| — | Style-leak / console-warning regression pass | **In progress** (audit-driven) |
+| — | LibAutoUi product completion | Partial (~2 primitives wired) |
 
 ---
 
 ## 6. Recommended sequencing (next work)
 
-1. **LibClient last cluster:** Input.Text + Picker internals + Dialog.Base + ContextMenu.Dialog (9 files).
-2. **Gallery mirrors:** done — all Content showcase pages are pure F#; keep new/changed components mirrored when converting LibClient twins.
-3. **TapCapture sweep:** each conversion should finish with Pressable; grep `LC.TapCapture` until zero, delete shim.
-4. **Automation:** run interactive Android audit with testId nav; extend assertions to use `uiSnapshot()` where possible.
-5. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
+1. **Gallery validation (web):** run `audit-gallery-interactive.mjs`; fix actionable console errors, assertion failures, style-leak warnings; wire missing routes (MarkdownViewer, ImagePicker, ReCaptcha).
+2. **Gallery validation (native):** `eggshell dev-native` + Metro + Appium `audit:interactive:android`; fix native-only crashes/layout.
+3. **Style-leak pass:** triage audit `style-leak` / visual-archive `overlapReviewPriority`; fix cross-component cascade regressions from conversions (§4.1).
+4. **TapCapture sweep:** grep `LC.TapCapture` until zero outside shim; delete `TapCapture.fs`.
+5. **LibAutoUi product completion:** wire bool/numeric/file primitives; richer gallery samples; optional first Suite app screen.
+6. **Goal A closure:** delete DSL compiler + build hooks once audits green on web + native.
+7. **Goal B:** fix `eggshell create-app` scaffolding.
+8. **Do not start:** Fable 5, .NET 10, ReactXP swap, Orleans/Postgres (Goals F–H).
 
 ---
 
