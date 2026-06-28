@@ -64,7 +64,7 @@ type FormatfulText with
         text: FormatfulTextSource,
         ?styles: array<TextStyles>
     ): ReactElement =
-        let renderedHtml =
+        let markup =
             match text with
             | FormatfulTextSource.Html          source        -> source
             | FormatfulTextSource.MaybeMarkdown (_, rendered) -> rendered
@@ -82,7 +82,7 @@ type FormatfulText with
                     "break-word"
                 ) |> box),
                 "style-hack-if-it-contains-a-pre-tag",
-                (DangerouslySetInnerHTMLJs(renderedHtml) |> box)
+                (DangerouslySetInnerHTMLJs(markup) |> box)
             )) |> box
 
         LC.Text (?styles = styles, children = [|
@@ -94,7 +94,7 @@ type FormatfulText with
         let renderHtmlRaw: obj = import "default" "react-native-render-html"
 
         let source =
-            (RenderHtmlSourceJs($"<div>{renderedHtml}</div>"))
+            (RenderHtmlSourceJs($"<div>{markup}</div>"))
             |> box
 
         let containerStyles : obj =
