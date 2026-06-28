@@ -23,37 +23,58 @@
     <Content Include="**/*.fsproj" />
   </ItemGroup>
 
+  <!-- Foundation: app configuration and entry wiring. -->
   <ItemGroup>
     <Compile Include="Config.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="ErrorMessages.fs" />
     <Compile Include="RenderHelpers.fs" />
   </ItemGroup>
 
+  <!-- Domain: error display, todo actions, queries, and display helpers. -->
+  <ItemGroup>
+    <Compile Include="Domain/ErrorMessages.fs" />
+  </ItemGroup>
+
+  <!-- Foundation (services + routing): may depend on Domain + FakeData. -->
   <ItemGroup>
     <Compile Include="FakeData/FakeTodoService.fs" />
     <Compile Include="Services.fs" />
     <Compile Include="Navigation.fs" />
-    <Compile Include="Colors.fs" />
-    <Compile Include="TodoTheme.fs" />
+  </ItemGroup>
+
+  <!-- Theme: palette and component styling. -->
+  <ItemGroup>
+    <Compile Include="Theme/Colors.fs" />
+    <Compile Include="Theme/TodoTheme.fs" />
+  </ItemGroup>
+
+  <!-- Platform registration. -->
+  <ItemGroup>
     <Compile Include="Icons.fs" />
     <Compile Include="LocalImagesRegistration.fs" />
-    <Compile Include="Actions.fs" />
-    <Compile Include="TodoQueries.fs" />
-    <Compile Include="TodoDisplay.fs" />
+  </ItemGroup>
+
+  <!-- Domain logic (depends on services + theme). -->
+  <ItemGroup>
+    <Compile Include="Domain/Actions.fs" />
+    <Compile Include="Domain/TodoQueries.fs" />
+    <Compile Include="Domain/TodoDisplay.fs" />
+  </ItemGroup>
+
+  <!-- Theme application (depends on Domain types). -->
+  <ItemGroup>
+    <Compile Include="Theme/ComponentsTheme.fs" />
     <Compile Include="ComponentsHierarchy.fs" />
   </ItemGroup>
 
+  <!-- Components: route screens and shared UI. -->
   <ItemGroup>
     <Compile Include="Components/Route/Todos.fs" />
     <Compile Include="Components/AppContext.fs" />
     <Compile Include="Components/App.fs" />
   </ItemGroup>
 
+  <!-- Bootstrap: registers libraries and mounts the app (last). -->
   <ItemGroup>
-    <Compile Include="ComponentsTheme.fs" />
     <Compile Include="Bootstrap.fs" />
   </ItemGroup>
 </Project>

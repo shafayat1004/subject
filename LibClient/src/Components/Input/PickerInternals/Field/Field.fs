@@ -26,6 +26,9 @@ module LC =
                     PlaceholderColor:        Color
                     TheVerticalPadding:      int
                     IconSize:                int
+                    BackgroundColor:         Color
+                    BorderRadius:            int
+                    LabelBackgroundColor:    Color
                 }
 
 type Theme = LC.Input.PickerInternals.Field.Theme
@@ -51,13 +54,13 @@ module private Styles =
         else theTheme.BorderLabelColor
 
     let border =
-        ViewStyles.Memoize (fun (verticalPadding: int) (outline: Color) ->
+        ViewStyles.Memoize (fun (verticalPadding: int) (cornerRadius: int) (fillColor: Color) (outline: Color) ->
             makeViewStyles {
                 borderWidth 1
-                borderRadius 4
+                borderRadius cornerRadius
                 paddingHorizontal 10
                 paddingVertical verticalPadding
-                backgroundColor Color.White
+                backgroundColor fillColor
                 AlignItems.Center
                 FlexDirection.RowReverse
                 JustifyContent.SpaceBetween
@@ -65,7 +68,7 @@ module private Styles =
             })
 
     let borderFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
-        border theTheme.TheVerticalPadding (outlineColorFor theTheme isInvalid isFocused)
+        border theTheme.TheVerticalPadding theTheme.BorderRadius theTheme.BackgroundColor (outlineColorFor theTheme isInvalid isFocused)
 
     let pickerValues =
         makeViewStyles {
@@ -125,13 +128,14 @@ module private Styles =
             })
 
     let label =
-        makeViewStyles {
-            Position.Absolute
-            top 0
-            left 10
-            paddingHorizontal 3
-            backgroundColor Color.White
-        }
+        ViewStyles.Memoize (fun (labelBg: Color) ->
+            makeViewStyles {
+                Position.Absolute
+                top 0
+                left 10
+                paddingHorizontal 3
+                backgroundColor labelBg
+            })
 
     let labelText =
         TextStyles.Memoize (fun (labelColor: Color) ->
@@ -499,7 +503,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                     match label with
                     | Some labelText ->
                         RX.View(
-                            styles = [| Styles.label |],
+                            styles = [| Styles.label theTheme.LabelBackgroundColor |],
                             children =
                                 [|
                                     LC.UiText(

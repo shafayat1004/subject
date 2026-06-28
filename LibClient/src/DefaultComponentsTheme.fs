@@ -372,6 +372,8 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         TextColor                  = neutral.Main
         NoneditableTextColor       = neutral.B500
         NoneditableBackgroundColor = neutral.B200
+        EditableBackgroundColor    = Color.White
+        LabelBackgroundColor       = Color.White
         InvalidReasonColor         = caution.Main
         PlaceholderColor           = neutral.B300
         TheVerticalPadding         = 10
@@ -430,6 +432,9 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         PlaceholderColor        = neutral.B300
         IconSize                = 20
         TheVerticalPadding      = 10
+        BackgroundColor         = Color.White
+        BorderRadius            = 4
+        LabelBackgroundColor    = Color.White
     }
 
     Themes.Set<LC.Input.Checkbox.Theme>(

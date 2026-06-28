@@ -266,6 +266,8 @@ module Input_TextComponent =
                     TextColor:                  Color
                     NoneditableTextColor:       Color
                     NoneditableBackgroundColor: Color
+                    EditableBackgroundColor:    Color
+                    LabelBackgroundColor:       Color
                     InvalidReasonColor:         Color
                     PlaceholderColor:           Color
                     TheVerticalPadding:         int
@@ -304,7 +306,7 @@ module Input_TextComponent =
 
         let borderFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) (editable: bool) =
             let fillColor =
-                if editable then Color.White
+                if editable then theTheme.EditableBackgroundColor
                 else theTheme.NoneditableBackgroundColor
             border
                 theTheme.BorderRadius
@@ -363,13 +365,13 @@ module Input_TextComponent =
                 })
 
         let label =
-            ViewStyles.Memoize (fun (isSmall: bool) ->
+            ViewStyles.Memoize (fun (labelBg: Color) (isSmall: bool) ->
                 makeViewStyles {
                     Position.Absolute
                     top (if isSmall then -6 else 13)
                     left 10
                     paddingHorizontal 3
-                    backgroundColor Color.White
+                    backgroundColor labelBg
                 })
 
         let labelText =
@@ -597,7 +599,7 @@ module Input_TextComponent =
                         match label with
                         | Some labelText ->
                             RX.View(
-                                styles = [| Styles.label isLabelSmall |],
+                                styles = [| Styles.label theTheme.LabelBackgroundColor isLabelSmall |],
                                 children =
                                     [|
                                         LC.UiText(

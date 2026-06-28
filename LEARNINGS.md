@@ -1350,3 +1350,42 @@ F# type-check pass. Babel may still run on old `.js`, so the command “succeeds
 **Module shadowing (unchanged):** module `LibClient.Components.Input.PickerInternals.Base` hides
 `LC.Input.PickerInternals.Base` static member from sibling files — use module-level `renderPickerBase`
 or rename module to `PickerInternals_Base` (see LEARNINGS § nested-namespace).
+
+### 2026-06-28 — AppTodo ui2 redesign: layout, dark-mode framework theming, AVD rotation
+
+**`LC.Row`/`LC.Column` ignore a `FlexDirection` passed via `styles`.** `Layout.fs` does
+`Array.append (defaultArg styles) [| Styles.row; ... |]` — the component's own `Styles.row`
+(`FlexDirection.Row`) is appended LAST and wins. So a responsive style that flips to
+`FlexDirection.Column` on handheld is silently overridden when applied to `LC.Row`. Symptom: a
+2-field "row" (Priority + Due) stayed horizontal on handheld, Priority overflowed and Due was pushed
+off-screen. **Fix:** for direction-flipping groups use a plain `RX.View` with a memoized
+`composerRow isHandheld` style (and `composerCell isHandheld` = `AlignSelf.Stretch` handheld / `flex 1`
+wide), not `LC.Row`/`LC.Column`.
+
+**Dark mode needed a framework change — inputs hardcoded white.** `Components/Input/Text/Text.fs`
+(modern `Styles.borderFor` fill, `Styles.label` bg) and `Input/PickerInternals/Field/Field.fs`
+(`Styles.border` bg, `Styles.label` bg) hardcoded `Color.White`, so a dark `?theme` could not darken
+them. **Fix:** added `EditableBackgroundColor` + `LabelBackgroundColor` to `LC.Input.Text.Theme`, and
+`BackgroundColor` + `BorderRadius` + `LabelBackgroundColor` to `Field.Theme`; threaded them through the
+`Styles` and updated the two `Themes.Set` records in `DefaultComponentsTheme.fs` to white defaults
+(back-compat — these two records are the ONLY construction sites repo-wide). App drives them per
+appearance via `Themes.Set` in `ComponentsTheme.applyInputThemes palette`, called in the screen body
+before inputs render (the `Picker` constructor has no `?theme` passthrough, so global `Themes.Set` is
+the switch, not a per-call override).
+
+**`Color.Hex` requires lowercase.** Regex is `#[0-oa-f]{6}`; uppercase hex copied from CSS
+(`#FDF9F6`) throws `Color is expected to match...` at RUNTIME (build is green). Lowercase all hex.
+
+**App `.fsproj` order:** `ComponentsTheme.fs` (and anything a screen references) must precede
+`Components/Route/*.fs`; Fable does not pick up `.fsproj` edits on watch — restart `dev-native`.
+
+**Android AVD launched sideways (not a code bug).** `~/.android/avd/<avd>.avd/config.ini` had
+`hw.initialOrientation = landscape` AND `skin.name = 2400x1080` (W×H reversed → landscape skin window).
+Fix: `portrait` + `skin.name = 1080x2400`, then delete the stale `hardware-qemu.ini` (regenerates from
+config) and `snapshots/default_boot` (quickboot restores old landscape state); cold-boot with
+`-no-snapshot-load`. Verify with `adb shell dumpsys window | grep mDisplayRotation` (ROTATION_0 = portrait).
+
+**Screenshot-verify the matrix.** Reload (`am force-stop` + `monkey -p <pkg> -c LAUNCHER 1`), wait
+~25s for first bundle, `adb shell screencap`. Rotate via `adb shell settings put system
+user_rotation 0|1` (set `accelerometer_rotation 0` first). This caught the uppercase-hex runtime crash
+and the Due-date cutoff that a green build hid.
