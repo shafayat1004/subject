@@ -105,33 +105,72 @@ module Styles =
             marginTop 4
         }
 
-    // Segmented Light/Dark theme toggle (pill track + two segments).
+    // Segmented Light/Dark theme toggle (pill track + sliding thumb + two segments).
+    let themeToggleWidth = 152
+
     let themeToggleTrack =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) ->
                 makeViewStyles {
-                    FlexDirection.Row
+                    width themeToggleWidth
                     borderRadius 999
                     padding 4
                     backgroundColor palette.ThemeTrackBackground
                     borderWidth 0
+                    AlignSelf.FlexStart
                 }
         )
 
+    let themeToggleHost =
+        makeViewStyles {
+            Position.Relative
+            Overflow.Hidden
+            widthPercent 100
+        }
+
+    let themeToggleSegments =
+        makeViewStyles {
+            FlexDirection.Row
+            widthPercent 100
+        }
+
+    let themeToggleGestureHost =
+        makeViewStyles {
+            widthPercent 100
+        }
+
+    let themeToggleThumbAnimated (translateX: AnimatableValue) (palette: SemanticPalette) (thumbWidth: int) =
+        makeAnimatableViewStyles {
+            Position.Absolute
+            top 4
+            bottom 4
+            left 4
+            width (max 0 thumbWidth)
+            borderRadius 999
+            backgroundColor palette.ThemeToggleSelected
+            animatedTransform [
+                [ animatedTranslateX translateX ]
+            ]
+        }
+
+    let themeToggleThumbStatic (palette: SemanticPalette) (thumbWidth: int) (offsetX: int) =
+        makeViewStyles {
+            Position.Absolute
+            top 4
+            bottom 4
+            left (4 + offsetX)
+            width (max 0 thumbWidth)
+            borderRadius 999
+            backgroundColor palette.ThemeToggleSelected
+        }
+
     let themeSegment =
-        ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isActive: bool) ->
-                makeViewStyles {
-                    minHeight 44
-                    paddingVertical 6
-                    paddingHorizontal 12
-                    borderRadius 999
-                    JustifyContent.Center
-                    Overflow.Hidden
-                    if isActive then
-                        backgroundColor palette.ThemeToggleSelected
-                }
-        )
+        makeViewStyles {
+            widthPercent 50
+            minHeight 44
+            JustifyContent.Center
+            AlignItems.Center
+        }
 
     let themeSegmentText =
         TextStyles.Memoize(
@@ -140,6 +179,7 @@ module Styles =
                     fontSize 12
                     FontWeight.W600
                     color segmentColor
+                    TextAlign.Center
                 }
         )
 
@@ -372,20 +412,19 @@ module Styles =
 
     let searchInputWrap =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) ->
+            fun (_palette: SemanticPalette) ->
                 makeViewStyles {
-                    borderRadius 999
-                    backgroundColor palette.SearchBackground
-                    borderWidth 1
-                    borderColor palette.InputBorder
-                    Overflow.Hidden
+                    AlignSelf.Stretch
                 }
         )
 
     let searchInput =
-        makeViewStyles {
-            borderRadius 999
-        }
+        ViewStyles.Memoize(
+            fun (_palette: SemanticPalette) ->
+                makeViewStyles {
+                    Noop
+                }
+        )
 
     let list =
         makeViewStyles {
@@ -424,9 +463,10 @@ module Styles =
 
     let todoRow =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isDone: bool) (_isHandheld: bool) ->
+            fun (_palette: SemanticPalette) (_isDone: bool) (_isHandheld: bool) ->
                 makeViewStyles {
-                    opacity (if isDone then 0.65 else 1.0)
+                    // Done-state fade belongs on title text only — row opacity lets swipe Delete show through.
+                    Noop
                 }
         )
 
@@ -507,8 +547,11 @@ module Styles =
             FontWeight.W600
         }
 
-    let swipeContentAnimated (translateX: AnimatableValue) =
+    let swipeContentAnimated (translateX: AnimatableValue) (palette: SemanticPalette) =
         makeAnimatableViewStyles {
+            backgroundColor palette.RowBackground
+            borderRadius 16
+            Overflow.Hidden
             animatedTransform [
                 [ animatedTranslateX translateX ]
             ]
@@ -580,7 +623,7 @@ module Styles =
             fun (palette: SemanticPalette) ->
                 makeTextStyles {
                     textDecorationLine TextDecorationLine.LineThrough
-                    color palette.TextPrimary
+                    color palette.TextSecondary
                     fontSize 15
                     FontWeight.W500
                 }

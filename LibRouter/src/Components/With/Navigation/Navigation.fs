@@ -354,6 +354,15 @@ type NavigationImplementation<'Route, 'ResultlessDialog, 'ResultfulDialog when '
         | Some currFrame ->
             match method with
             | DialogCloseMethod.HistoryForward ->
+                currFrame.Dialogs
+                |> List.tryFind (fun dialog -> dialog.Token = token)
+                |> Option.iter (function
+                    | NavigationDialog.AdHoc _
+                    | NavigationDialog.Resultful _
+                    | NavigationDialog.System _ ->
+                        navigationState.DialogsState.RemoveStateFor token
+                    | _ -> ()
+                )
                 let updatedDialogs = currFrame.Dialogs |> List.filterNot (fun dialog -> dialog.Token = token)
                 this.Go { currFrame with Dialogs = updatedDialogs } e
             | DialogCloseMethod.HistoryBack ->

@@ -85,6 +85,7 @@ module private Styles =
             trbl 0 0 0 0
             FlexDirection.Row
             AlignItems.Center
+            paddingHorizontal 2
         }
 
     let webFieldTextInput =
@@ -102,10 +103,10 @@ module private Styles =
     let hiddenTextInput =
         makeViewStyles {
             opacity 0
-            width 0
-            height 0
+            width 1
+            height 1
             Position.Absolute
-            top 0
+            top (-1000)
             left 0
         }
 

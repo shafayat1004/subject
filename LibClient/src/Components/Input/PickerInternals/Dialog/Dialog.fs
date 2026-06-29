@@ -198,23 +198,31 @@ type private DialogContent<'Item when 'Item : comparison> =
             [| box parameters.Model |]
         )
 
+        let modelState = modelStateHook.current
+        let fieldTheme = Themes.GetMaybeUpdatedWith Option<LC.Input.PickerInternals.Field.Theme -> LC.Input.PickerInternals.Field.Theme>.None
+        let closeOnceRef = Hooks.useRef false
+
+        let closeDialog () =
+            if not closeOnceRef.current then
+                closeOnceRef.current <- true
+                Dialogs.tryCancel dialogProps (fun () -> Async.Of true) DialogCloseMethod.HistoryForward ReactEvent.Action.NonUserOriginatingAction
+
         Hooks.useEffect(
             (fun () ->
                 async {
                     do! parameters.HideDeferred.Value
-                    Dialogs.tryCancel dialogProps (fun () -> Async.Of true) DialogCloseMethod.HistoryBack ReactEvent.Action.NonUserOriginatingAction
+                    closeDialog ()
                 } |> startSafely
             ),
             [| box parameters.HideDeferred |]
         )
 
-        let modelState = modelStateHook.current
-        let fieldTheme = Themes.GetMaybeUpdatedWith Option<LC.Input.PickerInternals.Field.Theme -> LC.Input.PickerInternals.Field.Theme>.None
-
-        let tryCancel (_e: ReactEvent.Action) : unit =
+        let dismissDialog (e: ReactEvent.Action) : unit =
+            e |> ignore
             parameters.Model.HandleInputEvent ListWasHidden
 
-        let onToggle (index: int) (item: 'Item) (_e: ReactEvent.Action) : unit =
+        let onToggle (index: int) (item: 'Item) (e: ReactEvent.Action) : unit =
+            e |> ignore
             parameters.Model.HandleInputEvent (Toggle (index, item))
 
         let onQueryChange (value: Option<NonemptyString>) : unit =
@@ -226,9 +234,14 @@ type private DialogContent<'Item when 'Item : comparison> =
         LC.With.ScreenSize(
             ``with`` =
                 fun screenSize ->
+                    let position =
+                        match screenSize with
+                        | ScreenSize.Handheld -> Raw.DialogPosition.Center
+                        | ScreenSize.Desktop -> Raw.DialogPosition.Center
+
                     LC.Dialog.Shell.WhiteRounded.Raw(
-                        position = Raw.DialogPosition.Top,
-                        canClose = When ([ OnEscape; OnBackground; OnCloseButton ], tryCancel),
+                        position = position,
+                        canClose = When ([ OnEscape; OnBackground; OnCloseButton ], dismissDialog),
                         children =
                             [|
                                 if parameters.ShowSearchBar then
@@ -299,7 +312,7 @@ type private DialogContent<'Item when 'Item : comparison> =
                                             elements {
                                                 LC.Button(
                                                     label = "Done",
-                                                    state = Button.PropStateFactory.MakeLowLevel (Button.Actionable tryCancel)
+                                                    state = Button.PropStateFactory.MakeLowLevel (Button.Actionable dismissDialog)
                                                 )
                                             }
                                     )

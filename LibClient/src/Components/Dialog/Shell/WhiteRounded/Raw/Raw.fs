@@ -114,15 +114,21 @@ module private RawStyles =
         }
 
     let closeButton =
-        makeViewStyles {
-            backgroundColor Color.White
-            borderRadius    100
-            width           42
-            height          42
-            Position.Absolute
-            top   2
-            right 2
-        }
+        ViewStyles.Memoize(
+            fun (theme: Theme) ->
+                makeViewStyles {
+                    backgroundColor (
+                        theme.BackgroundColor
+                        |> Option.defaultValue Color.White
+                    )
+                    borderRadius 100
+                    width 42
+                    height 42
+                    Position.Absolute
+                    top 2
+                    right 2
+                }
+        )
 
     let closeButtonTheme (theme: LC.IconButton.Theme): LC.IconButton.Theme =
         { theme with
@@ -176,9 +182,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ``with`` =
                 fun screenSize ->
                     let contentPosition =
-                        match screenSize with
-                        | ScreenSize.Desktop -> ContentPosition.Center
-                        | ScreenSize.Handheld -> ContentPosition.Free
+                        ContentPosition.Center
 
                     LC.Dialog.Base(
                         canClose = canClose,
@@ -228,7 +232,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
 
                                                         if canClose.ShouldShowCloseButton then
                                                             LC.IconButton(
-                                                                styles = [| RawStyles.closeButton |],
+                                                                styles = [| RawStyles.closeButton theTheme |],
                                                                 icon = Icon.X,
                                                                 label = "Close",
                                                                 state =

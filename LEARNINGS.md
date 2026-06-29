@@ -5,6 +5,38 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — AppTodo theme toggle: sliding draggable thumb
+
+**Light/Dark control** is a pill track with an animated thumb (not per-segment fill). Thumb position
+follows `AppearanceMode` via `AnimatableView` + `Animation.Timing`; horizontal pan on the track drags
+the thumb and snaps to the nearer segment on release (same Safari `pageX` null guard as swipe rows).
+Tap on Light/Dark labels still works; `LC.With.ReducedMotion` skips drag and uses a static thumb.
+**Label centering:** fixed `themeToggleWidth` (152px) + `widthPercent 50` segments — `GestureView` was shrink-wrapping
+to label width. **Tap slide:** do not `SetValue` on layout re-render; `selectMode` + `useEffect` drive `animateTo`.
+
+**Handheld picker double overlay / stuck scrim.** Three close paths fired together (`dismissDialog` tryCancel +
+`onToggle` tryCancel + `hideDeferred` tryCancel), and `showList` could stack a second adhoc dialog. Fix: close
+only via `hideDeferred` once (`closeOnceRef`); `dismissDialog`/`onToggle` only set `ListWasHidden`; guard
+`showList` when `maybeDialogHideRef` already set; `Navigation.Close HistoryForward` calls `RemoveStateFor` on
+adhoc tokens.
+
+## 2026-06-29 — AppTodo swipe row bleed-through, picker dismiss, search pill outline
+
+**Done todo shows “Delete” through the card.** Row-level `opacity` on swipe rows let the red delete
+slot show through; done styling belongs on title text only (`titleTextDone`). Also give
+`swipeContentAnimated` an opaque `RowBackground`, `borderRadius 16`, `Overflow.Hidden`, and `zIndex`
+above the delete slot.
+
+**Handheld picker dialog stuck at top / X and selection do not close.** `WhiteRounded.Raw` used
+`ContentPosition.Free` on handheld — parent dialog is not a flex column, so `maxSizeLimiter`’s
+`JustifyContent.Center` never applied. Use `ContentPosition.Center` for all sizes. Dismiss with
+`DialogCloseMethod.HistoryForward` (explicitly remove adhoc dialog from stack) instead of
+`HistoryBack` — on a fresh mobile session `GoBack()` has nothing to pop.
+
+**Search pill double curve.** Web native focus ring on inner `TextInput` ignores parent
+`borderRadius`; `SuiteTodo/AppTodo/public-dev/app.css` already strips outline on `input`/`textarea`
+(shell `View` carries the pill border + `Overflow.Hidden`).
+
 ## 2026-06-29 — AppTodo dark mode / web inputs: white rectangles, picker flash, contrast
 
 **White `<input>` rectangles in dark mode (Firefox especially).** Not browser ARIA — RNW renders a

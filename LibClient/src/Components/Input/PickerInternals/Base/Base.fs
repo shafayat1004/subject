@@ -74,24 +74,29 @@ let renderPickerBase<'Item when 'Item : comparison>(
                         maybePopupHideRef.current <- None
                         model.HandleInputEvent ListWasHidden)
             LibClient.JsInterop.runOnNextTick (fun () ->
-                ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
+                // Defer one extra tick so the opening click does not immediately dismiss the popup (web).
+                LibClient.JsInterop.runOnNextTick (fun () ->
+                    ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
 
-                maybePopupHideRef.current <-
-                    Some (fun () ->
-                        ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
-                        maybePopupHideRef.current <- None
-                    ))
+                    maybePopupHideRef.current <-
+                        Some (fun () ->
+                            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
+                            maybePopupHideRef.current <- None
+                        )))
 
         | ScreenSize.Handheld ->
-            let hideDeferred = Deferred<unit>()
-            maybeDialogHideRef.current <-
-                Some (fun () ->
-                    hideDeferred.Resolve ()
-                    maybeDialogHideRef.current <- None
-                )
-            LibClient.Dialogs.AdHoc.go
-                (LibClient.Components.Input.PickerInternals.Dialog.Open itemView model hideDeferred placeholder showSearchBar)
-                ReactEvent.Action.NonUserOriginatingAction
+            if maybeDialogHideRef.current.IsSome then
+                ()
+            else
+                let hideDeferred = Deferred<unit>()
+                maybeDialogHideRef.current <-
+                    Some (fun () ->
+                        hideDeferred.Resolve ()
+                        maybeDialogHideRef.current <- None
+                    )
+                LibClient.Dialogs.AdHoc.go
+                    (LibClient.Components.Input.PickerInternals.Dialog.Open itemView model hideDeferred placeholder showSearchBar)
+                    ReactEvent.Action.NonUserOriginatingAction
 
     Hooks.useEffectDisposable(
         (fun () ->
