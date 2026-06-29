@@ -243,7 +243,8 @@ type private Helpers =
             rowContent: ReactElement)
         : ReactElement =
         let deleteWidth = Styles.swipeDeleteWidth
-        let openThreshold = 40
+        let openThreshold = 72
+        let minSwipeDelta = 24
 
         let isDraggingHook = Hooks.useState false
         let rowWidthRef = Hooks.useRef 300
@@ -297,7 +298,7 @@ type private Helpers =
 
                 if offset <= fullDeleteThreshold then
                     onDelete ()
-                elif offset < -openThreshold then
+                elif offset < -openThreshold && abs delta >= minSwipeDelta then
                     onOpenChange true
                     restOffsetRef.current <- -deleteWidth
                     animateTo -deleteWidth None
@@ -306,16 +307,18 @@ type private Helpers =
                     restOffsetRef.current <- 0
                     animateTo 0 None
             else
-                if not gestureActiveRef.current then
-                    gestureActiveRef.current <- true
-                    panStartBaseRef.current <- (if isOpen then -deleteWidth else 0)
-
-                isDraggingHook.update true
                 let delta = int gs.pageX - int gs.initialPageX
 
                 if delta > 0 && not isOpen then
                     Noop
+                elif abs delta < minSwipeDelta && not isOpen then
+                    Noop
                 else
+                    if not gestureActiveRef.current then
+                        gestureActiveRef.current <- true
+                        panStartBaseRef.current <- (if isOpen then -deleteWidth else 0)
+
+                    isDraggingHook.update true
                     let offset = clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
                     translateXRef.current.SetValue (double offset)
 
@@ -382,6 +385,7 @@ type private Helpers =
                                 children = [|
                                     RX.GestureView(
                                         preferredPan = ReactXP.Components.GestureView.PreferredPanGesture.Horizontal,
+                                        panPixelThreshold = 24.0,
                                         onPanHorizontal = onPanHorizontal,
                                         children = [| rowContent |]
                                     )

@@ -5,6 +5,37 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — AppTodo dark mode / web inputs: white rectangles, picker flash, contrast
+
+**White `<input>` rectangles in dark mode (Firefox especially).** Not browser ARIA — RNW renders a
+native `<input>` inside the themed shell. Firefox keeps a default white fill even when the F# wrapper
+sets `backgroundColor` on the outer border `View`. Fix stack: (1) web `TextInput` styles use
+transparent fill + zero border; (2) shell `View` carries `InputBackground` + `borderRadius 16` +
+`Overflow.Hidden`; (3) `public-dev/app.css` strips `appearance`/background/outline on `input, textarea`.
+Safari looked “more rounded” because WebKit anti-aliases the shell clip differently — rounding lives on
+the shell, not the native control.
+
+**Picker field white bar between selected value and chevron.** Desktop/handheld picker kept a full-width
+`TextInput` under the selected-value overlay; its native white box showed through. When
+`shouldShowSelectedValue`, collapse the input with `hiddenTextInput` (opacity 0, zero size, absolute) —
+`requestFocus` still works because focus clears the overlay first.
+
+**Desktop picker popup “flash”.** `Popup.show` on the same click that opened the list hit ReactXP
+`onDismiss` immediately. Defer `Popup.show` to `runOnNextTick` in `PickerInternals/Base.fs`.
+
+**Dark label contrast too low.** `ComponentsTheme.applyInputThemes` used `palette.InputBorder` (`#43271A`)
+for `BorderLabelBlurredColor` / `BorderLabelColor` — that token is for strokes, not label text. Use
+`TextSecondary` instead; bump dark `TextMuted` toward ui2 (`#C4A898`).
+
+**Handheld picker dialog styling.** Theme `Popup.Theme` + `WhiteRounded.Raw.Theme` from palette
+(card/input colors, 16px radius). `Themes.Set` record needs all fields (`Width`, `BoundaryRadius`, …).
+Theme type path: `LibClient.Components.Input.PickerInternals.Popup.Theme` (file-level alias like Field).
+
+**Swipe too eager on Safari.** Raised `panPixelThreshold`, `minSwipeDelta`, and `openThreshold` in
+`TodoSwipeShell` (16→24, 56→72).
+
+---
+
 ## 2026-06-29 — AppTodo ui2: phone chrome vs screen size, category scroll, swipe delete
 
 **Garbled todo row text on web (`Edit … Delete …` merged with title).** Web always uses `usePhoneChrome`

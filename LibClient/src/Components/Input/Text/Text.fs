@@ -302,6 +302,7 @@ module Input_TextComponent =
                     paddingHorizontal 10
                     paddingVertical verticalPadding
                     borderColor outlineColor
+                    Overflow.Hidden
                 })
 
         let borderFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) (editable: bool) =
@@ -353,10 +354,17 @@ module Input_TextComponent =
             ViewStyles.Memoize (fun (noneditableFill: Color) (editable: bool) (singleLine: bool) ->
                 makeViewStyles {
                     flex 1
+                    minWidth 0
                     if not editable then
                         backgroundColor noneditableFill
                     if singleLine then
                         minHeight 21
+#if EGGSHELL_PLATFORM_IS_WEB
+                    backgroundColor Color.Transparent
+                    borderWidth 0
+                    padding 0
+                    margin 0
+#endif
                 })
 
         let textInputText =

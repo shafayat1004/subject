@@ -26,6 +26,7 @@ module LC =
                         MaxSizeLimiterPadding:   Option<int>
                         WhiteRoundedBasePadding: Option<int>
                         BoundaryRadius:          Option<int * int * int * int>
+                        BackgroundColor:         Option<Color>
                     }
 
 open LC.Dialog.Shell.WhiteRounded.Raw
@@ -67,7 +68,10 @@ module private RawStyles =
                     |> Option.defaultValue defaultWhiteRoundedBasePadding
 
                 makeViewStyles {
-                    backgroundColor Color.White
+                    backgroundColor (
+                        theme.BackgroundColor
+                        |> Option.defaultValue Color.White
+                    )
                     padding         basePadding
                     flex            -1
 
@@ -75,7 +79,7 @@ module private RawStyles =
                     | ScreenSize.Desktop ->
                         borderRadius 10
                     | ScreenSize.Handheld ->
-                        borderRadius 4
+                        borderRadius 16
                         AlignSelf.Stretch
 
                     match theme.Width with

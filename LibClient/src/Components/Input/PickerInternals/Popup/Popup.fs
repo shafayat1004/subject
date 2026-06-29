@@ -11,55 +11,96 @@ open LibClient.Components.Input.PickerModel
 open ReactXP.Components
 open ReactXP.Styles
 
+module LC =
+    module Input =
+        module PickerInternals =
+            module Popup =
+                type Theme = {
+                    BackgroundColor:         Color
+                    BorderColor:             Color
+                    ItemTextColor:           Color
+                    ItemTextHighlightColor:  Color
+                    ItemHighlightBackground: Color
+                    ItemBorderColor:         Color
+                    SelectedIconColor:       Color
+                    BorderRadius:            int
+                }
+
+type Theme = LC.Input.PickerInternals.Popup.Theme
+
 [<RequireQualifiedAccess>]
 module private Styles =
-    let private scrollViewCache = System.Collections.Generic.Dictionary<int, ScrollViewStyles>()
+    let private scrollViewCache = System.Collections.Generic.Dictionary<string, ScrollViewStyles>()
 
-    let scrollView (fieldWidth: int) : ScrollViewStyles =
-        match scrollViewCache.TryGetValue fieldWidth with
+    let scrollView (fieldWidth: int) (theTheme: LC.Input.PickerInternals.Popup.Theme) : ScrollViewStyles =
+        let cacheKey = sprintf "%i-%i" fieldWidth theTheme.BorderRadius
+        match scrollViewCache.TryGetValue cacheKey with
         | true, styles -> styles
         | false, _ ->
             let styles =
                 makeScrollViewStyles {
                     maxHeight 400
                     shadow (Color.BlackAlpha 0.3) 5 (0, 2)
+                    borderRadius theTheme.BorderRadius
 
                     if fieldWidth >= 0 then
                         width (fieldWidth - 4)
                 }
-            scrollViewCache.[fieldWidth] <- styles
+            scrollViewCache.[cacheKey] <- styles
             styles
 
-    let scrollViewFor (maybeFieldWidth: Option<int>) =
+    let scrollViewFor (maybeFieldWidth: Option<int>) (theTheme: LC.Input.PickerInternals.Popup.Theme) =
         match maybeFieldWidth with
-        | Some fieldWidth -> scrollView fieldWidth
-        | None            -> scrollView -1
+        | Some fieldWidth -> scrollView fieldWidth theTheme
+        | None            -> scrollView -1 theTheme
 
-    let view =
+    let view (theTheme: LC.Input.PickerInternals.Popup.Theme) =
         makeViewStyles {
-            border 1 (Color.Grey "cc")
-            backgroundColor Color.White
-            Overflow.VisibleForScrolling
+            border 1 theTheme.BorderColor
+            backgroundColor theTheme.BackgroundColor
+            borderRadius theTheme.BorderRadius
+            Overflow.Hidden
         }
 
-    let item =
-        ViewStyles.Memoize (fun (isFirst: bool) (isHighlighted: bool) ->
-            makeViewStyles {
-                FlexDirection.Row
-                AlignItems.Center
-                Cursor.Pointer
-                paddingHorizontal 18
-                paddingLeft 16
-                paddingRight 8
-                paddingVertical 9
-                borderTop 1 (Color.Grey "cc")
+    let item (theTheme: LC.Input.PickerInternals.Popup.Theme) (isFirst: bool) (isHighlighted: bool) =
+        makeViewStyles {
+            FlexDirection.Row
+            AlignItems.Center
+            Cursor.Pointer
+            paddingHorizontal 18
+            paddingLeft 16
+            paddingRight 8
+            paddingVertical 9
+            borderTop 1 theTheme.ItemBorderColor
 
-                if isFirst then
-                    borderTopWidth 0
+            if isFirst then
+                borderTopWidth 0
 
+            if isHighlighted then
+                backgroundColor theTheme.ItemHighlightBackground
+        }
+
+    let itemSelectedIcon (theTheme: LC.Input.PickerInternals.Popup.Theme) =
+        makeTextStyles {
+            fontSize 16
+            color theTheme.SelectedIconColor
+        }
+
+    let itemLabel (theTheme: LC.Input.PickerInternals.Popup.Theme) (isHighlighted: bool) =
+        makeTextStyles {
+            color (
                 if isHighlighted then
-                    backgroundColor (Color.Grey "ee")
-            })
+                    theTheme.ItemTextHighlightColor
+                else
+                    theTheme.ItemTextColor
+            )
+            fontSize 16
+        }
+
+    let noItemsMessageText (theTheme: LC.Input.PickerInternals.Popup.Theme) =
+        makeTextStyles {
+            color theTheme.ItemTextColor
+        }
 
     let itemSelectedness =
         makeViewStyles {
@@ -72,33 +113,10 @@ module private Styles =
             flex 1
         }
 
-    let itemSelectedIcon =
-        makeTextStyles {
-            fontSize 16
-            color (Color.Grey "cc")
-        }
-
-    let itemLabel =
-        TextStyles.Memoize (fun (isHighlighted: bool) ->
-            makeTextStyles {
-                color (
-                    if isHighlighted then
-                        Color.Grey "33"
-                    else
-                        Color.Grey "66"
-                )
-                fontSize 16
-            })
-
     let noItemsMessage =
         makeViewStyles {
             paddingHV 20 20
             AlignItems.Center
-        }
-
-    let noItemsMessageText =
-        makeTextStyles {
-            color (Color.Grey "66")
         }
 
     let activityIndicatorBlock =
@@ -121,6 +139,7 @@ module private Styles =
 
 module private Helpers =
     let renderItems<'Item when 'Item : comparison>
+        (theTheme: LC.Input.PickerInternals.Popup.Theme)
         (modelState: PickerState<'Item>)
         (itemView: PickerItemView<'Item>)
         (onSelect: int -> 'Item -> Browser.Types.Event -> unit)
@@ -134,7 +153,7 @@ module private Helpers =
                     [|
                         LC.UiText(
                             value = "No items",
-                            styles = [| Styles.noItemsMessageText |]
+                            styles = [| Styles.noItemsMessageText theTheme |]
                         )
                     |]
             )
@@ -146,7 +165,7 @@ module private Helpers =
 
                     RX.View(
                         onPress = onSelect index item,
-                        styles = [| Styles.item (index = 0) isHighlighted |],
+                        styles = [| Styles.item theTheme (index = 0) isHighlighted |],
                         children =
                             [|
                                 RX.View(
@@ -156,7 +175,7 @@ module private Helpers =
                                             if modelState.Value.IsSelected item then
                                                 LC.Icon(
                                                     icon = Icon.CheckMark,
-                                                    styles = [| Styles.itemSelectedIcon |]
+                                                    styles = [| Styles.itemSelectedIcon theTheme |]
                                                 )
                                             else
                                                 noElement
@@ -170,7 +189,7 @@ module private Helpers =
                                             | PickerItemView.Default toItemInfo ->
                                                 LC.UiText(
                                                     value = (toItemInfo item).Label,
-                                                    styles = [| Styles.itemLabel isHighlighted |]
+                                                    styles = [| Styles.itemLabel theTheme isHighlighted |]
                                                 )
                                             | PickerItemView.Custom render ->
                                                 render item
@@ -187,10 +206,12 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
     static member Popup<'Item when 'Item : comparison>(
             model: PickerModel<'Item>,
             itemView: PickerItemView<'Item>,
+            ?theme: LC.Input.PickerInternals.Popup.Theme -> LC.Input.PickerInternals.Popup.Theme,
             ?key: string
         ) : ReactElement =
         key |> ignore
 
+        let theTheme = Themes.GetMaybeUpdatedWith theme
         let modelStateHook = Hooks.useState (model.GetState())
 
         Hooks.useEffectDisposable(
@@ -211,15 +232,15 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             model.HandleInputEvent (Select (index, item))
 
         let renderWhenAvailable (items: List<'Item>) : ReactElement =
-            Helpers.renderItems modelState itemView onSelect items
+            Helpers.renderItems theTheme modelState itemView onSelect items
 
         RX.ScrollView(
             vertical = true,
-            styles = [| Styles.scrollViewFor modelState.MaybeFieldWidth |],
+            styles = [| Styles.scrollViewFor modelState.MaybeFieldWidth theTheme |],
             children =
                 [|
                     RX.View(
-                        styles = [| Styles.view |],
+                        styles = [| Styles.view theTheme |],
                         children =
                             [|
                                 LC.AsyncData(

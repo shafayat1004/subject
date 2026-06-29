@@ -548,6 +548,22 @@ input:-ms-input-placeholder {
 svg {
   display: block;
 }
+
+/*
+ * RNW renders native <input>/<textarea> inside themed shells. Firefox keeps a
+ * default white fill unless we strip browser form styling; parent Views clip
+ * border-radius via overflow:hidden — inputs stay square internally.
+ */
+input,
+textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
 *,
 *:before,
 *:after {

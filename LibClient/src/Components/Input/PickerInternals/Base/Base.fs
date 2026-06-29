@@ -73,13 +73,14 @@ let renderPickerBase<'Item when 'Item : comparison>(
                     (fun () ->
                         maybePopupHideRef.current <- None
                         model.HandleInputEvent ListWasHidden)
-            ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
+            LibClient.JsInterop.runOnNextTick (fun () ->
+                ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
 
-            maybePopupHideRef.current <-
-                Some (fun () ->
-                    ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
-                    maybePopupHideRef.current <- None
-                )
+                maybePopupHideRef.current <-
+                    Some (fun () ->
+                        ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
+                        maybePopupHideRef.current <- None
+                    ))
 
         | ScreenSize.Handheld ->
             let hideDeferred = Deferred<unit>()

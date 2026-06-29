@@ -26,39 +26,41 @@ type Parameters<'Item when 'Item : comparison> = {
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let textInput =
-        ViewStyles.Memoize (fun (screenSize: ScreenSize) ->
-            makeViewStyles {
-                paddingHV 12 4
-                marginBottom 10
-                borderRadius 4
-                borderWidth 1
-                borderColor (Color.Grey "cc")
+    let textInput (fieldTheme: LC.Input.PickerInternals.Field.Theme) (screenSize: ScreenSize) =
+        makeViewStyles {
+            paddingHV 12 4
+            marginBottom 10
+            borderRadius fieldTheme.BorderRadius
+            borderWidth 1
+            borderColor fieldTheme.BorderLabelColor
+            backgroundColor fieldTheme.BackgroundColor
 
-                match screenSize with
-                | ScreenSize.Desktop -> height 46
-                | ScreenSize.Handheld -> height 40
-            })
+            match screenSize with
+            | ScreenSize.Desktop -> height 46
+            | ScreenSize.Handheld -> height 40
+        }
 
-    let textInputFont =
-        TextStyles.Memoize (fun (screenSize: ScreenSize) ->
-            makeTextStyles {
-                match screenSize with
-                | ScreenSize.Desktop -> fontSize 20
-                | ScreenSize.Handheld -> fontSize 16
-            })
+    let textInputFont (fieldTheme: LC.Input.PickerInternals.Field.Theme) (screenSize: ScreenSize) =
+        makeTextStyles {
+            color fieldTheme.TextColor
+            match screenSize with
+            | ScreenSize.Desktop -> fontSize 20
+            | ScreenSize.Handheld -> fontSize 16
+        }
 
     let itemList =
         makeViewStyles {
             Overflow.VisibleForScrolling
+            marginTop 8
         }
 
-    let item =
+    let item (fieldTheme: LC.Input.PickerInternals.Field.Theme) =
         makeViewStyles {
             paddingLeft 16
             paddingRight 8
             paddingVertical 12
             FlexDirection.Row
+            borderBottom 1 fieldTheme.BorderLabelColor
         }
 
     let itemSelectedness =
@@ -67,15 +69,21 @@ module private Styles =
             flex 0
         }
 
-    let itemSelectedIcon =
+    let itemSelectedIcon (fieldTheme: LC.Input.PickerInternals.Field.Theme) =
         makeTextStyles {
             fontSize 16
-            color (Color.Grey "cc")
+            color fieldTheme.BorderLabelFocusColor
         }
 
     let itemBody =
         makeViewStyles {
             flex 1
+        }
+
+    let itemLabel (fieldTheme: LC.Input.PickerInternals.Field.Theme) =
+        makeTextStyles {
+            color fieldTheme.TextColor
+            fontSize 16
         }
 
     let pressableOverlay =
@@ -103,6 +111,7 @@ module private Styles =
 
 module private Helpers =
     let renderItems<'Item when 'Item : comparison>
+        (fieldTheme: LC.Input.PickerInternals.Field.Theme)
         (modelState: PickerState<'Item>)
         (itemView: PickerItemView<'Item>)
         (onToggle: int -> 'Item -> ReactEvent.Action -> unit)
@@ -123,7 +132,7 @@ module private Helpers =
                         items
                         |> Seq.mapi (fun index item ->
                             RX.View(
-                                styles = [| Styles.item |],
+                                styles = [| Styles.item fieldTheme |],
                                 children =
                                     [|
                                         RX.View(
@@ -133,7 +142,7 @@ module private Helpers =
                                                     if modelState.Value.IsSelected item then
                                                         LC.Icon(
                                                             icon = Icon.CheckMark,
-                                                            styles = [| Styles.itemSelectedIcon |]
+                                                            styles = [| Styles.itemSelectedIcon fieldTheme |]
                                                         )
                                                     else
                                                         noElement
@@ -145,7 +154,10 @@ module private Helpers =
                                                 [|
                                                     match itemView with
                                                     | PickerItemView.Default toItemInfo ->
-                                                        LC.UiText(value = (toItemInfo item).Label)
+                                                        LC.UiText(
+                                                            value = (toItemInfo item).Label,
+                                                            styles = [| Styles.itemLabel fieldTheme |]
+                                                        )
                                                     | PickerItemView.Custom render ->
                                                         render item
                                                 |]
@@ -197,6 +209,7 @@ type private DialogContent<'Item when 'Item : comparison> =
         )
 
         let modelState = modelStateHook.current
+        let fieldTheme = Themes.GetMaybeUpdatedWith Option<LC.Input.PickerInternals.Field.Theme -> LC.Input.PickerInternals.Field.Theme>.None
 
         let tryCancel (_e: ReactEvent.Action) : unit =
             parameters.Model.HandleInputEvent ListWasHidden
@@ -208,7 +221,7 @@ type private DialogContent<'Item when 'Item : comparison> =
             parameters.Model.HandleInputEvent (QueryChange value)
 
         let renderWhenAvailable (items: List<'Item>) : ReactElement =
-            Helpers.renderItems modelState parameters.ItemView onToggle (List.toSeq items)
+            Helpers.renderItems fieldTheme modelState parameters.ItemView onToggle (List.toSeq items)
 
         LC.With.ScreenSize(
             ``with`` =
@@ -229,10 +242,11 @@ type private DialogContent<'Item when 'Item : comparison> =
                                                         [|
                                                             RX.TextInput(
                                                                 ``ref`` = bindInput,
-                                                                styles = [| Styles.textInput screenSize |],
+                                                                styles = [| Styles.textInput fieldTheme screenSize |],
                                                                 value = (modelState.MaybeQuery |> NonemptyString.optionToString),
                                                                 onChangeText = (NonemptyString.ofString >> onQueryChange),
-                                                                ?placeholder = parameters.Placeholder
+                                                                ?placeholder = parameters.Placeholder,
+                                                                placeholderTextColor = fieldTheme.PlaceholderColor.ToReactXPString
                                                             )
                                                         |]
                                                 ))

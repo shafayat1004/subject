@@ -68,7 +68,46 @@ module private Styles =
                 FlexDirection.RowReverse
                 JustifyContent.SpaceBetween
                 borderColor outline
+                Overflow.Hidden
             })
+
+    let fieldValueArea =
+        makeViewStyles {
+            flex 1
+            minWidth 0
+            Position.Relative
+            minHeight 21
+        }
+
+    let pickerValuesOverlay =
+        makeViewStyles {
+            Position.Absolute
+            trbl 0 0 0 0
+            FlexDirection.Row
+            AlignItems.Center
+        }
+
+    let webFieldTextInput =
+        makeViewStyles {
+            flex 1
+            minWidth 0
+#if EGGSHELL_PLATFORM_IS_WEB
+            backgroundColor Color.Transparent
+            borderWidth 0
+            padding 0
+            margin 0
+#endif
+        }
+
+    let hiddenTextInput =
+        makeViewStyles {
+            opacity 0
+            width 0
+            height 0
+            Position.Absolute
+            top 0
+            left 0
+        }
 
     let borderFor (theTheme: Theme) (isInvalid: bool) (isFocused: bool) =
         border theTheme.TheVerticalPadding theTheme.BorderRadius theTheme.BackgroundColor (outlineColorFor theTheme isInvalid isFocused)
@@ -422,76 +461,133 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                 | (true, Some value) -> value
                                                 | _                  -> ""
 
-                                            RX.TextInput(
-                                                styles = [| Styles.textInput |],
-                                                ``ref`` = bindTextInput,
-                                                value = (maybeQuery |> NonemptyString.optionToString),
-                                                placeholder = placeholderValue,
-                                                placeholderTextColor = placeholderTextColor,
-                                                onFocus =
-                                                    (fun _ ->
-                                                        Actions.showItemSelector model ReactEvent.Action.NonUserOriginatingAction
-                                                        isFocusedHook.update true),
-                                                onBlur = (fun _ -> isFocusedHook.update false),
-                                                onChangeText =
-                                                    (NonemptyString.ofString >> fun q ->
-                                                        maybeQueryHook.update q
-                                                        model.HandleInputEvent (QueryChange q)),
-                                                onKeyPress = Actions.onKeyPress model maybeTextInputHook.current
+                                            let showSelectedOverlay =
+                                                Actions.shouldShowSelectedValue modelState isFocused
+
+                                            let textInputStyles =
+                                                if showSelectedOverlay then
+                                                    [| Styles.textInput; Styles.webFieldTextInput; Styles.hiddenTextInput |]
+                                                else
+                                                    [| Styles.textInput; Styles.webFieldTextInput |]
+
+                                            RX.View(
+                                                styles = [| Styles.fieldValueArea |],
+                                                children =
+                                                    [|
+                                                        RX.TextInput(
+                                                            styles = textInputStyles,
+                                                            ``ref`` = bindTextInput,
+                                                            value = (maybeQuery |> NonemptyString.optionToString),
+                                                            placeholder = placeholderValue,
+                                                            placeholderTextColor = placeholderTextColor,
+                                                            onFocus =
+                                                                (fun _ ->
+                                                                    isFocusedHook.update true
+                                                                    LibClient.JsInterop.runOnNextTick (fun () ->
+                                                                        Actions.showItemSelector model ReactEvent.Action.NonUserOriginatingAction)),
+                                                            onBlur = (fun _ -> isFocusedHook.update false),
+                                                            onChangeText =
+                                                                (NonemptyString.ofString >> fun q ->
+                                                                    maybeQueryHook.update q
+                                                                    model.HandleInputEvent (QueryChange q)),
+                                                            onKeyPress = Actions.onKeyPress model maybeTextInputHook.current
+                                                        )
+                                                        if showSelectedOverlay then
+                                                            RX.View(
+                                                                styles = [| Styles.pickerValuesOverlay |],
+                                                                children =
+                                                                    [|
+                                                                        RX.View(
+                                                                            styles = [| Styles.pickerValues |],
+                                                                            children =
+                                                                                [|
+                                                                                    RenderHelpers.renderSelectedValue theTheme value itemView modelState onUnselect resolvedTestId
+                                                                                    LC.Pressable(
+                                                                                        onPress =
+                                                                                            Actions.requestFocus model maybeTextInputHook isFocusedHook,
+                                                                                        label = openLabel,
+                                                                                        testId = sprintf "%s-focus" resolvedTestId,
+                                                                                        role = AccessibilityRole.Button,
+                                                                                        overlay = true,
+                                                                                        styles = [| Styles.pressableOverlay |],
+                                                                                        componentName = "LC.Input.PickerInternals.Field.RequestFocus"
+                                                                                    )
+                                                                                |]
+                                                                        )
+                                                                    |]
+                                                            )
+                                                        else
+                                                            noElement
+                                                    |]
                                             )),
                                     handheld =
                                         fun _ ->
+                                            let showSelectedOverlay =
+                                                Actions.shouldShowSelectedValue modelState isFocused
+
+                                            let textInputStyles =
+                                                if showSelectedOverlay then
+                                                    [| Styles.textInput; Styles.webFieldTextInput; Styles.hiddenTextInput |]
+                                                else
+                                                    [| Styles.textInput; Styles.webFieldTextInput |]
+
                                             RX.View(
-                                                styles = [| Styles.handheldFullWidthTapArea |],
+                                                styles = [| Styles.fieldValueArea |],
                                                 children =
                                                     [|
-                                                        match (if modelState.Value.IsEmpty then placeholder else None) with
-                                                        | Some placeholderValue ->
-                                                            RX.TextInput(
-                                                                styles = [| Styles.textInput |],
-                                                                editable = false,
-                                                                placeholder = placeholderValue,
-                                                                placeholderTextColor = placeholderTextColor
-                                                            )
-                                                        | None ->
-                                                            RX.TextInput(
-                                                                styles = [| Styles.textInput |],
-                                                                editable = false,
-                                                                placeholderTextColor = placeholderTextColor
-                                                            )
-                                                        LC.Pressable(
-                                                            onPress = Actions.showItemSelector model,
-                                                            label = openLabel,
-                                                            testId = sprintf "%s-open-handheld" resolvedTestId,
-                                                            role = AccessibilityRole.Button,
-                                                            overlay = true,
-                                                            styles = [| Styles.pressableOverlay |],
-                                                            componentName = "LC.Input.PickerInternals.Field.OpenHandheld"
+                                                        RX.TextInput(
+                                                            styles = textInputStyles,
+                                                            editable = false,
+                                                            placeholder =
+                                                                (match (if modelState.Value.IsEmpty then placeholder else None) with
+                                                                 | Some placeholderValue -> placeholderValue
+                                                                 | None -> ""),
+                                                            placeholderTextColor = placeholderTextColor
                                                         )
+                                                        if showSelectedOverlay then
+                                                            RX.View(
+                                                                styles = [| Styles.pickerValuesOverlay |],
+                                                                children =
+                                                                    [|
+                                                                        RX.View(
+                                                                            styles = [| Styles.pickerValues |],
+                                                                            children =
+                                                                                [|
+                                                                                    RenderHelpers.renderSelectedValue theTheme value itemView modelState onUnselect resolvedTestId
+                                                                                    LC.Pressable(
+                                                                                        onPress = Actions.showItemSelector model,
+                                                                                        label = openLabel,
+                                                                                        testId = sprintf "%s-open-handheld" resolvedTestId,
+                                                                                        role = AccessibilityRole.Button,
+                                                                                        overlay = true,
+                                                                                        styles = [| Styles.pressableOverlay |],
+                                                                                        componentName = "LC.Input.PickerInternals.Field.OpenHandheld"
+                                                                                    )
+                                                                                |]
+                                                                        )
+                                                                    |]
+                                                            )
+                                                        else
+                                                            RX.View(
+                                                                styles = [| Styles.handheldFullWidthTapArea |],
+                                                                children =
+                                                                    [|
+                                                                        LC.Pressable(
+                                                                            onPress = Actions.showItemSelector model,
+                                                                            label = openLabel,
+                                                                            testId = sprintf "%s-open-handheld" resolvedTestId,
+                                                                            role = AccessibilityRole.Button,
+                                                                            overlay = true,
+                                                                            styles = [| Styles.pressableOverlay |],
+                                                                            componentName = "LC.Input.PickerInternals.Field.OpenHandheld"
+                                                                        )
+                                                                    |]
+                                                            )
                                                     |]
                                             )
                                 )
 
-                                if Actions.shouldShowSelectedValue modelState isFocused then
-                                    RX.View(
-                                        styles = [| Styles.pickerValues |],
-                                        children =
-                                            [|
-                                                RenderHelpers.renderSelectedValue theTheme value itemView modelState onUnselect resolvedTestId
-                                                LC.Pressable(
-                                                    onPress =
-                                                        Actions.requestFocus model maybeTextInputHook isFocusedHook,
-                                                    label = openLabel,
-                                                    testId = sprintf "%s-focus" resolvedTestId,
-                                                    role = AccessibilityRole.Button,
-                                                    overlay = true,
-                                                    styles = [| Styles.pressableOverlay |],
-                                                    componentName = "LC.Input.PickerInternals.Field.RequestFocus"
-                                                )
-                                            |]
-                                    )
-                                else
-                                    noElement
+                                noElement
                             |]
                     )
 
