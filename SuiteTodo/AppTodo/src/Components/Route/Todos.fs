@@ -2,6 +2,7 @@
 module AppTodo.Components.Route_Todos
 
 open System
+open Fable.Core.JsInterop
 open Fable.React
 open LibClient
 open LibClient.Accessibility
@@ -46,6 +47,40 @@ module private AppearanceStorage =
             do! AppTodo.AppServices.services().LocalStorage.Put storageKey value Json.ToString<string>
         }
         |> startSafely
+
+module private SwipeGesture =
+    let deleteWidth = Styles.swipeDeleteWidth
+    let openThreshold = 40
+    let fullDeleteRatio = 0.5
+    /// Ignore micro-movements; real swipe must exceed this before we track or snap open.
+    let activationThreshold = 10
+
+    let currentOrLastDatafulGestureState
+            (maybeLastGestureStateRef: IRefValue<Option<ReactXP.Components.GestureView.PanGestureState>>)
+            (current: ReactXP.Components.GestureView.PanGestureState)
+            : ReactXP.Components.GestureView.PanGestureState =
+        if current.isComplete && current.isTouch && isNullOrUndefined current.pageX then
+            match maybeLastGestureStateRef.current with
+            | Some last ->
+                if last.initialPageX = current.initialPageX && last.initialPageY = current.initialPageY then
+                    LibClient.JsInterop.extendRecord
+                        [
+                            "pageX" ==> last.pageX
+                            "pageY" ==> last.pageY
+                        ]
+                        current
+                else
+                    current
+            | None -> current
+        else
+            maybeLastGestureStateRef.current <- Some current
+            current
+
+    let clampOffset rowWidth offset =
+        max (-rowWidth) (min 0 offset)
+
+    let panDelta (gs: ReactXP.Components.GestureView.PanGestureState) =
+        int gs.pageX - int gs.initialPageX
 
 type private Helpers =
     [<Component>]
@@ -242,9 +277,8 @@ type private Helpers =
             onDelete: unit -> unit,
             rowContent: ReactElement)
         : ReactElement =
-        let deleteWidth = Styles.swipeDeleteWidth
-        let openThreshold = 72
-        let minSwipeDelta = 24
+        let deleteWidth = SwipeGesture.deleteWidth
+        let openThreshold = SwipeGesture.openThreshold
 
         let isDraggingHook = Hooks.useState false
         let rowWidthRef = Hooks.useRef 300
@@ -253,9 +287,8 @@ type private Helpers =
         let maybeAnimationRef: IRefHook<Option<Animation>> = Hooks.useRef None
         let panStartBaseRef = Hooks.useRef 0
         let gestureActiveRef = Hooks.useRef false
-
-        let clampOffset rowWidth offset =
-            max (-rowWidth) (min 0 offset)
+        let lastDragOffsetRef = Hooks.useRef 0
+        let lastGestureStateRef = Hooks.useRef None
 
         let stopAnimation () =
             maybeAnimationRef.current
@@ -280,7 +313,9 @@ type private Helpers =
 
         Hooks.useEffect(
             (fun () ->
-                if isOpen then
+                if isDraggingHook.current then
+                    ()
+                elif isOpen then
                     animateTo -deleteWidth None
                 else
                     animateTo 0 None
@@ -288,30 +323,46 @@ type private Helpers =
             [| isOpen |]
         )
 
-        let onPanHorizontal (gs: ReactXP.Components.GestureView.PanGestureState) =
+        let settleFromOffset (offset: int) =
+            let rowWidth = max rowWidthRef.current deleteWidth
+            let fullDeleteThreshold = -(double rowWidth * SwipeGesture.fullDeleteRatio |> int)
+
+            if offset <= fullDeleteThreshold then
+                onDelete ()
+            elif offset < -openThreshold then
+                onOpenChange true
+                restOffsetRef.current <- -deleteWidth
+                animateTo -deleteWidth None
+            else
+                onOpenChange false
+                restOffsetRef.current <- 0
+                animateTo 0 None
+
+        let onPanHorizontal (rawGs: ReactXP.Components.GestureView.PanGestureState) =
+            let gs = SwipeGesture.currentOrLastDatafulGestureState lastGestureStateRef rawGs
+            let delta = SwipeGesture.panDelta gs
+
             if gs.isComplete then
+                let wasActive = gestureActiveRef.current
                 gestureActiveRef.current <- false
                 isDraggingHook.update false
-                let delta = int gs.pageX - int gs.initialPageX
-                let offset = clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
-                let fullDeleteThreshold = -rowWidthRef.current / 2
 
-                if offset <= fullDeleteThreshold then
-                    onDelete ()
-                elif offset < -openThreshold && abs delta >= minSwipeDelta then
-                    onOpenChange true
-                    restOffsetRef.current <- -deleteWidth
-                    animateTo -deleteWidth None
+                if not wasActive && abs delta < SwipeGesture.activationThreshold then
+                    animateTo restOffsetRef.current None
                 else
-                    onOpenChange false
-                    restOffsetRef.current <- 0
-                    animateTo 0 None
-            else
-                let delta = int gs.pageX - int gs.initialPageX
+                    let offset =
+                        if wasActive then
+                            lastDragOffsetRef.current
+                        else
+                            SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
 
+                    settleFromOffset offset
+
+                lastGestureStateRef.current <- None
+            else
                 if delta > 0 && not isOpen then
                     Noop
-                elif abs delta < minSwipeDelta && not isOpen then
+                elif abs delta < SwipeGesture.activationThreshold && not isOpen then
                     Noop
                 else
                     if not gestureActiveRef.current then
@@ -319,7 +370,9 @@ type private Helpers =
                         panStartBaseRef.current <- (if isOpen then -deleteWidth else 0)
 
                     isDraggingHook.update true
-                    let offset = clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
+                    let offset =
+                        SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
+                    lastDragOffsetRef.current <- offset
                     translateXRef.current.SetValue (double offset)
 
         let gradientVisible = isOpen || isDraggingHook.current
@@ -385,7 +438,7 @@ type private Helpers =
                                 children = [|
                                     RX.GestureView(
                                         preferredPan = ReactXP.Components.GestureView.PreferredPanGesture.Horizontal,
-                                        panPixelThreshold = 24.0,
+                                        panPixelThreshold = 10.0,
                                         onPanHorizontal = onPanHorizontal,
                                         children = [| rowContent |]
                                     )

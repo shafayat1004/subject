@@ -62,6 +62,14 @@ worklets). Constants: 80px delete slot, 40px open threshold, 50% row width = imm
 button is `importantForAccessibility.NoHideDescendants` when closed; reduced motion uses side-by-side row
 + always-visible Delete (`LC.With.ReducedMotion`). One open row at a time via `swipeOpenId` in `Todos()`.
 
+**Safari / mobile web swipe false-delete.** On `PanGestureState.isComplete`, ReactXP often delivers
+`pageX = null/undefined` (same as `Draggable.fs` `currentOrLastDatafulGestureState`). Computing
+`int pageX - int initialPageX` then yields a huge bogus delta → clamped to `-rowWidth` → instant delete
+on any tiny drag. Fix: reuse Draggable's last-gesture fallback; on complete use `lastDragOffsetRef` from
+live drag frames when the gesture was active; ignore completes with `|delta| < activationThreshold` (tap /
+micro-move); settle with ui2 thresholds (40px open, 50% width delete). Do not recalculate offset solely
+from the complete event's `pageX`.
+
 ---
 
 ## 2026-06-29 — AppTodo UI: `ui2.html` mockup + `Color.Hex` alpha trap
