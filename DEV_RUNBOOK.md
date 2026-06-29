@@ -283,7 +283,10 @@ touch <changed>.fs                         # nudge the watcher
 rm -rf SuiteTodo/AppTodo/.build/native/fable
 ```
 Editing **framework** files (LibClient/LibRouter/…) recompiles through the app's graph because the watch
-prints `Watching ../../..`. No separate framework build needed for native validation.
+prints `Watching ../../..`. Confirm the watch log includes `Compiled …/LibClient/…` or `LibRouter/…` after
+`touch`ing the framework file — not only app paths. If the running app still shows old behavior:
+`rm -rf SuiteTodo/AppTodo/.build/<platform>/fable`, restart `dev-native`/`dev-web`; native Metro may need
+`--reset-cache`. See `.cursor/rules/build-validation.mdc` § Framework dependency rebuild.
 
 ### 7.2 Confirm the rebuild produced output
 ```bash

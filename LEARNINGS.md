@@ -5,6 +5,22 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — Framework-first UI + LibClient rebuild + LC.SegmentedControl
+
+**Rule:** For UI component tasks, decide framework vs app first (`.cursor/rules/framework-ui-first.mdc`,
+`CLAUDE.md` rule 13). Reusable behavior (segmented sliding toggle, picker dismiss, dialog layout) belongs in
+`LibClient`/`LibRouter`; apps pass theme tokens and domain values only.
+
+**LibClient edits may not show until framework recompiles into the app bundle.** `dev-native`/`dev-web` watch
+can skip LibClient output until you `touch` the changed `LibClient/…/*.fs` and confirm `Compiled …/LibClient/…`
+in the app watch terminal; otherwise `rm -rf AppTodo/.build/<platform>/fable` + restart watch (native: Metro
+`--reset-cache` if needed). Do not treat `build-lib` exit 0 alone as proof the app picked up the change.
+
+**Theme toggle:** moved to `LC.SegmentedControl` — explicit pixel-width segment cells (not `widthPercent` /
+shrink-wrapped `GestureView`), thumb behind labels, selected label always `SelectedLabelColor` (white on thumb).
+Register default in `LibClient.DefaultComponentsTheme` (`Themes.Set<LC.SegmentedControl.Theme>`) — without it
+`Themes.GetMaybeUpdatedWith` throws at runtime.
+
 ## 2026-06-29 — AppTodo theme toggle: sliding draggable thumb
 
 **Light/Dark control** is a pill track with an animated thumb (not per-segment fill). Thumb position

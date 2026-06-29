@@ -88,6 +88,7 @@ let private renderContent (content: ComponentItem) : ReactElement =
     | Thumb                         -> Ui.Content.Thumb()
     | Thumbs                        -> Ui.Content.Thumbs()
     | ToggleButtons                 -> Ui.Content.ToggleButtons()
+    | SegmentedControl              -> Ui.Content.SegmentedControl()
     | Accessibility_Group           -> Ui.Content.Accessibility.Group()
     | Accessibility_LiveRegion      -> Ui.Content.Accessibility.LiveRegion()
     | Accessibility_WithAccessibility -> Ui.Content.Accessibility.WithAccessibility()

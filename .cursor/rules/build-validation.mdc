@@ -19,6 +19,15 @@ That is **not** validation. Before calling a frontend change done:
 
 If the user has **`eggshell watch-*` / dev stack running**, treat **their watch terminal** as ground truth over a separate cached `build-native` you ran.
 
+## Framework dependency rebuild (LibClient / LibRouter)
+
+App `dev-native` / `dev-web` watches the app `src/` tree and **may not re-emit LibClient JS** until the changed framework `.fs` appears in Fable output. After editing **`LibClient` or `LibRouter`**:
+
+1. **`touch` the changed framework file(s)** (or `rm -rf LibClient/.build/<web|native>/fable` then `eggshell build-lib` from `LibClient/`).
+2. Confirm the **app watch terminal** logs `Compiled …/LibClient/…` or `LibRouter/…` — not only app files.
+3. If the bundle still looks stale: `rm -rf SuiteTodo/AppTodo/.build/<platform>/fable`, restart `dev-native` / `dev-web`; for native also Metro `--reset-cache`.
+4. Do not call a framework UI fix done until verified in the running app (web or native), not only `build-lib` exit 0.
+
 ## Use the user's dev stack — do not fork it
 
 When the user already has **`eggshell dev-native`** (T1) and **Metro on `:8081`** (T2) in their own terminals:

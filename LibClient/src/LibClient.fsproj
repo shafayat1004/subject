@@ -227,6 +227,7 @@
 
     <Compile Include="Components/ToggleButtons.fs" />
     <Compile Include="Components/ToggleButton.fs" />
+    <Compile Include="Components/SegmentedControl/SegmentedControl.fs" />
     <Compile Include="Components/TouchableOpacity.fs" />
 
     <Compile Include="Components/FloatingActionButton/FloatingActionButton.fs" />

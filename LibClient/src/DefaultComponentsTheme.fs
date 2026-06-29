@@ -150,6 +150,15 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         }
     )
 
+    Themes.Set<LC.SegmentedControl.Theme> {
+        TrackBackground      = neutral.B700
+        ThumbBackground      = secondary.MainPlus2
+        SelectedLabelColor   = Color.White
+        UnselectedLabelColor = neutral.B500
+        TrackWidth           = 152
+        TrackPadding         = 4
+    }
+
     Themes.Set<LC.FloatingActionButton.Theme> {
         Size = 56
         Actionable =

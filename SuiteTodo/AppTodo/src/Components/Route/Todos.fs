@@ -82,31 +82,6 @@ module private SwipeGesture =
     let panDelta (gs: ReactXP.Components.GestureView.PanGestureState) =
         int gs.pageX - int gs.initialPageX
 
-module private ThemeToggleGesture =
-    let trackPadding = 4
-    let activationThreshold = 8
-    /// Fixed track width keeps Light/Dark labels in equal halves (GestureView otherwise shrink-wraps text).
-    let trackWidth = Styles.themeToggleWidth
-
-    let segmentWidth (trackWidthPx: int) =
-        max 0 ((trackWidthPx - trackPadding * 2) / 2)
-
-    let clampOffset segmentWidth offset =
-        max 0 (min segmentWidth offset)
-
-    let modeForOffset segmentWidth offset =
-        if segmentWidth <= 0 then
-            AppearanceMode.Light
-        elif offset >= segmentWidth / 2 then
-            AppearanceMode.Dark
-        else
-            AppearanceMode.Light
-
-    let targetOffset (mode: AppearanceMode) segmentWidth =
-        match mode with
-        | AppearanceMode.Light -> 0
-        | AppearanceMode.Dark -> segmentWidth
-
 type private Helpers =
     [<Component>]
     static member FieldLabel(palette: SemanticPalette, text: string) : ReactElement =
@@ -210,188 +185,34 @@ type private Helpers =
             current: AppearanceMode,
             onSelect: AppearanceMode -> unit)
         : ReactElement =
-        let segmentWidthRef = Hooks.useRef 0
-        let translateXRef = Hooks.useRef (AnimatedValue.Create 0.0)
-        let maybeAnimationRef: IRefHook<Option<Animation>> = Hooks.useRef None
-        let restOffsetRef = Hooks.useRef 0
-        let isDraggingHook = Hooks.useState false
-        let panStartBaseRef = Hooks.useRef 0
-        let gestureActiveRef = Hooks.useRef false
-        let lastDragOffsetRef = Hooks.useRef 0
-        let lastGestureStateRef = Hooks.useRef None
-        let thumbInitializedRef = Hooks.useRef false
-
-        let stopAnimation () =
-            maybeAnimationRef.current
-            |> Option.iter (fun animation ->
-                maybeAnimationRef.current <- None
-                animation.Stop())
-
-        let animateTo (target: int) (onComplete: Option<unit -> unit>) =
-            stopAnimation ()
-            let animation =
-                Animation.Timing(
-                    translateXRef.current,
-                    toValue = double target,
-                    duration = TimeSpan.FromMilliseconds 220
-                )
-            maybeAnimationRef.current <- Some animation
-            animation.Start (fun () ->
-                if maybeAnimationRef.current = Some animation then
-                    maybeAnimationRef.current <- None
-                    restOffsetRef.current <- target
-                    onComplete |> Option.iter (fun fn -> fn ()))
-
-        let syncThumbToCurrent () =
-            let target = ThemeToggleGesture.targetOffset current segmentWidthRef.current
-            translateXRef.current.SetValue (double target)
-            restOffsetRef.current <- target
-
-        let selectMode (mode: AppearanceMode) =
-            if mode <> current then
-                animateTo (ThemeToggleGesture.targetOffset mode segmentWidthRef.current) None
-                onSelect mode
-
-        Hooks.useEffect(
-            (fun () ->
-                segmentWidthRef.current <- ThemeToggleGesture.segmentWidth ThemeToggleGesture.trackWidth
-                if not thumbInitializedRef.current then
-                    syncThumbToCurrent ()
-                    thumbInitializedRef.current <- true
-                ()),
-            [| |]
-        )
-
-        Hooks.useEffect(
-            (fun () ->
-                if not isDraggingHook.current && thumbInitializedRef.current && Option.isNone maybeAnimationRef.current then
-                    let target = ThemeToggleGesture.targetOffset current segmentWidthRef.current
-                    if restOffsetRef.current <> target then
-                        animateTo target None
-                ()),
-            [| current |]
-        )
-
-        let settleFromOffset (offset: int) =
-            let segW = segmentWidthRef.current
-            let mode = ThemeToggleGesture.modeForOffset segW offset
-            let target = ThemeToggleGesture.targetOffset mode segW
-            animateTo target None
-            if mode <> current then
-                onSelect mode
-
-        let onPanHorizontal (rawGs: ReactXP.Components.GestureView.PanGestureState) =
-            let gs = SwipeGesture.currentOrLastDatafulGestureState lastGestureStateRef rawGs
-            let delta = SwipeGesture.panDelta gs
-            let segW = segmentWidthRef.current
-
-            if segW <= 0 then
-                ()
-            elif gs.isComplete then
-                let wasActive = gestureActiveRef.current
-                gestureActiveRef.current <- false
-                isDraggingHook.update false
-
-                if not wasActive && abs delta < ThemeToggleGesture.activationThreshold then
-                    animateTo restOffsetRef.current None
-                else
-                    let offset =
-                        if wasActive then
-                            lastDragOffsetRef.current
-                        else
-                            ThemeToggleGesture.clampOffset segW (panStartBaseRef.current + delta)
-
-                    settleFromOffset offset
-
-                lastGestureStateRef.current <- None
-            elif abs delta < ThemeToggleGesture.activationThreshold then
-                ()
-            else
-                if not gestureActiveRef.current then
-                    gestureActiveRef.current <- true
-                    panStartBaseRef.current <- restOffsetRef.current
-
-                isDraggingHook.update true
-                let offset = ThemeToggleGesture.clampOffset segW (panStartBaseRef.current + delta)
-                lastDragOffsetRef.current <- offset
-                translateXRef.current.SetValue (double offset)
-
-        let segment (label: string) (mode: AppearanceMode) (testSuffix: string) =
-            let isActive = current = mode
-            let segmentColor =
-                if not isActive then
-                    palette.TextSecondary
-                elif current = AppearanceMode.Dark then
-                    palette.PageBackground
-                else
-                    Color.White
-
-            RX.View(
-                styles = [| Styles.themeSegment |],
-                children = [|
-                    LC.TextButton(
-                        label = label,
-                        role = AccessibilityRole.Radio,
-                        accessibilityState = AccessibilityStateRecord.selected isActive,
-                        styles = [| Styles.themeSegmentText segmentColor |],
-                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> selectMode mode)),
-                        testId = A11ySlug.testId "todo" ("theme-" + testSuffix)
-                    )
-                |]
-            )
-
-        LC.RadioGroup(
-            label = i18n.t.ThemeGroupLabel,
+        LC.SegmentedControl(
+            accessibilityGroupLabel = i18n.t.ThemeGroupLabel,
             testId = A11ySlug.testId "todo" "theme-toggle",
-            children =
-                tellReactArrayKeysAreOkay [|
-                    LC.With.ReducedMotion (fun reduceMotion ->
-                        let segW = ThemeToggleGesture.segmentWidth ThemeToggleGesture.trackWidth
-                        let thumbOffset = ThemeToggleGesture.targetOffset current segW
-
-                        RX.View(
-                            styles = [| Styles.themeToggleTrack palette; Styles.themeToggleHost |],
-                            children = [|
-                                if segW > 0 then
-                                    if reduceMotion then
-                                        RX.View(
-                                            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
-                                            styles = [| Styles.themeToggleThumbStatic palette segW thumbOffset |],
-                                            children = [||]
-                                        )
-                                    else
-                                        RX.AnimatableView(
-                                            styles =
-                                                [|
-                                                    Styles.themeToggleThumbAnimated
-                                                        (AnimatableValue.Value translateXRef.current)
-                                                        palette
-                                                        segW
-                                                |],
-                                            children = [||]
-                                        )
-
-                                RX.GestureView(
-                                    preferredPan = ReactXP.Components.GestureView.PreferredPanGesture.Horizontal,
-                                    panPixelThreshold = float ThemeToggleGesture.activationThreshold,
-                                    onPanHorizontal = (if reduceMotion then (fun _ -> ()) else onPanHorizontal),
-                                    styles = [| Styles.themeToggleGestureHost |],
-                                    children =
-                                        [|
-                                            RX.View(
-                                                styles = [| Styles.themeToggleSegments |],
-                                                children =
-                                                    tellReactArrayKeysAreOkay [|
-                                                        segment i18n.t.ThemeLight AppearanceMode.Light "light"
-                                                        segment i18n.t.ThemeDark AppearanceMode.Dark "dark"
-                                                    |]
-                                            )
-                                        |]
-                                )
-                            |]
-                        )
-                    )
-                |]
+            selected = current,
+            onSelect = onSelect,
+            segments =
+                [|
+                    {
+                        Label = i18n.t.ThemeLight
+                        Value = AppearanceMode.Light
+                        TestIdSuffix = Some "light"
+                    }
+                    {
+                        Label = i18n.t.ThemeDark
+                        Value = AppearanceMode.Dark
+                        TestIdSuffix = Some "dark"
+                    }
+                |],
+            theme =
+                (fun _ ->
+                    {
+                        TrackBackground = palette.ThemeTrackBackground
+                        ThumbBackground = palette.ThemeToggleSelected
+                        SelectedLabelColor = Color.White
+                        UnselectedLabelColor = palette.TextSecondary
+                        TrackWidth = 152
+                        TrackPadding = 4
+                    })
         )
 
     [<Component>]

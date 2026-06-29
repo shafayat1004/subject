@@ -117,6 +117,7 @@ and ComponentItem =
 | Thumb
 | Thumbs
 | ToggleButtons
+| SegmentedControl
 | Accessibility_Group
 | Accessibility_LiveRegion
 | Accessibility_WithAccessibility
@@ -219,6 +220,7 @@ module ComponentItem =
         | Thumb                           -> "Thumb"
         | Thumbs                          -> "Thumbs"
         | ToggleButtons                   -> "ToggleButtons"
+        | SegmentedControl                -> "SegmentedControl"
         | Accessibility_Group             -> "Group / RadioGroup"
         | Accessibility_LiveRegion          -> "LiveRegion"
         | Accessibility_WithAccessibility -> "With.Accessibility"

@@ -138,6 +138,7 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         compItemIcon "FloatingActionButton" FloatingActionButton itemState
         compItemIcon "TextButton" TextButton itemState
         compItemIcon "ToggleButtons" ToggleButtons itemState
+        compItemIcon "SegmentedControl" SegmentedControl itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Input")

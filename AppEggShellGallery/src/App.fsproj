@@ -183,6 +183,7 @@
     <Compile Include="Components/Content/ImageCard/ImageCard.fs" />
 
     <Compile Include="Components/Content/ToggleButtons/ToggleButtons.fs" />
+    <Compile Include="Components/Content/SegmentedControl/SegmentedControl.fs" />
 
     <Compile Include="Components/Content/Accessibility/Group.fs" />
 
