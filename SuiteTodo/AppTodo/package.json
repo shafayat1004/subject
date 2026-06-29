@@ -12,6 +12,7 @@
     "observe:android": "node audit/todo-observe.mjs snapshot --platform android",
     "observe:ios": "node audit/todo-observe.mjs snapshot --platform ios",
     "observe:verify-native": "node audit/todo-observe.mjs workflow verify-native",
+    "observe:verify-ui2-web": "node audit/workflows/verify-ui2-web.mjs --headless",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",

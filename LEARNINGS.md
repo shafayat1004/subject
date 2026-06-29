@@ -5,11 +5,39 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-29 — AppTodo ui2: phone chrome vs screen size, category scroll, swipe delete
+
+**Garbled todo row text on web (`Edit … Delete …` merged with title).** Web always uses `usePhoneChrome`
+(420px shell) but `TodoRow` was keyed off `LC.With.ScreenSize` (`isHandheld = false` on desktop
+browsers). That rendered **desktop** Edit/Delete **text buttons** inside the narrow phone column; labels
+overflowed and visually merged with the title. Fix: drive row actions and swipe delete from
+`useCompactUI = usePhoneChrome || isHandheld`, not raw screen size.
+
+**Phone card stuck on the left.** `cardShell` had `AlignSelf.Stretch` + `widthPercent 100` inside a
+centered page — the card stretched to full viewport width (capped at 420px) but stayed left-aligned.
+Use `AlignSelf.Center` on `cardShell` when `usePhoneChrome`; add `widthPercent 100` on `page` /
+`pageScroll` so centering has a full-width flex parent.
+
+**Category pills would not scroll horizontally.** Nested `RX.ScrollView` + row without `flexShrink 0`
+let pills compress instead of overflowing. Fix: `LC.ScrollView Scroll.Horizontal` with pills as direct
+children (styles on inner wrapper), `FlexWrap.Nowrap`, `flexShrink 0` on each pill. Put `LC.RadioGroup`
+**outside** the scroll view (a11y group wraps the scroller, not the other way around). Qualify
+`RestoreScroll.No` as `LibClient.Components.ScrollView.RestoreScroll.No` — bare `RestoreScroll` resolves
+to VirtualListView's homonym.
+
+**Swipe-to-delete (ui2.html parity, compact UI only).** `TodoSwipeShell`: `RX.GestureView`
+`onPanHorizontal` + `RX.AnimatableView` `animatedTranslateX` (ReactXP `Animation.Timing`, not Reanimated
+worklets). Constants: 80px delete slot, 40px open threshold, 50% row width = immediate delete. Delete
+button is `importantForAccessibility.NoHideDescendants` when closed; reduced motion uses side-by-side row
++ always-visible Delete (`LC.With.ReducedMotion`). One open row at a time via `swipeOpenId` in `Todos()`.
+
+---
+
 ## 2026-06-29 — AppTodo UI: `ui2.html` mockup + `Color.Hex` alpha trap
 
 **Mockup:** `SuiteTodo/AppTodo/suggestions/ui2.html` — canonical layout (420px phone shell, 40px radius, `#E5E5E5` canvas, `#FDF9F6` app bg, form `#EFE6DF`, teal `#458B8C`, swipe hint 3px `#DC2626` on row right edge). Match palette tokens in `Theme/Colors.fs` + spacing in `Theme/TodoTheme.fs`; do not paste 8-digit CSS hex into `Color.Hex`.
 
-**Bootstrap crash:** `Color.Hex "#0000001a"` throws at module load (`Color is expected to match #[0-9a-f]{6}`). Use `Color.BlackAlpha (26./255.)` or `Color.White.WithOpacity 0.4` instead — `ColorModule` appends alpha via `WithOpacity`, not `#RRGGBBAA` literals.
+**Bootstrap crash:** `Color.Hex "#0000001a"` throws at module load (`Color is expected to match #[0-9a-f]{6}`). Use `Color.BlackAlpha (26./255.)` instead — not `#RRGGBBAA` literals. **`Color.White.WithOpacity`** also throws (`Cannot adjust opacity of this color`) — `WithOpacity` only handles hex/RGB/RGBA/BlackAlpha/WhiteAlpha; use **`Color.WhiteAlpha 0.4`** for semi-transparent white fills.
 
 ---
 
@@ -98,6 +126,16 @@ Scaffold template: `Meta/LibScaffolding/templates/app/src/I18n.fs.template` → 
 
 ---
 
+## 2026-06-29 — Agent background terminals are read-only for the user; never ask them to press `r`
+
+**Rule:** Do **not** tell the user to press **`r`** in Metro, webpack-dev-server, or any watch the agent started in a background terminal. Those sessions are **read-only on their side** — only the agent can send input.
+
+**Agent reload instead:** `touch` changed `.fs` (Fable watch), restart `dev-web`/Metro in the agent's shell, `adb`/simctl relaunch for native, read `terminals/*.txt` to confirm compile + webpack green. Browser **hard-refresh** is OK when they have the page open; terminal keystrokes are not.
+
+See `.cursor/rules/build-validation.mdc` § "Use the user's dev stack".
+
+---
+
 ## 2026-06-28 — AppTodo dev: use the user's terminals, do not fork the stack
 
 When the user already runs **`eggshell dev-native`** (T1) and **Metro `:8081`** (T2) in their own terminals, the agent must **not** start parallel copies of those services or run competing builds.
@@ -109,12 +147,12 @@ When the user already runs **`eggshell dev-native`** (T1) and **Metro `:8081`** 
 
 **Do:**
 1. **Read the user's terminal files first** (`terminals/*.txt`) — T1 = Fable watch, T2 = Metro.
-2. **Code changes only**; tell the user to reload in **their** Metro terminal (`r`, or device reload).
-3. Wait for T1 **`Watching ...`** and the changed file in `Compiled N/M:` before asking for reload.
-4. **Observe** (`npm run observe:*`) only against the user's already-running stack; ask before starting Appium or `dev-web`.
-5. Metro log in the **user's** T2 is ground truth for runtime errors (LogBox, keys, render crashes).
+2. **Code changes only**; **reload in the agent shell** (`touch` for watch, restart dev server, `adb`/simctl) — **never** ask the user to press `r` in a background/agent terminal (read-only for them).
+3. Wait for T1 **`Watching ...`** and the changed file in `Compiled N/M:` before claiming the bundle is fresh.
+4. **Observe** (`npm run observe:*`) only against the already-running stack; ask before starting Appium or `dev-web`.
+5. Metro / webpack log in the watch terminal file is ground truth for runtime errors (LogBox, keys, render crashes).
 
-**Unstick (user terminals only):** T1 watching → T2 press `r` → if still broken, force-quit app and relaunch via Metro `a`/`i` (not a fresh agent build).
+**Unstick (agent-driven):** confirm T1 recompiled → restart or touch to trigger webpack HMR → native: relaunch via `adb`/`simctl`; web: verify with `curl` + terminal output. Do not delegate terminal keystrokes to the user.
 
 Also documented in `.cursor/rules/build-validation.mdc`.
 

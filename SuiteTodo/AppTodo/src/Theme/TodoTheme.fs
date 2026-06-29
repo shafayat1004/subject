@@ -6,6 +6,7 @@ open LibClient.Components
 open LibClient.Components.Tabs
 open LibClient.Responsive
 open ReactXP.Styles
+open ReactXP.Styles.Animation
 open SuiteTodo.Types
 
 type TabTheme = {
@@ -24,39 +25,46 @@ type MetaChipKind =
 module Styles =
     let page =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isHandheld: bool) ->
+            fun (palette: SemanticPalette) (usePhoneChrome: bool) ->
                 makeViewStyles {
                     flex 1
-                    paddingVertical (if isHandheld then 0 else 28)
-                    paddingHorizontal (if isHandheld then 0 else 28)
-                    AlignItems.Center
-                    backgroundColor palette.PageBackground
+                    widthPercent 100
+                    if usePhoneChrome then
+                        paddingVertical 28
+                        paddingHorizontal 16
+                        AlignItems.Center
+                        backgroundColor palette.CanvasBackground
+                    else
+                        backgroundColor palette.PageBackground
                 }
         )
 
     let cardShell =
         ViewStyles.Memoize(
-            fun (isHandheld: bool) ->
+            fun (palette: SemanticPalette) (usePhoneChrome: bool) ->
                 makeViewStyles {
                     widthPercent 100
-                    maxWidth (if isHandheld then 9999 else 1060)
-                    AlignSelf.Stretch
-                    if isHandheld then
+                    maxWidth (if usePhoneChrome then 420 else 1060)
+                    if usePhoneChrome then
+                        AlignSelf.Center
+                        borderRadius 40
+                        backgroundColor palette.PageBackground
+                        shadow (Color.BlackAlpha 0.1) 20 (0, 10)
+                        Overflow.Hidden
+                    else
+                        AlignSelf.Stretch
                         flex 1
                 }
         )
 
     let card =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isHandheld: bool) ->
+            fun (palette: SemanticPalette) (usePhoneChrome: bool) ->
                 makeViewStyles {
                     widthPercent 100
-                    padding (if isHandheld then 24 else 32)
-                    if isHandheld then
-                        backgroundColor palette.PageBackground
-                        borderWidth 0
-                    else
-                        backgroundColor palette.CardBackground
+                    padding 24
+                    backgroundColor palette.PageBackground
+                    if not usePhoneChrome then
                         borderRadius 26
                         borderWidth 1
                         borderColor palette.CardBorder
@@ -66,6 +74,7 @@ module Styles =
     let pageScroll =
         makeScrollViewStyles {
             flex 1
+            widthPercent 100
             AlignSelf.Stretch
         }
 
@@ -80,6 +89,7 @@ module Styles =
             JustifyContent.SpaceBetween
             AlignItems.FlexStart
             gap 12
+            marginTop 20
         }
 
     let headerTitleBlock =
@@ -139,6 +149,8 @@ module Styles =
         makeViewStyles {
             borderRadius 16
             AlignSelf.Stretch
+            minHeight 48
+            paddingVertical 14
         }
 
     // Composer field cell: full-width stacked on handheld, equal flex columns when wide.
@@ -184,9 +196,11 @@ module Styles =
     let categoryScrollContent =
         makeViewStyles {
             FlexDirection.Row
+            FlexWrap.Nowrap
             gap 8
             paddingBottom 14
             paddingRight 8
+            AlignItems.Center
         }
 
     let categoryPill =
@@ -194,6 +208,7 @@ module Styles =
             fun (bg: Color) (border: Color) (isSelected: bool) ->
                 makeViewStyles {
                     minHeight 44
+                    flexShrink 0
                     borderRadius 999
                     borderWidth (if isSelected then 2 else 1)
                     paddingVertical 4
@@ -219,7 +234,7 @@ module Styles =
         TextStyles.Memoize(
             fun (palette: SemanticPalette) ->
                 makeTextStyles {
-                    color palette.TextPrimary
+                    color palette.TextSecondary
                     fontSize 14
                     lineHeight 20
                 }
@@ -290,12 +305,12 @@ module Styles =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) ->
                 makeViewStyles {
-                    paddingVertical 8
+                    paddingVertical 6
                     paddingHorizontal 12
                     borderRadius 999
                     backgroundColor palette.StatBackground
                     borderWidth 1
-                    borderColor palette.ChipBorder
+                    borderColor (Color.BlackAlpha (13.0 / 255.0))
                 }
         )
 
@@ -360,7 +375,9 @@ module Styles =
             fun (palette: SemanticPalette) ->
                 makeViewStyles {
                     borderRadius 999
-                    backgroundColor palette.FormBackground
+                    backgroundColor palette.SearchBackground
+                    borderWidth 1
+                    borderColor palette.InputBorder
                     Overflow.Hidden
                 }
         )
@@ -376,9 +393,21 @@ module Styles =
             marginTop 4
         }
 
-    let todoRow =
+    let todoRowOuter =
         ViewStyles.Memoize(
-            fun (palette: SemanticPalette) (isDone: bool) (_isHandheld: bool) ->
+            fun (palette: SemanticPalette) (mode: AppearanceMode) ->
+                makeViewStyles {
+                    borderRadius 16
+                    Overflow.Hidden
+                    if mode = AppearanceMode.Dark then
+                        borderWidth 1
+                        borderColor palette.RowBorder
+                }
+        )
+
+    let todoRowSurface =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) (mode: AppearanceMode) ->
                 makeViewStyles {
                     FlexDirection.Column
                     AlignItems.Stretch
@@ -387,7 +416,16 @@ module Styles =
                     paddingHorizontal 12
                     backgroundColor palette.RowBackground
                     borderRadius 16
-                    borderWidth 0
+                    borderRight 3 palette.SwipeHintColor
+                    if mode = AppearanceMode.Light then
+                        shadow palette.RowShadowColor 8 (0, 2)
+                }
+        )
+
+    let todoRow =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) (isDone: bool) (_isHandheld: bool) ->
+                makeViewStyles {
                     opacity (if isDone then 0.65 else 1.0)
                 }
         )
@@ -415,16 +453,92 @@ module Styles =
 
     let actionIconButton =
         ViewStyles.Memoize(
-            fun (_palette: SemanticPalette) ->
+            fun (palette: SemanticPalette) ->
                 makeViewStyles {
                     width 44
                     height 44
                     borderRadius 8
+                    borderWidth 2
+                    borderColor Color.Transparent
                     JustifyContent.Center
                     AlignItems.Center
                     flexShrink 0
+                    backgroundColor Color.Transparent
+                    // Hover/focus tint approximated via pressed state in RN; color encodes mockup intent.
+                    opacity 1
                 }
         )
+
+    let swipeDeleteWidth = 80
+
+    let swipeRowHost =
+        makeViewStyles {
+            Position.Relative
+            Overflow.Hidden
+            borderRadius 16
+        }
+
+    let swipeGradientOverlay =
+        ViewStyles.Memoize(
+            fun (isVisible: bool) ->
+                makeViewStyles {
+                    Position.Absolute
+                    trbl 0 0 0 0
+                    backgroundColor (Color.Hex "#dc2626")
+                    opacity (if isVisible then 1.0 else 0.0)
+                }
+        )
+
+    let swipeDeleteSlot =
+        makeViewStyles {
+            Position.Absolute
+            top 0
+            bottom 0
+            right 0
+            width swipeDeleteWidth
+            JustifyContent.Center
+            AlignItems.Center
+        }
+
+    let swipeDeleteButtonText =
+        makeTextStyles {
+            color Color.White
+            fontSize 14
+            FontWeight.W600
+        }
+
+    let swipeContentAnimated (translateX: AnimatableValue) =
+        makeAnimatableViewStyles {
+            animatedTransform [
+                [ animatedTranslateX translateX ]
+            ]
+        }
+
+    let swipeReducedMotionRow =
+        makeViewStyles {
+            FlexDirection.Row
+            gap 8
+            AlignItems.Stretch
+        }
+
+    let swipeReducedMotionContent =
+        makeViewStyles {
+            flex 1
+            minWidth 0
+        }
+
+    let swipeReducedMotionDelete =
+        makeViewStyles {
+            minWidth 72
+            minHeight 44
+            paddingHorizontal 14
+            borderRadius 16
+            JustifyContent.Center
+            AlignItems.Center
+            backgroundColor (Color.Hex "#dc2626")
+            flexShrink 0
+            AlignSelf.Stretch
+        }
 
     let metaChip =
         ViewStyles.Memoize(
@@ -526,9 +640,9 @@ module Styles =
         | Some TodoCategory.Work | Some TodoCategory.Personal ->
             palette.CategoryBlueSoft, palette.Accent, palette.CategoryBlueText
         | Some TodoCategory.Shopping | Some TodoCategory.Health ->
-            palette.CategoryGreenSoft, palette.Success, palette.CategoryGreenText
+            palette.CategoryGreenSoft, palette.Accent, palette.CategoryGreenText
         | Some TodoCategory.Other | None ->
-            palette.ChipBackground, palette.ChipBorder, palette.TextMuted
+            palette.ChipNeutralBackground, palette.Accent, palette.ChipNeutralText
 
     let dueChipColors (palette: SemanticPalette) =
         palette.DueSoft, palette.Warning, palette.Warning

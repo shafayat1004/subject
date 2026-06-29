@@ -80,13 +80,24 @@ Key facts that cause confusion:
 3. **Confirm the rebuild is real** — watch printed `Started Fable compilation…` then compiled with
    no `error FS`; the emitted `.js` is newer than your `.fs` (§7.2). Beware "Skipped compilation …
    up-to-date" false-greens (LEARNINGS).
-4. **Reload the app** on the target (relaunch or Metro reload).
+4. **Reload the app** on the target — **agent-driven** (see §2.1). Do **not** ask the user to press `r` in Metro/webpack; agent background terminals are read-only for them.
 5. **Observe** — screenshot + read logs (Tier 1), or `npm run observe -- snapshot` (Tier 2).
 6. **If a runtime error** — read it from the red box / `logcat` / browser console; the component stack
    tells you the owning component (this is how the "unique key" warning was traced, §9).
 
 Fast-changing styles often only need an app reload, not a full rebuild — but F# changes always need the
 Fable recompile first.
+
+### 2.1 Reload — agent owns terminal input (never ask user for `r`)
+
+Watch terminals (Metro, `dev-web`, `eggshell dev-native`) that the **agent** started are **read-only for the user**. Do not tell them to press **`r`**, **`a`**, or **`i`** in those sessions.
+
+| Target | Agent reload |
+|---|---|
+| Fable watch | `touch` the changed `.fs`; read terminal for `Compiled N/M:` |
+| Web (`dev-web`) | `touch` sources; restart `eggshell dev-web` in agent shell if stale; verify with `curl` |
+| Metro / native | `adb shell am force-stop …` + relaunch, or simctl; not user keystrokes in agent Metro |
+| Browser | User may hard-refresh the page themselves — that is not a terminal operation |
 
 ---
 

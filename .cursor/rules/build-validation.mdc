@@ -25,9 +25,11 @@ When the user already has **`eggshell dev-native`** (T1) and **Metro on `:8081`*
 
 - **Do not** start parallel `dev-native`, Metro, `dev-web`, or Appium.
 - **Do not** run `build-native` or `rm -rf .build/native` while their `dev-native` watch is active.
-- **Read** their terminal files first; **code only**; ask them to press **`r`** in Metro to reload.
-- **Observe** only against their running stack; ask before starting Appium/`dev-web`.
-- Their **Metro terminal** is ground truth for LogBox / render errors.
+- **Read** their terminal files first; **code only**; confirm watch output before calling a UI change done.
+- **Never ask the user to press `r`** (or `a` / `i` / any key) in Metro, webpack-dev-server, or any **agent-started background terminal** — those sessions are **read-only for the user**.
+- **Reload yourself:** `touch` changed `.fs` for Fable watch; restart `dev-web` / Metro in **your** shell if needed; native reload via `adb shell input …` / simctl / app relaunch; web verify via `curl` + read terminal output. Browser hard-refresh is fine when they are viewing the page directly — do not delegate terminal reload to them.
+- **Observe** only against their running stack; ask before starting Appium/`dev-web` if they already have one.
+- Their **Metro terminal** is ground truth for LogBox / render errors (read the terminal file — do not ask them to operate it).
 
 See `LEARNINGS.md` (2026-06-28 — AppTodo dev: use the user's terminals).
 

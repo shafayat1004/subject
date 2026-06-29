@@ -61,6 +61,7 @@ let strings = {|
     ArchiveActionFormat = "Archive {0}"
     DeleteActionFormat = "Delete {0}"
     ConfirmDeleteFormat = "Confirm delete {0}"
+    SwipeDeleteLabel = "Delete"
     Cancel = "Cancel"
     EditTitleLabelFormat = "Edit title for {0}"
 
