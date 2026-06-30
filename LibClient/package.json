@@ -8,6 +8,8 @@
     "@chaldal/reactxp": "^2.2.0",
     "@chaldal/reactxp-imagesvg": "^2.1.3",
     "@react-native-community/netinfo": "^11.4.1",
+    "@react-native-picker/picker": "^2.11.0",
+    "react-native-webview": "^13.12.5",
     "@chaldal/reactxp-virtuallistview": "^2.1.1",
     "@chaldal/reactxp-webview": "^2.1.1",
     "@microsoft/applicationinsights-react-native": "^2.4.0",
