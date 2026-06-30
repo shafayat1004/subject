@@ -82,6 +82,21 @@ type PreferredPanGesture =
 | Horizontal = 0
 | Vertical   = 1
 
+do
+    // Tell the browser to leave pans on a GestureView to the element instead of
+    // letting a surrounding horizontal ScrollView scroll the page. Firefox Mobile
+    // in particular needs this even when preventDefault() is called.
+    ReactXP.LegacyStyles.Css.addCss """
+[data-eggshell-gesture="horizontal"] {
+    touch-action: pan-y;
+}
+[data-eggshell-gesture="vertical"] {
+    touch-action: pan-x;
+}
+[data-eggshell-gesture="both"] {
+    touch-action: none;
+}
+"""
 
 module private GestureViewImpl =
     type private Props = {
@@ -213,6 +228,20 @@ module private GestureViewImpl =
         if props.OnPan.IsSome || props.OnPanHorizontal.IsSome || props.OnPanVertical.IsSome || props.OnTap.IsSome then
             let inline dx e = pageXOf e - fst initialPage.current
             let inline dy e = pageYOf e - snd initialPage.current
+
+            viewProps?dataSet <-
+                let gestureDirection =
+                    match props.PreferredPan with
+                    | Some PreferredPanGesture.Vertical -> "vertical"
+                    | Some PreferredPanGesture.Horizontal -> "horizontal"
+                    | _ ->
+                        if props.OnPanVertical.IsSome && not props.OnPanHorizontal.IsSome then
+                            "vertical"
+                        elif props.OnPanHorizontal.IsSome && not props.OnPanVertical.IsSome then
+                            "horizontal"
+                        else
+                            "both"
+                createObj [ "eggshellGesture" ==> gestureDirection ]
 
             viewProps?onStartShouldSetResponder <- fun (e: obj) ->
                 preventDefault e

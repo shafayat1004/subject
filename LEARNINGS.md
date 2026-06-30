@@ -5,11 +5,30 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — Debug logging recipe for tracing component interactions
+
+While fixing the `GestureView`/`SegmentedControl` drag issue I used temporary logs to see exactly what the components were doing during pointer interactions. The technique works and should be the basis for a future verbose UI-automation debug mode.
+
+What worked:
+- `printfn "[Component] lifecycle/render"` inside `[<Component>]` render functions to confirm mounts/re-renders.
+- `printfn "[Component] event %A" args` inside gesture callbacks (`onResponderGrant`, `onResponderMove`, etc.) to trace the event flow.
+- `Fable.Core.JS.console.log("label", value)` for quick browser output, but **only with primitive/string values** — when `value` is a JS object Fable compiles the call to `console.log(some("label"), ...value)`, which throws "Spread syntax requires ...iterable" because objects are not iterable. For objects, prefer `printfn "%A" value`.
+- Inspecting React fibers via `Object.keys(el).find(k => k.startsWith('__reactFiber'))` to see the actual props reaching a DOM node when logs were not enough.
+
+Future verbose mode idea:
+- Add a global flag such as `window.__EGGSHELL_DEBUG_UI__` or a compile-time `DEBUG_UI` define.
+- Components call a tiny helper like `UiDebug.log "GestureView" "grant" eventObj` that only emits when the flag is on and that safely stringifies objects (e.g., using `JSON.stringify` of selected fields or `printfn "%A"`).
+- Keep the surface small: log component name + lifecycle/action + the minimal state needed to reproduce an interaction in an automation test.
+
+---
+
 ## 2026-06-30 — SegmentedControl drag/tap restored, code blocks multi-line, mediaMatches bug fixed
 
 - `LC.With.Accessibility.mediaMatches` was returning the `MediaQueryList` object instead of its `.matches` boolean. `window?matchMedia(query)?matches` compiled to `window.matchMedia(query.matches)`. Split it: `let mql = Browser.Dom.window?matchMedia(query)` then `!!(mql?matches)`. Applied the same fix to `subscribeMedia`.
 - Replaced `RX.GestureView`'s `PanResponder`-based implementation with direct RN responder props (`onStartShouldSetResponder`, `onResponderGrant`, `onResponderMove`, `onResponderRelease`, `onResponderTerminate`). PanResponder never fired on web in this bundle.
-- Stopped the surrounding horizontal `RX.ScrollView` from stealing drags: call `preventDefault()` on the responder event (and on `nativeEvent`) and attach `onTouchStart`/`onTouchMove` handlers that also prevent default. Tap and both left-to-right and right-to-left drags now work on handheld, and the sample container no longer scrolls sideways.
+- Stopped the surrounding horizontal `RX.ScrollView` from stealing drags:
+  - Call `preventDefault()` on the responder event (and on `nativeEvent`) and attach `onTouchStart`/`onTouchMove` handlers that also prevent default.
+  - Add CSS `touch-action: pan-y` (or `pan-x`/`none` depending on pan direction) via a `dataSet` attribute on the `GestureView` root. This is what finally prevented Firefox Mobile from starting a horizontal page scroll before our JavaScript responder could capture the gesture.
 - Fixed `LC.Pre` rendering code as a single line: removed `numberOfLines = 1` so RNW `Text` uses its default `white-space: pre-wrap`.
 
 Validation green:
