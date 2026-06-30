@@ -48,7 +48,7 @@ type Easing =
 | CubicBezier of Coords1: (double * double) * Coords2: (double * double)
 with
     member this.ToReactXP : obj =
-        let rnEasing = ReactXP.RNSeam.Animated?Easing
+        let rnEasing = ReactXP.RNSeam.Easing
 
         match this with
         | Linear -> rnEasing?linear

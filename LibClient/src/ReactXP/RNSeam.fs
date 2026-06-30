@@ -34,10 +34,7 @@ module RNSeam =
     let Pressable: obj = import "Pressable" "react-native"
     let ActivityIndicator: obj = import "ActivityIndicator" "react-native"
     let Animated: obj = import "Animated" "react-native"
-
-    let GestureHandlerRootView: obj = import "GestureHandlerRootView" "react-native-gesture-handler"
-    let GestureDetector: obj = import "GestureDetector" "react-native-gesture-handler"
-    let Gesture: obj = import "Gesture" "react-native-gesture-handler"
+    let Easing: obj = import "Easing" "react-native"
 
     let PlatformModule: obj = import "Platform" "react-native"
     let PixelRatioModule: obj = import "PixelRatio" "react-native"
@@ -157,7 +154,24 @@ module RNSeam =
             props?accessibilityRole <- v
             props?role <- v)
 
-        accessibilityState |> Option.iter (fun v -> props?accessibilityState <- v)
+        accessibilityState |> Option.iter (fun v ->
+            props?accessibilityState <- v
+            let inline readBool (key: string) =
+                if isNull v then None
+                else
+                    let lowerKey = key.ToLower()
+                    let lower = v?(lowerKey)
+                    if not (isNull lower) then Some (!!lower : bool)
+                    else
+                        let pascalKey = key.Substring(0, 1).ToUpper() + key.Substring(1)
+                        let raw = v?(pascalKey)
+                        if isNull raw then None else Some (!!raw : bool)
+            match readBool "selected" with | Some b -> props?``aria-selected`` <- b | None -> ()
+            match readBool "checked"  with | Some b -> props?``aria-checked`` <- b | None -> ()
+            match readBool "expanded" with | Some b -> props?``aria-expanded`` <- b | None -> ()
+            match readBool "disabled" with | Some b -> props?``aria-disabled`` <- b | None -> ()
+            match readBool "busy"     with | Some b -> props?``aria-busy`` <- b | None -> ()
+        )
 
         importantForAccessibility
         |> Option.iter (fun v -> props?importantForAccessibility <- v)
@@ -319,19 +333,7 @@ module UserInterface =
 
     let setMainView (element: Fable.React.ReactElement) : unit =
 #if EGGSHELL_PLATFORM_IS_WEB
-        let rootElement = contextWrapper element
-
-        // GestureHandlerRootView is required on Android native, but on web it can intercept
-        // pointer events and break regular Pressable/Link clicks. Wrap only on native.
-        let wrappedElement =
-#if EGGSHELL_PLATFORM_IS_WEB
-            rootElement
-#else
-            RNSeam.createElement
-                RNSeam.GestureHandlerRootView
-                (createObj [ "style" ==> createObj [ "flex" ==> 1 ] ])
-                (LibClient.ThirdParty.fixPotentiallySingleChild [| rootElement |])
-#endif
+        let wrappedElement = contextWrapper element
 
         match mainRoot with
         | Some root ->
@@ -416,17 +418,26 @@ module Popup =
     let isDisplayed (id: string) : bool =
         entries.ContainsKey id
 
+    let private findDOMNode: obj -> obj = import "findDOMNode" "react-dom"
+
+    let private domRectOf (anchor: obj) : obj =
+        if isNull anchor then
+            createObj [ "top" ==> 0.0; "left" ==> 0.0; "right" ==> 0.0; "bottom" ==> 0.0; "width" ==> 0.0; "height" ==> 0.0 ]
+        elif not (isNull (anchor?getBoundingClientRect)) then
+            anchor?getBoundingClientRect()
+        else
+            let node = findDOMNode anchor
+            if isNull node || isNull (node?getBoundingClientRect) then
+                createObj [ "top" ==> 0.0; "left" ==> 0.0; "right" ==> 0.0; "bottom" ==> 0.0; "width" ==> 0.0; "height" ==> 0.0 ]
+            else
+                node?getBoundingClientRect()
+
     let show (options: obj, id: string) : unit =
 #if EGGSHELL_PLATFORM_IS_WEB
         if entries.ContainsKey id then dismiss id
 
         let anchorEl: obj = options?getAnchor()
-
-        let rect: obj =
-            if isNull anchorEl then
-                createObj [ "top" ==> 0.0; "left" ==> 0.0; "right" ==> 0.0; "bottom" ==> 0.0; "width" ==> 0.0; "height" ==> 0.0 ]
-            else
-                anchorEl?getBoundingClientRect()
+        let rect: obj = domRectOf anchorEl
 
         let container = Browser.Dom.document.createElement "div"
         container?style?position <- "fixed"

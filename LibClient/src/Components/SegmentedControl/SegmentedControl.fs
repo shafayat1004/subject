@@ -263,6 +263,16 @@ type LibClient.Components.Constructors.LC with
                     lastDragOffsetRef.current <- offset
                     translateXRef.current.SetValue (double offset)
 
+        let onTap (e: ReactXP.Components.GestureView.TapGestureState) =
+            if not draggable || cellWidth <= 0 then
+                ()
+            else
+                let index =
+                    int (e.clientX / float cellWidth)
+                    |> max 0
+                    |> min (segmentCount - 1)
+                selectIndex index
+
         let renderSegment (index: int) (segment: Segment<'T>) =
             let isActive = index = selectedIndex
             let labelColor =
@@ -279,20 +289,15 @@ type LibClient.Components.Constructors.LC with
 
             RX.View(
                 styles = [| Styles.segmentCell cellWidth |],
+                accessibilityRole = AccessibilityRole.Radio,
+                accessibilityState = AccessibilityStateRecord.selected isActive,
+                accessibilityLabel = segment.Label,
+                importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.Yes,
+                ?testId = segmentTestId,
                 children = [|
                     LC.UiText(
                         value = segment.Label,
                         styles = [| Styles.segmentLabel labelColor |]
-                    )
-                    LC.Pressable(
-                        onPress = (fun _ -> selectIndex index),
-                        label = segment.Label,
-                        role = AccessibilityRole.Radio,
-                        state = AccessibilityStateRecord.selected isActive,
-                        overlay = true,
-                        styles = [| Styles.segmentPressable |],
-                        ?testId = segmentTestId,
-                        componentName = "LC.SegmentedControl.Segment"
                     )
                 |]
             )
@@ -334,6 +339,7 @@ type LibClient.Components.Constructors.LC with
                                 preferredPan = ReactXP.Components.GestureView.PreferredPanGesture.Horizontal,
                                 panPixelThreshold = float GestureHelpers.activationThreshold,
                                 onPanHorizontal = onPanHorizontal,
+                                onTap = onTap,
                                 styles = [| Styles.segmentsRow innerWidth |]
                             )
                         else

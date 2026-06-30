@@ -14,7 +14,8 @@ module LC =
 #if EGGSHELL_PLATFORM_IS_WEB
             let private mediaMatches (query: string) : bool =
                 try
-                    !!(Browser.Dom.window?matchMedia (query)?matches)
+                    let mql = Browser.Dom.window?matchMedia (query)
+                    !!(mql?matches)
                 with _ ->
                     false
 
@@ -22,7 +23,7 @@ module LC =
                 try
                     let mql = Browser.Dom.window?matchMedia (query)
 
-                    let handler (_: Browser.Types.Event) = onChange !!mql?matches
+                    let handler (_: Browser.Types.Event) = onChange !!(mql?matches)
 
                     mql?addEventListener ("change", handler) |> ignore
                     fun () -> mql?removeEventListener ("change", handler) |> ignore

@@ -27,7 +27,6 @@ type LibClient.Components.Constructors.LC with
         LC.Text(
             value = text,
             selectable = true,
-            numberOfLines = 1,
             styles =
                 [|
                     Styles.text

@@ -5,14 +5,29 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — SegmentedControl drag/tap restored, code blocks multi-line, mediaMatches bug fixed
+
+- `LC.With.Accessibility.mediaMatches` was returning the `MediaQueryList` object instead of its `.matches` boolean. `window?matchMedia(query)?matches` compiled to `window.matchMedia(query.matches)`. Split it: `let mql = Browser.Dom.window?matchMedia(query)` then `!!(mql?matches)`. Applied the same fix to `subscribeMedia`.
+- Replaced `RX.GestureView`'s `PanResponder`-based implementation with direct RN responder props (`onStartShouldSetResponder`, `onResponderGrant`, `onResponderMove`, `onResponderRelease`, `onResponderTerminate`). PanResponder never fired on web in this bundle.
+- Stopped the surrounding horizontal `RX.ScrollView` from stealing drags: call `preventDefault()` on the responder event (and on `nativeEvent`) and attach `onTouchStart`/`onTouchMove` handlers that also prevent default. Tap and both left-to-right and right-to-left drags now work on handheld, and the sample container no longer scrolls sideways.
+- Fixed `LC.Pre` rendering code as a single line: removed `numberOfLines = 1` so RNW `Text` uses its default `white-space: pre-wrap`.
+
+Validation green:
+- `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` — 0 errors.
+- `eggshell dev-web` on `AppEggShellGallery`; Playwright smoke confirms multi-line code blocks and handheld touch drag LTR/RTL.
+
+Files: `LibClient/src/Components/With/Accessibility.fs`, `LibClient/src/ReactXP/Components/GestureView/GestureView.fs`, `LibClient/src/Components/Pre.fs`.
+
+---
+
 ## 2026-06-30 — Removed `@chaldal/reactxp` from `LibClient`; web clicks restored
 
 Finished the ReactXP core retirement and fixed the runtime issues that blocked interaction:
 
 - Deleted `@chaldal/reactxp` from `LibClient/package.json`; `ReactXPBindings.fs` now only contains `extractProp`.
-- Added `react-native-gesture-handler` (RNGH) and `@react-native-async-storage/async-storage` to `LibClient` and `AppEggShellGallery`.
-- Ported `GestureView` to RNGH `Gesture`/`GestureDetector` (`Pan` wired; pinch/rotate/tap/long-press accepted but no-op).
-- Wired RNGH imports in `RNSeam.fs` and wrapped the root with `GestureHandlerRootView` on native only; on web the wrapper intercepts all pointer events, so it is omitted there.
+- Added `@react-native-async-storage/async-storage` to `LibClient` and `AppEggShellGallery`.
+- Tried `react-native-gesture-handler` (RNGH) for `GestureView`, but its web `GestureDetector` never fired and `GestureHandlerRootView` broke pointer clicks, so `GestureView` was later rewritten against RN core responder props (see next entry).
+- Wired async-storage and RN `PanResponder` imports in `RNSeam.fs` temporarily.
 - Fixed `AccessibilityHelpers.mapRoleToString` so the integer `AccessibilityRole` enum maps to the RN/RNW strings (e.g. `Button` -> `"button"`, `Header` -> `"banner"`); `RNSeam.mapAccessibilityRole` delegates to it.
 - Added webpack aliases + `fullySpecified: false` rule in `Meta/LibFablePlus/webpack.config.js` so RNGH and async-storage resolve through their CommonJS builds and don't hit Webpack 5 ESM `fullySpecified` errors.
 - Added `window.__DEV__ = true` in `AppEggShellGallery/public-dev/index.html`; RN/RNW expect it at load time.

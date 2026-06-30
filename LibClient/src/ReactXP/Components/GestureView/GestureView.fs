@@ -89,6 +89,7 @@ module private GestureViewImpl =
         OnPan:             (PanGestureState -> unit) option
         OnPanVertical:     (PanGestureState -> unit) option
         OnPanHorizontal:   (PanGestureState -> unit) option
+        OnTap:             (TapGestureState -> unit) option
         OnFocus:           (FocusEvent -> unit) option
         OnBlur:            (FocusEvent -> unit) option
         OnKeyPress:        (KeyboardEvent -> unit) option
@@ -124,56 +125,127 @@ module private GestureViewImpl =
         ]
         |> unbox
 
+    let private makeTapState (e: obj) : TapGestureState =
+        createObj [
+            "isTouch"   ==> true
+            "timeStamp" ==> JS.Constructors.Date.now()
+            "clientX"   ==> e?x
+            "clientY"   ==> e?y
+            "pageX"     ==> e?absoluteX
+            "pageY"     ==> e?absoluteY
+        ]
+        |> unbox
+
     let private dispatchPan (props: Props) (state: PanGestureState) : unit =
-        props.OnPan |> Option.iter (fun f -> f state)
+        match props.OnPan with
+        | Some f -> f state
+        | None -> ()
 
         match props.PreferredPan with
         | Some PreferredPanGesture.Vertical -> ()
-        | _ -> props.OnPanHorizontal |> Option.iter (fun f -> f state)
+        | _ ->
+            match props.OnPanHorizontal with
+            | Some f -> f state
+            | None -> ()
 
         match props.PreferredPan with
         | Some PreferredPanGesture.Horizontal -> ()
-        | _ -> props.OnPanVertical |> Option.iter (fun f -> f state)
+        | _ ->
+            match props.OnPanVertical with
+            | Some f -> f state
+            | None -> ()
 
     [<Component>]
     let private Render (props: Props) : ReactElement =
         let initialClient = Hooks.useRef (0.0, 0.0)
         let initialPage = Hooks.useRef (0.0, 0.0)
+        let isActive = Hooks.useRef false
 
         let threshold = props.PanPixelThreshold |> Option.defaultValue 10.0
 
-        let pan = ReactXP.RNSeam.Gesture?Pan()
+        let inline locationX (e: obj) = e?nativeEvent?locationX
+        let inline locationY (e: obj) = e?nativeEvent?locationY
+        let inline pageXOf (e: obj) = e?nativeEvent?pageX
+        let inline pageYOf (e: obj) = e?nativeEvent?pageY
 
-        match props.PreferredPan with
-        | Some PreferredPanGesture.Vertical ->
-            pan?activeOffsetY(-threshold, threshold) |> ignore
-            pan?activeOffsetX(-1000.0, 1000.0) |> ignore
-        | Some _ ->
-            pan?activeOffsetX(-threshold, threshold) |> ignore
-            pan?activeOffsetY(-1000.0, 1000.0) |> ignore
-        | None ->
-            pan?activeOffsetX(-threshold, threshold) |> ignore
-            pan?activeOffsetY(-threshold, threshold) |> ignore
+        let inline preventDefault (e: obj) =
+            try e?preventDefault() |> ignore with _ -> ()
+            try e?nativeEvent?preventDefault() |> ignore with _ -> ()
 
-        pan?onBegin(fun (e: obj) ->
-            initialClient.current <- (e?x - e?translationX, e?y - e?translationY)
-            initialPage.current   <- (e?absoluteX - e?translationX, e?absoluteY - e?translationY)
-        ) |> ignore
+        let makeTapStateFromEvent (e: obj) : TapGestureState =
+            createObj [
+                "isTouch"   ==> true
+                "timeStamp" ==> JS.Constructors.Date.now()
+                "clientX"   ==> locationX e
+                "clientY"   ==> locationY e
+                "pageX"     ==> pageXOf e
+                "pageY"     ==> pageYOf e
+            ]
+            |> unbox
 
-        pan?onUpdate(fun (e: obj) ->
-            makePanState initialClient initialPage e false
-            |> dispatchPan props
-        ) |> ignore
-
-        pan?onEnd(fun (e: obj) ->
-            makePanState initialClient initialPage e true
-            |> dispatchPan props
-        ) |> ignore
+        let makePanStateFromEvent (e: obj) (isComplete: bool) : PanGestureState =
+            let (initClientX, initClientY) = initialClient.current
+            let (initPageX, initPageY) = initialPage.current
+            let px = pageXOf e
+            let py = pageYOf e
+            createObj [
+                "isTouch"        ==> true
+                "timeStamp"      ==> JS.Constructors.Date.now()
+                "initialClientX" ==> initClientX
+                "initialClientY" ==> initClientY
+                "initialPageX"   ==> initPageX
+                "initialPageY"   ==> initPageY
+                "clientX"        ==> locationX e
+                "clientY"        ==> locationY e
+                "pageX"          ==> px
+                "pageY"          ==> py
+                "velocityX"      ==> 0.0
+                "velocityY"      ==> 0.0
+                "isComplete"     ==> isComplete
+            ]
+            |> unbox
 
         let viewProps = createEmpty
         viewProps?onFocus  <- props.OnFocus
         viewProps?onBlur   <- props.OnBlur
         viewProps?onKeyPress <- props.OnKeyPress
+
+        if props.OnPan.IsSome || props.OnPanHorizontal.IsSome || props.OnPanVertical.IsSome || props.OnTap.IsSome then
+            let inline dx e = pageXOf e - fst initialPage.current
+            let inline dy e = pageYOf e - snd initialPage.current
+
+            viewProps?onStartShouldSetResponder <- fun (e: obj) ->
+                preventDefault e
+                true
+            viewProps?onMoveShouldSetResponder  <- fun (e: obj) ->
+                preventDefault e
+                true
+            viewProps?onResponderGrant <- fun (e: obj) ->
+                preventDefault e
+                initialClient.current <- (locationX e, locationY e)
+                initialPage.current   <- (pageXOf e, pageYOf e)
+                isActive.current      <- false
+                makePanStateFromEvent e false |> dispatchPan props
+            viewProps?onResponderMove <- fun (e: obj) ->
+                preventDefault e
+                if not isActive.current && (abs (dx e) > threshold || abs (dy e) > threshold) then
+                    isActive.current <- true
+                makePanStateFromEvent e false |> dispatchPan props
+            viewProps?onResponderRelease <- fun (e: obj) ->
+                makePanStateFromEvent e true |> dispatchPan props
+                if not isActive.current && abs (dx e) < threshold && abs (dy e) < threshold then
+                    match props.OnTap with
+                    | Some onTap -> makeTapStateFromEvent e |> onTap
+                    | None -> ()
+                isActive.current <- false
+            viewProps?onResponderTerminate <- fun (e: obj) ->
+                makePanStateFromEvent e true |> dispatchPan props
+                isActive.current <- false
+            viewProps?onResponderTerminationRequest <- fun (_e: obj) -> true
+
+            // Stop a surrounding horizontal ScrollView from stealing the pan on web.
+            viewProps?onTouchStart <- fun (e: obj) -> preventDefault e
+            viewProps?onTouchMove  <- fun (e: obj) -> preventDefault e
 
         let combinedStyles: array<obj> =
             let legacyStyles: array<obj> =
@@ -198,18 +270,14 @@ module private GestureViewImpl =
             |> Option.getOrElse [||]
             |> ThirdParty.fixPotentiallySingleChild
 
-        let viewElement = ReactXP.RNSeam.createElement ReactXP.RNSeam.View viewProps children
-
-        ReactXP.RNSeam.createElement
-            ReactXP.RNSeam.GestureDetector
-            (createObj [ "gesture" ==> pan ])
-            [| viewElement |]
+        ReactXP.RNSeam.createElement ReactXP.RNSeam.View viewProps children
 
     let build
             (children:          ReactChildrenProp option)
             (onPan:             (PanGestureState -> unit) option)
             (onPanVertical:     (PanGestureState -> unit) option)
             (onPanHorizontal:   (PanGestureState -> unit) option)
+            (onTap:             (TapGestureState -> unit) option)
             (onFocus:           (FocusEvent -> unit) option)
             (onBlur:            (FocusEvent -> unit) option)
             (onKeyPress:        (KeyboardEvent -> unit) option)
@@ -223,6 +291,7 @@ module private GestureViewImpl =
             OnPan             = onPan
             OnPanVertical     = onPanVertical
             OnPanHorizontal   = onPanHorizontal
+            OnTap             = onTap
             OnFocus           = onFocus
             OnBlur            = onBlur
             OnKeyPress        = onKeyPress
@@ -255,8 +324,8 @@ type ReactXP.Components.Constructors.RX with
         ?styles:            array<ReactXP.Styles.FSharpDialect.ViewStyles>,
         ?xLegacyStyles:     List<ReactXP.LegacyStyles.RuntimeStyles>
     ) =
-        // Pinch, rotate, scroll wheel, tap, double-tap, long-press, context-menu,
-        // mouse cursor and release-on-request are not yet wired to react-native-gesture-handler.
+        // Pinch, rotate, scroll wheel, double-tap, long-press, context-menu,
+        // mouse cursor and release-on-request are not wired to the responder system.
         // They are accepted to preserve the public API but currently have no effect.
         onPinchZoom    |> ignore
         onRotate       |> ignore
@@ -273,6 +342,7 @@ type ReactXP.Components.Constructors.RX with
             onPan
             onPanVertical
             onPanHorizontal
+            onTap
             onFocus
             onBlur
             onKeyPress
