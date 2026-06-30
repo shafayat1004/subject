@@ -33,7 +33,12 @@ const commonConfig = {
             // ThirdParty libs (e.g. recharts) ship nested react copies; force a single instance.
             react:     libClientNodeModules ? path.join(libClientNodeModules, "react")     : "react",
             "react-dom": libClientNodeModules ? path.join(libClientNodeModules, "react-dom") : "react-dom",
+            // Phase 4 RNW seam: web bundles import "react-native"; webpack resolves to react-native-web.
+            "react-native$": libClientNodeModules
+                ? path.join(libClientNodeModules, "react-native-web")
+                : "react-native-web",
         },
+        extensions: [".web.js", ".web.jsx", ".web.ts", ".web.tsx", ".js", ".jsx", ".ts", ".tsx", ".json"],
         modules: [
             "node_modules",
             safeJoin(findDirUpwards("LibClient"),                         "node_modules"),

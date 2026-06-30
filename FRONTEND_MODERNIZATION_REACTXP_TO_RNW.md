@@ -1179,6 +1179,14 @@ problem entirely:
 
 ## 22. Update Log
 
+- **2026-06-29 (21)** **Phase 4 kickoff on `modernization/rnw`.** Branch created from
+  `modernization/fable5-migration` to execute the ReactXP → RN/RNW seam (Phase 4). First increment:
+  `react-native-web` + webpack alias + `RNSeam.fs` scaffolding. **Reference primitive `View` ported:**
+  `View.fs` renders via `import "View" "react-native"` (Pressable when press handlers set);
+  `makeViewStyles` emits plain RN style objects (`RNSeam.createViewStyle` pass-through); a11y props
+  preserved (`testId` → `testID`, live region strings, aria-*); ReactXP-only props dropped silently.
+  Gallery `dev-web` webpack bundle green (`react-native-web` in bundle, `:8082` HTTP 200). Next:
+  Text/Button/ScrollView fan-out using same pattern; native Metro smoke; then style/animation layers.
 - **2026-06-29 (20)** **Section 18 expanded: native-F# alternatives deep dive + maintenance check + MVU
   hedge.** Recorded the full "escape JS" survey from the design discussion. Key additions: (18.1) the
   MVU-overlap finding for **Bolero (web) + Fabulous (native)** - architecture (Elmish Model/Update/domain/

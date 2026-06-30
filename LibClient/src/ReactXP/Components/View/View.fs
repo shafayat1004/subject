@@ -38,6 +38,51 @@ type AccessibilityLiveRegion =
 
 type IViewRef = Fable.React.ReactElement
 
+module private ViewRN =
+    let mapLiveRegion (region: AccessibilityLiveRegion option) : obj option =
+        region
+        |> Option.map (
+            function
+            | AccessibilityLiveRegion.None -> box "none"
+            | AccessibilityLiveRegion.Polite -> box "polite"
+            | AccessibilityLiveRegion.Assertive -> box "assertive"
+            | _ -> box "none"
+        )
+
+    let unboxStyles (styles: array<ReactXP.Styles.FSharpDialect.ViewStyles> option) : array<obj> option =
+        styles |> Option.map (Array.map (fun s -> (!!s) :> obj))
+
+    let assignWebHandlers
+            (props: obj)
+            (onMouseEnter: (MouseEvent -> unit) option)
+            (onMouseLeave: (MouseEvent -> unit) option)
+            (onDragStart: (DragEvent -> unit) option)
+            (onDrag: (DragEvent -> unit) option)
+            (onDragEnd: (DragEvent -> unit) option)
+            (onDragEnter: (DragEvent -> unit) option)
+            (onDragOver: (DragEvent -> unit) option)
+            (onDragLeave: (DragEvent -> unit) option)
+            (onDrop: (DragEvent -> unit) option)
+            (onMouseOver: (MouseEvent -> unit) option)
+            (onMouseMove: (MouseEvent -> unit) option)
+            (onContextMenu: (MouseEvent -> unit) option)
+            : unit =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        onMouseEnter |> Option.iter (fun v -> props?onMouseEnter <- v)
+        onMouseLeave |> Option.iter (fun v -> props?onMouseLeave <- v)
+        onDragStart |> Option.iter (fun v -> props?onDragStart <- v)
+        onDrag |> Option.iter (fun v -> props?onDrag <- v)
+        onDragEnd |> Option.iter (fun v -> props?onDragEnd <- v)
+        onDragEnter |> Option.iter (fun v -> props?onDragEnter <- v)
+        onDragOver |> Option.iter (fun v -> props?onDragOver <- v)
+        onDragLeave |> Option.iter (fun v -> props?onDragLeave <- v)
+        onDrop |> Option.iter (fun v -> props?onDrop <- v)
+        onMouseOver |> Option.iter (fun v -> props?onMouseOver <- v)
+        onMouseMove |> Option.iter (fun v -> props?onMouseMove <- v)
+        onContextMenu |> Option.iter (fun v -> props?onContextMenu <- v)
+        #endif
+        ()
+
 type ReactXP.Components.Constructors.RX with
     static member View(
         ?children:                         ReactChildrenProp,
@@ -106,74 +151,83 @@ type ReactXP.Components.Constructors.RX with
         ?key:                              string,
         ?styles:                           array<ReactXP.Styles.FSharpDialect.ViewStyles>
     ) =
-        let __props = createEmpty
-        __props?title                            <- title
-        __props?ignorePointerEvents              <- ignorePointerEvents
-        __props?blockPointerEvents               <- blockPointerEvents
-        __props?shouldRasterizeIOS               <- shouldRasterizeIOS
-        __props?viewLayerTypeAndroid             <- viewLayerTypeAndroid
-        __props?restrictFocusWithin              <- restrictFocusWithin
-        __props?limitFocusWithin                 <- limitFocusWithin
-        __props?autoFocus                        <- autoFocus
-        __props?arbitrateFocus                   <- arbitrateFocus
-        __props?importantForLayout               <- importantForLayout
-        __props?id                               <- id
-        __props?testId                           <- testId
-        __props?accessibilityLabel               <- accessibilityLabel
-        __props?accessibilityRole                <- accessibilityRole
-        __props?accessibilityState               <- accessibilityState
-        __props?accessibilityId                  <- accessibilityId
-        __props?importantForAccessibility        <- importantForAccessibility
-        __props?accessibilityActions             <- accessibilityActions
-        __props?onAccessibilityAction            <- onAccessibilityAction
-        __props?ariaLabelledBy                   <- ariaLabelledBy
-        __props?ariaRoleDescription              <- ariaRoleDescription
-        __props?accessibilityLiveRegion          <- accessibilityLiveRegion
-        __props?animateChildEnter                <- animateChildEnter
-        __props?animateChildLeave                <- animateChildLeave
-        __props?animateChildMove                 <- animateChildMove
-        __props?onAccessibilityTapIOS            <- onAccessibilityTapIOS
-        __props?onLayout                         <- onLayout
-        __props?onMouseEnter                     <- onMouseEnter
-        __props?onMouseLeave                     <- onMouseLeave
-        __props?onDragStart                      <- onDragStart
-        __props?onDrag                           <- onDrag
-        __props?onDragEnd                        <- onDragEnd
-        __props?onDragEnter                      <- onDragEnter
-        __props?onDragOver                       <- onDragOver
-        __props?onDragLeave                      <- onDragLeave
-        __props?onDrop                           <- onDrop
-        __props?onMouseOver                      <- onMouseOver
-        __props?onMouseMove                      <- onMouseMove
-        __props?onPress                          <- onPress
-        __props?onLongPress                      <- onLongPress
-        __props?onKeyPress                       <- onKeyPress
-        __props?onFocus                          <- onFocus
-        __props?onBlur                           <- onBlur
-        __props?disableTouchOpacityAnimation     <- disableTouchOpacityAnimation |> Option.orElse (Some true)
-        __props?activeOpacity                    <- activeOpacity
-        __props?underlayColor                    <- underlayColor
-        __props?onContextMenu                    <- onContextMenu
-        __props?onStartShouldSetResponder        <- onStartShouldSetResponder
-        __props?onMoveShouldSetResponder         <- onMoveShouldSetResponder
-        __props?onStartShouldSetResponderCapture <- onStartShouldSetResponderCapture
-        __props?onMoveShouldSetResponderCapture  <- onMoveShouldSetResponderCapture
-        __props?onResponderGrant                 <- onResponderGrant
-        __props?onResponderReject                <- onResponderReject
-        __props?onResponderRelease               <- onResponderRelease
-        __props?onResponderStart                 <- onResponderStart
-        __props?onResponderMove                  <- onResponderMove
-        __props?onResponderEnd                   <- onResponderEnd
-        __props?onResponderTerminate             <- onResponderTerminate
-        __props?onResponderTerminationRequest    <- onResponderTerminationRequest
-        __props?tabIndex                         <- tabIndex
-        __props?useSafeInsets                    <- useSafeInsets
-        __props?ref                              <- ref
-        __props?key                              <- key
-        __props?style                            <- styles
+        // ReactXP-only props (title, focus arbitration, child FLIP animation, safe insets) are
+        // intentionally dropped on the RN/RNW path; callers keep the same F# signature.
+        ignore (title, shouldRasterizeIOS, viewLayerTypeAndroid, restrictFocusWithin, limitFocusWithin)
+        ignore (autoFocus, arbitrateFocus, importantForLayout, accessibilityId)
+        ignore (animateChildEnter, animateChildLeave, animateChildMove, onAccessibilityTapIOS, useSafeInsets)
 
-        Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?View,
-            __props,
-            ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||])
-        )
+        let __props = createEmpty
+
+        ReactXP.RNSeam.assignPointerEvents __props ignorePointerEvents blockPointerEvents
+        ReactXP.RNSeam.assignTestId __props testId
+        id |> Option.iter (fun v -> __props?nativeID <- v)
+        __props?onLayout <- onLayout
+
+        ReactXP.RNSeam.assignAccessibility
+            __props
+            accessibilityLabel
+            (accessibilityRole |> Option.bind ReactXP.RNSeam.mapAccessibilityRole |> Option.map box)
+            accessibilityState
+            (ReactXP.RNSeam.mapImportantForAccessibility importantForAccessibility)
+            (ViewRN.mapLiveRegion accessibilityLiveRegion)
+            accessibilityActions
+            onAccessibilityAction
+            ariaLabelledBy
+            ariaRoleDescription
+            tabIndex
+
+        ViewRN.assignWebHandlers
+            __props
+            onMouseEnter
+            onMouseLeave
+            onDragStart
+            onDrag
+            onDragEnd
+            onDragEnter
+            onDragOver
+            onDragLeave
+            onDrop
+            onMouseOver
+            onMouseMove
+            onContextMenu
+
+        onKeyPress |> Option.iter (fun v -> __props?onKeyPress <- v)
+        onFocus |> Option.iter (fun v -> __props?onFocus <- v)
+        onBlur |> Option.iter (fun v -> __props?onBlur <- v)
+
+        onStartShouldSetResponder |> Option.iter (fun v -> __props?onStartShouldSetResponder <- v)
+        onMoveShouldSetResponder |> Option.iter (fun v -> __props?onMoveShouldSetResponder <- v)
+        onStartShouldSetResponderCapture |> Option.iter (fun v -> __props?onStartShouldSetResponderCapture <- v)
+        onMoveShouldSetResponderCapture |> Option.iter (fun v -> __props?onMoveShouldSetResponderCapture <- v)
+        onResponderGrant |> Option.iter (fun v -> __props?onResponderGrant <- v)
+        onResponderReject |> Option.iter (fun v -> __props?onResponderReject <- v)
+        onResponderRelease |> Option.iter (fun v -> __props?onResponderRelease <- v)
+        onResponderStart |> Option.iter (fun v -> __props?onResponderStart <- v)
+        onResponderMove |> Option.iter (fun v -> __props?onResponderMove <- v)
+        onResponderEnd |> Option.iter (fun v -> __props?onResponderEnd <- v)
+        onResponderTerminate |> Option.iter (fun v -> __props?onResponderTerminate <- v)
+        onResponderTerminationRequest |> Option.iter (fun v -> __props?onResponderTerminationRequest <- v)
+
+        __props?ref <- ref
+        __props?key <- key
+        __props?style <- ViewRN.unboxStyles styles
+
+        let kids =
+            ThirdParty.fixPotentiallySingleChild (
+                Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||]
+            )
+
+        let usePressable =
+            onPress.IsSome
+            || onLongPress.IsSome
+            || underlayColor.IsSome
+            || (activeOpacity.IsSome && activeOpacity <> Some 1.0)
+
+        if usePressable then
+            onPress |> Option.iter (fun v -> __props?onPress <- v)
+            onLongPress |> Option.iter (fun v -> __props?onLongPress <- v)
+            ReactXP.RNSeam.assignPressableFeedback __props disableTouchOpacityAnimation activeOpacity underlayColor
+            ReactXP.RNSeam.createElement ReactXP.RNSeam.Pressable __props kids
+        else
+            ReactXP.RNSeam.createElement ReactXP.RNSeam.View __props kids

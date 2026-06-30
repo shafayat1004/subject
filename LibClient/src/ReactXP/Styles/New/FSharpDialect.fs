@@ -71,7 +71,7 @@ type ViewStylesBuilder() =
     member _.Delay (expr: unit -> seq<RawReactXPStyleRule>) : unit -> seq<RawReactXPStyleRule> = expr
 
     member _.Run (f: unit -> seq<RawReactXPStyleRule>) : ViewStyles =
-        !!(!!(f()) |> createObj |> ReactXP.Helpers.ReactXPRaw?Styles?createViewStyle)
+        !!(!!(f()) |> createObj |> ReactXP.RNSeam.createViewStyle)
 
 let makeViewStyles = ViewStylesBuilder()
 
@@ -153,7 +153,7 @@ type ScrollViewStylesBuilder() =
     member _.Delay (expr: unit -> seq<RawReactXPStyleRule>) : unit -> seq<RawReactXPStyleRule> = expr
 
     member _.Run (f: unit -> seq<RawReactXPStyleRule>) : ScrollViewStyles =
-        !!(!!(f()) |> createObj |> ReactXP.Helpers.ReactXPRaw?Styles?createViewStyle)
+        !!(!!(f()) |> createObj |> ReactXP.RNSeam.createViewStyle)
 
 let makeScrollViewStyles = ScrollViewStylesBuilder()
 
@@ -197,7 +197,7 @@ type TextStylesBuilder() =
     member _.Delay (expr: unit -> seq<RawReactXPStyleRule>) : unit -> seq<RawReactXPStyleRule> = expr
 
     member _.Run (f: unit -> seq<RawReactXPStyleRule>) : TextStyles =
-        !!(!!(f()) |> createObj |> ReactXP.Helpers.ReactXPRaw?Styles?createTextStyle)
+        !!(!!(f()) |> createObj |> ReactXP.RNSeam.createTextStyle)
 
 let makeTextStyles = TextStylesBuilder()
 

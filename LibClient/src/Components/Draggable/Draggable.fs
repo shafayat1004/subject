@@ -219,6 +219,7 @@ type LibClient.Components.Constructors.LC with
             ?onChange:        Change -> unit,
             ?draggableRef:    LibClient.JsInterop.JsNullable<IDraggableRef> -> unit,
             ?testId:          string,
+            ?styles:          array<ViewStyles>,
             ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
             ?key:             string
         ) : ReactElement =
@@ -414,7 +415,7 @@ type LibClient.Components.Constructors.LC with
 
         RX.View(
             ?testId = testId,
-            styles = [| Styles.wrapper |],
+            styles = [| Styles.wrapper; yield! (defaultArg styles [||]) |],
             children =
                 [|
                     RX.AnimatableView(

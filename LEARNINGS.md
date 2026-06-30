@@ -5,6 +5,146 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — Phase 4 RNW seam: handheld sidebar invisible (containing-block height 0)
+
+### Root cause
+
+`LC.Draggable` renders: `RX.View[wrapper]` > `RX.AnimatableView[position:absolute, top:0, bottom:0]` > `RX.GestureView` > sidebar content.
+
+After the RNW migration, `RX.View` is now `RNSeam.View` (react-native-web). The wrapper is a
+flex child with no in-flow content (AnimatableView inside is `position:absolute`). React Native
+Web's default flex layout gives the wrapper `height:0`. The `top:0; bottom:0` on the
+absolutely-positioned AnimatableView resolve relative to its containing block (the wrapper),
+which has height 0 -- so the AnimatableView also has height 0. The sidebar is invisible.
+
+ReactXP's old web View had the same `position:relative; flexGrow:0` defaults, so this was a
+latent bug now exposed by the RNW switch.
+
+### Fix
+
+Added `?styles: array<ViewStyles>` to `LC.Draggable` (applied to the outer wrapper `RX.View`).
+
+In `Content.fs`, replaced `xLegacyStyles = Styles.sidebarDraggableLegacyStyles width` with
+`styles = [| Styles.sidebarDraggableStyles width |]`. The new style is a memoized
+`makeViewStyles { Position.Absolute; top 0; bottom 0; left 0; width itemWidth; Overflow.Visible }`.
+This makes the wrapper cover the full container height; `top:0; bottom:0` on the
+AnimatableView inside now resolves to the full height, making the sidebar visible and
+the slide-in animation correct.
+
+Files: `LibClient/src/Components/Draggable/Draggable.fs`,
+`LibClient/src/Components/AppShell/Content/Content.fs`.
+
+---
+
+## 2026-06-30 — Phase 4 RNW seam: three more visual regressions fixed
+
+### Bug 3: `AccessibilityRole.Header` on View → `<h1>` → 2em inherited font size
+
+`mapAccessibilityRole(AccessibilityRole.Header)` previously returned `Some "header"`.
+RNW's `propsToAriaRole` maps `"header"` → ARIA `"heading"`, and
+`propsToAccessibilityComponent` maps `"heading"` (with no `aria-level`) → `<h1>` element.
+Browser default `<h1>` style is `font-size: 2em`, which at 14px base = 28px.
+All children (like the "Visuals" toggle area inside Nav.Top.Base) inherited this.
+
+Fix: map `Header → Some "banner"`. RNW maps `"banner"` → `<header>` element (correct
+site-level landmark, no default font-size). ReactXP's `Text.js` ignores `accessibilityRole`
+on `LC.LegacyText` entirely (props are not forwarded to DOM), so no regression there.
+
+### Bug 4: Numeric `lineHeight` in `makeTextStyles` treated as CSS multiplier
+
+`makeTextStyles { fontSize 16; lineHeight 24 }` produces `{ lineHeight: 24 }` (integer).
+As an inline style, CSS treats unitless `line-height: 24` as a multiplier: 24 × 16px = 384px.
+ReactXP's `_adaptStyles` converted `lineHeight: N` → `lineHeight: "Npx"` strings. The
+new `makeTextStyles` path via `RNSeam.createTextStyle` bypassed that conversion.
+
+Fix: added `if (typeof o.lineHeight === 'number') { o.lineHeight = o.lineHeight + 'px'; }`
+to `RNSeam.createTextStyle`'s `[<Emit>]` JS function.
+
+### Bug 5: `LC.Nav.Top.Heading` pure-F# styles missing color and font size
+
+`HeadingStyles.Theme.All(theColor = Color.White)` registers CSS class rules via
+`makeCustomize`/`ComponentRegistry.RegisterStyles`. Pure-F# `[<Component>]` components
+don't call `ComponentRegistry.GetStyles`; the registered theme has no effect. As a result,
+`Heading.Styles.text`'s grey/36px defaults win.
+
+Fix: added `color Color.White; fontSize 24` to `Styles.view` and `fontSize 16` to
+`Styles.viewHandheld` in `Nav.Top.Heading/Heading.fs` — matching the values that
+`DefaultComponentsTheme.Nav.Top.HeadingStyles.Theme.All` registered.
+General rule: when converting a render-DSL component that had a `makeCustomize`-driven
+theme, the pure-F# equivalent must bake those themed values into its `makeTextStyles`/
+`makeViewStyles` directly (or add a `Themes.Set<SomeType>` mechanism).
+
+---
+
+## 2026-06-29 — Phase 4 RNW seam: two layout/a11y bugs found and fixed
+
+### Bug 1: `flex: 0` collapses elements (sidebar width 0px)
+
+**Root cause:** ReactXP's web `Styles.createViewStyle` expands `flex: N` into explicit
+`{flexGrow, flexShrink}` without setting `flexBasis`, so elements size to their content.
+When we replaced `createViewStyle` with an identity function, raw `{flex: 0}` hit the browser
+as the CSS shorthand `flex: 0 1 0%` (standard CSS: missing flex-basis in shorthand defaults to 0).
+That collapses any container whose children are the sole source of width -- exactly what the
+AppShell sidebar does (`sidebarBlockDesktop` has `flex 0`, the sidebar child provides the 300px).
+
+**Fix:** `RNSeam.createViewStyle` (and `createTextStyle`) now replicate ReactXP's expansion via
+`[<Emit>]`:
+- `flex > 0` → `{flexGrow: flex, flexShrink: 1}` (no flexBasis = auto)
+- `flex = 0` → `{flexGrow: 0, flexShrink: 0}` (element sizes to content)
+- `flex < 0` → `{flexGrow: 0, flexShrink: -flex}`
+
+RNW's own `createReactDOMStyle` only expands `flex: -1` to `{flexGrow:0, flexShrink:1, flexBasis:auto}`;
+all other values pass through as-is, which means 0 and positive values need our normalization.
+
+**Verification:** sidebar rendered at 300px (was 0px), content at 980px after fix.
+
+### Bug 2: `AccessibilityRole` integer enum passed as-is (role="16" in HTML)
+
+**Root cause:** `LibClient.Accessibility.AccessibilityRole` is a plain integer enum (not
+`[<StringEnum>]`). Call sites were doing `Option.map box` which boxes the integer (e.g. 16 for
+`Header`). RNW's `propsToAriaRole` received `"16"` and passed it through as the role attribute.
+
+**Fix:** Added `RNSeam.mapAccessibilityRole` and `RNSeam.mapImportantForAccessibility` shared
+helpers that map the integer enum values to the string names RNW expects. Key mappings:
+- `Header` → `"header"` (RNW then maps to `role="heading"`)
+- `Button` → `"button"`, `None` → `"none"` (RNW → `"presentation"`)
+- `Imagebutton`, `Keyboardkey`, `Text` → `None` (RNW explicitly ignores these)
+
+Updated `View.fs`, `Button.fs`, `TextInput.fs` to use the new helpers.
+
+---
+
+## 2026-06-29 — Phase 4 RNW seam kickoff (`modernization/rnw`)
+
+**Branch:** `modernization/rnw` from `modernization/fable5-migration`. Live work is Phase 4 (ReactXP →
+RN/RNW), not another Fable 5 pass.
+
+**First increment (scaffolding, no primitive swap yet):**
+1. `LibClient/package.json` — add `react-native-web` (webpack web target; native Metro keeps `react-native`).
+2. `Meta/LibFablePlus/webpack.config.js` — alias `react-native$` → `react-native-web`, prefer `.web.js`
+   extensions (standard RNW + webpack recipe).
+3. `LibClient/src/ReactXP/RNSeam.fs` — spike-pattern `import "View" "react-native"` etc., RN style
+   pass-through (`createObj` without ReactXP `Styles.createViewStyle`), platform shim via RN `Platform`
+   + existing `platform-detect` for web OS.
+
+**Next gate (strong-model pattern, `MIGRATION_RUNBOOK.md` §4):** ~~re-point `View.fs`~~ **DONE** (2026-06-29).
+Gallery `dev-web` webpack green. Remaining: native Metro smoke; animation layer (Moti).
+
+**Primitive seam status (2026-06-29):**
+- Ported to RN/RNW: View, Text, ScrollView, Button (→Pressable), ActivityIndicator, Image, TextInput
+- Styles ported: `makeViewStyles`, `makeTextStyles`, `makeScrollViewStyles` → `RNSeam.createViewStyle/createTextStyle`
+- Deferred: **GestureView** — all 4 callers (Draggable, Carousel, Scrim, SegmentedControl) use only
+  `onPanHorizontal`/`onPanVertical`. A correct RN PanResponder port needs a `[<Component>]` wrapper to
+  avoid recreating the responder on every render, and careful gesture-state mapping (PanResponder
+  `moveX`/`moveY`/`x0`/`y0` → `PanGestureState` `pageX`/`pageY`/`initialPageX`/`initialPageY`).
+  GestureView still routes to `ReactXPRaw?GestureView` until that sprint. Compiles and works fine
+  in the meantime — ReactXP is still in the bundle.
+
+**Version note:** spike pins RN 0.85 / React 19; repo apps are still RN 0.76.5 / React 18.3.1. Bump
+those after the View reference primitive is green, not before.
+
+---
+
 ## 2026-06-29 — Framework-first UI + LibClient rebuild + LC.SegmentedControl
 
 **Rule:** For UI component tasks, decide framework vs app first (`.cursor/rules/framework-ui-first.mdc`,

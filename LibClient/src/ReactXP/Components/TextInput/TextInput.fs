@@ -47,6 +47,33 @@ type ITextInputRef =
     abstract member requestFocus: unit -> unit;
     abstract member blur: unit -> unit;
 
+module private TextInputRN =
+    let unboxStyles (styles: array<ReactXP.Styles.FSharpDialect.ViewStyles> option) : array<obj> option =
+        styles |> Option.map (Array.map (fun s -> (!!s) :> obj))
+
+    // ReactXP: float -> float -> unit; RN: {nativeEvent: {selection: {start, end}}}
+    let wrapOnSelectionChange (f: (float -> float -> unit) option) : obj option =
+        f |> Option.map (fun handler ->
+            box (fun (e: obj) ->
+                let s = e?nativeEvent?selection?start |> float
+                let en = e?nativeEvent?selection?``end`` |> float
+                handler s en))
+
+    // ReactXP: float -> float -> unit (scrollX, scrollY); RN: scroll event
+    let wrapOnScroll (f: (float -> float -> unit) option) : obj option =
+        f |> Option.map (fun handler ->
+            box (fun (e: obj) ->
+                let x = e?nativeEvent?contentOffset?x |> float
+                let y = e?nativeEvent?contentOffset?y |> float
+                handler x y))
+
+    let assignWebProps (props: obj) (onPaste: (ClipboardEvent -> unit) option) (tabIndex: int option) : unit =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        onPaste   |> Option.iter (fun v -> props?onPaste <- v)
+        tabIndex  |> Option.iter (fun v -> props?tabIndex <- v)
+        #endif
+        ()
+
 type ReactXP.Components.Constructors.RX with
     static member TextInput(
         ?autoCapitalize:           AutoCapitalize,
@@ -87,6 +114,9 @@ type ReactXP.Components.Constructors.RX with
         ?styles:                   array<ReactXP.Styles.FSharpDialect.ViewStyles>,
         ?xLegacyStyles:            List<ReactXP.LegacyStyles.RuntimeStyles>
     ) =
+        // title is ReactXP-only (iOS accessibility label fallback)
+        ignore (title, xLegacyStyles)
+
         let __props = createEmpty
 
         __props?autoCapitalize           <- autoCapitalize
@@ -102,7 +132,6 @@ type ReactXP.Components.Constructors.RX with
         __props?placeholderTextColor     <- placeholderTextColor
         __props?secureTextEntry          <- secureTextEntry
         __props?value                    <- value
-        __props?title                    <- title
         __props?allowFontScaling         <- allowFontScaling
         __props?maxContentSizeMultiplier <- maxContentSizeMultiplier
         __props?keyboardAppearance       <- keyboardAppearance
@@ -110,28 +139,20 @@ type ReactXP.Components.Constructors.RX with
         __props?disableFullscreenUI      <- disableFullscreenUI
         __props?spellCheck               <- spellCheck |> Option.orElse (Some false)
         __props?selectionColor           <- selectionColor
-        __props?tabIndex                 <- tabIndex
         __props?clearButtonMode          <- clearButtonMode
         __props?onKeyPress               <- onKeyPress
         __props?onFocus                  <- onFocus
         __props?onBlur                   <- onBlur
-        __props?onPaste                  <- onPaste
         __props?onChangeText             <- onChangeText
-        __props?onSelectionChange        <- onSelectionChange
+        __props?onSelectionChange        <- TextInputRN.wrapOnSelectionChange onSelectionChange
         __props?onSubmitEditing          <- onSubmitEditing
-        __props?onScroll                 <- onScroll
+        __props?onScroll                 <- TextInputRN.wrapOnScroll onScroll
         __props?ref                      <- ref
         __props?accessibilityLabel       <- accessibilityLabel
-        __props?accessibilityRole        <- accessibilityRole
+        __props?accessibilityRole        <- (accessibilityRole |> Option.bind ReactXP.RNSeam.mapAccessibilityRole)
         __props?key                      <- key
-        __props?style                    <- styles
+        __props?style                    <- TextInputRN.unboxStyles styles
 
-        match xLegacyStyles with
-        | Option.None | Option.Some [] -> ()
-        | Option.Some styles -> __props?__style <- styles
+        TextInputRN.assignWebProps __props onPaste tabIndex
 
-        Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?TextInput,
-            __props,
-            [||]
-        )
+        ReactXP.RNSeam.createElement ReactXP.RNSeam.TextInput __props [||]

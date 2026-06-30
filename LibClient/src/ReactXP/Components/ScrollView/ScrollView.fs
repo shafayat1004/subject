@@ -37,6 +37,23 @@ type IScrollViewRef =
     abstract member setScrollLeft: (* scrollLeft *) int * (* animate *) bool -> unit;
     abstract member setScrollTop:  (* scrollTop *)  int * (* animate *) bool -> unit;
 
+module private ScrollViewRN =
+    let unboxStyles (styles: array<ReactXP.Styles.FSharpDialect.ScrollViewStyles> option) : array<obj> option =
+        styles |> Option.map (Array.map (fun s -> (!!s) :> obj))
+
+    // RN onScroll event: {nativeEvent: {contentOffset: {x, y}}}
+    // ReactXP signature: int * int -> unit
+    let wrapOnScroll (f: (int * int -> unit) option) : obj option =
+        f |> Option.map (fun handler ->
+            box (fun (e: obj) ->
+                let x = e?nativeEvent?contentOffset?x |> int
+                let y = e?nativeEvent?contentOffset?y |> int
+                handler (x, y)))
+
+    // ReactXP used bool; RN uses 'always'|'handled'|'never'
+    let mapKeyboardShouldPersistTaps (v: bool option) : obj option =
+        v |> Option.map (fun b -> if b then box "always" else box "never")
+
 type ReactXP.Components.Constructors.RX with
     static member ScrollView(
         ?children:                       ReactChildrenProp,
@@ -74,13 +91,16 @@ type ReactXP.Components.Constructors.RX with
         // scrollXAnimatedValue:            RX.Types.AnimatedValue      option // defaultWithAutoWrap Undefined
         // scrollYAnimatedValue:            RX.Types.AnimatedValue      option // defaultWithAutoWrap Undefined
     ) =
+        // tabNavigation is ReactXP web-only; no RN equivalent
+        ignore tabNavigation
+
         let __props = createEmpty
 
         __props?vertical                       <- vertical
         __props?horizontal                     <- horizontal
         __props?onLayout                       <- onLayout
         __props?onContentSizeChange            <- onContentSizeChange
-        __props?onScroll                       <- match onScroll with | None -> !!None | Some f -> !!(fixTupledFunctionOnRawJsBoundary f)
+        __props?onScroll                       <- ScrollViewRN.wrapOnScroll onScroll
         __props?onScrollBeginDrag              <- onScrollBeginDrag
         __props?onScrollEndDrag                <- onScrollEndDrag
         __props?onKeyPress                     <- onKeyPress
@@ -90,7 +110,8 @@ type ReactXP.Components.Constructors.RX with
         __props?showsVerticalScrollIndicator   <- showsVerticalScrollIndicator
         __props?scrollEnabled                  <- scrollEnabled
         __props?keyboardDismissMode            <- keyboardDismissMode
-        __props?keyboardShouldPersistTaps      <- keyboardShouldPersistTaps |> Option.orElse (Some true)
+        __props?keyboardShouldPersistTaps      <-
+            ScrollViewRN.mapKeyboardShouldPersistTaps (keyboardShouldPersistTaps |> Option.orElse (Some true))
         __props?scrollEventThrottle            <- scrollEventThrottle
         __props?bounces                        <- bounces
         __props?pagingEnabled                  <- pagingEnabled
@@ -98,17 +119,16 @@ type ReactXP.Components.Constructors.RX with
         __props?scrollsToTop                   <- scrollsToTop
         __props?overScrollMode                 <- overScrollMode
         __props?scrollIndicatorInsets          <- scrollIndicatorInsets
-        __props?tabNavigation                  <- tabNavigation
         __props?ref                            <- ref
-        __props?testId                         <- testId
-        __props?style                          <- styles
+        __props?style                          <- ScrollViewRN.unboxStyles styles
+
+        ReactXP.RNSeam.assignTestId __props testId
 
         match xLegacyStyles with
         | Option.None | Option.Some [] -> ()
-        | Option.Some styles -> __props?__style <- styles
+        | Option.Some ls -> __props?__style <- ls
 
-        Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?ScrollView,
-            __props,
-            ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||])
-        )
+        ReactXP.RNSeam.createElement
+            ReactXP.RNSeam.ScrollView
+            __props
+            (ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||]))

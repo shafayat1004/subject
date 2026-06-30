@@ -14,15 +14,16 @@
 > SignalR) and `/Volumes/HomeX/shafayat/Code/orleans-net10-spike` (backend: Orleans 3.7.2 on .NET 10).
 > Use those as copy-from references.
 
-> **CURRENT BRANCH STATUS (`modernization/fable5-migration`, 2026-06-29):** the toolchain is **already
-> Fable 5.4.0 on .NET 10 (10.0.301)** — `Fable.Core` 5.0.0, `Fable.React` 10.0.0-alpha.1; native + web
-> build green this session. So **Phase 1 (Fable 5 + .NET 10 build host) is effectively DONE on this
-> branch**, and SignalR is on the modular `eggshell-signalr` bindings (**Phase 2 done**). **Phase 4 (RNW
-> seam) is NOT started — still `@chaldal/reactxp`** (this session even patched vendored ReactXP, then
-> reverted in favor of an F# fix). Phase 3 (backend net10 TFMs) status: SDK is net10; per-project TFMs
-> unverified here. Treat Phases 1-2 as recipe/history for re-runs; the live frontier is Phase 4 (+ Phase
-> 5 app work, ongoing). NOTE: `subject/CLAUDE.md`'s "stay on current Fable (v4)" line is **stale on this
-> branch** — confirm with the owner before treating v4 as current.
+> **CURRENT BRANCH STATUS (`modernization/rnw`, 2026-06-29):** branched from `modernization/fable5-migration`.
+> Toolchain is **Fable 5.4.0 on .NET 10 (10.0.301)** — `Fable.Core` 5.0.0, `Fable.React` 10.0.0-alpha.1;
+> native + web build green. **Phase 1 done**, **Phase 2 done** (modular `eggshell-signalr`). **Phase 4
+> (RNW seam) is the live frontier:** primitives still render through `@chaldal/reactxp`; Phase 4 kickoff
+> adds `react-native-web`, the webpack `react-native` → `react-native-web` alias, and `LibClient` seam
+> scaffolding (`ReactXP/RNSeam.fs`) before the first primitive (`View`) is re-pointed. **Phase 5**
+> (`SuiteTodo` reference app) is largely built on the ReactXP seam; finish 5C gaps (EditTodo dialog,
+> Settings route) in parallel if needed before templatize (5E). Phase 3 (backend net10 TFMs): SDK is
+> net10; per-project TFMs partially flipped; simulation runner wiring still open. NOTE: `subject/CLAUDE.md`
+> already documents Fable 5 on this line of branches.
 
 ---
 

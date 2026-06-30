@@ -64,6 +64,7 @@
     <Compile Include="ReactXP/Types.fs" />
     <Compile Include="ReactXP/NetInfo.fs" />
     <Compile Include="ReactXP/ReactXPBindings.fs" />
+    <Compile Include="ReactXP/RNSeam.fs" />
 
     <Compile Include="Services/PageTitleService/PageTitleService.fs" />
     <Compile Include="Services/ImageService/ImageService.fs" />

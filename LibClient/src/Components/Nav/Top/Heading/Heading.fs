@@ -79,10 +79,15 @@ module Nav_Top_Heading =
 
     [<RequireQualifiedAccess>]
     module private Styles =
+        // White color and 24px Desktop / 16px Handheld match HeadingStyles.styles defaults
+        // and DefaultComponentsTheme.Nav.Top.HeadingStyles.Theme.All. The legacy makeCustomize
+        // system registered these values but the pure-F# component doesn't read them.
         let view =
             makeTextStyles {
                 flex 1
                 FontWeight.Normal
+                color Color.White
+                fontSize 24
             }
 
         let viewHandheld =
@@ -90,6 +95,7 @@ module Nav_Top_Heading =
                 AlignSelf.Center
                 AlignItems.Center
                 TextAlign.Center
+                fontSize 16
             }
 
     type LibClient.Components.Constructors.LC.Nav.Top with

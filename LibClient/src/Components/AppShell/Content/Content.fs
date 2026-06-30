@@ -82,14 +82,21 @@ module private Styles =
             flex 0
         }
 
-    let sidebarDraggableLegacyStyles (width: int) =
-        ReactXP.LegacyStyles.Designtime.processDynamicStyles [|
-            ReactXP.LegacyStyles.RulesBasic.Position.Absolute
-            ReactXP.LegacyStyles.RulesBasic.top 0
-            ReactXP.LegacyStyles.RulesBasic.bottom 0
-            ReactXP.LegacyStyles.RulesBasic.left 0
-            ReactXP.LegacyStyles.RulesBasic.width width
-        |]
+    // Positions the Draggable wrapper so its contained AnimatableView has a real containing
+    // block height. Without this, the wrapper is a flex child with height:0 (no in-flow
+    // content), and top:0/bottom:0 on the absolutely-positioned AnimatableView inside it
+    // also resolves to height:0 -- making the sidebar invisible.
+    let sidebarDraggableStyles: int -> ViewStyles =
+        ViewStyles.Memoize (fun (itemWidth: int) ->
+            makeViewStyles {
+                Position.Absolute
+                top 0
+                bottom 0
+                left 0
+                width itemWidth
+                Overflow.Visible
+            }
+        )
 
     let sidebarWrapper =
         makeViewStyles {
@@ -278,7 +285,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                     onChange = Actions.onSidebarDraggableChange isSidebarScrimVisibleHook,
                                     baseOffset = (-width + 10, 0),
                                     right = {| ForwardThreshold = 30; Offset = width - 10; BackwardThreshold = 50 |},
-                                    xLegacyStyles = Styles.sidebarDraggableLegacyStyles width,
+                                    styles = [| Styles.sidebarDraggableStyles width |],
                                     children =
                                         elements {
                                             RX.View(
