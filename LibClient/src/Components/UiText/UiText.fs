@@ -6,9 +6,9 @@ open Fable.Core.JsInterop
 open Browser.Types
 open ReactXP.Styles
 
-type EllipsizeMode = ReactXP.Components.UiText.EllipsizeMode
-type TextBreakStrategy = ReactXP.Components.UiText.TextBreakStrategy
-type ImportantForAccessibility = ReactXP.Components.UiText.ImportantForAccessibility
+type EllipsizeMode             = ReactXP.Components.Text.EllipsizeMode
+type TextBreakStrategy         = ReactXP.Components.Text.TextBreakStrategy
+type ImportantForAccessibility = ReactXP.Components.Text.ImportantForAccessibility
 
 let Head   = EllipsizeMode.Head
 let Middle = EllipsizeMode.Middle

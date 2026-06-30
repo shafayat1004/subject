@@ -7,6 +7,23 @@ open Fable.Core.JsInterop
 open Browser.Types
 open LibClient
 
+module private LinkRN =
+    let unboxStyles (styles: array<ReactXP.Styles.FSharpDialect.ViewStyles> option) : array<obj> option =
+        styles |> Option.map (Array.map (fun s -> (!!s) :> obj))
+
+    let assignWebHandlers
+            (props: obj)
+            (onHoverStart:  (Event -> unit) option)
+            (onHoverEnd:    (Event -> unit) option)
+            (onContextMenu: (MouseEvent -> unit) option)
+            : unit =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        onHoverStart  |> Option.iter (fun v -> props?onMouseEnter <- v)
+        onHoverEnd    |> Option.iter (fun v -> props?onMouseLeave <- v)
+        onContextMenu |> Option.iter (fun v -> props?onContextMenu <- v)
+        #endif
+        ()
+
 type ReactXP.Components.Constructors.RX with
     static member Link(
         url:                       string,
@@ -27,30 +44,42 @@ type ReactXP.Components.Constructors.RX with
         ?styles:                   array<ReactXP.Styles.FSharpDialect.ViewStyles>,
         ?xLegacyStyles:            List<ReactXP.LegacyStyles.RuntimeStyles>
     ) =
+        // Text-layout props (selectable, numberOfLines, allowFontScaling, maxContentSizeMultiplier)
+        // and ReactXP-only props are dropped on the RN/RNW path; callers keep the same F# signature.
+        ignore (selectable, numberOfLines, allowFontScaling, maxContentSizeMultiplier)
+        ignore (accessibilityId, autoFocus)
+
         let __props = createEmpty
 
-        __props?url                      <- url
-        __props?title                    <- title
-        __props?selectable               <- selectable
-        __props?numberOfLines            <- numberOfLines
-        __props?allowFontScaling         <- allowFontScaling
-        __props?maxContentSizeMultiplier <- maxContentSizeMultiplier
-        __props?tabIndex                 <- tabIndex
-        __props?accessibilityId          <- accessibilityId
-        __props?autoFocus                <- autoFocus
-        __props?onPress                  <- onPress
-        __props?onLongPress              <- onLongPress
-        __props?onHoverStart             <- onHoverStart
-        __props?onHoverEnd               <- onHoverEnd
-        __props?onContextMenu            <- onContextMenu
-        __props?style                    <- styles
+        // href on web renders as <a href> via RNW, giving keyboard activation + :focus-visible free
+        #if EGGSHELL_PLATFORM_IS_WEB
+        __props?href <- url
+        #endif
+
+        ReactXP.RNSeam.assignTestId __props (title |> Option.orElse (Some url))
+        __props?tabIndex <- tabIndex
+
+        // role="link" baked in; no need to map through AccessibilityRole DU
+        ReactXP.RNSeam.assignAccessibility
+            __props
+            (title |> Option.orElse (Some url))
+            (Some (box "link"))
+            None None None None None None None
+            tabIndex
+
+        // onPress/onLongPress: ReactXP passes (event, url); Pressable passes only the event
+        onPress     |> Option.iter (fun handler -> __props?onPress     <- (fun (e: obj) -> handler (unbox e) url))
+        onLongPress |> Option.iter (fun handler -> __props?onLongPress <- (fun (e: obj) -> handler (unbox e) url))
+
+        LinkRN.assignWebHandlers __props onHoverStart onHoverEnd onContextMenu
+
+        __props?style <- LinkRN.unboxStyles styles
 
         match xLegacyStyles with
         | Option.None | Option.Some [] -> ()
-        | Option.Some styles -> __props?__style <- styles
+        | Option.Some ls -> __props?__style <- ls
 
-        Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?Link,
-            __props,
-            ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||])
-        )
+        ReactXP.RNSeam.createElement
+            ReactXP.RNSeam.Pressable
+            __props
+            (ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||]))

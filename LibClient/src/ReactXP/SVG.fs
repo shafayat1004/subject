@@ -1,8 +1,20 @@
 module ReactXP.SVG
 
+open Fable.Core
 open Fable.Core.JsInterop
+open Fable.React
 
-let RXSVG: obj = Fable.Core.JsInterop.import "*" "@chaldal/reactxp-imagesvg"
+let private RNSvg  : obj = import "Svg"  "react-native-svg"
+let private RNPath : obj = import "Path" "react-native-svg"
 
-let ImageSvg: obj -> array<Fable.React.ReactElement> -> Fable.React.ReactElement = LibClient.ThirdParty.wrapComponent<obj>(RXSVG?("default"))
-let SvgPath: obj -> array<Fable.React.ReactElement> -> Fable.React.ReactElement = LibClient.ThirdParty.wrapComponent<obj>(RXSVG?("SvgPath"))
+// height/width/viewBox props pass through unchanged (Icons.fs uses these exact names)
+let ImageSvg (props: obj) (children: array<ReactElement>) : ReactElement =
+    ReactBindings.React.createElement(RNSvg, props, children)
+
+// Icons.fs passes {| fillColor = "..."; d = "..." |}
+// react-native-svg Path uses `fill` not `fillColor` -- remap here so callers stay unchanged
+let SvgPath (props: obj) (children: array<ReactElement>) : ReactElement =
+    let rProps = createEmpty
+    rProps?fill <- props?fillColor
+    rProps?d    <- props?d
+    ReactBindings.React.createElement(RNPath, rProps, children)

@@ -1,32 +1,34 @@
 [<AutoOpen>]
 module ReactXP.Components.UiText
 
-open LibClient
+open LibClient.JsInterop
 
 open ReactXP.Helpers
 
 open Fable.Core.JsInterop
+open Fable.React
 open Fable.Core
 open Browser.Types
+open LibClient
 
-[<StringEnum>]
-type EllipsizeMode =
-| Head
-| Middle
-| Tail
+module private UiTextRN =
+    // ImportantForAccessibility is in scope from Text.fs ([<AutoOpen>], compiled before UiText.fs)
+    let mapImportantForAccessibility (v: ImportantForAccessibility option) : obj option =
+        v |> Option.map (function
+            | ImportantForAccessibility.Auto              -> box "auto"
+            | ImportantForAccessibility.Yes               -> box "yes"
+            | ImportantForAccessibility.No                -> box "no"
+            | ImportantForAccessibility.NoHideDescendants -> box "no-hide-descendants"
+            | _                                           -> box "auto")
 
-[<StringEnum>]
-type TextBreakStrategy =
-| HighQuality
-| Simple
-| Balanced
+    let unboxStyles (styles: array<ReactXP.Styles.FSharpDialect.TextStyles> option) : array<obj> option =
+        styles |> Option.map (Array.map (fun s -> (!!s) :> obj))
 
-type ImportantForAccessibility =
-| Auto              = 1
-| Yes               = 2
-| No                = 3
-| NoHideDescendants = 4
-
+    let assignWebHandlers (props: obj) (onContextMenu: (MouseEvent -> unit) option) : unit =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        onContextMenu |> Option.iter (fun v -> props?onContextMenu <- v)
+        #endif
+        ()
 
 type ReactXP.Components.Constructors.RX with
     static member UiText(
@@ -84,28 +86,31 @@ type ReactXP.Components.Constructors.RX with
         ?xLegacyStyles:             List<ReactXP.LegacyStyles.RuntimeStyles>,
         ?styles:                    array<ReactXP.Styles.FSharpDialect.TextStyles>
     ) =
+        ignore (accessibilityId, autoFocus)
+
         let __props = createEmpty
-        __props?selectable                <- selectable |> Option.orElse (Some false)
-        __props?numberOfLines             <- numberOfLines
-        __props?allowFontScaling          <- allowFontScaling
-        __props?maxContentSizeMultiplier  <- maxContentSizeMultiplier
-        __props?ellipsizeMode             <- ellipsizeMode
-        __props?textBreakStrategy         <- textBreakStrategy
-        __props?importantForAccessibility <- importantForAccessibility
-        __props?accessibilityId           <- accessibilityId
-        __props?autoFocus                 <- autoFocus
-        __props?onPress                   <- onPress
-        __props?id                        <- id
-        __props?onContextMenu             <- onContextMenu
-        __props?style                     <- styles
-        __props?key                       <- key
+
+        __props?selectable               <- selectable |> Option.orElse (Some false)
+        __props?numberOfLines            <- numberOfLines
+        __props?allowFontScaling         <- allowFontScaling
+        __props?maxContentSizeMultiplier <- maxContentSizeMultiplier
+        __props?ellipsizeMode            <- ellipsizeMode
+        __props?textBreakStrategy        <- textBreakStrategy
+        __props?onPress                  <- onPress
+        __props?nativeID                 <- id
+        __props?key                      <- key
+        __props?style                    <- UiTextRN.unboxStyles styles
+
+        UiTextRN.mapImportantForAccessibility importantForAccessibility
+        |> Option.iter (fun v -> __props?importantForAccessibility <- v)
+
+        UiTextRN.assignWebHandlers __props onContextMenu
 
         match xLegacyStyles with
         | Option.None | Option.Some [] -> ()
-        | Option.Some styles -> __props?__style <- styles
+        | Option.Some ls -> __props?__style <- ls
 
-        Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?Text,
-            __props,
-            ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||])
-        )
+        ReactXP.RNSeam.createElement
+            ReactXP.RNSeam.Text
+            __props
+            (ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||]))
