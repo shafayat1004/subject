@@ -66,7 +66,7 @@ let renderPickerBase<'Item when 'Item : comparison>(
                 LC.Input.PickerInternals.Popup(model, itemView, ?key = pickerId)
 
             let options =
-                ReactXP.Helpers.popupShowOptions
+                ReactXP.Popup.popupShowOptions
                     (fun () -> anchorRef.current)
                     (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
                         popup)
@@ -76,11 +76,11 @@ let renderPickerBase<'Item when 'Item : comparison>(
             LibClient.JsInterop.runOnNextTick (fun () ->
                 // Defer one extra tick so the opening click does not immediately dismiss the popup (web).
                 LibClient.JsInterop.runOnNextTick (fun () ->
-                    ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
+                    ReactXP.Popup.show(options, popupId)
 
                     maybePopupHideRef.current <-
                         Some (fun () ->
-                            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
+                            ReactXP.Popup.dismiss(popupId)
                             maybePopupHideRef.current <- None
                         )))
 

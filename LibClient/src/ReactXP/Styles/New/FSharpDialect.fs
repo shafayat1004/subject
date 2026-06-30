@@ -124,7 +124,7 @@ type AnimatableViewStylesBuilder() =
     member _.Delay (expr: unit -> seq<RawReactXPStyleRule>) : unit -> seq<RawReactXPStyleRule> = expr
 
     member _.Run (f: unit -> seq<RawReactXPStyleRule>) : AnimatableViewStyles =
-        !!(!!(f()) |> createObj |> ReactXP.Helpers.ReactXPRaw?Styles?createAnimatedViewStyle)
+        !!(!!(f()) |> createObj |> ReactXP.RNSeam.createAnimatedViewStyle)
 
 let makeAnimatableViewStyles = AnimatableViewStylesBuilder()
 
@@ -268,7 +268,7 @@ type AnimatableTextStylesBuilder() =
     member _.Delay (expr: unit -> seq<RawReactXPStyleRule>) : unit -> seq<RawReactXPStyleRule> = expr
 
     member _.Run (f: unit -> seq<RawReactXPStyleRule>) : AnimatableTextStyles =
-        !!(!!(f()) |> createObj |> ReactXP.Helpers.ReactXPRaw?Styles?createAnimatedTextStyle)
+        !!(!!(f()) |> createObj |> ReactXP.RNSeam.createAnimatedTextStyle)
 
 let makeAnimatableTextStyles = AnimatableTextStylesBuilder()
 
@@ -333,7 +333,7 @@ type AnimatableTextInputStylesBuilder() =
     member _.Delay (expr: unit -> seq<RawReactXPStyleRule>) : unit -> seq<RawReactXPStyleRule> = expr
 
     member _.Run (f: unit -> seq<RawReactXPStyleRule>) : AnimatableTextInputStyles =
-        !!(!!(f()) |> createObj |> ReactXP.Helpers.ReactXPRaw?Styles?createAnimatedTextInputStyle)
+        !!(!!(f()) |> createObj |> ReactXP.RNSeam.createAnimatedTextInputStyle)
 
 let makeAnimatableTextInputStyles = AnimatableTextInputStylesBuilder()
 

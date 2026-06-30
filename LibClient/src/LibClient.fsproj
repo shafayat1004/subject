@@ -8,6 +8,7 @@
     <DefineConstants Condition="'$(Configuration)' == 'Web Debug' Or '$(Configuration)' == 'Native Debug'">$(DefineConstants);DEBUG</DefineConstants>
     <DefineConstants Condition="'$(Configuration)' == 'Web Debug' Or '$(Configuration)' == 'Web Release'">$(DefineConstants);EGGSHELL_PLATFORM_IS_WEB</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EggShellFmtSeverity>none</EggShellFmtSeverity>
   </PropertyGroup>
 
   <ItemGroup>
@@ -122,7 +123,6 @@
     <Compile Include="ReactXP/Components/Picker/Picker.fs" />
     <Compile Include="ReactXP/Components/View/View.fs" />
     <Compile Include="ReactXP/Components/ScrollView/ScrollView.fs" />
-    <Compile Include="ReactXP/Components/VirtualListView/VirtualListView.fs" />
     <Compile Include="ReactXP/Components/WebView/WebView.fs" />
     <Compile Include="ReactXP/Components/GestureView/GestureView.fs" />
 
@@ -189,7 +189,6 @@
     <Compile Include="Components/ItemList.fs" />
     <Compile Include="Components/TheBomb.fs" />
 
-<!--    <Compile Include="Components/VirtualListView.fs" />-->
 
     <Compile Include="Components/With/Geolocation.fs" />
     <Compile Include="Components/With/Layout.fs" />

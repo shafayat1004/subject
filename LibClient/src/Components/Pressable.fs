@@ -135,7 +135,7 @@ type private PressableComponent(initialProps: Props) =
         __props?onLayout <- ignore
         __props?disableTouchOpacityAnimation <- false
         Fable.React.ReactBindings.React.createElement(
-            ReactXP.Helpers.ReactXPRaw?Button,
+            ReactXP.RNSeam.Pressable,
             __props,
             ThirdParty.fixPotentiallySingleChild children
         )

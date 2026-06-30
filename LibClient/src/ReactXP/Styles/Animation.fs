@@ -48,20 +48,29 @@ type Easing =
 | CubicBezier of Coords1: (double * double) * Coords2: (double * double)
 with
     member this.ToReactXP : obj =
+        let rnEasing = ReactXP.RNSeam.Animated?Easing
+
         match this with
-        | Linear -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?Linear()
-        | Out -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?Out()
-        | In -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?In()
-        | InOut -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?InOut()
-        | InBack -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?InBack()
-        | OutBack -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?OutBack()
-        | InOutBack -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?InOutBack()
-        | StepStart -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?StepStart()
-        | StepEnd -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?StepEnd()
-        | Steps (intervals, maybeEnd) -> ReactXP.Helpers.ReactXPRaw?Animated?Easing?Steps(intervals, maybeEnd |> Option.map box |> Option.toObj)
+        | Linear -> rnEasing?linear
+        | Out -> rnEasing?out(rnEasing?ease)
+        | In -> rnEasing?``in``(rnEasing?ease)
+        | InOut -> rnEasing?inOut(rnEasing?ease)
+        | InBack -> rnEasing?``in``(rnEasing?back())
+        | OutBack -> rnEasing?out(rnEasing?back())
+        | InOutBack -> rnEasing?inOut(rnEasing?back())
+        | StepStart -> box (fun (t: float) -> if t > 0.0 then 1.0 else 0.0)
+        | StepEnd -> box (fun (t: float) -> if t >= 1.0 then 1.0 else 0.0)
+        | Steps (intervals, maybeEnd) ->
+            let n = float intervals
+
+            match maybeEnd with
+            | Some true ->
+                box (fun (t: float) -> if t >= 1.0 then 1.0 else Math.Floor(t * n) / n)
+            | _ ->
+                box (fun (t: float) -> if t <= 0.0 then 0.0 else Math.Min(1.0, Math.Ceiling(t * n) / n))
         | CubicBezier ((x1, y1), (x2, y2)) ->
             // TODO: would be nice to restrict values to 0 >= v <= 1
-            ReactXP.Helpers.ReactXPRaw?Animated?Easing?CubicBezier(x1, y1, x2, y2)
+            rnEasing?bezier(x1, y1, x2, y2)
 
 type InterpolationConfig internal(raw: obj) =
     static member Create(mappings: seq<double * double>) =
@@ -98,9 +107,11 @@ type RawAnimatedValue =
 
 type AnimatedValue internal(raw: RawAnimatedValue) =
     static member Create (value: double) : AnimatedValue =
-        value
-        |> ReactXP.Helpers.ReactXPRaw?Animated?createValue
-        |> AnimatedValue
+        let raw: RawAnimatedValue =
+            createNew (ReactXP.RNSeam.Animated?Value) value
+            |> unbox
+
+        AnimatedValue raw
 
     member internal _.Raw = raw
 
@@ -153,15 +164,15 @@ type Animation internal(raw: RawAnimation) =
                 ?loop = maybeLoop
             ) |> box
 
-        ReactXP.Helpers.ReactXPRaw?Animated?timing(animatedValue.Raw, fields)
+        ReactXP.RNSeam.Animated?timing(animatedValue.Raw, fields)
         |> Animation
 
     static member Parallel([<ParamArray>] animations: array<Animation>): Animation =
-        ReactXP.Helpers.ReactXPRaw?Animated?("parallel")(animations |> Seq.map (fun animation -> animation.Raw) |> Seq.toArray)
+        ReactXP.RNSeam.Animated?("parallel")(animations |> Seq.map (fun animation -> animation.Raw) |> Seq.toArray)
         |> Animation
 
     static member Sequence([<ParamArray>] animations: array<Animation>): Animation =
-        ReactXP.Helpers.ReactXPRaw?Animated?sequence(animations |> Seq.map (fun animation -> animation.Raw) |> Seq.toArray)
+        ReactXP.RNSeam.Animated?sequence(animations |> Seq.map (fun animation -> animation.Raw) |> Seq.toArray)
         |> Animation
 
     member internal _.Raw = raw
@@ -198,18 +209,18 @@ module ReactXPAnimationExtensions =
                         ?easing = maybeEasing
                     ) |> box
 
-                ReactXP.Helpers.ReactXPRaw?Animated?timing(value, fields)
+                ReactXP.RNSeam.Animated?timing(value, fields)
 
         static member Parallel (a1: RawAnimatedValue -> RawAnimation, a2: RawAnimatedValue -> RawAnimation) =
             fun (v1: RawAnimatedValue) (v2: RawAnimatedValue) ->
-                ReactXP.Helpers.ReactXPRaw?Animated?("parallel")([
+                ReactXP.RNSeam.Animated?("parallel")([
                     a1 v1
                     a2 v2
                 ] |> Array.ofList)
 
         static member Parallel (a1: RawAnimatedValue -> RawAnimation, a2: RawAnimatedValue -> RawAnimation, a3: RawAnimatedValue -> RawAnimation) =
             fun (v1: RawAnimatedValue) (v2: RawAnimatedValue) (v3: RawAnimatedValue) ->
-                ReactXP.Helpers.ReactXPRaw?Animated?("parallel")([
+                ReactXP.RNSeam.Animated?("parallel")([
                     a1 v1
                     a2 v2
                     a3 v3
@@ -217,7 +228,7 @@ module ReactXPAnimationExtensions =
 
         static member Sequence (a1: RawAnimatedValue -> RawAnimation, a2: RawAnimatedValue -> RawAnimation) =
             fun (v1: RawAnimatedValue) (v2: RawAnimatedValue) ->
-                ReactXP.Helpers.ReactXPRaw?Animated?("sequence")([
+                ReactXP.RNSeam.Animated?("sequence")([
                     a1 v1
                     a2 v2
                 ] |> Array.ofList)

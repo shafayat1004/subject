@@ -72,7 +72,7 @@ type ReactXP.Components.Constructors.RX with
             |> ThirdParty.fixPotentiallySingleChild
 
         Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?Animated?Text,
+            ReactXP.RNSeam.Animated?Text,
             __props,
             children
         )

@@ -11,7 +11,7 @@ open Fable.Core.JsInterop
 open Browser.Types
 
 let private MakeReactXPAnimatedView: obj -> ReactElements -> ReactElement =
-    LibClient.ThirdParty.wrapComponent<obj>(ReactXPRaw?Animated?View)
+    LibClient.ThirdParty.wrapComponent<obj>(ReactXP.RNSeam.Animated?View)
 
 type ReactXP.Components.Constructors.RX with
     static member AnimatableView(

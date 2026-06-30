@@ -80,18 +80,18 @@ type LibClient.Components.Constructors.LC with
                     {
                         Show = (fun (anchor: ReactElement) ->
                             let options =
-                                ReactXP.Helpers.popupShowOptions
+                                ReactXP.Popup.popupShowOptions
                                     (fun () -> anchor :> obj)
                                     (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
                                         render ())
                                     (fun () -> connector.CallOnDismissCallbacks ())
-                            ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
+                            ReactXP.Popup.show(options, popupId)
                         )
                         Hide = (fun () ->
-                            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
+                            ReactXP.Popup.dismiss(popupId)
                         )
                         IsShown = (fun () ->
-                            ReactXP.Helpers.ReactXPRaw?Popup?isDisplayed(popupId)
+                            ReactXP.Popup.isDisplayed(popupId)
                         )
                     }
 

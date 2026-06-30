@@ -8,6 +8,9 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Browser.Types
 
+let private AnimatedTextInput: obj =
+    ReactXP.RNSeam.Animated?createAnimatedComponent(ReactXP.RNSeam.TextInput)
+
 module RX =
     module AnimatableTextInput =
         [<StringEnum>]
@@ -123,7 +126,7 @@ type ReactXP.Components.Constructors.RX with
         __props?style                    <- styles
 
         Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?Animated?TextInput,
+            AnimatedTextInput,
             __props,
             [||]
         )

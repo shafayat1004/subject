@@ -100,7 +100,7 @@ module Runtime =
                     None
                 | RuntimeStyles.None -> None
                 | RuntimeStyles.StaticRules lazyValue ->
-                    Some (lazyValue.CreateForReactXpComponent fullyQualifiedComponentName :> obj)
+                    Some (lazyValue.CreateForReactXpComponent fullyQualifiedComponentName)
             )
             |> Array.ofList
             :> obj :?> 'T
@@ -188,12 +188,12 @@ module Runtime =
             styles
             |> List.filterMap (function
                 | AnimatedComponentPropStyle.AnimatedRules (className, constructor) ->
-                    (getOrCreateRules instanceId className constructor) :> obj |> Some
+                    (getOrCreateRules instanceId className constructor) |> Some
                 | AnimatedComponentPropStyle.AnimatedAnimations (className, constructor) ->
                     (getOrCreateAnimations instanceId className constructor) |> ignore
                     None
                 | AnimatedComponentPropStyle.StaticRules rawValue ->
-                    rawValue :> obj |> Some
+                    rawValue |> Some
             )
             |> Array.ofList
             :> obj

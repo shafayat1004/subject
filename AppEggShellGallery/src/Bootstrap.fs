@@ -52,8 +52,8 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
             let element = Ui.App.Root()
 
-            ReactXPRaw?App?initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
-            ReactXPRaw?UserInterface?setContextWrapper (fun rootView ->
+            ReactXP.App.initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
+            ReactXP.UserInterface.setContextWrapper (fun rootView ->
                 Ui.AppContext (children = [|rootView|])
             )
 
@@ -75,7 +75,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
         | Error reason ->
             Log.Error ("App initialization failed because config construction failed: " + reason)
-            ReactXPRaw?App?initialize((* DEBUG *) false, (* DEV *) false);
+            ReactXP.App.initialize((* DEBUG *) false, (* DEV *) false);
 
             LibClient.Components.Constructors.LC.AppShell.TopLevelErrorMessage(
                 error = exn reason,
@@ -84,7 +84,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
-        ReactXPRaw?UserInterface?setMainView element
+        ReactXP.UserInterface.setMainView element
     } |> startSafely
 
 open Fable.Core

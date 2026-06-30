@@ -56,7 +56,7 @@ type ReactXP.Components.Constructors.RX with
         __props?style              <- styles
 
         Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?Animated?Image,
+            ReactXP.RNSeam.Animated?Image,
             __props,
             [||]
         )

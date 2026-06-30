@@ -89,8 +89,8 @@ type LazilyCreatedReactXpStyleObject (typedValues: seq<TypedReactXPStyleRule>) =
             match fullyQualifiedComponentName with
             | "ReactXP.Components.Text"
             | "ReactXP.Components.UiText" ->
-                ReactXP.Helpers.ReactXPRaw?Styles?createTextStyle(createObj typelessAllowedRules, shouldCacheReactXpInternal)
-            | _ -> ReactXP.Helpers.ReactXPRaw?Styles?createViewStyle(createObj typelessAllowedRules, shouldCacheReactXpInternal)
+                ReactXP.RNSeam.createTextStyle(createObj typelessAllowedRules)
+            | _ -> ReactXP.RNSeam.createViewStyle(createObj typelessAllowedRules)
 
         cache <- cache.Add (fullyQualifiedComponentName, result)
 

@@ -4,8 +4,6 @@ module ReactXP.LegacyStyles.Designtime
 open ReactXP.Styles.Types
 open ReactXP.LegacyStyles
 open Fable.Core.JsInterop
-open ReactXP.Helpers
-
 open LibClient
 
 // it's not recommended to override the && operator, but we're building a DSL here
@@ -51,7 +49,7 @@ let rec flattenStyleRulesToArray (rules: array<RuleFunctionReturnedStyleRules>) 
 
 let private createReactXPAnimatedViewStyleObject (typedValues: seq<TypedReactXPStyleRule>) : ReactXPStyleRulesObject =
     let rawValues = typedValues |> Seq.map fst
-    ReactXPRaw?Styles?createAnimatedViewStyle(createObj (rawValues :?> seq<string * obj>))
+    ReactXP.RNSeam.createAnimatedViewStyle(createObj (rawValues :?> seq<string * obj>))
 
 let processDynamicStyles (rawValues: seq<RuleFunctionReturnedStyleRules>) : List<RuntimeStyles> =
     rawValues

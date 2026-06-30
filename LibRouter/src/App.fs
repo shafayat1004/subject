@@ -32,7 +32,7 @@ type AppComponent<'Parameters, 'Result, 'Actions, 'Self>(name: string, initialPr
     inherit PureStatelessComponent<Props, 'Actions, 'Self>(name, initialProps, actionsConstructor, hasStyles)
 
     let styles =
-        !!(AbsoluteFillStyleJs() |> box |> ReactXP.Helpers.ReactXPRaw?Styles?createViewStyle)
+        !!(AbsoluteFillStyleJs() |> box |> ReactXP.RNSeam.createViewStyle)
 
     do
         // technically we should be unmounting these, but because it's the top level app,

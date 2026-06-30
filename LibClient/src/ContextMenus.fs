@@ -26,12 +26,12 @@ type ContextMenu =
         let id = sprintf "popup-%i" (System.Random().Next())
 
         let hide () =
-            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(id)
+            ReactXP.Popup.dismiss(id)
 
         let contextMenuPopup = makeContextMenuPopup items hide e
 
         let options =
-            ReactXP.Helpers.popupShowOptions
+            ReactXP.Popup.popupShowOptions
                 (fun () ->
                     maybeAnchor
                     |> Option.getOrElseRaise (exn "Need an anchor react element for context menus; no time to fix now")
@@ -39,4 +39,4 @@ type ContextMenu =
                 (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
                     contextMenuPopup)
                 onClose
-        ReactXP.Helpers.ReactXPRaw?Popup?show(options, id)
+        ReactXP.Popup.show(options, id)

@@ -16,8 +16,8 @@ let private restartElement =
     )
 
 let restartApp (element: ReactElement) () : unit =
-    ReactXPRaw?UserInterface?setMainView restartElement
+    ReactXP.UserInterface.setMainView restartElement
 
     runLater (TimeSpan.FromMilliseconds 2) (fun () ->
-        ReactXPRaw?UserInterface?setMainView element
+        ReactXP.UserInterface.setMainView element
     )

@@ -33,6 +33,7 @@ module RNSeam =
     let Image: obj = import "Image" "react-native"
     let Pressable: obj = import "Pressable" "react-native"
     let ActivityIndicator: obj = import "ActivityIndicator" "react-native"
+    let Animated: obj = import "Animated" "react-native"
 
     let PlatformModule: obj = import "Platform" "react-native"
     let PixelRatioModule: obj = import "PixelRatio" "react-native"
@@ -325,6 +326,10 @@ module Runtime =
         | Native _ -> true
         | _ -> false
 
+module App =
+    let initialize (_debug: bool, _dev: bool) : unit =
+        ()
+
 module UserInterface =
     let windowLayoutInfo () : ReactXP.Types.ViewOnLayoutEvent =
         let w = RNSeam.DimensionsModule?get("window")
@@ -337,6 +342,40 @@ module UserInterface =
     let pixelDensity () : float = RNPlatform.pixelDensity ()
 
     let dismissKeyboard () : unit = RNSeam.KeyboardModule?dismiss()
+
+    let mutable contextWrapper: Fable.React.ReactElement -> Fable.React.ReactElement = id
+
+    let setContextWrapper (wrapper: Fable.React.ReactElement -> Fable.React.ReactElement) : unit =
+        contextWrapper <- wrapper
+
+#if EGGSHELL_PLATFORM_IS_WEB
+    let private createRoot: obj = import "createRoot" "react-dom/client"
+#endif
+
+    let mutable mainRoot: obj option = None
+
+    let setMainView (element: Fable.React.ReactElement) : unit =
+#if EGGSHELL_PLATFORM_IS_WEB
+        match mainRoot with
+        | Some root ->
+            root?render(contextWrapper element)
+        | None ->
+            let container: Browser.Types.HTMLElement =
+                let maybeContainer = Browser.Dom.document.querySelector ".app-container"
+
+                if isNull maybeContainer then
+                    let div = Browser.Dom.document.createElement "div"
+                    Browser.Dom.document.body?appendChild(div) |> ignore
+                    div
+                else
+                    maybeContainer :?> Browser.Types.HTMLElement
+
+            let root = createRoot $ (container)
+            mainRoot <- Some root
+            root?render(contextWrapper element)
+#else
+        failwith "RNSeam.UserInterface.setMainView native path not implemented."
+#endif
 
 module Linking =
     open Fable.Core
@@ -365,4 +404,67 @@ module Clipboard =
         ()
 #else
         failwith "Clipboard.setText native path requires @react-native-clipboard/clipboard (not installed)."
+#endif
+
+module Popup =
+    open Fable.React
+
+#if EGGSHELL_PLATFORM_IS_WEB
+    let private createRoot: obj = import "createRoot" "react-dom/client"
+#endif
+
+    type private PopupEntry = {
+        Container: Browser.Types.HTMLElement
+        Root:      obj
+    }
+
+    let private entries = System.Collections.Generic.Dictionary<string, PopupEntry>()
+
+    let popupShowOptions (getAnchor: unit -> obj) (renderPopup: obj -> int -> int -> int -> ReactElement) (onDismiss: unit -> unit) : obj =
+        createObj [
+            "getAnchor"   ==> getAnchor
+            "renderPopup" ==> renderPopup
+            "onDismiss"   ==> onDismiss
+        ]
+
+    let dismiss (id: string) : unit =
+        match entries.TryGetValue id with
+        | true, entry ->
+            entry.Root?unmount()
+            entry.Container?remove()
+            entries.Remove id |> ignore
+        | false, _ ->
+            ()
+
+    let isDisplayed (id: string) : bool =
+        entries.ContainsKey id
+
+    let show (options: obj, id: string) : unit =
+#if EGGSHELL_PLATFORM_IS_WEB
+        if entries.ContainsKey id then dismiss id
+
+        let anchorEl: obj = options?getAnchor()
+
+        let rect: obj =
+            if isNull anchorEl then
+                createObj [ "top" ==> 0.0; "left" ==> 0.0; "right" ==> 0.0; "bottom" ==> 0.0; "width" ==> 0.0; "height" ==> 0.0 ]
+            else
+                anchorEl?getBoundingClientRect()
+
+        let container = Browser.Dom.document.createElement "div"
+        container?style?position <- "fixed"
+        container?style?top       <- (rect?bottom |> string) + "px"
+        container?style?left      <- (rect?left |> string) + "px"
+        container?style?zIndex    <- "9999"
+        Browser.Dom.document.body?appendChild(container) |> ignore
+
+        let renderPopup: obj = options?renderPopup
+        let popupEl: ReactElement = renderPopup $ (rect, 0, 0, 0)
+
+        let root = createRoot $ (container)
+        root?render(popupEl)
+
+        entries.[id] <- { Container = container; Root = root }
+#else
+        failwith "RNSeam.Popup.show is only implemented for web."
 #endif

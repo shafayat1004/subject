@@ -73,7 +73,7 @@ type LibClient.Components.Constructors.LC with
         __props?style                     <- maybeStyleValueSecondPass
 
         Fable.React.ReactBindings.React.createElement(
-            ReactXP.Helpers.ReactXPRaw?Text,
+            ReactXP.RNSeam.Text,
             __props,
             ThirdParty.fixPotentiallySingleChild (tellReactArrayKeysAreOkay children)
         )
