@@ -173,9 +173,24 @@ module private Styles =
             Overflow.Visible
         }
 
+    // Used when the wrapper is explicitly sized (styles prop provided); makes the GestureView
+    // fill the AnimatableView so gestures are captured over the full interactive surface.
+    let gestureViewFill =
+        makeViewStyles {
+            flex 1
+            Overflow.Visible
+        }
+
     let wrapper =
         makeViewStyles {
             Overflow.Visible
+        }
+
+    // Used when the wrapper is explicitly sized (styles prop provided); makes the AnimatableView
+    // fill the wrapper's full height.
+    let animatableViewFill =
+        makeAnimatableViewStyles {
+            flex 1
         }
 
     let contents (aniValueX: AnimatableValue) (aniValueY: AnimatableValue) =
@@ -405,22 +420,38 @@ type LibClient.Components.Constructors.LC with
                 ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<array<AnimatableViewStyles>> "ReactXP.Components.View" legacyStyles
             | None -> [||]
 
+        // When the wrapper is explicitly sized via the styles prop, the AnimatableView and
+        // GestureView must fill it; otherwise they default to flexGrow:0 and collapse to
+        // content height, making the interactive surface too small.
+        let fillStyles = styles.IsSome
+
         let gestureView =
             RX.GestureView(
                 ?onPanHorizontal = (if left.IsSome || right.IsSome then Some onPanHorizontal else None),
                 ?onPanVertical = (if up.IsSome || down.IsSome then Some onPanVertical else None),
-                styles = [| Styles.gestureView; yield! legacyGestureViewStyles |],
-                children = (defaultArg children [||])
+                styles =
+                    [|
+                        if fillStyles then Styles.gestureViewFill else Styles.gestureView
+                        yield! legacyGestureViewStyles
+                    |],
+                children = defaultArg children [||]
             )
 
         RX.View(
             ?testId = testId,
-            styles = [| Styles.wrapper; yield! (defaultArg styles [||]) |],
+            // box-none: the wrapper is a positioning container, never itself a pointer target,
+            // but its interactive children (the GestureView) still are. Without this, a sized
+            // wrapper (e.g. the AppShell sidebar drawer, absolute/full-height/width) overlays the
+            // content beneath and swallows pointer + wheel events across its whole box even while
+            // the drawer itself is translated off-screen.
+            blockPointerEvents = true,
+            styles = [| Styles.wrapper; yield! defaultArg styles [||] |],
             children =
                 [|
                     RX.AnimatableView(
                         styles =
                             [|
+                                yield! if fillStyles then [| Styles.animatableViewFill |] else [||]
                                 yield! legacyContentsStyles
                                 Styles.contents (AnimatableValue.Value aniValueX) (AnimatableValue.Value aniValueY)
                             |],

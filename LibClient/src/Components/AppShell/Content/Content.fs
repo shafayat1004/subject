@@ -82,10 +82,18 @@ module private Styles =
             flex 0
         }
 
-    // Positions the Draggable wrapper so its contained AnimatableView has a real containing
-    // block height. Without this, the wrapper is a flex child with height:0 (no in-flow
-    // content), and top:0/bottom:0 on the absolutely-positioned AnimatableView inside it
-    // also resolves to height:0 -- making the sidebar invisible.
+    // The handheld sidebar overlays the content as a full-height drawer anchored to the left
+    // edge. It hides/shows purely through the Draggable's animated translateX: baseOffset
+    // parks it at (-width + 10) (fully off-screen, leaving a 10px transparent grab strip) and
+    // opening animates translateX to 0. The drawer width is measured at runtime
+    // (LC.With.Layout on the sidebarWrapper below) so it adapts to the sidebar content.
+    //
+    // Both this wrapper and sidebarWrapper are absolutely positioned with top:0/bottom:0 so the
+    // drawer gets a definite full-viewport height -- the inner Sidebar ScrollView needs a bounded
+    // height to overflow and scroll its (long) contents. The width measurement is reliable now
+    // that the RNW View seam adapts react-native's onLayout event shape (see RNSeam.assignOnLayout);
+    // previously e.width/e.height were read off the wrong event object and came back undefined (0),
+    // which collapsed the drawer offset and left it stuck on-screen.
     let sidebarDraggableStyles: int -> ViewStyles =
         ViewStyles.Memoize (fun (itemWidth: int) ->
             makeViewStyles {
@@ -283,8 +291,15 @@ type LibClient.Components.Constructors.LC.AppShell with
                                 LC.Draggable(
                                     draggableRef = refSidebarDraggable,
                                     onChange = Actions.onSidebarDraggableChange isSidebarScrimVisibleHook,
-                                    baseOffset = (-width + 10, 0),
-                                    right = {| ForwardThreshold = 30; Offset = width - 10; BackwardThreshold = 50 |},
+                                    // Park the closed drawer fully off-screen (translateX(-width)), not
+                                    // at -width+10. The old 10px "peek" was a touch edge-swipe affordance,
+                                    // but on web it left the GestureView's on-screen sliver overlaying the
+                                    // content's left edge; because that sliver is a sibling subtree (not an
+                                    // ancestor of the content ScrollView), mouse-wheel events over it could
+                                    // not scroll the content beneath. Fully hiding makes the closed drawer
+                                    // inert; it opens via the hamburger and closes via the scrim.
+                                    baseOffset = (-width, 0),
+                                    right = {| ForwardThreshold = 30; Offset = width; BackwardThreshold = 50 |},
                                     styles = [| Styles.sidebarDraggableStyles width |],
                                     children =
                                         elements {

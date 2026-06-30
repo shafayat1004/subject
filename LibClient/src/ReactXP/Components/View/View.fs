@@ -162,7 +162,7 @@ type ReactXP.Components.Constructors.RX with
         ReactXP.RNSeam.assignPointerEvents __props ignorePointerEvents blockPointerEvents
         ReactXP.RNSeam.assignTestId __props testId
         id |> Option.iter (fun v -> __props?nativeID <- v)
-        __props?onLayout <- onLayout
+        ReactXP.RNSeam.assignOnLayout __props onLayout
 
         ReactXP.RNSeam.assignAccessibility
             __props

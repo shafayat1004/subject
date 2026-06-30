@@ -98,7 +98,7 @@ type ReactXP.Components.Constructors.RX with
 
         __props?vertical                       <- vertical
         __props?horizontal                     <- horizontal
-        __props?onLayout                       <- onLayout
+        ReactXP.RNSeam.assignOnLayout __props onLayout
         __props?onContentSizeChange            <- onContentSizeChange
         __props?onScroll                       <- ScrollViewRN.wrapOnScroll onScroll
         __props?onScrollBeginDrag              <- onScrollBeginDrag

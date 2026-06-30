@@ -66,6 +66,20 @@ module RNSeam =
     let assignTestId (props: obj) (testId: string option) : unit =
         testId |> Option.iter (fun id -> props?testID <- id)
 
+    // react-native(-web) delivers layout as `{ nativeEvent: { layout: { x, y, width, height } } }`,
+    // whereas @chaldal/reactxp flattened those fields directly onto the event. EggShell's
+    // `ViewOnLayoutEvent` and every onLayout consumer (With.Layout, Responsive.screenSizeOnLayout,
+    // ScrollView) read the flat shape, so forwarding RN's event verbatim left `e.width`/`e.height`
+    // undefined -- which coerced to 0 and silently collapsed every measurement (the handheld
+    // sidebar drawer width, screen-size detection, etc.). Adapt RN's event to the flat shape.
+    [<Emit("(function(e){ if(!e||!e.nativeEvent||!e.nativeEvent.layout){return;} var l=e.nativeEvent.layout; $0({x:l.x,y:l.y,width:l.width,height:l.height}); })")>]
+    let private wrapOnLayout (callback: ReactXP.Types.ViewOnLayoutEvent -> unit) : obj = jsNative
+
+    /// Wire an EggShell onLayout handler onto an RN/RNW primitive's props, adapting the native
+    /// event shape to the flat `ViewOnLayoutEvent` every consumer expects.
+    let assignOnLayout (props: obj) (maybeOnLayout: Option<ReactXP.Types.ViewOnLayoutEvent -> unit>) : unit =
+        maybeOnLayout |> Option.iter (fun callback -> props?onLayout <- wrapOnLayout callback)
+
     /// Convert EggShell's integer `AccessibilityRole` enum to the string RNW expects.
     /// Returns None for roles RNW explicitly ignores (imagebutton, keyboardkey, text).
     let mapAccessibilityRole (role: LibClient.Accessibility.AccessibilityRole) : string option =

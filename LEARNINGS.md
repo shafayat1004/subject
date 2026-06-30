@@ -5,34 +5,107 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
-## 2026-06-30 — Phase 4 RNW seam: handheld sidebar invisible (containing-block height 0)
+## 2026-06-30 — Phase 4 RNW seam: handheld sidebar
 
-### Root cause
+ROOT CAUSE (the one that actually mattered): the RNW `View` seam forwarded `onLayout` verbatim.
+**react-native(-web) delivers layout as `{ nativeEvent: { layout: { x, y, width, height } } }`**,
+whereas `@chaldal/reactxp` flattened those fields onto the event (`{ x, y, width, height }`) -- which
+is the shape `ReactXP.Types.ViewOnLayoutEvent` and every consumer (`With.Layout`,
+`Responsive.screenSizeOnLayout`, `ScrollView`) reads. So `e.width`/`e.height` were `undefined` ->
+coerced to `0`, silently collapsing every measurement. For the handheld drawer that zeroed the
+measured `width`, so `baseOffset = (-width + 10) = 10` parked the drawer at `translateX(10)` (basically
+on-screen) and `Offset = width - 10` made "open" animate to `0` -- only a 10px travel, so open and
+closed looked identical (drawer "always open"). The animation pipeline (ReactXP `Animated.View` +
+`createAnimatedViewStyle`, still ReactXP, unchanged by RNW) was fine all along.
 
-`LC.Draggable` renders: `RX.View[wrapper]` > `RX.AnimatableView[position:absolute, top:0, bottom:0]` > `RX.GestureView` > sidebar content.
+Fix: `RNSeam.assignOnLayout` adapts RN's event to the flat shape before invoking the callback (mirrors
+the existing `ScrollViewRN.wrapOnScroll`, which already did this for `onScroll`/`contentOffset`). Wired
+into `View.fs` and `ScrollView.fs` (`__props?onLayout <- onLayout` -> `RNSeam.assignOnLayout __props onLayout`).
+`AnimatableView`/`VirtualListView` keep raw forwarding -- they render ReactXP components, which still
+emit the flat shape. With the seam fixed, `onLayout` reports real width even for an
+absolutely-positioned, auto-width node, so the `0807eb0` Content.fs design works as written and needs
+no change beyond comments: wrapper `Position.Absolute; top 0; bottom 0; left 0; width itemWidth`,
+sidebarWrapper `Position.Absolute; top 0; bottom 0; paddingRight 10` (absolute => definite full-height
+so the inner Sidebar `ScrollView` bounds and scrolls), `baseOffset = (-width + 10, 0)`,
+`right.Offset = width - 10`.
 
-After the RNW migration, `RX.View` is now `RNSeam.View` (react-native-web). The wrapper is a
-flex child with no in-flow content (AnimatableView inside is `position:absolute`). React Native
-Web's default flex layout gives the wrapper `height:0`. The `top:0; bottom:0` on the
-absolutely-positioned AnimatableView resolve relative to its containing block (the wrapper),
-which has height 0 -- so the AnimatableView also has height 0. The sidebar is invisible.
+WRONG TURNS this session (do not repeat): (a) "ReactXP web only writes the transform on change, so hide
+via static `left:-width` + `baseOffset=(0,0)`" -- false; the animation was never the problem, and
+`left:-width` left the drawer on-screen. (b) "an absolute auto-width node inherently measures 0, so make
+the measured element in-flow (`flex 1`) and let width flow up via `AlignItems.FlexStart`" -- the 0 was
+purely the dropped `nativeEvent.layout`, and making sidebarWrapper in-flow removed the drawer's definite
+height, which broke the inner ScrollView (sidebar list could no longer scroll). Both were reverted.
 
-ReactXP's old web View had the same `position:relative; flexGrow:0` defaults, so this was a
-latent bug now exposed by the RNW switch.
+SEPARATE, PRE-EXISTING (not caused by this fix): mouse-wheel scrolling on content `ScrollView`s is flaky
+("scrolls a bit then gives up"); keyboard scroll and synthetic wheel work. This is a react-native-web
+`ScrollView` wheel/momentum trait introduced by the `0807eb0` RNW migration, tracked separately.
 
-### Fix
+### Part 1: sidebar invisible (containing-block height 0)
 
-Added `?styles: array<ViewStyles>` to `LC.Draggable` (applied to the outer wrapper `RX.View`).
+`LC.Draggable` renders: `RX.View[wrapper]` > `RX.AnimatableView` > `RX.GestureView` > sidebar content.
 
-In `Content.fs`, replaced `xLegacyStyles = Styles.sidebarDraggableLegacyStyles width` with
-`styles = [| Styles.sidebarDraggableStyles width |]`. The new style is a memoized
-`makeViewStyles { Position.Absolute; top 0; bottom 0; left 0; width itemWidth; Overflow.Visible }`.
-This makes the wrapper cover the full container height; `top:0; bottom:0` on the
-AnimatableView inside now resolves to the full height, making the sidebar visible and
-the slide-in animation correct.
+After the RNW migration, `RX.View` is `RNSeam.View` (react-native-web). The wrapper is a flex
+child with no in-flow content; RNW gives it `height:0`. `top:0; bottom:0` on the
+AnimatableView inside resolves relative to the zero-height wrapper -> AnimatableView also
+`height:0` -> sidebar invisible.
 
-Files: `LibClient/src/Components/Draggable/Draggable.fs`,
-`LibClient/src/Components/AppShell/Content/Content.fs`.
+Fix: added `?styles: array<ViewStyles>` to `LC.Draggable` (applied to the outer wrapper).
+In `Content.fs`, replaced `xLegacyStyles = ...` with `styles = [| Styles.sidebarDraggableStyles width |]`
+-- a memoized `makeViewStyles { Position.Absolute; top 0; bottom 0; left 0; width itemWidth; Overflow.Visible }`.
+The wrapper now has real height; the AnimatableView inside resolves correctly.
+
+### Part 2: AnimatableView and GestureView didn't fill the wrapper
+
+After part 1 the sidebar still only covered the nav-item area. The `Styles.contents` had only
+`Overflow.Visible` + transforms -- no fill styles. AnimatableView and GestureView default to
+`flexGrow:0` and collapse to content height.
+
+Fix (in `Draggable.fs`): added static `Styles.animatableViewFill = makeAnimatableViewStyles { flex 1 }`
+and `Styles.gestureViewFill = makeViewStyles { flex 1; Overflow.Visible }`. Applied
+conditionally: when `styles.IsSome` (caller provides a sized wrapper), both fill to the
+wrapper's full height. When `styles` is not provided (gallery content-sized use), behavior is
+unchanged (`flexGrow:0`).
+
+### Part 3: sidebar always visible -- see ROOT CAUSE above
+
+This was misdiagnosed twice (see "WRONG TURNS" above) before the real cause was found: the dropped
+`nativeEvent.layout` in the RNW `onLayout` seam zeroed the measured drawer width. Verified live with
+headless Chromium (Playwright via `AppEggShellGallery/node_modules`, handheld viewport, drive
+`[data-testid="eggshell-sidebar-menu"]`, read the AnimatableView's inline `transform` + the wrapper's
+computed `width`): the wrapper rendered `width:310` while the animated transform parked at
+`translateX(10)`, proving `baseOffset` (hence measured `width`) was `0`. Fix is the seam adapter.
+
+Files: `LibClient/src/ReactXP/RNSeam.fs` (`assignOnLayout` + `wrapOnLayout`),
+`LibClient/src/ReactXP/Components/View/View.fs`,
+`LibClient/src/ReactXP/Components/ScrollView/ScrollView.fs`,
+`LibClient/src/Components/AppShell/Content/Content.fs` (comments only; design matches `0807eb0`),
+`LibClient/src/Components/Draggable/Draggable.fs` (Parts 1-2: `?styles` + fill styles, retained).
+
+### Part 4: closed drawer's invisible wrapper blocked content interaction
+
+Once visible/scroll worked, the content underneath the (closed) drawer would not scroll/click on its
+left ~310px. The Draggable wrapper is `position:absolute; left:0; width:itemWidth(310); top:0; bottom:0`
+-- a transparent full-height box overlaying the content's left third. Even with the drawer translated
+fully off-screen, that wrapper box stayed a pointer target (confirmed in Firefox responsive-mode
+devtools: the highlighted `310x932` `css-view` over the content). Because the wrapper is a sibling
+subtree of the content `ScrollView` (not an ancestor), wheel/click over it never reached the content.
+
+Two complementary fixes:
+- `Draggable.fs`: set `blockPointerEvents = true` on the wrapper. EggShell maps that to RN
+  `pointerEvents="box-none"` (`RNSeam.assignPointerEvents`): the wrapper is never itself a pointer
+  target, but its interactive children (the GestureView, hence the open drawer) still are. Safe for the
+  content-sized gallery Draggable too (its GestureView fills the wrapper, so nothing changes).
+- `Content.fs`: park the closed drawer fully off-screen (`baseOffset = (-width, 0)`,
+  `right.Offset = width`) instead of the old `-width + 10` / `width - 10` "peek". box-none only
+  neutralizes the *wrapper*; the GestureView is a child and stays a target, so the 10px on-screen peek
+  sliver would still have eaten wheel events in that strip. Full-hide moves it off the content. Net UX:
+  the closed drawer is fully hidden and inert (open via the hamburger, close via the scrim); the touch
+  edge-swipe-to-open affordance is dropped -- an acceptable trade for not blocking content on web.
+
+Lesson: an absolutely-positioned overlay container (drawer/dialog/popover wrapper) that is wider/taller
+than its visible content must be `box-none`, or it silently swallows pointer + wheel events from
+everything beneath it -- and that is invisible in a screenshot. `elementFromPoint` / devtools
+hit-highlighting is the fastest way to find it.
 
 ---
 
