@@ -1,9 +1,9 @@
 [<AutoOpen>]
 module ReactXP.Components.GestureView
 
-open ReactXP.Helpers
-
+open Fable.Core
 open Fable.Core.JsInterop
+open Fable.React
 open Browser.Types
 open LibClient
 
@@ -83,6 +83,155 @@ type PreferredPanGesture =
 | Vertical   = 1
 
 
+module private GestureViewImpl =
+    type private Props = {
+        Children:          ReactChildrenProp option
+        OnPan:             (PanGestureState -> unit) option
+        OnPanVertical:     (PanGestureState -> unit) option
+        OnPanHorizontal:   (PanGestureState -> unit) option
+        OnFocus:           (FocusEvent -> unit) option
+        OnBlur:            (FocusEvent -> unit) option
+        OnKeyPress:        (KeyboardEvent -> unit) option
+        PreferredPan:      PreferredPanGesture option
+        PanPixelThreshold: float option
+        Styles:            array<ReactXP.Styles.FSharpDialect.ViewStyles> option
+        XLegacyStyles:     List<ReactXP.LegacyStyles.RuntimeStyles> option
+    }
+
+    let private makePanState
+            (initialClient: IRefValue<float * float>)
+            (initialPage: IRefValue<float * float>)
+            (e: obj)
+            (isComplete: bool)
+            : PanGestureState =
+        let (initClientX, initClientY) = initialClient.current
+        let (initPageX, initPageY) = initialPage.current
+
+        createObj [
+            "isTouch"        ==> true
+            "timeStamp"      ==> JS.Constructors.Date.now()
+            "initialClientX" ==> initClientX
+            "initialClientY" ==> initClientY
+            "initialPageX"   ==> initPageX
+            "initialPageY"   ==> initPageY
+            "clientX"        ==> e?x
+            "clientY"        ==> e?y
+            "pageX"          ==> e?absoluteX
+            "pageY"          ==> e?absoluteY
+            "velocityX"      ==> e?velocityX
+            "velocityY"      ==> e?velocityY
+            "isComplete"     ==> isComplete
+        ]
+        |> unbox
+
+    let private dispatchPan (props: Props) (state: PanGestureState) : unit =
+        props.OnPan |> Option.iter (fun f -> f state)
+
+        match props.PreferredPan with
+        | Some PreferredPanGesture.Vertical -> ()
+        | _ -> props.OnPanHorizontal |> Option.iter (fun f -> f state)
+
+        match props.PreferredPan with
+        | Some PreferredPanGesture.Horizontal -> ()
+        | _ -> props.OnPanVertical |> Option.iter (fun f -> f state)
+
+    [<Component>]
+    let private Render (props: Props) : ReactElement =
+        let initialClient = Hooks.useRef (0.0, 0.0)
+        let initialPage = Hooks.useRef (0.0, 0.0)
+
+        let threshold = props.PanPixelThreshold |> Option.defaultValue 10.0
+
+        let pan = ReactXP.RNSeam.Gesture?Pan()
+
+        match props.PreferredPan with
+        | Some PreferredPanGesture.Vertical ->
+            pan?activeOffsetY(-threshold, threshold) |> ignore
+            pan?activeOffsetX(-1000.0, 1000.0) |> ignore
+        | Some _ ->
+            pan?activeOffsetX(-threshold, threshold) |> ignore
+            pan?activeOffsetY(-1000.0, 1000.0) |> ignore
+        | None ->
+            pan?activeOffsetX(-threshold, threshold) |> ignore
+            pan?activeOffsetY(-threshold, threshold) |> ignore
+
+        pan?onBegin(fun (e: obj) ->
+            initialClient.current <- (e?x - e?translationX, e?y - e?translationY)
+            initialPage.current   <- (e?absoluteX - e?translationX, e?absoluteY - e?translationY)
+        ) |> ignore
+
+        pan?onUpdate(fun (e: obj) ->
+            makePanState initialClient initialPage e false
+            |> dispatchPan props
+        ) |> ignore
+
+        pan?onEnd(fun (e: obj) ->
+            makePanState initialClient initialPage e true
+            |> dispatchPan props
+        ) |> ignore
+
+        let viewProps = createEmpty
+        viewProps?onFocus  <- props.OnFocus
+        viewProps?onBlur   <- props.OnBlur
+        viewProps?onKeyPress <- props.OnKeyPress
+
+        let combinedStyles: array<obj> =
+            let legacyStyles: array<obj> =
+                match props.XLegacyStyles with
+                | None | Some [] -> [||]
+                | Some styles ->
+                    [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ReactXP.Styles.FSharpDialect.ViewStyles> "ReactXP.Components.GestureView" styles |]
+                    |> Array.map (fun s -> (!!s) :> obj)
+
+            let explicitStyles: array<obj> =
+                props.Styles
+                |> Option.defaultValue [||]
+                |> Array.map (fun s -> (!!s) :> obj)
+
+            Array.concat [ legacyStyles; explicitStyles ]
+
+        viewProps?style <- combinedStyles
+
+        let children =
+            props.Children
+            |> Option.map tellReactArrayKeysAreOkay
+            |> Option.getOrElse [||]
+            |> ThirdParty.fixPotentiallySingleChild
+
+        let viewElement = ReactXP.RNSeam.createElement ReactXP.RNSeam.View viewProps children
+
+        ReactXP.RNSeam.createElement
+            ReactXP.RNSeam.GestureDetector
+            (createObj [ "gesture" ==> pan ])
+            [| viewElement |]
+
+    let build
+            (children:          ReactChildrenProp option)
+            (onPan:             (PanGestureState -> unit) option)
+            (onPanVertical:     (PanGestureState -> unit) option)
+            (onPanHorizontal:   (PanGestureState -> unit) option)
+            (onFocus:           (FocusEvent -> unit) option)
+            (onBlur:            (FocusEvent -> unit) option)
+            (onKeyPress:        (KeyboardEvent -> unit) option)
+            (preferredPan:      PreferredPanGesture option)
+            (panPixelThreshold: float option)
+            (styles:            array<ReactXP.Styles.FSharpDialect.ViewStyles> option)
+            (xLegacyStyles:     List<ReactXP.LegacyStyles.RuntimeStyles> option)
+            : ReactElement =
+        Render {
+            Children          = children
+            OnPan             = onPan
+            OnPanVertical     = onPanVertical
+            OnPanHorizontal   = onPanHorizontal
+            OnFocus           = onFocus
+            OnBlur            = onBlur
+            OnKeyPress        = onKeyPress
+            PreferredPan      = preferredPan
+            PanPixelThreshold = panPixelThreshold
+            Styles            = styles
+            XLegacyStyles     = xLegacyStyles
+        }
+
 type ReactXP.Components.Constructors.RX with
     static member GestureView(
         ?children:          ReactChildrenProp,
@@ -106,33 +255,28 @@ type ReactXP.Components.Constructors.RX with
         ?styles:            array<ReactXP.Styles.FSharpDialect.ViewStyles>,
         ?xLegacyStyles:     List<ReactXP.LegacyStyles.RuntimeStyles>
     ) =
-        let __props = createEmpty
+        // Pinch, rotate, scroll wheel, tap, double-tap, long-press, context-menu,
+        // mouse cursor and release-on-request are not yet wired to react-native-gesture-handler.
+        // They are accepted to preserve the public API but currently have no effect.
+        onPinchZoom    |> ignore
+        onRotate       |> ignore
+        onScrollWheel  |> ignore
+        onTap          |> ignore
+        onDoubleTap    |> ignore
+        onLongPress    |> ignore
+        onContextMenu  |> ignore
+        mouseOverCursor |> ignore
+        releaseOnRequest |> ignore
 
-        __props?onPinchZoom       <- onPinchZoom
-        __props?onRotate          <- onRotate
-        __props?onScrollWheel     <- onScrollWheel
-        __props?mouseOverCursor   <- mouseOverCursor
-        __props?onPan             <- onPan
-        __props?onPanVertical     <- onPanVertical
-        __props?onPanHorizontal   <- onPanHorizontal
-        __props?onTap             <- onTap
-        __props?onDoubleTap       <- onDoubleTap
-        __props?onLongPress       <- onLongPress
-        __props?onContextMenu     <- onContextMenu
-        __props?onFocus           <- onFocus
-        __props?onBlur            <- onBlur
-        __props?onKeyPress        <- onKeyPress
-        __props?preferredPan      <- preferredPan
-        __props?panPixelThreshold <- panPixelThreshold
-        __props?releaseOnRequest  <- releaseOnRequest
-        __props?style             <- styles
-
-        match xLegacyStyles with
-        | Option.None | Option.Some [] -> ()
-        | Option.Some styles -> __props?__style <- styles
-
-        Fable.React.ReactBindings.React.createElement(
-            ReactXPRaw?GestureView,
-            __props,
-            ThirdParty.fixPotentiallySingleChild (Option.map tellReactArrayKeysAreOkay children |> Option.getOrElse [||])
-        )
+        GestureViewImpl.build
+            children
+            onPan
+            onPanVertical
+            onPanHorizontal
+            onFocus
+            onBlur
+            onKeyPress
+            preferredPan
+            panPixelThreshold
+            styles
+            xLegacyStyles

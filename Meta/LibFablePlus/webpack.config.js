@@ -19,6 +19,12 @@ console.log(`Tool path is: ${TOOL_PATH}`);
 
 const libClientNodeModules = safeJoin(findDirUpwards("LibClient"), "node_modules");
 
+console.log("LOADED CUSTOM WEBPACK CONFIG: alias", {
+    asyncStorage: libClientNodeModules
+        ? path.join(libClientNodeModules, "@react-native-async-storage/async-storage/lib/commonjs/index.js")
+        : null,
+});
+
 const commonConfig = {
     // Do we want source maps in production? If so, move the source-map-loader from dev to common config.
     devtool: isDev ? "eval-source-map" : false,
@@ -37,6 +43,14 @@ const commonConfig = {
             "react-native$": libClientNodeModules
                 ? path.join(libClientNodeModules, "react-native-web")
                 : "react-native-web",
+            // These RN ecosystem packages ship ESM builds with extensionless relative imports that
+            // Webpack 5 refuses to resolve. Alias them to their CommonJS builds for web bundles.
+            "@react-native-async-storage/async-storage$": libClientNodeModules
+                ? path.join(libClientNodeModules, "@react-native-async-storage/async-storage/lib/commonjs/index.js")
+                : "@react-native-async-storage/async-storage",
+            "react-native-gesture-handler$": libClientNodeModules
+                ? path.join(libClientNodeModules, "react-native-gesture-handler/lib/commonjs/index.js")
+                : "react-native-gesture-handler",
         },
         extensions: [".web.js", ".web.jsx", ".web.ts", ".web.tsx", ".js", ".jsx", ".ts", ".tsx", ".json"],
         modules: [
@@ -67,6 +81,16 @@ const commonConfig = {
             {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
+            },
+            // Several RN ecosystem packages (e.g. @react-native-async-storage/async-storage,
+            // react-native-gesture-handler) ship ESM builds that omit file extensions on
+            // relative imports. Webpack 5 treats those as fully-specified and fails to resolve
+            // them; force javascript/auto and relax fullySpecified for node_modules JS.
+            {
+                test: /\.m?js$/,
+                include: /node_modules/,
+                type: "javascript/auto",
+                resolve: { fullySpecified: false },
             },
         ]
     }

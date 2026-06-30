@@ -1,18 +1,15 @@
 {
   "private": true,
   "scripts": {
-    "start": "webpack-dev-server",
-    "postinstall": "cp vendor/reactxp-native-common/TextInput.tsx node_modules/@chaldal/reactxp/src/native-common/TextInput.tsx"
+    "start": "webpack-dev-server"
   },
   "dependencies": {
-    "@chaldal/reactxp": "^2.2.0",
-    "@react-native-community/netinfo": "^11.4.1",
-    "@react-native-picker/picker": "^2.11.0",
-    "react-native-webview": "^13.12.5",
     "@microsoft/applicationinsights-react-native": "^2.4.0",
     "@microsoft/applicationinsights-web": "^3.3.4",
     "@microsoft/signalr": "^8.0.17",
     "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-native-community/netinfo": "^11.4.1",
+    "@react-native-picker/picker": "^2.11.0",
     "abortcontroller-polyfill": "^1.7.8",
     "base-64": "1.0.0",
     "fast-memoize": "2.5.2",
@@ -22,9 +19,11 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-is": "18.3.1",
-    "react-native-web": "^0.19.13",
+    "react-native-gesture-handler": "^2.21.0",
     "react-native-svg": "^15.11.2",
+    "react-native-web": "^0.19.13",
     "react-native-webp-format": "^1.2.0",
+    "react-native-webview": "^13.12.5",
     "react-templates-fable": "file:../Meta/AppRenderDslCompiler",
     "simplerestclients": "https://github.com/anchann/SimpleRestClients.git",
     "tslib": "^2.8.1",

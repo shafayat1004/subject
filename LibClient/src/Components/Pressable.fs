@@ -27,7 +27,8 @@ module private Styles =
         makeViewStyles {
             Position.Absolute
             trbl 0 0 0 0
-            flex 1
+            widthPercent 100
+            heightPercent 100
         }
 
 type private Props = {
@@ -89,7 +90,7 @@ type private PressableComponent(initialProps: Props) =
                     let dx = x - px
                     let dy = y - py
                     dx * dx + dy * dy |> sqrt > 5.
-                | _ -> true
+                | _ -> false
 
             maybePressInCoords <- None
             props.MaybePointerState |> Option.iter (fun ps -> ps.SetIsDepressed false e)
@@ -98,20 +99,20 @@ type private PressableComponent(initialProps: Props) =
                 ReactXP.UserInterface.dismissKeyboard()
                 if (e.cancelable && ReactXP.Runtime.isWeb()) || ReactXP.Runtime.isNative() then
                     e.stopPropagation()
-                    props.MaybePointerState
-                    |> Option.iter (fun pointerState ->
-                        pointerState.SetIsHovered false e
-                        maybeTimeoutReference <-
-                            Some (Fable.Core.JS.setTimeout (fun () -> pointerState.SetIsDepressed false e) 1500))
-                    let action = (ReactEvent.Pointer.OfBrowserEvent e).WithSource source |> ReactEvent.Action.Make
-                    UiActionLog.record {
-                        Kind = UiActionLog.UiActionKind.Press
-                        TestId = props.A11y.TestId
-                        Label = props.A11y.Label
-                        ComponentName = Some props.ComponentName
-                        Detail = Map.empty
-                    }
-                    props.OnPress action
+                props.MaybePointerState
+                |> Option.iter (fun pointerState ->
+                    pointerState.SetIsHovered false e
+                    maybeTimeoutReference <-
+                        Some (Fable.Core.JS.setTimeout (fun () -> pointerState.SetIsDepressed false e) 1500))
+                let action = (ReactEvent.Pointer.OfBrowserEvent e).WithSource source |> ReactEvent.Action.Make
+                UiActionLog.record {
+                    Kind = UiActionLog.UiActionKind.Press
+                    TestId = props.A11y.TestId
+                    Label = props.A11y.Label
+                    ComponentName = Some props.ComponentName
+                    Detail = Map.empty
+                }
+                props.OnPress action
 
     let buttonStyles (props: Props) =
         [|

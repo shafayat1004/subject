@@ -5,6 +5,32 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — Removed `@chaldal/reactxp` from `LibClient`; web clicks restored
+
+Finished the ReactXP core retirement and fixed the runtime issues that blocked interaction:
+
+- Deleted `@chaldal/reactxp` from `LibClient/package.json`; `ReactXPBindings.fs` now only contains `extractProp`.
+- Added `react-native-gesture-handler` (RNGH) and `@react-native-async-storage/async-storage` to `LibClient` and `AppEggShellGallery`.
+- Ported `GestureView` to RNGH `Gesture`/`GestureDetector` (`Pan` wired; pinch/rotate/tap/long-press accepted but no-op).
+- Wired RNGH imports in `RNSeam.fs` and wrapped the root with `GestureHandlerRootView` on native only; on web the wrapper intercepts all pointer events, so it is omitted there.
+- Fixed `AccessibilityHelpers.mapRoleToString` so the integer `AccessibilityRole` enum maps to the RN/RNW strings (e.g. `Button` -> `"button"`, `Header` -> `"banner"`); `RNSeam.mapAccessibilityRole` delegates to it.
+- Added webpack aliases + `fullySpecified: false` rule in `Meta/LibFablePlus/webpack.config.js` so RNGH and async-storage resolve through their CommonJS builds and don't hit Webpack 5 ESM `fullySpecified` errors.
+- Added `window.__DEV__ = true` in `AppEggShellGallery/public-dev/index.html`; RN/RNW expect it at load time.
+- Fixed `LC.Pressable` web press handling:
+  - Moved `props.OnPress action` outside the `e.cancelable` guard; RNW's `onPressOut` event is not cancelable, so the old code never fired the action on web.
+  - Treat missing pointer coordinates as "not a drag" so keyboard/Enter activation works.
+  - Replaced `flex 1` in the absolute overlay style with `widthPercent 100; heightPercent 100` so the overlay fills its container.
+
+Validation green:
+- `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` — 0 errors.
+- `dotnet build LibClient/src/LibClient.fsproj -c "Native Debug"` — 0 errors.
+- `dotnet fable LibClient/src/LibClient.fsproj -o /tmp/fable-check --exclude FablePlugins --define DEBUG --define EGGSHELL_PLATFORM_IS_WEB --noCache` — 0 errors.
+- `eggshell dev-web` on `AppEggShellGallery` compiles; Playwright smoke navigates Home -> Components -> Button.
+
+Files: `LibClient/src/Components/Pressable.fs`, `LibClient/src/AccessibilityHelpers.fs`, `LibClient/src/ReactXP/RNSeam.fs`, `LibClient/src/ReactXP/ReactXPBindings.fs`, `LibClient/src/ReactXP/Components/GestureView/GestureView.fs`, `Meta/LibFablePlus/webpack.config.js`, `AppEggShellGallery/public-dev/index.html`, `AppEggShellGallery/src/Bootstrap.fs`, `LibClient/package.json`, `AppEggShellGallery/package.json`.
+
+---
+
 ## 2026-06-30 — Removed most remaining `@chaldal/reactxp` core usages from `LibClient`
 
 Continuing the ReactXP retirement, replaced the non-animation and animation core APIs with `ReactXP.RNSeam` equivalents:

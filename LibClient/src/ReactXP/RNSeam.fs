@@ -35,6 +35,10 @@ module RNSeam =
     let ActivityIndicator: obj = import "ActivityIndicator" "react-native"
     let Animated: obj = import "Animated" "react-native"
 
+    let GestureHandlerRootView: obj = import "GestureHandlerRootView" "react-native-gesture-handler"
+    let GestureDetector: obj = import "GestureDetector" "react-native-gesture-handler"
+    let Gesture: obj = import "Gesture" "react-native-gesture-handler"
+
     let PlatformModule: obj = import "Platform" "react-native"
     let PixelRatioModule: obj = import "PixelRatio" "react-native"
     let DimensionsModule: obj = import "Dimensions" "react-native"
@@ -117,50 +121,9 @@ module RNSeam =
                 handler (x, y)))
 
     /// Convert EggShell's integer `AccessibilityRole` enum to the string RNW expects.
-    /// Returns None for roles RNW explicitly ignores (imagebutton, keyboardkey, text).
+    /// Delegates to the canonical mapping in LibClient.AccessibilityHelpers so we have a single source of truth.
     let mapAccessibilityRole (role: LibClient.Accessibility.AccessibilityRole) : string option =
-        match role with
-        | LibClient.Accessibility.AccessibilityRole.Alert -> Some "alert"
-        | LibClient.Accessibility.AccessibilityRole.Imagebutton -> None
-        | LibClient.Accessibility.AccessibilityRole.Keyboardkey -> None
-        | LibClient.Accessibility.AccessibilityRole.ProgressBar -> Some "progressbar"
-        | LibClient.Accessibility.AccessibilityRole.Radio -> Some "radio"
-        | LibClient.Accessibility.AccessibilityRole.RadioGroup -> Some "radiogroup"
-        | LibClient.Accessibility.AccessibilityRole.ScrollBar -> Some "scrollbar"
-        | LibClient.Accessibility.AccessibilityRole.SpinButton -> Some "spinbutton"
-        | LibClient.Accessibility.AccessibilityRole.Timer -> Some "timer"
-        | LibClient.Accessibility.AccessibilityRole.ToggleButton -> Some "button"
-        | LibClient.Accessibility.AccessibilityRole.Toolbar -> Some "toolbar"
-        | LibClient.Accessibility.AccessibilityRole.Summary -> Some "summary"
-        | LibClient.Accessibility.AccessibilityRole.Adjustable -> Some "adjustable"
-        | LibClient.Accessibility.AccessibilityRole.Button -> Some "button"
-        | LibClient.Accessibility.AccessibilityRole.Tab -> Some "tab"
-        | LibClient.Accessibility.AccessibilityRole.Link -> Some "link"
-        // "banner" → propsToAccessibilityComponent renders as <header> (correct site-level
-        // landmark); "header" → ARIA "heading" → <h1> (wrong, causes 2em font-size inheritance).
-        | LibClient.Accessibility.AccessibilityRole.Header -> Some "banner"
-        | LibClient.Accessibility.AccessibilityRole.Search -> Some "search"
-        | LibClient.Accessibility.AccessibilityRole.Image -> Some "image"
-        | LibClient.Accessibility.AccessibilityRole.Text -> None
-        | LibClient.Accessibility.AccessibilityRole.Menu -> Some "menu"
-        | LibClient.Accessibility.AccessibilityRole.MenuItem -> Some "menuitem"
-        | LibClient.Accessibility.AccessibilityRole.MenuBar -> Some "menubar"
-        | LibClient.Accessibility.AccessibilityRole.TabList -> Some "tablist"
-        | LibClient.Accessibility.AccessibilityRole.List -> Some "list"
-        | LibClient.Accessibility.AccessibilityRole.ListItem -> Some "listitem"
-        | LibClient.Accessibility.AccessibilityRole.ListBox -> Some "listbox"
-        | LibClient.Accessibility.AccessibilityRole.Group -> Some "group"
-        | LibClient.Accessibility.AccessibilityRole.CheckBox -> Some "checkbox"
-        | LibClient.Accessibility.AccessibilityRole.Checked -> Some "checkbox"
-        | LibClient.Accessibility.AccessibilityRole.ComboBox -> Some "combobox"
-        | LibClient.Accessibility.AccessibilityRole.Log -> Some "log"
-        | LibClient.Accessibility.AccessibilityRole.Status -> Some "status"
-        | LibClient.Accessibility.AccessibilityRole.Dialog -> Some "dialog"
-        | LibClient.Accessibility.AccessibilityRole.HasPopup -> Some "button"
-        | LibClient.Accessibility.AccessibilityRole.Option -> Some "option"
-        | LibClient.Accessibility.AccessibilityRole.Switch -> Some "switch"
-        | LibClient.Accessibility.AccessibilityRole.None -> Some "none"
-        | _ -> None
+        LibClient.AccessibilityHelpers.mapRoleToString role
 
     let mapImportantForAccessibility (v: LibClient.Accessibility.ImportantForAccessibility option) : obj option =
         v
@@ -356,9 +319,23 @@ module UserInterface =
 
     let setMainView (element: Fable.React.ReactElement) : unit =
 #if EGGSHELL_PLATFORM_IS_WEB
+        let rootElement = contextWrapper element
+
+        // GestureHandlerRootView is required on Android native, but on web it can intercept
+        // pointer events and break regular Pressable/Link clicks. Wrap only on native.
+        let wrappedElement =
+#if EGGSHELL_PLATFORM_IS_WEB
+            rootElement
+#else
+            RNSeam.createElement
+                RNSeam.GestureHandlerRootView
+                (createObj [ "style" ==> createObj [ "flex" ==> 1 ] ])
+                (LibClient.ThirdParty.fixPotentiallySingleChild [| rootElement |])
+#endif
+
         match mainRoot with
         | Some root ->
-            root?render(contextWrapper element)
+            root?render(wrappedElement)
         | None ->
             let container: Browser.Types.HTMLElement =
                 let maybeContainer = Browser.Dom.document.querySelector ".app-container"
@@ -372,7 +349,7 @@ module UserInterface =
 
             let root = createRoot $ (container)
             mainRoot <- Some root
-            root?render(contextWrapper element)
+            root?render(wrappedElement)
 #else
         failwith "RNSeam.UserInterface.setMainView native path not implemented."
 #endif

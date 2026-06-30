@@ -16,6 +16,10 @@
       eggshell.AppEggShellGallery = {}
       eggshell.AppEggShellGallery.configSourceOverrides = {}
     </script>
+    <script>
+      // RNSeam port: React Native code expects __DEV__ to be defined.
+      window.__DEV__ = true;
+    </script>
     <script src="/configSourceOverrides.dev.js"></script>
     <script src="/bundle.js"></script>
 </body>
