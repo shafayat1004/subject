@@ -4,6 +4,7 @@ module LibClient.Components.Input.PickerInternals.Popup
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Icons
 open LibClient.Components.Input.PickerModel
@@ -15,25 +16,26 @@ module LC =
     module Input =
         module PickerInternals =
             module Popup =
-                type Theme = {
-                    BackgroundColor:         Color
-                    BorderColor:             Color
-                    ItemTextColor:           Color
-                    ItemTextHighlightColor:  Color
-                    ItemHighlightBackground: Color
-                    ItemBorderColor:         Color
-                    SelectedIconColor:       Color
-                    BorderRadius:            int
-                }
+                type Theme =
+                    { BackgroundColor: Color
+                      BorderColor: Color
+                      ItemTextColor: Color
+                      ItemTextHighlightColor: Color
+                      ItemHighlightBackground: Color
+                      ItemBorderColor: Color
+                      SelectedIconColor: Color
+                      BorderRadius: int }
 
 type Theme = LC.Input.PickerInternals.Popup.Theme
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let private scrollViewCache = System.Collections.Generic.Dictionary<string, ScrollViewStyles>()
+    let private scrollViewCache =
+        System.Collections.Generic.Dictionary<string, ScrollViewStyles>()
 
     let scrollView (fieldWidth: int) (theTheme: LC.Input.PickerInternals.Popup.Theme) : ScrollViewStyles =
         let cacheKey = sprintf "%i-%i" fieldWidth theTheme.BorderRadius
+
         match scrollViewCache.TryGetValue cacheKey with
         | true, styles -> styles
         | false, _ ->
@@ -46,13 +48,14 @@ module private Styles =
                     if fieldWidth >= 0 then
                         width (fieldWidth - 4)
                 }
+
             scrollViewCache.[cacheKey] <- styles
             styles
 
     let scrollViewFor (maybeFieldWidth: Option<int>) (theTheme: LC.Input.PickerInternals.Popup.Theme) =
         match maybeFieldWidth with
         | Some fieldWidth -> scrollView fieldWidth theTheme
-        | None            -> scrollView -1 theTheme
+        | None -> scrollView -1 theTheme
 
     let view (theTheme: LC.Input.PickerInternals.Popup.Theme) =
         makeViewStyles {
@@ -94,13 +97,12 @@ module private Styles =
                 else
                     theTheme.ItemTextColor
             )
+
             fontSize 16
         }
 
     let noItemsMessageText (theTheme: LC.Input.PickerInternals.Popup.Theme) =
-        makeTextStyles {
-            color theTheme.ItemTextColor
-        }
+        makeTextStyles { color theTheme.ItemTextColor }
 
     let itemSelectedness =
         makeViewStyles {
@@ -108,10 +110,7 @@ module private Styles =
             flex 0
         }
 
-    let itemBody =
-        makeViewStyles {
-            flex 1
-        }
+    let itemBody = makeViewStyles { flex 1 }
 
     let noItemsMessage =
         makeViewStyles {
@@ -138,24 +137,23 @@ module private Styles =
         }
 
 module private Helpers =
-    let renderItems<'Item when 'Item : comparison>
+    let renderItems<'Item when 'Item: comparison>
         (theTheme: LC.Input.PickerInternals.Popup.Theme)
         (modelState: PickerState<'Item>)
         (itemView: PickerItemView<'Item>)
-        (onSelect: int -> 'Item -> Browser.Types.Event -> unit)
+        (onSelect: int -> 'Item -> ReactEvent.Action -> unit)
         (items: List<'Item>)
         : ReactElement =
+        let itemLabel (item: 'Item) : string =
+            match itemView with
+            | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
+            | PickerItemView.Custom _ -> "item"
+
         match items with
         | [] ->
             RX.View(
                 styles = [| Styles.noItemsMessage |],
-                children =
-                    [|
-                        LC.UiText(
-                            value = "No items",
-                            styles = [| Styles.noItemsMessageText theTheme |]
-                        )
-                    |]
+                children = [| LC.UiText(value = "No items", styles = [| Styles.noItemsMessageText theTheme |]) |]
             )
         | nonemptyItems ->
             castAsElement (
@@ -163,47 +161,42 @@ module private Helpers =
                 |> List.mapi (fun index item ->
                     let isHighlighted = modelState.MaybeHighlightedItemIndex = Some index
 
-                    RX.View(
+                    LC.Pressable(
                         onPress = onSelect index item,
+                        label = itemLabel item,
                         styles = [| Styles.item theTheme (index = 0) isHighlighted |],
+                        componentName = "LC.Input.PickerInternals.Popup.Item",
                         children =
-                            [|
-                                RX.View(
-                                    styles = [| Styles.itemSelectedness |],
-                                    children =
-                                        [|
-                                            if modelState.Value.IsSelected item then
-                                                LC.Icon(
-                                                    icon = Icon.CheckMark,
-                                                    styles = [| Styles.itemSelectedIcon theTheme |]
-                                                )
-                                            else
-                                                noElement
-                                        |]
-                                )
-                                RX.View(
-                                    styles = [| Styles.itemBody |],
-                                    children =
-                                        [|
-                                            match itemView with
-                                            | PickerItemView.Default toItemInfo ->
-                                                LC.UiText(
-                                                    value = (toItemInfo item).Label,
-                                                    styles = [| Styles.itemLabel theTheme isHighlighted |]
-                                                )
-                                            | PickerItemView.Custom render ->
-                                                render item
-                                        |]
-                                )
-                            |]
-                    )
-                )
+                            [| RX.View(
+                                   styles = [| Styles.itemSelectedness |],
+                                   children =
+                                       [| if modelState.Value.IsSelected item then
+                                              LC.Icon(
+                                                  icon = Icon.CheckMark,
+                                                  styles = [| Styles.itemSelectedIcon theTheme |]
+                                              )
+                                          else
+                                              noElement |]
+                               )
+                               RX.View(
+                                   styles = [| Styles.itemBody |],
+                                   children =
+                                       [| match itemView with
+                                          | PickerItemView.Default toItemInfo ->
+                                              LC.UiText(
+                                                  value = (toItemInfo item).Label,
+                                                  styles = [| Styles.itemLabel theTheme isHighlighted |]
+                                              )
+                                          | PickerItemView.Custom render -> render item |]
+                               ) |]
+                    ))
                 |> Array.ofList
             )
 
 type LibClient.Components.Constructors.LC.Input.PickerInternals with
     [<Component>]
-    static member Popup<'Item when 'Item : comparison>(
+    static member Popup<'Item when 'Item: comparison>
+        (
             model: PickerModel<'Item>,
             itemView: PickerItemView<'Item>,
             ?theme: LC.Input.PickerInternals.Popup.Theme -> LC.Input.PickerInternals.Popup.Theme,
@@ -214,22 +207,20 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let modelStateHook = Hooks.useState (model.GetState())
 
-        Hooks.useEffectDisposable(
+        Hooks.useEffectDisposable (
             (fun () ->
                 let subscription =
-                    model.SubscribeOnStateUpdate (fun update ->
-                        modelStateHook.update update.Next
-                    )
+                    model.SubscribeOnStateUpdate(fun update -> modelStateHook.update update.Next)
+
                 { new System.IDisposable with
-                    member _.Dispose() = subscription.Off() }
-            ),
+                    member _.Dispose() = subscription.Off() }),
             [| box model |]
         )
 
         let modelState = modelStateHook.current
 
-        let onSelect (index: int) (item: 'Item) (_e: Browser.Types.Event) : unit =
-            model.HandleInputEvent (Select (index, item))
+        let onSelect (index: int) (item: 'Item) (_e: ReactEvent.Action) : unit =
+            model.HandleInputEvent(Select(index, item))
 
         let renderWhenAvailable (items: List<'Item>) : ReactElement =
             Helpers.renderItems theTheme modelState itemView onSelect items
@@ -238,44 +229,35 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             vertical = true,
             styles = [| Styles.scrollViewFor modelState.MaybeFieldWidth theTheme |],
             children =
-                [|
-                    RX.View(
-                        styles = [| Styles.view theTheme |],
-                        children =
-                            [|
-                                LC.AsyncData(
-                                    data = modelState.SelectableItems,
-                                    whenAvailable = renderWhenAvailable,
-                                    whenFetching =
-                                        fun maybeOldData ->
-                                            match maybeOldData with
-                                            | None ->
-                                                RX.View(
-                                                    styles = [| Styles.activityIndicatorBlock |],
-                                                    children =
-                                                        [|
-                                                            RX.ActivityIndicator(
-                                                                size = ActivityIndicator.Medium,
-                                                                color = "#aaaaaa"
-                                                            )
-                                                        |]
-                                                )
-                                            | Some oldData ->
-                                                castAsElement [|
-                                                    renderWhenAvailable oldData
-                                                    RX.View(
-                                                        styles = [| Styles.activityIndicatorOverlay |],
-                                                        children =
-                                                            [|
-                                                                RX.ActivityIndicator(
+                [| RX.View(
+                       styles = [| Styles.view theTheme |],
+                       children =
+                           [| LC.AsyncData(
+                                  data = modelState.SelectableItems,
+                                  whenAvailable = renderWhenAvailable,
+                                  whenFetching =
+                                      fun maybeOldData ->
+                                          match maybeOldData with
+                                          | None ->
+                                              RX.View(
+                                                  styles = [| Styles.activityIndicatorBlock |],
+                                                  children =
+                                                      [| RX.ActivityIndicator(
+                                                             size = ActivityIndicator.Medium,
+                                                             color = "#aaaaaa"
+                                                         ) |]
+                                              )
+                                          | Some oldData ->
+                                              castAsElement
+                                                  [| renderWhenAvailable oldData
+                                                     RX.View(
+                                                         styles = [| Styles.activityIndicatorOverlay |],
+                                                         children =
+                                                             [| RX.ActivityIndicator(
                                                                     size = ActivityIndicator.Medium,
                                                                     color = "#aaaaaa"
-                                                                )
-                                                            |]
-                                                    )
-                                                |]
-                                )
-                            |]
-                    )
-                |]
+                                                                ) |]
+                                                     ) |]
+                              ) |]
+                   ) |]
         )

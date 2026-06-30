@@ -76,6 +76,7 @@ module private Styles =
             marginVertical 6
             borderRadius 20
             Cursor.Default
+            AlignSelf.FlexStart
         }
 
     let labelBlock =

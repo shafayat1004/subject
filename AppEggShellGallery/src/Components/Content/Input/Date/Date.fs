@@ -46,7 +46,7 @@ type Ui.Content.Input with
     static member Date() : ReactElement =
         Ui.ComponentContent(
             displayName = "Input.Date",
-            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Date",
+            props       = ComponentContent.ForFullyQualifiedName "LC.Input.Date",
             a11y =
                 Ui.A11yPanel(
                     componentName = "LC.Input.Date",

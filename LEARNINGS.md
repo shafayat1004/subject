@@ -5,6 +5,46 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — Input.Picker dropdown and selection fixed on web
+
+The Forms page picker would not open its dropdown, and the standalone `Input.Picker` gallery page threw a blank-screen "Exception". Several separate issues compounded:
+
+1. **Raw `RX.TextInput` ref does not expose `requestFocus`.** `PickerInternals.Field` used the ReactXP raw `TextInput` and then called `.requestFocus()` on its ref. The underlying web `<input>` only has `.focus()`, so the call threw "requestFocus is not a function". Fix: wrap the raw ref in a small object that maps `requestFocus -> focus`, `blur -> blur`, `selectAll -> focus + setSelectionRange`, and store that wrapper in a `Hooks.useRef` (not a state hook, see #2).
+
+2. **Storing a ref in `useState` triggers an infinite update loop.** The original `Text` component set the input ref into a state hook inside the ref callback. Because the ref callback is a new function every render, React calls it on every commit with the same instance; creating a new wrapper object each time causes a state update, which creates a new ref callback, which causes another state update, etc. Storing the ref in `Hooks.useRef` breaks the cycle.
+
+3. **`RNSeam.Popup.show` was calling the curried `renderPopup` with a tuple.** `renderPopup $ (rect, 0, 0, 0)` produced a partially-applied function instead of a React element, so `createRoot(...).render` received a function and logged "Functions are not valid as a React child". Fix: apply the curried renderer argument-by-argument: `renderPopup $ rect $ 0 $ 0 $ 0`.
+
+4. **Popup list items used `RX.View(onPress = ...)` which does not receive clicks on web.** ReactXP `View` does not map `onPress` to a DOM click handler. Fix: wrap each item in `LC.Pressable`.
+
+5. **`unionCaseName` throws a generic "Exception" at runtime in Fable 5 for the gallery's `Fruit` union.** The `Input.Picker` gallery sample used `unionCaseName` to derive labels. Replacing it with `.ToString()` lets the page render.
+
+6. **Gallery URLs must use the underscore DU case name, not the dot label.** The route deserializes the URL segment as JSON into `ComponentItem`. `/Components/%22Input.Picker%22` fails because the case is `Input_Picker`; `/Components/%22Input_Picker%22` works. Sidebar links already emit the correct form.
+
+Validation green:
+- `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` — 0 errors.
+- `dotnet build AppEggShellGallery/src/App.fsproj -c "Web Debug"` — 0 errors.
+- Playwright smoke: Forms picker opens and selects Male; `Input.Picker` and `Input.Date` gallery pages render.
+
+Files: `LibClient/src/Components/Input/Text/Text.fs`, `LibClient/src/Components/Input/PickerInternals/Field/Field.fs`, `LibClient/src/Components/Input/PickerInternals/Base/Base.fs`, `LibClient/src/Components/Input/PickerInternals/Popup/Popup.fs`, `LibClient/src/ReactXP/RNSeam.fs`, `AppEggShellGallery/src/Components/Content/Input/Picker/Picker.fs`.
+
+---
+
+## 2026-06-30 — Reported gallery UI bugs (to be fixed)
+
+From a visual pass of `AppEggShellGallery` on web (screenshots):
+
+1. **Theme samples appear to the right of main samples instead of below.** Root cause: `ComponentContent.fs` puts both sample tables in a horizontal `RX.ScrollView`.
+2. **Input.Picker in the Forms page does not show the gender options when clicked.** Likely a popup/dropdown wiring issue on web after the ReactXP retirement.
+3. **Input.Decimal, PositiveDecimal, PositiveInteger, UnsignedDecimal, UnsignedInteger all render very wide, stretched-out input fields.** Likely the gallery sample table is expanding to fill the page width, and the inputs' `flex: 1` text box grows with it.
+4. **Some component pages show "Fully Qualified Name not found: LibClient.Components.Input.Date".** The scraper key is `LC.Input.Date`, not `LibClient.Components.Input.Date`.
+5. **Grid is not aligned with its pagination header/footer.** Related to the same sample-table width/alignment problem.
+6. **Tags look too wide.** May be the same table-stretch issue or the default `LC.Tags`/`LC.Tag` sizing.
+
+Hypothesis: several of the "too wide" issues share one root cause — the gallery `ComponentContent` sample table uses `width: 100%`, so code and visuals columns stretch to fill the page and drag `flex:1` children with them.
+
+---
+
 ## 2026-06-30 — Debug logging recipe for tracing component interactions
 
 While fixing the `GestureView`/`SegmentedControl` drag issue I used temporary logs to see exactly what the components were doing during pointer interactions. The technique works and should be the basis for a future verbose UI-automation debug mode.

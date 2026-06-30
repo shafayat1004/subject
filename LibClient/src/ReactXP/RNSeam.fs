@@ -154,24 +154,43 @@ module RNSeam =
             props?accessibilityRole <- v
             props?role <- v)
 
-        accessibilityState |> Option.iter (fun v ->
+        accessibilityState
+        |> Option.iter (fun v ->
             props?accessibilityState <- v
+
             let inline readBool (key: string) =
-                if isNull v then None
+                if isNull v then
+                    None
                 else
                     let lowerKey = key.ToLower()
                     let lower = v?(lowerKey)
-                    if not (isNull lower) then Some (!!lower : bool)
+
+                    if not (isNull lower) then
+                        Some(!!lower: bool)
                     else
                         let pascalKey = key.Substring(0, 1).ToUpper() + key.Substring(1)
                         let raw = v?(pascalKey)
-                        if isNull raw then None else Some (!!raw : bool)
-            match readBool "selected" with | Some b -> props?``aria-selected`` <- b | None -> ()
-            match readBool "checked"  with | Some b -> props?``aria-checked`` <- b | None -> ()
-            match readBool "expanded" with | Some b -> props?``aria-expanded`` <- b | None -> ()
-            match readBool "disabled" with | Some b -> props?``aria-disabled`` <- b | None -> ()
-            match readBool "busy"     with | Some b -> props?``aria-busy`` <- b | None -> ()
-        )
+                        if isNull raw then None else Some(!!raw: bool)
+
+            match readBool "selected" with
+            | Some b -> props?``aria-selected`` <- b
+            | None -> ()
+
+            match readBool "checked" with
+            | Some b -> props?``aria-checked`` <- b
+            | None -> ()
+
+            match readBool "expanded" with
+            | Some b -> props?``aria-expanded`` <- b
+            | None -> ()
+
+            match readBool "disabled" with
+            | Some b -> props?``aria-disabled`` <- b
+            | None -> ()
+
+            match readBool "busy" with
+            | Some b -> props?``aria-busy`` <- b
+            | None -> ())
 
         importantForAccessibility
         |> Option.iter (fun v -> props?importantForAccessibility <- v)
@@ -304,8 +323,7 @@ module Runtime =
         | _ -> false
 
 module App =
-    let initialize (_debug: bool, _dev: bool) : unit =
-        ()
+    let initialize (_debug: bool, _dev: bool) : unit = ()
 
 module UserInterface =
     let windowLayoutInfo () : ReactXP.Types.ViewOnLayoutEvent =
@@ -320,7 +338,8 @@ module UserInterface =
 
     let dismissKeyboard () : unit = RNSeam.KeyboardModule?dismiss()
 
-    let mutable contextWrapper: Fable.React.ReactElement -> Fable.React.ReactElement = id
+    let mutable contextWrapper: Fable.React.ReactElement -> Fable.React.ReactElement =
+        id
 
     let setContextWrapper (wrapper: Fable.React.ReactElement -> Fable.React.ReactElement) : unit =
         contextWrapper <- wrapper
@@ -336,22 +355,21 @@ module UserInterface =
         let wrappedElement = contextWrapper element
 
         match mainRoot with
-        | Some root ->
-            root?render(wrappedElement)
+        | Some root -> root?render (wrappedElement)
         | None ->
             let container: Browser.Types.HTMLElement =
                 let maybeContainer = Browser.Dom.document.querySelector ".app-container"
 
                 if isNull maybeContainer then
                     let div = Browser.Dom.document.createElement "div"
-                    Browser.Dom.document.body?appendChild(div) |> ignore
+                    Browser.Dom.document.body?appendChild (div) |> ignore
                     div
                 else
                     maybeContainer :?> Browser.Types.HTMLElement
 
             let root = createRoot $ (container)
             mainRoot <- Some root
-            root?render(wrappedElement)
+            root?render (wrappedElement)
 #else
         failwith "RNSeam.UserInterface.setMainView native path not implemented."
 #endif
@@ -392,19 +410,21 @@ module Popup =
     let private createRoot: obj = import "createRoot" "react-dom/client"
 #endif
 
-    type private PopupEntry = {
-        Container: Browser.Types.HTMLElement
-        Root:      obj
-    }
+    type private PopupEntry =
+        { Container: Browser.Types.HTMLElement
+          Root: obj }
 
     let private entries = System.Collections.Generic.Dictionary<string, PopupEntry>()
 
-    let popupShowOptions (getAnchor: unit -> obj) (renderPopup: obj -> int -> int -> int -> ReactElement) (onDismiss: unit -> unit) : obj =
-        createObj [
-            "getAnchor"   ==> getAnchor
-            "renderPopup" ==> renderPopup
-            "onDismiss"   ==> onDismiss
-        ]
+    let popupShowOptions
+        (getAnchor: unit -> obj)
+        (renderPopup: obj -> int -> int -> int -> ReactElement)
+        (onDismiss: unit -> unit)
+        : obj =
+        createObj
+            [ "getAnchor" ==> getAnchor
+              "renderPopup" ==> renderPopup
+              "onDismiss" ==> onDismiss ]
 
     let dismiss (id: string) : unit =
         match entries.TryGetValue id with
@@ -412,45 +432,57 @@ module Popup =
             entry.Root?unmount()
             entry.Container?remove()
             entries.Remove id |> ignore
-        | false, _ ->
-            ()
+        | false, _ -> ()
 
-    let isDisplayed (id: string) : bool =
-        entries.ContainsKey id
+    let isDisplayed (id: string) : bool = entries.ContainsKey id
 
     let private findDOMNode: obj -> obj = import "findDOMNode" "react-dom"
 
     let private domRectOf (anchor: obj) : obj =
         if isNull anchor then
-            createObj [ "top" ==> 0.0; "left" ==> 0.0; "right" ==> 0.0; "bottom" ==> 0.0; "width" ==> 0.0; "height" ==> 0.0 ]
+            createObj
+                [ "top" ==> 0.0
+                  "left" ==> 0.0
+                  "right" ==> 0.0
+                  "bottom" ==> 0.0
+                  "width" ==> 0.0
+                  "height" ==> 0.0 ]
         elif not (isNull (anchor?getBoundingClientRect)) then
-            anchor?getBoundingClientRect()
+            anchor?getBoundingClientRect ()
         else
             let node = findDOMNode anchor
+
             if isNull node || isNull (node?getBoundingClientRect) then
-                createObj [ "top" ==> 0.0; "left" ==> 0.0; "right" ==> 0.0; "bottom" ==> 0.0; "width" ==> 0.0; "height" ==> 0.0 ]
+                createObj
+                    [ "top" ==> 0.0
+                      "left" ==> 0.0
+                      "right" ==> 0.0
+                      "bottom" ==> 0.0
+                      "width" ==> 0.0
+                      "height" ==> 0.0 ]
             else
-                node?getBoundingClientRect()
+                node?getBoundingClientRect ()
 
     let show (options: obj, id: string) : unit =
 #if EGGSHELL_PLATFORM_IS_WEB
-        if entries.ContainsKey id then dismiss id
+        if entries.ContainsKey id then
+            dismiss id
 
-        let anchorEl: obj = options?getAnchor()
+        let anchorEl: obj = options?getAnchor ()
         let rect: obj = domRectOf anchorEl
 
         let container = Browser.Dom.document.createElement "div"
         container?style?position <- "fixed"
-        container?style?top       <- (rect?bottom |> string) + "px"
-        container?style?left      <- (rect?left |> string) + "px"
-        container?style?zIndex    <- "9999"
-        Browser.Dom.document.body?appendChild(container) |> ignore
+        container?style?top <- (rect?bottom |> string) + "px"
+        container?style?left <- (rect?left |> string) + "px"
+        container?style?zIndex <- "9999"
+        Browser.Dom.document.body?appendChild (container) |> ignore
 
         let renderPopup: obj = options?renderPopup
-        let popupEl: ReactElement = renderPopup $ (rect, 0, 0, 0)
+        let popupEl: ReactElement = renderPopup $ rect $ 0 $ 0 $ 0
 
         let root = createRoot $ (container)
-        root?render(popupEl)
+        root?render (popupEl)
 
         entries.[id] <- { Container = container; Root = root }
 #else

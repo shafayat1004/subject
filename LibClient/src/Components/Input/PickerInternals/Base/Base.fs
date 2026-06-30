@@ -15,20 +15,24 @@ open ReactXP.Components
 open ReactXP.Styles
 
 module private Helpers =
-    let createModel<'Item when 'Item : comparison> (items: Items<'Item>) (value: SelectableValue<'Item>) : PickerModel<'Item> =
-        let initialState = {
-            SelectableItems           = WillStartFetchingSoonHack
-            Value                     = value
-            MaybeQuery                = None
-            MaybeHighlightedItemIndex = None
-            KeyboardSelectionState    = KeyboardSelectionState.NothingSelected
-            DeleteState               = DeleteState.Idle
-            IsListVisible             = false
-            MaybeFieldWidth           = None
-        }
-        PickerModel (LibClient.ServiceInstances.services().EventBus, items, initialState)
+    let createModel<'Item when 'Item: comparison>
+        (items: Items<'Item>)
+        (value: SelectableValue<'Item>)
+        : PickerModel<'Item> =
+        let initialState =
+            { SelectableItems = WillStartFetchingSoonHack
+              Value = value
+              MaybeQuery = None
+              MaybeHighlightedItemIndex = None
+              KeyboardSelectionState = KeyboardSelectionState.NothingSelected
+              DeleteState = DeleteState.Idle
+              IsListVisible = false
+              MaybeFieldWidth = None }
 
-let renderPickerBase<'Item when 'Item : comparison>(
+        PickerModel(LibClient.ServiceInstances.services().EventBus, items, initialState)
+
+let renderPickerBase<'Item when 'Item: comparison>
+    (
         items: Items<'Item>,
         itemView: PickerItemView<'Item>,
         value: SelectableValue<'Item>,
@@ -48,10 +52,7 @@ let renderPickerBase<'Item when 'Item : comparison>(
     let maybeDialogHideRef = Hooks.useRef<Option<unit -> unit>> None
     let anchorRef = Hooks.useRef<obj> null
 
-    Hooks.useEffect(
-        (fun () -> modelRef.current.SetValue value),
-        [| box value |]
-    )
+    Hooks.useEffect ((fun () -> modelRef.current.SetValue value), [| box value |])
 
     let hideList () : unit =
         maybePopupHideRef.current |> Option.sideEffect (fun hide -> hide ())
@@ -62,81 +63,88 @@ let renderPickerBase<'Item when 'Item : comparison>(
 
         match screenSize with
         | ScreenSize.Desktop ->
-            let popup =
-                LC.Input.PickerInternals.Popup(model, itemView, ?key = pickerId)
+            let popup = LC.Input.PickerInternals.Popup(model, itemView, ?key = pickerId)
 
             let options =
                 ReactXP.Popup.popupShowOptions
                     (fun () -> anchorRef.current)
-                    (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
-                        popup)
+                    (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) -> popup)
                     (fun () ->
                         maybePopupHideRef.current <- None
                         model.HandleInputEvent ListWasHidden)
+
             LibClient.JsInterop.runOnNextTick (fun () ->
                 // Defer one extra tick so the opening click does not immediately dismiss the popup (web).
                 LibClient.JsInterop.runOnNextTick (fun () ->
-                    ReactXP.Popup.show(options, popupId)
+                    ReactXP.Popup.show (options, popupId)
 
                     maybePopupHideRef.current <-
-                        Some (fun () ->
-                            ReactXP.Popup.dismiss(popupId)
-                            maybePopupHideRef.current <- None
-                        )))
+                        Some(fun () ->
+                            ReactXP.Popup.dismiss (popupId)
+                            maybePopupHideRef.current <- None)))
 
         | ScreenSize.Handheld ->
             if maybeDialogHideRef.current.IsSome then
                 ()
             else
                 let hideDeferred = Deferred<unit>()
+
                 maybeDialogHideRef.current <-
-                    Some (fun () ->
-                        hideDeferred.Resolve ()
-                        maybeDialogHideRef.current <- None
-                    )
+                    Some(fun () ->
+                        hideDeferred.Resolve()
+                        maybeDialogHideRef.current <- None)
+
                 LibClient.Dialogs.AdHoc.go
-                    (LibClient.Components.Input.PickerInternals.Dialog.Open itemView model hideDeferred placeholder showSearchBar)
+                    (LibClient.Components.Input.PickerInternals.Dialog.Open
+                        itemView
+                        model
+                        hideDeferred
+                        placeholder
+                        showSearchBar)
                     ReactEvent.Action.NonUserOriginatingAction
 
-    Hooks.useEffectDisposable(
+    Hooks.useEffectDisposable (
         (fun () ->
             let model = modelRef.current
+
             let subscription =
-                model.SubscribeOnStateUpdate (fun update ->
+                model.SubscribeOnStateUpdate(fun update ->
                     match (update.Prev.IsListVisible, update.Next.IsListVisible) with
                     | (false, true) -> showList ()
                     | (true, false) -> hideList ()
-                    | _             -> Noop
-                )
+                    | _ -> Noop)
+
             { new System.IDisposable with
                 member _.Dispose() =
-                    subscription.Off ()
-                    hideList () }
-        ),
-        [| box screenSize; box itemView; box placeholder; box showSearchBar; box pickerId |]
+                    subscription.Off()
+                    hideList () }),
+        [| box screenSize
+           box itemView
+           box placeholder
+           box showSearchBar
+           box pickerId |]
     )
 
     RX.View(
         ref = (fun r -> anchorRef.current <- r),
         children =
-            [|
-                LC.Input.PickerInternals.Field(
-                    model = modelRef.current,
-                    ?label = label,
-                    ?placeholder = placeholder,
-                    ?testId = testId,
-                    value = value,
-                    validity = validity,
-                    itemView = itemView,
-                    ?styles = styles,
-                    ?xLegacyStyles = xLegacyStyles
-                )
-            |]
+            [| LC.Input.PickerInternals.Field(
+                   model = modelRef.current,
+                   ?label = label,
+                   ?placeholder = placeholder,
+                   ?testId = testId,
+                   value = value,
+                   validity = validity,
+                   itemView = itemView,
+                   ?styles = styles,
+                   ?xLegacyStyles = xLegacyStyles
+               ) |]
     )
 
 type LibClient.Components.Constructors.LC.Input.PickerInternals with
     [<Component>]
-    static member Base<'Item when 'Item : comparison>(
+    static member Base<'Item when 'Item: comparison>
+        (
             items: Items<'Item>,
             itemView: PickerItemView<'Item>,
             value: SelectableValue<'Item>,
@@ -153,7 +161,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
         ) : ReactElement =
         key |> ignore
 
-        renderPickerBase(
+        renderPickerBase (
             items,
             itemView,
             value,

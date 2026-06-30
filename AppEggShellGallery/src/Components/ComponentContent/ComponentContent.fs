@@ -32,7 +32,14 @@ do
 
 .aesg-ContentComponent-table {
     border-collapse: collapse;
-    width:           100%;
+    width:           auto;
+    max-width:       100%;
+    align-self:      flex-start;
+    flex-shrink:     0;
+}
+
+.aesg-ContentComponent-table td {
+    max-width: 600px;
 }
 
 .aesg-ContentComponent-table > tbody > tr {
@@ -128,19 +135,19 @@ type AppEggShellGallery.Components.Constructors.Ui with
 
                     RX.ScrollView(
                         horizontal = true,
-                        children =
-                            [|
-                                renderSamplesTable samples
-
-                                if themeSamples <> noElement then
-                                    castAsElementAckingKeysWarning
-                                        [|
-                                            sectionHeading "Theme"
-                                            renderSamplesTable themeSamples
-                                        |]
-                                else
-                                    noElement
-                            |]
+                        children = [| renderSamplesTable samples |]
                     )
+
+                    if themeSamples <> noElement then
+                        castAsElementAckingKeysWarning
+                            [|
+                                sectionHeading "Theme"
+                                RX.ScrollView(
+                                    horizontal = true,
+                                    children = [| renderSamplesTable themeSamples |]
+                                )
+                            |]
+                    else
+                        noElement
                 |]
         )
