@@ -615,7 +615,7 @@ not adopted).
 | Link | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Picker | ☐ | ☐ | ☐ | ☐ | ☐ |
 | WebView | ☐ | ☐ | ☐ | ☐ | ☐ |
-| VirtualListView | ☐ | ☐ | ☐ | ☐ | ☐ |
+| VirtualListView | ☑ | ☐ | ☐ | ☐ | ☑ |
 | Motion (Moti surface) | ☐ | ☐ | ☐ | ☐ | ☐ |
 | GestureView | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Scrim / Carousel / SegmentedControl / Draggable | ☐ | ☐ | ☐ | ☐ | ☐ |

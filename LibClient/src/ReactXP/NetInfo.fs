@@ -5,16 +5,7 @@ open Fable.Core.JS
 open LibLangFsharp
 open Fable.Core.JsInterop
 
-// Web: use standard browser online/offline events — no native bridge needed.
-// Native: @react-native-community/netinfo (has no web-compatible build without RN bridge).
-#if EGGSHELL_PLATFORM_IS_WEB
-let isConnected () : Async<bool> =
-    async { return !!(Browser.Dom.window?navigator?onLine) }
-
-let onIsConnectedChange (callback: bool -> unit) : unit =
-    Browser.Dom.window.addEventListener ("online", (fun _ -> callback true))
-    Browser.Dom.window.addEventListener ("offline", (fun _ -> callback false))
-#else
+// Both web and native use @react-native-community/netinfo.
 let private NetInfoCommunity: obj = importDefault "@react-native-community/netinfo"
 
 let isConnected () : Async<bool> =
@@ -27,7 +18,6 @@ let isConnected () : Async<bool> =
 let onIsConnectedChange (callback: bool -> unit) : unit =
     NetInfoCommunity?addEventListener(fun (state: obj) -> callback (state?isConnected |> unbox<bool>))
     |> ignore
-#endif
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 type WifiDetails =

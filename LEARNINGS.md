@@ -5,6 +5,71 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — Ported `LC.VirtualListView` from ReactXP to RN `FlatList`
+
+Per `MIGRATION_RUNBOOK.md` Workstream A step 8, the active `LC.VirtualListView` implementation at `LibClient/src/Components/VirtualListView/VirtualListView.fs` now renders `RNSeam.FlatList` instead of `RX.VirtualListView`:
+
+- The public surface (`VirtualListItem<'Item>`, `RestoreScroll`, `LC.VirtualListView` signature) is unchanged.
+- `data` is the items array; `renderItem` looks up the item by `info.index` and wraps each cell in an `RNSeam.View` with `role="listitem"` and `testID` from `A11ySlug.testId "vlv-item" item.Key` via `RNSeam.assignA11yAndAutomation`.
+- `keyExtractor` returns `item.Key`; `getItemLayout` is supplied only when every item has a known height.
+- `scrollToTop(animate, top)` is implemented against the FlatList ref as `scrollToOffset({ offset: top; animated: animate })`.
+- `restoreScroll` (`No` / `WhenItemKeysMatch`) and the 10-second restore timeout are preserved.
+- `PaginatedVirtualListView.fs` now uses `LC.VirtualListView` instead of `RX.VirtualListView`; `VirtualListViewItemInfo`/`ToRX` were removed.
+
+Gotchas:
+- The live implementation is `Components/VirtualListView/VirtualListView.fs`; `Components/VirtualListView.fs` at the parent level is commented out in `LibClient.fsproj` and remains dead code.
+- `RNSeam` lives in the `ReactXP` namespace, so use `module RNSeam = ReactXP.RNSeam` or fully qualify.
+- Fable dynamic access `info?index` cannot be directly coerced to a generic/int type; use `info?index |> unbox<int>`.
+- FlatList's `keyExtractor` and `getItemLayout` are multi-argument JS callbacks, but Fable compiles tupled F# functions to single-argument array destructuring. Use a local `[<Emit("function () { return $0(Array.prototype.slice.call(arguments)); }")>]` helper to adapt.
+- Passing `key = key` to a `[<Component>]` method with an optional `?key` parameter interacts badly with React's special key handling; omit the argument if it is ignored anyway.
+- Record initialization `{ Key = ...; Item = ...; Height = ...; Template = ... }` in `PaginatedVirtualListView.fs` was ambiguous with `PaginatedVirtualListItem` (same fields); annotate the sequence as `seq<VirtualListItem<PaginatedVirtualListItems>>`.
+- `LC.VirtualListView` now attaches `onScroll` whenever `restoreScroll <> No` OR `scrollSideEffect.IsSome`; the previous ReactXP path only attached it for restore, which would have broken `PaginatedVirtualListView`'s infinite-scroll side effect.
+
+Validation green:
+- `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` — 0 errors (54 pre-existing warnings; EggShellFmt check still reports violations in unrelated files).
+- `dotnet fable LibClient/src/LibClient.fsproj -o /tmp/fable-vlv --exclude FablePlugins --define DEBUG --define EGGSHELL_PLATFORM_IS_WEB --noCache` — Fable compilation finished, 0 errors.
+
+Files: `LibClient/src/Components/VirtualListView/VirtualListView.fs`, `LibClient/src/Components/PaginatedVirtualListView.fs`.
+
+---
+
+## 2026-06-30 — Ported accessibility helpers from ReactXP to RN `AccessibilityInfo`
+
+Per `MIGRATION_RUNBOOK.md` Workstream A step 2, `LibClient/src/AccessibilityAnnounce.fs` and `LibClient/src/Components/With/Accessibility.fs` now call `ReactXP.RNSeam.AccessibilityInfoModule` instead of `ReactXPRaw?Accessibility`:
+
+- `AccessibilityAnnounce.announce` calls `RNSeam.AccessibilityInfoModule?announceForAccessibility`.
+- `With.Accessibility` native branch now queries `isScreenReaderEnabled`, `isReduceMotionEnabled`, `isBoldTextEnabled`, `isReduceTransparencyEnabled`, `isInvertColorsEnabled`, `isGrayscaleEnabled`, and `getFontScale` through `AccessibilityInfoModule`. `getFontScale` moved from `PixelRatio` to `AccessibilityInfo` and is now a promise.
+- The synchronous `tryScreenReaderEnabled` helper is removed; screen-reader state is now fetched asynchronously via the existing `tryAsyncBool` pattern. The initial settings record defaults to `ScreenReaderEnabled = false` and updates once the promise resolves.
+- `addEventListener`/`removeEventListener` map directly to RN `AccessibilityInfo`; the returned subscription still exposes `remove()`, so the fallback cleanup pattern is preserved.
+- The web branch keeps the media-query fallbacks for `ReduceMotion`, `BoldText` (prefers-contrast), `ReduceTransparency`, and `InvertColors` (forced-colors); it does not call `AccessibilityInfo` for settings.
+- Removed `open ReactXP.Helpers` from both files; `open ReactXP` brings `RNSeam` into scope.
+
+Validation green:
+- `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` — 0 errors (54 pre-existing warnings, plus pre-existing EggShellFmt violations in other files).
+- `dotnet fable LibClient/src/LibClient.fsproj -o /tmp/fable-a11y --exclude FablePlugins --define DEBUG --define EGGSHELL_PLATFORM_IS_WEB --noCache` — Fable compilation finished, 0 errors.
+- `dotnet fable LibClient/src/LibClient.fsproj -o /tmp/fable-a11y-native --exclude FablePlugins --define DEBUG --noCache` — native branch also compiles, 0 errors.
+
+Files: `LibClient/src/AccessibilityAnnounce.fs`, `LibClient/src/Components/With/Accessibility.fs`.
+
+---
+
+## 2026-06-30 — NetInfo web path ported to `@react-native-community/netinfo`
+
+Per `MIGRATION_RUNBOOK.md` Workstream A step 3, `LibClient/src/ReactXP/NetInfo.fs` now uses `@react-native-community/netinfo` for both web and native. The previous web branch (`Browser.Dom.window?navigator?onLine` plus `online`/`offline` window events) is removed; `isConnected` and `onIsConnectedChange` now share one implementation:
+
+- `isConnected` calls `NetInfo.fetch()` and reads `state?isConnected`.
+- `onIsConnectedChange` uses `NetInfo.addEventListener` with a handler that receives the state object and invokes the callback with `state?isConnected`.
+
+The native-only `WifiDetails`, `CellularDetails`, `ReactNativeNetInfo`, `getNetInfoState`, etc. remain under `#if !EGGSHELL_PLATFORM_IS_WEB` because they are not used by the shared API.
+
+No callers were changed. Validation green:
+- `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` — 0 errors.
+- `dotnet fable LibClient/src/LibClient.fsproj -o /tmp/fable-netinfo --exclude FablePlugins --define DEBUG --define EGGSHELL_PLATFORM_IS_WEB --noCache` — Fable compilation finished, 0 errors.
+
+File: `LibClient/src/ReactXP/NetInfo.fs`.
+
+---
+
 ## 2026-06-30 — Build blockers while validating LibClient web build
 
 Three unrelated compile errors blocked `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` and Fable:
