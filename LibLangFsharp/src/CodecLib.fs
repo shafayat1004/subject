@@ -339,10 +339,7 @@ let reqWithLazy (c: unit -> Codec<'RawEncoding, _, _, 'Value>) (prop: string) (g
 
 let ofObjCodec x = Fleece.Operators.ofObjCodec x
 
-let inline toEncoding<'Encoding when 'Encoding :> IEncoding and 'Encoding: (new: unit -> 'Encoding)>
-    (x: 't)
-    : 'Encoding =
-    Fleece.Operators.toEncoding x
+let inline toEncoding x = Fleece.Operators.toEncoding x
 
 let optWith c (prop: string) (getter: 'T -> 'Value option) = joptWith (Codecs.option c) prop getter
 

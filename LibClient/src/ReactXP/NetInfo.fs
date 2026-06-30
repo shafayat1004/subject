@@ -9,11 +9,11 @@ open Fable.Core.JsInterop
 // Native: @react-native-community/netinfo (has no web-compatible build without RN bridge).
 #if EGGSHELL_PLATFORM_IS_WEB
 let isConnected () : Async<bool> =
-    async { return Browser.Dom.window.navigator.onLine }
+    async { return !!(Browser.Dom.window?navigator?onLine) }
 
 let onIsConnectedChange (callback: bool -> unit) : unit =
-    Browser.Dom.window.addEventListener("online",  fun _ -> callback true)
-    Browser.Dom.window.addEventListener("offline", fun _ -> callback false)
+    Browser.Dom.window.addEventListener ("online", (fun _ -> callback true))
+    Browser.Dom.window.addEventListener ("offline", (fun _ -> callback false))
 #else
 let private NetInfoCommunity: obj = importDefault "@react-native-community/netinfo"
 
@@ -21,69 +21,69 @@ let isConnected () : Async<bool> =
     promise {
         let! state = NetInfoCommunity?fetch() |> unbox<Fable.Core.JS.Promise<obj>>
         return state?isConnected |> unbox<bool>
-    } |> Async.AwaitPromise
+    }
+    |> Async.AwaitPromise
 
 let onIsConnectedChange (callback: bool -> unit) : unit =
-    NetInfoCommunity?addEventListener(fun (state: obj) ->
-        callback (state?isConnected |> unbox<bool>)) |> ignore
+    NetInfoCommunity?addEventListener(fun (state: obj) -> callback (state?isConnected |> unbox<bool>))
+    |> ignore
 #endif
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 type WifiDetails =
-    abstract ipAddress:             string
+    abstract ipAddress: string
     abstract isConnectionExpensive: bool
-    abstract ssid:                  string
-    abstract strength:              Option<int>
-    abstract subnet:                string
+    abstract ssid: string
+    abstract strength: Option<int>
+    abstract subnet: string
 
 type CellularDetails =
-    abstract carrier:               string
-    abstract cellularGeneration:    LibClient.JsInterop.JsNullable<string>
+    abstract carrier: string
+    abstract cellularGeneration: LibClient.JsInterop.JsNullable<string>
     abstract isConnectionExpensive: bool
-    
+
 type ReactNativeNetInfo =
-    abstract details:             Option<obj>
-    abstract isConnected:         bool
+    abstract details: Option<obj>
+    abstract isConnected: bool
     abstract isInternetReachable: bool
-    abstract ``type``:            string
-    
+    abstract ``type``: string
+
 type ReactNativeNetInfoLibrary =
     abstract fetch: unit -> Promise<ReactNativeNetInfo>
-    
-let private RNNetInfo: ReactNativeNetInfoLibrary = importDefault "@react-native-community/netinfo";
+
+let private RNNetInfo: ReactNativeNetInfoLibrary =
+    importDefault "@react-native-community/netinfo"
 
 type NetDetails =
-| Cellular of CellularDetails
-| Wifi of WifiDetails
-| Others of string
-| Unknown
-| NoConnection
+    | Cellular of CellularDetails
+    | Wifi of WifiDetails
+    | Others of string
+    | Unknown
+    | NoConnection
 
-type NetInfo = {
-    Details:             NetDetails
-    IsConnected:         bool
-    IsInternetReachable: bool
-}
+type NetInfo =
+    { Details: NetDetails
+      IsConnected: bool
+      IsInternetReachable: bool }
 
-let getNetInfoState () : Async<NetInfo>  =
+let getNetInfoState () : Async<NetInfo> =
     promise {
-        let! netInfoRaw =  RNNetInfo.fetch()
+        let! netInfoRaw = RNNetInfo.fetch ()
+
         let details =
             match netInfoRaw.``type``, netInfoRaw.details with
-            | "cellular", Some details ->
-                Cellular (box details :?> CellularDetails)
-            | "wifi", Some details ->
-                Wifi (box details :?> WifiDetails)
-            | "none", _    -> NoConnection
+            | "cellular", Some details -> Cellular(box details :?> CellularDetails)
+            | "wifi", Some details -> Wifi(box details :?> WifiDetails)
+            | "none", _ -> NoConnection
             | "unknown", _ -> Unknown
-            | _, _         -> Others (netInfoRaw.``type``)
-        
-        let netInfo = {
-            Details             = details
-            IsConnected         = netInfoRaw.isConnected
-            IsInternetReachable = netInfoRaw.isInternetReachable
-        }
+            | _, _ -> Others(netInfoRaw.``type``)
+
+        let netInfo =
+            { Details = details
+              IsConnected = netInfoRaw.isConnected
+              IsInternetReachable = netInfoRaw.isInternetReachable }
 
         return netInfo
-    } |> Async.AwaitPromise
+    }
+    |> Async.AwaitPromise
 #endif

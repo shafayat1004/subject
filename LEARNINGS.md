@@ -5,6 +5,60 @@ Newest entries at the top. See `CLAUDE.md` rule 1.
 
 ---
 
+## 2026-06-30 — Build blockers while validating LibClient web build
+
+Three unrelated compile errors blocked `dotnet build LibClient/src/LibClient.fsproj -c "Web Debug"` and Fable:
+
+1. `FS0046: The identifier 'component' is reserved for future use by F#` in `LibClient/src/UiActionLog.fs`.
+   Pojo record field named `component` must be escaped: ``component``: string``. Build then green.
+
+2. `FS0064: This construct causes code to be less generic than indicated by the type annotations. The type variable 't has been constrained to be type 'obj'` in `LibLangFsharp/src/CodecLib.fs(345,5)`.
+   The wrapper `let inline toEncoding<'Encoding when ...> (x:'t) : 'Encoding = Fleece.Operators.toEncoding x` over-constrained `'t` to `obj`. The fix is to drop the explicit type parameter list and let inference pick up Fleece's constraints:
+   `let inline toEncoding x = Fleece.Operators.toEncoding x`.
+   A `<'Encoding, .. when ...>` wildcard also compiled, but Fantomas strips the `, ..` on format, so it cannot be persisted.
+
+3. `FSHARP: The type 'Window' does not define the field, constructor or member 'navigator'` in `LibClient/src/ReactXP/NetInfo.fs`.
+   `Browser.Dom` exposes `window` and `document`, not `navigator`. Access `navigator.onLine` dynamically through `window`:
+   `async { return !!(Browser.Dom.window?navigator?onLine) }`.
+   Fable 5 compiles this cleanly; `dotnet build` and `dotnet fable ... --define EGGSHELL_PLATFORM_IS_WEB` both pass.
+
+Files: `LibClient/src/UiActionLog.fs`, `LibLangFsharp/src/CodecLib.fs`, `LibClient/src/ReactXP/NetInfo.fs`.
+
+---
+
+## 2026-06-30 — Phase 4 RNW seam: platform APIs ported to RNSeam
+
+Moved the `NativePlatform`/`OS`/`Platform` types from `ReactXPBindings.fs` to the top of `RNSeam.fs` so both `RNPlatform` and the public `ReactXP.Runtime` can share them. Ported `ReactXP.Runtime`, `ReactXP.UserInterface`, `ReactXP.Linking`, and `ReactXP.Clipboard` into `RNSeam.fs` using react-native primitives (`Platform`, `Dimensions`, `PixelRatio`, `Keyboard`, `Linking`). `Clipboard` is web-only for now (`navigator.clipboard.writeText`) because `@react-native-clipboard/clipboard` is not installed; native will throw with a clear message.
+
+`ReactXPBindings.fs` now only holds the remaining ReactXP-core helpers (`PopupShowOptionsJs`, `ReactXPRaw`, `popupShowOptions`, `extractProp`). The platform/linking/clipboard modules are no longer backed by `@chaldal/reactxp`.
+
+Also promoted `ScrollViewRN.wrapOnScroll` to public `ReactXP.RNSeam.wrapOnScroll` per the migration runbook; `ScrollView.fs` now calls the shared helper.
+
+Extended `RNSeam.assignAccessibility` to emit both `accessibilityRole`/`accessibilityLabel` and their web equivalents `role`/`aria-label`, and added `RNSeam.assignA11yAndAutomation` to bundle testID, nativeID, and all a11y/automation props in one call.
+
+Build/Fable validation: `LibClient`, `LibRouter`, `LibStandard` `Web Debug` green; `dotnet fable LibClient/src/LibClient.fsproj ... --define EGGSHELL_PLATFORM_IS_WEB` green; `eggshell dev-web` on `AppEggShellGallery` compiled and served successfully.
+
+Files: `LibClient/src/ReactXP/RNSeam.fs`, `LibClient/src/ReactXP/ReactXPBindings.fs`, `LibClient/src/ReactXP/Components/ScrollView/ScrollView.fs`.
+
+---
+
+## 2026-06-30 — `react-native-webview` cannot be imported at the top of a web-shared module
+
+Added `RNSeam.WebView` as a top-level `import "default" "react-native-webview"`. On web, `react-native-webview` ships a dummy component written in JSX, and webpack (rightly) does not apply the JSX loader to files inside `node_modules`. That produced:
+
+```
+ERROR in ../LibClient/node_modules/react-native-webview/lib/WebView.js 5:36
+Module parse failed: Unexpected token (5:36)
+```
+
+The `WebView` primitive is the only one with this problem because `ReactXP.Components.WebView.fs` already conditionally imports it only for native (`#if !EGGSHELL_PLATFORM_IS_WEB`). The fix is to remove the top-level `RNSeam.WebView` import; web and native WebView handling stays inside `WebView.fs`.
+
+`Picker`, `FlatList`, and the RN core modules (`Dimensions`, `Keyboard`, `Linking`, `Clipboard`, `AccessibilityInfo`) are safe because they either have web-compatible JS builds or are aliased through `react-native-web`.
+
+Files: `LibClient/src/ReactXP/RNSeam.fs`.
+
+---
+
 ## 2026-06-30 — Phase 4 RNW seam: handheld sidebar
 
 ROOT CAUSE (the one that actually mattered): the RNW `View` seam forwarded `onLayout` verbatim.
