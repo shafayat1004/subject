@@ -71,12 +71,15 @@ module private Styles =
 
 do ReactXP.LegacyStyles.Css.addCss (sprintf """
 .aesg-ComponentProps-table {
-    border-collapse: collapse;
-    width:           auto;
-    max-width:       100%%;
+    border-collapse:             collapse;
+    display:                     block;
+    overflow-x:                  auto;
+    -webkit-overflow-scrolling:  touch;
+    width:                       auto;
+    max-width:                   100%%;
     /* The table renders inside a flex-column RX.View, which would otherwise stretch it to
        full width; align-self keeps it sized to its content. */
-    align-self:      flex-start;
+    align-self:                  flex-start;
 }
 
 .aesg-ComponentProps-table th {

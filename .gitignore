@@ -59,6 +59,9 @@ UpgradeLog.htm
 
 # Stray Fable output from running `dotnet fable` without -o on build-*.fsx / Fake scripts (not lib/app builds)
 Fake/**/*.fs.js
+LibAutoUi/**/*.fs.js
+LibClient/**/*.fs.js
+**/**/*.fs.js
 **/build-*.fs.js
 
 # codec validation workspace

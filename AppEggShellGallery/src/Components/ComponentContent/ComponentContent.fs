@@ -5,6 +5,7 @@ open Fable.React
 open Fable.React.Props
 open LibClient
 open LibClient.Components
+open LibClient.Responsive
 open ReactXP.Components
 open ReactXP.Styles
 
@@ -79,6 +80,19 @@ let private renderSamplesTable (samples: ReactElement) =
     RX.View(children = [| samples |])
     #endif
 
+// On desktop, wrap in a horizontal ScrollView so wide sample tables scroll rather than clip.
+// On handheld, render the table directly — CSS stacks the visuals/code cells vertically.
+let private renderSamplesSection (samples: ReactElement) : ReactElement =
+    LC.Responsive(
+        desktop = (fun _ ->
+            RX.ScrollView(
+                horizontal = true,
+                children = [| renderSamplesTable samples |]
+            )
+        ),
+        handheld = (fun _ -> renderSamplesTable samples)
+    )
+
 type AppEggShellGallery.Components.Constructors.Ui with
     [<Component>]
     static member ComponentContent(
@@ -133,19 +147,13 @@ type AppEggShellGallery.Components.Constructors.Ui with
 
                     sectionHeading "Samples"
 
-                    RX.ScrollView(
-                        horizontal = true,
-                        children = [| renderSamplesTable samples |]
-                    )
+                    renderSamplesSection samples
 
                     if themeSamples <> noElement then
                         castAsElementAckingKeysWarning
                             [|
                                 sectionHeading "Theme"
-                                RX.ScrollView(
-                                    horizontal = true,
-                                    children = [| renderSamplesTable themeSamples |]
-                                )
+                                renderSamplesSection themeSamples
                             |]
                     else
                         noElement

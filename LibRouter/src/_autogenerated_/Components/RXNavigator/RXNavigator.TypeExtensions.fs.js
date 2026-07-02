@@ -1,11 +1,35 @@
-import { map, defaultArg } from "../../../../../AppSample2/src/fable_modules/fable-library.3.7.6/Option.js";
-import { Props, NavigatorRoute } from "../../../Components/RXNavigator/RXNavigator.typext.fs.js";
 
-export function LibRouter_Components_TypeExtensions_TEs__TEs_MakeRXNavigatorNavigatorRoute_Static_72384821(prouteId, psceneConfigType, pgestureResponseDistance, pcustomSceneConfig, pgestureResponseDistanceOption, pcustomSceneConfigOption) {
-    return new NavigatorRoute(prouteId, psceneConfigType, defaultArg(pgestureResponseDistanceOption, defaultArg(map((arg0) => arg0, pgestureResponseDistance), undefined)), defaultArg(pcustomSceneConfigOption, defaultArg(map((arg0_1) => arg0_1, pcustomSceneConfig), undefined)));
+import { map, orElse } from "../../../../../AppEggShellGallery/src/fable_modules/fable-library-js.5.4.0/Option.js";
+import { Make, Props, NavigatorRoute } from "../../../Components/RXNavigator/RXNavigator.typext.fs.js";
+import { isEmpty } from "../../../../../AppEggShellGallery/src/fable_modules/fable-library-js.5.4.0/List.js";
+import { Option_getOrElse } from "../../../../../LibLangFsharp/src/OptionExtensions.fs.js";
+import { tellReactArrayKeysAreOkay } from "../../../../../LibClient/src/EggShellReact.fs.js";
+
+export function LibRouter_Components_Constructors_LR__LR_MakeRXNavigatorNavigatorRoute_Static_Z18A95B2C(prouteId, psceneConfigType, pchildren, pgestureResponseDistance, pcustomSceneConfig) {
+    return new NavigatorRoute(prouteId, psceneConfigType, orElse(pgestureResponseDistance, undefined), orElse(pcustomSceneConfig, undefined));
 }
 
-export function LibRouter_Components_TypeExtensions_TEs__TEs_MakeRXNavigatorProps_Static_Z2EC7E068(pref, prenderScene) {
-    return new Props(pref, prenderScene);
+export function LibRouter_Components_Constructors_LR__LR_RXNavigator_Static_2F5AD263(ref, renderScene, children, xLegacyStyles) {
+    const __props = new Props(ref, renderScene);
+    let matchResult, styles;
+    if (xLegacyStyles != null) {
+        if (isEmpty(xLegacyStyles)) {
+            matchResult = 0;
+        }
+        else {
+            matchResult = 1;
+            styles = xLegacyStyles;
+        }
+    }
+    else {
+        matchResult = 0;
+    }
+    switch (matchResult) {
+        case 1: {
+            __props.__style = styles;
+            break;
+        }
+    }
+    return Make(__props)(Option_getOrElse([], map(tellReactArrayKeysAreOkay, children)));
 }
 

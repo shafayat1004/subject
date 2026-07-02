@@ -77,6 +77,25 @@ do
     display: block;
 }
 
+/* Handheld (<900px): stack visuals above code instead of side-by-side.
+   Matches the LibClient Responsive breakpoint (width < 900 = Handheld).
+   The horizontal ScrollView wrapper is removed on handheld in ComponentContent.fs,
+   so there is no overflow-y:hidden container to clip the taller stacked rows. */
+@media (max-width: 899px) {
+    .aesg-ContentComponent-table tr,
+    .aesg-ContentComponent-table td {
+        display:    block;
+        box-sizing: border-box;
+        max-width:  100%;
+    }
+    /* Override the inline margin-left (40px) and min-width (300px) that RX.View
+       applies in the side-by-side code cell — not needed when stacked. */
+    .aesg-ContentComponent-table td > div {
+        margin-left: 0 !important;
+        min-width:   0 !important;
+    }
+}
+
 """
 
 let private visualsTdClass (verticalAlignment: VerticalAlignment) (layout: Layout) =

@@ -11,7 +11,11 @@ open AppEggShellGallery.Components.SidebarContent
 
 module SI = LibClient.Components.Sidebar.Item
 
-let private fixedTopBlades (maybeCurrentRoute: Option<Route>) (currentRoute: ActualRoute) (close: ReactEvent.Action -> unit) : ReactElement =
+// On handheld the sidebar has two logical regions: the top-level section navigator
+// ("blades") and the current section's sub-page list.  Putting them all in one
+// scrollable region (scrollableMiddle) avoids the blades consuming 50%+ of the
+// viewport height as a non-scrolling fixedTop, which hides sub-items behind the fold.
+let private bladesForScrollable (maybeCurrentRoute: Option<Route>) (currentRoute: ActualRoute) (close: ReactEvent.Action -> unit) : ReactElement =
     let show route e =
         nav.Go (maybeCurrentRoute, route) e
         close e
@@ -34,16 +38,21 @@ let private fixedTopBlades (maybeCurrentRoute: Option<Route>) (currentRoute: Act
                     LC.Sidebar.Item(label = "Components",    testId = "sidebar-blade-components",    state = itemState (Components Index))
                     LC.Sidebar.Item(label = "How To",        testId = "sidebar-blade-how-to",        state = itemState (HowTo (HowToItem.Markdown "how-to/index.md")))
                     LC.Sidebar.Item(label = "Design",        testId = "sidebar-blade-design",        state = itemState (Design (DesignItem.Markdown "design/index.md")))
+                    LC.Sidebar.Divider()
                 |]
             )
     )
 
-let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: ActualRoute) (maybeFixedTop: ReactElement) (close: ReactEvent.Action -> unit) : ReactElement =
+let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: ActualRoute) (bladesScrollable: ReactElement) (close: ReactEvent.Action -> unit) : ReactElement =
+    // Combine blade nav + section sub-items into one scrollable region.
+    // On desktop bladesScrollable is noElement, so this is a no-op there.
+    let withBlades subItems = castAsElement [| bladesScrollable; subItems |]
+
     match currentRoute with
     | Home | TinyGuid ->
         LC.Responsive(
             desktop = (fun _ -> noElement),
-            handheld = (fun _ -> LC.Sidebar.Base(fixedTop = maybeFixedTop))
+            handheld = (fun _ -> LC.Sidebar.Base(scrollableMiddle = bladesScrollable))
         )
 
     | Docs url ->
@@ -54,7 +63,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = docsItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (docsItems itemState))
 
     | Tools url ->
         let show itemUrl e =
@@ -64,7 +73,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = toolsItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (toolsItems itemState))
 
     | HowTo currItem ->
         let show item e =
@@ -76,7 +85,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
 
         let itemStateMarkdown url = itemState (HowToItem.Markdown url)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = howToItems itemStateMarkdown)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (howToItems itemStateMarkdown))
 
     | Subject url ->
         let show itemUrl e =
@@ -86,7 +95,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = subjectItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (subjectItems itemState))
 
     | Architecture url ->
         let show itemUrl e =
@@ -96,7 +105,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = architectureItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (architectureItems itemState))
 
     | Modernization url ->
         let show itemUrl e =
@@ -106,7 +115,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = modernizationItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (modernizationItems itemState))
 
     | Runbooks url ->
         let show itemUrl e =
@@ -116,7 +125,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = runbooksItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (runbooksItems itemState))
 
     | Accessibility url ->
         let show itemUrl e =
@@ -126,7 +135,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = accessibilityItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (accessibilityItems itemState))
 
     | KnowledgeBase url ->
         let show itemUrl e =
@@ -136,7 +145,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemUrl =
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = knowledgeBaseItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (knowledgeBaseItems itemState))
 
     | Design currItem ->
         let show item e =
@@ -146,7 +155,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState item =
             if currItem = item then SI.Selected else SI.Actionable (show item)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = designItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (designItems itemState))
 
     | Legacy currItem ->
         let show item e =
@@ -156,7 +165,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState item =
             if currItem = item then SI.Selected else SI.Actionable (show item)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = legacyItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (legacyItems itemState))
 
     | Components content ->
         let show itemContent e =
@@ -166,14 +175,14 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
         let itemState itemContent =
             if content = itemContent then SI.Selected else SI.Actionable (show itemContent)
 
-        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = componentsItems itemState)
+        LC.Sidebar.Base(scrollableMiddle = withBlades (componentsItems itemState))
 
 let private sidebarBody (maybeCurrentRoute: Option<Route>) : ReactElement =
     match maybeCurrentRoute with
     | Some { SampleVisualsScreenSize = _; ActualRoute = currentRoute } ->
         LC.Sidebar.WithClose(fun close ->
-            let maybeFixedTop = fixedTopBlades maybeCurrentRoute currentRoute close
-            routeSidebar maybeCurrentRoute currentRoute maybeFixedTop close
+            let bladesScrollable = bladesForScrollable maybeCurrentRoute currentRoute close
+            routeSidebar maybeCurrentRoute currentRoute bladesScrollable close
         )
 
     | None ->

@@ -549,13 +549,23 @@ pre {
 
 /* Tables inside rendered Markdown docs (GFM pipe tables via Showdown).
    The markdown container carries the `markdown-body` class (ThirdParty/Showdown MarkdownViewer). */
+
+/* Code blocks: scroll horizontally on narrow viewports instead of overflowing. */
+.markdown-body pre {
+	overflow-x:                  auto;
+	-webkit-overflow-scrolling:  touch;
+}
+
 .markdown-body table {
-	border-collapse: collapse;
-	margin:          14px 0;
-	width:           auto;
-	max-width:       100%;
-	font-size:       14px;
-	line-height:     1.45;
+	border-collapse:             collapse;
+	display:                     block;
+	overflow-x:                  auto;
+	-webkit-overflow-scrolling:  touch;
+	margin:                      14px 0;
+	width:                       auto;
+	max-width:                   100%;
+	font-size:                   14px;
+	line-height:                 1.45;
 }
 .markdown-body th,
 .markdown-body td {
