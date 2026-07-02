@@ -18,7 +18,7 @@ This is the "main" EggShell library that contains:
 ** PageTitleService for changing the page title
 * Abstract classes for building Apps and Dialogs
 * Legacy StylesDSL runtime (class-based styles) — being retired; new components use `makeViewStyles` / `Themes`
-* Typed wrappers over raw ReactXP components
+* Typed `RX.*` wrappers over react-native-web (web) and React Native (native) primitives
 * Standard UI components (buttons, form inputs, cards, etc.) — mostly pure F#; **9** `.render` files remain
   (see [Roadmap](./basics/roadmap.md))
 * Logging setup, including ApplicationInsights bindings

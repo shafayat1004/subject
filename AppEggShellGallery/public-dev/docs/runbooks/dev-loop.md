@@ -22,7 +22,7 @@ Key facts that cause the most confusion:
 - **One** `dev-native` and **one** Metro serve **both** Android and iOS simultaneously.
 - The Android emulator reaches Metro via `10.0.2.2:8081` and needs `adb reverse tcp:8081 tcp:8081` once per emulator boot. iOS simulator uses `localhost:8081` with no reverse needed.
 - **A green Fable/Metro build does not mean your change is on screen.** The app must be reloaded and Metro may serve a cached bundle. Always confirm on-device (Tier 1) or via `doctor`/`snapshot` (Tier 2).
-- **Metro bundles `node_modules` from each package's build entry.** For `@chaldal/reactxp` that is `dist/native-common/*.js`, not `src/*.tsx`. Patching the wrong file is invisible. Verify a patch actually reached the bundle (see [Build and rebuild](./runbooks/build-rebuild.md#verify-patch-reached-bundle)).
+- **Metro bundles `node_modules` from each package's build entry** (e.g. `react-native-web` from its `dist/` directory, not `src/`). Patching the wrong file is invisible. Verify a patch actually reached the bundle (see [Build and rebuild](./runbooks/build-rebuild.md#verify-patch-reached-bundle)).
 - **Framework edits (LibClient, LibRouter, ...) are picked up through the app's dependency graph** because the watch prints `Watching ../../..`. Confirm the watch log shows `Compiled .../LibClient/...` after a `touch`; otherwise wipe `.build/<platform>/fable` and restart.
 
 ---

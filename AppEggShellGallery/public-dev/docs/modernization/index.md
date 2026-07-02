@@ -12,8 +12,8 @@ status dashboard. Detail pages are linked from each workstream row.
 | Fable.Core | **5.0.0** | |
 | Fable.React | **10.0.0-alpha.1** | No 10.x stable yet; alpha is the only Fable-5-compatible release. |
 | Orleans | 3.7.2 | Frozen. 3.x to 7.x is a hard, non-rolling migration (wire protocol change). |
-| ReactXP | `@chaldal/reactxp` 2.2.0 | Microsoft archived ReactXP upstream; this fork is the only living copy. RNW swap is Phase 4 (not started). |
-| React | 18.2.0 | Upgrade to 19 is gated on the ReactXP seam swap. |
+| Frontend primitives | **`react-native-web`** 0.19.x (web) / `react-native` (native) | Migrated off the archived `@chaldal/reactxp` fork (dependency removed). Web build aliases `react-native` → `react-native-web`; seam in `LibClient/src/ReactXP/RNSeam.fs`. Stabilization ongoing (scroll, gestures, pickers). |
+| React | 18.2.0 | React 19 upgrade is a separate later step. |
 | Storage | SQL Server | Postgres migration is bundled with the Orleans upgrade, both deferred. |
 
 Native and web builds are **green** on the current branch.
@@ -33,7 +33,7 @@ See [Goals & Roadmap](./modernization/goals-and-roadmap.md) for full detail on e
 | **E** | Speed up frontend build | Partial. Render subprocess stage eliminated by Goal A. Quick wins (precompile cache, parallel type-check) not yet applied. |
 | **F** | Platform baseline: .NET 10 + Fable 5 | **Done.** Migrated on branch `modernization/fable5-migration`, now in `modernization/rnw`. Backend TFM bump (net7 to net10 per project) is a separate later step. |
 | **G** | PostgreSQL + Orleans 3.7 to 7.x upgrade | Not started. One coordinated workstream; see [Phased Plan](./modernization/phased-plan.md) Phase 3 / later. |
-| **H** | ReactXP to react-native-web seam swap | **In progress (Phase 4).** Spike validated (Fable 5 + RNW + Reanimated + RNGH on New Architecture). `View.fs` ported as reference primitive; fan-out to Text/Button/ScrollView/etc. in progress. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md). |
+| **H** | ReactXP to react-native-web seam swap | **Substantially done (stabilizing).** The primitive layer has been migrated to react-native-web and `@chaldal/reactxp` is removed as a dependency; the web/native builds run on RN/RNW. Stabilization of scroll, gestures, and pickers is ongoing. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md). |
 | **I** | Frontend render hygiene (key warnings + style leaks) | In progress. Key-warning fix applied at `AppShell/Context/Context.fs`; style-leak rule codified; targeted memoization applied to several components. |
 | **Security** | Auth/SQL/crypto hardening | Not started. See [Security Review](./modernization/security-review.md) for the candidate findings table. |
 
@@ -49,7 +49,7 @@ See [Phased Plan](./modernization/phased-plan.md) for full per-phase detail.
 | **1** | Fable 5 + .NET 10 SDK (project TFMs stay on older targets) | **Done.** |
 | **2** | SignalR modular sibling repo (`eggshell-signalr`) | **Done.** Direct `@microsoft/signalr` bindings; Fable.SignalR wrapper bypassed. |
 | **3** | Backend TFM to net10, Orleans 3.7.2 frozen | Not started. |
-| **4** | ReactXP to RN/RNW seam swap | **In progress.** Live frontier. `View.fs` ported; fan-out continuing. |
+| **4** | ReactXP to RN/RNW seam swap | **Substantially done (stabilizing).** Primitives migrated to react-native-web; `@chaldal/reactxp` removed. Remaining work is bug stabilization (scroll, gestures, pickers). |
 | **5** | Full-stack TODO reference app + templatized scaffold | Not started. |
 | **6** | Docker SQL Server + persistent dev stack | Not started. |
 

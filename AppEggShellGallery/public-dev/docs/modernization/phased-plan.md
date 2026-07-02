@@ -18,7 +18,7 @@ For the motivation behind each step, see [ReactXP to RNW](./modernization/reactx
 | **1** | Fable 5 + .NET 10 SDK. Project TFMs stay on their current targets. | Gallery + libs compile on new toolchain | **Done** |
 | **2** | SignalR modular sibling repo (`eggshell-signalr`). Direct `@microsoft/signalr` bindings, no Fable.SignalR wrapper. | Typed streaming transport on Fable 5 | **Done** |
 | **3** | Backend TFM to net10. Orleans 3.7.2 stays frozen. | Silo + simulation tests on net10 | Not started |
-| **4** | ReactXP to RN + react-native-web seam swap. Reimplement `LibClient/src/ReactXP`. | Gallery + native on modern RN (New Architecture, React 19) | **In progress** |
+| **4** | ReactXP to RN + react-native-web seam swap. Reimplement `LibClient/src/ReactXP`. | Gallery + native on modern RN (New Architecture, React 19) | **Substantially done (stabilizing)** |
 | **5** | Full-stack TODO reference app + templatized scaffold (`eggshell create-app`). | Goal B: `create-app -> dev-web` end to end | Not started |
 | **6** | Docker SQL Server + persistent dev stack | Real DB, not just in-memory Orleans | Not started |
 
@@ -117,14 +117,17 @@ targeted test run with the actual database in Phase 3 or a staging environment.
 
 ---
 
-## Phase 4: ReactXP to RN + react-native-web seam swap (live frontier)
+## Phase 4: ReactXP to RN + react-native-web seam swap (substantially done; stabilizing)
 
 **Shape:** re-implement `LibClient/src/ReactXP` against React Native (native) + react-native-web
 (web) instead of `@chaldal/reactxp`, keeping F# constructor signatures and the style DSL surface
 identical. Everything above the seam (LibClient components, LibUi*, apps, `makeViewStyles` call
 sites, LibRouter) is untouched.
 
-**Reference primitive:** `View.fs` has been ported as the first primitive. Pattern established:
+`@chaldal/reactxp` has been removed as a dependency. The seam is `LibClient/src/ReactXP/RNSeam.fs`.
+Scroll, gesture, and picker stabilization is the remaining open work.
+
+**Reference primitive:** `View.fs` was ported as the first primitive. Pattern established:
 
 - `import "View" "react-native"` (bundler aliases `react-native` to `react-native-web` on web).
 - `makeViewStyles` emits plain RN style objects via `RNSeam.createViewStyle`.

@@ -98,7 +98,7 @@ cd SuiteTodo/AppTodo && ../../eggshell dev-web   # port 9080
 
 ## Verify a vendor/node_modules patch actually reached the bundle {#verify-patch-reached-bundle}
 
-Metro bundles ReactXP from `dist/native-common/*.js`, not `src/*.tsx`. After patching a file and restarting Metro with `--reset-cache`:
+Metro bundles node_modules from each package's build entry (for example, `react-native-web` from its `dist/` directory). After patching a file and restarting Metro with `--reset-cache`:
 
 ```bash
 curl -s "http://localhost:8081/index.bundle?platform=android&dev=true" | grep -c "<your-marker>"
@@ -106,7 +106,7 @@ curl -s "http://localhost:8081/index.bundle?platform=android&dev=true" | grep -c
 
 `0` means your edit is not in the bundle: either you edited the wrong file (e.g. `src/` instead of `dist/`), or Metro cached an old version. Restart Metro with `--reset-cache` and check again.
 
-**Prefer an F# seam fix over a node_modules patch.** Vendored ReactXP edits are maintenance surface that the RNW migration deletes. The "unique key" warning, for example, was fixed in F# (`tellReactArrayKeysAreOkay` in `Context.fs`), not by patching node_modules.
+**Prefer an F# seam fix over a node_modules patch.** Vendored edits are maintenance surface. The "unique key" warning, for example, was fixed in F# (`tellReactArrayKeysAreOkay` in `Context.fs`), not by patching node_modules.
 
 ---
 

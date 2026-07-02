@@ -19,9 +19,9 @@ it's fairly easy to just stay in the React world and not need to know much about
 non-virtual DOM (unless you're mixing JQuery in and doing non-idiomatic things).
 
 So, similarly, with EggShell, you have F#, converted into JS through Fable, and the conversion has
-issues. You have ReactXP wrapping over ReactNative and ReactDOM, and any wrapper over such two
-vastly different runtimes is bound to have its issues. And then you have an additional
-layer that we built on top of the whole thing, with the goal of removing low level UI building,
+issues. You have the `RX.*` wrappers over react-native-web (web) and React Native (native), and any
+wrapper over such two vastly different runtimes is bound to have its issues. And then you have an
+additional layer that we built on top of the whole thing, with the goal of removing low level UI building,
 and moving it to a higher level with all the good defaults and other benefits. But because the
 platform is still in development, and we're still figuring many things out, the abstractions are
 not watertight, they are leaky, and the early adopter is forced to know a lot more to use the system
@@ -30,12 +30,11 @@ well than a later adopter may a year or two down the road, when we've plugged a 
 
 ## How do I make text searchable in the browser.
 
-In ReactXP, searchability is controlled at the same time as selectability, so
-`<uitext>blah</uitext>` will be neither selectable nor searchable, while
-`<uitext selectable='true'>blah</uitext>` will be both. This is rather unfortunate,
-because the whole point of "uitext" was that it's supposed to be "text that's not
-selectable, because e.g. why would you want to select a button label? But it's certainly
-reasonable to want to search a button label. Oh well.
+In the legacy render-DSL / ReactXP era, searchability was controlled at the same time as selectability, so
+`<uitext>blah</uitext>` would be neither selectable nor searchable, while
+`<uitext selectable='true'>blah</uitext>` would be both. In pure-F# components, use
+`LC.Text` with `selectable = true` when you need both. This quirk was a ReactXP design choice
+that the react-native-web migration improves on for web.
 
 
 ## How do I make a new component/route/dialog?
@@ -45,8 +44,8 @@ Use the [`eggshell` CLI](./tools/cli.md). New components should be **pure F#** â
 
 ## Should I use RenderDSL or F#?
 
-**F#** for all new UI. RenderDSL remains only for a few not-yet-converted LibClient files and
-some older apps. See [Sunsetting RenderDSL](./fsharp/background.md) and [Legacy](./legacy/index.md).
+**F#** for all new UI. The render DSL is retired in product code (0 `.render` files in `Lib*` or apps;
+compiler test fixtures remain under `Meta/AppRenderDslCompiler`). See [Sunsetting RenderDSL](./fsharp/background.md) and [Legacy](./legacy/index.md).
 
 ## How do I build an admin panel?
 

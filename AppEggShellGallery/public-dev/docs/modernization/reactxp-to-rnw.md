@@ -1,11 +1,14 @@
 # ReactXP to react-native-web
 
-Why EggShell is migrating away from `@chaldal/reactxp`, what the fork audit found, what the modern
-React Native / react-native-web ecosystem offers, and how the migration is designed to keep every
+Why EggShell migrated away from `@chaldal/reactxp`, what the fork audit found, what the modern
+React Native / react-native-web ecosystem offers, and how the migration was designed to keep every
 F# component untouched.
 
-This is the strategy and research narrative. For phase status and execution steps, see
-[Phased Plan](./modernization/phased-plan.md) Phase 4 and [Migration Execution](./runbooks/migration-execution.md) (Phase 4).
+**Status:** the primitive layer has been migrated to react-native-web and `@chaldal/reactxp` is removed
+as a dependency; the web and native builds run on RN/RNW. Stabilization (scroll, gestures, pickers) is
+ongoing. This page is the strategy and research narrative behind that migration. For phase status and
+execution steps, see [Phased Plan](./modernization/phased-plan.md) Phase 4 and
+[Migration Execution](./runbooks/migration-execution.md) (Phase 4).
 
 ---
 
@@ -32,7 +35,8 @@ parallel-implementation approach (RNW), and the extra abstraction no longer earn
 
 ## 2. The fork audit
 
-EggShell's frontend renders through `@chaldal/reactxp`, a fork of Microsoft's archived ReactXP.
+EggShell's frontend rendered through `@chaldal/reactxp` (a fork of Microsoft's archived ReactXP) for
+years. The audit below is what motivated migrating off it.
 
 | Dimension | Reality |
 |-----------|---------|

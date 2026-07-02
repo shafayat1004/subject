@@ -104,11 +104,13 @@ type LibClient.Components.Constructors.LC with
                     { new IScrollViewComponentRef with
                         member _.SetScrollLeft (scrollLeft: int, animate: bool) : unit =
                             maybeScrollViewRef.current
-                            |> Option.sideEffect (fun sv -> sv.setScrollLeft (scrollLeft, animate))
+                            |> Option.sideEffect (fun sv ->
+                                sv.scrollTo (box {| x = scrollLeft; y = lastScrollPositionRef.current.Top; animated = animate |}))
 
                         member _.SetScrollTop (scrollTop: int, animate: bool) : unit =
                             maybeScrollViewRef.current
-                            |> Option.sideEffect (fun sv -> sv.setScrollTop (scrollTop, animate))
+                            |> Option.sideEffect (fun sv ->
+                                sv.scrollTo (box {| x = lastScrollPositionRef.current.Left; y = scrollTop; animated = animate |}))
                     }
                 ),
                 [||]
@@ -150,8 +152,9 @@ type LibClient.Components.Constructors.LC with
                 if abs (layout.height - originalMeasurements.ContentSize.Height) < (int ((float layout.height) * 0.1)) then
                     restoreWhenMatchRef.current <- None
                     maybeScrollViewRef.current |> Option.sideEffect (fun sv ->
-                        sv.setScrollLeft (originalMeasurements.ScrollPosition.Left, (* animate *) false)
-                        sv.setScrollTop  (originalMeasurements.ScrollPosition.Top,  (* animate *) false)
+                        sv.scrollTo (box {| x = originalMeasurements.ScrollPosition.Left
+                                            y = originalMeasurements.ScrollPosition.Top
+                                            animated = false |})
                     )
             )
             onLayout |> Option.sideEffect (fun cb -> cb layout)

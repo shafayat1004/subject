@@ -1,4 +1,4 @@
-# Frontend: Components, ReactXP, Routing
+# Frontend: Components, react-native-web, Routing
 
 For the practical developer guide see [F# Components](./fsharp/component.md), [Styling](./fsharp/styling.md),
 and [Theming](./fsharp/themeing.md). This page is the architectural view.
@@ -21,20 +21,24 @@ There is a **modern, lighter** path using `[<Component>]` + hooks (e.g. `FlexFil
 being retired (see [Render DSL Retirement](./modernization/render-dsl-retirement.md)), and pure-F#
 `[<Component>]` is the convention for all new and converted components.
 
-## ReactXP interop
+## React Native for Web interop
 
-ReactXP is imported through Fable JS interop (`LibClient/src/ReactXP/ReactXPBindings.fs`,
-`import "*" "@chaldal/reactxp"`). Platform is detected at runtime (`Web | Native Android | Native iOS`) and
-also at compile time via `#if EGGSHELL_PLATFORM_IS_WEB`. Wrapped primitives: `View`, `Text`, `Button`,
-`ScrollView`, `TextInput`, `Image`, `VirtualListView`, `GestureView`, `WebView`, plus
-`AnimatableView/Text/TextInput` and SVG.
+The frontend primitive layer has been migrated off the archived `@chaldal/reactxp` fork to
+**react-native-web** (the dependency is removed). Primitives are imported from `react-native` in
+`LibClient/src/ReactXP/RNSeam.fs` (the `LibClient/src/ReactXP` directory keeps its legacy name); the web
+build aliases `react-native` → `react-native-web` (`Meta/LibFablePlus/webpack.config.js`), while native
+builds resolve real React Native. Platform is detected at runtime (`Web | Native Android | Native iOS`)
+and at compile time via `#if EGGSHELL_PLATFORM_IS_WEB`. Wrapped primitives (F# surface unchanged): `View`,
+`Text`, `Button`, `ScrollView`, `TextInput`, `Image`, `VirtualListView`, `GestureView`, `WebView`, plus
+`Animatable*` and SVG.
 
 Styles are a typed F# DSL (`ReactXP/Styles/Legacy/` and a newer `New/` dialect) compiled to runtime style
 objects, with nesting (`&&`, `=>`), responsive breakpoints, and themes.
 
-> The **wrapped `RX.*` primitive layer in `LibClient/src/ReactXP` is the single seam** that a future
-> React-Native-for-Web migration re-implements. If the wrappers keep their F# signatures, most component
-> code stays put. See [ReactXP → RNW](./modernization/reactxp-to-rnw.md).
+> The **wrapped `RX.*` primitive layer in `LibClient/src/ReactXP` was the single seam** the migration
+> re-implemented against react-native-web. Because the wrappers kept their F# signatures, the bulk of
+> component code was untouched. Stabilization (scroll, gestures, pickers) is ongoing. See
+> [ReactXP → RNW](./modernization/reactxp-to-rnw.md).
 
 ## Routing
 
@@ -63,9 +67,10 @@ exists for action dispatch with built-in in-progress/error states (see
 
 ## Animation: current state
 
-Animation is genuinely thin. What exists is ReactXP's `Animation.Timing` over `AnimatedValue` with a small
-set of easings, plus three `Animatable*` wrappers — used in a few places (e.g. `Scrim.fs` opacity fades, a
-carousel). What's missing for a modern feel: spring/physics motion, gesture-driven animation, layout/
-shared-element transitions, route transitions, scroll-linked effects, and any coordinated timeline/stagger
-system. `useNativeDriver` is disabled. There is no Framer-Motion-class abstraction. A real animation story
-is the highest-visibility frontend win and is tied to the [ReactXP decision](./modernization/reactxp-to-rnw.md).
+Animation is still thin. What exists is the RN `Animated` API (`Animation.Timing` over `AnimatedValue`)
+with a small set of easings, plus `Animatable*` wrappers, used in a few places (e.g. `Scrim.fs` opacity
+fades, a carousel). What's missing for a modern feel: spring/physics motion, gesture-driven animation,
+layout/shared-element transitions, route transitions, scroll-linked effects, and any coordinated
+timeline/stagger system. The react-native-web migration is what unlocks the modern RN motion/gesture
+stack (Reanimated / Moti, RNGH); a real animation story is the highest-visibility frontend win. See
+[ReactXP → RNW](./modernization/reactxp-to-rnw.md) (note the Fable worklet caveat).

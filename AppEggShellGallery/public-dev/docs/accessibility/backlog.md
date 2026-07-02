@@ -64,9 +64,9 @@ unlocks them cleanly.
 
 | Item | Tag | Why deferred | What unlocks it |
 |------|-----|--------------|-----------------|
-| Skip links | `[web-only]` | Web-DOM-shaped; depends on the RNW host-element seam | ReactXP to RNW swap |
-| `:focus-visible` ring styling | `[web-only]` | CSS-only; no equivalent in ReactXP | ReactXP to RNW swap |
-| Landmarks + heading levels | `[web-only]` / `[rnw-blocked]` | Semantic HTML elements; depend on host-element seam | RNW |
+| Skip links | `[web-only]` | Web-DOM-shaped; depends on the RNW host-element seam (now available via react-native-web) | RNW seam (done; implement now) |
+| `:focus-visible` ring styling | `[web-only]` | CSS-only; no equivalent in the former ReactXP layer; now available via RNW | RNW seam (done; implement now) |
+| Landmarks + heading levels | `[web-only]` / `[rnw-blocked]` | Semantic HTML elements; depend on host-element seam | RNW (done; New Arch stabilization) |
 | Roving-tabindex mechanics | `[web-only]` | Real DOM focus management | RNW + New Arch |
 | Accessible modals (focus trap, `inert`, light-dismiss) | `[rnw-blocked]` | Needs native `<dialog>` / Popover API | RNW |
 | Haptics | `[lib]` | Needs `expo-haptics` or equivalent | Post-migration dependency stack |
@@ -74,7 +74,7 @@ unlocks them cleanly.
 | Reduced-motion-aware animation | `[rnw-blocked]` (rich) | Reanimated 4 / Moti on New Arch | Post-migration |
 | RTL logical properties | `[rnw-blocked]` (partly) | `margin-inline-start` / `inset-inline` on New Arch | New Arch |
 
-**Never patch vendored ReactXP internals for accessibility.** Fix at the F# seam only (see the context
+**Never patch vendored RN/RNW internals for accessibility.** Fix at the F# seam only (see the context
 key-warning fix in `AppShell/Context/Context.fs`, documented in the Engineering Log (2026-06-29)).
 
 ---

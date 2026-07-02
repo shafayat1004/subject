@@ -110,9 +110,9 @@ benefits; survives migration (same RN APIs, same F# surface).
 
 ---
 
-## Web-specific settings (RNW, post-migration)
+## Web-specific settings (RNW)
 
-These become available once the ReactXP to RNW swap lands. They complement the RN flags above.
+These are available now that the primitive layer runs on react-native-web. They complement the RN flags above.
 
 | Media query | Triggered by | Framework response |
 |-------------|-------------|-------------------|

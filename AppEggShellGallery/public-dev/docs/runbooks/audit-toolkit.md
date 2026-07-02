@@ -111,7 +111,7 @@ This is the machine-readable state an LLM agent should consume instead of re-der
 
 ## testId attribute name on web {#testid-attribute}
 
-ReactXP emits `data-test-id` on web. react-native-web emits `data-testid`. When writing Playwright selectors for EggShell components still using the ReactXP seam, use `[data-test-id="..."]`. After the RNW seam migration is complete, switch to `[data-testid="..."]`. The gallery audit selectors in `audit-gallery-selectors.mjs` already handle this.
+The primitive layer now runs on react-native-web, which emits `data-testid`. Use `[data-testid="..."]` in Playwright selectors. (Historically, the former `@chaldal/reactxp` layer emitted `data-test-id`; any components not yet migrated through the RNW seam may still emit that attribute.) The gallery audit selectors in `audit-gallery-selectors.mjs` already handle both attributes.
 
 ---
 

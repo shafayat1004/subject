@@ -1,6 +1,6 @@
-# Scrolling in ReactXP
+# Scrolling
 
-Getting scrolling right in the ReactXP sytling system is complicated
+Getting scrolling right in the RN/RNW styling system (surfaced through the `RX.*` wrappers) is complicated
 beyond belief. It makes you want to pull all your hair out.
 
 The whole thing is insane for a number of reasons:

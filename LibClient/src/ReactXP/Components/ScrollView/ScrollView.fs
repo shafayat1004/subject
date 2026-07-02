@@ -33,8 +33,10 @@ type ScrollIndicatorInsets =
 
 // NOTE animation duration is rather stupidly hardcoded to 200 ms in the ReactXP source
 type IScrollViewRef =
-    abstract member setScrollLeft (* scrollLeft *) : int * (* animate *) bool -> unit
-    abstract member setScrollTop (* scrollTop *) : int * (* animate *) bool -> unit
+    // react-native-web ScrollView instance API. ReactXP's setScrollLeft/setScrollTop do not
+    // exist on the RNW scroll node (calling them throws "setScrollLeft is not a function");
+    // scrollTo({ x; y; animated }) is the portable RN/RNW imperative call.
+    abstract member scrollTo: obj -> unit
 
 module private ScrollViewRN =
     let unboxStyles (styles: array<ReactXP.Styles.FSharpDialect.ScrollViewStyles> option) : array<obj> option =

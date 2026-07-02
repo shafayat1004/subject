@@ -202,7 +202,9 @@ type Ui with
 Prefer top-level `let` or a named `FooStyles` module in *new* code, and switch when you substantially
 touch an existing file — but matching a file's existing `module private Styles =` is acceptable.
 
-The `makeTextStyles` / `makeViewStyles` computation expressions come from `open ReactXP.Styles`.
+The `makeTextStyles` / `makeViewStyles` computation expressions come from `open ReactXP.Styles` (the
+module name is a legacy name; the underlying primitives are react-native-web on web and React Native
+on native, surfaced through the `RX.*` wrappers).
 Familiar `RX.*` and `LC.*` components accept `?styles: array<...Styles>`.
 
 More on styles, including memoization and themes, is [here](./fsharp/styling.md).

@@ -97,9 +97,9 @@ As you can imagine, even if a diligent developer remembers to code this for ever
 implement, it's laborious, error-prone, and just generally a pain in the neck. And we haven't
 even touched on handling hover/depressed states.
 
-The moral of the story is that should never be handling pointer events in their low level form,
-i.e. we should never attach `onClick` handlers to ReactXP components directly. Instead, we should
-use the `LC.TapCapture` component.
+The moral of the story is that we should never be handling pointer events in their low level form,
+i.e. we should never attach `onClick` handlers to `RX.*` components directly. Instead, we should
+use `LC.Pressable` (preferred) or `LC.TapCapture`.
 
 ## LC.TapCapture
 
@@ -120,15 +120,16 @@ the benefits of using `LC.TapCapture`.
 
 ## Overflow problem
 
-One problem we have with TapCapture is that by default, ReactXP components are set to `Overflow.Hidden`.
+One problem we have with TapCapture is that by default, `RX.View` components are set to `Overflow.Hidden`
+(a React Native default, preserved through the `RX.*` wrapper layer).
 This is a default that leads to a tonne of annoying issues when you first learn to use the system,
 coming into it from DOM/CSS, which has the opposite default. A number of times I considered flipping the
 default, but every time ended up being too scared
 (see [Chesterton's Fence](https://en.wiktionary.org/wiki/Chesterton%27s_fence)).
 
 So if you put a TapCapture inside an element in one of your components, you need to make sure to set
-`Overflow.Visible`, not only on that element, but all ancestor elements as well. The ReactXP rule is
-obviously unaware of component boundaries, but as component developers we have to be careful to not
+`Overflow.Visible`, not only on that element, but all ancestor elements as well. The `overflow: hidden`
+default is unaware of component boundaries, but as component developers we have to be careful to not
 mess with styling rules for components we don't own. Either way, so far, while it's a pain to ensure
 that larger-than-parent-element TapCaptures are always as visible as we desire, it's been fairly manageable.
 

@@ -94,7 +94,7 @@ builder auto-key multi-child output structurally (Goal C, Goal A).
 
 **Style leaks.** Caused by `makeViewStyles` / `makeTextStyles` running inside render (inline in a
 `styles` array, or inside a component body / `Pointer.State` / `With.ScreenSize` callback), causing
-ReactXP to re-allocate an uncacheable style object on every render. Fix: static styles to top-level
+the style system to re-allocate an uncacheable style object on every render. Fix: static styles to top-level
 `let`; parametrized styles to `ViewStyles.Memoize` / `TextStyles.Memoize`, keyed on primitives, never
 on whole `Theme` / `Colors` records.
 
@@ -138,20 +138,19 @@ for the concrete seam map.
 
 ### H. ReactXP to react-native-web seam swap
 
-ReactXP is archived upstream; `@chaldal/reactxp` is the only living fork, and it cannot be nudged
+ReactXP is archived upstream; `@chaldal/reactxp` was the only living fork, and it could not be nudged
 forward without a substantial rewrite (React 19 removed `childContextTypes`, `findDOMNode`; the New
 Architecture deprecated `setNativeProps`, `findNodeHandle`). See [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
 
 The contained seam is `LibClient/src/ReactXP`. F# components above that seam call `RX.*` / `LC.*`
-and are insulated from the swap. Re-implementing the seam against RN + react-native-web, keeping
-identical F# constructor signatures and the style DSL surface, is the plan.
+and are insulated from the swap. The seam has been re-implemented against RN + react-native-web
+(`RNSeam.fs`); `@chaldal/reactxp` is removed as a dependency.
 
-Either way, a real **animation story** (spring/physics motion, gesture-driven and layout/route
+A real **animation story** (spring/physics motion, gesture-driven and layout/route
 transitions via Reanimated 4 + RNGH 3 + Moti) is the highest-visibility frontend win, and it is
 gated on the New Architecture, which this migration unlocks.
 
-**Status:** In progress (Phase 4). Spike fully validated. `View.fs` ported as reference primitive;
-gallery `dev-web` webpack bundle green with `react-native-web` in bundle.
+**Status:** Substantially done (stabilizing). Primitive layer migrated to react-native-web; `@chaldal/reactxp` removed. Scroll, gesture, and picker stabilization ongoing.
 
 ### Security hardening
 
@@ -243,7 +242,7 @@ Items from the original roadmap that remain open.
 - **AppRenderDslCompiler implementation issues:** clean up `RtCase`, use inheritance for errors, move
   all parsing to `Parsing.fs`. (Moot once Goal A retires the compiler.)
 - **Class passing in object format:** currently serialized as string; could pass as `Set<string>` since
-  that is how ReactXP consumes them, but would require overriding `shouldComponentUpdate` shallow
+  that is the underlying consumption pattern, but would require overriding `shouldComponentUpdate` shallow
   equality logic.
 
 ---
@@ -255,5 +254,5 @@ Items from the original roadmap that remain open.
 2. **Near-term (reinforce each other, low risk):** DSL machinery deletion (A closure) + scaffolding
    (B) + structure standardization (D) + verbosity wins (C) + render hygiene (I).
 3. **Platform baseline already done (F).**
-4. **Decision point:** complete the ReactXP seam swap (H, Phase 4 in progress).
+4. **Stabilize the RNW seam** (H, Phase 4 substantially done): scroll, gesture, and picker stabilization.
 5. **Larger initiative:** Orleans upgrade + PostgreSQL (G) as one coordinated storage workstream.

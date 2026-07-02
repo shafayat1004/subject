@@ -1,20 +1,21 @@
 # Styling
 
-ReactXP's styling system is based on a least common denominator sort of system between CSS and
-ReactNative's styles. We thinly wrap ReactXP's styling system to:
+The EggShell styling system is a least-common-denominator system between CSS and React Native's
+styles. The primitive layer runs on react-native-web (web) and React Native (native), surfaced
+through the `RX.*` wrappers (`RX.View`, `RX.Image`, etc.). We thinly wrap this system to:
 * make it type-safe
 * allow for writing helper functions that return multiple rules
-* provide some performance optimizations that complement ReactXP's internal caching
+* provide some performance optimizations that complement the internal caching
 
 If you're coming from the web world, the earlier you abandon "but I can do this in CSS like this!"
 line of thinking, the better.
 
 Styles are typically applied in three ways:
-* directly to ReactXP components (like RX.View, RX.Image, LC.Text)
-* to custom components that decided to accept styles and pass it along to their top level RX component
+* directly to RN/RNW primitives via the `RX.*` wrappers (like `RX.View`, `RX.Image`, `LC.Text`)
+* to custom components that decided to accept styles and pass it along to their top level `RX.*` component
 * via themes
 
-## Applying styles directly to ReactXP components
+## Applying styles directly to RX.* components
 
 In the `.fs` file where your component lives, declare styles **before** the component. Two patterns:
 
@@ -91,7 +92,7 @@ module private CardStyles =
 This works for multiple parameters as well.
 
 If you forget to memoize, and just write a let-bound function that produces styles, worry not — the moment
-you use it for the second time with the same parameters, ReactXP will helpfully report a style leak on the JS
+you use it for the second time with the same parameters, the style-leak detector will report the leak on the JS
 console, which is your cue to add memoization.
 
 Note, that there's another way of accomplishing the same thing:
@@ -122,9 +123,9 @@ As the `styles` parameter takes an array, you can pass multiple styles.
 
 ## Avoiding style leaks (the standard)
 
-A "style leak" is ReactXP telling you that the *same* call site produced the *same* style content more
+A "style leak" is the style system detecting that the *same* call site produced the *same* style content more
 than once as a *new* object — i.e. a `makeViewStyles`/`makeTextStyles` ran inside render instead of once.
-It is a correctness/perf smell, not just noise: each leak is a style ReactXP can no longer cache.
+It is a correctness/perf smell, not just noise: each leak is a style object that cannot be cached.
 
 Follow these rules and you will not produce leaks:
 
@@ -179,7 +180,7 @@ feel quite wrong. There are some legitimate use cases for this sort of behaviour
 * forcing a component to expand to full width
 
 To accommodate these types of use cases, components can choose to take `?styles: array<ViewStyles>` as
-a parameter, and apply it internally as they see fit, typically onto the top level RX.View within their
+a parameter, and apply it internally as they see fit, typically onto the top-level `RX.View` within their
 internal implementation. There are plenty of examples of this in the standard component library.
 
 ## Themeing components
@@ -197,8 +198,8 @@ to a fairly small number, even if we take parameters like `width: int`.
 This is because "parametrized" is not the same as "dynamic". If we had to implement some style function
 that takes `x: int` and produces a `left x` sort of style rule, and used it to implement, say, a draggable
 component, this use case would work poorly with memoization. We _could_ allow dynamic styles, but from experience
-these dynamic use cases are far better served by ReactXP's animation values, which are built for performance,
-which is usually a requirement for dynamic style scenarios anyway. 
+these dynamic use cases are far better served by the animation layer (Reanimated / `RX.Animated`), which is built for performance,
+which is usually a requirement for dynamic style scenarios anyway.
 
 ## Older way of declaring styles (deprecated)
 

@@ -66,7 +66,7 @@ The gated set (small, deferred): `:focus-visible` ring styling, true landmarks a
 links, roving-tabindex mechanics, haptics, media captions. The migration unlocks these. Don't fake them
 now -- see [Backlog](./accessibility/backlog.md#deferred--do-not-hand-roll).
 
-**Hard rule:** never reach past the seam (`document.*`, raw DOM attrs, ReactXP internals) from app or
+**Hard rule:** never reach past the seam (`document.*`, raw DOM attrs, RN/RNW internals) from app or
 framework F#.
 
 ---

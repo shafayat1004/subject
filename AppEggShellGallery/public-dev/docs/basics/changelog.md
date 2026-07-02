@@ -7,7 +7,7 @@
 ## 2023-12-31
 - Updated minimum NodeJS version to `18.19.0`
 - Updated react-native to `73.0.1`
-- Using latest ReactXP 2.2.0
+- Using latest ReactXP 2.2.0 (historical; `@chaldal/reactxp` has since been removed and replaced by the react-native-web seam)
 
 ## 2023-02-14
 
