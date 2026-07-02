@@ -381,7 +381,7 @@ type private Helpers =
                             styles = [| Styles.swipeReducedMotionDelete |],
                             children = [|
                                 LC.TextButton(
-                                    label = i18n.t.SwipeDeleteLabel,
+                                    label = todoActionLabel todo i18n.t.DeleteActionFormat,
                                     styles = [| Styles.swipeDeleteButtonText |],
                                     state = deleteButtonState,
                                     testId = todoItemTestId todo "delete"
@@ -412,7 +412,7 @@ type private Helpers =
                                 styles = [| Styles.swipeDeleteSlot |],
                                 children = [|
                                     LC.TextButton(
-                                        label = i18n.t.SwipeDeleteLabel,
+                                        label = todoActionLabel todo i18n.t.DeleteActionFormat,
                                         styles = [| Styles.swipeDeleteButtonText |],
                                         state =
                                             ButtonHighLevelStateFactory.MakeLowLevel (

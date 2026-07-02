@@ -6,6 +6,18 @@ Related: [Build and rebuild](./runbooks/build-rebuild.md) | [Dev loop](./runbook
 
 ---
 
+## Accessibility {#accessibility}
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| VoiceOver/NVDA/JAWS on web never speaks live-region updates | `AccessibilityInfo.announceForAccessibility` is native-only; silently fails on web inside `try/with` | Use `LC.LiveRegion.announcePolite` / `LC.LiveRegion.announce` -- the web branch now updates a hidden `aria-live` DOM node. Never call `announceForAccessibility` directly. |
+| `LC.With.Accessibility` `InvertColors` always false on iOS web | Prior code used `(forced-colors: active)` (Windows High Contrast only) | Fixed to `(inverted-colors: inverted)` (CSS MQ Level 5, Safari 14+/iOS 14+). |
+| `InvertColors` always false on Android web (Chrome/Firefox) | `(inverted-colors: inverted)` is Safari-only; Chrome and Firefox have no support | `[web-blocked]` -- permanently undetectable on Android web; native branch works correctly. |
+| Swipe delete button announced without context ("Delete" only) | `SwipeDeleteLabel` used as-is; no item title included | Use `todoActionLabel todo i18n.t.DeleteActionFormat` (= `"Delete {title}"`). Same pattern as the non-swipe delete button. |
+| Screen reader announces button label on activation, drowns out live region | Screen reader reads focused element label when activated; live region fires shortly after and may overlap | Ensure `LC.LiveRegion.announcePolite` fires after the async operation completes, not before. Use `Polite` politeness so it queues rather than interrupts. |
+
+---
+
 ## Build and cache {#build-cache}
 
 | Symptom | Cause | Fix |

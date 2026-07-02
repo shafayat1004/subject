@@ -60,13 +60,33 @@ state = AccessibilityStateRecord.busy isLoading
 
 ### 1.4 Live regions
 
-On a container that auto-updates (counts, toasts, validation feedback), set a live region so screen
-readers announce the change without the user having to re-focus:
+**Persistent container** (counts, validation, progress): set a live region on the view so the screen
+reader announces changes automatically:
 
 ```fsharp
-accessibilityLiveRegion = AccessibilityLiveRegion.Polite   // waits for the user to finish current task
-accessibilityLiveRegion = AccessibilityLiveRegion.Assertive // interrupts immediately (use sparingly)
+RX.View(
+    accessibilityRole = AccessibilityRole.Status,
+    accessibilityLiveRegion = AccessibilityLiveRegion.Polite,
+    accessibilityLabel = sprintf "%i open" count,
+    children = ...
+)
 ```
+
+`Polite` waits for the user to finish; `Assertive` interrupts immediately (use sparingly, errors only).
+
+**Imperative announcement** (transient result with no on-screen representation):
+
+```fsharp
+LC.LiveRegion.announcePolite "Deleted Buy milk"          // Polite (most common)
+LC.LiveRegion.announce "Error saving" Assertive          // Assertive
+
+// Always include the item name -- "Deleted Buy milk", not "Deleted item"
+LC.LiveRegion.announcePolite (sprintf "Deleted %s" todo.Title.Value)
+```
+
+On native this calls `AccessibilityInfo.announceForAccessibility`. On web it updates a hidden
+`aria-live` DOM node (VoiceOver, NVDA, and JAWS all react). Do **not** call
+`announceForAccessibility` directly -- it is native-only and silently no-ops on web.
 
 Also keep the container's `accessibilityLabel` equal to the current text, so the full reading is correct
 on re-focus.
@@ -197,8 +217,35 @@ The gallery shows a live version of each pattern in the **Group/RadioGroup**, **
 ### K. Destructive action
 
 - Confirm with a dialog or provide an **undo** snackbar.
-- Announce the result via a live region ("Task deleted. Undo?").
+- Announce the result imperatively -- include the item name:
+
+```fsharp
+let! result = deleteTodo todo.Id
+if Result.isOk result then
+    LC.LiveRegion.announcePolite (sprintf "Deleted %s" todo.Title.Value)
+```
+
+- The delete button label must also include the item name so VoiceOver identifies it before activation:
+  `"Delete Buy milk"`, not `"Delete"` or `"Delete item"`.
 - See backlog #15 for the framework-wide undo pattern.
+
+### M. OS accessibility settings
+
+Use `LC.With.Accessibility` to adapt rendering to OS flags:
+
+```fsharp
+LC.With.ReducedMotion (fun reduced ->
+    if reduced then staticView else animatedView)
+
+LC.With.BoldText (fun bold ->
+    LC.UiText(
+        styles = [| if bold then Styles.heavyLabel else Styles.label |],
+        children = castAsElement label))
+
+LC.With.Accessibility (fun settings ->
+    RX.View(
+        styles = [| Styles.panel settings.ReduceTransparency |],
+        children = content))
 
 ### L. Any text
 

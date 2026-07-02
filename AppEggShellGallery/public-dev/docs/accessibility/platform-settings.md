@@ -13,40 +13,46 @@ unchanged -- see [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the mig
 
 | Setting | RN API | RNW (web equivalent) | How the framework should respond |
 |---------|--------|----------------------|----------------------------------|
-| **Screen reader on** | `AccessibilityInfo.isScreenReaderEnabled()` + `change` event | (assume on; no reliable query) | Gate auto-focus and extra announcements; ensure all semantics are correct regardless |
-| **Reduce motion** | `AccessibilityInfo.isReduceMotionEnabled()` + `change` event | `prefers-reduced-motion` media query | Disable or replace animations; keep content readable without motion |
-| **Bold text** | `AccessibilityInfo.isBoldTextEnabled()` (iOS) | `prefers-contrast` (approximate) | Use heavier font weights (`fontWeight: 700+`) |
-| **Reduce transparency** | `AccessibilityInfo.isReduceTransparencyEnabled()` (iOS) | `prefers-reduced-transparency` | Replace translucent/blur fills with solid fills |
-| **Invert colors** | `AccessibilityInfo.isInvertColorsEnabled()` | `forced-colors` | Do not fight inversion; avoid color-only signals |
-| **Grayscale** | `AccessibilityInfo.isGrayscaleEnabled()` | (CSS `forced-colors`) | Do not fight grayscale; avoid color-only signals |
-| **Font scale** | `PixelRatio.getFontScale()` | `rem` zoom level | Layout that reflows; avoid fixed heights that clip text |
+| **Screen reader on** | `AccessibilityInfo.isScreenReaderEnabled()` + `change` event | `[web-blocked]` (no standard API; intentionally undetectable for privacy) | Gate auto-focus and extra announcements; ensure all semantics are correct regardless |
+| **Reduce motion** | `AccessibilityInfo.isReduceMotionEnabled()` + `change` event | `prefers-reduced-motion` (broad browser support) | Disable or replace animations; keep content readable without motion |
+| **Bold text / high contrast** | `AccessibilityInfo.isBoldTextEnabled()` (iOS) | `prefers-contrast: more` (iOS = Bold Text; Android = High Contrast Text) | Use heavier font weights (`fontWeight: 700+`) |
+| **Reduce transparency** | `AccessibilityInfo.isReduceTransparencyEnabled()` (iOS) | `prefers-reduced-transparency` (iOS Safari; no Android concept) | Replace translucent/blur fills with solid fills |
+| **Invert colors** | `AccessibilityInfo.isInvertColorsEnabled()` | `(inverted-colors: inverted)` (Safari 14+/iOS 14+ only; `[web-blocked]` on Chrome/Firefox) | Do not fight inversion; avoid color-only signals |
+| **Grayscale** | `AccessibilityInfo.isGrayscaleEnabled()` | `[web-blocked]` (no media query exists) | Do not fight grayscale; avoid color-only signals |
+| **Font scale** | `PixelRatio.getFontScale()` | `[web-blocked]` (iOS "Text Size" scales native UIFont only, not web content) | Layout that reflows; avoid fixed heights that clip text |
 | **Cross-fade transitions** | `AccessibilityInfo.prefersCrossFadeTransitions` (iOS) | (not applicable) | Use cross-fade instead of slide/scale transitions |
-| **Announce** | `AccessibilityInfo.announceForAccessibility(message)` | Live region update | Programmatic announcement for status messages |
+| **Announce** | `AccessibilityInfo.announceForAccessibility(message)` | `aria-live` DOM node update (see below) | Programmatic announcement for status messages |
 | **Move focus** | `AccessibilityInfo.setAccessibilityFocus(handle)` | `.focus()` | Route focus on route change and dialog open/close |
 
 ---
 
-## Proposed `With.Accessibility` hook
+## `With.Accessibility` hook (implemented)
 
-The deliverable is a single `With.Accessibility` (or hook) module in `LibClient.Accessibility` that
-subscribes to all of the above and returns a record of current flags. Backlog items #7, #8, and #11
-cover its implementation.
+`LC.With.Accessibility` is a `[<Component>]` hook in `LibClient` that subscribes to all OS flags and
+returns a live-updating `AccessibilitySettings` record. Backlog items #7, #8, and #11 are done.
 
 ```fsharp
-// Conceptual shape (not yet implemented -- backlog #7)
-type AccessibilityFlags = {
-    ScreenReaderEnabled : bool
-    ReduceMotionEnabled : bool
-    BoldTextEnabled     : bool
-    ReduceTransparency  : bool
-    InvertColors        : bool
-    Grayscale           : bool
-    FontScale           : float
-    PrefersCrossFade    : bool
+type AccessibilitySettings = {
+    ScreenReaderEnabled : bool   // native only; [web-blocked]
+    ReduceMotion        : bool   // all platforms
+    BoldText            : bool   // native + web (prefers-contrast: more)
+    ReduceTransparency  : bool   // native + iOS Safari
+    InvertColors        : bool   // native + Safari 14+ (inverted-colors: inverted)
+    Grayscale           : bool   // native only; [web-blocked]
+    FontScale           : float  // native only; [web-blocked] on web
 }
 ```
 
-Components consuming this hook receive a live-updating record. One place to add; every component
+Convenience wrappers:
+
+```fsharp
+LC.With.Accessibility (fun settings -> ...)  // full record
+LC.With.ReducedMotion (fun reduced -> ...)   // settings.ReduceMotion
+LC.With.BoldText (fun bold -> ...)           // settings.BoldText
+LC.With.ReduceTransparency (fun rt -> ...)   // settings.ReduceTransparency
+```
+
+Components consuming this hook receive a live-updating record. One place to subscribe; every component
 benefits; survives migration (same RN APIs, same F# surface).
 
 ---
@@ -93,12 +99,15 @@ benefits; survives migration (same RN APIs, same F# surface).
 
 ### Programmatic announcements
 
-- Use `AccessibilityInfo.announceForAccessibility(message)` for transient status messages (for example,
-  "Item deleted", "Loading complete") that have no persistent on-screen representation.
-- Use live regions (`accessibilityLiveRegion = Polite`) for persistent containers that update in place
+- Use `LC.LiveRegion.announcePolite message` (or `LC.LiveRegion.announce message politeness`) for
+  transient status messages (for example, "Deleted Buy milk", "Loading complete") that have no
+  persistent on-screen representation.
+- On native: routes to `AccessibilityInfo.announceForAccessibility`.
+- On web: lazily mounts a hidden `<div aria-live="polite|assertive">` (off-screen, `1x1px`) and updates
+  its text. Clears then re-sets after 50ms so screen readers see a fresh mutation on repeated calls.
+- Use `accessibilityLiveRegion = Polite` on a **container** for persistent regions that update in place
   (counts, validation messages, progress indicators) -- screen readers pick up the change automatically.
-- The `LibClient.Accessibility.announce` helper (backlog #8, `[safe]`) will wrap both paths behind a
-  single call.
+- Always include the item name in imperative announcements: `"Deleted Buy milk"`, not `"Deleted item"`.
 
 ### Focus management
 
@@ -117,9 +126,10 @@ These are available now that the primitive layer runs on react-native-web. They 
 | Media query | Triggered by | Framework response |
 |-------------|-------------|-------------------|
 | `prefers-reduced-motion` | OS reduce-motion | Same as RN flag above; resolved via RNW |
-| `prefers-contrast` | OS increase-contrast | Heavier weights, higher-contrast palette tokens |
-| `prefers-reduced-transparency` | OS reduce-transparency | Solid fills |
-| `forced-colors` (Windows High Contrast) | Windows accessibility mode | Do not override; use `forced-colors` overrides if needed |
+| `prefers-contrast: more` | OS increase-contrast / high-contrast text | Heavier weights, higher-contrast palette tokens |
+| `prefers-reduced-transparency` | OS reduce-transparency (iOS Safari only) | Solid fills |
+| `(inverted-colors: inverted)` | iOS/macOS Invert Colors (Safari 14+ only) | Do not fight inversion; avoid color-only signals |
+| `forced-colors: active` | **Windows High Contrast only** -- NOT iOS invert | Do not override forced-colors palette; use `forced-colors` overrides only |
 | `color-scheme` | OS dark/light mode | Already handled by the theme system |
 | `prefers-color-scheme` | Browser dark/light preference | Same |
 

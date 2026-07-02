@@ -16,30 +16,16 @@ For context on why deferred items are sequenced, not abandoned, see the
 
 ## Small (hours)
 
-1. Decorative `prefixIcon` (search magnifier) rendered `importantForAccessibility = No`. `[safe]`
-2. `Input.Text` `?accessibilityLabel` passthrough for placeholder-only inputs. `[safe]`
-3. Search wrapper `role = Search`. `[safe]`
-4. Touch-target audit: icon buttons and `TextButton` must be at least 44px. `[safe]`
 5. AppTodo: label toggle/tabs/chips/rows/counts per [Recipes §3](./accessibility/recipes.md#3-per-component-playbook).
-   `[safe]`
-6. Audit fixed `height`/clipping that breaks text scaling (for example, single-line input `height 21`).
-   `[safe]`
+   `[safe]` -- **Partially done** (swipe delete now includes title; chips and counts wired; full audit ongoing)
 
 ---
 
 ## Medium (approximately one day each)
 
-7. `With.Accessibility` reactive hook exposing OS flags (reduce-motion, bold, screen-reader,
-   transparency, invert/grayscale, font scale) -- see [Platform Settings](./accessibility/platform-settings.md). `[safe]`
-8. `LibClient.Accessibility.announce : string -> unit` over `announceForAccessibility` / web live
-   region. `[safe]`
 9. **Bake role/state into primitives** (`Tab`/`Tabs`, `Checkbox`, `Picker`, `Button`, `Heading`) so
    apps get semantics free. Highest-leverage item. `[safe]`
-10. `LC.Group` / `LC.RadioGroup` wrappers (container role plus label in one call). `[safe]`
-11. `LC.With.ReducedMotion` (subset of #7) for the animation layer to consume. `[safe]`
-12. Honor bold-text / reduce-transparency in theming (heavier weights, solid fills). `[safe]`
-13. **Contrast tooling** in `ColorModule`: relative-luminance and contrast-ratio helpers; a dev-time
-    palette linter asserting AA on `SemanticPalette`. `[safe]`
+12. Honor bold-text / reduce-transparency in theming (heavier weights, solid fills). `[safe]` -- **Partially done** (`LC.With.BoldText` / `LC.With.ReduceTransparency` hooks available; not yet auto-applied to `LC.Text`/`LC.UiText` which are plain functions)
 
 ---
 
