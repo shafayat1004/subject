@@ -1,0 +1,76 @@
+# EggShell Documentation
+
+> EggShell is a full-stack F# application framework: a Microsoft Orleans backend, a Fable + react-native-web frontend, a shared F# type system marshalled over JSON, a state-machine ("lifecycle") programming model, and deterministic simulation testing. This site is the framework documentation and the live component gallery.
+
+Orientation for machine readers:
+- Docs are Markdown served at `/docs/<path>`. The links below are paths relative to this docs root; fetch `/docs/<path>` to read a page.
+- Cross-links inside pages are root-relative (`./section/page.md`), resolved against the docs root, not the current file's directory.
+- Current toolchain: Fable 5.4.0, .NET 10 SDK (10.0.301), Fable.React 10.0.0-alpha.1. The frontend primitive layer has been migrated off `@chaldal/reactxp` to react-native-web (stabilizing). Orleans is 3.7.2 and storage is SQL Server (both pending upgrade).
+- Start at [Architecture Overview](architecture/index.md) for the system model and [Modernization & Current Status](modernization/index.md) for where the project stands.
+- **Before changing code or docs, read [Keeping Code and Docs in Sync](maintaining-docs.md)** — the single map of which docs to read/update for any change, and how to keep the docs consistent.
+
+## Architecture (framework reference)
+- [Overview](architecture/index.md): big picture, repo-layout conventions, tech baseline.
+- [Lifecycles / State Machines](architecture/backend-lifecycles.md): the backend programming model (Subject, LifeAction, LifeEvent, transitions, side effects, Orleans grains).
+- [Hosting & Persistence](architecture/backend-hosting-persistence.md): Orleans silo, SQL Server storage abstraction, and the PostgreSQL seams.
+- [Shared Types & Codecs](architecture/shared-types-codecs.md): Fleece codecs, codec evolution validation, request/subscription wire path.
+- [Testing Framework](architecture/testing-framework.md): the `simulation { }` harness, virtual clock, connector interception, stasis detection.
+- [Frontend](architecture/frontend.md): component model, react-native-web interop, routing, subscription data flow, animation.
+- [Render DSL & Toolchain](architecture/render-dsl-and-toolchain.md): the retired `.render` DSL, its compiler, and the `eggshell` CLI.
+- [Key File Map](architecture/file-map.md): where each concern lives in the source tree.
+
+## Modernization & Current Status
+- [Current Status](modernization/index.md): the authoritative status dashboard (toolchain, Goals A-I, Phases 0-6).
+- [Goals & Roadmap](modernization/goals-and-roadmap.md): Goals A-H plus security, short-term vs long-term.
+- [Phased Plan](modernization/phased-plan.md): Phases 0-6 with per-phase status.
+- [ReactXP to react-native-web](modernization/reactxp-to-rnw.md): the frontend migration rationale, fork audit, and RN/RNW ecosystem.
+- [Render DSL Retirement](modernization/render-dsl-retirement.md): Goal A status, verbosity/structure, a11y and automation bar.
+- [Build Performance](modernization/build-performance.md): frontend build bottlenecks and levers.
+- [Scaffolding](modernization/scaffolding.md): why `eggshell create-app` is broken and the fix plan.
+- [Security Review](modernization/security-review.md): candidate auth/SQL/crypto findings (leads to verify).
+
+## Runbooks (procedures)
+- [Overview & Decision Tree](runbooks/index.md): the "I'm stuck" tree and the two-tier observation model.
+- [The Dev Loop](runbooks/dev-loop.md): edit, rebuild, confirm, reload, observe.
+- [Android](runbooks/android.md), [iOS](runbooks/ios.md), [Web](runbooks/web.md): per-platform debug loops.
+- [Audit Toolkit](runbooks/audit-toolkit.md): the Appium/Playwright `observe` toolkit.
+- [Build & Rebuild](runbooks/build-rebuild.md): targeted recompile, restart triggers, killing stale watches.
+- [Troubleshooting](runbooks/troubleshooting.md): symptom-to-fix catalog (build/cache, styling, RNW bindings, layout, color, pickers, gestures).
+- [Migration Execution](runbooks/migration-execution.md): the executor manual for the .NET 10 + Fable 5 + RNW migration.
+
+## Accessibility (mandatory, default)
+- [Overview & Principles](accessibility/index.md): why a11y is a framework concern; the "pit of success" principles.
+- [Full Spectrum & WCAG](accessibility/spectrum.md): coverage across every disability dimension plus WCAG cross-index.
+- [Recipes & Playbook](accessibility/recipes.md): screen-reader semantics and per-component patterns.
+- [Platform Settings](accessibility/platform-settings.md): OS settings to honor reactively.
+- [Backlog](accessibility/backlog.md): migration-safe vs deferred items with tags.
+
+## Knowledge Base
+- [Overview](knowledge-base/index.md): how the KB relates to Architecture and Runbooks.
+- [Engineering Log](knowledge-base/engineering-log.md): the dated running log of the modernization effort (append new entries at the top).
+- [App Structure](knowledge-base/app-structure.md): app source layering and `.fsproj` build-order conventions.
+- [Dependencies](knowledge-base/dependencies.md): npm dependency baseline snapshot.
+
+## Subjects (backend developer guide)
+- [Introduction](subject/index.md), [Actions & Transitions](subject/actions-and-transitions.md), [Events & Subscriptions](subject/events-and-subscriptions.md), [Construction & Id Generation](subject/construction-and-id-generation.md), [Indexing & Querying](subject/indexing-and-querying.md), [Testing](subject/testing.md), [Dev Host Simulator](subject/dev-host-simulator.md), [Views](subject/views.md), [Access Control](subject/access-control.md), [Consumption from the frontend](subject/consumption.md).
+
+## F# & Components (frontend developer guide)
+- [F# Components](fsharp/component.md): the `[<Component>]` + hooks authoring model.
+- [Styling](fsharp/styling.md): the typed style DSL and avoiding style leaks.
+- [Theming](fsharp/themeing.md), [Formatting](fsharp/formatting.md) (canonical F# style reference), [Legacy Interop](fsharp/legacy.md), [Background](fsharp/background.md).
+
+## Tools
+- [Introduction](tools/index.md), [eggshell CLI](tools/cli.md) (commands + `eggshell.json` schema), [Snippets](tools/snippets.md).
+
+## How-To
+- [Index](how-to/index.md), [FAQ](how-to/faq.md), [Where to find examples](how-to/projects.md), [Taps/Clicks/Hovers](how-to/tap-capture.md), [Executors](how-to/executors.md), [Responsive Components](how-to/responsive.md), [Scrolling](how-to/scrolling.md), [React Refs](how-to/refs.md), [Spinners](how-to/spinners.md).
+
+## Native
+- [Getting Started](native/getting-started.md), [Dev Experience](native/dev-experience.md), [Link a Native Library](native/link-native-library.md), [Release the App](native/release-app.md), [Windows/Android env setup](native/setup-dev-env-windows-android.md).
+
+## Getting started
+- [EggShell Introduction](index.md): the docs landing page.
+- [Getting Started](basics/getting-started.md), [Dev Experience](basics/dev-experience.md), [Libraries](basics/libraries.md), [Native Development](basics/native.md), [Changelog](basics/changelog.md).
+
+## Optional (legacy reference)
+- [Legacy Introduction](legacy/index.md), [Render DSL](renderDsl/index.md) + [style guide](renderDsl/style-guide.md), [Styles DSL](stylesDsl/index.md) + [style guide](stylesDsl/style-guide.md). These describe the retired DSLs; new code uses pure-F# components (see [F# Components](fsharp/component.md)).

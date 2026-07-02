@@ -10,6 +10,22 @@ open ReactXP.Styles
 
 module dom = Fable.React.Standard
 
+do ReactXP.LegacyStyles.Css.addCss """
+.aesg-a11y-facts {
+    border-collapse: collapse;
+    align-self:      flex-start;
+}
+.aesg-a11y-facts td {
+    padding:        3px 0;
+    vertical-align: top;
+    line-height:    1.4;
+}
+.aesg-a11y-facts td:first-child {
+    padding-right: 24px;
+    white-space:   nowrap;
+}
+"""
+
 [<RequireQualifiedAccess>]
 module private Styles =
     let row =
@@ -44,7 +60,7 @@ let private factRow (labelText: string) (value: ReactElement) =
 let private renderFacts (rows: ReactElement array) =
     #if EGGSHELL_PLATFORM_IS_WEB
     dom.table
-        [ ClassName "aesg-ContentComponent-table" ]
+        [ ClassName "aesg-a11y-facts dom-user-select-text" ]
         [|
             dom.tbody [] rows
         |]

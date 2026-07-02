@@ -23,12 +23,16 @@ module LC =
 open LC.Sidebar.Heading
 
 module private Styles =
-    let view = makeViewStyles { marginHorizontal 18; marginVertical 18 }
+    // Headings sit close to the items they label (more space above, less below), so a
+    // heading visually groups with the section beneath it rather than floating between rows.
+    let view = makeViewStyles { marginHorizontal 18; marginTop 22; marginBottom 6 }
 
     let text =
         TextStyles.Memoize(
             fun (textColor: Color) (labelFontSize: int) ->
-                makeTextStyles { color textColor; fontSize labelFontSize }
+                // Uppercase + semibold + letter-spacing gives a section label a distinct
+                // "heading" texture that reads apart from the normal-case, heavier item rows.
+                makeTextStyles { color textColor; fontSize labelFontSize; FontWeight.W600; letterSpacing 1 }
         )
 
     let textFor (theme: Theme) (level: Level) =
@@ -52,6 +56,6 @@ type LibClient.Components.Constructors.LC.Sidebar with
         RX.View(
             styles = [| Styles.view; yield! legacyViewStyles |],
             children = [|
-                LC.UiText(text, styles = [| Styles.textFor theTheme theLevel; yield! defaultArg styles [||] |])
+                LC.UiText(text.ToUpperInvariant(), styles = [| Styles.textFor theTheme theLevel; yield! defaultArg styles [||] |])
             |]
         )

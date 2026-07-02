@@ -47,6 +47,7 @@ let docsItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Release Native App",  state = itemState "native/release-app.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Housekeeping")
+        LC.Sidebar.Item(label = "Maintaining the docs",   state = itemState "maintaining-docs.md")
         LC.Sidebar.Item(label = "Changelog",              state = itemState "basics/changelog.md")
         LC.Sidebar.Item(label = "Roadmap",                state = itemState "basics/roadmap.md")
         LC.Sidebar.Item(label = "Where to find examples", state = itemState "fsharp/examples.md")

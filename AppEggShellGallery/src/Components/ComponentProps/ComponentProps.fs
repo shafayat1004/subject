@@ -72,14 +72,20 @@ module private Styles =
 do ReactXP.LegacyStyles.Css.addCss (sprintf """
 .aesg-ComponentProps-table {
     border-collapse: collapse;
-    width:           100%%;
+    width:           auto;
+    max-width:       100%%;
+    /* The table renders inside a flex-column RX.View, which would otherwise stretch it to
+       full width; align-self keeps it sized to its content. */
+    align-self:      flex-start;
 }
 
 .aesg-ComponentProps-table th {
-    padding:     0px 8px;
-    text-align:  left;
-    color:       #cccccc;
-    font-weight: normal;
+    padding:       6px 18px 6px 0;
+    text-align:    left;
+    color:         #999999;
+    font-weight:   600;
+    font-size:     13px;
+    border-bottom: 1px solid #eeeeee;
 }
 
 .aesg-ComponentProps-table tr:nth-child(even) {
@@ -87,9 +93,10 @@ do ReactXP.LegacyStyles.Css.addCss (sprintf """
 }
 
 .aesg-ComponentProps-table td {
-    padding:     4px 8px;
-    color:       #666;
-    font-family: monospace;
+    padding:        6px 18px 6px 0;
+    color:          #666;
+    font-family:    monospace;
+    vertical-align: top;
 }
 
 .aesg-ComponentProps-table td.name {

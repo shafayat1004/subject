@@ -54,7 +54,8 @@ type private DangerouslySetInnerHTMLJs(``__html``: string) =
     member val ``__html`` = ``__html``
 
 [<Fable.Core.JS.Pojo>]
-type private MarkdownDivPropsJs(style: obj, dangerouslySetInnerHTML: obj) =
+type private MarkdownDivPropsJs(className: string, style: obj, dangerouslySetInnerHTML: obj) =
+    member val className = className
     member val style = style
     member val dangerouslySetInnerHTML = dangerouslySetInnerHTML
 
@@ -115,6 +116,7 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
     #if EGGSHELL_PLATFORM_IS_WEB
     let props =
         (MarkdownDivPropsJs(
+            "markdown-body",
             (MarkdownDivStyleJs(
                 "normal",
                 "text",

@@ -5,8 +5,13 @@
 truth for architecture, status, goals, runbooks, accessibility, and the engineering log. Paths below are
 relative to that docs root unless stated otherwise.
 
-Full architecture writeup: `architecture/` (Orleans backend, Fable + ReactXP frontend, state-machine
+Full architecture writeup: `architecture/` (Orleans backend, react-native-web frontend, state-machine
 lifecycles, shared types, render DSL).
+
+**Docs maintenance — read first.** When you change anything in the codebase (or the docs), follow
+`maintaining-docs.md` (in the docs root): it is the single map of which docs to read/update for a given
+change, plus how to add/wire a doc page and keep the docs internally consistent. It consolidates rules 1,
+10, and 11 below.
 
 ## Current initiative
 
