@@ -4,6 +4,22 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-02
+
+- **`LC.With.Accessibility` web detection matrix (iOS Safari vs Android Firefox)** -- Real-device testing revealed browser support gaps for CSS MQ Level 5 accessibility queries. `(inverted-colors: inverted)` is Safari-only (iOS 14+/macOS); Chrome and Firefox ship no support, so `InvertColors` is permanently `[web-blocked]` on Android. The prior code used `(forced-colors: active)` (Windows High Contrast only) -- fixed to `(inverted-colors: inverted)`. `BoldText` maps to `(prefers-contrast: more)`; on Android this corresponds to "High Contrast Text" (no distinct "Bold Text" toggle exists on Android). Three flags remain permanently web-blocked across all browsers: `ScreenReaderEnabled` (no standard API; intentionally undetectable for privacy), `Grayscale` (no media query), `FontScale` (iOS "Text Size" scales native UIFont only, not web content; Android font scale similarly unavailable). Full matrix:
+
+  | Flag | iOS Safari | Android Firefox | Native (both) |
+  |---|---|---|---|
+  | ReduceMotion | ✅ | ✅ | ✅ |
+  | BoldText / HighContrast | ✅ | ✅ | ✅ |
+  | ReduceTransparency | ✅ | ❌ (no Android concept) | ✅ |
+  | InvertColors | ✅ (after fix) | ❌ browser support gap | ✅ |
+  | ScreenReaderEnabled | ❌ web-blocked | ❌ web-blocked | ✅ |
+  | Grayscale | ❌ web-blocked | ❌ web-blocked | ✅ |
+  | FontScale | ❌ web-blocked | ❌ web-blocked | ✅ |
+
+---
+
 ## 2026-06-30
 
 - **Input.Picker dropdown fixes (web)** — Six compounding bugs blocked the picker: `requestFocus` not a function on raw `TextInput` refs (wrap in an adapter object); storing that adapter in `useState` caused an infinite loop (use `Hooks.useRef`); `RNSeam.Popup.show` received a partially-applied function instead of a React element (apply curried renderer argument-by-argument); `RX.View onPress` does not fire on web (wrap items in `LC.Pressable`); `unionCaseName` throws in Fable 5 (use `.ToString()`); gallery URLs must use underscore DU case names. Files: `Text.fs`, `Field.fs`, `Base.fs`, `Popup.fs`, `RNSeam.fs`, gallery `Picker.fs`.
