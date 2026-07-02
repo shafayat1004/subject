@@ -11,7 +11,7 @@ open ReactXP.Styles
 
 // Responsive component: padding varies by screen size. The old version expressed this via the
 // `{screenSize.Class}` class + responsive style blocks; the modern form reads the screen size from
-// LC.With.ScreenSize and branches inside the style CE. See LEARNINGS.md.
+// LC.With.ScreenSize and branches inside the style CE. See the gallery docs runbooks/troubleshooting.md.
 
 [<RequireQualifiedAccess>]
 module private Styles =

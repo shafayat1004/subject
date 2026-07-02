@@ -63,7 +63,7 @@ You need to attack the problem from three directions:
 Additive notes — the sections above still apply wherever `.render` files exist (framework libs,
 older apps).
 
-* **New UI** should be pure F# (`[<Component>]`). See [How to Add a Component](../fsharp/component.md).
+* **New UI** should be pure F# (`[<Component>]`). See [How to Add a Component](./fsharp/component.md).
   This gallery app has no `.render` files left.
 * Useful commands from an app/lib directory:
 

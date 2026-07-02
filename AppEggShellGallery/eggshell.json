@@ -58,7 +58,7 @@
 			["public-dev/Montserrat-Light.ttf",  "public/[resources]/Montserrat-Light.ttf"],
 			["public-dev/Montserrat-Medium.ttf", "public/[resources]/Montserrat-Medium.ttf"],
 			["images/**/*",                      "public/[resources]/images/"],
-			["../Meta/Docs/**/*",                "public/[resources]/docs/"]
+			["public-dev/docs/**/*",             "public/[resources]/docs/"]
 		]
 	}
 }

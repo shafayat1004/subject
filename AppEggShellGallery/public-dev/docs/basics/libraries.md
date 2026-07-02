@@ -20,7 +20,7 @@ This is the "main" EggShell library that contains:
 * Legacy StylesDSL runtime (class-based styles) — being retired; new components use `makeViewStyles` / `Themes`
 * Typed wrappers over raw ReactXP components
 * Standard UI components (buttons, form inputs, cards, etc.) — mostly pure F#; **9** `.render` files remain
-  (see [Roadmap](./roadmap.md))
+  (see [Roadmap](./basics/roadmap.md))
 * Logging setup, including ApplicationInsights bindings
 * Icons system
 * Chars system (replacement for HTML entities, since we are not in HTML world)

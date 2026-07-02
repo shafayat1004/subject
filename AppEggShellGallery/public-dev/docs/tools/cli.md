@@ -61,7 +61,7 @@ the app compiles end-to-end after large refactors. From `AppEggShellGallery`:
 
 Runs the RenderDSL compiler in **RenderConvert** mode and prints readable F# to stdout. It does
 **not** write files — use the output as a starting point for hand conversion to `[<Component>]`
-(see `MODERNIZATION_PLAN.md` in the repo). Prefer the LEARNINGS.md conversion recipe for production
+(see [Render DSL Retirement](./modernization/render-dsl-retirement.md)). Prefer the conversion recipe in [Render DSL Retirement](./modernization/render-dsl-retirement.md) for production
 migrations.
 
 ## `eggshell dev-web`
@@ -79,7 +79,7 @@ npx react-native start --port 8081
 adb reverse tcp:8081 tcp:8081   # Android emulator, each session
 ```
 
-Requires `configSourceOverrides.native.js` (from `./initialize`). See [Native Development](../basics/native.md).
+Requires `configSourceOverrides.native.js` (from `./initialize`). See [Native Development](./basics/native.md).
 
 ## `eggshell build-native`
 

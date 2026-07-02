@@ -1,6 +1,6 @@
 # SuiteTodo (Phase 5 reference app)
 
-Full-stack TODO reference for goal B (see `MIGRATION_RUNBOOK.md` Phase 5).
+Full-stack TODO reference for goal B (see the gallery docs runbooks/migration-execution.md Phase 5).
 
 ## Layout
 

@@ -4,7 +4,7 @@ Native targets **React Native 0.76** with Fable output in `.build/native/commonj
 
 ## Prerequisites
 
-* Completed [Getting Started](./getting-started.md) (`./initialize` at repo root)
+* Completed [Getting Started](./basics/getting-started.md) (`./initialize` at repo root)
 * App `./initialize` (npm install, Android keystore, optional `pod install`)
 * **`configSourceOverrides.native.js`** in the app directory (gitignored; created from `configSourceOverrides.native.js.template` by `./initialize`)
 
@@ -67,7 +67,7 @@ Open **`ios/*.xcworkspace`** in Xcode, not `.xcodeproj`.
 
 ## First-time platform setup
 
-See [Native getting started](../native/getting-started.md) for Android Studio / Xcode install links.
+See [Native getting started](./native/getting-started.md) for Android Studio / Xcode install links.
 
 **Android:** create or start an AVD (API 33+ recommended). `./gradlew assembleDebug` in `android/` should succeed.
 
@@ -122,4 +122,4 @@ RN 0.76 does not ship Flipper integration. Use:
 * React Native DevTools (press `j` in the Metro terminal when offered)
 * `npx react-native start --experimental-debugger`
 
-More notes: [Native dev experience](../native/dev-experience.md).
+More notes: [Native dev experience](./native/dev-experience.md).

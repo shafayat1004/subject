@@ -327,7 +327,7 @@ Pure-F# gallery migrations (goal A): if only the **code column** changes, visual
 | Native Metro / iOS / Android | **Android:** automated Appium audit (see below). iOS: manual/logcat workflow |
 | OS file picker UI | Avoided via `setInputFiles` |
 
-See also `LEARNINGS.md` (§ Gallery Playwright audit).
+See also the gallery docs runbooks/audit-toolkit.md and knowledge-base/engineering-log.md.
 
 ---
 
@@ -465,7 +465,7 @@ Web audit does not replace native testing. For Android/iOS:
 3. `configSourceOverrides.native.js` (from template)
 4. Run app on emulator/simulator; watch Metro/logcat for red errors
 
-See `LEARNINGS.md` for emulator/simulator setup details.
+See the gallery docs runbooks/android.md and runbooks/ios.md for emulator/simulator setup details.
 
 ---
 

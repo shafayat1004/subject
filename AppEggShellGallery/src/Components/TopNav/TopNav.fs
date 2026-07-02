@@ -45,13 +45,18 @@ module private Styles =
 let private desktopHeading (maybeCurrentActualRoute: Option<ActualRoute>) =
     let text =
         match maybeCurrentActualRoute with
-        | Some (Docs _)       -> "EggShell — Docs"
-        | Some (Tools _)      -> "EggShell — Tools"
-        | Some (HowTo _)      -> "EggShell — How To"
-        | Some (Subject _)    -> "EggShell — Subject"
-        | Some (Design _)     -> "EggShell — Design"
-        | Some (Components _) -> "EggShell — Components"
-        | _                   -> "EggShell"
+        | Some (Docs _)          -> "EggShell — Docs"
+        | Some (Architecture _)  -> "EggShell — Architecture"
+        | Some (Modernization _) -> "EggShell — Modernization"
+        | Some (Runbooks _)      -> "EggShell — Runbooks"
+        | Some (Accessibility _) -> "EggShell — Accessibility"
+        | Some (KnowledgeBase _) -> "EggShell — Knowledge Base"
+        | Some (Tools _)         -> "EggShell — Tools"
+        | Some (HowTo _)         -> "EggShell — How To"
+        | Some (Subject _)       -> "EggShell — Subject"
+        | Some (Design _)        -> "EggShell — Design"
+        | Some (Components _)    -> "EggShell — Components"
+        | _                      -> "EggShell"
 
     LC.Nav.Top.Heading(text = text)
 
@@ -122,6 +127,26 @@ let private desktopNav (maybeCurrentRoute: Option<Route>) (maybeCurrentActualRou
             LC.Nav.Top.Item(
                 state = navItemState maybeCurrentActualRoute (function Docs _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, Docs "index.md")),
                 style = NavTopItem.labelOnly "Docs"
+            )
+            LC.Nav.Top.Item(
+                state = navItemState maybeCurrentActualRoute (function Architecture _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, Architecture "architecture/index.md")),
+                style = NavTopItem.labelOnly "Architecture"
+            )
+            LC.Nav.Top.Item(
+                state = navItemState maybeCurrentActualRoute (function Modernization _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, Modernization "modernization/index.md")),
+                style = NavTopItem.labelOnly "Modernization"
+            )
+            LC.Nav.Top.Item(
+                state = navItemState maybeCurrentActualRoute (function Runbooks _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, Runbooks "runbooks/index.md")),
+                style = NavTopItem.labelOnly "Runbooks"
+            )
+            LC.Nav.Top.Item(
+                state = navItemState maybeCurrentActualRoute (function Accessibility _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, Accessibility "accessibility/index.md")),
+                style = NavTopItem.labelOnly "Accessibility"
+            )
+            LC.Nav.Top.Item(
+                state = navItemState maybeCurrentActualRoute (function KnowledgeBase _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, KnowledgeBase "knowledge-base/index.md")),
+                style = NavTopItem.labelOnly "Knowledge Base"
             )
             LC.Nav.Top.Item(
                 state = navItemState maybeCurrentActualRoute (function Tools _ -> true | _ -> false) (nav.Go (maybeCurrentRoute, Tools "tools/index.md")),

@@ -40,7 +40,7 @@ When the user already has **`eggshell dev-native`** (T1) and **Metro on `:8081`*
 - **Observe** only against their running stack; ask before starting Appium/`dev-web` if they already have one.
 - Their **Metro terminal** is ground truth for LogBox / render errors (read the terminal file — do not ask them to operate it).
 
-See `LEARNINGS.md` (2026-06-28 — AppTodo dev: use the user's terminals).
+See `AppEggShellGallery/public-dev/docs/knowledge-base/engineering-log.md` (2026-06-28 — AppTodo dev: use the user's terminals).
 
 ## Check terminal output early
 

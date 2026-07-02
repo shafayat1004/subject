@@ -36,6 +36,7 @@ let docsItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Components",       state = itemState "fsharp/component.md")
         LC.Sidebar.Item(label = "Styling",          state = itemState "fsharp/styling.md")
         LC.Sidebar.Item(label = "Themeing",         state = itemState "fsharp/themeing.md")
+        LC.Sidebar.Item(label = "Formatting",       state = itemState "fsharp/formatting.md")
         LC.Sidebar.Item(label = "Legacy Interop",   state = itemState "fsharp/legacy.md")
         LC.Sidebar.Item(label = "Libraries",        state = itemState "basics/libraries.md")
         LC.Sidebar.Divider()
@@ -95,6 +96,76 @@ let subjectItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Views",          state = itemState "subject/views.md")
         LC.Sidebar.Item(label = "Access control", state = itemState "subject/access-control.md")
         LC.Sidebar.Item(label = "Consumption",    state = itemState "subject/consumption.md")
+    |]
+
+let architectureItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview", state = itemState "architecture/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Backend")
+        LC.Sidebar.Item(label = "Lifecycles / State Machines", state = itemState "architecture/backend-lifecycles.md")
+        LC.Sidebar.Item(label = "Hosting & Persistence",       state = itemState "architecture/backend-hosting-persistence.md")
+        LC.Sidebar.Item(label = "Shared Types & Codecs",       state = itemState "architecture/shared-types-codecs.md")
+        LC.Sidebar.Item(label = "Testing Framework",           state = itemState "architecture/testing-framework.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Frontend & Toolchain")
+        LC.Sidebar.Item(label = "Frontend",              state = itemState "architecture/frontend.md")
+        LC.Sidebar.Item(label = "Render DSL & Toolchain", state = itemState "architecture/render-dsl-and-toolchain.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Key File Map", state = itemState "architecture/file-map.md")
+    |]
+
+let modernizationItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Current Status", state = itemState "modernization/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Goals & Roadmap", state = itemState "modernization/goals-and-roadmap.md")
+        LC.Sidebar.Item(label = "Phased Plan",     state = itemState "modernization/phased-plan.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Workstreams")
+        LC.Sidebar.Item(label = "ReactXP → RNW",       state = itemState "modernization/reactxp-to-rnw.md")
+        LC.Sidebar.Item(label = "Render DSL Retirement", state = itemState "modernization/render-dsl-retirement.md")
+        LC.Sidebar.Item(label = "Build Performance",   state = itemState "modernization/build-performance.md")
+        LC.Sidebar.Item(label = "Scaffolding",         state = itemState "modernization/scaffolding.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Security Review", state = itemState "modernization/security-review.md")
+    |]
+
+let runbooksItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview & Decision Tree", state = itemState "runbooks/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "The Dev Loop", state = itemState "runbooks/dev-loop.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Platforms")
+        LC.Sidebar.Item(label = "Android", state = itemState "runbooks/android.md")
+        LC.Sidebar.Item(label = "iOS",     state = itemState "runbooks/ios.md")
+        LC.Sidebar.Item(label = "Web",     state = itemState "runbooks/web.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Audit Toolkit",      state = itemState "runbooks/audit-toolkit.md")
+        LC.Sidebar.Item(label = "Build & Rebuild",    state = itemState "runbooks/build-rebuild.md")
+        LC.Sidebar.Item(label = "Troubleshooting",    state = itemState "runbooks/troubleshooting.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Migration Execution", state = itemState "runbooks/migration-execution.md")
+    |]
+
+let accessibilityItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview & Principles", state = itemState "accessibility/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Full Spectrum & WCAG", state = itemState "accessibility/spectrum.md")
+        LC.Sidebar.Item(label = "Recipes & Playbook",   state = itemState "accessibility/recipes.md")
+        LC.Sidebar.Item(label = "Platform Settings",    state = itemState "accessibility/platform-settings.md")
+        LC.Sidebar.Item(label = "Backlog",              state = itemState "accessibility/backlog.md")
+    |]
+
+let knowledgeBaseItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview", state = itemState "knowledge-base/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Engineering Log", state = itemState "knowledge-base/engineering-log.md")
+        LC.Sidebar.Item(label = "App Structure",   state = itemState "knowledge-base/app-structure.md")
+        LC.Sidebar.Item(label = "Dependencies",    state = itemState "knowledge-base/dependencies.md")
     |]
 
 let designItems (itemState: DesignItem -> SI.State) : ReactElement =

@@ -103,7 +103,7 @@ with
 
             InternalHex (sprintf "#%s%s%s" value value value)
 
-/// WCAG relative luminance + contrast helpers (ACCESSIBILITY_PLAN backlog #13).
+/// WCAG relative luminance + contrast helpers (accessibility/backlog.md item #13).
 module Contrast =
     let private channel (c: int) : float =
         let s = float c / 255.0

@@ -24,11 +24,16 @@ let private fixedTopBlades (maybeCurrentRoute: Option<Route>) (currentRoute: Act
         handheld =
             (fun _ ->
                 castAsElement [|
-                    LC.Sidebar.Item(label = "Docs",       testId = "sidebar-blade-docs",       state = itemState (Docs "index.md"))
-                    LC.Sidebar.Item(label = "Tools",      testId = "sidebar-blade-tools",      state = itemState (Tools "tools/index.md"))
-                    LC.Sidebar.Item(label = "Components", testId = "sidebar-blade-components", state = itemState (Components Index))
-                    LC.Sidebar.Item(label = "How To",     testId = "sidebar-blade-how-to",     state = itemState (HowTo (HowToItem.Markdown "how-to/index.md")))
-                    LC.Sidebar.Item(label = "Design",     testId = "sidebar-blade-design",     state = itemState (Design (DesignItem.Markdown "design/index.md")))
+                    LC.Sidebar.Item(label = "Docs",          testId = "sidebar-blade-docs",          state = itemState (Docs "index.md"))
+                    LC.Sidebar.Item(label = "Architecture",  testId = "sidebar-blade-architecture",  state = itemState (Architecture "architecture/index.md"))
+                    LC.Sidebar.Item(label = "Modernization", testId = "sidebar-blade-modernization", state = itemState (Modernization "modernization/index.md"))
+                    LC.Sidebar.Item(label = "Runbooks",      testId = "sidebar-blade-runbooks",      state = itemState (Runbooks "runbooks/index.md"))
+                    LC.Sidebar.Item(label = "Accessibility", testId = "sidebar-blade-accessibility", state = itemState (Accessibility "accessibility/index.md"))
+                    LC.Sidebar.Item(label = "Knowledge Base", testId = "sidebar-blade-knowledge-base", state = itemState (KnowledgeBase "knowledge-base/index.md"))
+                    LC.Sidebar.Item(label = "Tools",         testId = "sidebar-blade-tools",         state = itemState (Tools "tools/index.md"))
+                    LC.Sidebar.Item(label = "Components",    testId = "sidebar-blade-components",    state = itemState (Components Index))
+                    LC.Sidebar.Item(label = "How To",        testId = "sidebar-blade-how-to",        state = itemState (HowTo (HowToItem.Markdown "how-to/index.md")))
+                    LC.Sidebar.Item(label = "Design",        testId = "sidebar-blade-design",        state = itemState (Design (DesignItem.Markdown "design/index.md")))
                 |]
             )
     )
@@ -82,6 +87,56 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
             if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
 
         LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = subjectItems itemState)
+
+    | Architecture url ->
+        let show itemUrl e =
+            nav.Go (maybeCurrentRoute, Architecture itemUrl) e
+            close e
+
+        let itemState itemUrl =
+            if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
+
+        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = architectureItems itemState)
+
+    | Modernization url ->
+        let show itemUrl e =
+            nav.Go (maybeCurrentRoute, Modernization itemUrl) e
+            close e
+
+        let itemState itemUrl =
+            if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
+
+        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = modernizationItems itemState)
+
+    | Runbooks url ->
+        let show itemUrl e =
+            nav.Go (maybeCurrentRoute, Runbooks itemUrl) e
+            close e
+
+        let itemState itemUrl =
+            if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
+
+        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = runbooksItems itemState)
+
+    | Accessibility url ->
+        let show itemUrl e =
+            nav.Go (maybeCurrentRoute, Accessibility itemUrl) e
+            close e
+
+        let itemState itemUrl =
+            if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
+
+        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = accessibilityItems itemState)
+
+    | KnowledgeBase url ->
+        let show itemUrl e =
+            nav.Go (maybeCurrentRoute, KnowledgeBase itemUrl) e
+            close e
+
+        let itemState itemUrl =
+            if url = itemUrl then SI.Selected else SI.Actionable (show itemUrl)
+
+        LC.Sidebar.Base(fixedTop = maybeFixedTop, scrollableMiddle = knowledgeBaseItems itemState)
 
     | Design currItem ->
         let show item e =

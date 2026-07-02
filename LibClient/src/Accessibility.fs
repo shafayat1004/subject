@@ -138,7 +138,7 @@ module A11ySlug =
 
     let testId prefix label = sprintf "%s-%s" prefix (fromLabel label)
 
-/// Reactive OS accessibility flags (§6 / ACCESSIBILITY_PLAN backlog #7).
+/// Reactive OS accessibility flags (§6 / accessibility/backlog.md item #7).
 type AccessibilitySettings = {
     ScreenReaderEnabled: bool
     ReduceMotion: bool

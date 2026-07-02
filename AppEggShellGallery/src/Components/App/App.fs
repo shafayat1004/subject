@@ -59,6 +59,18 @@ let private registerGlobalMarkdownLinkHandler (nav: Navigation) : ReactElement =
                         Tools trimmedUrl
                     else if markdownUrl.StartsWith "./how-to/" then
                         HowTo (HowToItem.Markdown trimmedUrl)
+                    else if markdownUrl.StartsWith "./subject/" then
+                        Subject trimmedUrl
+                    else if markdownUrl.StartsWith "./architecture/" then
+                        Architecture trimmedUrl
+                    else if markdownUrl.StartsWith "./modernization/" then
+                        Modernization trimmedUrl
+                    else if markdownUrl.StartsWith "./runbooks/" then
+                        Runbooks trimmedUrl
+                    else if markdownUrl.StartsWith "./accessibility/" then
+                        Accessibility trimmedUrl
+                    else if markdownUrl.StartsWith "./knowledge-base/" then
+                        KnowledgeBase trimmedUrl
                     else
                         Docs trimmedUrl
                 else
@@ -84,6 +96,16 @@ let private routeContent (pstoreKey: string) (maybeRoute: Option<Route>) =
             Ui.Route.HowTo(pstoreKey + "-Route-HowTo", item)
         | Subject url ->
             Ui.Route.Subject(pstoreKey + "-Route-Subject", url)
+        | Architecture url ->
+            Ui.Route.Docs(pstoreKey + "-Route-Architecture", url)
+        | Modernization url ->
+            Ui.Route.Docs(pstoreKey + "-Route-Modernization", url)
+        | Runbooks url ->
+            Ui.Route.Docs(pstoreKey + "-Route-Runbooks", url)
+        | Accessibility url ->
+            Ui.Route.Docs(pstoreKey + "-Route-Accessibility", url)
+        | KnowledgeBase url ->
+            Ui.Route.Docs(pstoreKey + "-Route-KnowledgeBase", url)
         | Design item ->
             Ui.Route.Design(pstoreKey + "-Route-Design", item)
         | Legacy item ->

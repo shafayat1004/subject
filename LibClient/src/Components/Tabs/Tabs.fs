@@ -58,7 +58,7 @@ type LibClient.Components.Constructors.LC with
 
         // Bridge legacy class-based styles (passed by not-yet-converted render-DSL callers via the
         // parent's `class=` attribute) into the modern styles array. Safe to delete once every caller
-        // passes `styles` directly. See LEARNINGS.md (render-DSL -> F# conversion recipe).
+        // passes `styles` directly. See the gallery docs modernization/render-dsl-retirement.md (conversion recipe).
         let legacyScrollViewStyles : array<ScrollViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->

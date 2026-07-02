@@ -147,4 +147,4 @@ git checkout releases/gallery && git merge main && git push
 
 1. Re-run `./initialize` at repo root, then `AppEggShellGallery/./initialize`
 2. Re-run `eggshell dev-web` or `eggshell build-native` as appropriate
-3. See `LEARNINGS.md` at repo root for recent toolchain gotchas
+3. See the gallery Engineering Log (AppEggShellGallery/public-dev/docs/knowledge-base/engineering-log.md) for recent toolchain gotchas

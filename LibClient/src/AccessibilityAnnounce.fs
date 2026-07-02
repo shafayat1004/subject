@@ -1,4 +1,4 @@
-/// Cross-platform status announcements (ACCESSIBILITY_PLAN backlog #8).
+/// Cross-platform status announcements (accessibility/backlog.md item #8).
 module LibClient.AccessibilityAnnounce
 
 open Fable.Core.JsInterop

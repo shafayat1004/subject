@@ -1,7 +1,7 @@
 // Cluster conversion (strategy A): this consumer is converted together with its producer
 // LC.VerticallyScrollable. The old Base.styles.fs styled the producer's internal "top"/"bottom" blocks
 // via the legacy `==> VerticallyScrollableStyles.Theme.One*` class cascade; now we pass those styles
-// explicitly through the producer's per-section style params. See LEARNINGS.md.
+// explicitly through the producer's per-section style params. See the gallery docs runbooks/troubleshooting.md.
 [<AutoOpen>]
 module LibClient.Components.Sidebar_Base
 

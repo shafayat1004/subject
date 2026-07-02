@@ -12,7 +12,7 @@ open ReactXP.Styles
 // Public types are nested under `module LC = module HandheldListItem` (the Tab.fs pattern) so their
 // union cases (Disabled/InProgress/Actionable/Text/Icon/Number/...) are NOT leaked into the global
 // namespace by [<AutoOpen>] — otherwise they collide with other components' same-named cases
-// (ButtonLowLevelState, FloatingActionButtonStyles.State) used unqualified elsewhere. See LEARNINGS.md.
+// (ButtonLowLevelState, FloatingActionButtonStyles.State) used unqualified elsewhere. See the gallery docs runbooks/troubleshooting.md.
 module LC =
     module HandheldListItem =
         type State =

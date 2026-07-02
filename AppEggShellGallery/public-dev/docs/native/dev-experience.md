@@ -1,6 +1,6 @@
 # Native app development experience
 
-This page supplements [Native Development](../basics/native.md) with day-to-day notes.
+This page supplements [Native Development](./basics/native.md) with day-to-day notes.
 
 ## Standard workflow (RN 0.76)
 

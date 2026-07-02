@@ -8,7 +8,7 @@ open LibClient
 open ReactXP.Components
 open ReactXP.Styles
 
-// See LEARNINGS.md (render-DSL -> F# recipe). Don't `open ReactXP.LegacyStyles` (shadows new-dialect rules).
+// See the gallery docs modernization/render-dsl-retirement.md (conversion recipe). Don't `open ReactXP.LegacyStyles` (shadows new-dialect rules).
 // Per-section style params (`topStyles`/`middleStyles`/`bottomStyles`) replace the old legacy mechanism
 // where a parent styled this component's internal "top"/"middle"/"bottom" blocks via class cascade.
 

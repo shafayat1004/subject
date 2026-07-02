@@ -26,6 +26,11 @@ and ActualRoute =
 | Tools      of MarkdownUrl: string
 | HowTo      of HowToItem
 | Subject    of MarkdownUrl: string
+| Architecture   of MarkdownUrl: string
+| Modernization  of MarkdownUrl: string
+| Runbooks       of MarkdownUrl: string
+| Accessibility  of MarkdownUrl: string
+| KnowledgeBase  of MarkdownUrl: string
 | Design     of DesignItem
 | Legacy     of LegacyItem
 | TinyGuid
@@ -274,6 +279,21 @@ let private lazyRoutesSpec: Lazy<LibRouter.RoutesSpec.Conversions<Route, Resultl
             ("/{json}/Subject/{json}",
                 (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = Subject (parts.GetFromJson 1) }),
                 (function ({ SampleVisualsScreenSize = svss; ActualRoute = Subject p }) -> Some [Json.ToString svss; Json.ToString p] | _ -> None))
+            ("/{json}/Architecture/{json}",
+                (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = Architecture (parts.GetFromJson 1) }),
+                (function ({ SampleVisualsScreenSize = svss; ActualRoute = Architecture p }) -> Some [Json.ToString svss; Json.ToString p] | _ -> None))
+            ("/{json}/Modernization/{json}",
+                (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = Modernization (parts.GetFromJson 1) }),
+                (function ({ SampleVisualsScreenSize = svss; ActualRoute = Modernization p }) -> Some [Json.ToString svss; Json.ToString p] | _ -> None))
+            ("/{json}/Runbooks/{json}",
+                (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = Runbooks (parts.GetFromJson 1) }),
+                (function ({ SampleVisualsScreenSize = svss; ActualRoute = Runbooks p }) -> Some [Json.ToString svss; Json.ToString p] | _ -> None))
+            ("/{json}/Accessibility/{json}",
+                (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = Accessibility (parts.GetFromJson 1) }),
+                (function ({ SampleVisualsScreenSize = svss; ActualRoute = Accessibility p }) -> Some [Json.ToString svss; Json.ToString p] | _ -> None))
+            ("/{json}/KnowledgeBase/{json}",
+                (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = KnowledgeBase (parts.GetFromJson 1) }),
+                (function ({ SampleVisualsScreenSize = svss; ActualRoute = KnowledgeBase p }) -> Some [Json.ToString svss; Json.ToString p] | _ -> None))
             ("/{json}/",
                 (fun parts -> { SampleVisualsScreenSize = parts.GetFromJson 0; ActualRoute = Home }),
                 (function ({ SampleVisualsScreenSize = svss; ActualRoute = Home }) -> Some [Json.ToString svss] | _ -> None))

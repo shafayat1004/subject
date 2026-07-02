@@ -1,6 +1,6 @@
 # Getting Started with EggShell
 
-Our official editor is VSCode. We target VSCode + Ionide for F# tooling; see [Dev Experience](./dev-experience.md).
+Our official editor is VSCode. We target VSCode + Ionide for F# tooling; see [Dev Experience](./basics/dev-experience.md).
 
 The tooling runs most smoothly on macOS and Linux. Windows users should use **Git Bash** with symlink support enabled (see below).
 
@@ -103,9 +103,9 @@ Change an F# file and save; the browser or Metro bundle should pick up the chang
 
 ## Next steps
 
-* [eggshell CLI](../tools/cli.md) — scaffold components, routes, libraries; build and test
-* [How to Add a Component](../fsharp/component.md) — the F# dialect (default for new UI)
-* [Directory structure](../unsorted/directory-structure.md)
-* [How To index](../how-to/index.md)
-* [Native Development](./native.md)
-* [Legacy RenderDSL](../legacy/index.md) — reference for remaining framework render files
+* [eggshell CLI](./tools/cli.md) — scaffold components, routes, libraries; build and test
+* [How to Add a Component](./fsharp/component.md) — the F# dialect (default for new UI)
+* [Directory structure](./unsorted/directory-structure.md)
+* [How To index](./how-to/index.md)
+* [Native Development](./basics/native.md)
+* [Legacy RenderDSL](./legacy/index.md) — reference for remaining framework render files

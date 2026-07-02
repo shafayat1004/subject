@@ -48,7 +48,7 @@ open ReactXP.Components
 open ReactXP.Styles
 
 // NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones
-// and break make*Styles computation expressions. See LEARNINGS.md.
+// and break make*Styles computation expressions. See the gallery docs runbooks/troubleshooting.md.
 
 open LibClient.Components.Input.DayOfTheWeek
 
