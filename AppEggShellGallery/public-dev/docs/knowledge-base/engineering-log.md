@@ -4,6 +4,28 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-02 (session 6 -- standalone install on a physical device (POCO F1) + field findings)
+
+### Installing a standalone build on a physical Android device
+- **Wireless adb pairing.** `adb pair 192.168.2.223:<PAIRING_PORT> <6-digit-code>` using the values from the phone's **"Pair device with pairing code"** dialog, then `adb connect 192.168.2.223:<CONNECT_PORT>` using the port on the **main "Wireless debugging"** screen. The pairing port and the connect port are **different**, and both (plus the code) rotate every time the dialog reopens and time out quickly, so run `adb pair` where you can read both at once (or have the user run it). `ping` first to confirm the phone is reachable; a bare `adb connect` that "fails to connect" on a reachable host usually means not-yet-paired or wrong (pairing vs connect) port.
+- **Signing.** `android/app/build.gradle`'s `release` signingConfig only populates when `MYAPP_RELEASE_STORE_FILE` etc. are set, so a plain `assembleRelease` yields an **unsigned, uninstallable** APK. For a throwaway build, sign with the debug keystore via gradle props:
+  ```
+  cd android && ./gradlew assembleRelease \
+    -PMYAPP_RELEASE_STORE_FILE=debug.keystore -PMYAPP_RELEASE_STORE_PASSWORD=android \
+    -PMYAPP_RELEASE_KEY_ALIAS=androiddebugkey -PMYAPP_RELEASE_KEY_PASSWORD=android
+  ```
+- **Fake data survives the release bundle.** `assembleRelease` bundles whatever JS is already in `.build/native/commonjs` (the Fable watch output, compiled with `--define DEBUG`), so `FakeTodoService` (`#if DEBUG`) stays compiled in and the standalone app has in-memory todos with no backend. `configSourceOverrides.native.js` sets `AppUrlBase = http://10.0.2.2:8081` (emulator-only, unreachable on a real phone), but the todo UI is all in-JS + in-memory so it runs fine; only network-backed resources would be missing.
+- **Install + launch:** `adb -s 192.168.2.223:<PORT> install -r app/build/outputs/apk/release/app-release.apk`, then `am start -n com.eggshell.apptodo/.MainActivity`. `versionCode` is still `1`; keep signing with the same key for in-place updates. Verified: launches standalone, fake todos load, UI intact.
+
+### Open issues found on real hardware (POCO F1) -- NOT yet fixed
+Reported from real-touch testing (reduce-motion confirmed OFF on the device):
+1. **Swipe-to-delete is janky and stops mid-transition** -- the card does not track the finger smoothly. Likely the per-move `isDraggingHook.update true` and the reactive re-renders fight the `AnimatedValue.SetValue`; investigate driving `translateX` purely through the animated value with no React state churn during the drag.
+2. **A slight downward drift during a horizontal swipe starts the edit flow (title text box)** -- vertical deviation is not absorbed by the horizontal GestureView; the touch leaks to the row's edit affordance. The horizontal pan should own the gesture once engaged and not hand off on minor Y movement.
+3. **The list still scrolls vertically during a horizontal swipe** -- `onResponderTerminationRequest = true` lets the parent `ScrollView` steal the gesture. Lock vertical scroll while a horizontal swipe is active (refuse termination and/or disable ScrollView scroll during the drag).
+4. **Delete does not fling the card off-screen** -- it stops at the edge, then the row disappears. `settleFromOffset` calls `onDelete()` immediately at threshold instead of animating `translateX` to `-rowWidth` first. Animate-out, then delete, for a smooth finish.
+5. **Dark-mode toggle no longer slides the thumb on tap (it jumps)** -- reduce-motion is OFF, so this is not the reduced-motion path. Suspect the tap path selects without running `animateTo`, or `LC.With.ReducedMotion` mis-reports `true` on this device. Verify `AccessibilityInfo.isReduceMotionEnabled()` on the POCO F1 and that `selectIndex -> animateTo` runs on tap (regression check against the GestureView tap fix from session 5).
+6. **TalkBack cannot focus the Priority picker to change selection** -- the picker field is not exposing focusable/actionable semantics to the screen reader. `[safe]` a11y defect; tracked in the accessibility backlog.
+
 ## 2026-07-02 (session 5 -- toggle/swipe/flash root causes on Android)
 
 Session 4's GestureView `isActive` direction fix was a partial symptom fix. Real root causes found by turning the emulator's animations back on and reading the actual crash + logcat:

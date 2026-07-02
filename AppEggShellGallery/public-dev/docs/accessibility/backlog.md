@@ -14,6 +14,28 @@ For context on why deferred items are sequenced, not abandoned, see the
 
 ---
 
+## Field-reported defects (real device, POCO F1, 2026-07-02)
+
+Found during real-touch testing of the standalone build; detail + reproduction in the
+[Engineering Log](./knowledge-base/engineering-log.md) (session 6). Not yet fixed.
+
+- **TalkBack cannot focus the Priority picker to change selection.** `[safe]` -- the picker field
+  (`@react-native-picker/picker` via the `Input.Picker` seam) is not exposing focusable/actionable
+  semantics to the screen reader. Ensure the field is a focusable control with a role and an
+  `accessibilityLabel`, and that opening/selecting is reachable without sight.
+- **Controls go inert under reduce-motion.** `[safe]` -- when reduce-motion is on, `SegmentedControl`
+  renders a plain `RX.View` (no `onTap`/`onPan`) and `TodoSwipeShell` renders a static row, so a
+  reduce-motion user cannot toggle the theme or use the row actions via the normal path. Reduce-motion
+  must remove *animation*, not *interaction* (keep the control tappable; just skip the sliding thumb /
+  swipe animation). Violates the "any gesture has a non-gesture alternative" principle in
+  [Recipes](./accessibility/recipes.md).
+- **Swipe-to-delete has no robust non-gesture alternative and hijacks vertical scroll.** `[safe]` --
+  add an `accessibilityAction` "delete" (rotor action, delete without the swipe) and lock vertical
+  scroll while a horizontal swipe is engaged. See the `accessibilityActions` note in
+  [post-migration target architecture](#post-migration-target-architecture).
+
+---
+
 ## Small (hours)
 
 5. AppTodo: label toggle/tabs/chips/rows/counts per [Recipes §3](./accessibility/recipes.md#3-per-component-playbook).

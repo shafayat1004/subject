@@ -117,6 +117,45 @@ The component stack names the **owning component**. That is how you locate the s
 
 ---
 
+## Install a standalone build on a physical device (wireless adb) {#physical-device}
+
+For a self-contained build that runs without Metro (JS bundled into the APK), on a real phone over Wi-Fi.
+
+**1. Pair + connect over wireless adb.** On the phone: Developer options -> Wireless debugging. There are **two different ports**: the **pairing** port (in the "Pair device with pairing code" dialog, shown with a 6-digit code) and the **connect** port (on the main Wireless debugging screen). Both, plus the code, rotate each time the dialog opens and time out fast, so pair where you can read both at once.
+
+```bash
+ping -c 2 <phone-ip>                                   # confirm reachable first
+adb pair <phone-ip>:<PAIRING_PORT> <6-digit-code>      # from the pairing dialog
+adb connect <phone-ip>:<CONNECT_PORT>                  # from the main screen (different port)
+adb devices -l                                         # confirm the device is listed
+```
+
+A bare `adb connect` that "failed to connect" against a host that pings usually means not-yet-paired or you used the pairing port instead of the connect port.
+
+**2. Build a signed release APK.** The `release` signingConfig in `android/app/build.gradle` is empty unless `MYAPP_RELEASE_*` gradle properties are set, so a plain `assembleRelease` produces an **unsigned, uninstallable** APK. For a throwaway build, sign with the debug keystore:
+
+```bash
+cd SuiteTodo/AppTodo/android
+./gradlew assembleRelease \
+  -PMYAPP_RELEASE_STORE_FILE=debug.keystore -PMYAPP_RELEASE_STORE_PASSWORD=android \
+  -PMYAPP_RELEASE_KEY_ALIAS=androiddebugkey -PMYAPP_RELEASE_KEY_PASSWORD=android
+```
+
+The release bundle embeds whatever JS is already in `.build/native/commonjs` (the Fable watch output, compiled with `--define DEBUG`), so `FakeTodoService` (`#if DEBUG`) stays in and the standalone app has in-memory todos with no backend. `configSourceOverrides.native.js` `AppUrlBase = 10.0.2.2:8081` is emulator-only and unreachable on a phone, but the in-memory todo UI does not need it.
+
+**3. Install + launch on the phone (target it explicitly with `-s`):**
+
+```bash
+adb -s <phone-ip>:<CONNECT_PORT> install -r app/build/outputs/apk/release/app-release.apk
+adb -s <phone-ip>:<CONNECT_PORT> shell am start -n com.eggshell.apptodo/.MainActivity
+```
+
+`versionCode` is still `1`; keep signing with the same key so installs update in place.
+
+**Caveat: raw `adb` cannot reliably drive RN gestures on this build.** Synthetic `adb shell input tap` on a control inside a swipe `GestureView` is swallowed (the GestureView claims the responder on touch-start; only real touches negotiate to the child), and `adb shell input text` sets the native field value without firing RN `onChangeText`. Use real touch or the Appium `observe` harness ([Audit toolkit](./runbooks/audit-toolkit.md)) for gesture/text interactions.
+
+---
+
 ## Android-specific gotchas {#gotchas}
 
 | Symptom | Cause | Fix |
