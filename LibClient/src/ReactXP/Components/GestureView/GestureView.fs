@@ -178,31 +178,71 @@ module private GestureViewImpl =
 
         let threshold = props.PanPixelThreshold |> Option.defaultValue 10.0
 
-        let inline locationX (e: obj) = e?nativeEvent?locationX
-        let inline locationY (e: obj) = e?nativeEvent?locationY
-        let inline pageXOf (e: obj) = e?nativeEvent?pageX
-        let inline pageYOf (e: obj) = e?nativeEvent?pageY
+        // GestureView's own page origin, measured on layout. Used to convert an absolute
+        // touch pageX/pageY into a coordinate relative to THIS view, which is what a tap's
+        // `clientX`/`clientY` are meant to be. nativeEvent.locationX is relative to the
+        // deepest touched child (e.g. one SegmentedControl cell), not this view, so it can't
+        // be used to locate a tap across the whole view.
+        let selfOriginRef = Hooks.useRef (0.0, 0.0)
+        let nodeRef = Hooks.useRef (null: obj)
+
+        // Only tap consumers (SegmentedControl) need a view-relative coordinate. Measuring
+        // every GestureView on every layout floods the RN bridge with measureInWindow
+        // callbacks (hundreds pending), which starves touch delivery. So measurement is
+        // gated to OnTap views, and re-issued only when the cached origin is stale.
+        let needsMeasure = props.OnTap.IsSome
+
+        let measureSelf () =
+            let node = nodeRef.current
+            if needsMeasure && not (isNullOrUndefined node) then
+                try
+                    node?measureInWindow(fun (x: float) (y: float) (_w: float) (_h: float) ->
+                        selfOriginRef.current <- (x, y))
+                    |> ignore
+                with _ -> ()
 
         let inline preventDefault (e: obj) =
             try e?preventDefault() |> ignore with _ -> ()
             try e?nativeEvent?preventDefault() |> ignore with _ -> ()
 
-        let makeTapStateFromEvent (e: obj) : TapGestureState =
+        // React Native pools synthetic events: after a responder handler returns, RN nulls
+        // out `nativeEvent`. onResponderRelease in particular hands us an event whose
+        // `nativeEvent` is already null, so reading `nativeEvent.pageX` there throws. We must
+        // read coordinate primitives synchronously inside grant/move and keep them, never
+        // retain the event object. Coords are (locationX, locationY, pageX, pageY).
+        let lastCoordsRef = Hooks.useRef (0.0, 0.0, 0.0, 0.0)
+
+        // Read coords from a live event; returns None if nativeEvent is unavailable (pooled).
+        let readCoords (e: obj) : (float * float * float * float) option =
+            let ne = e?nativeEvent
+            if isNullOrUndefined ne then
+                None
+            else
+                Some (ne?locationX, ne?locationY, ne?pageX, ne?pageY)
+
+        // Update lastCoordsRef from a live event when possible, and return the coords to use
+        // (falling back to the previously captured ones for a pooled release event).
+        let coordsFrom (e: obj) : float * float * float * float =
+            match readCoords e with
+            | Some coords ->
+                lastCoordsRef.current <- coords
+                coords
+            | None -> lastCoordsRef.current
+
+        let makeTapState (locX, locY, pgX, pgY) : TapGestureState =
             createObj [
                 "isTouch"   ==> true
                 "timeStamp" ==> JS.Constructors.Date.now()
-                "clientX"   ==> locationX e
-                "clientY"   ==> locationY e
-                "pageX"     ==> pageXOf e
-                "pageY"     ==> pageYOf e
+                "clientX"   ==> locX
+                "clientY"   ==> locY
+                "pageX"     ==> pgX
+                "pageY"     ==> pgY
             ]
             |> unbox
 
-        let makePanStateFromEvent (e: obj) (isComplete: bool) : PanGestureState =
+        let makePanState (locX, locY, pgX, pgY) (isComplete: bool) : PanGestureState =
             let (initClientX, initClientY) = initialClient.current
             let (initPageX, initPageY) = initialPage.current
-            let px = pageXOf e
-            let py = pageYOf e
             createObj [
                 "isTouch"        ==> true
                 "timeStamp"      ==> JS.Constructors.Date.now()
@@ -210,10 +250,10 @@ module private GestureViewImpl =
                 "initialClientY" ==> initClientY
                 "initialPageX"   ==> initPageX
                 "initialPageY"   ==> initPageY
-                "clientX"        ==> locationX e
-                "clientY"        ==> locationY e
-                "pageX"          ==> px
-                "pageY"          ==> py
+                "clientX"        ==> locX
+                "clientY"        ==> locY
+                "pageX"          ==> pgX
+                "pageY"          ==> pgY
                 "velocityX"      ==> 0.0
                 "velocityY"      ==> 0.0
                 "isComplete"     ==> isComplete
@@ -224,10 +264,15 @@ module private GestureViewImpl =
         viewProps?onFocus  <- props.OnFocus
         viewProps?onBlur   <- props.OnBlur
         viewProps?onKeyPress <- props.OnKeyPress
+        if needsMeasure then
+            viewProps?ref <- fun (n: obj) ->
+                nodeRef.current <- n
+                measureSelf ()
+            viewProps?onLayout <- fun (_e: obj) -> measureSelf ()
 
         if props.OnPan.IsSome || props.OnPanHorizontal.IsSome || props.OnPanVertical.IsSome || props.OnTap.IsSome then
-            let inline dx e = pageXOf e - fst initialPage.current
-            let inline dy e = pageYOf e - snd initialPage.current
+            let inline dxOf (_, _, pgX, _) = pgX - fst initialPage.current
+            let inline dyOf (_, _, _, pgY) = pgY - snd initialPage.current
 
             viewProps?dataSet <-
                 let gestureDirection =
@@ -251,24 +296,45 @@ module private GestureViewImpl =
                 true
             viewProps?onResponderGrant <- fun (e: obj) ->
                 preventDefault e
-                initialClient.current <- (locationX e, locationY e)
-                initialPage.current   <- (pageXOf e, pageYOf e)
+                measureSelf ()
+                let ((locX, locY, pgX, pgY) as coords) = coordsFrom e
+                initialClient.current <- (locX, locY)
+                initialPage.current   <- (pgX, pgY)
                 isActive.current      <- false
-                makePanStateFromEvent e false |> dispatchPan props
+                makePanState coords false |> dispatchPan props
+            // For a preferred-direction GestureView, only movement in that direction marks
+            // the gesture as "active". Perpendicular jitter (e.g. vertical wobble on a
+            // horizontal SegmentedControl) would otherwise suppress onTap on Android.
+            let isSignificant coords =
+                match props.PreferredPan with
+                | Some PreferredPanGesture.Horizontal -> abs (dxOf coords) > threshold
+                | Some PreferredPanGesture.Vertical   -> abs (dyOf coords) > threshold
+                | _                                   -> abs (dxOf coords) > threshold || abs (dyOf coords) > threshold
+
             viewProps?onResponderMove <- fun (e: obj) ->
                 preventDefault e
-                if not isActive.current && (abs (dx e) > threshold || abs (dy e) > threshold) then
+                let coords = coordsFrom e
+                if not isActive.current && isSignificant coords then
                     isActive.current <- true
-                makePanStateFromEvent e false |> dispatchPan props
+                makePanState coords false |> dispatchPan props
             viewProps?onResponderRelease <- fun (e: obj) ->
-                makePanStateFromEvent e true |> dispatchPan props
-                if not isActive.current && abs (dx e) < threshold && abs (dy e) < threshold then
+                // Release event's nativeEvent is pooled/null; coordsFrom falls back to the last
+                // captured coords. isActive was set during the move phase, so it gates tap
+                // without needing valid release coordinates.
+                let coords = coordsFrom e
+                makePanState coords true |> dispatchPan props
+                if not isActive.current then
                     match props.OnTap with
-                    | Some onTap -> makeTapStateFromEvent e |> onTap
+                    | Some onTap ->
+                        // Report the tap relative to THIS view (pageX minus the view's page
+                        // origin), not the child-relative locationX.
+                        let (_, _, pgX, pgY) = coords
+                        let (ox, oy) = selfOriginRef.current
+                        makeTapState (pgX - ox, pgY - oy, pgX, pgY) |> onTap
                     | None -> ()
                 isActive.current <- false
             viewProps?onResponderTerminate <- fun (e: obj) ->
-                makePanStateFromEvent e true |> dispatchPan props
+                makePanState (coordsFrom e) true |> dispatchPan props
                 isActive.current <- false
             viewProps?onResponderTerminationRequest <- fun (_e: obj) -> true
 

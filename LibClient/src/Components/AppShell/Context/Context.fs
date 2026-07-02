@@ -24,11 +24,18 @@ type LibClient.Components.Constructors.LC.AppShell with
     [<Component>]
     static member Context(
             children:      array<ReactElement>,
+            ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
             ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key           |> ignore
         xLegacyStyles |> ignore
+
+        // Default preserves the historical behavior (a top-level spinner for every in-progress
+        // executor key). Apps whose actions update in place can pass `Some Set.empty` to suppress
+        // the global spinner (e.g. a todo list where a full-screen spinner per toggle is noise).
+        let showTopLevelSpinnerForKeys =
+            defaultArg showTopLevelSpinnerForKeys LC.Executor.ShowTopLevelSpinnerForKeys.All
 
         let dataHook = Hooks.useState (Map.empty : Map<string, LibClient.Components.With.GlobalDataFlowControl.Context.DataFlowPolicyValue>)
 
@@ -57,7 +64,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                         makeExecutor
                                         (tellReactArrayKeysAreOkay [| castAsElement children |])
                                 ),
-                            showTopLevelSpinnerForKeys = LC.Executor.ShowTopLevelSpinnerForKeys.All
+                            showTopLevelSpinnerForKeys = showTopLevelSpinnerForKeys
                         )
                     |]
                 )

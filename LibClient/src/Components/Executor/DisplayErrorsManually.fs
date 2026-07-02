@@ -133,9 +133,16 @@ type LibClient.Components.Constructors.LC.Executor with
                             Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
                         )
 
-                if Helpers.shouldShowSpinner keys executorsHook.current then
-                    castAsElementAckingKeysWarning [|
-                        pageContent
+                // Keep pageContent as the stable first child whether or not the spinner shows.
+                // Previously this returned a bare `pageContent` when idle and a two-element array
+                // when a spinner showed; React treats those as structurally different children and
+                // REMOUNTS the entire page on every executor action (start -> InProgress -> done),
+                // losing scroll position and re-subscribing all data (the list reloads through a
+                // loader). Always wrapping in the same array keeps pageContent mounted; the spinner
+                // is just an optional trailing sibling.
+                castAsElementAckingKeysWarning [|
+                    pageContent
+                    if Helpers.shouldShowSpinner keys executorsHook.current then
                         RX.View(
                             styles = [| Styles.spinnerOverlay |],
                             children =
@@ -146,9 +153,7 @@ type LibClient.Components.Constructors.LC.Executor with
                                     )
                                 }
                         )
-                    |]
-                else
-                    pageContent
+                |]
 
         if not errorsExaminedOnLastRenderHook.current then
             Log.Error "Using Executor.Base but not displaying errors. Make sure to call getErrors() and display the result, or use Executor.AlertOnError instead."

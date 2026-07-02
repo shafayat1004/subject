@@ -29,6 +29,11 @@ open SuiteTodo.Types
 module private AppearanceStorage =
     let private storageKey = "apptodo-appearance"
 
+    // Remembers the resolved appearance for the lifetime of the JS bundle so that a remount /
+    // re-navigation initializes with the correct theme synchronously instead of defaulting to
+    // Light and visibly flashing to Dark once the async storage read returns.
+    let mutable cached : Option<AppearanceMode> = None
+
     let loadAsync () : Async<AppearanceMode> =
         async {
             let! stored = AppTodo.AppServices.services().LocalStorage.Get storageKey Json.FromString<string>
@@ -524,6 +529,12 @@ type private Helpers =
                                             todos
                                             |> List.map (fun todo ->
                                                 Helpers.TodoRow(
+                                                    // Stable per-todo key: the list is dynamic and
+                                                    // each row owns swipe animation state. Positional
+                                                    // keys would reuse a row instance for a different
+                                                    // todo on delete, leaving an empty swipe-shell
+                                                    // artifact. Keying by id unmounts the deleted row.
+                                                    key = (todo.Id :> SubjectId).IdString,
                                                     todo = todo,
                                                     palette = palette,
                                                     appearance = appearance,
@@ -576,8 +587,10 @@ type private Helpers =
             makeExecutor: MakeExecutor,
             onMutated: unit -> unit,
             editingId: Option<TodoId>,
-            setEditingId: Option<TodoId> -> unit)
+            setEditingId: Option<TodoId> -> unit,
+            ?key: string)
         : ReactElement =
+        key |> ignore
         let executor = makeExecutor ("todo-" + (todo.Id :> SubjectId).IdString)
         let isEditing = editingId = Some todo.Id
         let editTitleHook = Hooks.useState todo.Title
@@ -656,8 +669,7 @@ type private Helpers =
                 })
             |> ignore
 
-        let rowActionButtons =
-            tellReactArrayKeysAreOkay [|
+        let rowActionButtons = [|
                 if isEditing then
                     LC.TextButton(
                         label = i18n.t.Save,
@@ -746,21 +758,23 @@ type private Helpers =
                         RX.View(
                             styles = [| Styles.todoBodyRow |],
                             children =
-                                Array.append
-                                    (tellReactArrayKeysAreOkay [|
-                                        LC.Input.Checkbox(
-                                            value = Some todo.Done,
-                                            onChange = (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
-                                            validity = Valid,
-                                            accessibilityLabel = toggleCheckboxLabel todo,
-                                            testId = todoItemTestId todo "toggle"
-                                        )
-                                        RX.View(
-                                            styles = [| Styles.todoContent |],
-                                            children = [| titleContent |]
-                                        )
-                                    |])
-                                    rowActionButtons
+                                tellReactArrayKeysAreOkay (
+                                    Array.append
+                                        [|
+                                            LC.Input.Checkbox(
+                                                value = Some todo.Done,
+                                                onChange = (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
+                                                validity = Valid,
+                                                accessibilityLabel = toggleCheckboxLabel todo,
+                                                testId = todoItemTestId todo "toggle"
+                                            )
+                                            RX.View(
+                                                styles = [| Styles.todoContent |],
+                                                children = [| titleContent |]
+                                            )
+                                        |]
+                                        rowActionButtons
+                                )
                         )
                     |]
             )
@@ -796,17 +810,23 @@ type Ui.Route with
         let categoryHook = Hooks.useState None
         let listFilterHook = Hooks.useState TodoListFilter.All
         let listVersion = Hooks.useState 0
-        let appearanceHook = Hooks.useState AppearanceMode.Light
+        // Initialize from the bundle-lifetime cache so a remount picks up the correct theme
+        // immediately; only the very first load (cache empty) needs the async storage read.
+        let appearanceHook = Hooks.useState (AppearanceStorage.cached |> Option.defaultValue AppearanceMode.Light)
+        let appearanceResolvedHook = Hooks.useState (Option.isSome AppearanceStorage.cached)
         let editingIdHook = Hooks.useState None
         let swipeOpenIdHook = Hooks.useState None
 
         Hooks.useEffect(
             (fun () ->
-                async {
-                    let! mode = AppearanceStorage.loadAsync()
-                    appearanceHook.update mode
-                }
-                |> startSafely
+                if not appearanceResolvedHook.current then
+                    async {
+                        let! mode = AppearanceStorage.loadAsync()
+                        AppearanceStorage.cached <- Some mode
+                        appearanceHook.update mode
+                        appearanceResolvedHook.update true
+                    }
+                    |> startSafely
             ),
             [||]
         )
@@ -814,10 +834,11 @@ type Ui.Route with
         let bumpList () = listVersion.update (listVersion.current + 1)
 
         let setAppearance (mode: AppearanceMode) =
+            AppearanceStorage.cached <- Some mode
             appearanceHook.update mode
             AppearanceStorage.save mode
 
-        LC.With.ScreenSize (fun screenSize ->
+        let mainContent = LC.With.ScreenSize (fun screenSize ->
             let isHandheld = screenSize = ScreenSize.Handheld
             let palette = SemanticPalette.forMode appearanceHook.current
             let tabTheme = Styles.tabsTheme palette
@@ -835,6 +856,12 @@ type Ui.Route with
                 searchInput.current
                 |> Option.map (fun (s: NonemptyString) -> s.Value)
                 |> Option.defaultValue ""
+            // `listVersion` re-keys the list to force a fresh subscription. This is needed ONLY
+            // for adds: the indexed subscription captures its matching ids at subscribe time, so a
+            // newly-created todo (new id) is not in the set and only shows after a re-subscribe.
+            // Row mutations (delete/toggle/edit/archive) touch existing ids and update reactively
+            // in place, so they must NOT bump `listVersion` (see `onMutated` below) -- otherwise
+            // every edit remounts the list, losing scroll and flashing a loader.
             let listKey =
                 sprintf "%i-%s-%s" listVersion.current searchKey (filterLabel listFilterHook.current)
 
@@ -1055,7 +1082,11 @@ type Ui.Route with
                                                     swipeOpenId = swipeOpenIdHook.current,
                                                     setSwipeOpenId = swipeOpenIdHook.update,
                                                     makeExecutor = makeExecutor,
-                                                    onMutated = bumpList,
+                                                    // Row mutations update reactively in place; do
+                                                    // NOT re-key the list (that would remount it,
+                                                    // losing scroll and flashing a loader). Only
+                                                    // add re-keys (via bumpList) so new ids appear.
+                                                    onMutated = (fun () -> ()),
                                                     editingId = editingIdHook.current,
                                                     setEditingId = editingIdHook.update
                                                 )
@@ -1090,3 +1121,15 @@ type Ui.Route with
                 }
             )
         )
+
+        // On a cold start the stored appearance is not known until the async read returns.
+        // Rather than painting the default (Light) theme and flashing to the stored one, hold a
+        // neutral dark surface until it resolves. Warm mounts have the cached value already, so
+        // this branch is skipped and there is no splash.
+        if appearanceResolvedHook.current then
+            mainContent
+        else
+            RX.View(
+                styles = [| Styles.page (SemanticPalette.forMode AppearanceMode.Dark) true |],
+                children = [||]
+            )
