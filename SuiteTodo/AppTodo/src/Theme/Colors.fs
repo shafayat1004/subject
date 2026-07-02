@@ -170,3 +170,40 @@ module SemanticPalette =
         match mode with
         | AppearanceMode.Light -> light
         | AppearanceMode.Dark -> dark
+
+/// Dev-time palette linter. Checks WCAG AA (4.5:1) for all semantic fg/bg pairs.
+/// Alpha and gradient colors are skipped (contrastRatio returns None for those).
+/// Call assertAll for each mode at app init; violations surface as Log.Error entries.
+module PaletteLinter =
+    let private check (name: string) (fg: Color) (bg: Color) =
+        match Contrast.contrastRatio fg bg with
+        | None -> ()
+        | Some ratio ->
+            if ratio < 4.5 then
+                LibClient.Logging.Log.Error(
+                    sprintf "Contrast FAIL [%s]: %.2f:1 (need ≥4.5:1)  fg=%s  bg=%s"
+                        name ratio fg.ToCssString bg.ToCssString
+                )
+
+    let assertAll (p: SemanticPalette) =
+        check "TextPrimary/PageBg"         p.TextPrimary        p.PageBackground
+        check "TextPrimary/CardBg"         p.TextPrimary        p.CardBackground
+        check "TextPrimary/RowBg"          p.TextPrimary        p.RowBackground
+        check "TextSecondary/PageBg"       p.TextSecondary      p.PageBackground
+        check "TextMuted/PageBg"           p.TextMuted          p.PageBackground
+        check "HeadingText/PageBg"         p.HeadingText        p.PageBackground
+        check "Accent/PageBg"              p.Accent             p.PageBackground
+        check "Danger/PageBg"              p.Danger             p.PageBackground
+        check "Success/PageBg"             p.Success            p.PageBackground
+        check "Warning/PageBg"             p.Warning            p.PageBackground
+        check "PriorityHigh/Soft"          p.PriorityHigh       p.PriorityHighSoft
+        check "PriorityMedium/Soft"        p.PriorityMedium     p.PriorityMediumSoft
+        check "PriorityLow/Soft"           p.PriorityLow        p.PriorityLowSoft
+        check "CategoryBlueText/BlueSoft"  p.CategoryBlueText   p.CategoryBlueSoft
+        check "CategoryGreenText/GreenSoft" p.CategoryGreenText p.CategoryGreenSoft
+        check "ChipNeutralText/ChipNeutralBg" p.ChipNeutralText p.ChipNeutralBackground
+        check "StatText/StatBg"            p.StatText           p.StatBackground
+
+do
+    PaletteLinter.assertAll SemanticPalette.light
+    PaletteLinter.assertAll SemanticPalette.dark

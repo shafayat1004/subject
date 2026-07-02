@@ -404,6 +404,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             |> Option.defaultValue "input-picker"
 
         let openLabel = defaultArg label "Open picker"
+        // Include selection state in the a11y label so screen readers announce whether a value exists.
+        let openLabelWithSelection =
+            if value.IsEmpty then openLabel
+            else sprintf "%s, has selection" openLabel
 
         RX.View(
             testId = resolvedTestId,
@@ -453,7 +457,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                     )
                                                     LC.Pressable(
                                                         onPress = Actions.showItemSelector model,
-                                                        label = openLabel,
+                                                        label = openLabelWithSelection,
                                                         testId = sprintf "%s-open" resolvedTestId,
                                                         role = AccessibilityRole.Button,
                                                         overlay = true,
@@ -526,7 +530,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                                                                maybeTextInputRef
                                                                                                isFocusedHook
                                                                                                e),
-                                                                                   label = openLabel,
+                                                                                   label = openLabelWithSelection,
                                                                                    testId =
                                                                                        sprintf
                                                                                            "%s-focus"

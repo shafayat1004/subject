@@ -96,8 +96,15 @@ module private Styles =
             })
 
     let tapCaptureThemeFor (theme: Theme) (lowLevelState: ButtonLowLevelState) =
-        let (t, r, b, l) = (theme.StateTheme lowLevelState).TapTargetMargin
-        tapCaptureTheme t r b l
+        let stateTheme = theme.StateTheme lowLevelState
+        let (t, r, b, l) = stateTheme.TapTargetMargin
+        let iconSize = stateTheme.IconSize
+        // Guarantee total tap target >= 44px on each axis regardless of icon size.
+        // For iconSize >= 44 the theme margin is used as-is.
+        let ensure m =
+            if iconSize >= 44 then m
+            else min m (-((44 - iconSize + 1) / 2))
+        tapCaptureTheme (ensure t) (ensure r) (ensure b) (ensure l)
 
 type LibClient.Components.Constructors.LC with
     [<Component>]

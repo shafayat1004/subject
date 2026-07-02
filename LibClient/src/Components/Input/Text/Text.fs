@@ -524,8 +524,16 @@ module Input_TextComponent =
             let inputA11yLabel =
                 accessibilityLabel |> Option.orElse label |> Option.orElse placeholder
 
+            // When used as a search field, expose the container as a search landmark so screen
+            // readers announce the region. The inner RX.TextInput also gets role=searchbox via RNW.
+            let containerRole =
+                match accessibilityRole with
+                | Some AccessibilityRole.Search -> accessibilityRole
+                | _ -> None
+
             RX.View(
                 testId = resolvedTestId,
+                ?accessibilityRole = containerRole,
                 styles =
                     [| Styles.view label.IsSome
                        yield! legacyStyles

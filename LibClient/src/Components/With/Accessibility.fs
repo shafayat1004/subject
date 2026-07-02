@@ -32,10 +32,16 @@ module LC =
 
             let private querySettings () : AccessibilitySettings =
                 { AccessibilitySettings.defaults with
-                    ReduceMotion = mediaMatches "(prefers-reduced-motion: reduce)"
-                    BoldText = mediaMatches "(prefers-contrast: more)"
+                    ReduceMotion       = mediaMatches "(prefers-reduced-motion: reduce)"
+                    BoldText           = mediaMatches "(prefers-contrast: more)"
                     ReduceTransparency = mediaMatches "(prefers-reduced-transparency: reduce)"
-                    InvertColors = mediaMatches "(forced-colors: active)" }
+                    // (inverted-colors: inverted) — CSS MQ Level 5, Safari 14+/iOS 14+.
+                    // (forced-colors: active) is Windows High Contrast only; wrong for iOS.
+                    InvertColors       = mediaMatches "(inverted-colors: inverted)"
+                    // ScreenReaderEnabled: no standard web API (intentionally undetectable).
+                    // Grayscale: no web media query.
+                    // FontScale: iOS "Text Size" only scales native UIFont, not web content.
+                }
 
             let private subscribe (onChange: AccessibilitySettings -> unit) : (unit -> unit) =
                 let mutable current = querySettings ()
@@ -48,10 +54,10 @@ module LC =
                         onChange next
 
                 let unsubscribers =
-                    [ subscribeMedia "(prefers-reduced-motion: reduce)" (fun _ -> bump ())
-                      subscribeMedia "(prefers-contrast: more)" (fun _ -> bump ())
+                    [ subscribeMedia "(prefers-reduced-motion: reduce)"       (fun _ -> bump ())
+                      subscribeMedia "(prefers-contrast: more)"               (fun _ -> bump ())
                       subscribeMedia "(prefers-reduced-transparency: reduce)" (fun _ -> bump ())
-                      subscribeMedia "(forced-colors: active)" (fun _ -> bump ()) ]
+                      subscribeMedia "(inverted-colors: inverted)"            (fun _ -> bump ()) ]
 
                 fun () -> unsubscribers |> List.iter (fun u -> u ())
 #else

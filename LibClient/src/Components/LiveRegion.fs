@@ -29,3 +29,7 @@ module LC =
     module LiveRegion =
         let announce (message: string) (politeness: LibClient.Accessibility.AccessibilityLiveRegion) =
             LibClient.AccessibilityAnnounce.announce message politeness
+
+        /// Announce with Polite politeness (most common case).
+        let announcePolite (message: string) =
+            LibClient.AccessibilityAnnounce.announcePolite message

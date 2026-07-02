@@ -12,3 +12,7 @@ let announce (message: string) (politeness: AccessibilityLiveRegion) : unit =
         |> ignore
     with _ ->
         Noop
+
+/// Announce with Polite politeness (most common case).
+let announcePolite (message: string) : unit =
+    announce message AccessibilityLiveRegion.Polite
