@@ -1,5 +1,11 @@
 # EggShell — Project Rules (Claude)
 
+ALWAYS use caveman style unless I explicitly say "normal mode".
+After compaction, context reset, resume, or uncertainty, re-read:
+~/.claude/skills/caveman/SKILL.md
+Then continue in caveman mode.
+Keep replies terse: no filler, no pleasantries, no long explanations unless requested.
+
 **Project documentation now lives in the App Gallery docs site** at
 `AppEggShellGallery/public-dev/docs/` (rendered in the running gallery). It is the single source of
 truth for architecture, status, goals, runbooks, accessibility, and the engineering log. Paths below are

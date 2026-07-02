@@ -1,3 +1,6 @@
+.cursor/
+.claude/
+
 # OS-specific metadata
 .DS_Store
 
