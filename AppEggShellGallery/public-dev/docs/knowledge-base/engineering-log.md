@@ -4,7 +4,23 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
-## 2026-07-02
+## 2026-07-02 (session 2 -- RNW a11y completion pass)
+
+- **Landmark roles added to `Accessibility.fs` and `AccessibilityHelpers.fs`** -- `Main = 38`, `Navigation = 39`, `Complementary = 40` added to the `AccessibilityRole` enum; `mapRoleToString` maps them to `"main"`, `"navigation"`, `"complementary"`. RNW renders `<main>` / `<nav>` / `<aside>` on web; native renders native landmark equivalents.
+
+- **`LC.AppShell.Content` now emits semantic landmark structure automatically** -- `renderContentBlock` gains `accessibilityRole = AccessibilityRole.Main`; `topNav` and `bottomNav` optional blocks gain `accessibilityRole = Navigation` with labels. Skip link (`LC.SkipLink`) is inserted as the first child of `renderShell` so keyboard users can bypass nav before every route change. FocusVisibleStyles CSS is injected on first mount via `Hooks.useEffect`.
+
+- **`LC.SkipLink` component** -- web-only: renders `<a href="#eggshell-app-content" class="eggshell-skip-link">`. Positioned off-screen when not focused; moves on-screen on `:focus-visible`. Native: `noElement`. Used automatically by `LC.AppShell.Content`.
+
+- **`:focus-visible` ring CSS injected by `FocusVisibleStyles.injectIfNeeded`** -- `LibClient/src/FocusVisibleStyles.fs` injects a `<style id="eggshell-a11y-focus-styles">` tag at first AppShell mount. Adds a 2px blue ring (`rgba(0,95,204,0.8)`) on `:focus-visible` for all interactive ARIA roles. Suppresses the ring on mouse/touch focus via `:focus:not(:focus-visible)`. Also includes skip-link CSS.
+
+- **`LC.FocusManager` module** -- `LC.FocusManager.setFocusTo el` (web: `.focus()`; native: `setAccessibilityFocus`) and `LC.FocusManager.setFocusById id` (web-only). Use for programmatic focus on dialog open/close and route change.
+
+- **`HandheldListItem` outer view gets `role=ListItem`** -- the container RX.View now has `accessibilityRole = AccessibilityRole.ListItem`, giving list-navigation context to both actionable (Button overlay inside) and non-actionable (Disabled/InProgress) item states.
+
+- **`React.createElement` with string children in Fable** -- `React.createElement("a", props, labelText)` fails with `FS0001` (string not compatible with ReactElement seq). Correct form: `React.createElement("a", props, [| !!labelText |])`. Distilled to troubleshooting.
+
+## 2026-07-02 (session 1)
 
 - **Web `aria-live` region was completely silent; fixed in `AccessibilityAnnounce.fs`** -- `AccessibilityInfo.announceForAccessibility` is a native-only RN API; on web it throws silently inside the `try/with` wrapper, so every `LC.LiveRegion.announce` call was a no-op for VoiceOver/NVDA on web. Fix: the web branch of `announce` now lazily creates a hidden `<div aria-live="polite|assertive">` (positioned off-screen at `left:-9999px`, `1x1px`) and updates its `textContent`; it clears first then sets after 50ms so screen readers see a fresh DOM mutation even when the same string fires twice. Native branch (`announceForAccessibility`) unchanged. See also: `#if EGGSHELL_PLATFORM_IS_WEB` block in `LibClient/src/AccessibilityAnnounce.fs`. Distilled to troubleshooting.
 

@@ -229,6 +229,34 @@ if Result.isOk result then
   `"Delete Buy milk"`, not `"Delete"` or `"Delete item"`.
 - See backlog #15 for the framework-wide undo pattern.
 
+### N. Landmarks and skip link (web)
+
+`LC.AppShell.Content` automatically adds `role=Main` to the content block, `role=Navigation` to the topNav/bottomNav bars, and inserts a `LC.SkipLink` as the first element. No action needed for most apps.
+
+If you need a custom skip link target or label:
+
+```fsharp
+// In AppShell composition (before topNav):
+LC.SkipLink(targetId = "my-main-content", label = "Skip to content")
+```
+
+The skip link CSS (off-screen when not focused, visible on `:focus-visible`) is injected by `FocusVisibleStyles.injectIfNeeded` on the first AppShell mount.
+
+### O. Programmatic focus management
+
+Use `LC.FocusManager` when you need to move keyboard/screen-reader focus programmatically (dialog open/close, route change):
+
+```fsharp
+// On dialog open -- move focus to first interactive element:
+LC.FocusManager.setFocusById "dialog-confirm-button"
+
+// On dialog close -- return focus to the trigger:
+LC.FocusManager.setFocusTo triggerRef.current
+
+// setFocusTo: web calls .focus(); native calls setAccessibilityFocus
+// setFocusById: web-only (no-op on native)
+```
+
 ### M. OS accessibility settings
 
 Use `LC.With.Accessibility` to adapt rendering to OS flags:

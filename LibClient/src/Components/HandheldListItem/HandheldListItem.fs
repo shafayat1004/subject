@@ -107,6 +107,7 @@ type LibClient.Components.Constructors.LC with
 
         RX.View(
             styles   = [| Styles.view; yield! legacyViewStyles |],
+            accessibilityRole = AccessibilityRole.ListItem,
             children =
                 [|
                     (match leftIcon with

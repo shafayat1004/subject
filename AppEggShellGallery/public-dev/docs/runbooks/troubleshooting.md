@@ -15,6 +15,8 @@ Related: [Build and rebuild](./runbooks/build-rebuild.md) | [Dev loop](./runbook
 | `InvertColors` always false on Android web (Chrome/Firefox) | `(inverted-colors: inverted)` is Safari-only; Chrome and Firefox have no support | `[web-blocked]` -- permanently undetectable on Android web; native branch works correctly. |
 | Swipe delete button announced without context ("Delete" only) | `SwipeDeleteLabel` used as-is; no item title included | Use `todoActionLabel todo i18n.t.DeleteActionFormat` (= `"Delete {title}"`). Same pattern as the non-swipe delete button. |
 | Screen reader announces button label on activation, drowns out live region | Screen reader reads focused element label when activated; live region fires shortly after and may overlap | Ensure `LC.LiveRegion.announcePolite` fires after the async operation completes, not before. Use `Polite` politeness so it queues rather than interrupts. |
+| `React.createElement("a", props, labelText)` gives `FS0001: string not compatible with ReactElement seq` | Third argument to `React.createElement` must be `ReactElement seq`, not `string` | Use `React.createElement("a", props, [| !!labelText |])` -- box the string with `!!`. |
+| `:focus-visible` ring not appearing on keyboard-focused buttons | RNW renders buttons as `<div role="button">` which browser doesn't ring by default | `FocusVisibleStyles.injectIfNeeded()` is called by `LC.AppShell.Content` on mount; rings all ARIA interactive roles. If using AppShell, this is automatic. |
 
 ---
 

@@ -17,29 +17,28 @@ For context on why deferred items are sequenced, not abandoned, see the
 ## Small (hours)
 
 5. AppTodo: label toggle/tabs/chips/rows/counts per [Recipes §3](./accessibility/recipes.md#3-per-component-playbook).
-   `[safe]` -- **Partially done** (swipe delete now includes title; chips and counts wired; full audit ongoing)
+   `[safe]` -- **Done** (swipe delete has title context; tabs/chips/counts/rows all have roles wired; `HandheldListItem` now emits `role=ListItem` on outer view)
 
 ---
 
 ## Medium (approximately one day each)
 
-9. **Bake role/state into primitives** (`Tab`/`Tabs`, `Checkbox`, `Picker`, `Button`, `Heading`) so
-   apps get semantics free. Highest-leverage item. `[safe]`
-12. Honor bold-text / reduce-transparency in theming (heavier weights, solid fills). `[safe]` -- **Partially done** (`LC.With.BoldText` / `LC.With.ReduceTransparency` hooks available; not yet auto-applied to `LC.Text`/`LC.UiText` which are plain functions)
+9. **Bake role/state into primitives** -- **Done.** Tab/Tabs (TabList/Tab), Button, Heading (Header), Checkbox (CheckBox), SegmentedControl (Radio/RadioGroup), HandheldListItem (ListItem) all emit roles automatically. `[safe]`
+
+12. Honor bold-text / reduce-transparency in theming (heavier weights, solid fills). `[safe]` -- **Partially done** (`LC.With.BoldText` / `LC.With.ReduceTransparency` hooks available; auto-application to `LC.Text`/`LC.UiText` requires making them `[<Component>]` or a reactive theme context -- deferred as larger architectural work)
 
 ---
 
 ## Large (multi-day; some gated)
 
-14. RTL / logical-layout pass (`start`/`end` vs `left`/`right`; text expansion). Partly `[rnw-blocked]`
-15. Destructive-action **undo** pattern (snackbar plus announce) framework-wide. `[safe]`
-16. Programmatic focus management on route change and dialog open/close: basic native binding `[safe]`;
-    polished version (roving tabindex, `inert`) `[rnw-blocked]`.
-17. Roving-tabindex keyboard navigation for tablists and menus. `[web-only]`
-18. Landmarks, skip links, and heading levels. `[web-only]` / `[rnw-blocked]`
-19. Media captions and haptic feedback when media/notifications are added. `[lib]`
+14. RTL / logical-layout pass (`start`/`end` vs `left`/`right`; text expansion). Partly `[rnw-blocked]` -- not started; logical CSS properties available in RNW but not yet adopted
+15. Destructive-action **undo** pattern (snackbar plus announce) framework-wide. `[safe]` -- not started
+16. Programmatic focus management: basic utility done (`LC.FocusManager.setFocusTo` / `setFocusById`). `[safe]` -- **Partially done**. Wiring to route changes and dialog open/close still needed.
+17. Roving-tabindex keyboard navigation for tablists and menus. `[web-only]` -- not started. Tabs keyboard arrow nav deferred: current Tab.fs emits dual `role="tab"` nodes (outer View + inner Pressable) making `querySelectorAll("[role='tab']")` ambiguous; needs Tab API revision.
+18. Landmarks, skip links, and heading levels. `[web-only]` -- **Done.** `role=Main` on content block; `role=Navigation` on topNav/bottomNav; `LC.SkipLink` auto-inserted by AppShell; `:focus-visible` ring CSS injected. Landmark roles added to `AccessibilityRole` enum.
+19. Media captions and haptic feedback when media/notifications are added. `[lib]` -- gated on expo-haptics / react-native-video
 20. Accessibility CI: axe-core (Playwright, web) plus TalkBack/VoiceOver manual checklist; contrast
-    lint in CI.
+    lint in CI. -- not started
 
 ---
 
@@ -48,17 +47,17 @@ For context on why deferred items are sequenced, not abandoned, see the
 These items are sequenced, not abandoned. Deferring is a deliberate sequencing decision; the migration
 unlocks them cleanly.
 
-| Item | Tag | Why deferred | What unlocks it |
-|------|-----|--------------|-----------------|
-| Skip links | `[web-only]` | Web-DOM-shaped; depends on the RNW host-element seam (now available via react-native-web) | RNW seam (done; implement now) |
-| `:focus-visible` ring styling | `[web-only]` | CSS-only; no equivalent in the former ReactXP layer; now available via RNW | RNW seam (done; implement now) |
-| Landmarks + heading levels | `[web-only]` / `[rnw-blocked]` | Semantic HTML elements; depend on host-element seam | RNW (done; New Arch stabilization) |
-| Roving-tabindex mechanics | `[web-only]` | Real DOM focus management | RNW + New Arch |
-| Accessible modals (focus trap, `inert`, light-dismiss) | `[rnw-blocked]` | Needs native `<dialog>` / Popover API | RNW |
-| Haptics | `[lib]` | Needs `expo-haptics` or equivalent | Post-migration dependency stack |
-| Media captions | `[lib]` | Needs `react-native-video` text tracks | Post-migration dependency stack |
-| Reduced-motion-aware animation | `[rnw-blocked]` (rich) | Reanimated 4 / Moti on New Arch | Post-migration |
-| RTL logical properties | `[rnw-blocked]` (partly) | `margin-inline-start` / `inset-inline` on New Arch | New Arch |
+| Item | Tag | Status | What unlocks it |
+|------|-----|--------|-----------------|
+| Skip links | `[web-only]` | **Done** (`LC.SkipLink` auto-inserted by AppShell; targets `#eggshell-app-content`) | -- |
+| `:focus-visible` ring styling | `[web-only]` | **Done** (`FocusVisibleStyles.injectIfNeeded` injects CSS on AppShell mount) | -- |
+| Landmarks + heading levels | `[web-only]` | **Done** (`role=Main`, `role=Navigation` on AppShell; `role=Complementary` available) | -- |
+| Roving-tabindex mechanics | `[web-only]` | **Deferred** -- Tab.fs dual role=tab nodes (View + Pressable) need API revision first | Tab API cleanup |
+| Accessible modals (focus trap, `inert`, light-dismiss) | `[rnw-blocked]` | Deferred | RNW `<dialog>` / Popover API |
+| Haptics | `[lib]` | Deferred | `expo-haptics` |
+| Media captions | `[lib]` | Deferred | `react-native-video` text tracks |
+| Reduced-motion-aware animation | `[rnw-blocked]` (rich) | Deferred | Reanimated 4 / Moti |
+| RTL logical properties | `[rnw-blocked]` (partly) | Deferred | New Arch logical CSS properties |
 
 **Never patch vendored RN/RNW internals for accessibility.** Fix at the F# seam only (see the context
 key-warning fix in `AppShell/Context/Context.fs`, documented in the Engineering Log (2026-06-29)).

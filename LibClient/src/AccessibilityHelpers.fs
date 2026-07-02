@@ -47,6 +47,9 @@ let mapRoleToString (role: AccessibilityRole) : string option =
     | AccessibilityRole.Option        -> Some "option"
     | AccessibilityRole.Switch        -> Some "switch"
     | AccessibilityRole.None          -> Some "none"
+    | AccessibilityRole.Main          -> Some "main"
+    | AccessibilityRole.Navigation    -> Some "navigation"
+    | AccessibilityRole.Complementary -> Some "complementary"
     | _                               -> None
 
 let applyToProps (props: obj) (a11y: A11yProps) (disabled: bool) =

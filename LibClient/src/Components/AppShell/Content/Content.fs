@@ -7,6 +7,7 @@ open Fable.React
 open Fable.Core.JsInterop
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Responsive
 
@@ -173,6 +174,11 @@ type LibClient.Components.Constructors.LC.AppShell with
         key |> ignore
         children |> ignore
 
+        Hooks.useEffect(
+            (fun () -> LibClient.FocusVisibleStyles.injectIfNeeded ()),
+            [||]
+        )
+
         let topStatus = defaultArg topStatus noElement
         let topNav = defaultArg topNav noElement
         let bottomNav = defaultArg bottomNav noElement
@@ -251,11 +257,16 @@ type LibClient.Components.Constructors.LC.AppShell with
         let refSidebarDraggable (nullableInstance: LibClient.JsInterop.JsNullable<LibClient.Components.Draggable.IDraggableRef>) =
             maybeSidebarDraggableHook.update (nullableInstance.ToOption)
 
-        let renderOptionalBlock (block: ReactElement) (styles: array<ViewStyles>) =
+        let renderOptionalBlock (block: ReactElement) (styles: array<ViewStyles>) (role: AccessibilityRole option) (navLabel: string option) =
             if block = noElement then
                 noElement
             else
-                RX.View(styles = styles, children = [| block |])
+                RX.View(
+                    styles = styles,
+                    ?accessibilityRole = role,
+                    ?accessibilityLabel = navLabel,
+                    children = [| block |]
+                )
 
         let renderTopNavShadow () =
             RX.View(styles = [| Styles.topNavShadow |])
@@ -263,6 +274,7 @@ type LibClient.Components.Constructors.LC.AppShell with
         let renderContentBlock (contentElement: ReactElement) (includeTopNavShadow: bool) =
             RX.View(
                 testId = "eggshell-app-content",
+                accessibilityRole = AccessibilityRole.Main,
                 styles = [| Styles.contentBlock |],
                 children =
                     elements {
@@ -319,14 +331,15 @@ type LibClient.Components.Constructors.LC.AppShell with
                 styles = [| Styles.safeInsetsView; yield! legacySafeInsetsViewStyles |],
                 children =
                     elements {
+                        LC.SkipLink()
                         RX.View(
                             styles = [| Styles.view |],
                             children =
                                 elements {
-                                    renderOptionalBlock topStatus [||]
-                                    renderOptionalBlock topNav [| Styles.topNavBlock |]
+                                    renderOptionalBlock topStatus [||] None None
+                                    renderOptionalBlock topNav [| Styles.topNavBlock |] (Some AccessibilityRole.Navigation) (Some "Top navigation")
                                     sidebarArea
-                                    renderOptionalBlock bottomNav [| Styles.bottomNavBlock |]
+                                    renderOptionalBlock bottomNav [| Styles.bottomNavBlock |] (Some AccessibilityRole.Navigation) (Some "Bottom navigation")
                                 }
                         )
                         dialogs

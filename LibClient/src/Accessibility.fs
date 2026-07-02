@@ -42,6 +42,9 @@ type AccessibilityRole =
 | Option = 35
 | Switch = 36
 | None = 37
+| Main          = 38
+| Navigation    = 39
+| Complementary = 40
 
 type ImportantForAccessibility =
 | Auto = 1

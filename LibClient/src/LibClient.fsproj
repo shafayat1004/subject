@@ -165,6 +165,7 @@
     <Compile Include="Components/Pointer/State.fs" />
     <Compile Include="Components/Pressable.fs" />
     <Compile Include="AccessibilityAnnounce.fs" />
+    <Compile Include="FocusVisibleStyles.fs" />
     <Compile Include="Components/LiveRegion.fs" />
     <Compile Include="Components/TapCapture.fs" />
     <Compile Include="Components/Group.fs" />
@@ -181,6 +182,8 @@
     <Compile Include="Components/With/ScreenSize.fs" />
     <Compile Include="Components/With/Accessibility.fs" />
     <Compile Include="Components/With/ReducedMotion.fs" />
+    <Compile Include="Components/FocusManager.fs" />
+    <Compile Include="Components/SkipLink.fs" />
 
     <Compile Include="Components/Responsive.fs" />
     <Compile Include="Components/ForceContext.fs" />
