@@ -4,6 +4,22 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-02 (session 3 -- Android native boot fixes)
+
+- **`Bootstrap.fs` used `ReactXPRaw` dynamic dispatch -- replaced with F# API** -- `ReactXPRaw?App?initialize`, `ReactXPRaw?UserInterface?setContextWrapper`, `ReactXPRaw?UserInterface?setMainView` were direct JsInterop calls on the old `@chaldal/reactxp` package global. After RNW migration that global no longer exists. Replaced with the typed F# seam API: `ReactXP.App.initialize`, `ReactXP.UserInterface.setContextWrapper`, `ReactXP.UserInterface.setMainView`.
+
+- **`RNSeam.UserInterface.setMainView` native path implemented** -- was `failwith "not implemented"`. Now calls `AppRegistry.registerComponent("RXApp", fun () -> rootComponent)` wrapping the passed element in a functional component and applying the context wrapper. `AppRegistry` added to the inner `RNSeam` bindings module.
+
+- **`react-dom` imported unconditionally in `RNSeam.Popup` -- crashed native Metro** -- `findDOMNode` and `domRectOf` helpers inside `module Popup` had no `#if EGGSHELL_PLATFORM_IS_WEB` guard, causing Metro to fail resolving `react-dom` in the native bundle. Fixed: wrapped both helpers in `#if EGGSHELL_PLATFORM_IS_WEB`.
+
+- **`@react-native-picker/picker` missing from AppTodo -- added to `package.json` and `metro.config.js`** -- `RNSeam` imports `Picker` from this package. It was listed in `LibClient/package.json` but not in AppTodo's. Added `"@react-native-picker/picker": "^2.11.0"` to AppTodo dependencies and added it to `extraNodeModules` in `metro.config.js`. Also added `buffer` to `extraNodeModules` (needed by `react-native-svg`).
+
+- **`AccessibilityHelpers.mapRoleToString` -- `"banner"` and web-only ARIA roles crashed native Android** -- `Header` was mapped to `"banner"` (the ARIA landmark role, not valid as a native `accessibilityRole`). Fixed to `"header"` which is the correct RN native value (RNW maps it to `role="heading"` on web). Also guarded the following roles as `#if EGGSHELL_PLATFORM_IS_WEB` only (not valid on Android RN 0.76): `List`, `ListItem`, `ListBox`, `Group`, `Log`, `Status`, `Dialog`, `Option`, `Main`, `Navigation`, `Complementary`. On native these now return `None` (no role set), avoiding `Invalid accessibility role value` crashes.
+
+- **`LegacyText.fs` passed raw int enum as `accessibilityRole` -- fixed** -- `accessibilityRole |> Option.iter (fun v -> __props?accessibilityRole <- v)` passed the F# integer enum value directly. Android bridge expects a string; this threw `java.lang.Double cannot be cast to java.lang.String`. Fixed to pipe through `ReactXP.RNSeam.mapAccessibilityRole` before setting.
+
+- **`RNSeam.createTextStyle` converted `lineHeight` to `"Npx"` string unconditionally -- crashed Android** -- The `[<Emit>]` JS that normalized text styles added `'px'` suffix to numeric `lineHeight` values for web CSS compatibility. On Android, `lineHeight` must be a number; the string caused `java.lang.String cannot be cast to java.lang.Double` on `RCTText` creation. Fixed: split into `#if EGGSHELL_PLATFORM_IS_WEB` (keeps px conversion) and native (flex-only normalization, no lineHeight mutation).
+
 ## 2026-07-02 (session 2 -- RNW a11y completion pass)
 
 - **Landmark roles added to `Accessibility.fs` and `AccessibilityHelpers.fs`** -- `Main = 38`, `Navigation = 39`, `Complementary = 40` added to the `AccessibilityRole` enum; `mapRoleToString` maps them to `"main"`, `"navigation"`, `"complementary"`. RNW renders `<main>` / `<nav>` / `<aside>` on web; native renders native landmark equivalents.

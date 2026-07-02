@@ -66,7 +66,7 @@ type LibClient.Components.Constructors.LC with
         __props?importantForAccessibility <- importantForAccessibility |> Option.orElse (Undefined)
         __props?accessibilityId <- accessibilityId |> Option.orElse (Undefined)
         accessibilityLabel |> Option.iter (fun v -> __props?accessibilityLabel <- v)
-        accessibilityRole |> Option.iter (fun v -> __props?accessibilityRole <- v)
+        accessibilityRole |> Option.bind ReactXP.RNSeam.mapAccessibilityRole |> Option.iter (fun v -> __props?accessibilityRole <- v)
         __props?autoFocus <- autoFocus |> Option.orElse (Undefined)
         __props?onPress <- onPress |> Option.orElse (Undefined)
         __props?id <- id |> Option.orElse (Undefined)

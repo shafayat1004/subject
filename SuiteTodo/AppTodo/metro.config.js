@@ -31,6 +31,8 @@ const externalLibraries = {
   '@microsoft/signalr': path.resolve(__dirname, '../../LibUiSubject/node_modules/@microsoft/signalr'),
   'fast-memoize': path.resolve(libClient, 'fast-memoize'),
   'react-native-get-random-values': path.resolve(__dirname, './node_modules/react-native-get-random-values'),
+  'buffer': path.resolve(__dirname, './node_modules/buffer'),
+  '@react-native-picker/picker': path.resolve(__dirname, './node_modules/@react-native-picker/picker'),
 };
 
 const config = {

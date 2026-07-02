@@ -25,7 +25,7 @@ let mapRoleToString (role: AccessibilityRole) : string option =
     | AccessibilityRole.Button        -> Some "button"
     | AccessibilityRole.Tab           -> Some "tab"
     | AccessibilityRole.Link          -> Some "link"
-    | AccessibilityRole.Header        -> Some "banner"
+    | AccessibilityRole.Header        -> Some "header"   // native: "header" (heading); RNW maps to role="heading"
     | AccessibilityRole.Search        -> Some "search"
     | AccessibilityRole.Image         -> Some "image"
     | AccessibilityRole.Text          -> None
@@ -33,23 +33,37 @@ let mapRoleToString (role: AccessibilityRole) : string option =
     | AccessibilityRole.MenuItem      -> Some "menuitem"
     | AccessibilityRole.MenuBar       -> Some "menubar"
     | AccessibilityRole.TabList       -> Some "tablist"
+    | AccessibilityRole.CheckBox      -> Some "checkbox"
+    | AccessibilityRole.Checked       -> Some "checkbox"
+    | AccessibilityRole.ComboBox      -> Some "combobox"
+    | AccessibilityRole.Switch        -> Some "switch"
+    | AccessibilityRole.None          -> Some "none"
+    // Web-only ARIA roles: not in RN Android's accessibilityRole enum, crash if passed on native
+#if EGGSHELL_PLATFORM_IS_WEB
     | AccessibilityRole.List          -> Some "list"
     | AccessibilityRole.ListItem      -> Some "listitem"
     | AccessibilityRole.ListBox       -> Some "listbox"
     | AccessibilityRole.Group         -> Some "group"
-    | AccessibilityRole.CheckBox      -> Some "checkbox"
-    | AccessibilityRole.Checked       -> Some "checkbox"
-    | AccessibilityRole.ComboBox      -> Some "combobox"
     | AccessibilityRole.Log           -> Some "log"
     | AccessibilityRole.Status        -> Some "status"
     | AccessibilityRole.Dialog        -> Some "dialog"
-    | AccessibilityRole.HasPopup      -> Some "button"
     | AccessibilityRole.Option        -> Some "option"
-    | AccessibilityRole.Switch        -> Some "switch"
-    | AccessibilityRole.None          -> Some "none"
     | AccessibilityRole.Main          -> Some "main"
     | AccessibilityRole.Navigation    -> Some "navigation"
     | AccessibilityRole.Complementary -> Some "complementary"
+#else
+    | AccessibilityRole.List          -> None
+    | AccessibilityRole.ListItem      -> None
+    | AccessibilityRole.ListBox       -> None
+    | AccessibilityRole.Group         -> None
+    | AccessibilityRole.Log           -> None
+    | AccessibilityRole.Status        -> None
+    | AccessibilityRole.Dialog        -> None
+    | AccessibilityRole.Option        -> None
+    | AccessibilityRole.Main          -> None
+    | AccessibilityRole.Navigation    -> None
+    | AccessibilityRole.Complementary -> None
+#endif
     | _                               -> None
 
 let applyToProps (props: obj) (a11y: A11yProps) (disabled: bool) =

@@ -40,9 +40,9 @@ let init (configRes: Result<AppTodo.Config, string>) =
             let element = Ui.App.Root()
             rootElement <- Some element
 
-            ReactXPRaw?App?initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
+            ReactXP.App.initialize (config.InitializeReactXPInDebugMode, config.InitializeReactXPInDevMode)
 
-            ReactXPRaw?UserInterface?setContextWrapper (fun rootView ->
+            ReactXP.UserInterface.setContextWrapper (fun rootView ->
                 Ui.AppContext (children = [| rootView |])
             )
 
@@ -64,7 +64,7 @@ let init (configRes: Result<AppTodo.Config, string>) =
 
         | Error reason ->
             Log.Error ("App initialization failed because config construction failed: " + reason)
-            ReactXPRaw?App?initialize((* DEBUG *) false, (* DEV *) false)
+            ReactXP.App.initialize (false, false)
 
             LC.AppShell.TopLevelErrorMessage(
                 error = exn reason,
@@ -73,7 +73,7 @@ let init (configRes: Result<AppTodo.Config, string>) =
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
-        ReactXPRaw?UserInterface?setMainView element
+        ReactXP.UserInterface.setMainView element
 
         #if EGGSHELL_PLATFORM_IS_WEB
         Browser.Dom.document.getElementById("app-pre-bootstrap-loader").remove()

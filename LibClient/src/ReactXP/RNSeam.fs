@@ -36,6 +36,7 @@ module RNSeam =
     let Animated: obj = import "Animated" "react-native"
     let Easing: obj = import "Easing" "react-native"
 
+    let AppRegistryModule: obj = import "AppRegistry" "react-native"
     let PlatformModule: obj = import "Platform" "react-native"
     let PixelRatioModule: obj = import "PixelRatio" "react-native"
     let DimensionsModule: obj = import "Dimensions" "react-native"
@@ -66,6 +67,8 @@ module RNSeam =
     // ReactXP _adaptStyles converted numeric lineHeight to "Npx" strings so the browser
     // treats it as pixels, not as a CSS unitless multiplier (which would be N × font-size).
     // e.g. lineHeight: 24 without "px" = CSS line-height:24 = 24 × 16px = 384px (huge gap).
+    // On native, lineHeight must stay a number -- Android rejects string values.
+#if EGGSHELL_PLATFORM_IS_WEB
     [<Emit("""(function(r) {
       if (!r) return r;
       var o = Object.assign({}, r);
@@ -79,6 +82,20 @@ module RNSeam =
       return o;
     })($0)""")>]
     let createTextStyle (rules: obj) : obj = jsNative
+#else
+    [<Emit("""(function(r) {
+      if (!r) return r;
+      var o = Object.assign({}, r);
+      if (o.flex != null) {
+        var f = o.flex; delete o.flex;
+        if (f > 0)      { o.flexGrow = f; o.flexShrink = 1; }
+        else if (f < 0) { o.flexGrow = 0; o.flexShrink = -f; }
+        else            { o.flexGrow = 0; o.flexShrink = 0; }
+      }
+      return o;
+    })($0)""")>]
+    let createTextStyle (rules: obj) : obj = jsNative
+#endif
 
     let createAnimatedViewStyle (rules: obj) : obj = rules
     let createAnimatedTextStyle (rules: obj) : obj = rules
@@ -371,7 +388,9 @@ module UserInterface =
             mainRoot <- Some root
             root?render (wrappedElement)
 #else
-        failwith "RNSeam.UserInterface.setMainView native path not implemented."
+        let wrappedElement = contextWrapper element
+        let rootComponent (_props: obj) : Fable.React.ReactElement = wrappedElement
+        RNSeam.AppRegistryModule?registerComponent("RXApp", fun () -> rootComponent) |> ignore
 #endif
 
 module Linking =
@@ -436,6 +455,7 @@ module Popup =
 
     let isDisplayed (id: string) : bool = entries.ContainsKey id
 
+#if EGGSHELL_PLATFORM_IS_WEB
     let private findDOMNode: obj -> obj = import "findDOMNode" "react-dom"
 
     let private domRectOf (anchor: obj) : obj =
@@ -462,6 +482,7 @@ module Popup =
                       "height" ==> 0.0 ]
             else
                 node?getBoundingClientRect ()
+#endif
 
     let show (options: obj, id: string) : unit =
 #if EGGSHELL_PLATFORM_IS_WEB
