@@ -15,9 +15,11 @@
     "@babel/core": "^7.26.0",
     "@babel/plugin-transform-named-capturing-groups-regex": "^7.25.9",
     "@babel/runtime": "^7.26.0",
-    "@react-native-community/cli": "^15.1.3",
-    "@react-native/babel-preset": "^0.76.5",
-    "@react-native/metro-config": "^0.76.5",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-android": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.86.0",
+    "@react-native/metro-config": "0.86.0",
     "yargs": "^17.7.2"
   },
   "dependencies": {
@@ -25,13 +27,16 @@
     "appcenter-analytics": "^5.0.3",
     "appcenter-crashes": "^5.0.3",
     "react": "file:../../LibClient/node_modules/react",
-    "react-native": "0.76.5",
+    "react-native": "0.86.0",
+    "react-native-gesture-handler": "3.0.2",
     "react-native-get-random-values": "^1.11.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.2",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler",
     "react-native-code-push": "file:../../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push"
   },
   "engines": {
-    "node": ">=18.19.0"
+    "node": ">=22.11.0"
   },
   "engineStrict": true
 }
