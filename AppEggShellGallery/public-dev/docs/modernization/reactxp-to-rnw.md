@@ -4,11 +4,17 @@ Why EggShell migrated away from `@chaldal/reactxp`, what the fork audit found, w
 React Native / react-native-web ecosystem offers, and how the migration was designed to keep every
 F# component untouched.
 
-**Status:** the primitive layer has been migrated to react-native-web and `@chaldal/reactxp` is removed
-as a dependency; the web and native builds run on RN/RNW. Stabilization (scroll, gestures, pickers) is
-ongoing. This page is the strategy and research narrative behind that migration. For phase status and
-execution steps, see [Phased Plan](./modernization/phased-plan.md) Phase 4 and
-[Migration Execution](./runbooks/migration-execution.md) (Phase 4).
+**Status (session 8 -- done + modernized):** the migration is complete and the ReactXP *name* is
+retired. `@chaldal/reactxp` is gone, and the seam is now `LibClient/src/Rn/` (namespace **`Rn`**,
+constructor prefix **`Rn.`**, imports in `RnPrimitives.fs`). The stack was upgraded to **React 19.2,
+react-native 0.86, react-native-web 0.21.2, RNGH 3, with the New Architecture (Fabric/TurboModules/
+Bridgeless) enabled** and verified on device (AppTodo: `Running "RnApp" with {"fabric":true}`).
+Reanimated 4 + worklets + Moti are installed and wired (declarative-only from F#; see §11). This page
+remains the strategy/research narrative; anywhere below that says "ReactXP fork" / `RX.` / `RNSeam`
+describes the pre-migration state -- read it as history. Remaining tail: gallery +
+PerformancePlayground native config, and adopting Reanimated in components. For the exact upgrade
+recipe + gotchas see the session-8 [Engineering Log](./knowledge-base/engineering-log.md) entry; for
+phase status see [Phased Plan](./modernization/phased-plan.md) Phase 4.
 
 ---
 

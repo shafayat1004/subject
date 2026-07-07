@@ -51,6 +51,12 @@ const commonConfig = {
             "react-native-gesture-handler$": libClientNodeModules
                 ? path.join(libClientNodeModules, "react-native-gesture-handler/lib/module/index.js")
                 : "react-native-gesture-handler",
+            "react-native-reanimated$": libClientNodeModules
+                ? path.join(libClientNodeModules, "react-native-reanimated/lib/module/index.js")
+                : "react-native-reanimated",
+            "react-native-worklets$": libClientNodeModules
+                ? path.join(libClientNodeModules, "react-native-worklets/lib/module/index.js")
+                : "react-native-worklets",
         },
         extensions: [".web.js", ".web.jsx", ".web.ts", ".web.tsx", ".js", ".jsx", ".ts", ".tsx", ".json"],
         modules: [

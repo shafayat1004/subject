@@ -187,6 +187,6 @@ This produces a **standalone** APK (JS bundled + minified, no Metro, no live rel
 | `backgroundColor` + `borderRadius` renders square corners | Missing `Overflow.Hidden` on the filled view | Add `Overflow.Hidden` to filled rounded views. |
 | Runtime crash `Color is expected to match #[0-oa-f]{6}` | `Color.Hex` requires lowercase hex; uppercase throws at runtime even though the build is green | Lowercase all hex strings passed to `Color.Hex`. |
 | `adb` / `run-android` fails | DOTNET_ROOT not set | `export DOTNET_ROOT="$HOME/.dotnet"` before any dotnet/fable/eggshell command. |
-| `libhermes_executor.so not found` at startup | `SoLoader.init(this, false)` in `MainApplication.kt` (RN 0.76+) | Use `SoLoader.init(this, OpenSourceMergedSoMapping)`. |
+| `libhermes_executor.so not found` at startup (RN 0.76) | `SoLoader.init(this, false)` in `MainApplication.kt` | Use `SoLoader.init(this, OpenSourceMergedSoMapping)`. **On RN 0.86** `MainApplication.kt` no longer calls `SoLoader.init` at all -- `loadReactNative(this)` handles it; see [RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade). |
 
 For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).
