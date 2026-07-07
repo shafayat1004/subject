@@ -11,7 +11,6 @@ open LibClient.Components
 
 open Rn.Components
 open Rn.Styles
-open Rn.Styles.Animation
 
 module LC =
     module SegmentedControl =
@@ -101,20 +100,6 @@ module private Styles =
             TextAlign.Center
         }
 
-    let thumbAnimated (translateX: AnimatableValue) (theme: Theme) (thumbWidth: int) =
-        makeAnimatableViewStyles {
-            Position.Absolute
-            top theme.TrackPadding
-            bottom theme.TrackPadding
-            left theme.TrackPadding
-            width (max 0 thumbWidth)
-            borderRadius 999
-            backgroundColor theme.ThumbBackground
-            animatedTransform [
-                [ animatedTranslateX translateX ]
-            ]
-        }
-
     let thumbStatic (theme: Theme) (thumbWidth: int) (offsetX: int) =
         makeViewStyles {
             Position.Absolute
@@ -151,8 +136,13 @@ type LibClient.Components.Constructors.LC with
             |> Array.tryFindIndex (fun segment -> segment.Value = selected)
             |> Option.defaultValue 0
 
-        let translateXRef = Hooks.useRef (AnimatedValue.Create 0.0)
-        let maybeAnimationRef: IRefHook<Option<Animation>> = Hooks.useRef None
+        // Reanimated shared value drives the thumb's translateX (UI thread). The animated style hook
+        // is called unconditionally at the top level (hook rule); it is unused in the reduced-motion
+        // branch, which renders a static thumb instead.
+        let translateX = Reanimated.useSharedValue 0.0
+        let animatedThumbStyle = Reanimated.useAnimatedTranslateX translateX
+        let animationTokenRef = Hooks.useRef 0
+        let isAnimatingRef = Hooks.useRef false
         let restOffsetRef = Hooks.useRef (selectedIndex * cellWidth)
         let isDraggingHook = Hooks.useState false
         let panStartBaseRef = Hooks.useRef 0
@@ -163,29 +153,24 @@ type LibClient.Components.Constructors.LC with
 
         let targetOffset index = index * cellWidth
 
-        let stopAnimation () =
-            maybeAnimationRef.current
-            |> Option.iter (fun animation ->
-                maybeAnimationRef.current <- None
-                animation.Stop())
-
+        // Assigning translateX (directly or via withTiming) cancels any running animation; the token
+        // invalidates a superseded settle's JS-thread completion so it can't stomp restOffset.
         let animateTo (target: int) =
-            stopAnimation ()
-            let animation =
-                Animation.Timing(
-                    translateXRef.current,
-                    toValue = double target,
-                    duration = TimeSpan.FromMilliseconds 220
-                )
-            maybeAnimationRef.current <- Some animation
-            animation.Start (fun () ->
-                if maybeAnimationRef.current = Some animation then
-                    maybeAnimationRef.current <- None
-                    restOffsetRef.current <- target)
+            animationTokenRef.current <- animationTokenRef.current + 1
+            let token = animationTokenRef.current
+            isAnimatingRef.current <- true
+            translateX.AnimateTiming(
+                target,
+                durationMs = 220.0,
+                onComplete =
+                    (fun () ->
+                        if animationTokenRef.current = token then
+                            isAnimatingRef.current <- false
+                            restOffsetRef.current <- target))
 
         let syncThumb () =
             let target = targetOffset selectedIndex
-            translateXRef.current.SetValue (double target)
+            translateX.SetValue target
             restOffsetRef.current <- target
 
         Hooks.useEffect(
@@ -199,7 +184,7 @@ type LibClient.Components.Constructors.LC with
 
         Hooks.useEffect(
             (fun () ->
-                if not isDraggingHook.current && thumbInitializedRef.current && Option.isNone maybeAnimationRef.current then
+                if not isDraggingHook.current && thumbInitializedRef.current && not isAnimatingRef.current then
                     let target = targetOffset selectedIndex
                     if restOffsetRef.current <> target then
                         animateTo target
@@ -257,11 +242,14 @@ type LibClient.Components.Constructors.LC with
                     if not gestureActiveRef.current then
                         gestureActiveRef.current <- true
                         panStartBaseRef.current <- restOffsetRef.current
+                        // Invalidate any in-flight settle so its completion can't stomp restOffset.
+                        animationTokenRef.current <- animationTokenRef.current + 1
+                        isAnimatingRef.current <- false
 
                     isDraggingHook.update true
                     let offset = max 0 (min maxOffset (panStartBaseRef.current + delta))
                     lastDragOffsetRef.current <- offset
-                    translateXRef.current.SetValue (double offset)
+                    translateX.SetValue offset
 
         let onTap (e: Rn.Components.GestureView.TapGestureState) =
             if not draggable || cellWidth <= 0 then
@@ -317,14 +305,9 @@ type LibClient.Components.Constructors.LC with
                                     children = [||]
                                 )
                             else
-                                Rn.AnimatableView(
-                                    styles =
-                                        [|
-                                            Styles.thumbAnimated
-                                                (AnimatableValue.Value translateXRef.current)
-                                                theTheme
-                                                cellWidth
-                                        |],
+                                Rn.ReanimatedView(
+                                    styles = [| Styles.thumbStatic theTheme cellWidth 0 |],
+                                    animatedStyle = animatedThumbStyle,
                                     children = [||]
                                 )
 

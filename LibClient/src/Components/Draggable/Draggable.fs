@@ -10,7 +10,6 @@ open LibClient
 
 open Rn.Components
 open Rn.Styles
-open Rn.Styles.Animation
 
 [<RequireQualifiedAccess>]
 type Position =
@@ -85,34 +84,30 @@ module private Helpers =
             maybeLastGestureStateRef.current <- Some current
             current
 
+    // Assigning the shared value (directly or via withTiming) cancels any running animation on it.
+    // The token invalidates a superseded settle's JS-thread completion so it can't stomp the rest
+    // state after a newer drag/animation has taken over.
     let animate
-            (maybeOngoingAnimationRef: IRefValue<Option<Animation>>)
+            (animationTokenRef: IRefValue<int>)
             (setRestP: int -> unit)
-            (value: AnimatedValue)
+            (value: Reanimated.SharedValue)
             (baseOffset: int)
             (maybeFromP: Option<int>)
             (toP: int)
             (maybeOnComplete: Option<unit -> unit>)
             : unit =
-        maybeOngoingAnimationRef.current |> Option.sideEffect (fun ongoingAnimation ->
-            maybeOngoingAnimationRef.current <- None
-            ongoingAnimation.Stop()
-        )
+        animationTokenRef.current <- animationTokenRef.current + 1
+        let token = animationTokenRef.current
 
         maybeFromP |> Option.sideEffect (fun fromP -> value.SetValue (fromP + baseOffset))
-        let animation =
-            Animation.Timing(
-                value,
-                toValue = (toP + baseOffset |> double),
-                duration = TimeSpan.FromMilliseconds 100
-            )
-        maybeOngoingAnimationRef.current <- Some animation
-        animation.Start (fun () ->
-            if maybeOngoingAnimationRef.current = Some animation then
-                maybeOngoingAnimationRef.current <- None
-                maybeOnComplete |> Option.sideEffect (fun fn -> fn ())
-            setRestP toP
-        )
+        value.AnimateTiming(
+            toP + baseOffset,
+            durationMs = 100.0,
+            onComplete =
+                (fun () ->
+                    if animationTokenRef.current = token then
+                        maybeOnComplete |> Option.sideEffect (fun fn -> fn ())
+                        setRestP toP))
 
     let onPan
             (maybeOnChange: Option<Change -> unit>)
@@ -120,12 +115,12 @@ module private Helpers =
             (lastRestP: int)
             (lastRestPosition: Position)
             (range: int * int)
-            (aniValue: AnimatedValue)
+            (aniValue: Reanimated.SharedValue)
             (maybeNegativeDragTarget: Option<DragTarget> * Position)
             (maybePositiveDragTarget: Option<DragTarget> * Position)
             (setRestP: int -> unit)
             (setLastRestPosition: Position -> unit)
-            (maybeOngoingAnimationRef: IRefValue<Option<Animation>>)
+            (animationTokenRef: IRefValue<int>)
             (rawDeltaP: int)
             (isGestureComplete: bool)
             : unit =
@@ -159,7 +154,7 @@ module private Helpers =
                     | _ -> (lastRestP, lastRestPosition)
 
                 maybeOnChange |> Option.sideEffect (fun fn -> fn (DragInducedAnimationStarted targetRestPosition))
-                animate maybeOngoingAnimationRef setRestP aniValue baseOffset (Some nextP) targetRestP (Some (fun () ->
+                animate animationTokenRef setRestP aniValue baseOffset (Some nextP) targetRestP (Some (fun () ->
                     maybeOnChange |> Option.sideEffect (fun fn ->
                         setLastRestPosition targetRestPosition
                         fn (PositionChanged (targetRestPosition, AnimationFinished))
@@ -186,21 +181,18 @@ module private Styles =
             Overflow.Visible
         }
 
-    // Used when the wrapper is explicitly sized (styles prop provided); makes the AnimatableView
+    // Used when the wrapper is explicitly sized (styles prop provided); makes the animated view
     // fill the wrapper's full height.
     let animatableViewFill =
-        makeAnimatableViewStyles {
+        makeViewStyles {
             flex 1
         }
 
-    let contents (aniValueX: AnimatableValue) (aniValueY: AnimatableValue) =
-        makeAnimatableViewStyles {
+    // Base style for the animated contents view; the translateX/translateY transform is supplied
+    // separately as a Reanimated animated style (see the component body).
+    let contents =
+        makeViewStyles {
             Overflow.Visible
-
-            animatedTransform [
-                [ animatedTranslateX aniValueX ]
-                [ animatedTranslateY aniValueY ]
-            ]
         }
 
 type private DraggableRuntime = {
@@ -216,9 +208,9 @@ type private DraggableRuntime = {
     LastRestPosition: IRefValue<Position>
     RangeX:          int * int
     RangeY:          int * int
-    AniValueX:       AnimatedValue
-    AniValueY:       AnimatedValue
-    MaybeOngoingAnimation: IRefValue<Option<Animation>>
+    AniValueX:       Reanimated.SharedValue
+    AniValueY:       Reanimated.SharedValue
+    AnimationToken:  IRefValue<int>
     MaybeLastGestureState: IRefValue<Option<Rn.Components.GestureView.PanGestureState>>
 }
 
@@ -250,19 +242,13 @@ type LibClient.Components.Constructors.LC with
         let lastRestYRef = Hooks.useRef 0
         let lastRestPositionRef = Hooks.useRef Position.Base
         let maybeLastGestureStateRef = Hooks.useRef None
-        let maybeOngoingAnimationRef = Hooks.useRef None
+        let animationTokenRef = Hooks.useRef 0
 
-        let aniValueX =
-            Hooks.useMemo(
-                (fun () -> AnimatedValue.Create(double baseOffsetX)),
-                [||]
-            )
-
-        let aniValueY =
-            Hooks.useMemo(
-                (fun () -> AnimatedValue.Create(double baseOffsetY)),
-                [||]
-            )
+        // Reanimated shared values drive the two axes; the animated transform style is hooked once at
+        // the top level (hook rule) and applied to the contents view in the render below.
+        let aniValueX = Reanimated.useSharedValue (double baseOffsetX)
+        let aniValueY = Reanimated.useSharedValue (double baseOffsetY)
+        let contentsAnimatedStyle = Reanimated.useAnimatedTranslateXY aniValueX aniValueY
 
         let setLastRestX (x: int) : unit =
             lastRestXRef.current <- x
@@ -289,7 +275,7 @@ type LibClient.Components.Constructors.LC with
             RangeY = rangeY
             AniValueX = aniValueX
             AniValueY = aniValueY
-            MaybeOngoingAnimation = maybeOngoingAnimationRef
+            AnimationToken = animationTokenRef
             MaybeLastGestureState = maybeLastGestureStateRef
         }
 
@@ -315,7 +301,7 @@ type LibClient.Components.Constructors.LC with
                 (rt.Right, Position.Right)
                 setLastRestX
                 setLastRestPosition
-                rt.MaybeOngoingAnimation
+                rt.AnimationToken
                 rawDeltaX
                 isGestureComplete
 
@@ -332,7 +318,7 @@ type LibClient.Components.Constructors.LC with
                 (rt.Down, Position.Down)
                 setLastRestY
                 setLastRestPosition
-                rt.MaybeOngoingAnimation
+                rt.AnimationToken
                 rawDeltaY
                 isGestureComplete
 
@@ -361,7 +347,7 @@ type LibClient.Components.Constructors.LC with
 
             maybeTarget |> Option.sideEffect (fun (setRestP, value, baseOffset, targetP, resetNonAnimatingAxis) ->
                 resetNonAnimatingAxis ()
-                Helpers.animate maybeOngoingAnimationRef setRestP value baseOffset None targetP (Some (fun () -> setLastRestPosition newPosition))
+                Helpers.animate animationTokenRef setRestP value baseOffset None targetP (Some (fun () -> setLastRestPosition newPosition))
             )
 
             maybeTarget.IsSome
@@ -414,13 +400,13 @@ type LibClient.Components.Constructors.LC with
                 | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.GestureView" styles |]
             | None -> [||]
 
-        let legacyContentsStyles : array<AnimatableViewStyles> =
+        let legacyContentsStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<array<AnimatableViewStyles>> "Rn.Components.View" legacyStyles
+                Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<array<ViewStyles>> "Rn.Components.View" legacyStyles
             | None -> [||]
 
-        // When the wrapper is explicitly sized via the styles prop, the AnimatableView and
+        // When the wrapper is explicitly sized via the styles prop, the animated view and
         // GestureView must fill it; otherwise they default to flexGrow:0 and collapse to
         // content height, making the interactive surface too small.
         let fillStyles = styles.IsSome
@@ -448,13 +434,14 @@ type LibClient.Components.Constructors.LC with
             styles = [| Styles.wrapper; yield! defaultArg styles [||] |],
             children =
                 [|
-                    Rn.AnimatableView(
+                    Rn.ReanimatedView(
                         styles =
                             [|
                                 yield! if fillStyles then [| Styles.animatableViewFill |] else [||]
                                 yield! legacyContentsStyles
-                                Styles.contents (AnimatableValue.Value aniValueX) (AnimatableValue.Value aniValueY)
+                                Styles.contents
                             |],
+                        animatedStyle = contentsAnimatedStyle,
                         children = [| gestureView |]
                     )
                 |]

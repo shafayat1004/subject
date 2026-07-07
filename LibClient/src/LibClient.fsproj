@@ -143,6 +143,7 @@
     <Compile Include="Rn/Components/AnimatableText.fs" />
     <Compile Include="Rn/Components/AnimatableTextInput.fs" />
     <Compile Include="Rn/Components/AnimatableView.fs" />
+    <Compile Include="Rn/Reanimated/Reanimated.fs" />
 
     <Compile Include="Components/Text/Text.fs" />
     <Compile Include="Components/Text/LegacyText.fs" />
