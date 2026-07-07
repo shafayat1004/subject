@@ -11,9 +11,10 @@ Executed the "full Reanimated overhaul" (RW2). Built a new **`Rn.Reanimated`** s
 
 ### What shipped
 - **New seam** `LibClient/src/Rn/Reanimated/Reanimated.fs`: `SharedValue` wrapper
-  (`SetValue`/`AnimateTiming`/`AnimateSpring`, get/set `.Value`), `useSharedValue`, in-seam worklet
-  style hooks (`useAnimatedTranslateX`/`Y`/`XY`, `useAnimatedOpacity` -- trivial bodies, no host
-  calls), `Rn.ReanimatedView` (merges normal `styles` with an `animatedStyle`), and `Reanimated.Easing`.
+  (`SetValue`/`AnimateTiming`/`AnimateSpring`, get/set `.Value`), `useSharedValue`, style helpers
+  (`useAnimatedTranslateX`/`Y`/`XY`, `useAnimatedOpacity`) that embed the shared value via Reanimated
+  **inline shared values** (NOT `useAnimatedStyle` worklets -- see the worklet finding below),
+  `Rn.ReanimatedView` (merges normal `styles` with an `animatedStyle`), and `Reanimated.Easing`.
 - **Migrated consumers:** `Scrim` (opacity fade), `SegmentedControl` (select-slide + follow-finger
   drag), `Carousel` (parallel two-slide), `Draggable` (two-axis gesture settle), **AppTodo**
   `TodoSwipeShell` swipe (`Todos.fs` + `TodoTheme.swipeContentBase`), and the gallery
@@ -41,25 +42,40 @@ Executed the "full Reanimated overhaul" (RW2). Built a new **`Rn.Reanimated`** s
   generated files are up-to-date!` and skips Fable after edits. Force it: `touch` the changed `.fs` or
   `rm -rf .build/native/fable`, and confirm `Started Fable compilation...`.
 
-### Verification
-- **Web:** `eggshell package-web` for the gallery is **green** -- Fable web + webpack, reanimated/
-  worklets aliases resolve, single bundle emitted. (Proves the seam's web path end-to-end.)
-- **Compile:** dotnet type-check green; **Fable native compile of AppTodo green** (full recompile,
-  541 files, 0 errors) for the new seam + all migrations.
-- **Native runtime: BLOCKED by a pre-existing bug (not the overhaul).** See next entry.
+### Two native-runtime bugs found and FIXED (the app now renders on-device)
+Running AppTodo on the iPhone 16 simulator after a **clean** `rm -rf .build/native/fable` surfaced two
+issues, both now fixed:
 
-### Discovered: clean native Fable rebuild breaks the app root (`GestureHandlerRootView`) [pre-existing]
-Running AppTodo on the iPhone 16 simulator after a **clean** `rm -rf .build/native/fable` +
-`build-native` redboxes at the app root: *"Element type is invalid ... but got:
-`<GestureHandlerRootView />`. Did you accidentally export a JSX literal instead of a component?"* --
-i.e. `react-native-gesture-handler`'s `GestureHandlerRootView` resolves to a React **element** instead
-of a component. **This reproduces on the pre-RW2 baseline commit (`4b38e50`) after the same clean
-rebuild**, so it is a pre-existing Fable-5 / RNGH-3 / Metro interop bug, unrelated to the Reanimated
-work, that a fresh Fable output triggers. It renders past root only on a *stale/incremental* `.build`.
-It blocks native runtime verification of AppTodo **and** the gallery (both wrap the app in
-`Rn.GestureHandlerRootView` via `Bootstrap` `setContextWrapper`). Needs dedicated runtime debugging
-(candidate: how Fable's `import "GestureHandlerRootView"` interops with RNGH 3's
-`export { default as GestureHandlerRootView }` under Metro). Tracked as a separate follow-up.
+**(1) RW7 -- app root `GestureHandlerRootView` "Element type is invalid ... got a JSX literal".**
+Redboxed at the app root. **Not RNGH** (a device probe confirmed `RNGH.GestureHandlerRootView` is a
+plain function at load). Root cause was in the framework: `RnPrimitives.UserInterface.setMainView`
+did `AppRegistry.registerComponent("RnApp", fun () -> rootComponent)` where `rootComponent` is itself
+`fun _props -> wrappedElement`. **Fable uncurried the two nested lambdas into one**
+`(unit, props) => wrappedElement`, so RN's `provider()` (called with no args) returned the
+*element*, not the component -> React got an element as a type. A stale/incremental `.build` had a
+non-uncurried version, which is why it only showed after a clean rebuild (and reproduced on the pre-RW2
+baseline). **Fix:** box the component so the provider is `unit -> obj`, which Fable cannot uncurry
+(`let componentProvider : unit -> obj = fun () -> box rootComponent`) -> emits
+`registerComponent("RnApp", () => _props => wrappedElement)`. **Lesson:** when passing a
+component *provider* / any `() -> function` across a JS interop boundary, box the inner function or
+Fable may collapse the curry; verify the emitted arity.
+
+**(2) Reanimated `useAnimatedStyle` worklets don't work from Fable.** With RW7 fixed, the next redbox
+was *"[Worklets] Tried to synchronously call a Remote Function"* from `useAnimatedStyle.ts`. Fable-
+emitted closures are **not** recognised by `react-native-worklets/plugin`, so the closure passed to
+`useAnimatedStyle` ran as a JS "remote function" and calling `createObj` inside it threw on the UI
+runtime. **Fix:** drop `useAnimatedStyle` entirely and use Reanimated **inline shared values** -- embed
+the shared-value *object* directly in a plain style (`{ transform: [{ translateX: sharedValue }] }`);
+the animated `View` drives the prop on the UI thread with no worklet. Worklet-free, identical on web +
+native. This supersedes the earlier "author trivial worklets in F#" idea (the spike's probe C was
+optimistic; on RN 0.86 + reanimated 4.5.1 + worklets 0.10.2 a Fable closure is not workletized).
+
+### Verification (native runtime now GREEN)
+- **Native:** AppTodo **renders on the iPhone 16 simulator** -- full UI, the migrated
+  `SegmentedControl` (Light/Dark toggle) with its thumb bound via the inline shared value, no worklet
+  or element-type errors.
+- **Web:** gallery `eggshell package-web` green (Fable web + webpack, bundle emitted).
+- **Compile:** dotnet type-check green; Fable native compile green (541 files).
 
 ### RW1 gallery Android build -- GREEN (the "~20-module workstream" was 2 dead-end drops)
 The gallery links **11** native modules (`react-native.config.js`), not ~20. Only **two** had no

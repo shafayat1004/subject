@@ -74,9 +74,11 @@ on **Reanimated 4** (UI-thread animation under the New Architecture). Pattern: c
 (`Reanimated.useAnimatedTranslateX`/`Y`/`XY`/`useAnimatedOpacity`), and render `Rn.ReanimatedView` with
 that `animatedStyle`. Drive the value directly (`SetValue`) during a gesture and with `AnimateTiming`
 (optional JS-thread `onComplete`) / `AnimateSpring` to settle; assigning the value cancels a running
-animation, and a monotonic token guards a superseded settle's completion. **Worklets are authored only
-inside the seam** and are trivial (read a shared value into a style, no host calls) -- a `runOnJS` /
-host-function call inside a Fable-emitted worklet aborts libworklets. The seam depends only on
+animation, and a monotonic token guards a superseded settle's completion. **No worklets are authored in F#** --
+the `useAnimated*` helpers use Reanimated *inline shared values* (embed the shared-value object in a
+plain style; the animated View drives the prop on the UI thread), because a Fable-emitted
+`useAnimatedStyle` closure is not workletized by react-native-worklets/plugin and throws *"Tried to
+synchronously call a Remote Function"* on the UI runtime. The seam depends only on
 `react-native-reanimated` + `react-native-worklets` (shipped by every app + the scaffold); **do not add
 a per-app animation dependency to the seam** (Moti was tried and dropped for exactly this reason -- see
 the [RN 0.86 status](./modernization/rn86-upgrade-status.md) RW2). Consumers: `Scrim`,

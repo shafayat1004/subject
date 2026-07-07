@@ -20,8 +20,9 @@ RNGH **3.0.2**, Reanimated **4.5.1** + worklets **0.10.2** + Moti **0.30.0**, Ne
 | **React 18→19 + RNW 0.19→0.21** | react/react-dom 19.2.3, react-native-web 0.21.2; `findDOMNode` (removed in React 19) replaced with a ref/`getBoundingClientRect` fallback in `RnPrimitives.fs` | Gallery web bundle compiles + serves + renders under React 19 (headless smoke) |
 | **RN 0.76→0.86 + New Architecture (AppTodo)** | RN 0.86, `newArchEnabled=true`, Gradle 9.3.1, Kotlin 2.1.20, SDK 36, NDK 27; `MainApplication` rewritten to the `ReactHost`/`loadReactNative` model; native modules bumped for RN-0.86 Fabric C++ (svg 15.15.5, webview 14.0.1, netinfo 12.0.1, picker 2.11.4, async-storage 3.1.1); RNGH 2.21→3.0.2 (2.31 imports a shim RN 0.86 removed) | **Android** POCO F1 (debug + standalone release): `Running "RnApp" {"fabric":true}`, swipe works. **iOS** iPhone 16 simulator: renders in dark mode under Fabric (pod install only) |
 | **Reanimated 4 stack (infra)** | reanimated 4.5.1 + worklets 0.10.2 in LibClient + AppTodo; `react-native-worklets/plugin` babel plugin; webpack aliases (`lib/module`). (Moti was trialled then dropped -- see RW2.) | reanimated/worklets **native compiled** in the AppTodo release build; web bundle green with all ESM aliases |
-| **Reanimated overhaul (RW2)** | New `Rn.Reanimated` seam (SharedValue, useSharedValue, useAnimated* worklet hooks, `Rn.ReanimatedView`); migrated Scrim, SegmentedControl, Carousel, Draggable, AppTodo swipe, gallery HorizontalPanArea off RN-Animated. RN-Animated primitives kept as legacy (load-bearing for the legacy style runtime). | gallery `package-web` green (Fable web + webpack, bundle emitted); AppTodo Fable native compile green (541 files); dotnet green. **Native runtime blocked by RW7 (pre-existing).** |
-| **Gallery Android build (RW1)** | Dropped 2 dead-end native modules (code-push, push-notification) from `react-native.config.js` + codepush gradle apply; all other linked modules build on RN 0.86 as-is | `./gradlew :app:assembleDebug --rerun-tasks` GREEN (329 tasks, fresh 150 MB APK). On-device launch still gated on RW7. |
+| **Reanimated overhaul (RW2)** | New `Rn.Reanimated` seam (SharedValue, useSharedValue, useAnimated* helpers via **inline shared values**, `Rn.ReanimatedView`); migrated Scrim, SegmentedControl, Carousel, Draggable, AppTodo swipe, gallery HorizontalPanArea off RN-Animated. RN-Animated primitives kept as legacy (load-bearing for the legacy style runtime). | gallery `package-web` green; **AppTodo renders on iPhone 16 sim** (migrated SegmentedControl, no worklet error); Fable native + dotnet green. |
+| **RW7 native app-root fix** | Fable uncurried `registerComponent("RnApp", fun () -> rootComponent)` -> provider returned an element; boxed the component so the provider is `unit -> obj` | AppTodo renders on-device (clean rebuild no longer redboxes). |
+| **Gallery Android build (RW1)** | Dropped 2 dead-end native modules (code-push, push-notification) from `react-native.config.js` + codepush gradle apply; all other linked modules build on RN 0.86 as-is | `./gradlew :app:assembleDebug --rerun-tasks` GREEN (329 tasks, fresh 150 MB APK). |
 | **Audit tooling → RNW** | RNW renders real DOM text nodes (`div[dir="auto"]`) and maps `testID`→`data-testid` (not ReactXP's `data-text-as-pseudo-element` / `data-test-id`); gallery audits converted to `getByText` + `data-testid` | Verified live: `data-testid` resolves, clicking "Docs" by text navigates |
 | **Gallery `HorizontalPanArea` page** | New pure-F# Content page (rule 10) for the gesture primitive | Gallery type-checks 0 errors |
 | **Scaffold template → RN 0.86** | `Meta/LibScaffolding/templates/app`: package.json, `babel.config.js` (worklets plugin), android gradle/SDK/NDK/Kotlin, `MainApplication` 0.86 model | Templates emit an Rn-based RN-0.86 app (end-to-end `create-app` gated on Goal B, below) |
@@ -86,8 +87,9 @@ SUCCESSFUL`, fresh ~150 MB `app-debug.apk`).
 `@react-native-firebase/*` 21 -> 25 is a **major** jump with its own migration guide — do it
 deliberately, not as part of this pass.
 
-**Note:** even with `assembleDebug` green, *launching* the gallery on-device is still gated on **RW7**
-(the clean-native-rebuild `GestureHandlerRootView` bug), which affects every native app here.
+**RW7 (the clean-rebuild app-root bug that would have blocked launch) is now fixed** — so a gallery
+Android launch is no longer gated on it. Launching the gallery on a device/emulator is the remaining
+verification (not yet run).
 
 **iOS:** gallery `pod install` was previously blocked behind these Android dead ends; with them gone it
 should be a `pod install` (like AppTodo) — not yet run.
@@ -110,24 +112,30 @@ during a gesture, token-guarded `AnimateTiming` to settle. Worklets are authored
   `Rn.Styles.Animation` + the `animated*` style rules are **load-bearing for the legacy style runtime**
   (`Styles/Legacy/Designtime.fs` -> `createAnimatedViewStyle`, ~28 components), so they were not removed;
   they are documented as a legacy escape hatch with `Rn.Reanimated` as the default.
+- **No worklets.** The `useAnimated*` helpers use Reanimated **inline shared values** (embed the
+  shared-value object in a plain style; the animated View drives it on the UI thread) rather than
+  `useAnimatedStyle` worklets — Fable closures aren't workletized by react-native-worklets/plugin and
+  throw *"Tried to synchronously call a Remote Function"* on the UI runtime. Inline shared values are
+  worklet-free and identical on web + native.
 - **Verified:** gallery `package-web` green (Fable web + webpack, aliases resolve, bundle emitted);
-  AppTodo Fable native compile green (541 files, full recompile); dotnet type-check green.
-- **Native runtime is blocked by RW7 (below), a pre-existing bug unrelated to this work.**
-- **Field defect 5** ("toggle jumps") was an RN-0.76 report; re-test on device once RW7 unblocks native
-  runtime. The token-guarded settle in the new `SegmentedControl` also addresses the likely
-  remount/init cause.
+  **AppTodo renders on the iPhone 16 simulator** (migrated SegmentedControl thumb bound via the inline
+  shared value, no worklet error); AppTodo Fable native compile green (541 files); dotnet green.
+- **Field defect 5** ("toggle jumps") was an RN-0.76 report; the token-guarded settle + inline shared
+  value in the new `SegmentedControl` render correctly on-device (thumb positioned, no jump on mount).
 
-### RW7 — Clean native Fable rebuild breaks the app root (`GestureHandlerRootView`) [pre-existing; blocks all native runtime]
+### RW7 — Clean native Fable rebuild broke the app root (`GestureHandlerRootView`) [FIXED]
 
-After a **clean** `rm -rf .build/native/fable` + `eggshell build-native`, AppTodo redboxes on the
-simulator at the app root: *"Element type is invalid ... got `<GestureHandlerRootView />`"* --
-`react-native-gesture-handler`'s `GestureHandlerRootView` resolves to a React **element** instead of a
-component. **Reproduces on the pre-RW2 baseline (`4b38e50`)**, so it predates the Reanimated work; a
-stale/incremental `.build` renders past root, a fresh Fable output does not. It blocks native runtime
-for **AppTodo and the gallery** (both wrap the app via `Bootstrap` `setContextWrapper` ->
-`Rn.GestureHandlerRootView`). Candidate cause: Fable's `import "GestureHandlerRootView"` interop with
-RNGH 3's `export { default as GestureHandlerRootView }` under Metro. Needs dedicated runtime debugging;
-it also gates RW1's "launch on device" verification.
+**Fixed (session 10).** After a clean `rm -rf .build/native/fable`, AppTodo redboxed at the app root
+(*"Element type is invalid ... got `<GestureHandlerRootView />`"*). A device probe proved RNGH's
+`GestureHandlerRootView` is a valid function — the bug was in the framework:
+`RnPrimitives.setMainView` did `registerComponent("RnApp", fun () -> rootComponent)` where
+`rootComponent` is itself a function; **Fable uncurried the nested lambdas** into
+`(unit, props) => wrappedElement`, so RN's `provider()` returned the *element* instead of the
+component. (A stale/incremental `.build` had a non-uncurried version — why it only showed after a clean
+rebuild, and reproduced on the pre-RW2 baseline.) **Fix:** box the component so the provider is
+`unit -> obj` (uncurryable) -> emits `registerComponent("RnApp", () => _props => wrappedElement)`.
+Verified: AppTodo renders on the iPhone 16 simulator. General lesson: box any `() -> function` passed
+across a JS interop boundary, or Fable may collapse the curry.
 
 ### RW3 — PerformancePlayground: modernize or retire [decision]
 
