@@ -87,11 +87,18 @@ SUCCESSFUL`, fresh ~150 MB `app-debug.apk`).
 `@react-native-firebase/*` 21 -> 25 is a **major** jump with its own migration guide — do it
 deliberately, not as part of this pass.
 
-**RW7 (the clean-rebuild app-root bug that would have blocked launch) is now fixed** — so a gallery
-Android launch is no longer gated on it. Launching the gallery on a device/emulator is the remaining
-verification (not yet run).
+**Gallery release APK builds + RUNS on the POCO F1** (session 10, debug-signed for sideload). The
+gallery had only ever run web/debug, so its native *release* path had 4 gaps (debug hides them — it
+loads JS from the metro dev server, never bundling): (1) release JS bundle couldn't resolve
+`@react-native-picker/picker` / `@react-native-async-storage/async-storage` — mapped in `metro.config.js`
+`extraNodeModules`; (2) worklets native module missing (`loadUnpackers of undefined`) — added
+reanimated + worklets as direct gallery deps (autolink) + a `babel.config.js`; (3) local images crashed
+RCTImageView (`uri cannot be cast from Double to String`) — framework `Rn.Image` fix (bare asset for
+native imports, `ImageSource.RawNativeAsset`); (4) no global `crypto` (green-flashing `ReferenceError`) —
+added `react-native-get-random-values` + imported it first in `index.js`. Home screen renders (logo +
+tech-stack list), no crash. See the [Engineering Log](./knowledge-base/engineering-log.md) session 10.
 
-**iOS:** gallery `pod install` was previously blocked behind these Android dead ends; with them gone it
+**iOS:** gallery `pod install` was previously blocked behind the Android dead ends; with them gone it
 should be a `pod install` (like AppTodo) — not yet run.
 
 ### RW2 — Reanimated overhaul [DONE (code + web/compile verified); native runtime blocked by a separate pre-existing bug]

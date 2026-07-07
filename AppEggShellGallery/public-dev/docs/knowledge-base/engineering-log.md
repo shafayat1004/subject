@@ -90,9 +90,32 @@ RN-0.86-compatible version, and dropping them was the whole fix:
 Every other linked module built on RN 0.86 **as-is** (maps 1.20.1, image-picker 7.2.3, device-info
 14.1.1, firebase 21.14.0, fbsdk 13.4.3, svg/webview/netinfo/picker/async-storage, RNGH 3, reanimated 4)
 -- no bumps required. Verified with a forced clean `./gradlew :app:assembleDebug --rerun-tasks` (329
-tasks executed, `BUILD SUCCESSFUL`, fresh ~150 MB APK). On-device *launch* is still gated on RW7.
+tasks executed, `BUILD SUCCESSFUL`, fresh ~150 MB APK).
 **Lesson:** don't assume "unmaintained ThirdParty = build blocker" -- most modules are recent enough for
 0.86; triage by *actually building* and only act on the ones that fail.
+
+**Gallery release APK now builds + RUNS on the POCO F1** (debug-signed for sideload). The gallery had
+only ever run on web/debug, so its native *release* path had accumulated gaps -- four, each found by
+building + installing + reading logcat (debug hides them: it loads JS from the metro dev server and
+never bundles, and dev-mode has different globals):
+1. **Release JS bundle can't resolve LibClient deps** -- `createBundleReleaseJsAndAssets` (metro
+   `react-native bundle`) failed on `@react-native-picker/picker`, then `@react-native-async-storage/
+   async-storage`. Map them in the gallery `metro.config.js` `extraNodeModules` -> LibClient (watchFolder).
+2. **Worklets native module missing** -- `NativeWorklets ... 'loadUnpackers' of undefined`. reanimated +
+   worklets lived only in LibClient/node_modules, so the gallery didn't autolink them. Add both as direct
+   gallery deps (package.json) -> autolinked; also gives an in-tree `react-native-worklets/plugin` +
+   `@babel/core` for a `babel.config.js` (resolving the plugin from LibClient failed:
+   `[BABEL]: Cannot find module '@babel/core'` because LibClient has no @babel/core).
+3. **Local images crash RCTImageView** -- `Value for uri cannot be cast from Double to String`.
+   Framework bug: `Rn.Image` wrapped a native-imported asset (a numeric id) as `{uri:number}`. Fixed in
+   `ImageSource.RawNativeAsset` + `Rn.Image` (pass the bare asset for native). AppTodo uses URL images so
+   never hit it.
+4. **No global `crypto`** -- Home route looped `ReferenceError: Property 'crypto' doesn't exist` (green
+   flashing). Add `react-native-get-random-values` + `import` it first in `index.js` (AppTodo already did).
+
+**Lesson:** a web/debug-only app carries hidden native-release gaps; the debug APK loading JS from metro
+masks all bundler-resolution + missing-polyfill issues. Verify natively with a **release** build early.
+RW7's fix (above) was the prerequisite that let any of this render at all.
 
 ---
 
