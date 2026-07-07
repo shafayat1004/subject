@@ -2,7 +2,8 @@
  * Per-component interaction recipes for the EggShell Gallery audit.
  * Scoped to demo visuals in the content table — derived from gallery .render / .fs sources.
  *
- * ReactXP web renders most labels/buttons as [data-text-as-pseudo-element], not DOM text nodes.
+ * react-native-web renders <Text> as a real DOM text node inside <div dir="auto" class="css-text-...">,
+ * so labels/buttons are matched with getByText. testID maps to [data-testid].
  */
 
 import { createVisualArchiveSession } from './audit-gallery-visual-archive.mjs';
@@ -108,7 +109,7 @@ export function createInteractionContext(page, log, options = {}) {
     }
   }
 
-  /** Click ReactXP pseudo-element label or fall back to role/text (testId-first when provided). */
+  /** Click a visible text label or fall back to role/text (testId-first when provided). */
   async function clickPseudo(scope, text, exact = true, testId = undefined) {
     const clicked = await clickLabelOrTestId(page, {
       testId,
@@ -166,10 +167,10 @@ export function createInteractionContext(page, log, options = {}) {
   }
 
   /**
-   * Click by stable testId (ReactXP data-test-id), falling back to label-based pressable click.
+   * Click by stable testId (RNW data-testid), falling back to label-based pressable click.
    */
   async function clickTestId(scope, testId, fallbackText, exact = false) {
-    const byId = scope.locator(`[data-test-id="${testId}"]`).first();
+    const byId = scope.locator(`[data-testid="${testId}"]`).first();
     if (await byId.count()) {
       await byId.click({ force: true, timeout: 5000 });
       log(`click testId "${testId}"`);
@@ -204,7 +205,7 @@ export function createInteractionContext(page, log, options = {}) {
       }
       return false;
     }
-    const pseudo = scope.locator(`[data-text-as-pseudo-element="${label}"]`).first();
+    const pseudo = scope.getByText(label, { exact: true }).first();
     if (await pseudo.count()) {
       const input = pseudo.locator(
         'xpath=ancestor::*[.//input or .//textarea][1]//input[not(@type="hidden") and not(@type="file")] | ancestor::*[.//input or .//textarea][1]//textarea'
@@ -251,14 +252,14 @@ export function createInteractionContext(page, log, options = {}) {
     await page.keyboard.press('Escape').catch(() => {});
     if (isAndroid) await page.keyboard.press('Escape').catch(() => {});
     await wait(200);
-    // Prefer topmost overlay pseudo buttons (dialog/scrim), not code-panel text.
+    // Prefer topmost overlay buttons (dialog/scrim), not code-panel text.
     const overlayRoot = page.locator('[class*="dialog"], [class*="Dialog"], [class*="modal"], [class*="scrim"], [class*="Scrim"]').last();
     const scope = (await overlayRoot.count()) ? overlayRoot : page.locator('body');
     for (const name of ['No', 'Close', 'Cancel', 'OK', 'Yes']) {
-      const pseudo = scope.locator(`[data-text-as-pseudo-element="${name}"]`).last();
+      const pseudo = scope.getByText(name, { exact: true }).last();
       if (await pseudo.count()) {
         await pseudo.click({ force: true, timeout: 2000 }).catch(() => {});
-        log(`dismiss overlay pseudo: ${name}`);
+        log(`dismiss overlay text: ${name}`);
         await wait(200);
         continue;
       }
@@ -284,10 +285,10 @@ export function createInteractionContext(page, log, options = {}) {
       return;
     }
     const pseudoLabels = await scope
-      .locator('[data-text-as-pseudo-element]')
+      .locator('div[dir="auto"]')
       .evaluateAll((nodes) =>
         nodes
-          .map((n) => n.getAttribute('data-text-as-pseudo-element') ?? '')
+          .map((n) => (n.textContent ?? '').trim())
           .filter((t) => t && !/^(Visuals|Desktop|Handheld|Docs|Tools|Components)$/i.test(t))
       );
     const seen = new Set();
@@ -296,7 +297,7 @@ export function createInteractionContext(page, log, options = {}) {
       if (seen.has(label) || clicked >= max) break;
       seen.add(label);
       if (SKIP_CLICK_LABELS.has(label)) continue;
-      const el = scope.locator(`[data-text-as-pseudo-element="${label}"]`).first();
+      const el = scope.getByText(label, { exact: true }).first();
       const clickable = await el.evaluate((node) => {
         let p = node;
         for (let i = 0; i < 8; i++) {
@@ -309,7 +310,7 @@ export function createInteractionContext(page, log, options = {}) {
       }).catch(() => false);
       if (!clickable) continue;
       await el.click({ force: true, timeout: 2000 }).catch(() => {});
-      log(`generic pseudo "${label}"`);
+      log(`generic text "${label}"`);
       clicked++;
       await wait(250);
       await dismissOverlays();
@@ -814,7 +815,7 @@ export const COMPONENT_HANDLERS = {
 
   Thumbs: async (ctx) => {
     await ctx.forEachVisualCell(async (cell) => {
-      const byTestId = cell.locator('[data-test-id^="thumb-"]:visible');
+      const byTestId = cell.locator('[data-testid^="thumb-"]:visible');
       const nById = await byTestId.count();
       if (nById > 0) {
         const n = Math.min(nById, 3);

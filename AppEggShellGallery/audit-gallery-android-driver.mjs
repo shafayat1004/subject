@@ -71,10 +71,16 @@ function translateSelector(selector) {
   }
   if (selector.startsWith('android=')) return selector;
 
+  // Legacy ReactXP web selector form — still tolerated in case a recipe passes it.
   const pseudoExact = selector.match(/\[data-text-as-pseudo-element="([^"]+)"\]/);
   if (pseudoExact) return uiText(pseudoExact[1], true);
 
   if (selector.includes('[data-text-as-pseudo-element]')) {
+    return uiClass('android.widget.TextView');
+  }
+
+  // RNW web text nodes render as <div dir="auto">…</div>; map to a text view on Android.
+  if (selector.includes('div[dir="auto"]') || selector.includes('[dir="auto"]')) {
     return uiClass('android.widget.TextView');
   }
 

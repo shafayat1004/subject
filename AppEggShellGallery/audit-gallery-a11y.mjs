@@ -52,12 +52,12 @@ export async function pageHasA11yPanel(page, platform = 'web') {
 
   if (platform === 'android') return false;
 
-  const pseudoFacts = await page
-    .locator(
-      '[data-text-as-pseudo-element="Role"], [data-text-as-pseudo-element="Component"], [data-text-as-pseudo-element="Font scaling"]'
-    )
-    .count()
-    .catch(() => 0);
+  // RNW renders each A11yPanel fact label as a real text node (<div dir="auto">Role</div>).
+  let pseudoFacts = 0;
+  for (const fact of ['Role', 'Component', 'Font scaling']) {
+    const n = await page.getByText(fact, { exact: true }).count().catch(() => 0);
+    if (n > 0) pseudoFacts += 1;
+  }
   return pseudoFacts >= 2;
 }
 

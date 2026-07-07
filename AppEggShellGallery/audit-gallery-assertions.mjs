@@ -51,19 +51,17 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
 
   async function hasPseudo(scope, text) {
     if (isAndroid) return cellContains(scope, text);
-    return (await scope.locator(`[data-text-as-pseudo-element="${text}"]`).count()) > 0;
+    return (await scope.getByText(text, { exact: true }).count()) > 0;
   }
 
   async function cellContains(scope, fragment) {
     const frag = fragment.toLowerCase();
     if (!isAndroid) {
       const pseudoMatch = await scope
-        .locator('[data-text-as-pseudo-element]')
+        .locator('div[dir="auto"]')
         .evaluateAll(
           (nodes, f) =>
-            nodes.some((n) =>
-              (n.getAttribute('data-text-as-pseudo-element') ?? '').toLowerCase().includes(f)
-            ),
+            nodes.some((n) => (n.textContent ?? '').toLowerCase().includes(f)),
           frag
         );
       if (pseudoMatch) return true;
@@ -80,7 +78,7 @@ export async function runComponentAssertions(page, componentName, ctx, options) 
       if (await input.count()) return input.inputValue().catch(() => null);
       return null;
     }
-    const pseudo = scope.locator(`[data-text-as-pseudo-element="${label}"]`).first();
+    const pseudo = scope.getByText(label, { exact: true }).first();
     if (!(await pseudo.count())) return null;
     const input = pseudo.locator(
       'xpath=ancestor::*[.//input][1]//input[not(@type="hidden") and not(@type="file")]'
@@ -385,7 +383,7 @@ const ASSERTION_HANDLERS = {
       ),
       message: 'WhenFailed sample should show custom failure message in visuals',
     }));
-    const failureCell = sampleCells().filter({ has: page.locator('[data-text-as-pseudo-element="Trigger AsyncData failure"]') }).first();
+    const failureCell = sampleCells().filter({ has: page.getByText('Trigger AsyncData failure', { exact: true }) }).first();
     if (await failureCell.count()) {
       await ctx.clickButton(failureCell, 'Trigger AsyncData failure');
       await ctx.wait(600);
@@ -674,8 +672,8 @@ const ASSERTION_HANDLERS = {
       const pageHasCount =
         (await page.locator('body').innerText().catch(() => '')).includes('Deleted count: 1') ||
         (await page.evaluate(() =>
-          Array.from(document.querySelectorAll('[data-text-as-pseudo-element]')).some((node) =>
-            (node.getAttribute('data-text-as-pseudo-element') ?? '').includes('Deleted count: 1')
+          Array.from(document.querySelectorAll('div[dir="auto"]')).some((node) =>
+            (node.textContent ?? '').includes('Deleted count: 1')
           )
         ));
       const cellHasCount =
@@ -746,7 +744,7 @@ export function listAssertionComponents() {
 }
 
 /**
- * Flag clickable pseudo labels in visuals that no recipe explicitly handles.
+ * Flag clickable text labels in visuals that no recipe explicitly handles.
  * @returns {Promise<Array<{ id: string, name: string, passed: boolean, message: string, screenshotPath: string | null }>>}
  */
 export async function checkUnhandledVisuals(page, componentName, ctx, options) {
@@ -766,20 +764,20 @@ export async function checkUnhandledVisuals(page, componentName, ctx, options) {
   const unhandled = new Set();
 
   if (isAndroid) {
-    // Native has no pseudo-element metadata; skip REVIEW heuristic on Android.
+    // Native has no web text-node metadata; skip REVIEW heuristic on Android.
     return results;
   }
 
   for (let i = 0; i < n; i++) {
     const cell = cells.nth(i);
-    const labels = await cell.locator('[data-text-as-pseudo-element]').evaluateAll((nodes) =>
+    const labels = await cell.locator('div[dir="auto"]').evaluateAll((nodes) =>
       nodes
-        .map((node) => node.getAttribute('data-text-as-pseudo-element') ?? '')
+        .map((node) => (node.textContent ?? '').trim())
         .filter((t) => t && !/^(Visuals|Desktop|Handheld|Docs|Tools|Components)$/i.test(t))
     );
     for (const label of labels) {
       if (SKIP_CLICK_LABELS.has(label)) continue;
-      const el = cell.locator(`[data-text-as-pseudo-element="${label}"]`).first();
+      const el = cell.getByText(label, { exact: true }).first();
       const clickable = await el
         .evaluate((node) => {
           let p = node;

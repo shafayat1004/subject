@@ -1,7 +1,7 @@
 /**
  * TestId-first selectors for gallery audits (Playwright web + Appium Android).
  *
- * Web: ReactXP `testId` → `[data-test-id]` (not RNW's `data-testid`).
+ * Web: react-native-web maps `testID` → `[data-testid]`.
  * Android: `~testId` → UiAutomator resource-id (see audit-gallery-android-driver.mjs).
  */
 
@@ -30,7 +30,7 @@ export function testIdLocatorSelector(testId, platform = PLATFORM.WEB) {
   if (platform === PLATFORM.ANDROID) {
     return `~${testId}`;
   }
-  return `[data-test-id="${escapeUi(testId)}"]`;
+  return `[data-testid="${escapeUi(testId)}"]`;
 }
 
 /**
@@ -81,22 +81,7 @@ export async function clickLabelOrTestId(page, { testId, label, platform = PLATF
     return false;
   }
 
-  const escaped = label.replace(/"/g, '\\"');
-  const pseudo = root.locator(`[data-text-as-pseudo-element="${escaped}"]`).first();
-  if (await pseudo.count()) {
-    await pseudo.click({ force: true, timeout });
-    log(`click pseudo "${label}"`);
-    return true;
-  }
-  if (!exact) {
-    const loose = root.locator(`[data-text-as-pseudo-element="${label}"]`).first();
-    if (await loose.count()) {
-      await loose.click({ force: true, timeout });
-      log(`click pseudo "${label}"`);
-      return true;
-    }
-  }
-
+  // react-native-web renders <Text> as real DOM text nodes (no pseudo-element), so match by text.
   const textTarget = root.getByText(label, { exact });
   if (await textTarget.count()) {
     const target = textTarget.first();

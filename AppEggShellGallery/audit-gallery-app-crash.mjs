@@ -130,7 +130,7 @@ export async function detectAppCrashOverlay(page, options = {}) {
   // EggShell TopLevelErrorMessage — full-app error when component table is gone.
   const topLevelMarkers = ['Oops!', 'Something went wrong'];
   for (const marker of topLevelMarkers) {
-    const pseudo = page.locator(`[data-text-as-pseudo-element="${marker}"]`);
+    const pseudo = page.getByText(marker, { exact: true });
     if (!(await pseudo.count())) continue;
     const visible = await pseudo
       .first()
@@ -143,7 +143,7 @@ export async function detectAppCrashOverlay(page, options = {}) {
     }
 
     // Reload button without gallery chrome usually means the whole shell crashed.
-    const reloadBtn = page.locator('[data-text-as-pseudo-element="Reload"]');
+    const reloadBtn = page.getByText('Reload', { exact: true });
     const hasReload = await reloadBtn.count();
     const hasSidebar = await page
       .locator('[data-testid^="sidebar-component-"], .aesg-Sidebar')
