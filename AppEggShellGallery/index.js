@@ -1,3 +1,6 @@
+// Must be imported before any code touches `crypto` (native has no global crypto otherwise:
+// "ReferenceError: Property 'crypto' doesn't exist"). Polyfills crypto.getRandomValues.
+import 'react-native-get-random-values';
 import { LogBox } from 'react-native';
 
 // react-native-web app entry (Fable output bootstraps below).

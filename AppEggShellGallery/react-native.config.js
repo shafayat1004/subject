@@ -24,6 +24,9 @@ module.exports = {
     'react-native-webview': {
       root: path.resolve(__dirname, "../LibClient/node_modules/react-native-webview"),
     },
+    // reanimated + worklets are direct gallery deps (package.json) now, so autolinking picks up
+    // their native modules automatically — no explicit entry needed. (Required or the app crashes at
+    // startup: NativeWorklets "Cannot read property 'loadUnpackers' of undefined".)
     'react-native-image-picker': {
       root: path.resolve(__dirname, "../ThirdParty/ImagePicker/node_modules/react-native-image-picker"),
     },

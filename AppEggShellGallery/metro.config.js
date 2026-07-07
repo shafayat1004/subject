@@ -23,6 +23,12 @@ let externalLibraries = {
   "@react-native-community/netinfo":               path.resolve(__dirname, "../LibClient/node_modules/@react-native-community/netinfo"),
   "react-native-svg":                              path.resolve(__dirname, "../LibClient/node_modules/react-native-svg"),
   "react-native-webview":                          path.resolve(__dirname, "../LibClient/node_modules/react-native-webview"),
+  "@react-native-picker/picker":                   path.resolve(__dirname, "../LibClient/node_modules/@react-native-picker/picker"),
+  "@react-native-async-storage/async-storage":     path.resolve(__dirname, "../LibClient/node_modules/@react-native-async-storage/async-storage"),
+  // reanimated + worklets are direct gallery deps now (co-located with @babel/core for the babel
+  // plugin, and autolinked natively), so metro resolves them from the gallery's own node_modules —
+  // no alias here (aliasing to LibClient's copy would split JS vs native into two instances).
+  "buffer":                                        path.resolve(__dirname, "../ThirdParty/ReactNativeCodePush/node_modules/buffer"),
   "@react-native-firebase/app":                    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules/@react-native-firebase/app"),
   "react-router":                                  path.resolve(__dirname, "../LibRouter/node_modules/react-router"),
   "react-router-native":                           path.resolve(__dirname, "../LibRouter/node_modules/react-router-native"),
