@@ -39,8 +39,13 @@ identifier variants. Deleted dead `@chaldal/reactxp*` metro aliases, the dead
   compiles + serves + renders under React 19 (headless smoke). RNW 0.20 was the breaking release
   (removed `findNodeHandle`/`findDOMNode`/`hydrate`/`render`).
 - **react-native 0.76.5 -> 0.86.0, New Architecture (Fabric/TurboModules/Bridgeless) ON.** AppTodo
-  done as the reference app; **renders on the POCO F1** with `Running "RnApp" with {"fabric":true}`
-  and swipe-to-delete working. Native config from the `react-native-community/template` `0.86.0`
+  done as the reference app; **renders on both platforms** -- the POCO F1 (Android, debug + standalone
+  release) with `Running "RnApp" with {"fabric":true}` and swipe-to-delete working, and the **iPhone 16
+  simulator** (iOS) in dark mode under Fabric. iOS needed **only `pod install`** (no AppDelegate/Podfile
+  changes: RN 0.86 keeps `RCTAppDelegate`, iOS min 15.1); `react_native_post_install` set
+  `RCTNewArchEnabled=true` + `-DRCT_REMOVE_LEGACY_ARCH=1`. **Gotcha:** RN 0.86's prebuilt React-Core is
+  a ~94 MB maven download that can fail (`curl 56`) -- retry, or `RCT_USE_PREBUILT_RNCORE=0` to build
+  from source. Native config from the `react-native-community/template` `0.86.0`
   tag: Gradle **9.3.1**, Kotlin **2.1.20**, SDK **36**, NDK **27.1.12297006**, `newArchEnabled=true`;
   `MainApplication.kt` rewritten to the `ReactHost`/`loadReactNative` model (no more `SoLoader.init`
   / `ReactNativeHost`). See [Android runbook](./runbooks/android.md) and
