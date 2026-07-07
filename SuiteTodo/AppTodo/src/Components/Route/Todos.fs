@@ -17,7 +17,6 @@ open LibUiSubject.Components.With.Subjects
 open LibClient.Services.Subscription
 open Rn.Components
 open Rn.Styles
-open Rn.Styles.Animation
 open AppTodo.Actions
 open AppTodo.Colors
 open AppTodo.I18nGlobal
@@ -273,32 +272,28 @@ type private Helpers =
         let isDraggingHook = Hooks.useState false
         let rowWidthRef = Hooks.useRef 300
         let restOffsetRef = Hooks.useRef 0
-        let translateXRef = Hooks.useRef (AnimatedValue.Create 0.0)
-        let maybeAnimationRef: IRefHook<Option<Animation>> = Hooks.useRef None
+        // Reanimated shared value drives the row's translateX (UI thread); the animated style is
+        // hooked once at the top level and applied to the swipe surface below.
+        let translateX = Reanimated.useSharedValue 0.0
+        let swipeAnimatedStyle = Reanimated.useAnimatedTranslateX translateX
+        let animationTokenRef = Hooks.useRef 0
         let panStartBaseRef = Hooks.useRef 0
         let gestureActiveRef = Hooks.useRef false
         let lastDragOffsetRef = Hooks.useRef 0
 
-        let stopAnimation () =
-            maybeAnimationRef.current
-            |> Option.iter (fun animation ->
-                maybeAnimationRef.current <- None
-                animation.Stop())
-
+        // Assigning translateX (directly or via withTiming) cancels any running animation; the token
+        // invalidates a superseded settle's JS-thread completion so it can't stomp restOffset.
         let animateTo (target: int) (onComplete: Option<unit -> unit>) =
-            stopAnimation ()
-            let animation =
-                Animation.Timing(
-                    translateXRef.current,
-                    toValue = double target,
-                    duration = TimeSpan.FromMilliseconds 220
-                )
-            maybeAnimationRef.current <- Some animation
-            animation.Start (fun () ->
-                if maybeAnimationRef.current = Some animation then
-                    maybeAnimationRef.current <- None
-                    restOffsetRef.current <- target
-                    onComplete |> Option.iter (fun fn -> fn ()))
+            animationTokenRef.current <- animationTokenRef.current + 1
+            let token = animationTokenRef.current
+            translateX.AnimateTiming(
+                target,
+                durationMs = 220.0,
+                onComplete =
+                    (fun () ->
+                        if animationTokenRef.current = token then
+                            restOffsetRef.current <- target
+                            onComplete |> Option.iter (fun fn -> fn ())))
 
         Hooks.useEffect(
             (fun () ->
@@ -335,6 +330,8 @@ type private Helpers =
         let onSwipeStart () =
             gestureActiveRef.current <- true
             panStartBaseRef.current <- (if isOpen then -deleteWidth else 0)
+            // Invalidate any in-flight settle so its completion can't stomp restOffset mid-drag.
+            animationTokenRef.current <- animationTokenRef.current + 1
             isDraggingHook.update true
             // Suppress row-control taps while the swipe is active (refreshed on update)
             // and briefly after it ends, so a swipe never trips edit/toggle.
@@ -345,7 +342,7 @@ type private Helpers =
             let offset =
                 SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + int translationX)
             lastDragOffsetRef.current <- offset
-            translateXRef.current.SetValue (double offset)
+            translateX.SetValue offset
 
         let onSwipeEnd (translationX: float) =
             gestureActiveRef.current <- false
@@ -416,8 +413,9 @@ type private Helpers =
                             // Animated surface OUTSIDE, gesture INSIDE: the whole gesture area
                             // translates with the content so a swipe reveals (never covers) the
                             // delete slot behind it, keeping tap-to-delete working.
-                            Rn.AnimatableView(
-                                styles = [| Styles.swipeContentAnimated (AnimatableValue.Value translateXRef.current) palette |],
+                            Rn.ReanimatedView(
+                                styles = [| Styles.swipeContentBase palette |],
+                                animatedStyle = swipeAnimatedStyle,
                                 children = [|
                                     Rn.HorizontalPanArea(
                                         onStart = onSwipeStart,

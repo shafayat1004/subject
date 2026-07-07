@@ -6,7 +6,6 @@ open LibClient.Components
 open LibClient.Components.Tabs
 open LibClient.Responsive
 open Rn.Styles
-open Rn.Styles.Animation
 open SuiteTodo.Types
 
 type TabTheme = {
@@ -469,14 +468,12 @@ module Styles =
             FontWeight.W600
         }
 
-    let swipeContentAnimated (translateX: AnimatableValue) (palette: SemanticPalette) =
-        makeAnimatableViewStyles {
+    // translateX is applied via a Reanimated animated style, not here (see TodoSwipeShell).
+    let swipeContentBase (palette: SemanticPalette) =
+        makeViewStyles {
             backgroundColor palette.RowBackground
             borderRadius 16
             Overflow.Hidden
-            animatedTransform [
-                [ animatedTranslateX translateX ]
-            ]
         }
 
     let swipeReducedMotionRow =

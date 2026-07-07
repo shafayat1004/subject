@@ -1,13 +1,11 @@
 [<AutoOpen>]
 module AppEggShellGallery.Components.Content_HorizontalPanArea
 
-open System
 open Fable.React
 open LibClient
 open LibClient.Components
 open Rn.Components
 open Rn.Styles
-open Rn.Styles.Animation
 open AppEggShellGallery
 
 [<RequireQualifiedAccess>]
@@ -19,11 +17,6 @@ module private Styles =
             backgroundColor (Color.Grey "f0")
             borderRadius 12
             Overflow.Hidden
-        }
-
-    let handleAnimated (translateX: AnimatableValue) =
-        makeAnimatableViewStyles {
-            animatedTransform [ [ animatedTranslateX translateX ] ]
         }
 
     let handle =
@@ -55,18 +48,19 @@ type private Helpers =
         // A box that follows the horizontal pan and springs back to centre on release.
         // On native, Rn.HorizontalPanArea arbitrates in the native gesture system
         // (react-native-gesture-handler), so a surrounding vertical scroll still works.
-        let translateXRef = Hooks.useRef (AnimatedValue.Create 0.0)
+        let translateX = Reanimated.useSharedValue 0.0
+        let animatedStyle = Reanimated.useAnimatedTranslateX translateX
         let offset = Hooks.useState 0.0
 
         let onStart () = ()
 
         let onUpdate (translationX: float) =
-            translateXRef.current.SetValue translationX
+            translateX.SetValue translationX
             offset.update translationX
 
         let onEnd (_: float) =
             offset.update 0.0
-            Animation.Timing(translateXRef.current, 0.0, TimeSpan.FromMilliseconds 220.).Start(ignore)
+            translateX.AnimateTiming(0.0, durationMs = 220.0)
 
         LC.Column(
             children =
@@ -75,8 +69,8 @@ type private Helpers =
                         styles = [| Styles.track |],
                         children =
                             elements {
-                                Rn.AnimatableView(
-                                    styles = [| Styles.handleAnimated (AnimatableValue.Value translateXRef.current) |],
+                                Rn.ReanimatedView(
+                                    animatedStyle = animatedStyle,
                                     children =
                                         elements {
                                             Rn.HorizontalPanArea(
@@ -123,7 +117,7 @@ type Ui.Content with
                         MaybeScrapeErrors = None
                     })
                 ),
-            notes = LC.Text """Rn.HorizontalPanArea is the framework's horizontal-swipe primitive. On native it uses react-native-gesture-handler's PanGestureHandler with activeOffsetX/failOffsetY, so horizontal-vs-vertical arbitration happens in the native gesture system (a surrounding vertical ScrollView keeps working). On web it uses the GestureView responder path. Drive an Rn.AnimatableView translateX from onUpdate for a follow-the-finger effect; provide a non-gesture alternative (button/rotor action) for any destructive swipe action.""",
+            notes = LC.Text """Rn.HorizontalPanArea is the framework's horizontal-swipe primitive. On native it uses react-native-gesture-handler's PanGestureHandler with activeOffsetX/failOffsetY, so horizontal-vs-vertical arbitration happens in the native gesture system (a surrounding vertical ScrollView keeps working). On web it uses the GestureView responder path. Drive a Reanimated shared value (Reanimated.useSharedValue) via Rn.ReanimatedView for a follow-the-finger effect that runs on the UI thread; provide a non-gesture alternative (button/rotor action) for any destructive swipe action.""",
             a11y =
                 Ui.A11yPanel(
                     componentName = "Rn.HorizontalPanArea",
@@ -142,17 +136,16 @@ type Ui.Content with
                                     heading = "Follow-the-finger drag (springs back)",
                                     visuals = Helpers.LiveDrag(),
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
-let translateXRef = Hooks.useRef (AnimatedValue.Create 0.0)
+let translateX = Reanimated.useSharedValue 0.0
+let animatedStyle = Reanimated.useAnimatedTranslateX translateX
 
-Rn.AnimatableView(
-    styles = [| makeAnimatableViewStyles {
-        animatedTransform [ [ animatedTranslateX (AnimatableValue.Value translateXRef.current) ] ]
-    } |],
+Rn.ReanimatedView(
+    animatedStyle = animatedStyle,
     children = elements {
         Rn.HorizontalPanArea(
             onStart  = (fun () -> ()),
-            onUpdate = (fun translationX -> translateXRef.current.SetValue translationX),
-            onEnd    = (fun _ -> Animation.Timing(translateXRef.current, 0.0, TimeSpan.FromMilliseconds 220.).Start(ignore)),
+            onUpdate = (fun translationX -> translateX.SetValue translationX),
+            onEnd    = (fun _ -> translateX.AnimateTiming(0.0, durationMs = 220.0)),
             activeOffsetX = 12.0,
             failOffsetY   = 12.0,
             children = [| (* your row / handle *) |]
