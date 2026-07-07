@@ -58,6 +58,25 @@ is blocked by unmaintained third-party native modules.
 - **Risk:** high, iterative, multi-day; several modules need replacement, not just bumps. The gallery is
   web-primary, so this is lower urgency than it looks.
 
+**Progress (session 10, `assembleDebug` iterations):**
+1. **push-notification `jcenter()` — FIXED (needs persistence).** Patched
+   `react-native-push-notification/android/build.gradle`: removed the module's own `buildscript` block
+   (it pinned ancient AGP 3.2.0) and dropped `jcenter()` — the library inherits the root AGP +
+   repositories. **This edit is in `node_modules` (gitignored) and is NOT yet persisted** — wire
+   `patch-package` into `LibPushNotification/Client` (devDep + `postinstall`) and save
+   `patches/react-native-push-notification+8.1.1.patch`, or it is lost on the next `npm install`.
+2. **NEXT blocker: `react-native-code-push@9.0.1`** fails to compile —
+   `CodePushNativeModule.java: package ChoreographerCompat does not exist` / `cannot find symbol`. RN
+   0.86 removed `com.facebook.react.modules.core.ChoreographerCompat`; code-push 9.0.1 (2024) predates
+   that. Needs a newer code-push that supports RN 0.86, a patch, or **dropping code-push** (a product
+   decision — is OTA still used?).
+3. **Expect the same for the remaining ~8 native modules** (maps, vision-camera, contacts, device-info,
+   firebase/fbsdk, bg-geo, sunmi, …): each may hit a removed-API / Fabric-codegen wall requiring a
+   bump / patch / replace / drop. Several of those are **product decisions**, not mechanical bumps.
+
+**Note:** even once `assembleDebug` is green, *launching* the gallery is currently blocked by **RW7**
+(the clean-native-rebuild `GestureHandlerRootView` bug), which affects every native app here.
+
 ### RW2 — Reanimated overhaul [DONE (code + web/compile verified); native runtime blocked by a separate pre-existing bug]
 
 **Done (session 10).** Built the `Rn.Reanimated` seam (`LibClient/src/Rn/Reanimated/Reanimated.fs`:
