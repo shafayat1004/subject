@@ -3,7 +3,7 @@ module ThirdParty.Map.Components.With.LatLng
 
 open Fable.React
 open LibClient
-open ReactXP.Components
+open Rn.Components
 open ThirdParty.Map.Components.Constructors
 open ThirdParty.Map.Components.Web.LatLngFromAddress
 open ThirdParty.Map.Components.Native.LatLngFromAddress
@@ -20,7 +20,7 @@ type ThirdParty.Map.Components.Constructors.Map.With with
         ) : ReactElement =
         ignore key
 
-        RX.View(
+        Rn.View(
             children =
                 [|
                     #if EGGSHELL_PLATFORM_IS_WEB

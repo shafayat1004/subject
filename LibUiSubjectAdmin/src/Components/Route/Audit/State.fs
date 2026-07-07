@@ -4,8 +4,8 @@ module LibUiSubjectAdmin.Components.Route_Audit_State
 open Fable.React
 open LibClient
 open LibClient.Services.DateService
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components
 open LibRouter.Components
 open LibUiSubjectAdmin.Components
@@ -74,7 +74,7 @@ type UiSubjectAdmin.Route.Audit with
                 restoreScroll = LibClient.Components.ScrollView.RestoreScroll.No,
                 children = [|
                     LC.Section.Padded (styles = [|Styles.Content|], children = [|
-                        RX.View [|
+                        Rn.View [|
                             LC.AsyncData (
                                 data = dataState.current,
                                 whenAvailable = fun snapshot -> element {

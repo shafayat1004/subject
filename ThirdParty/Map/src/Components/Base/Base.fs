@@ -4,8 +4,8 @@ module ThirdParty.Map.Components.Base
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.Map.Types
 open ThirdParty.Map.Components.Constructors
 open ThirdParty.Map.Components.Web.Map
@@ -81,7 +81,7 @@ type ThirdParty.Map.Components.Constructors.Map with
             ?directions:        List<Directions>,
             ?onLocatePress:     ReactEvent.Action -> LocateToConfig,
             ?styles:            array<ViewStyles>,
-            ?xLegacyStyles:     List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:     List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:               string
         ) : ReactElement =
         ignore key
@@ -117,7 +117,7 @@ type ThirdParty.Map.Components.Constructors.Map with
                 handler e |> animateToCenter
             )
 
-        RX.View(
+        Rn.View(
             ?styles = styles,
             children =
                 [|

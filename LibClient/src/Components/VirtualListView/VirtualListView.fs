@@ -11,9 +11,9 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.JsInterop
 
-open ReactXP.Styles
+open Rn.Styles
 
-module RNSeam = ReactXP.RNSeam
+module RnPrimitives = Rn.RnPrimitives
 
 // Public types exposed at this module path so that callers using
 // `VirtualListView.WhenItemKeysMatch` or `VirtualListView.VirtualListItem`
@@ -76,7 +76,7 @@ type LibClient.Components.Constructors.LC with
             restoreScroll: RestoreScroll,
             ?scrollSideEffect: (int * int -> unit),
             ?styles: array<ViewStyles>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -119,7 +119,7 @@ type LibClient.Components.Constructors.LC with
 
                         let cellProps = createEmpty
 
-                        RNSeam.assignA11yAndAutomation
+                        RnPrimitives.assignA11yAndAutomation
                             cellProps
                             (Some(A11ySlug.testId "vlv-item" item.Key))
                             None
@@ -134,7 +134,7 @@ type LibClient.Components.Constructors.LC with
                             None
                             None
 
-                        RNSeam.createElement RNSeam.View cellProps [| render item.Item |]),
+                        RnPrimitives.createElement RnPrimitives.View cellProps [| render item.Item |]),
                 [||]
             )
 
@@ -219,10 +219,10 @@ type LibClient.Components.Constructors.LC with
         let legacyStyles: array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
                 | found ->
-                    [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles>
+                    [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles>
                            "LibClient.Components.VirtualListView"
                            found |]
             | None -> [||]
@@ -239,7 +239,7 @@ type LibClient.Components.Constructors.LC with
         __props?scrollEventThrottle <- 10
 
         if restoreScroll <> No || scrollSideEffect.IsSome then
-            RNSeam.wrapOnScroll (Some onScroll)
+            RnPrimitives.wrapOnScroll (Some onScroll)
             |> Option.iter (fun v -> __props?onScroll <- v)
 
         stableGetItemLayout |> Option.iter (fun f -> __props?getItemLayout <- f)
@@ -247,4 +247,4 @@ type LibClient.Components.Constructors.LC with
         resolvedStyles
         |> Option.iter (fun ss -> __props?style <- ss |> Array.map (fun s -> (!!s) :> obj) |> box)
 
-        RNSeam.createElement RNSeam.FlatList __props [||]
+        RnPrimitives.createElement RnPrimitives.FlatList __props [||]

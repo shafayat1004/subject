@@ -9,8 +9,8 @@ open LibClient.Accessibility
 open LibClient.Icons
 open LibClient.ServiceInstances
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type DateOnly = System.DateOnly
 
@@ -246,7 +246,7 @@ type LibClient.Components.Constructors.LC with
         let weekdayHeaders =
             [|"S"; "M"; "T"; "W"; "T"; "F"; "S"|]
             |> Array.map (fun day ->
-                RX.View(
+                Rn.View(
                     styles = [| Styles.weekdayHeader |],
                     children =
                         elements {
@@ -261,7 +261,7 @@ type LibClient.Components.Constructors.LC with
                 let isOtherMonth = day.Month <> currentMonthFirstDay.Month
 
                 if isOtherMonth then
-                    RX.View(styles = [| Styles.dayOtherMonth |])
+                    Rn.View(styles = [| Styles.dayOtherMonth |])
                 else
                     let canSelect =
                         not (Helpers.isOutsideSelectableRange day minDate maxDate)
@@ -275,7 +275,7 @@ type LibClient.Components.Constructors.LC with
                     let isToday = day = currentDateHook.current
                     let label = Helpers.dayLabel day
 
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.day theTheme.SelectedDateBackgroundColor isSelected |],
                         children =
                             elements {
@@ -302,12 +302,12 @@ type LibClient.Components.Constructors.LC with
             )
             |> List.toArray
 
-        RX.View(
+        Rn.View(
             testId = testIdPrefix,
             styles = [| Styles.view |],
             children =
                 [|
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.header theTheme.HeaderBackgroundColor |],
                         children =
                             elements {
@@ -324,7 +324,7 @@ type LibClient.Components.Constructors.LC with
                             }
                     )
 
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.navigationControls |],
                         children =
                             elements {
@@ -335,7 +335,7 @@ type LibClient.Components.Constructors.LC with
                                     styles = [| Styles.navigationControlsText |]
                                 )
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.arrowContainer |],
                                     children =
                                         elements {
@@ -371,7 +371,7 @@ type LibClient.Components.Constructors.LC with
                             }
                     )
 
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.weekdayHeadersRow |],
                         children = weekdayHeaders
                     )
@@ -379,7 +379,7 @@ type LibClient.Components.Constructors.LC with
                     yield!
                         rows
                         |> List.map (fun row ->
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.row |],
                                 children = dayCells row
                             )

@@ -5,9 +5,9 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 open AppEggShellGallery.LocalImages
 
 [<RequireQualifiedAccess>]
@@ -26,7 +26,7 @@ module private Styles =
 type private Helpers =
     [<Component>]
     static member private Image(scale: AnimatableValue) : ReactElement =
-        RX.AnimatableImage(
+        Rn.AnimatableImage(
             (localImage "/images/wlop2.jpg").Url,
             styles = [| Styles.scale scale |]
         )
@@ -86,10 +86,10 @@ type Ui.Content with
                     MaybeScrapeErrors = None
                 })
             ),
-            notes = LC.Text """RX.AnimatableImage is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated image styles.""",
+            notes = LC.Text """Rn.AnimatableImage is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated image styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "RX.AnimatableImage",
+                    componentName = "Rn.AnimatableImage",
                     role = "image",
                     namePattern = "?accessibilityLabel when image conveys meaning",
                     stateNotes = "Animated transforms/opacity; honor reduce-motion where wired",
@@ -107,7 +107,7 @@ type Ui.Content with
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let animatedValue = Hooks.useRef (AnimatedValue.Create 1.0)
 
-RX.AnimatableImage(
+Rn.AnimatableImage(
     imageUrl,
     styles = [| makeAnimatableViewStyles {
         width 200

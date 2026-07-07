@@ -9,8 +9,8 @@ open LibClient.Responsive
 
 module ShellStandard = LibClient.Components.Dialog.Shell.WhiteRounded.Standard
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private StandardStyles =
@@ -87,28 +87,28 @@ module private StandardStyles =
         }
 
     module LegacyBridge =
-        let viewStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
+        let viewStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
-        let scrollViewStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<ScrollViewStyles> =
+        let scrollViewStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<ScrollViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ScrollViewStyles> "ReactXP.Components.ScrollView" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ScrollViewStyles> "Rn.Components.ScrollView" styles |]
             | None -> [||]
 
-        let textStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<TextStyles> =
+        let textStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<TextStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<TextStyles> "ReactXP.Components.Text" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" styles |]
             | None -> [||]
 
 type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
@@ -122,7 +122,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ?heading: string,
             ?accessibilityLabel: string,
             ?key: string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore
@@ -145,7 +145,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                         ?accessibilityLabel = accessibilityLabel,
                         children =
                             [|
-                                RX.View(
+                                Rn.View(
                                     onPress = stopPropagation,
                                     styles =
                                         [|
@@ -157,7 +157,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                             match heading with
                                             | None -> nothing
                                             | Some headingText ->
-                                                RX.View(
+                                                Rn.View(
                                                     styles =
                                                         [|
                                                             StandardStyles.headingView screenSize
@@ -176,7 +176,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                         |]
                                                 )
 
-                                            RX.ScrollView(
+                                            Rn.ScrollView(
                                                 vertical = true,
                                                 styles =
                                                     [|
@@ -185,7 +185,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                     |],
                                                 children =
                                                     [|
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles =
                                                                 [|
                                                                     StandardStyles.body
@@ -196,7 +196,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
 
                                                         match mode with
                                                         | ShellStandard.Mode.Error message ->
-                                                            RX.View(
+                                                            Rn.View(
                                                                 styles =
                                                                     [|
                                                                         yield! StandardStyles.LegacyBridge.viewStyles xLegacyStyles "error"
@@ -216,7 +216,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                         | _ -> nothing
 
                                                         if buttons <> noElement then
-                                                            RX.View(
+                                                            Rn.View(
                                                                 styles =
                                                                     [|
                                                                         StandardStyles.buttons
@@ -228,7 +228,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                             )
 
                                             if mode = ShellStandard.Mode.InProgress then
-                                                RX.View(
+                                                Rn.View(
                                                     styles =
                                                         [|
                                                             StandardStyles.inProgress

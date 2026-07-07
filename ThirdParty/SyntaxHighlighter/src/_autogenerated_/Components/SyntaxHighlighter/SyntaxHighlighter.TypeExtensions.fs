@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module SyntaxHighlighterTypeExtensions =
     type ThirdParty.SyntaxHighlighter.Components.Constructors.SyntaxHighlighter with
-        static member SyntaxHighlighter(language: Language, source: string, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member SyntaxHighlighter(language: Language, source: string, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Language = language

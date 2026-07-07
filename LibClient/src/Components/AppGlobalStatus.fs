@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.NetworkState
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module AppGlobalStatus =
@@ -90,9 +90,9 @@ type LibClient.Components.Constructors.LC with
         Hooks.useEffectDisposable(
             (fun () ->
                 async {
-                    let! isConnected = ReactXP.NetInfo.isConnected ()
+                    let! isConnected = Rn.NetInfo.isConnected ()
                     isConnectedHook.update isConnected
-                    ReactXP.NetInfo.onIsConnectedChange isConnectedHook.update
+                    Rn.NetInfo.onIsConnectedChange isConnectedHook.update
                 } |> startSafely
 
                 let onResult =
@@ -126,7 +126,7 @@ type LibClient.Components.Constructors.LC with
         match connectionStatus with
         | ConnectionStatus.NetworkUnavailable
         | ConnectionStatus.NetworkAvailableButBackendUnreachable _ ->
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         Styles.view theTheme
@@ -134,7 +134,7 @@ type LibClient.Components.Constructors.LC with
                     |],
                 children =
                     elements {
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.bubble |],
                             children =
                                 elements {

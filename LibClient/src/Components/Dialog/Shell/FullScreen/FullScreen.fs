@@ -10,8 +10,8 @@ open LibClient.Components.Dialog.Shell.FullScreen
 open LibClient.Components.Legacy.TopNav.Base
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Dialog =
@@ -66,20 +66,20 @@ module private FullScreenStyles =
     let backButtonTestId = A11ySlug.testId "dialog-fullscreen" "back"
 
     module LegacyBridge =
-        let viewStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
+        let viewStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
-        let textStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<TextStyles> =
+        let textStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<TextStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<TextStyles> "ReactXP.Components.Text" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" styles |]
             | None -> [||]
 
 type LibClient.Components.Constructors.LC.Dialog.Shell with
@@ -92,7 +92,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
             ?headerRight: ReactElement,
             ?bottomSection: ReactElement,
             ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -125,7 +125,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
             contentPosition = ContentPosition.Free,
             children =
                 [|
-                    RX.View(
+                    Rn.View(
                         styles =
                             [|
                                 FullScreenStyles.wrapper
@@ -142,13 +142,13 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                         fun (onLayoutOption, maybeLayout) ->
                                             element {
                                             if scroll <> Scroll.NoScroll then
-                                                RX.ScrollView(
+                                                Rn.ScrollView(
                                                     horizontal = (scroll = Scroll.Both || scroll = Scroll.Horizontal),
                                                     vertical = (scroll = Scroll.Both || scroll = Scroll.Vertical),
                                                     ?onLayout = onLayoutOption,
                                                     children =
                                                         [|
-                                                            RX.View(
+                                                            Rn.View(
                                                                 styles =
                                                                     [|
                                                                         FullScreenStyles.scrollViewChildren (
@@ -163,7 +163,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                                 )
 
                                             if scroll = Scroll.NoScroll then
-                                                RX.View(
+                                                Rn.View(
                                                     styles =
                                                         [|
                                                             FullScreenStyles.children

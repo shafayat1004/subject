@@ -5,7 +5,7 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =

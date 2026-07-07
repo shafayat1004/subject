@@ -9,7 +9,7 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -32,7 +32,7 @@ type LibClient.Components.Constructors.LC.Sidebar with
             ?scrollableMiddle: ReactElement,
             ?fixedBottom:      ReactElement,
             ?styles:           array<ViewStyles>,
-            ?xLegacyStyles:    List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:              string
         ) : ReactElement =
         key           |> ignore

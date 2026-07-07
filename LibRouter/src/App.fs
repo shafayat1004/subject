@@ -15,7 +15,7 @@ type private AbsoluteFillStyleJs() =
     member val left = 0
 
 // this is to make TEs available
-open ReactXP.Components
+open Rn.Components
 open LibClient.Components
 
 type Props = (* GenerateMakeFunction *) {
@@ -32,7 +32,7 @@ type AppComponent<'Parameters, 'Result, 'Actions, 'Self>(name: string, initialPr
     inherit PureStatelessComponent<Props, 'Actions, 'Self>(name, initialProps, actionsConstructor, hasStyles)
 
     let styles =
-        !!(AbsoluteFillStyleJs() |> box |> ReactXP.RNSeam.createViewStyle)
+        !!(AbsoluteFillStyleJs() |> box |> Rn.RnPrimitives.createViewStyle)
 
     do
         // technically we should be unmounting these, but because it's the top level app,
@@ -40,14 +40,14 @@ type AppComponent<'Parameters, 'Result, 'Actions, 'Self>(name: string, initialPr
         addOnScreenSizeUpdatedListener (System.Action (fun () -> this.forceUpdate())) |> ignore
         LibClient.Components.TapCaptureDebugVisibility.addIsVisibleForDebugChangeListener (System.Action (fun () -> this.forceUpdate())) |> ignore
 
-    member this.OnLayout (onLayoutEvent: ReactXP.Types.ViewOnLayoutEvent) : unit =
+    member this.OnLayout (onLayoutEvent: Rn.Types.ViewOnLayoutEvent) : unit =
         screenSizeOnLayout onLayoutEvent
 
     override this.render () : ReactElement =
         screenSizeContextProvider
             (getLatestScreenSize())
             [|
-                RX.View (
+                Rn.View (
                     onLayout = this.OnLayout,
                     styles   = styles,
                     children = castAsElements (base.render())

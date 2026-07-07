@@ -5,8 +5,8 @@ type ConfigSource = {
     BackendUrl:                                    Option<string>
     MaybeAppInsightsInstrumentationKey:            Option<string>
     MaybeAppInsightsCloudRole:                     Option<string>
-    InitializeReactXPInDevMode:                    Option<string>
-    InitializeReactXPInDebugMode:                  Option<string>
+    InitializeRnInDevMode:                    Option<string>
+    InitializeRnInDebugMode:                  Option<string>
     GoogleMapsApiKey:                              Option<string>
     MaybeInBundleImageServiceBaseUrl:              Option<string>
     MaybeInBundleStaticResourceUrlPattern:         Option<string>
@@ -19,8 +19,8 @@ type ConfigSource = {
         BackendUrl                                    = Some "http://localhost:8080"
         MaybeAppInsightsInstrumentationKey            = None
         MaybeAppInsightsCloudRole                     = None
-        InitializeReactXPInDevMode                    = Some "false"
-        InitializeReactXPInDebugMode                  = Some "false"
+        InitializeRnInDevMode                    = Some "false"
+        InitializeRnInDebugMode                  = Some "false"
         GoogleMapsApiKey                              = Some "YOUR_KEY_HERE"
         MaybeInBundleImageServiceBaseUrl              = None
         MaybeInBundleStaticResourceUrlPattern         = None
@@ -36,8 +36,8 @@ type Config = {
     AppUrlBase:                                    string
     BackendUrl:                                    string
     MaybeAppInsightsConfig:                        Option<LibClient.ApplicationInsights.AppInsightsConfig>
-    InitializeReactXPInDevMode:                    bool
-    InitializeReactXPInDebugMode:                  bool
+    InitializeRnInDevMode:                    bool
+    InitializeRnInDebugMode:                  bool
     GoogleMapsApiKey:                              string
     MaybeInBundleImageServiceBaseUrl:              Option<string>
     MaybeInBundleStaticResourceUrlPattern:         Option<string>
@@ -50,8 +50,8 @@ type Config = {
             let! theAppUrlBase                   = source.AppUrlBase |> Result.ofOption "Missing AppUrlBase"
             let! theBackendUrl                   = source.BackendUrl |> Result.ofOption "Missing BackendUrl"
             let! theGoogleMapsApiKey             = source.GoogleMapsApiKey |> Result.ofOption "Missing GoogleMapsApiKey"
-            let! theInitializeReactXPInDevMode   = source.InitializeReactXPInDevMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDevMode"
-            let! theInitializeReactXPInDebugMode = source.InitializeReactXPInDebugMode |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDebugMode"
+            let! theInitializeRnInDevMode   = source.InitializeRnInDevMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeRnInDevMode"
+            let! theInitializeRnInDebugMode = source.InitializeRnInDebugMode |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeRnInDebugMode"
 
             let maybeAppInsightsConfig: Option<LibClient.ApplicationInsights.AppInsightsConfig> =
                 match (source.MaybeAppInsightsInstrumentationKey, source.MaybeAppInsightsCloudRole) with
@@ -62,8 +62,8 @@ type Config = {
                 AppUrlBase                                    = theAppUrlBase
                 BackendUrl                                    = theBackendUrl
                 MaybeAppInsightsConfig                        = maybeAppInsightsConfig
-                InitializeReactXPInDevMode                    = theInitializeReactXPInDevMode
-                InitializeReactXPInDebugMode                  = theInitializeReactXPInDebugMode
+                InitializeRnInDevMode                    = theInitializeRnInDevMode
+                InitializeRnInDebugMode                  = theInitializeRnInDebugMode
                 GoogleMapsApiKey                              = theGoogleMapsApiKey
                 MaybeInBundleImageServiceBaseUrl              = source.MaybeInBundleImageServiceBaseUrl
                 MaybeInBundleStaticResourceUrlPattern         = source.MaybeInBundleStaticResourceUrlPattern

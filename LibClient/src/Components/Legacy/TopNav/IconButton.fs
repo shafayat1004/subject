@@ -3,7 +3,7 @@ module LibClient.Components.Legacy_TopNav_IconButton
 
 open Fable.React
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 module LC =
     module Legacy =

@@ -18,8 +18,8 @@ open LibClient.Components.Input.WeeklyCalendar
 open LibClient.Responsive
 open LibClient.ServiceInstances
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_WeeklyCalendarComponent =
@@ -81,9 +81,9 @@ module Input_WeeklyCalendarComponent =
     let private legacyTopLevelStyles xLegacyStyles =
         match xLegacyStyles with
         | Some ls ->
-            match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+            match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
             | [] -> [||]
-            | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+            | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LibClient.Components.Constructors.LC.Input with
@@ -98,7 +98,7 @@ module Input_WeeklyCalendarComponent =
                 ?theme: Theme -> Theme,
                 ?children: ReactChildrenProp,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
             key |> ignore
@@ -110,25 +110,25 @@ module Input_WeeklyCalendarComponent =
             Hooks.useEffect((fun () -> startDate |> Option.sideEffect (fun d -> startDateHook.update d)), [| startDate :> obj |])
 
             LC.With.ScreenSize(``with`` = fun screenSize ->
-                RX.View(
+                Rn.View(
                     styles = [| Styles.view; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
                     children = [|
-                        RX.View(styles = [| Styles.weeklyCalendarContainer |], children = [|
+                        Rn.View(styles = [| Styles.weeklyCalendarContainer |], children = [|
                             match label with
                             | Some labelText ->
-                                RX.View(styles = [| Styles.label |], children = [|
+                                Rn.View(styles = [| Styles.label |], children = [|
                                     LC.LegacyText(styles = [| Styles.labelText theTheme validity.IsInvalid |],
                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") labelText |])
                                 |])
                             | None when validity = InputValidity.Missing ->
-                                RX.View(styles = [| Styles.label |], children = [|
+                                Rn.View(styles = [| Styles.label |], children = [|
                                     LC.LegacyText(styles = [| Styles.labelText theTheme true |],
                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "Required" |])
                                 |])
                             | None -> noElement
 
-                            RX.ScrollView(horizontal = true, children = [|
-                                RX.View(
+                            Rn.ScrollView(horizontal = true, children = [|
+                                Rn.View(
                                     styles = [| Styles.weeklyCalendar screenSize |],
                                     children =
                                         (generateWeek startDateHook.current
@@ -136,12 +136,12 @@ module Input_WeeklyCalendarComponent =
                                             let isSelected = Set.contains day value
                                             let dayName = unionCaseName day.DayOfTheWeek
                                             let dayLabel = sprintf "%s %i" dayName day.Day
-                                            RX.View(styles = [| Styles.day screenSize |], children = [|
+                                            Rn.View(styles = [| Styles.day screenSize |], children = [|
                                                 LC.LegacyText(styles = [| Styles.dayOfWeek theTheme |], children = [|
                                                     makeTextNode2 (Some "LibClient.Components.LegacyText") (dayName.Substring(0, 3))
                                                 |])
-                                                RX.View(styles = [| Styles.date |], children = [|
-                                                    if isSelected then RX.View(styles = [| Styles.circle theTheme screenSize |]) else noElement
+                                                Rn.View(styles = [| Styles.date |], children = [|
+                                                    if isSelected then Rn.View(styles = [| Styles.circle theTheme screenSize |]) else noElement
                                                     LC.UiText(value = string day.Day, styles = [| Styles.dateText theTheme isSelected |])
                                                 |])
                                                 LC.Pressable(
@@ -159,7 +159,7 @@ module Input_WeeklyCalendarComponent =
                                 )
                             |])
 
-                            validity.InvalidReason |> Option.map (fun reason -> RX.View(children = [|
+                            validity.InvalidReason |> Option.map (fun reason -> Rn.View(children = [|
                                 LC.LegacyText(styles = [| Styles.invalidReason theTheme |],
                                     children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") reason |])
                             |])) |> Option.getOrElse noElement

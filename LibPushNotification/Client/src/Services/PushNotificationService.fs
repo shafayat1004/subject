@@ -4,7 +4,7 @@ open Fable.Core
 open LibClient
 open Fable.Core.JsInterop
 open LibPushNotification.Types
-open ReactXP
+open Rn
 
 type IConfig =
     abstract onRegister:             string -> unit

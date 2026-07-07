@@ -7,8 +7,8 @@ open LibClient.Components
 open LibClient.Components.Input.PickerModel
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type SelectableValue<'T when 'T : comparison> = LibClient.Input.SelectableValue<'T>
 let AtMostOne  = SelectableValue.AtMostOne
@@ -59,7 +59,7 @@ type private PickerHost =
             testId: string option,
             pickerId: string option,
             styles: ViewStyles array option,
-            xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option
+            xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option
         ) : ReactElement =
         LibClient.Components.Input.PickerInternals.Base.renderPickerBase(
             items,
@@ -89,7 +89,7 @@ type LibClient.Components.Constructors.LC.Input with
             ?testId: string,
             ?styles: array<ViewStyles>,
             ?key: string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
 

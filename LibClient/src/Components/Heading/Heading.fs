@@ -7,10 +7,10 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones and
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions shadow the new-dialect ones and
 // break the make*Styles computation expressions. The HeadingStyles compat shim below opens it
 // locally inside its own module scope.
 
@@ -25,7 +25,7 @@ type Level =
 // Delete once all those callers are converted to pass styles directly.
 // ---------------------------------------------------------------------------
 module HeadingStyles =
-    open ReactXP.LegacyStyles
+    open Rn.LegacyStyles
     open LibClient.Responsive
 
     type Sizes = {|
@@ -117,7 +117,7 @@ type LibClient.Components.Constructors.LC with
             children:       array<ReactElement>,
             ?level:         Level,
             ?styles:        array<TextStyles>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key |> ignore
@@ -128,9 +128,9 @@ type LibClient.Components.Constructors.LC with
         let legacyTextStyles : array<TextStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | []  -> [||]
-                | s   -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<TextStyles> "ReactXP.Components.Text" s |]
+                | s   -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" s |]
             | None -> [||]
 
         LC.With.ScreenSize (fun screenSize ->

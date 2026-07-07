@@ -12,10 +12,10 @@ open LibClient.Components.Input_Picker
 open LibClient.ColorScheme
 open LibClient.RenderHelpers
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions shadow the new-dialect
 // ones and break make*Styles computation expressions.
 
 module dom = Fable.React.Standard
@@ -267,18 +267,18 @@ module NativeGrid =
         match headersRaw, headers with
         | _, Some raw ->
             let cells = unwrapFragmentChildren raw
-            RX.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
+            Rn.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
         | Some h, None ->
             let cells = unwrapFragmentChildren h
-            RX.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
+            Rn.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
         | None, None   -> noElement
 
     let staticBody (headers: ReactElement) (rows: ReactElement) : ReactElement =
-        RX.View (
+        Rn.View (
             styles = [| Styles.nativeTableBody |],
             children = [|
                 if headers <> noElement then headers
-                RX.View (styles = [| Styles.rows |], children = [| rows |])
+                Rn.View (styles = [| Styles.rows |], children = [| rows |])
             |]
         )
 
@@ -286,7 +286,7 @@ module NativeGrid =
         let itemsList = items |> Seq.toList
         let lastIndex = itemsList.Length - 1
 
-        RX.View (
+        Rn.View (
             styles = [| Styles.rows |],
             children =
                 (itemsList
@@ -301,7 +301,7 @@ module NativeGrid =
                     let rowContent = makeDesktopRow item
                     let cells = unwrapFragmentChildren rowContent
 
-                    RX.View (
+                    Rn.View (
                         key = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
                         styles = rowStyles,
                         children = cells
@@ -311,7 +311,7 @@ module NativeGrid =
         )
 
     let tableBody (headerRow: ReactElement) (bodyRows: ReactElement) : ReactElement =
-        RX.View (
+        Rn.View (
             styles = [| Styles.nativeTableBody |],
             children =
                 [|
@@ -328,7 +328,7 @@ do
     // Modern Grid must import it so table.la-table CSS is injected on web.
     LibUiAdmin.Styles.styles.Force() |> ignore
 
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 .row {
     position: relative
 }
@@ -373,7 +373,7 @@ module private Helpers =
         #endif
 
 type UiAdmin with
-    /// Cross-platform table row: `dom.tr` on web, horizontal flex `RX.View` on native.
+    /// Cross-platform table row: `dom.tr` on web, horizontal flex `Rn.View` on native.
     [<Component>]
     static member GridRow (index: int, children: ReactElement, ?showBottomBorder: bool, ?key: string, ?itemKey: string) : ReactElement =
         let rowKey = key |> Option.orElse (itemKey |> Option.map id) |> Option.defaultValue (string index)
@@ -395,7 +395,7 @@ type UiAdmin with
                 if showBottomBorder then Styles.rowDivider
             |]
 
-        RX.View(
+        Rn.View(
             key = rowKey,
             styles = rowStyles,
             children = cells
@@ -412,7 +412,7 @@ type UiAdmin with
             ?headersRaw:             ReactElement,
             ?itemKey:                ('T -> string),
             ?key:                    string,
-            ?xLegacyStyles:          List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles:          List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore
@@ -432,9 +432,9 @@ type UiAdmin with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let renderQuadState (data: PaginatedGridData<'T>) (isHandheldMode: bool) : ReactElement =
@@ -500,7 +500,7 @@ type UiAdmin with
                                 |> Seq.mapi (fun index pageNumber ->
                                     let isCurrentPage = pageNumber = data.PageNumber.Value
                                     element {
-                                        RX.View (
+                                        Rn.View (
                                             styles = [|
                                                 Styles.navPageNumber
                                                 if isCurrentPage then Styles.navCurrentPage
@@ -571,27 +571,27 @@ type UiAdmin with
                 let quadState = renderQuadState data isHandheldMode
 
                 if isHandheldMode then
-                    RX.View (
+                    Rn.View (
                         styles = [| Styles.paginationHandheld |],
                         children = [|
-                            RX.View (
+                            Rn.View (
                                 styles = [| Styles.navigation |],
                                 children = [| quadState |]
                             )
                         |]
                     )
                 else
-                    RX.View (
+                    Rn.View (
                         styles = [| Styles.pagination |],
                         children = [|
-                            RX.View (
+                            Rn.View (
                                 styles = [| Styles.navigation |],
                                 children = [| quadState |]
                             )
-                            RX.View (
+                            Rn.View (
                                 styles = [| Styles.pageInfoContainer |],
                                 children = [|
-                                    RX.View (
+                                    Rn.View (
                                         styles = [| Styles.pageSize |],
                                         children = [|
                                             LC.Text (
@@ -663,7 +663,7 @@ type UiAdmin with
                     whenAvailable =
                         (fun (items: seq<'T>) ->
                             if items |> Seq.isEmpty then
-                                RX.View (
+                                Rn.View (
                                     styles = [| Styles.emptyMessage |],
                                     children = [|
                                         LC.Text (
@@ -681,7 +681,7 @@ type UiAdmin with
                                             (fun items ->
                                                 items
                                                 |> Seq.mapi (fun index item ->
-                                                    RX.View (
+                                                    Rn.View (
                                                         key = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
                                                         children = [| makeHandheldRows item |]
                                                     )
@@ -727,7 +727,7 @@ type UiAdmin with
         let gridView (isHandheldMode: bool) : ReactElement =
             let navRow = renderNavRow isHandheldMode
 
-            RX.View (
+            Rn.View (
                 styles =
                     [|
                         Styles.view
@@ -739,11 +739,11 @@ type UiAdmin with
                     | true  -> noElement
                     | false -> navRow
 
-                    RX.ScrollView (
+                    Rn.ScrollView (
                         scrollEnabled = handleVerticalScrolling,
                         styles        = [| Styles.scrollViewVertical |],
                         children      = [|
-                            RX.ScrollView (
+                            Rn.ScrollView (
                                 horizontal = true,
                                 styles     = [| Styles.scrollViewHorizontal |],
                                 children   = [| renderGridBody isHandheldMode |]
@@ -759,11 +759,11 @@ type UiAdmin with
         #else
         let navRow = renderNavRow false
 
-        RX.View (
+        Rn.View (
             styles = [| Styles.view; Styles.nativeGridRoot; yield! legacyViewStyles |],
             children = [|
                 navRow
-                RX.View (
+                Rn.View (
                     styles = [| Styles.nativeTableContainer |],
                     children = [| renderGridBody false |]
                 )

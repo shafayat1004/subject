@@ -1,14 +1,14 @@
 module LibClient.DefaultComponentsTheme
 
 
-open ReactXP.LegacyStyles
+open Rn.LegacyStyles
 open LibClient
 open LibClient.Components
 open LibClient.ColorModule
 open LibClient.ColorScheme
 open LibClient.Responsive
 
-type RFontWeight = ReactXP.Styles.RulesRestricted.FontWeight
+type RFontWeight = Rn.Styles.RulesRestricted.FontWeight
 
 let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Variants) (attention: Variants) (caution: Variants) : unit =
     let defaultIconSize = 32
@@ -32,7 +32,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
 
     Themes.Set<LC.Badge.Theme> {
         FontSize        = 14
-        FontWeight      = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+        FontWeight      = Rn.Styles.RulesRestricted.FontWeight.Normal
         FontColor       = Color.White
         BackgroundColor = caution.Main
     }
@@ -43,7 +43,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         BadgeMarginLeft = 4
         Badge = {
             FontSize        = 14
-            FontWeight      = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+            FontWeight      = Rn.Styles.RulesRestricted.FontWeight.Normal
             FontColor       = Color.White
             BackgroundColor = caution.Main
         }
@@ -57,34 +57,34 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
             DesktopHeight    = 46
             HandheldHeight   = 38
             Primary = {
-                Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
             }
             Secondary = {
-                Actionable = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                Disabled   = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                InProgress = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Actionable = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
             }
             PrimaryB = {
-                Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
             }
             SecondaryB = {
-                Actionable = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                Disabled   = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                InProgress = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Actionable = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = secondary.Main; BorderColor = secondary.Main; BackgroundColor = Color.White; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
             }
             Tertiary = {
-                Actionable = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                Disabled   = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                InProgress = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Actionable = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = secondary.Main; BorderColor = Color.Transparent; BackgroundColor = Color.Transparent; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
             }
             Cautionary = {
-                Actionable = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                Disabled   = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
-                InProgress = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal }
+                Actionable = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                Disabled   = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
+                InProgress = { TextColor = Color.White; BorderColor = caution.Main; BackgroundColor = caution.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
             }
         }
     )
@@ -515,57 +515,57 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
             ItemHeight    = 42
             Actionable = {
                 Base = {
-                    Label = neutral.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = primary.B050; Border = Color.Transparent
+                    Label = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = primary.B050; Border = Color.Transparent
                     LeftIcon = primary.MainMinus2; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
             }
             Selected = {
                 Base = {
-                    Label = neutral.B700; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.B700; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.B700; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
             }
             Disabled = {
                 Base = {
-                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
                 }
             }
             InProgress = {
                 Base = {
-                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.B200; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
             }
@@ -606,87 +606,87 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
             }
             Actionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Selected = {
                 Base = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             SelectedActionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Disabled = {
                 Base = {
-                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             InProgress = {
                 Base = {
-                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
         }
@@ -714,87 +714,87 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
             }
             Actionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.Main; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Selected = {
                 Base = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             SelectedActionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold
+                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
                     Background = primary.Main; Border = primary.B050; Icon = primary.B050
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Disabled = {
                 Base = {
-                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.MainMinus2; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             InProgress = {
                 Base = {
-                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = Color.Transparent; LabelWeight = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
                     Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
-                    BadgeFontColor = Color.White; BadgeFontWeight = ReactXP.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
+                    BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
         }

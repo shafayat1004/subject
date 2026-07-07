@@ -6,7 +6,7 @@ open LibClient
 open LibClient.Components
 open LibClient.Components.Button
 open AppEggShellGallery
-open ReactXP.Styles
+open Rn.Styles
 
 module private SampleThemes =
     let private appearance textColor borderColor backgroundColor : LC.Button.Appearance =

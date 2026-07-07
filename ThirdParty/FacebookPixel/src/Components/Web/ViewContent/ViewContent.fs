@@ -3,7 +3,7 @@ module ThirdParty.FacebookPixel.Components.Web.ViewContent
 
 open Fable.React
 open LibClient
-open ReactXP.Components
+open Rn.Components
 
 type ThirdParty.FacebookPixel.Components.Constructors.FacebookPixel.Web with
     [<Component>]
@@ -19,4 +19,4 @@ type ThirdParty.FacebookPixel.Components.Constructors.FacebookPixel.Web with
             [| box id; box price |]
         )
 
-        RX.View()
+        Rn.View()

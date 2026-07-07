@@ -2,8 +2,8 @@
 namespace LibClient.Components.Input
 
 open LibClient
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 module ParsedText =
 
@@ -41,7 +41,7 @@ namespace LibClient.Components.Input
 
 module ParsedTextStyles =
 
-    open ReactXP.LegacyStyles
+    open Rn.LegacyStyles
 
     let private baseStyles = lazy (asBlocks [])
 
@@ -93,8 +93,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 open LibClient.Components.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_ParsedTextComponent =
@@ -124,7 +124,7 @@ module Input_ParsedTextComponent =
                 ?styles:                    array<ViewStyles>,
                 ?testId:                    string,
                 ?key:                       string,
-                ?xLegacyStyles:             List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles:             List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
             key |> ignore
@@ -145,7 +145,7 @@ module Input_ParsedTextComponent =
             let themeLegacyStyles =
                 match xLegacyStyles with
                 | Some ls ->
-                    let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles ls "theme"
+                    let s = Rn.LegacyStyles.Runtime.findApplicableStyles ls "theme"
                     if s.IsEmpty then None else Some s
                 | None -> None
 
@@ -154,7 +154,7 @@ module Input_ParsedTextComponent =
                 |> Option.orElse (label |> Option.map (A11ySlug.testId "input"))
                 |> Option.defaultValue "input-parsed-text"
 
-            RX.View(
+            Rn.View(
                 testId = resolvedTestId,
                 children =
                     [|

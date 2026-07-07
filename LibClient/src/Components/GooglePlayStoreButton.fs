@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.LocalImages
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -29,11 +29,11 @@ type LibClient.Components.Constructors.LC with
 
         LC.With.ScreenSize(
             fun screenSize ->
-                RX.View(
+                Rn.View(
                     styles = (styles |> Option.defaultValue [||]),
                     children =
                         elements {
-                            RX.Image(
+                            Rn.Image(
                                 styles =
                                     [|
                                         if screenSize = Responsive.ScreenSize.Desktop then

@@ -20,7 +20,7 @@ let makeInterceptor (resultUrlRegexSource: string) (minPayloadSizeToEncodeBytes:
 
     let regex = System.Text.RegularExpressions.Regex resultUrlRegexSource
 
-    fun (rawRequestParams: ReactXPRawRequestParams) ->
+    fun (rawRequestParams: RnRawRequestParams) ->
         let existingOptions =
             match rawRequestParams.MaybeOptions with
             | None         -> createEmpty

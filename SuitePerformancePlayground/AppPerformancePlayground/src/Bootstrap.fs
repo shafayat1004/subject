@@ -4,11 +4,11 @@ open Fable.Core.JsInterop
 
 open Fable.React
 open LibClient
-open ReactXP.Components
+open Rn.Components
 open AppPerformancePlayground.Components
 open AppPerformancePlayground.AppServices
 
-open ReactXP.Helpers
+open Rn.Helpers
 
 LibClient.Initialize.initialize AppPerformancePlayground.LocalImages.localImage
 
@@ -28,7 +28,7 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
     let element =
         match configRes with
         | Ok config ->
-            ReactXP.Styles.Config.setIsDevMode config.InitializeReactXPInDevMode
+            Rn.Styles.Config.setIsDevMode config.InitializeRnInDevMode
 
             let maybeTelemetrySink =
                 config.MaybeAppInsightsConfig
@@ -83,10 +83,10 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
             AppPerformancePlayground.I18nGlobal.start ()
             element <- Ui.App.Root () |> Some
 
-            ReactXPRaw?App?initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
+            RnRaw?App?initialize ((* DEBUG *) config.InitializeRnInDebugMode, (* DEV *) config.InitializeRnInDevMode)
 
             #if EGGSHELL_PLATFORM_IS_WEB
-            ReactXPRaw?UserInterface?setContextWrapper (fun (rootView: ReactElement) -> Ui.AppContext (castAsElements rootView))
+            RnRaw?UserInterface?setContextWrapper (fun (rootView: ReactElement) -> Ui.AppContext (castAsElements rootView))
 
             let consoleTestBindings =
                 createObj [
@@ -99,7 +99,7 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
             #else
             pstore |> ignore
 
-            ReactXPRaw?UserInterface?setContextWrapper (fun (rootView: ReactElement) ->
+            RnRaw?UserInterface?setContextWrapper (fun (rootView: ReactElement) ->
                 let codepushWrapped = ThirdParty.ReactNativeCodePush.CodePush.wrapInCodePush AppContextWrapInCodePushHelper
                 Fable.React.ReactBindings.React.createElement (codepushWrapped, {|children = rootView|}, [||])
             )
@@ -109,7 +109,7 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
 
         | Error reason ->
             Log.Error ("App initialization failed because config construction failed: " + reason)
-            ReactXPRaw?App?initialize((* DEBUG *) false, (* DEV *) false);
+            RnRaw?App?initialize((* DEBUG *) false, (* DEV *) false);
 
             LibClient.Components.AppShell.TopLevelErrorMessage.Make
                 {
@@ -118,13 +118,13 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
                     key   = None
                 }
                 [|
-                    RX.Text "Failed to initialize application config"
-                    RX.Text reason
+                    Rn.Text "Failed to initialize application config"
+                    Rn.Text reason
                 |]
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
-        ReactXPRaw?UserInterface?setMainView element
+        RnRaw?UserInterface?setMainView element
 
         #if EGGSHELL_PLATFORM_IS_WEB
         Browser.Dom.document.getElementById("app-pre-bootstrap-loader").remove()

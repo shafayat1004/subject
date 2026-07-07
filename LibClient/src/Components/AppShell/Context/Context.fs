@@ -9,8 +9,8 @@ module LibClient.Components.AppShell_Context
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -25,7 +25,7 @@ type LibClient.Components.Constructors.LC.AppShell with
     static member Context(
             children:      array<ReactElement>,
             ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key           |> ignore
@@ -53,7 +53,7 @@ type LibClient.Components.Constructors.LC.AppShell with
         LibClient.Components.With.GlobalDataFlowControl.Context.globalDataFlowControlContextProvider
             globalDataFlowControl
             (tellReactArrayKeysAreOkay [|
-                RX.View(
+                Rn.View(
                     styles   = [| Styles.view |],
                     children = [|
                         LC.Executor.AlertErrors(

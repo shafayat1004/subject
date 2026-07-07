@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open AppEggShellGallery.LocalImages
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -18,10 +18,10 @@ module private Helpers =
         LC.With.Layout(
             initialOnly = true,
             ``with`` = fun (onLayoutOption, maybeLayout) ->
-                RX.View(
+                Rn.View(
                     ?onLayout = onLayoutOption,
                     children = [|
-                        RX.Image(
+                        Rn.Image(
                             source = localImage urls.[index],
                             resizeMode = Image.Cover,
                             size = Image.FromParentLayout maybeLayout,
@@ -68,10 +68,10 @@ LC.Carousel(
         LC.With.Layout(
             initialOnly = true,
             ``with`` = fun (onLayoutOption, maybeLayout) ->
-                RX.View(
+                Rn.View(
                     ?onLayout = onLayoutOption,
                     children = [|
-                        RX.Image(
+                        Rn.Image(
                             source = localImage (sprintf "/images/wlop%i.jpg" (index + 1)),
                             resizeMode = Image.Cover,
                             size = Image.FromParentLayout maybeLayout,
@@ -123,10 +123,10 @@ LC.Carousel(
         LC.With.Layout(
             initialOnly = true,
             ``with`` = fun (onLayoutOption, maybeLayout) ->
-                RX.View(
+                Rn.View(
                     ?onLayout = onLayoutOption,
                     children = [|
-                        RX.Image(
+                        Rn.Image(
                             source = localImage urls.[index],
                             resizeMode = Image.Cover,
                             size = Image.FromParentLayout maybeLayout,

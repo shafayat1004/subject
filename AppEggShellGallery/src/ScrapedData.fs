@@ -3203,13 +3203,13 @@ module Props =
                     [
                         "WithDefaultAutoWrapSome",
                         "OnPanVertical",
-                        "(ReactXP.Components.GestureView.PanGestureState -> unit)",
+                        "(Rn.Components.GestureView.PanGestureState -> unit)",
                         "None"
                     ],
                     [
                         "WithDefaultAutoWrapSome",
                         "OnPanHorizontal",
-                        "(ReactXP.Components.GestureView.PanGestureState -> unit)",
+                        "(Rn.Components.GestureView.PanGestureState -> unit)",
                         "None"
                     ],
                     [
@@ -3239,7 +3239,7 @@ module Props =
                     [
                         "WithDefaultAutoWrapSome",
                         "OnLayout",
-                        "(ReactXP.Types.ViewOnLayoutEvent -> unit)",
+                        "(Rn.Types.ViewOnLayoutEvent -> unit)",
                         "None"
                     ],
                     [
@@ -4282,7 +4282,7 @@ module Props =
                     [
                         "Regular",
                         "With",
-                        "((* OnLayoutOption *) (Option<ReactXP.Types.ViewOnLayoutEvent -> unit>) * Option<LibClient.Output.Layout>) -> ReactElement"
+                        "((* OnLayoutOption *) (Option<Rn.Types.ViewOnLayoutEvent -> unit>) * Option<LibClient.Output.Layout>) -> ReactElement"
                     ],
                     [
                         "WithDefault",

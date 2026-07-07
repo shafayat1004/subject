@@ -7,9 +7,9 @@ open Fable.React
 open LibClient
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 
 module LC =
     module Carousel =
@@ -252,7 +252,7 @@ type LibClient.Components.Constructors.LC with
             | _ ->
                 Noop
 
-        let onPanHorizontal (rawGestureState: ReactXP.Components.GestureView.PanGestureState) : unit =
+        let onPanHorizontal (rawGestureState: Rn.Components.GestureView.PanGestureState) : unit =
             if rawGestureState.isComplete && rawGestureState.isTouch then
                 let initialX = int rawGestureState.initialPageX
                 let distance = currentPageX.current - initialX
@@ -298,7 +298,7 @@ type LibClient.Components.Constructors.LC with
                 |> Option.map (fun l -> double l.Width)
                 |> (fun maybeWidth -> maybeWidthRef.current <- maybeWidth)
 
-                RX.View(
+                Rn.View(
                     styles =
                         [|
                             Styles.view
@@ -310,11 +310,11 @@ type LibClient.Components.Constructors.LC with
                     ?onLayout = onLayoutOption,
                     children =
                         elements {
-                            RX.GestureView(
+                            Rn.GestureView(
                                 onPanHorizontal = onPanHorizontal,
                                 styles          = [| Styles.gestureView |],
                                 children        = [|
-                                    RX.AnimatableView(
+                                    Rn.AnimatableView(
                                         styles = [| currentImageTranslateX |> AnimatableValue.Value |> Styles.animatableView |],
                                         key = $"current_slide",
                                         children =
@@ -325,7 +325,7 @@ type LibClient.Components.Constructors.LC with
 
                                     match maybeTargetIndex with
                                     | Some targetIndex ->
-                                        RX.AnimatableView(
+                                        Rn.AnimatableView(
                                             styles = [| targetImageTranslateX |> AnimatableValue.Value |> Styles.animatableView |],
                                             key = $"target_slide",
                                             children =
@@ -366,7 +366,7 @@ type LibClient.Components.Constructors.LC with
                                                 |> Option.defaultValue [||]
                                         |]
 
-                                        RX.View(
+                                        Rn.View(
                                             styles =
                                                 [|
                                                     Styles.side
@@ -393,11 +393,11 @@ type LibClient.Components.Constructors.LC with
                                                 }
                                         )
 
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.dotsContainer |],
                                             children =
                                                 elements {
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [|
                                                             Styles.dots
                                                             yield!
@@ -417,7 +417,7 @@ type LibClient.Components.Constructors.LC with
                                                                         else
                                                                             theTheme.InactiveDotStyle
 
-                                                                    RX.View(
+                                                                    Rn.View(
                                                                         styles = [|
                                                                             Styles.dot theTheme isCurrent
                                                                             yield!
@@ -432,7 +432,7 @@ type LibClient.Components.Constructors.LC with
                                                 }
                                         )
 
-                                        RX.View(
+                                        Rn.View(
                                             styles =
                                                 [|
                                                     Styles.side

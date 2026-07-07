@@ -5,7 +5,7 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Responsive
-open ReactXP.Styles
+open Rn.Styles
 
 open AppEggShellGallery.Icons
 open AppEggShellGallery.Actions

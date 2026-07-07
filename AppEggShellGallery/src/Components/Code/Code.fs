@@ -7,8 +7,8 @@ open Fable.React
 open Fable.React.Props
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.SyntaxHighlighter.Components
 
 module dom = Fable.React.Standard
@@ -132,7 +132,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?stripLeadingWhitespace: bool,
             ?heading:               string,
             ?key:                   string,
-            ?xLegacyStyles:         List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles:         List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         xLegacyStyles |> ignore
@@ -140,7 +140,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
         let childrenArray = children |> Option.defaultValue [||]
         let strip = defaultArg stripLeadingWhitespace true
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children =
                 [|
@@ -158,14 +158,14 @@ type AppEggShellGallery.Components.Constructors.Ui with
 
                         #if EGGSHELL_PLATFORM_IS_WEB
                         if sourceString = "" then
-                            RX.View(children = [| LC.Text "no code sample text" |])
+                            Rn.View(children = [| LC.Text "no code sample text" |])
                         else
                             LC.Pre(text = sourceString)
                         #else
                         LC.Text(sourceString, selectable = true)
                         #endif
                     | Error message ->
-                        RX.View(
+                        Rn.View(
                             children = [| LC.Text message |]
                         )
                 |]

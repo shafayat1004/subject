@@ -14,8 +14,8 @@ open LibClient.Accessibility
 open LibClient.Icons
 open LibClient.Components.Input
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_CheckboxComponent =
@@ -81,12 +81,12 @@ module Input_CheckboxComponent =
                     }
             )
 
-    let private legacyTopLevelStyles (xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option) : array<ViewStyles> =
+    let private legacyTopLevelStyles (xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option) : array<ViewStyles> =
         match xLegacyStyles with
         | Some ls ->
-            match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+            match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
             | []     -> [||]
-            | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+            | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     let private resolveAccessibilityLabel (label: Label) (accessibilityLabel: string option) (testId: string option) : string =
@@ -122,7 +122,7 @@ module Input_CheckboxComponent =
                 ?styles: array<ViewStyles>,
                 ?theme: Theme -> Theme,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             key |> ignore
 
@@ -152,7 +152,7 @@ module Input_CheckboxComponent =
                     | Some false
                     | None        -> theTheme.IconUncheckedColor.ToCssString
 
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         Styles.topLevel
@@ -161,7 +161,7 @@ module Input_CheckboxComponent =
                     |],
                 children =
                     elements {
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.row |],
                             children =
                                 elements {
@@ -173,7 +173,7 @@ module Input_CheckboxComponent =
 
                                     match label with
                                     | String text ->
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.labelBlock |],
                                             children =
                                                 elements {
@@ -184,7 +184,7 @@ module Input_CheckboxComponent =
                                                 }
                                         )
                                     | Children ->
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.labelBlock |],
                                             children = childElements
                                         )

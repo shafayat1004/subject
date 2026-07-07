@@ -3,9 +3,9 @@ module LibClient.Components.PaginatedVirtualListView
 
 open Fable.React
 
-open ReactXP.Components
-open ReactXP.LegacyStyles.RulesRestricted
-open ReactXP.Styles
+open Rn.Components
+open Rn.LegacyStyles.RulesRestricted
+open Rn.Styles
 
 open LibClient
 open LibClient.Accessibility
@@ -83,7 +83,7 @@ module private Styles =
             margin 20
             padding 12
             borderRadius 5
-            maxWidth (int ((float (ReactXP.UserInterface.windowLayoutInfo().width)) * 0.5))
+            maxWidth (int ((float (Rn.UserInterface.windowLayoutInfo().width)) * 0.5))
             backgroundColor (Color.Rgba(226, 47, 47, 0.7))
         }
 
@@ -132,7 +132,7 @@ type private Helpers =
         let nextLoadHeight: IStateHook<int> = Hooks.useState 0
         // This could produce potential bugs when the scroll view height is not the full height of the screen.
         let minLoadThreshold: int =
-            (ReactXP.UserInterface.windowLayoutInfo().height * (defaultArg heightThreshold 4))
+            (Rn.UserInterface.windowLayoutInfo().height * (defaultArg heightThreshold 4))
 
         let appendItems
             (currentItems: PaginatedVirtualListItems seq)
@@ -224,10 +224,10 @@ type private Helpers =
             | PaginatedVirtualListItems.Loader _ ->
                 match whenLoading with
                 | None ->
-                    RX.View(styles = [| Styles.center |], children = [| RX.ActivityIndicator(color = "#aaaaaa") |])
+                    Rn.View(styles = [| Styles.center |], children = [| Rn.ActivityIndicator(color = "#aaaaaa") |])
                 | Some(customLoader, _) -> customLoader
             | PaginatedVirtualListItems.BottomReached ->
-                RX.View(
+                Rn.View(
                     styles = [| Styles.center |],
                     children = [| LC.Text("-x-", styles = [| Styles.bottomReached |]) |]
                 )
@@ -237,12 +237,12 @@ type private Helpers =
             | PaginatedVirtualListItems.BottomContent content -> content
             | PaginatedVirtualListItems.DataFetchingError(message, retry) ->
                 element {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.center; Styles.errorContainer |],
                         children =
                             [| LC.Text(message, styles = [| Styles.error |])
 
-                               RX.View(
+                               Rn.View(
                                    styles = [| Styles.retryButtonContainer |],
                                    children =
                                        [| LC.Text("Retry", styles = [| Styles.retryButtonText |])

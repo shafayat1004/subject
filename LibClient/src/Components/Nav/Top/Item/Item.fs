@@ -34,8 +34,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open Nav.Top.Item
 
@@ -48,12 +48,12 @@ module Nav_Top_Item =
                 module Item =
                     type AppearanceColors = {
                         Label:                Color
-                        LabelWeight:          ReactXP.Styles.RulesRestricted.FontWeight
+                        LabelWeight:          Rn.Styles.RulesRestricted.FontWeight
                         Background:           Color
                         Border:               Color
                         Icon:                 Color
                         BadgeFontColor:       Color
-                        BadgeFontWeight:      ReactXP.Styles.RulesRestricted.FontWeight
+                        BadgeFontWeight:      Rn.Styles.RulesRestricted.FontWeight
                         BadgeBackgroundColor: Color
                     }
 
@@ -237,7 +237,7 @@ module Nav_Top_Item =
             )
 
     let private renderLabelBlock (sizes: ScreenSizes) (colors: AppearanceColors) (label: string) (withIconBadgeOffset: bool) =
-        RX.View(
+        Rn.View(
             styles = [| if withIconBadgeOffset then Styles.labelContentIconBadge else Styles.labelContent |],
             children =
                 elements {
@@ -247,7 +247,7 @@ module Nav_Top_Item =
         )
 
     let private renderIcon (sizes: ScreenSizes) (colors: AppearanceColors) (theme: Theme) (icon: LibClient.Icons.IconConstructor) =
-        RX.View(
+        Rn.View(
             styles = [| Styles.iconAdjust theme.IconVerticalAdjust |],
             children =
                 elements {
@@ -264,7 +264,7 @@ module Nav_Top_Item =
         }
 
     let private renderBadge (badge: Badge) (sizes: ScreenSizes) (screenSize: ScreenSize) (colors: AppearanceColors) =
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.badgePosition sizes.BadgeTop sizes.BadgeLeft
@@ -290,7 +290,7 @@ module Nav_Top_Item =
 
         match maybeLabel, maybeIcon, maybeBadge with
         | Some label, Some icon, Some badge ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.contentRowWithBadge |],
                 children =
                     elements {
@@ -300,7 +300,7 @@ module Nav_Top_Item =
                     }
             )
         | Some label, Some icon, None ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.contentRowIconLabel |],
                 children =
                     elements {
@@ -309,7 +309,7 @@ module Nav_Top_Item =
                     }
             )
         | None, Some icon, Some badge ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.contentRowWithBadge |],
                 children =
                     elements {
@@ -318,7 +318,7 @@ module Nav_Top_Item =
                     }
             )
         | Some label, None, Some badge ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.contentRowWithBadge |],
                 children =
                     elements {
@@ -327,7 +327,7 @@ module Nav_Top_Item =
                     }
             )
         | Some label, None, None ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.contentRow |],
                 children =
                     elements {
@@ -335,7 +335,7 @@ module Nav_Top_Item =
                     }
             )
         | None, Some icon, None ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.contentRow |],
                 children =
                     elements {
@@ -354,7 +354,7 @@ module Nav_Top_Item =
                 ?children: ReactChildrenProp,
                 ?styles: array<ViewStyles>,
                 ?theme: Theme -> Theme,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key: string
             ) : ReactElement =
             key |> ignore
@@ -368,9 +368,9 @@ module Nav_Top_Item =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some legacyStyles ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
             LC.With.ScreenSize(
@@ -382,7 +382,7 @@ module Nav_Top_Item =
                                 let colors =
                                     pickColors (interactionForState theTheme state) pointerState
 
-                                RX.View(
+                                Rn.View(
                                     styles =
                                         [|
                                             Styles.item sizes.Height colors.Border.ToCssString colors.Background.ToCssString (bottomBorderColor state colors).ToCssString

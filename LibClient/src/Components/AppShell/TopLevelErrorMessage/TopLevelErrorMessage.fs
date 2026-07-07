@@ -6,8 +6,8 @@ open Fable.Core
 open LibClient
 open LibClient.Icons
 open LibClient.Responsive
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<Emit("window.location.reload()")>]
 let private jsWindowLocationReload () : unit = jsNative
@@ -59,14 +59,14 @@ type LibClient.Components.Constructors.LC.AppShell with
     static member TopLevelErrorMessage(
             error: System.Exception,
             retry: unit -> unit,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key           |> ignore
         xLegacyStyles |> ignore
 
         let reload _ =
-            if ReactXP.Runtime.isWeb() then jsWindowLocationReload()
+            if Rn.Runtime.isWeb() then jsWindowLocationReload()
             else retry()
 
         let genericError (screenSize: ScreenSize) =
@@ -84,14 +84,14 @@ type LibClient.Components.Constructors.LC.AppShell with
                     | Some layout -> [| Styles.view; makeViewStyles { minHeight layout.Height } |]
                     | None        -> [| Styles.view |]
 
-                RX.View(
+                Rn.View(
                     ?onLayout = onLayoutOption,
                     styles    = viewStyles,
                     children  = [|
-                        RX.ScrollView(
+                        Rn.ScrollView(
                             vertical = true,
                             children = [|
-                                RX.View(
+                                Rn.View(
                                     styles   = [| Styles.center |],
                                     children = [|
                                         match error with

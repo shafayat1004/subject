@@ -5,8 +5,8 @@ open LibClient
 open LibClient.Components
 open LibClient.Components.Tabs
 open LibClient.Responsive
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Styles
+open Rn.Styles.Animation
 open SuiteTodo.Types
 
 type TabTheme = {

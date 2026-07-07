@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Components
 open LibAutoUi.Types
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -22,7 +22,7 @@ type UIAuto with
     static member InputFieldString(
             onChange:         InputValue -> unit,
             maybeValue:       Option<InputValue>,
-            ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:             string
         ) : ReactElement =
         key |> ignore
@@ -30,13 +30,13 @@ type UIAuto with
 
         match maybeValue with
         | Some (StringValue value) ->
-            RX.TextInput(
+            Rn.TextInput(
                 value = value,
                 onChangeText = (fun v -> onChange (StringValue v)),
                 styles = [| Styles.textInput |]
             )
         | None ->
-            RX.TextInput(
+            Rn.TextInput(
                 onChangeText = (fun v -> onChange (StringValue v)),
                 styles = [| Styles.textInput |]
             )

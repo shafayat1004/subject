@@ -4,9 +4,9 @@ module LibClient.Components.ImageCard
 open Fable.React
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Components
-open ReactXP.Styles
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones
+open Rn.Components
+open Rn.Styles
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions shadow the new-dialect ones
 // and break make*Styles CEs. The compat shim below uses a separate module block.
 
 // Public types are kept at the canonical module path `LibClient.Components.ImageCard.*` because
@@ -84,7 +84,7 @@ type LibClient.Components.Constructors.LC with
             ?styles:        array<ViewStyles>,
             ?labelStyles:   array<TextStyles>,
             ?children:      array<ReactElement>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         ignore key
@@ -97,16 +97,16 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | []   -> [||]
-                | stls -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" stls |]
+                | stls -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" stls |]
             | None -> [||]
 
         LC.With.Layout(
             initialOnly = true,
             ``with`` =
                 fun (onLayoutOption, maybeLayout) ->
-                    RX.View(
+                    Rn.View(
                         ?onLayout = onLayoutOption,
                         styles =
                             [|
@@ -119,26 +119,26 @@ type LibClient.Components.Constructors.LC with
                         children =
                             [|
                                 // Background image fills the view.
-                                RX.Image(
+                                Rn.Image(
                                     styles     = [| Styles.image |],
                                     source     = source,
-                                    resizeMode = ReactXP.Components.Image.ResizeMode.Cover,
-                                    size       = ReactXP.Components.Image.Size.FromParentLayout maybeLayout
+                                    resizeMode = Rn.Components.Image.ResizeMode.Cover,
+                                    size       = Rn.Components.Image.Size.FromParentLayout maybeLayout
                                 )
 
                                 // Optional label block (scrim + text or custom children).
                                 match label with
                                 | None -> ()
                                 | Some lbl ->
-                                    RX.View(
+                                    Rn.View(
                                         children =
                                             [|
                                                 if lbl.UseScrim then
-                                                    RX.View(styles = [| Styles.scrim |])
+                                                    Rn.View(styles = [| Styles.scrim |])
 
                                                 match lbl with
                                                 | Label.Text (text, _) ->
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles   = [| Styles.labelTextWrapper |],
                                                         children =
                                                             [|
@@ -180,7 +180,7 @@ type LibClient.Components.Constructors.LC with
 // callers are migrated to the modern `?styles` / `?labelStyles` API.
 // ---------------------------------------------------------------------------
 module ImageCardStyles =
-    open ReactXP.LegacyStyles
+    open Rn.LegacyStyles
 
     let private baseStyles = lazy (asBlocks [
         "image" => [

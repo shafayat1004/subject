@@ -7,8 +7,8 @@ open LibClient.Components
 open AppEggShellGallery.Icons
 open AppEggShellGallery.Colors
 open AppEggShellGallery.LocalImages
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -48,7 +48,7 @@ type Ui.Content with
                                     visuals = (
                                         LC.Sidebar.Base(
                                             styles = [| Styles.sidebar |],
-                                            fixedTop = RX.View(
+                                            fixedTop = Rn.View(
                                                 styles = [| Styles.profile |],
                                                 children = [|
                                                     LC.Avatar(source = localImage "/images/tifa.jpg")
@@ -85,7 +85,7 @@ type Ui.Content with
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Sidebar.Base(
     styles = [| makeViewStyles { height 600 } |],
-    fixedTop = RX.View(
+    fixedTop = Rn.View(
         styles = [| makeViewStyles { padding 18 } |],
         children = [|
             LC.Avatar(source = localImage "/images/tifa.jpg")

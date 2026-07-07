@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module ToggleButtons =
@@ -62,7 +62,7 @@ type LibClient.Components.Constructors.LC with
             [| value |]
         )
 
-        RX.View(
+        Rn.View(
             ?accessibilityLabel = label,
             accessibilityRole = AccessibilityRole.RadioGroup,
             styles = [|

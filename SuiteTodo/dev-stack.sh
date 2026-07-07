@@ -34,7 +34,7 @@ write_backend_dev_config () {
   cat > "$APP_DIR/configSourceOverrides.dev.js" <<'EOF'
 // Uncomment BackendUrl when running DevelopmentHost on :5001. Omit for fake in-memory todos.
 // eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001";
-eggshell.AppTodo.configSourceOverrides.InitializeReactXPInDevMode = "true";
+eggshell.AppTodo.configSourceOverrides.InitializeRnInDevMode = "true";
 eggshell.AppTodo.configSourceOverrides.AppUrlBase = location.origin;
 EOF
 }

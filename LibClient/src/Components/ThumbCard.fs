@@ -3,8 +3,8 @@ module LibClient.Components.ThumbCard
 
 open Fable.React
 open LibClient.Components.Layout.LC
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components
 open LibClient
 open LibClient.Accessibility
@@ -50,15 +50,15 @@ type private Helpers =
             initialOnly = true,
             ``with`` =
                 fun (onLayoutOption, maybeLayout) ->
-                    RX.View(
+                    Rn.View(
                         styles = [|Styles.thumb thumbPosition|],
                         ?onLayout = onLayoutOption,
                         children =
                             elements {
-                                RX.Image(
+                                Rn.Image(
                                     styles = [| Styles.image |],
                                     source = imageSource,
-                                    resizeMode = ReactXP.Components.Image.ResizeMode.Cover,
+                                    resizeMode = Rn.Components.Image.ResizeMode.Cover,
                                     size = (Size.FromParentLayout maybeLayout)
                                 )
 

@@ -5,7 +5,7 @@ module ThirdParty.FormatfulText.Components.RenderFormatfulText
 open Fable.React
 open Fable.Core
 open Fable.Core.JsInterop
-open ReactXP.Styles
+open Rn.Styles
 open FormatfulText.TextService
 
 #if EGGSHELL_PLATFORM_IS_WEB

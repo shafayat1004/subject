@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 // Public types are nested under `module LC = module HandheldListItem` (the Tab.fs pattern) so their
 // union cases (Disabled/InProgress/Actionable/Text/Icon/Number/...) are NOT leaked into the global
@@ -86,7 +86,7 @@ type LibClient.Components.Constructors.LC with
             ?leftIcon:      int -> LibClient.Icons.Icon,
             ?right:         Right,
             ?testId:        string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key |> ignore
@@ -95,9 +95,9 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let onPress =
@@ -105,16 +105,16 @@ type LibClient.Components.Constructors.LC with
             | Actionable onPress -> Some onPress
             | _                  -> None
 
-        RX.View(
+        Rn.View(
             styles   = [| Styles.view; yield! legacyViewStyles |],
             accessibilityRole = AccessibilityRole.ListItem,
             children =
                 [|
                     (match leftIcon with
-                     | Some icon -> RX.View(styles = [| Styles.leftIcon |], children = [| (icon 20 :> ReactElement) |])
+                     | Some icon -> Rn.View(styles = [| Styles.leftIcon |], children = [| (icon 20 :> ReactElement) |])
                      | None      -> noElement)
 
-                    RX.View(
+                    Rn.View(
                         styles   = [| Styles.label |],
                         children =
                             [|
@@ -126,18 +126,18 @@ type LibClient.Components.Constructors.LC with
 
                     (match right with
                      | Some right ->
-                        RX.View(
+                        Rn.View(
                             styles   = [| Styles.right |],
                             children =
                                 (match right with
                                  | Right.Number number ->
-                                     [| RX.View(styles = [| Styles.number |], children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |]) |]
+                                     [| Rn.View(styles = [| Styles.number |], children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |]) |]
                                  | Right.Icon icon ->
-                                     [| RX.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |]) |]
+                                     [| Rn.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |]) |]
                                  | Right.NumberAndIcon (number, icon) ->
                                      [|
-                                         RX.View(styles = [| Styles.number |],    children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |])
-                                         RX.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |])
+                                         Rn.View(styles = [| Styles.number |],    children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |])
+                                         Rn.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |])
                                      |])
                         )
                      | None -> noElement)

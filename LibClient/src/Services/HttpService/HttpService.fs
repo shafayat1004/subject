@@ -7,12 +7,12 @@ open LibClient.NetworkState
 open Types
 open LibClient
 
-let private mapToReactXPHttpAction (action: HttpAction) : ReactXPHttp.HttpAction =
+let private mapToRnHttpAction (action: HttpAction) : RnHttp.HttpAction =
     match action with
-    | Get    -> ReactXPHttp.HttpAction.Get
-    | Post   -> ReactXPHttp.HttpAction.Post
-    | Put    -> ReactXPHttp.HttpAction.Put
-    | Delete -> ReactXPHttp.HttpAction.Delete
+    | Get    -> RnHttp.HttpAction.Get
+    | Post   -> RnHttp.HttpAction.Post
+    | Put    -> RnHttp.HttpAction.Put
+    | Delete -> RnHttp.HttpAction.Delete
 
 type ApiEndpoint<'Params, 'Payload, 'Result> = {
     Action:  HttpAction
@@ -21,14 +21,14 @@ type ApiEndpoint<'Params, 'Payload, 'Result> = {
     Result:  obj -> 'Result
 }
 
-type ReactXPRawRequestParams = {
+type RnRawRequestParams = {
     Url:          string
     Action:       HttpAction
     MaybeOptions: Option<obj>
 }
 
-type RequestInterceptor  = ReactXPRawRequestParams -> Async<ReactXPRawRequestParams>
-type ResponseInterceptor = ReactXPHttp.WebResponse -> Async<ReactXPHttp.WebResponse>
+type RequestInterceptor  = RnRawRequestParams -> Async<RnRawRequestParams>
+type ResponseInterceptor = RnHttp.WebResponse -> Async<RnHttp.WebResponse>
 
 [<RequireQualifiedAccess>]
 type StaticResourceUrlTransformSettings =
@@ -99,12 +99,12 @@ type HttpService(
 
         let options = createObj (optionsPayload @ optionsHeaders @ optionsContentType)
 
-        let! rawResult = this.RequestReactXPRaw url action (Some options)
+        let! rawResult = this.RequestRnRaw url action (Some options)
 
         return rawResult.body :?> 'Result
     }
 
-    member _.RequestReactXPRaw (rawUrl: string) (rawAction: HttpAction) (rawMaybeOptions: Option<obj>) : Async<ReactXPHttp.WebResponse> = async {
+    member _.RequestRnRaw (rawUrl: string) (rawAction: HttpAction) (rawMaybeOptions: Option<obj>) : Async<RnHttp.WebResponse> = async {
         let requestParamsAsync =
             {
                 Url          = rawUrl
@@ -119,9 +119,9 @@ type HttpService(
             maybeOptions
             |> Option.getOrElseLazy (fun () -> createEmpty)
 
-        let request: obj = createNew ReactXPHttp.ReactXPSimpleWebRequest (mapToReactXPHttpAction action, url, options)
+        let request: obj = createNew RnHttp.RnSimpleWebRequest (mapToRnHttpAction action, url, options)
 
-        // we need this because ReactXPHttp throws a promise
+        // we need this because RnHttp throws a promise
         // exception for a non-200 error code
         let rawResponseAsync = async {
             let! rawResponseResult =
@@ -131,7 +131,7 @@ type HttpService(
 
             match rawResponseResult with
             | Ok okResponse -> return okResponse
-            | Error exn     -> return exn :> obj :?> ReactXPHttp.WebResponse
+            | Error exn     -> return exn :> obj :?> RnHttp.WebResponse
         }
 
         let! response = Async.Fold responseInterceptors rawResponseAsync

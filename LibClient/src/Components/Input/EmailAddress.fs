@@ -4,8 +4,8 @@ module LibClient.Components.Input_EmailAddress
 open Fable.React
 open LibClient
 open LibClient.Components.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 
 let parseProp (raw: Option<NonemptyString>): Result<Option<EmailAddress>, string> =
@@ -68,7 +68,7 @@ type LibClient.Components.Constructors.LC.Input with
         ?styles:              array<ViewStyles>,
         ?theme:               Theme -> Theme,
         ?key:                 string,
-        ?xLegacyStyles:       List<ReactXP.LegacyStyles.RuntimeStyles>
+        ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>
     ): ReactElement =
         key |> ignore
 

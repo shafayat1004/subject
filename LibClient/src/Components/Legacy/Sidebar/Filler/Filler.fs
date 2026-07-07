@@ -3,8 +3,8 @@ module LibClient.Components.Legacy_Sidebar_Filler
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Legacy =
@@ -39,4 +39,4 @@ type LibClient.Components.Constructors.LC.Legacy.Sidebar with
         hackWeDoNotSupportProplessComponents |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
-        RX.View(styles = [| Styles.view theTheme |])
+        Rn.View(styles = [| Styles.view theTheme |])

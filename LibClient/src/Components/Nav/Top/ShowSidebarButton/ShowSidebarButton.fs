@@ -6,7 +6,7 @@ open LibClient
 open LibClient.Components
 open LibClient.Components.Nav.Top.Item
 open LibClient.Icons
-open ReactXP.Components
+open Rn.Components
 
 type Badge = LibClient.Output.Badge
 let Text  = Badge.Text
@@ -36,7 +36,7 @@ type LibClient.Components.Constructors.LC.Nav.Top with
                     style = Nav.Top.Item.iconOnly icon
                 )
 
-        ReactXP.Components.Constructors.RX.View(
+        Rn.Components.Constructors.Rn.View(
             testId = "eggshell-sidebar-menu",
             children = elements { item }
         )

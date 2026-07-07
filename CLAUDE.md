@@ -31,13 +31,18 @@ Executing goals A–E together (see `modernization/goals-and-roadmap.md`; status
 
 **Toolchain (migrated):** the frontend is on **Fable 5** (`fable` tool 5.4.0, `Fable.Core` 5.0.0,
 `Fable.React` 10.0.0-alpha.1), built with the **.NET 10 SDK** (`global.json` 10.0.301). Write Fable-5
-code; do not target Fable 4.
+code; do not target Fable 4. The UI stack is **React 19.2 + react-native 0.86 + react-native-web
+0.21.2 with the New Architecture (Fabric) enabled**, RNGH 3. **ReactXP is fully retired** — the
+primitive seam is `LibClient/src/Rn/` (namespace **`Rn`**, constructor prefix **`Rn.`** e.g.
+`Rn.View`/`Rn.Text`, imports in `RnPrimitives.fs`). Do **not** write `ReactXP`/`RX.` in new code.
+`.fs.js` are generated Fable output and are **git-ignored** (never commit them).
 
 (Still LATER — do not start now: full **.NET 10 TFM migration** is NOT complete repo-wide and **no
 .NET-10-specific features** have been adopted yet (the net10 SDK is the build host; many projects still
-target older TFMs). The **ReactXP → react-native-web swap** (still on `@chaldal/reactxp`) and the
-**Orleans/Postgres** workstream are also later. See `modernization/phased-plan.md` +
-`modernization/reactxp-to-rnw.md` for phase status.)
+target older TFMs). The **Orleans/Postgres** workstream is also later. **Remaining upgrade tail:** the
+gallery + PerformancePlayground still need the RN 0.86 native config that AppTodo now has, and
+Reanimated 4 + Moti are not yet added. See `modernization/phased-plan.md` +
+`modernization/reactxp-to-rnw.md` + `knowledge-base/engineering-log.md` (session 8) for status.)
 
 ## Working rules
 

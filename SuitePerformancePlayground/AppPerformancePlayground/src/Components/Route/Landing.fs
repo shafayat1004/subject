@@ -6,7 +6,7 @@ open LibClient.Components
 open LibRouter.Components
 open Fable.React
 open LibUiSubject
-open ReactXP.Styles
+open Rn.Styles
 open AppPerformancePlayground.Navigation
 open AppPerformancePlayground.Colors
 open AppPerformancePlayground.AppServices

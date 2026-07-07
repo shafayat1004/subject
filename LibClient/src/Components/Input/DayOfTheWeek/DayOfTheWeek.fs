@@ -44,10 +44,10 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions shadow the new-dialect ones
 // and break make*Styles computation expressions. See the gallery docs runbooks/troubleshooting.md.
 
 open LibClient.Components.Input.DayOfTheWeek
@@ -159,7 +159,7 @@ module Input_DayOfTheWeek =
                 mode:           LibClient.Components.Input.DayOfTheWeek.Mode,
                 validity:       InputValidity,
                 ?label:         string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
             key |> ignore
@@ -167,13 +167,13 @@ module Input_DayOfTheWeek =
 
             let theTheme = Themes.GetMaybeUpdatedWith (None : Option<Theme -> Theme>)
 
-            RX.View(
+            Rn.View(
                 children =
                     [|
                         // Label row: show label text if provided, or "Required" if Missing + no label
                         match label with
                         | Some lbl ->
-                            RX.View(
+                            Rn.View(
                                 styles   = [| Styles.label |],
                                 children =
                                     [|
@@ -189,7 +189,7 @@ module Input_DayOfTheWeek =
                             )
                         | None ->
                             if validity = Missing then
-                                RX.View(
+                                Rn.View(
                                     styles   = [| Styles.label |],
                                     children =
                                         [|
@@ -203,18 +203,18 @@ module Input_DayOfTheWeek =
                                 noElement
 
                         // Horizontal scroll of day buttons
-                        RX.ScrollView(
+                        Rn.ScrollView(
                             horizontal = true,
                             children =
                                 [|
-                                    RX.View(
+                                    Rn.View(
                                         styles   = [| Styles.days |],
                                         children =
                                             [|
                                                 for day in LibClient.Components.Input.DayOfTheWeek.days do
                                                     let isSelected = mode.IsSelected day
                                                     let dayLabel = day.ToString()
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles =
                                                             [|
                                                                 Styles.day
@@ -251,7 +251,7 @@ module Input_DayOfTheWeek =
                         // Invalid reason below the days
                         match validity.InvalidReason with
                         | Some reason ->
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
                                         LC.Text(reason, styles = [| Styles.invalidReasonText theTheme.InvalidColor |])

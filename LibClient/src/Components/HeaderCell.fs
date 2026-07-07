@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 open LibClient.Icons
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.JsInterop
 
 module LC =
@@ -71,7 +71,7 @@ type LibClient.Components.Constructors.LC with
             | Some numberOfLines -> Some numberOfLines
             | None -> Undefined
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.headerCell
@@ -88,7 +88,7 @@ type LibClient.Components.Constructors.LC with
                     match sort with
                     | Some (sortField, (currSortField, currSortDirection), setSort) ->
                         if sortField = currSortField then
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.icon |],
                                 children =
                                     elements {

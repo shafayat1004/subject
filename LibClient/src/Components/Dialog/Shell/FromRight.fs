@@ -3,9 +3,9 @@ module LibClient.Components.Dialog_Shell_FromRight
 
 open Fable.React
 
-open ReactXP.LegacyStyles.RulesRestricted
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.LegacyStyles.RulesRestricted
+open Rn.Styles
+open Rn.Components
 
 open LibClient
 open LibClient.Components.Dialog.Base
@@ -69,18 +69,18 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
             contentPosition = ContentPosition.Free,
             canClose = canClose,
             children = [|
-                RX.View (styles = [|Styles.wrapper|], children = [|
+                Rn.View (styles = [|Styles.wrapper|], children = [|
                     // Reversed to make drop shadow work
                     bottomSection
 
-                    RX.ScrollView (
+                    Rn.ScrollView (
                         vertical = true,
                         children = [|
-                            RX.View (
+                            Rn.View (
                                 styles = [| Styles.scrollViewWrapper |],
                                 children = [|
-                                    RX.View (children = [|
-                                        RX.View (styles = [|Styles.scrollViewChildren|], children = elements {
+                                    Rn.View (children = [|
+                                        Rn.View (styles = [|Styles.scrollViewChildren|], children = elements {
                                             match heading with
                                             | None -> nothing
                                             | Some headingText ->

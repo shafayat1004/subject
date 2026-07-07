@@ -10,9 +10,9 @@ open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Components.ScrollView
 
-open ReactXP
-open ReactXP.Styles
-open ReactXP.Components
+open Rn
+open Rn.Styles
+open Rn.Components
 
 type DataFetchingState =
 | Loading
@@ -242,26 +242,26 @@ type LibClient.Components.Constructors.LC with
                                 ),
                                 styles = [| Styles.scrollView |],
                                 children      = [|
-                                    RX.View (styles = Array.append (defaultArg styles [||]) [| Styles.scrollViewContent |], children = [|
-                                        RX.View (styles = [| Styles.content_container |], children = [|
-                                            RX.View (styles = [| Styles.content contentWidth |], children = elements {
+                                    Rn.View (styles = Array.append (defaultArg styles [||]) [| Styles.scrollViewContent |], children = [|
+                                        Rn.View (styles = [| Styles.content_container |], children = [|
+                                            Rn.View (styles = [| Styles.content contentWidth |], children = elements {
 
                                                 Helpers.StaticContent topStaticContent
-                                                RX.View (styles = (defaultArg paginatedStyle [||]), children = (
+                                                Rn.View (styles = (defaultArg paginatedStyle [||]), children = (
                                                     allItems.current
                                                     |> Seq.map renderItem
                                                     |> Array.ofSeq
                                                 ))
                                                 
-                                                RX.View (styles = [| Styles.center |], children = [|
+                                                Rn.View (styles = [| Styles.center |], children = [|
                                                     match dataFetching.current  with
-                                                    | Loading        -> RX.ActivityIndicator(color = "#aaaaaa")
+                                                    | Loading        -> Rn.ActivityIndicator(color = "#aaaaaa")
                                                     | Completed      -> nothing 
                                                     | FetchingFailed ->
                                                         element {
                                                             LC.Text ("Apologies, there is an internet issue. Please try again.", styles = [| Styles.error |])
 
-                                                            RX.View (styles = [| Styles.retryButtonContainer |], children = [|
+                                                            Rn.View (styles = [| Styles.retryButtonContainer |], children = [|
                                                                 LC.Text ("Retry", styles  = [| Styles.retryButtonText |])
         
                                                                 LC.Pressable (
@@ -286,7 +286,7 @@ type LibClient.Components.Constructors.LC with
                                         |])
                                     |])
 
-                                    RX.View (styles = [| Styles.footer |], children = [|
+                                    Rn.View (styles = [| Styles.footer |], children = [|
                                         Helpers.StaticContent bottomStaticContent
                                     |])
                                 |]

@@ -21,14 +21,14 @@ module Build =
         |> BuildFile.withDefinition (fun buildContext normalizeDir ->
             function
             | InitializeDependencies ->
-                // let shouldForceInstallReactXp = NodeNpm.willInstall buildContext
+                // let shouldForceInstallRn = NodeNpm.willInstall buildContext
                 NodeNpm.install buildContext
 
                 // // this is necessary because we're temporarily linking a forked github version
                 // // of reactxp, which, unlike the published npm package, does not have the
                 // // dist directory in it and needs to be built manually
                 // let reactXpBuildContext = BuildFile.changeDir buildContext "./node_modules/reactxp"
-                // if shouldForceInstallReactXp then
+                // if shouldForceInstallRn then
                 //     // If npm install runs for the root directory, it clears out
                 //     // contents from the reactxp/node_modules directory, but doesn't
                 //     // clear out the hash files

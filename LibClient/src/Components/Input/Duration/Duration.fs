@@ -137,8 +137,8 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_DurationComponent =
@@ -177,7 +177,7 @@ module Input_DurationComponent =
                 ?onEnterKeyPress:    (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
                 ?shouldDisplayDays:  bool,
-                ?xLegacyStyles:      List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:                string
             ) : ReactElement =
             key |> ignore
@@ -192,18 +192,18 @@ module Input_DurationComponent =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some ls ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
-            let legacyLabelStyles : List<ReactXP.LegacyStyles.RuntimeStyles> =
+            let legacyLabelStyles : List<Rn.LegacyStyles.RuntimeStyles> =
                 match xLegacyStyles with
                 | Some ls -> ls
                 | None    -> []
 
-            let fieldXLegacyStyles : List<ReactXP.LegacyStyles.RuntimeStyles> option =
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field" with
+            let fieldXLegacyStyles : List<Rn.LegacyStyles.RuntimeStyles> option =
+                match Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field" with
                 | [] -> None
                 | s  -> Some s
 
@@ -239,19 +239,19 @@ module Input_DurationComponent =
                 |> Option.orElse (label |> Option.map (A11ySlug.testId "input"))
                 |> Option.defaultValue "input-duration"
 
-            RX.View(
+            Rn.View(
                 testId = resolvedTestId,
                 styles = [| yield! legacyViewStyles |],
                 children =
                     [|
                         (match label with
                          | Some lbl ->
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
                                         LC.LegacyText(
                                             xLegacyStyles =
-                                                ReactXP.LegacyStyles.Runtime.findApplicableStyles
+                                                Rn.LegacyStyles.Runtime.findApplicableStyles
                                                     legacyLabelStyles
                                                     ("label"
                                                      + (if isLabelInvalid then " invalid" else "")
@@ -272,7 +272,7 @@ module Input_DurationComponent =
                             )
                          | None -> noElement)
 
-                        RX.View(
+                        Rn.View(
                             styles   = [| Styles.fields |],
                             children =
                                 [|
@@ -335,7 +335,7 @@ module Input_DurationComponent =
 
                                     LC.LegacyText(
                                         xLegacyStyles =
-                                            ReactXP.LegacyStyles.Runtime.findApplicableStyles
+                                            Rn.LegacyStyles.Runtime.findApplicableStyles
                                                 legacyLabelStyles "colon",
                                         children =
                                             [| makeTextNode2 (Some "LibClient.Components.LegacyText") "mins" |]
@@ -345,12 +345,12 @@ module Input_DurationComponent =
 
                         (match (value.InternalValidity.Or validity).InvalidReason with
                          | Some reason ->
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
                                         LC.LegacyText(
                                             xLegacyStyles =
-                                                ReactXP.LegacyStyles.Runtime.findApplicableStyles
+                                                Rn.LegacyStyles.Runtime.findApplicableStyles
                                                     legacyLabelStyles "invalid-reason",
                                             children =
                                                 [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", reason)) |]

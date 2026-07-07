@@ -45,7 +45,7 @@ let announce (message: string) (politeness: AccessibilityLiveRegion) : unit =
     announceWeb message politeness
 #else
     try
-        ReactXP.RNSeam.AccessibilityInfoModule?announceForAccessibility(message)
+        Rn.RnPrimitives.AccessibilityInfoModule?announceForAccessibility(message)
         |> ignore
     with _ ->
         Noop

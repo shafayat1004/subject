@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibLangFsharp
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -143,11 +143,11 @@ type LibClient.Components.Constructors.LC.Executor with
                 castAsElementAckingKeysWarning [|
                     pageContent
                     if Helpers.shouldShowSpinner keys executorsHook.current then
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.spinnerOverlay |],
                             children =
                                 elements {
-                                    RX.ActivityIndicator(
+                                    Rn.ActivityIndicator(
                                         size = Size.Medium,
                                         color = "#cccccc"
                                     )

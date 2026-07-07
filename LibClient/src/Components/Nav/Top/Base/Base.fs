@@ -18,8 +18,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open Nav.Top.Base
 
@@ -53,7 +53,7 @@ module Nav_Top_Base =
                 desktop:        unit -> ReactElement,
                 ?styles:        array<ViewStyles>,
                 ?theme:         Theme -> Theme,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?testId:        string,
                 ?key:           string
             ) : ReactElement =
@@ -65,16 +65,16 @@ module Nav_Top_Base =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some legacyStyles ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
             let wrap (content: ReactElement) (screenSize: ScreenSize) =
                 if isNoElementOrEmptyFragmentOrEmptyArray content then
                     noElement
                 else
-                    RX.View(
+                    Rn.View(
                         styles =
                             [|
                                 Styles.view theTheme screenSize

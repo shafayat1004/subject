@@ -5,8 +5,8 @@ open Fable.Core.JsInterop
 open LibClient
 open AppEggShellGallery.Components
 
-open ReactXP.Components
-open ReactXP.Helpers
+open Rn.Components
+open Rn.Helpers
 open LibClient.Components
 
 LibClient.Initialize.initialize (AppEggShellGallery.LocalImages.localImage)
@@ -22,7 +22,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
     let element =
         match configRes with
         | Ok config ->
-            ReactXP.Styles.Config.setIsDevMode config.InitializeReactXPInDevMode
+            Rn.Styles.Config.setIsDevMode config.InitializeRnInDevMode
 
             AppServices.initialize config
             AppEggShellGallery.Config.initialize config
@@ -52,8 +52,8 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
             let element = Ui.App.Root()
 
-            ReactXP.App.initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
-            ReactXP.UserInterface.setContextWrapper (fun rootView ->
+            Rn.App.initialize ((* DEBUG *) config.InitializeRnInDebugMode, (* DEV *) config.InitializeRnInDevMode)
+            Rn.UserInterface.setContextWrapper (fun rootView ->
                 Ui.AppContext (children = [|rootView|])
             )
 
@@ -75,7 +75,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
         | Error reason ->
             Log.Error ("App initialization failed because config construction failed: " + reason)
-            ReactXP.App.initialize((* DEBUG *) false, (* DEV *) false);
+            Rn.App.initialize((* DEBUG *) false, (* DEV *) false);
 
             LibClient.Components.Constructors.LC.AppShell.TopLevelErrorMessage(
                 error = exn reason,
@@ -84,7 +84,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
-        ReactXP.UserInterface.setMainView element
+        Rn.UserInterface.setMainView element
     } |> startSafely
 
 open Fable.Core

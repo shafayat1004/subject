@@ -4,8 +4,8 @@ module AppEggShellGallery.Components.Content_ColorVariants
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -24,17 +24,17 @@ type Ui.Content with
         element {
             LC.Heading(children = [| LC.UiText "Color Variants" |])
 
-            RX.ScrollView(
+            Rn.ScrollView(
                 children =
                     (AppEggShellGallery.ScrapedData.Colors.colorVariantsData
                      |> List.map (fun (colorName, colorVariantFn) ->
-                         RX.View(
+                         Rn.View(
                              styles = [| Styles.colorVariantContainer |],
                              children = [|
-                                 RX.View(
+                                 Rn.View(
                                      children = [|
                                          LC.Heading(level = Heading.Secondary, children = [| LC.UiText colorName |])
-                                         RX.View(
+                                         Rn.View(
                                              styles = [| Styles.variant |],
                                              children = [| Ui.ColorVariants(value = colorVariantFn) |]
                                          )

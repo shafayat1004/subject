@@ -9,8 +9,8 @@ open LibClient.Dialogs
 open LibAutoUi.Components.InputForm
 open LibAutoUi.Types
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Parameters<'T> = {
     FormWrapper: FormWrapper<'T>
@@ -60,7 +60,7 @@ type private DialogInputFormContent =
             canClose = Base.CanClose.When ([Base.OnBackground], tryCancel),
             children =
                 [|
-                    RX.View(
+                    Rn.View(
                         onPress = stopPropagation,
                         styles = [| Styles.dialogContents |],
                         children =
@@ -71,7 +71,7 @@ type private DialogInputFormContent =
                                     onChange = onChange
                                 )
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.buttons |],
                                     children =
                                         elements {

@@ -20,7 +20,7 @@ module RXNavigatorTypeExtensions =
                 customSceneConfig = pcustomSceneConfig |> Option.orElse (LibClient.JsInterop.Undefined)
             }
         
-        static member RXNavigator(ref: (RXNavigator) -> unit, renderScene: (NavigatorRoute) -> ReactElement, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member RXNavigator(ref: (RXNavigator) -> unit, renderScene: (NavigatorRoute) -> ReactElement, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     ref = ref

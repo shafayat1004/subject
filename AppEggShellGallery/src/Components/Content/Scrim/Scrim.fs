@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open AppEggShellGallery
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -23,7 +23,7 @@ type private Helpers =
         let isScrimVisible = Hooks.useState true
 
         element {
-            RX.View(
+            Rn.View(
                 styles = [| Styles.sampleBlock |],
                 children =
                     elements {
@@ -85,7 +85,7 @@ type Ui.Content with
                                 LC.Text """
 let isScrimVisible = Hooks.useState true
 
-RX.View(
+Rn.View(
     styles = [| makeViewStyles { width 300; height 300 } |],
     children = elements {
         LC.Buttons(

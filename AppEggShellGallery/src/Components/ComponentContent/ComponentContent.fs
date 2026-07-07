@@ -6,8 +6,8 @@ open Fable.React.Props
 open LibClient
 open LibClient.Components
 open LibClient.Responsive
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module dom = Fable.React.Standard
 
@@ -29,7 +29,7 @@ module private Styles =
         }
 
 do
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 
 .aesg-ContentComponent-table {
     border-collapse: collapse;
@@ -50,7 +50,7 @@ do
 """
 
 let private sectionHeading (label: string) =
-    RX.View(
+    Rn.View(
         styles = [| Styles.headingSecondary |],
         children =
             [|
@@ -77,7 +77,7 @@ let private renderSamplesTable (samples: ReactElement) =
             dom.tbody [] [| samples |]
         |]
     #else
-    RX.View(children = [| samples |])
+    Rn.View(children = [| samples |])
     #endif
 
 // On desktop, wrap in a horizontal ScrollView so wide sample tables scroll rather than clip.
@@ -85,7 +85,7 @@ let private renderSamplesTable (samples: ReactElement) =
 let private renderSamplesSection (samples: ReactElement) : ReactElement =
     LC.Responsive(
         desktop = (fun _ ->
-            RX.ScrollView(
+            Rn.ScrollView(
                 horizontal = true,
                 children = [| renderSamplesTable samples |]
             )
@@ -105,7 +105,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?themeSamples: ReactElement,
             ?props:        PropsConfig,
             ?key:          string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 
@@ -114,7 +114,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
         let a11y = defaultArg a11y noElement
         let themeSamples = defaultArg themeSamples noElement
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children =
                 [|
@@ -127,7 +127,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                         castAsElementAckingKeysWarning
                             [|
                                 sectionHeading "Notes"
-                                RX.View(children = [| notes |])
+                                Rn.View(children = [| notes |])
                             |]
                     else
                         noElement
@@ -136,7 +136,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                         castAsElementAckingKeysWarning
                             [|
                                 sectionHeading "Accessibility"
-                                RX.View(children = [| a11y |])
+                                Rn.View(children = [| a11y |])
                             |]
                     else
                         noElement

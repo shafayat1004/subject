@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Icons
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module IconButton =
@@ -142,7 +142,7 @@ type LibClient.Components.Constructors.LC with
                         testId
 
                 element {
-                    RX.View(
+                    Rn.View(
                         styles =
                             [|
                                 Styles.viewThemeFor theTheme lowLevelState isDepressed
@@ -161,11 +161,11 @@ type LibClient.Components.Constructors.LC with
 
                                 match lowLevelState with
                                 | InProgress ->
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.spinnerBlock |],
                                         children =
                                             elements {
-                                                RX.ActivityIndicator(
+                                                Rn.ActivityIndicator(
                                                     color = "#aaaaaa",
                                                     size = Size.Tiny
                                                 )

@@ -146,8 +146,8 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_LocalTimeComponent =
@@ -183,7 +183,7 @@ module Input_LocalTimeComponent =
                 ?testId:              string,
                 ?onEnterKeyPress:    (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
-                ?xLegacyStyles:      List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:                string
             ) : ReactElement =
             key |> ignore
@@ -196,12 +196,12 @@ module Input_LocalTimeComponent =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some ls ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
-            let legacyLabelStyles : List<ReactXP.LegacyStyles.RuntimeStyles> =
+            let legacyLabelStyles : List<Rn.LegacyStyles.RuntimeStyles> =
                 match xLegacyStyles with
                 | Some ls -> ls
                 | None    -> []
@@ -235,19 +235,19 @@ module Input_LocalTimeComponent =
                 |> Option.orElse (label |> Option.map (A11ySlug.testId "input"))
                 |> Option.defaultValue "input-local-time"
 
-            RX.View(
+            Rn.View(
                 testId = resolvedTestId,
                 styles = [| yield! legacyViewStyles |],
                 children =
                     [|
                         (match label with
                          | Some lbl ->
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
                                         LC.LegacyText(
                                             xLegacyStyles =
-                                                ReactXP.LegacyStyles.Runtime.findApplicableStyles
+                                                Rn.LegacyStyles.Runtime.findApplicableStyles
                                                     legacyLabelStyles
                                                     ("label"
                                                      + (if isLabelInvalid then " invalid" else "")
@@ -268,7 +268,7 @@ module Input_LocalTimeComponent =
                             )
                          | None -> noElement)
 
-                        RX.View(
+                        Rn.View(
                             styles   = [| Styles.fields |],
                             children =
                                 [|
@@ -285,13 +285,13 @@ module Input_LocalTimeComponent =
                                         ref                 = refHoursInput,
                                         ?onEnterKeyPress    = onEnterKeyPress,
                                         ?xLegacyStyles      =
-                                            (let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field"
+                                            (let s = Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field"
                                              if s.IsEmpty then None else Some s)
                                     )
 
                                     LC.LegacyText(
                                         xLegacyStyles =
-                                            ReactXP.LegacyStyles.Runtime.findApplicableStyles
+                                            Rn.LegacyStyles.Runtime.findApplicableStyles
                                                 legacyLabelStyles "colon",
                                         children =
                                             [| makeTextNode2 (Some "LibClient.Components.LegacyText") ":" |]
@@ -308,7 +308,7 @@ module Input_LocalTimeComponent =
                                         onBlur           = onBlur,
                                         ?onEnterKeyPress = onEnterKeyPress,
                                         ?xLegacyStyles   =
-                                            (let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field"
+                                            (let s = Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field"
                                              if s.IsEmpty then None else Some s)
                                     )
 
@@ -320,7 +320,7 @@ module Input_LocalTimeComponent =
                                         showSearchBar = false,
                                         testId   = A11ySlug.testId resolvedTestId "period",
                                         ?xLegacyStyles =
-                                            (let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "picker"
+                                            (let s = Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "picker"
                                              if s.IsEmpty then None else Some s)
                                     )
                                 |]
@@ -328,12 +328,12 @@ module Input_LocalTimeComponent =
 
                         (match (value.InternalValidity.Or validity).InvalidReason with
                          | Some reason ->
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
                                         LC.LegacyText(
                                             xLegacyStyles =
-                                                ReactXP.LegacyStyles.Runtime.findApplicableStyles
+                                                Rn.LegacyStyles.Runtime.findApplicableStyles
                                                     legacyLabelStyles "invalid-reason",
                                             children =
                                                 [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", reason)) |]

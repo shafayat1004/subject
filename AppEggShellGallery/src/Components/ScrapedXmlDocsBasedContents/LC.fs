@@ -11,8 +11,8 @@ module AppEggShellGallery.Components.ScrapedXmlDocsBasedContents_LC
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 
 module private Module_LibClient_Disposables_SerialDisposable =
@@ -50,7 +50,7 @@ module private Module_LibClient_Accessibility_AccessibilityRole =
         Ui.ComponentContent (
             displayName = "T:LibClient.Accessibility.AccessibilityRole",
             
-            notes       = LC.Text """Matches ReactXP Types.AccessibilityRole (priority-ordered enum values).""",
+            notes       = LC.Text """Matches Rn Types.AccessibilityRole (priority-ordered enum values).""",
             samples     = element {
                 LC.Text "No examples"
             }
@@ -64,7 +64,7 @@ module private Module_LibClient_Accessibility =
         Ui.ComponentContent (
             displayName = "T:LibClient.Accessibility",
             
-            notes       = LC.Text """Cross-platform accessibility types aligned with @chaldal/reactxp CommonAccessibilityProps.""",
+            notes       = LC.Text """Cross-platform accessibility types aligned with react-native CommonAccessibilityProps.""",
             samples     = element {
                 LC.Text "No examples"
             }
@@ -494,7 +494,7 @@ module private Module_Sized =
      LC.Sized (
          width = 100,
          height = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -508,7 +508,7 @@ module private Module_Sized =
      LC.Sized (
          width = 100,
          height = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -534,7 +534,7 @@ module private Module_Sized =
 
      LC.Sized (
          width = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -547,7 +547,7 @@ module private Module_Sized =
 
      LC.Sized (
          width = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -573,7 +573,7 @@ module private Module_Sized =
 
      LC.Sized (
          height = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -586,7 +586,7 @@ module private Module_Sized =
 
      LC.Sized (
          height = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -672,7 +672,7 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxWidth = 200,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
@@ -685,7 +685,7 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxWidth = 200,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
@@ -713,7 +713,7 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxHeight = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
@@ -726,7 +726,7 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxHeight = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
@@ -756,7 +756,7 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minWidth = 150,
-             child = RX.View (
+             child = Rn.View (
                  styles = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
@@ -772,7 +772,7 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minWidth = 150,
-             child = RX.View (
+             child = Rn.View (
                  styles = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
@@ -803,7 +803,7 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minHeight = 150,
-             child = RX.View (
+             child = Rn.View (
                  styles = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
@@ -819,7 +819,7 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minHeight = 150,
-             child = RX.View (
+             child = Rn.View (
                  styles = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
@@ -966,7 +966,7 @@ module private Module_With_Executor =
 
      LC.Executor.AlertErrors (fun makeExecutor -> element {
          LC.With.Executor (makeExecutor "test", fun executor -> [|
-             RX.View (
+             Rn.View (
                  onPress = (fun _ -> executor.MaybeExecute action),
                  children = [|
                      LC.InfoMessage "Press Here"
@@ -982,7 +982,7 @@ module private Module_With_Executor =
 
      LC.Executor.AlertErrors (fun makeExecutor -> element {
          LC.With.Executor (makeExecutor "test", fun executor -> [|
-             RX.View (
+             Rn.View (
                  onPress = (fun _ -> executor.MaybeExecute action),
                  children = [|
                      LC.InfoMessage "Press Here"

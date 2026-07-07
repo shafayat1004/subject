@@ -88,7 +88,7 @@ type RealTimeService(eventBus: LibClient.EventBus.EventBus, backendUrl: string, 
                 this.ForceReconnect() |> startSafely)
         |> ignore
 
-        ReactXP.NetInfo.onIsConnectedChange (fun isConnected ->
+        Rn.NetInfo.onIsConnectedChange (fun isConnected ->
             // In this scenario, we have detected that Internet connectivity has been re-established on the client. In such a case, we can preempt the retry
             // policy established below and force reconnection now.
             if isConnected then

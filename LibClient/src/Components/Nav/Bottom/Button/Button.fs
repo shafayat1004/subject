@@ -29,8 +29,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open Nav.Bottom.Button
 

@@ -4,8 +4,8 @@ module ThirdParty.Map.Components.Native.Map
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.Map.Types
 open LibClient.Services.ImageService
 open LibClient.LocalImages
@@ -61,7 +61,7 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
             ?markers:   List<Marker>,
             ?shapes:    List<Shape>,
             ?ref:       (IRefReactNativeMapView -> unit),
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:       string
         ) : ReactElement =
         ignore apiKey
@@ -73,9 +73,9 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
         let legacyViewStyles =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let viewStyles =
@@ -95,7 +95,7 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
         LC.With.Layout(
             ``with`` =
                 (fun (onLayoutOption, maybeLayout) ->
-                    RX.View(
+                    Rn.View(
                         ?onLayout = onLayoutOption,
                         styles = viewStyles,
                         children =
@@ -146,7 +146,7 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
                                         match marker.Position with
                                         | MarkerPosition.Centered ->
                                             Some (
-                                                RX.Image(
+                                                Rn.Image(
                                                     styles = [| Styles.image |],
                                                     source = localImage "/libs/ThirdParty/Map/images/marker.png",
                                                     size = Image.FromStyles

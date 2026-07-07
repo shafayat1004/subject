@@ -317,8 +317,8 @@ module AppEggShellGallery.Components.ScrapedXmlDocsBasedContents_{libraryPrefix}
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 {componentPrivateModules}
 

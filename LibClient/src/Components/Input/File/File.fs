@@ -41,8 +41,8 @@ open LibClient
 open LibClient.Components.Input.File
 open LibLifeCycleTypes.File
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_FileComponent =
@@ -129,9 +129,9 @@ module Input_FileComponent =
     let private legacyTopLevelStyles xLegacyStyles =
         match xLegacyStyles with
         | Some ls ->
-            match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+            match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
             | [] -> [||]
-            | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+            | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LibClient.Components.Constructors.LC.Input with
@@ -148,7 +148,7 @@ module Input_FileComponent =
                 ?styles: array<ViewStyles>,
                 ?theme: Theme -> Theme,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
             key |> ignore
@@ -213,7 +213,7 @@ module Input_FileComponent =
             let isInvalid =
                 internalValidityHook.current.IsInvalid || validity.IsInvalid || validity = InputValidity.Missing
 
-            RX.View(
+            Rn.View(
                 styles = [| Styles.view; if isInvalid then Styles.viewInvalid theTheme.InvalidColor.ToCssString; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
                 children = [|
                     LC.With.RefDom(
@@ -234,7 +234,7 @@ module Input_FileComponent =
                                         |]
                                         |> castAsElement
                                 )
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.dragAndDropMessage |],
                                     children = [|
                                         LC.LegacyText(
@@ -247,7 +247,7 @@ module Input_FileComponent =
                                         )
                                     |]
                                 )
-                                RX.View(
+                                Rn.View(
                                     children = [|
                                         LC.LegacyText(
                                             styles = [| Styles.textCenter |],
@@ -261,10 +261,10 @@ module Input_FileComponent =
                                         )
                                     |]
                                 )
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.messageContainer |],
                                     children = [|
-                                        RX.View(
+                                        Rn.View(
                                             children = [|
                                                 if value.Length = 1 then
                                                     LC.LegacyText(
@@ -281,7 +281,7 @@ module Input_FileComponent =
                                         )
                                         combinedInvalidReason
                                         |> Option.map (fun reason ->
-                                            RX.View(
+                                            Rn.View(
                                                 children = [|
                                                     LC.LegacyText(
                                                         styles = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
@@ -292,7 +292,7 @@ module Input_FileComponent =
                                         )
                                         |> Option.getOrElse noElement
                                         if validity = InputValidity.Missing then
-                                            RX.View(
+                                            Rn.View(
                                                 children = [|
                                                     LC.LegacyText(
                                                         styles = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],

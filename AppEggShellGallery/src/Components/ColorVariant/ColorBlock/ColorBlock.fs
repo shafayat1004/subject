@@ -12,7 +12,7 @@ type AppEggShellGallery.Components.Constructors.Ui.ColorVariant with
             ?children:      ReactChildrenProp,
             ?isMain:        bool,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
         let isMain = defaultArg isMain false

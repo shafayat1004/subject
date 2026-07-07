@@ -75,7 +75,7 @@ let private generateRecordConstructor (componentName: string) (componentNameSuff
 
     Codes [
         if taggedRecordType.Name.StartsWith "Props" then
-            let updatedParameterList = $"{parameterList makeFunctionParameterName}, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>"
+            let updatedParameterList = $"{parameterList makeFunctionParameterName}, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>"
             Codes [
                 Line (sprintf "static member %s(%s) =" componentNameSuffix updatedParameterList)
                 IndentedBlock [

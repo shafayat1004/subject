@@ -4,9 +4,9 @@ module ThirdParty.Map.Components.Web.Map
 open LibClient
 open LibClient.JsInterop
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.LegacyStyles.Css
+open Rn.Components
+open Rn.Styles
+open Rn.LegacyStyles.Css
 open ThirdParty.Map
 open ThirdParty.Map.Components.Constructors
 
@@ -1034,7 +1034,7 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
             ?mapStyles:         List<MapStyle>,
             ?mapTypeId:         MapTypeId,
             ?ref:               (IWebMapViewRef -> unit),
-            ?xLegacyStyles:     List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:     List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:               string
         ) : ReactElement =
         ignore key
@@ -1089,7 +1089,7 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
         LC.With.ScreenSize(
             ``with`` =
                 (fun screenSize ->
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.view |],
                         children =
                             [|
@@ -1139,7 +1139,7 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
             ?mapStyles: List<MapStyle>,
             ?mapTypeId: MapTypeId,
             ?ref: IWebMapViewRef -> unit,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore apiKey
         ignore position
@@ -1159,5 +1159,5 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
         ignore mapTypeId
         ignore ref
         ignore xLegacyStyles
-        RX.View()
+        Rn.View()
 #endif

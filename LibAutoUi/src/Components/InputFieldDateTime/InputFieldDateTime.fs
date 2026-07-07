@@ -12,7 +12,7 @@ type UIAuto with
     static member InputFieldDateTime(
             onChange:         InputValue -> unit,
             maybeValue:       Option<InputValue>,
-            ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:             string
         ) : ReactElement =
         key |> ignore

@@ -7,8 +7,8 @@ open LibClient.Components
 open LibClient.Components.Legacy
 open AppEggShellGallery
 open AppEggShellGallery.Colors
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type private Fruit = {
     Name:  string
@@ -212,7 +212,7 @@ LC.ItemList(
                                             style = ItemList.Raw,
                                             whenEmpty =
                                                 WhenEmpty.Children(
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [| Styles.emptyMessage |],
                                                         children = [| LC.UiText("No Fruit!", styles = [| Styles.emptyMessageText |]) |]
                                                     )
@@ -227,7 +227,7 @@ LC.ItemList(
     items = [],
     style = ItemList.Raw,
     whenEmpty = WhenEmpty.Children (
-        RX.View(
+        Rn.View(
             styles = [| makeViewStyles { paddingVertical 20 } |],
             children = [| LC.UiText("No Fruit!", styles = [| makeTextStyles { TextAlign.Center; color colors.Caution.Main; fontSize 18 } |]) |]
         )
@@ -273,7 +273,7 @@ LC.ItemList(
                                             style = ItemList.Horizontal,
                                             seeAll =
                                                 SeeAll.Children(
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [| Styles.customSeeAll |],
                                                         children = [|
                                                             LC.TextButton(
@@ -293,7 +293,7 @@ LC.ItemList(
     items = fruits,
     style = ItemList.Horizontal,
     seeAll = SeeAll.Children (
-        RX.View(
+        Rn.View(
             styles = [| makeViewStyles { JustifyContent.Center } |],
             children = [|
                 LC.TextButton(label = "See More", state = LC.TextButton.Actionable Actions.greet)

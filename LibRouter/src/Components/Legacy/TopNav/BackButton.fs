@@ -4,7 +4,7 @@ module LibRouter.Components.Legacy_TopNav_BackButton
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Styles
+open Rn.Styles
 
 module LR =
     module Legacy =

@@ -4,8 +4,8 @@ open Fable.Core.JsInterop
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Helpers
+open Rn.Components
+open Rn.Helpers
 open AppTodo.Components
 open AppTodo.I18nGlobal
 open AppTodo.AppServices
@@ -20,7 +20,7 @@ let init (configRes: Result<AppTodo.Config, string>) =
     let element =
         match configRes with
         | Ok config ->
-            ReactXP.Styles.Config.setIsDevMode config.InitializeReactXPInDevMode
+            Rn.Styles.Config.setIsDevMode config.InitializeRnInDevMode
 
             AppServices.initialize config
             AppTodo.Config.initialize config
@@ -40,14 +40,14 @@ let init (configRes: Result<AppTodo.Config, string>) =
             let element = Ui.App.Root()
             rootElement <- Some element
 
-            ReactXP.App.initialize (config.InitializeReactXPInDebugMode, config.InitializeReactXPInDevMode)
+            Rn.App.initialize (config.InitializeRnInDebugMode, config.InitializeRnInDevMode)
 
-            ReactXP.UserInterface.setContextWrapper (fun rootView ->
+            Rn.UserInterface.setContextWrapper (fun rootView ->
 #if EGGSHELL_PLATFORM_IS_WEB
                 Ui.AppContext (children = [| rootView |])
 #else
                 // gesture-handler needs a root view ancestor or all Pan gestures no-op.
-                RX.GestureHandlerRootView(
+                Rn.GestureHandlerRootView(
                     children = [| Ui.AppContext (children = [| rootView |]) |]
                 )
 #endif
@@ -71,7 +71,7 @@ let init (configRes: Result<AppTodo.Config, string>) =
 
         | Error reason ->
             Log.Error ("App initialization failed because config construction failed: " + reason)
-            ReactXP.App.initialize (false, false)
+            Rn.App.initialize (false, false)
 
             LC.AppShell.TopLevelErrorMessage(
                 error = exn reason,
@@ -80,7 +80,7 @@ let init (configRes: Result<AppTodo.Config, string>) =
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
-        ReactXP.UserInterface.setMainView element
+        Rn.UserInterface.setMainView element
 
         #if EGGSHELL_PLATFORM_IS_WEB
         Browser.Dom.document.getElementById("app-pre-bootstrap-loader").remove()

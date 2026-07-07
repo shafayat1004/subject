@@ -69,3 +69,6 @@ CodecValidationWorkSpace/
 charts/**/*.tgz
 Chart.lock
 .metals/metals.lock.db
+
+# Android native CMake build output
+**/.cxx/

@@ -4,7 +4,7 @@ namespace LibClient.Components.Input
 open LibClient
 open LibLifeCycleTypes.File
 open LibClient.Services.ImageService
-open ReactXP.Styles
+open Rn.Styles
 
 module Image =
 
@@ -22,8 +22,8 @@ open LibClient.Accessibility
 open LibClient.Components.Input.Image
 open LibLifeCycleTypes.File
 open LibClient.Services.ImageService
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_ImageComponent =
@@ -63,7 +63,7 @@ module Input_ImageComponent =
                 ?styles:       array<ViewStyles>,
                 ?testId:       string,
                 ?key:          string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
             key |> ignore
@@ -77,15 +77,15 @@ module Input_ImageComponent =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some ls ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
             let fileLegacyStyles =
                 match xLegacyStyles with
                 | Some ls ->
-                    let s = ReactXP.LegacyStyles.Runtime.findApplicableStyles ls "image-input"
+                    let s = Rn.LegacyStyles.Runtime.findApplicableStyles ls "image-input"
                     if s.IsEmpty then None else Some s
                 | None -> None
 
@@ -110,7 +110,7 @@ module Input_ImageComponent =
                 selectedIndicesHook.update (fun _ -> Set.empty)
                 selectedFilesHook.update (fun _ -> Set.empty)
 
-            RX.View(
+            Rn.View(
                 testId = resolvedTestId,
                 styles =
                     [|

@@ -11,8 +11,8 @@ open LibClient.Components
 open LibClient.Responsive
 open LibClient.Components.Input.PickerModel
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module private Helpers =
     let createModel<'Item when 'Item: comparison>
@@ -44,7 +44,7 @@ let renderPickerBase<'Item when 'Item: comparison>
         testId: string option,
         pickerId: string option,
         styles: ViewStyles array option,
-        xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option
+        xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option
     ) : ReactElement =
     let popupId = "LibClient.Components.Input.Picker"
     let modelRef = Hooks.useRef (Helpers.createModel items value)
@@ -66,7 +66,7 @@ let renderPickerBase<'Item when 'Item: comparison>
             let popup = LC.Input.PickerInternals.Popup(model, itemView, ?key = pickerId)
 
             let options =
-                ReactXP.Popup.popupShowOptions
+                Rn.Popup.popupShowOptions
                     (fun () -> anchorRef.current)
                     (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) -> popup)
                     (fun () ->
@@ -76,11 +76,11 @@ let renderPickerBase<'Item when 'Item: comparison>
             LibClient.JsInterop.runOnNextTick (fun () ->
                 // Defer one extra tick so the opening click does not immediately dismiss the popup (web).
                 LibClient.JsInterop.runOnNextTick (fun () ->
-                    ReactXP.Popup.show (options, popupId)
+                    Rn.Popup.show (options, popupId)
 
                     maybePopupHideRef.current <-
                         Some(fun () ->
-                            ReactXP.Popup.dismiss (popupId)
+                            Rn.Popup.dismiss (popupId)
                             maybePopupHideRef.current <- None)))
 
         | ScreenSize.Handheld ->
@@ -125,7 +125,7 @@ let renderPickerBase<'Item when 'Item: comparison>
            box pickerId |]
     )
 
-    RX.View(
+    Rn.View(
         ref = (fun r -> anchorRef.current <- r),
         children =
             [| LC.Input.PickerInternals.Field(
@@ -157,7 +157,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             ?pickerId: string,
             ?styles: array<ViewStyles>,
             ?key: string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
 

@@ -6,8 +6,8 @@ open Fable.React.Props
 open LibClient
 open LibClient.Components
 open LibRenderDSL.Types
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open Scraping.Types
 open AppEggShellGallery.Colors
 
@@ -69,7 +69,7 @@ module private Styles =
         paddingBottom 5
     }
 
-do ReactXP.LegacyStyles.Css.addCss (sprintf """
+do Rn.LegacyStyles.Css.addCss (sprintf """
 .aesg-ComponentProps-table {
     border-collapse:             collapse;
     display:                     block;
@@ -77,7 +77,7 @@ do ReactXP.LegacyStyles.Css.addCss (sprintf """
     -webkit-overflow-scrolling:  touch;
     width:                       auto;
     max-width:                   100%%;
-    /* The table renders inside a flex-column RX.View, which would otherwise stretch it to
+    /* The table renders inside a flex-column Rn.View, which would otherwise stretch it to
        full width; align-self keeps it sized to its content. */
     align-self:                  flex-start;
 }
@@ -129,7 +129,7 @@ let private renderScrapeErrors (errors: NonemptyList<ScrapeError>) : ReactElemen
     errors
     |> NonemptyList.toList
     |> List.map (fun error ->
-        RX.View(
+        Rn.View(
             styles = [| Styles.error |],
             children = [| LC.Text(sprintf "%A" error, styles = [| Styles.errorText |]) |]
         )
@@ -177,15 +177,15 @@ let private renderFieldsTable (fields: List<XmlParam>) : ReactElement =
     #else
     fields
     |> List.mapi (fun i field ->
-        RX.View(
+        Rn.View(
             key = string i,
             styles = [| Styles.props |],
             children =
                 [|
-                    RX.View(children = [| LC.Text ("Name: " + field.Name) |])
-                    RX.View(children = [| LC.Text ("Type: " + field.Type) |])
-                    RX.View(children = [| LC.Text ("Default: " + (field.Default |> Option.getOrElse "")) |])
-                    RX.View(children = [| LC.Text ("Description: " + (field.Description |> Option.getOrElse "")) |])
+                    Rn.View(children = [| LC.Text ("Name: " + field.Name) |])
+                    Rn.View(children = [| LC.Text ("Type: " + field.Type) |])
+                    Rn.View(children = [| LC.Text ("Default: " + (field.Default |> Option.getOrElse "")) |])
+                    Rn.View(children = [| LC.Text ("Description: " + (field.Description |> Option.getOrElse "")) |])
                 |]
         )
     )
@@ -196,11 +196,11 @@ let private renderFieldsTable (fields: List<XmlParam>) : ReactElement =
 let private renderFieldsContent (fieldsResult: Result<List<XmlParam>, string>) : ReactElement =
     match fieldsResult with
     | Ok [] ->
-        RX.View(children = [| LC.Text("No props", styles = [| Styles.metaContent |]) |])
+        Rn.View(children = [| LC.Text("No props", styles = [| Styles.metaContent |]) |])
     | Ok fields ->
         renderFieldsTable fields
     | Error error ->
-        RX.View(
+        Rn.View(
             styles = [| Styles.error |],
             children = [| LC.Text(error, styles = [| Styles.errorText |]) |]
         )
@@ -212,19 +212,19 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?children:      ReactChildrenProp,
             ?heading:       string,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore
         xLegacyStyles |> ignore
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children =
                 [|
                     heading
                     |> Option.map (fun text ->
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.heading |],
                             children =
                                 [|
@@ -237,7 +237,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                     )
                     |> Option.defaultValue noElement
 
-                    RX.View(
+                    Rn.View(
                         styles = (if Option.isSome heading then [| Styles.contentIndented |] else [||]),
                         children =
                             [|

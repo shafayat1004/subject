@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module ToggleButton =
@@ -141,7 +141,7 @@ type LibClient.Components.Constructors.LC with
 
         let defaultTestId = A11ySlug.testId "toggle-button" a11yLabel
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.viewThemeFor theTheme isSelected
@@ -156,11 +156,11 @@ type LibClient.Components.Constructors.LC with
                 |],
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.labelBlock |],
                         children =
                             elements {
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.leftIcon |],
                                     children =
                                         elements {

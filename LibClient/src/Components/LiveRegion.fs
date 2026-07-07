@@ -6,9 +6,9 @@ open Fable.Core.JsInterop
 open LibClient
 open LibClient.Accessibility
 open LibClient.UiActionLog
-open ReactXP.Components
-open ReactXP.Components.View
-open ReactXP.Helpers
+open Rn.Components
+open Rn.Components.View
+open Rn.Helpers
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -19,7 +19,7 @@ type LibClient.Components.Constructors.LC with
             ?key: string
         ) : ReactElement =
         key |> ignore
-        RX.View(
+        Rn.View(
             ?testId = testId,
             ?accessibilityLiveRegion = (liveRegion |> Option.map (fun r -> unbox<AccessibilityLiveRegion> (int r))),
             children = (defaultArg children [||])

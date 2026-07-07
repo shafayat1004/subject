@@ -28,8 +28,8 @@ let Make =
         Cell
         (fun (props: Props) ->
             CellPropsJs(
-                ?fill        = (props.Fill |> Option.map (fun v -> v.ToReactXPString)),
-                ?stroke      = (props.Stroke |> Option.map (fun v -> v.ToReactXPString)),
+                ?fill        = (props.Fill |> Option.map (fun v -> v.ToRnString)),
+                ?stroke      = (props.Stroke |> Option.map (fun v -> v.ToRnString)),
                 ?strokeWidth = props.StrokeWidth
             ) |> box
         )

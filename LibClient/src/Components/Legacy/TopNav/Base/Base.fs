@@ -19,8 +19,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open LibClient.Components.Legacy.TopNav.Base
 
@@ -75,20 +75,20 @@ module Legacy_TopNav_Base =
             }
 
     module private LegacyBridge =
-        let viewStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
+        let viewStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
-        let textStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<TextStyles> =
+        let textStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<TextStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<TextStyles> "ReactXP.Components.Text" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" styles |]
             | None -> [||]
 
     type Constructors.LC.Legacy.TopNav with
@@ -104,7 +104,7 @@ module Legacy_TopNav_Base =
                 ?centerStyles:  array<ViewStyles>,
                 ?rightStyles:   array<ViewStyles>,
                 ?headingStyles: array<TextStyles>,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
             key |> ignore
@@ -113,7 +113,7 @@ module Legacy_TopNav_Base =
             let leftEl   = defaultArg left noElement
             let rightEl  = defaultArg right noElement
 
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         Styles.view theTheme
@@ -122,7 +122,7 @@ module Legacy_TopNav_Base =
                     |],
                 children =
                     [|
-                        RX.View(
+                        Rn.View(
                             styles =
                                 [|
                                     Styles.left
@@ -136,7 +136,7 @@ module Legacy_TopNav_Base =
                                 |]
                         )
 
-                        RX.View(
+                        Rn.View(
                             styles =
                                 [|
                                     Styles.center
@@ -163,7 +163,7 @@ module Legacy_TopNav_Base =
                                 |]
                         )
 
-                        RX.View(
+                        Rn.View(
                             styles =
                                 [|
                                     Styles.right

@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Native_CircleTypeExtensions =
     type ThirdParty.Map.Components.Constructors.Map.Native with
-        static member Circle(circle: Circle, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Circle(circle: Circle, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Circle = circle

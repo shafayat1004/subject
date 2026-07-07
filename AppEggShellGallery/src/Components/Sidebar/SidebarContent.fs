@@ -77,7 +77,7 @@ let howToItems (itemStateMarkdown: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Taps, Clicks, Hovers, etc", state = itemStateMarkdown "how-to/tap-capture.md")
         LC.Sidebar.Item(label = "Executors",                 state = itemStateMarkdown "how-to/executors.md")
         LC.Sidebar.Item(label = "Responsive Components",     state = itemStateMarkdown "how-to/responsive.md")
-        LC.Sidebar.Item(label = "Scrolling in ReactXP",      state = itemStateMarkdown "how-to/scrolling.md")
+        LC.Sidebar.Item(label = "Scrolling in Rn",      state = itemStateMarkdown "how-to/scrolling.md")
         LC.Sidebar.Item(label = "React Refs",                state = itemStateMarkdown "how-to/refs.md")
         LC.Sidebar.Item(label = "Dealing with Spinners",     state = itemStateMarkdown "how-to/spinners.md")
     |]
@@ -124,7 +124,7 @@ let modernizationItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Phased Plan",     state = itemState "modernization/phased-plan.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Workstreams")
-        LC.Sidebar.Item(label = "ReactXP → RNW",       state = itemState "modernization/reactxp-to-rnw.md")
+        LC.Sidebar.Item(label = "Rn → RNW",       state = itemState "modernization/reactxp-to-rnw.md")
         LC.Sidebar.Item(label = "Render DSL Retirement", state = itemState "modernization/render-dsl-retirement.md")
         LC.Sidebar.Item(label = "Build Performance",   state = itemState "modernization/build-performance.md")
         LC.Sidebar.Item(label = "Scaffolding",         state = itemState "modernization/scaffolding.md")

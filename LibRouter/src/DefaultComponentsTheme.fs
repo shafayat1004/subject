@@ -2,7 +2,7 @@
 
 open LibClient
 open LibRouter.Components
-open ReactXP.LegacyStyles
+open Rn.LegacyStyles
 
 type RFontWeight = RulesRestricted.FontWeight
 

@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Tab =
@@ -85,7 +85,7 @@ type LibClient.Components.Constructors.LC with
         let tabState =
             { AccessibilityStateRecord.empty with Selected = Some isSelected }
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.viewTheme theTheme state
@@ -97,7 +97,7 @@ type LibClient.Components.Constructors.LC with
             testId = theTestId,
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.label |],
                         children =
                             elements {

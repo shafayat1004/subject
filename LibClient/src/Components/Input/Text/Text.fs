@@ -2,7 +2,7 @@ namespace LibClient.Components.Input
 
 open Fable.Core.JsInterop
 open LibClient
-open ReactXP.Components
+open Rn.Components
 
 module Text =
 
@@ -22,7 +22,7 @@ namespace LibClient.Components.Input
 
 module TextStyles =
 
-    open ReactXP.LegacyStyles
+    open Rn.LegacyStyles
 
     let private baseStyles =
         lazy
@@ -220,8 +220,8 @@ open LibClient.Components.Input
 open LibClient.Components.Input.Text
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_TextComponent =
@@ -420,7 +420,7 @@ module Input_TextComponent =
                 ?testId: string,
                 ?ref: LibClient.JsInterop.JsNullable<ITextRef> -> unit,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             key |> ignore
 
@@ -438,11 +438,11 @@ module Input_TextComponent =
             let legacyStyles: array<ViewStyles> =
                 match xLegacyStyles with
                 | Some ls ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                     | [] -> [||]
                     | styles ->
-                        [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles>
-                               "ReactXP.Components.View"
+                        [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles>
+                               "Rn.Components.View"
                                styles |]
                 | None -> [||]
 
@@ -525,13 +525,13 @@ module Input_TextComponent =
                 accessibilityLabel |> Option.orElse label |> Option.orElse placeholder
 
             // When used as a search field, expose the container as a search landmark so screen
-            // readers announce the region. The inner RX.TextInput also gets role=searchbox via RNW.
+            // readers announce the region. The inner Rn.TextInput also gets role=searchbox via RNW.
             let containerRole =
                 match accessibilityRole with
                 | Some AccessibilityRole.Search -> accessibilityRole
                 | _ -> None
 
-            RX.View(
+            Rn.View(
                 testId = resolvedTestId,
                 ?accessibilityRole = containerRole,
                 styles =
@@ -539,12 +539,12 @@ module Input_TextComponent =
                        yield! legacyStyles
                        yield! (defaultArg styles [||]) |],
                 children =
-                    [| RX.View(
+                    [| Rn.View(
                            styles = [| Styles.borderFor theTheme validity.IsInvalid isFocusedHook.current editable |],
                            children =
                                [| match prefixIcon with
                                   | Some iconCtor ->
-                                      RX.View(
+                                      Rn.View(
                                           importantForAccessibility =
                                               LibClient.Accessibility.ImportantForAccessibility.No,
                                           styles = [| Styles.prefixIconWrap |],
@@ -555,10 +555,10 @@ module Input_TextComponent =
                                   match (isLabelSmall, prefix) with
                                   | (true, Some prefixText) ->
                                       LC.UiText(value = prefixText, styles = [| Styles.prefix theTheme.TextColor |])
-                                  | _ -> RX.View(styles = [| Styles.focusPreservingSentinel |])
+                                  | _ -> Rn.View(styles = [| Styles.focusPreservingSentinel |])
 
 #if EGGSHELL_PLATFORM_IS_WEB
-                                  RX.TextInput(
+                                  Rn.TextInput(
                                       styles =
                                           [| Styles.textInput
                                                  theTheme.NoneditableBackgroundColor
@@ -581,7 +581,7 @@ module Input_TextComponent =
                                       editable = editable,
                                       blurOnSubmit = blurOnSubmit,
                                       placeholder = (placeholder |> Option.defaultValue ""),
-                                      placeholderTextColor = theTheme.PlaceholderColor.ToReactXPString,
+                                      placeholderTextColor = theTheme.PlaceholderColor.ToRnString,
                                       ``ref`` = bindTextInput,
                                       secureTextEntry = secureTextEntry,
                                       keyboardType = keyboardType,
@@ -589,9 +589,9 @@ module Input_TextComponent =
                                       autoCapitalize = autoCapitalize
                                   )
 #else
-                                  // Native: ReactXP TextInput patched via LibClient/vendor (metro resolveRequest)
+                                  // Native: Rn TextInput patched via LibClient/vendor (metro resolveRequest)
                                   // to skip prop sync while focused; do not remount on focus (breaks iOS keyboard).
-                                  RX.TextInput(
+                                  Rn.TextInput(
                                       styles =
                                           [| Styles.textInput
                                                  theTheme.NoneditableBackgroundColor
@@ -614,7 +614,7 @@ module Input_TextComponent =
                                       editable = editable,
                                       blurOnSubmit = blurOnSubmit,
                                       placeholder = (placeholder |> Option.defaultValue ""),
-                                      placeholderTextColor = theTheme.PlaceholderColor.ToReactXPString,
+                                      placeholderTextColor = theTheme.PlaceholderColor.ToRnString,
                                       ``ref`` = bindTextInput,
                                       secureTextEntry = secureTextEntry,
                                       keyboardType = keyboardType,
@@ -629,7 +629,7 @@ module Input_TextComponent =
                                   | (true, Some(InputSuffix.Icon icon)) ->
                                       LC.Icon(icon = icon, styles = [| Styles.suffixIcon theTheme.TextColor |])
                                   | (true, Some(InputSuffix.Element element)) -> element
-                                  | _ -> RX.View(styles = [| Styles.focusPreservingSentinel |]) |]
+                                  | _ -> Rn.View(styles = [| Styles.focusPreservingSentinel |]) |]
                        )
 
                        match validity.InvalidReason with
@@ -639,7 +639,7 @@ module Input_TextComponent =
 
                        match label with
                        | Some labelText ->
-                           RX.View(
+                           Rn.View(
                                styles = [| Styles.label theTheme.LabelBackgroundColor isLabelSmall |],
                                children =
                                    [| LC.UiText(
@@ -664,5 +664,5 @@ module Input_TextComponent =
                                           componentName = "LC.Input.Text.Focus"
                                       ) |]
                            )
-                       | None -> RX.View(styles = [| Styles.focusPreservingSentinel |]) |]
+                       | None -> Rn.View(styles = [| Styles.focusPreservingSentinel |]) |]
             )

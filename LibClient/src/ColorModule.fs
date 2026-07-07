@@ -27,9 +27,9 @@ type Color =
 | DevRed
 with
     member this.ToCssString : string =
-        this.ToReactXPString
+        this.ToRnString
 
-    member this.ToReactXPString : string =
+    member this.ToRnString : string =
         match this with
         | InternalString value -> value
         | InternalHex  value   -> if value.StartsWith "#" then value else failwith (sprintf "Color %s does not start with #, which is expected of Color.Hex values" value)

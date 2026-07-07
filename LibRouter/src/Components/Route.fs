@@ -3,8 +3,8 @@ module LibRouter.Components.Route
 
 open Fable.React
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 open LibClient
 open LibClient.Components
@@ -155,14 +155,14 @@ type LR with
                             ``try`` = element {
                                 let url = location.Url
                                 let restoreScroll = restoreScroll |> Option.getOrElse (WhenContentApproximatelyMatchesOriginalHeight url)
-                                RX.View (styles   = (styles |> Option.getOrElse [| Styles.view elevateFooter |]), children = [|
+                                Rn.View (styles   = (styles |> Option.getOrElse [| Styles.view elevateFooter |]), children = [|
                                     topElement
 
                                     match (scroll, footer) with
                                     | Scroll.NoScroll, maybeFooter ->
-                                        RX.View (styles = [| Styles.no_scroll_view |], children = [|
-                                            RX.View (styles = [| Styles.content_container |], children = [|
-                                                RX.View (styles = [| Styles.content contentWidth |] , children = children)
+                                        Rn.View (styles = [| Styles.no_scroll_view |], children = [|
+                                            Rn.View (styles = [| Styles.content_container |], children = [|
+                                                Rn.View (styles = [| Styles.content contentWidth |] , children = children)
                                             |])
                                             maybeFooter |> Option.getOrElse nothing
                                         |])
@@ -176,9 +176,9 @@ type LR with
                                                         scroll        = scroll,
                                                         scrollViewRef = bindScrollView,
                                                         children      = [|
-                                                            RX.View (styles = [| Styles.scroll_view_no_footer |], children = [|
-                                                                RX.View (styles = [| Styles.content_container |], children = [|
-                                                                    RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                                            Rn.View (styles = [| Styles.scroll_view_no_footer |], children = [|
+                                                                Rn.View (styles = [| Styles.content_container |], children = [|
+                                                                    Rn.View (styles = [| Styles.content contentWidth |], children = children)
                                                                 |])
                                                             |])
                                                         |]
@@ -204,12 +204,12 @@ type LR with
                                                                 scroll        = scroll,
                                                                 scrollViewRef = bindScrollView,
                                                                 children      = [|
-                                                                    RX.View (styles = [| Styles.scroll_view_with_footer; Styles.scroll_view_with_footer_height (maybeLayout |> Option.map (fun l -> l.Height) |> Option.getOrElse -1) |], children = [|
-                                                                        RX.View (styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
-                                                                            RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                                                    Rn.View (styles = [| Styles.scroll_view_with_footer; Styles.scroll_view_with_footer_height (maybeLayout |> Option.map (fun l -> l.Height) |> Option.getOrElse -1) |], children = [|
+                                                                        Rn.View (styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
+                                                                            Rn.View (styles = [| Styles.content contentWidth |], children = children)
                                                                         |])
 
-                                                                        RX.View (styles = [| Styles.scroll_view_footer |], children = [| footer |])
+                                                                        Rn.View (styles = [| Styles.scroll_view_footer |], children = [| footer |])
                                                                     |])
                                                                 |]
                                                             )

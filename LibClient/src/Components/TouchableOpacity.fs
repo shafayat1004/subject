@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -40,7 +40,7 @@ type LibClient.Components.Constructors.LC with
         let a11yLabel = defaultArg label "Button"
         let theTestId = testId |> Option.defaultValue (A11ySlug.testId "touchable-opacity" a11yLabel)
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.container |],
             children = elements {
                 children

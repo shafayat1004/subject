@@ -15,7 +15,7 @@ type AppEggShellGallery.Components.Constructors.Ui.With with
             ``with``:       AppEggShellGallery.Navigation.Navigation -> ReactElement,
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 

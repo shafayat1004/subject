@@ -13,8 +13,8 @@ type ConfigSource = {
     MaybeSeqMaxBufferCapacity:                     Option<int>
     MaybeSeqMaxFlushDelay:                         Option<TimeSpan>
     MaybeSeqMaxFlushBufferCapacity:                Option<int>
-    InitializeReactXPInDevMode:                    Option<string>
-    InitializeReactXPInDebugMode:                  Option<string>
+    InitializeRnInDevMode:                    Option<string>
+    InitializeRnInDebugMode:                  Option<string>
     MaybeInBundleImageServiceBaseUrl:              Option<string>
     MaybeInBundleStaticResourceUrlPattern:         Option<string>
     MaybeExternalImageServiceBaseUrl:              Option<string>
@@ -34,8 +34,8 @@ type ConfigSource = {
         MaybeSeqMaxBufferCapacity                     = None
         MaybeSeqMaxFlushDelay                         = None
         MaybeSeqMaxFlushBufferCapacity                = None
-        InitializeReactXPInDevMode                    = Some "false"
-        InitializeReactXPInDebugMode                  = Some "false"
+        InitializeRnInDevMode                    = Some "false"
+        InitializeRnInDebugMode                  = Some "false"
         MaybeInBundleImageServiceBaseUrl              = None
         MaybeInBundleStaticResourceUrlPattern         = None
         MaybeExternalImageServiceBaseUrl              = None
@@ -54,8 +54,8 @@ type Config = {
     LogLevel:                                      LibClient.LogLevel
     MaybeAppInsightsConfig:                        Option<LibClient.ApplicationInsights.AppInsightsConfig>
     MaybeSeqConfig:                                Option<LibClient.Seq.SeqConfig>
-    InitializeReactXPInDevMode:                    bool
-    InitializeReactXPInDebugMode:                  bool
+    InitializeRnInDevMode:                    bool
+    InitializeRnInDebugMode:                  bool
     MaybeInBundleImageServiceBaseUrl:              Option<string>
     MaybeInBundleStaticResourceUrlPattern:         Option<string>
     MaybeExternalImageServiceBaseUrl:              Option<string>
@@ -68,8 +68,8 @@ type Config = {
         resultful {
             let! theAppUrlBase                   = source.AppUrlBase |> Result.ofOption "Missing AppUrlBase"
             let! theBackendUrl                   = source.BackendUrl |> Result.ofOption "Missing BackendUrl"
-            let! theInitializeReactXPInDevMode   = source.InitializeReactXPInDevMode     |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDevMode"
-            let! theInitializeReactXPInDebugMode = source.InitializeReactXPInDebugMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDebugMode"
+            let! theInitializeRnInDevMode   = source.InitializeRnInDevMode     |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeRnInDevMode"
+            let! theInitializeRnInDebugMode = source.InitializeRnInDebugMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeRnInDebugMode"
             let! theOtpResendTimeoutSeconds      = source.OtpResendTimeoutSeconds        |> Option.flatMap System.Int32.ParseOption   |> Result.ofOption "Missing OtpResendTimeoutSeconds"
             let  theMaybeSessionIdCookieDomain   = source.MaybeSessionIdCookieDomain     |> Option.flatMap NonemptyString.ofString
 
@@ -102,8 +102,8 @@ type Config = {
                 LogLevel                                      = theLogLevel
                 MaybeAppInsightsConfig                        = maybeAppInsightsConfig
                 MaybeSeqConfig                                = maybeSeqConfig
-                InitializeReactXPInDevMode                    = theInitializeReactXPInDevMode
-                InitializeReactXPInDebugMode                  = theInitializeReactXPInDebugMode
+                InitializeRnInDevMode                    = theInitializeRnInDevMode
+                InitializeRnInDebugMode                  = theInitializeRnInDebugMode
                 MaybeInBundleImageServiceBaseUrl              = source.MaybeInBundleImageServiceBaseUrl
                 MaybeInBundleStaticResourceUrlPattern         = source.MaybeInBundleStaticResourceUrlPattern
                 MaybeExternalImageServiceBaseUrl              = source.MaybeExternalImageServiceBaseUrl

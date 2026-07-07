@@ -1161,7 +1161,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
     member private this.ProcessActionLikeResponse<'T, 'U>
         (response: Result<'T, RequestError>)
         (transform: 'T -> 'U)
-        (onDecodingError: string -> LibClient.Services.HttpService.ReactXPHttp.WebResponse -> Result<'U, ActionOrConstructionError<'OpError>>)
+        (onDecodingError: string -> LibClient.Services.HttpService.RnHttp.WebResponse -> Result<'U, ActionOrConstructionError<'OpError>>)
         (onOtherRequestError: RequestError -> Result<'U, ActionOrConstructionError<'OpError>>)
         : Result<'U, ActionOrConstructionError<'OpError>> =
 

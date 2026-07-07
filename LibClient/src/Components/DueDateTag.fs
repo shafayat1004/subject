@@ -7,7 +7,7 @@ open Fable.React
 open LibClient
 open LibClient.ServiceInstances
 
-open ReactXP.Styles
+open Rn.Styles
 
 // TODO: delete after RenderDSL migration
 // making ~UniDateTime.Of available with ~ sytnax to caller

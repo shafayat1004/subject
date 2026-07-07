@@ -30,7 +30,7 @@ type LibClient.Components.Constructors.LC.Pointer with
                     fun value (_: Browser.Types.PointerEvent) ->
                         isHoveredState.update value
                         // Restoring the Depressed behaviour when pointer is moved out is
-                        // supposed to work according to ReactXP docs, but doesn't seem to.
+                        // supposed to work according to Rn docs, but doesn't seem to.
                         // This fixes at least the "moved out" part. Can't think of a simple
                         // fix for the "moved in again" part, so leaving that out for now.
                         isDepressedState.update (if not value then false else isDepressedState.current)

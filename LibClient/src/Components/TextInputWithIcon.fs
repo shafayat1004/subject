@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -40,7 +40,7 @@ type LibClient.Components.Constructors.LC with
         ) : ReactElement =
         let iconSize = defaultArg iconSize 26
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.view
@@ -48,7 +48,7 @@ type LibClient.Components.Constructors.LC with
                 |],
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.icon |],
                         children =
                             elements {
@@ -56,10 +56,10 @@ type LibClient.Components.Constructors.LC with
                             }
                     )
 
-                    RX.TextInput(
+                    Rn.TextInput(
                         styles = [| Styles.textInput |],
                         ?placeholder = placeholder,
-                        ?placeholderTextColor = (placeholderTextColor |> Option.map (fun c -> c.ToReactXPString)),
+                        ?placeholderTextColor = (placeholderTextColor |> Option.map (fun c -> c.ToRnString)),
                         ?onChangeText = onChangeText
                     )
                 }

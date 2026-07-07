@@ -10,8 +10,8 @@ open LibClient.Components.Form_Base
 open LibClient.Components.Form_Base.Types
 open LibClient.Dialogs
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type private Parameters = {
     MaybeHeading: Option<string>
@@ -87,10 +87,10 @@ type private PromptContent =
                         ?heading = parameters.MaybeHeading,
                         accessibilityLabel = Helpers.dialogLabel parameters.MaybeHeading parameters.Details,
                         body =
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.details |],
                                             children =
                                                 [|
@@ -111,7 +111,7 @@ type private PromptContent =
                                     |]
                             ),
                         buttons =
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
                                         LC.Button(

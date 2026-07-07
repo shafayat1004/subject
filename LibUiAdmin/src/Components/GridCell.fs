@@ -4,8 +4,8 @@ module LibUiAdmin.Components.GridCell
 open Fable.React
 open Fable.React.Props
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module dom = Fable.React.Standard
 
@@ -116,11 +116,11 @@ type UiAdmin with
         ] children
         #else
         ignore className
-        RX.View(
+        Rn.View(
             key = cellKey,
             styles = [| Styles.cell widthUnits totalUnits isFirstColumn |],
             children = [|
-                RX.View(
+                Rn.View(
                     styles = [| Styles.cellContent |],
                     children = children
                 )

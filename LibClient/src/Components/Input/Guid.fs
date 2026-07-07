@@ -4,7 +4,7 @@ module LibClient.Components.Input_Guid
 open System
 open Fable.React
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 module private Helpers =
     let parseGuid (maybeNonemptyString: Option<NonemptyString>) : Result<Option<Guid>, string> =

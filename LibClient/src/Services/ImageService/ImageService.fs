@@ -97,7 +97,7 @@ type ImageService (httpService: HttpService, maybeInBundleImageServiceBaseUrl: O
         |> Option.getOrElse dimension
 
     let mutable optimizationSettings = {
-        PixelDensityMultiplier           = ReactXP.UserInterface.pixelDensity()
+        PixelDensityMultiplier           = Rn.UserInterface.pixelDensity()
         IsWebpSupported                  = false
         RoundUpToBucket                  = roundUpToBucket
         MaybeInBundleImageServiceBaseUrl = maybeInBundleImageServiceBaseUrl

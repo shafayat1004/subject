@@ -3,8 +3,8 @@ module LibClient.Components.LabelledValue
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module private Styles =
     let root      = makeViewStyles { FlexDirection.Row; JustifyContent.SpaceBetween; marginVertical 2 }
@@ -13,19 +13,19 @@ module private Styles =
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
-    static member LabelledValue(label: string, ?children: array<ReactElement>, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
+    static member LabelledValue(label: string, ?children: array<ReactElement>, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
         key |> ignore
         let legacyStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
-                | s  -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" s |]
+                | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
-        RX.View(
+        Rn.View(
             styles = [| Styles.root; yield! legacyStyles |],
             children = [|
-                RX.View(children = [| LC.Text(label, styles = [| Styles.labelText |]) |])
-                RX.View(styles = [| Styles.valueView |], children = defaultArg children [||])
+                Rn.View(children = [| LC.Text(label, styles = [| Styles.labelText |]) |])
+                Rn.View(styles = [| Styles.valueView |], children = defaultArg children [||])
             |]
         )

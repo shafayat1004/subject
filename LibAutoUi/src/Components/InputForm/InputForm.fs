@@ -10,8 +10,8 @@ open LibAutoUi.Types
 open LibAutoUi.TypeExtensions
 open LibAutoUi.Components.InputFormElement
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 // TODO get rid of this eventually, we're not using this Plugin infra
 let (* want private but can't have because used by inline *) inputRendererPlugin: InputRendererPlugin =
@@ -84,7 +84,7 @@ type UIAuto with
             formWrapper:      FormWrapper<'T>,
             settings:         Settings,
             onChange:         InputValidationResult<'T> -> unit,
-            ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:             string
         ) : ReactElement =
         key |> ignore
@@ -124,7 +124,7 @@ type UIAuto with
             estateHook.update (fun estate -> { estate with Accumulator = updatedAccumulator })
             reprocessAccumulator updatedAccumulator
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children =
                 [|

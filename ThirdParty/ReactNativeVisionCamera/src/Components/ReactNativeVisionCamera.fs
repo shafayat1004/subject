@@ -3,7 +3,7 @@ module ThirdParty.ReactNativeVisionCamera.ReactNativeVisionCamera
 open Fable.React
 open Fable.Core
 open Fable.Core.JsInterop
-open ReactXP
+open Rn
 open LibLifeCycleTypes.File
 
 

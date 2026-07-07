@@ -55,8 +55,8 @@ open LibClient.Components.Input.NamedFile
 open LibClient.Responsive
 open LibLifeCycleTypes.File
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_NamedFileComponent =
@@ -150,9 +150,9 @@ module Input_NamedFileComponent =
     let private legacyTopLevelStyles xLegacyStyles =
         match xLegacyStyles with
         | Some ls ->
-            match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+            match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
             | [] -> [||]
-            | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+            | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LibClient.Components.Constructors.LC.Input with
@@ -170,7 +170,7 @@ module Input_NamedFileComponent =
                 ?styles: array<ViewStyles>,
                 ?theme: Theme -> Theme,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
             key |> ignore
@@ -216,7 +216,7 @@ module Input_NamedFileComponent =
             let isInvalid = internalValidityHook.current.IsInvalid || validity.IsInvalid || validity = InputValidity.Missing
 
             LC.With.ScreenSize(``with`` = fun screenSize ->
-                RX.View(
+                Rn.View(
                     styles = [|
                         Styles.view theTheme
                         if screenSize = ScreenSize.Desktop then Styles.viewDesktop theTheme
@@ -236,32 +236,32 @@ module Input_NamedFileComponent =
                                                     LibClient.Components.Button.Actionable (onSelectPress maybeFileInputElement)))
                                         |])
                                     |] |> castAsElement)
-                                RX.View(styles = [| Styles.dragAndDropMessage |], children = [|
+                                Rn.View(styles = [| Styles.dragAndDropMessage |], children = [|
                                     LC.LegacyText(styles = [| Styles.textCenter |], children = [|
                                         match maxFileCount with
                                         | Some c when c.Value = 1 -> makeTextNode2 (Some "LibClient.Components.LegacyText") "Paste or drag and drop file here"
                                         | _ -> makeTextNode2 (Some "LibClient.Components.LegacyText") "Paste or drag and drop files here"
                                     |])
                                 |])
-                                RX.View(children = [|
+                                Rn.View(children = [|
                                     constrainMessage maxFileCount maxFileSize maxTotalFileSize
                                     |> Option.map (fun m -> LC.LegacyText(styles = [| Styles.textCenter |],
                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") m.Value |]))
                                     |> Option.getOrElse noElement
                                 |])
-                                RX.View(styles = [| Styles.messageContainer |], children = [|
-                                    RX.View(children = [|
+                                Rn.View(styles = [| Styles.messageContainer |], children = [|
+                                    Rn.View(children = [|
                                         if value.Length = 1 then LC.LegacyText(styles = [| Styles.infoMessage |],
                                             children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") $"{value.Length} file selected" |])
                                         elif value.Length > 1 then LC.LegacyText(styles = [| Styles.infoMessage |],
                                             children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") $"{value.Length} files selected" |])
                                         else noElement
                                     |])
-                                    combinedInvalidReason |> Option.map (fun reason -> RX.View(children = [|
+                                    combinedInvalidReason |> Option.map (fun reason -> Rn.View(children = [|
                                         LC.LegacyText(styles = [| Styles.invalidReason theTheme |],
                                             children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") reason |])
                                     |])) |> Option.getOrElse noElement
-                                    if validity = InputValidity.Missing then RX.View(children = [|
+                                    if validity = InputValidity.Missing then Rn.View(children = [|
                                         LC.LegacyText(styles = [| Styles.invalidReason theTheme |],
                                             children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "This field is required" |])
                                     |]) else noElement

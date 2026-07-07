@@ -18,7 +18,7 @@ For the motivation behind each step, see [ReactXP to RNW](./modernization/reactx
 | **1** | Fable 5 + .NET 10 SDK. Project TFMs stay on their current targets. | Gallery + libs compile on new toolchain | **Done** |
 | **2** | SignalR modular sibling repo (`eggshell-signalr`). Direct `@microsoft/signalr` bindings, no Fable.SignalR wrapper. | Typed streaming transport on Fable 5 | **Done** |
 | **3** | Backend TFM to net10. Orleans 3.7.2 stays frozen. | Silo + simulation tests on net10 | Not started |
-| **4** | ReactXP to RN + react-native-web seam swap. Reimplement `LibClient/src/ReactXP`. | Gallery + native on modern RN (New Architecture, React 19) | **Substantially done (stabilizing)** |
+| **4** | ReactXP to RN + react-native-web seam swap + platform upgrade. | Gallery + native on modern RN (New Architecture, React 19) | **Done (AppTodo verified on device)**; gallery/PP native config + Reanimated remain |
 | **5** | Full-stack TODO reference app + templatized scaffold (`eggshell create-app`). | Goal B: `create-app -> dev-web` end to end | Not started |
 | **6** | Docker SQL Server + persistent dev stack | Real DB, not just in-memory Orleans | Not started |
 
@@ -117,7 +117,15 @@ targeted test run with the actual database in Phase 3 or a staging environment.
 
 ---
 
-## Phase 4: ReactXP to RN + react-native-web seam swap (substantially done; stabilizing)
+## Phase 4: ReactXP to RN + react-native-web seam swap + platform upgrade (done; AppTodo verified)
+
+> **Status update (session 8):** the ReactXP name/seam is fully retired to `Rn`
+> (`LibClient/src/Rn/`, namespace `Rn`, prefix `Rn.`). Upgraded to **React 19.2.3 / RN 0.86.0 /
+> RNW 0.21.2 / RNGH 3.0.2 with the New Architecture (Fabric) enabled**. AppTodo builds and renders on
+> the POCO F1 (`Running "RnApp" with {"fabric":true}`). The "proven version pins" below are from the
+> earlier spike (RN 0.85); the shipped apps are now on RN 0.86. Remaining: gallery +
+> PerformancePlayground native config; Reanimated 4 + Moti. See the session-8 engineering-log entry
+> for the full recipe + gotchas (render-compiler rebuild, native-module bumps, RNGH shim).
 
 **Shape:** re-implement `LibClient/src/ReactXP` against React Native (native) + react-native-web
 (web) instead of `@chaldal/reactxp`, keeping F# constructor signatures and the style DSL surface

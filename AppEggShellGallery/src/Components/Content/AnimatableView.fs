@@ -5,9 +5,9 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 open AppEggShellGallery.LocalImages
 
 [<RequireQualifiedAccess>]
@@ -52,14 +52,14 @@ module private Styles =
 type private Helpers =
     [<Component>]
     static member private Image() : ReactElement =
-        RX.Image(
+        Rn.Image(
             localImage "/images/wlop2.jpg",
             styles = [| Styles.image |]
         )
 
     [<Component>]
     static member private ScaleAnimationTarget(animatableValue: AnimatableValue) : ReactElement =
-        RX.AnimatableView(
+        Rn.AnimatableView(
             children =
                 elements {
                     Helpers.Image()
@@ -69,7 +69,7 @@ type private Helpers =
 
     [<Component>]
     static member private ColorAnimationTarget(interpolatedValue: InterpolatedValue) : ReactElement =
-        RX.AnimatableView(
+        Rn.AnimatableView(
             children =
                 elements {
                     Helpers.Image()
@@ -125,7 +125,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         children =
                             elements {
                                 Helpers.Image()
@@ -159,7 +159,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         children =
                             elements {
                                 Helpers.Image()
@@ -293,7 +293,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         children =
                             elements {
                                 Helpers.Image()
@@ -406,10 +406,10 @@ type Ui.Content with
                     MaybeScrapeErrors = None
                 })
             ),
-            notes = LC.Text """RX.AnimatableView is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing/Sequence/Parallel, InterpolationConfig, Easing) to drive animated view styles.""",
+            notes = LC.Text """Rn.AnimatableView is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing/Sequence/Parallel, InterpolationConfig, Easing) to drive animated view styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "RX.AnimatableView",
+                    componentName = "Rn.AnimatableView",
                     role = "none (animated container)",
                     namePattern = "Child content provides accessible names",
                     stateNotes = "Animated opacity/transform; honor reduce-motion where wired",
@@ -427,8 +427,8 @@ type Ui.Content with
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let animatedValue = Hooks.useRef (AnimatedValue.Create 1.0)
 
-RX.AnimatableView(
-    children = elements { RX.Image(imageUrl, styles = [| ... |]) },
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
     styles = [| makeAnimatableViewStyles {
         animatedTransform [ [ animatedScale (AnimatableValue.Value animatedValue.current) ] ]
     } |]
@@ -447,8 +447,8 @@ Animation.Sequence(
     Animation.Timing(animatedScaleValue.current, targetScale, TimeSpan.FromSeconds 0.75)
 ).Start(...)
 
-RX.AnimatableView(
-    children = elements { RX.Image(imageUrl, styles = [| ... |]) },
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
     styles = [| makeAnimatableViewStyles {
         animatedOpacity (AnimatableValue.Value animatedOpacityValue.current)
         animatedTransform [ [ animatedScale (AnimatableValue.Value animatedScaleValue.current) ] ]
@@ -466,8 +466,8 @@ Animation.Parallel(
     Animation.Timing(animatedScaleValue.current, targetScale, TimeSpan.FromSeconds 0.75)
 ).Start(...)
 
-RX.AnimatableView(
-    children = elements { RX.Image(imageUrl, styles = [| ... |]) },
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
     styles = [| makeAnimatableViewStyles {
         animatedOpacity (AnimatableValue.Value animatedOpacityValue.current)
         animatedTransform [ [ animatedScale (AnimatableValue.Value animatedScaleValue.current) ] ]
@@ -483,8 +483,8 @@ RX.AnimatableView(
 let interpolationConfig = InterpolationConfig.Create [ (0.2, 0.5); (0.5, 2.0); (1.0, 1.2) ]
 let interpolatedValue = animatedValue.current.Interpolate interpolationConfig
 
-RX.AnimatableView(
-    children = elements { RX.Image(imageUrl, styles = [| ... |]) },
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
     styles = [| makeAnimatableViewStyles {
         animatedTransform [ [ animatedScale (AnimatableValue.Interpolated interpolatedValue) ] ]
     } |]
@@ -507,8 +507,8 @@ let interpolationConfig = InterpolationConfig.Create [
 ]
 let interpolatedValue = animatedValue.current.Interpolate interpolationConfig
 
-RX.AnimatableView(
-    children = elements { RX.Image(imageUrl, styles = [| ... |]) },
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
     styles = [| makeAnimatableViewStyles {
         animatedBackgroundColor interpolatedValue
     } |]

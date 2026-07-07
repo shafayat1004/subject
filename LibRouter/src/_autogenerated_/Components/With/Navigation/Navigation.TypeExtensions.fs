@@ -15,7 +15,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module With_NavigationTypeExtensions =
     type LibRouter.Components.Constructors.LR.With with
-        static member Navigation(spec: LibRouter.RoutesSpec.Conversions<'Route, 'ResultlessDialog>, navigationState: LibRouter.RoutesSpec.NavigationState<'Route, 'ResultlessDialog, 'ResultfulDialog>, ``with``: Navigation<'Route, 'ResultlessDialog, 'ResultfulDialog> -> ReactElement, ?children: ReactChildrenProp, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Navigation(spec: LibRouter.RoutesSpec.Conversions<'Route, 'ResultlessDialog>, navigationState: LibRouter.RoutesSpec.NavigationState<'Route, 'ResultlessDialog, 'ResultfulDialog>, ``with``: Navigation<'Route, 'ResultlessDialog, 'ResultfulDialog> -> ReactElement, ?children: ReactChildrenProp, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Spec = spec

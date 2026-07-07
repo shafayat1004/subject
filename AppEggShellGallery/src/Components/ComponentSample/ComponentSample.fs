@@ -6,8 +6,8 @@ open Fable.React.Props
 open LibClient
 open LibClient.Components
 open LibClient.Responsive
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.SyntaxHighlighter.Components
 open AppEggShellGallery
 
@@ -58,7 +58,7 @@ module private Styles =
         }
 
 do
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 
 .aesg-ContentComponent-table .cs-heading {
     border-top:    24px solid transparent;
@@ -88,7 +88,7 @@ do
         box-sizing: border-box;
         max-width:  100%;
     }
-    /* Override the inline margin-left (40px) and min-width (300px) that RX.View
+    /* Override the inline margin-left (40px) and min-width (300px) that Rn.View
        applies in the side-by-side code cell — not needed when stacked. */
     .aesg-ContentComponent-table td > div {
         margin-left: 0 !important;
@@ -118,14 +118,14 @@ let private renderNotes (notes: ReactElement) =
     if notes = noElement then
         noElement
     else
-        RX.View(children = [| notes |])
+        Rn.View(children = [| notes |])
 
 let private renderCodeAndNotes (code: Code) (notes: ReactElement) =
-    RX.View(
+    Rn.View(
         styles = [| Styles.codeAndNotes |],
         children =
             [|
-                RX.View(
+                Rn.View(
                     styles = [| Styles.code |],
                     children = [| renderCode code |]
                 )
@@ -136,7 +136,7 @@ let private renderCodeAndNotes (code: Code) (notes: ReactElement) =
 let private renderVisuals (visuals: ReactElement) =
     // Automation testId: scopes audit recipes to demo visuals (web `[data-testid]`, Android resource-id).
     // Sidebar nav testIds: eggshell-sidebar-menu, sidebar-blade-*, sidebar-component-{CaseName} (SidebarContent.fs).
-    RX.View(
+    Rn.View(
         testId = "aesg-sample-visuals",
         styles = [| Styles.visuals |],
         children =
@@ -165,7 +165,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?layout:           Layout,
             ?heading:          string,
             ?key:              string,
-            ?xLegacyStyles:    List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 
@@ -214,7 +214,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                 )
                 |> Option.defaultValue noElement
 
-                RX.View(
+                Rn.View(
                     testId = "aesg-sample-visuals",
                     children = [| visuals |]
                 )

@@ -14,7 +14,7 @@ open AppEggShellGallery.RenderHelpers
 module dom = Fable.React.Standard
 
 do
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 .url-unsorted-directory-structure_md code {
     font-size:   12px;
     line-height: 14px;

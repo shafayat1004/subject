@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Tag =
@@ -174,7 +174,7 @@ type LibClient.Components.Constructors.LC with
                         let isHovered = pointerState.IsHovered && (not pointerState.IsDepressed)
                         let isDepressed = pointerState.IsDepressed
 
-                        RX.View(
+                        Rn.View(
                             styles =
                                 [|
                                     Styles.view
@@ -183,7 +183,7 @@ type LibClient.Components.Constructors.LC with
                                 |],
                             children =
                                 elements {
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.labelBlock |],
                                         children =
                                             elements {
@@ -218,11 +218,11 @@ type LibClient.Components.Constructors.LC with
                                             componentName = "LC.Tag"
                                         )
                                     | State.InProgress ->
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.spinnerBlock |],
                                             children =
                                                 elements {
-                                                    RX.ActivityIndicator(
+                                                    Rn.ActivityIndicator(
                                                         color = "#aaaaaa",
                                                         size = Size.Tiny
                                                     )

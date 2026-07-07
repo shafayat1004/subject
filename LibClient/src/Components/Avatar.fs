@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Services.ImageService
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Avatar =
@@ -53,7 +53,7 @@ type LibClient.Components.Constructors.LC with
 
         LC.With.Layout(
             (fun (maybeOnLayout, maybeLayout) ->
-                RX.View(
+                Rn.View(
                     styles =
                         [|
                             Styles.viewTheme theTheme
@@ -62,7 +62,7 @@ type LibClient.Components.Constructors.LC with
                     ?onLayout = maybeOnLayout,
                     children =
                         elements {
-                            RX.Image(
+                            Rn.Image(
                                 source = source,
                                 styles = [| Styles.image |],
                                 resizeMode = Image.ResizeMode.Cover,

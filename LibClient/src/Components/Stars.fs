@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Stars =
@@ -59,7 +59,7 @@ type LibClient.Components.Constructors.LC with
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let total = defaultArg total 5
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.stars
@@ -71,7 +71,7 @@ type LibClient.Components.Constructors.LC with
                     |> Array.map (fun curr ->
                         let isOn = count > curr - 1
 
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.star |],
                             children =
                                 elements {

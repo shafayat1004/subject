@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibRouter.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Ui.Route with
     [<Component>]
@@ -40,7 +40,7 @@ type Ui.Route with
                                     validity = Valid
                                 )
                                 LC.Sized (width = 10)
-                                RX.View (styles = [|Styles.Expand|], children = [|
+                                Rn.View (styles = [|Styles.Expand|], children = [|
                                     LC.Text (
                                         value  = match maybeGuid with Some guid -> guid.ToTinyUuid () | None -> ""
                                     )
@@ -56,7 +56,7 @@ type Ui.Route with
                                     validity = Valid
                                 )
                                 LC.Sized (width = 10)
-                                RX.View (styles = [|Styles.Expand|], children = [|
+                                Rn.View (styles = [|Styles.Expand|], children = [|
                                     LC.Text (
                                         value = match maybeTiny with Some tiny -> tiny.ToString () | None -> ""
                                     )

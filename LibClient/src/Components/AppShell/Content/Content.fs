@@ -11,8 +11,8 @@ open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type DesktopSidebarStyle =
 | Fixed
@@ -92,7 +92,7 @@ module private Styles =
     // Both this wrapper and sidebarWrapper are absolutely positioned with top:0/bottom:0 so the
     // drawer gets a definite full-viewport height -- the inner Sidebar ScrollView needs a bounded
     // height to overflow and scroll its (long) contents. The width measurement is reliable now
-    // that the RNW View seam adapts react-native's onLayout event shape (see RNSeam.assignOnLayout);
+    // that the RNW View seam adapts react-native's onLayout event shape (see RnPrimitives.assignOnLayout);
     // previously e.width/e.height were read off the wrong event object and came back undefined (0),
     // which collapsed the drawer offset and left it stuck on-screen.
     let sidebarDraggableStyles: int -> ViewStyles =
@@ -169,7 +169,7 @@ type LibClient.Components.Constructors.LC.AppShell with
             ?topNav: ReactElement,
             ?bottomNav: ReactElement,
             ?key: string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore
@@ -186,9 +186,9 @@ type LibClient.Components.Constructors.LC.AppShell with
         let legacySafeInsetsViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let isSidebarScrimVisibleHook = Hooks.useState false
@@ -207,7 +207,7 @@ type LibClient.Components.Constructors.LC.AppShell with
 
                 popupConnector.OnDismiss (fun () ->
                     async {
-                        // ReactXP's popup system has an interesting way of handling off-clicks.
+                        // Rn's popup system has an interesting way of handling off-clicks.
                         // They hide the popup, but they also let the click do its thing. The
                         // consequence of that is that the button that's set to "toggleSidebarVisibility"
                         // will call the toggle function _after_ the OnDismiss callback is called, which
@@ -261,7 +261,7 @@ type LibClient.Components.Constructors.LC.AppShell with
             if block = noElement then
                 noElement
             else
-                RX.View(
+                Rn.View(
                     styles = styles,
                     ?accessibilityRole = role,
                     ?accessibilityLabel = navLabel,
@@ -269,10 +269,10 @@ type LibClient.Components.Constructors.LC.AppShell with
                 )
 
         let renderTopNavShadow () =
-            RX.View(styles = [| Styles.topNavShadow |])
+            Rn.View(styles = [| Styles.topNavShadow |])
 
         let renderContentBlock (contentElement: ReactElement) (includeTopNavShadow: bool) =
-            RX.View(
+            Rn.View(
                 testId = "eggshell-app-content",
                 accessibilityRole = AccessibilityRole.Main,
                 styles = [| Styles.contentBlock |],
@@ -315,7 +315,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                     styles = [| Styles.sidebarDraggableStyles width |],
                                     children =
                                         elements {
-                                            RX.View(
+                                            Rn.View(
                                                 ?onLayout = onLayoutOption,
                                                 styles = [| Styles.sidebarWrapper |],
                                                 children = [| sidebar |]
@@ -326,13 +326,13 @@ type LibClient.Components.Constructors.LC.AppShell with
                 )
 
         let renderShell (sidebarArea: ReactElement) =
-            RX.View(
+            Rn.View(
                 useSafeInsets = true,
                 styles = [| Styles.safeInsetsView; yield! legacySafeInsetsViewStyles |],
                 children =
                     elements {
                         LC.SkipLink()
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.view |],
                             children =
                                 elements {
@@ -354,12 +354,12 @@ type LibClient.Components.Constructors.LC.AppShell with
                         (fun _ ->
                             renderShell (
                                 element {
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.sidebarAndContentBlock |],
                                         children =
                                             elements {
                                                 if desktopSidebarStyle = Fixed then
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [| Styles.sidebarBlockDesktop |],
                                                         children = [| sidebar |]
                                                     )
@@ -372,7 +372,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                             connector = sidebarPopupConnectorHook.current,
                                             render =
                                                 fun () ->
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [| Styles.sidebarPopupWrapper |],
                                                         children = [| sidebar |]
                                                     )

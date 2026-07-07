@@ -4,7 +4,7 @@ module LibClient.Components.TapCapture
 open Fable.React
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Styles
+open Rn.Styles
 
 type LibClient.Components.Constructors.LC with
     static member TapCapture(

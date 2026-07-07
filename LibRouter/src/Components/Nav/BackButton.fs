@@ -6,8 +6,8 @@ open LibClient
 open LibClient.Components
 open LibClient.Icons
 open LibClient.Components.Nav.Top.Item
-open ReactXP.Styles
-open ReactXP.LegacyStyles
+open Rn.Styles
+open Rn.LegacyStyles
 
 type LegacyFontWeight = RulesRestricted.FontWeight
 
@@ -42,11 +42,11 @@ module LR =
 
 open LR.Nav.Top.BackButtonTypes
 
-let private mapFontWeight (weight: LegacyFontWeight) : ReactXP.Styles.RulesRestricted.FontWeight =
+let private mapFontWeight (weight: LegacyFontWeight) : Rn.Styles.RulesRestricted.FontWeight =
     match weight with
-    | LegacyFontWeight.Normal -> ReactXP.Styles.RulesRestricted.FontWeight.Normal
-    | LegacyFontWeight.Bold  -> ReactXP.Styles.RulesRestricted.FontWeight.Bold
-    | _ -> ReactXP.Styles.RulesRestricted.FontWeight.Normal
+    | LegacyFontWeight.Normal -> Rn.Styles.RulesRestricted.FontWeight.Normal
+    | LegacyFontWeight.Bold  -> Rn.Styles.RulesRestricted.FontWeight.Bold
+    | _ -> Rn.Styles.RulesRestricted.FontWeight.Normal
 
 let private mapColors (colors: Colors) : LC.Nav.Top.Item.AppearanceColors =
     {

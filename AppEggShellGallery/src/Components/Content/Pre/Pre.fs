@@ -4,7 +4,7 @@ module AppEggShellGallery.Components.Content_Pre
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Styles
+open Rn.Styles
 
 module private SampleContent =
     let text =

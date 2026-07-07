@@ -13,8 +13,8 @@ open Fable.React
 open LibClient
 open LibClient.JsInterop
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 // ---------------------------------------------------------------------------
 // Public types — kept at LibClient.Components.ScrollView.* so existing callers
@@ -78,7 +78,7 @@ type LibClient.Components.Constructors.LC with
             restoreScroll:                          RestoreScroll,
             children:                               array<ReactElement>,
             ?onScroll:                              int * int -> unit,
-            ?onLayout:                              ReactXP.Types.ViewOnLayoutEvent -> unit,
+            ?onLayout:                              Rn.Types.ViewOnLayoutEvent -> unit,
             ?showsHorizontalScrollIndicatorOnNative: bool,
             ?showsVerticalScrollIndicatorOnNative:   bool,
             ?styles:                                array<ViewStyles>,
@@ -94,7 +94,7 @@ type LibClient.Components.Constructors.LC with
         let lastScrollPositionRef:              IRefHook<ScrollPosition>                               = Hooks.useRef { Left = 0; Top = 0 }
         let maybeLastContentSizeRef:            IRefHook<Option<Layout>>                               = Hooks.useRef None
         let restoreWhenMatchRef:                IRefHook<Option<Measurements>>                         = Hooks.useRef None
-        let maybeScrollViewRef:                 IRefHook<Option<ReactXP.Components.ScrollView.IScrollViewRef>> = Hooks.useRef None
+        let maybeScrollViewRef:                 IRefHook<Option<Rn.Components.ScrollView.IScrollViewRef>> = Hooks.useRef None
 
         // IScrollViewComponentRef implementation — delegates to the inner scroll view ref.
         // Created once via useMemo so its identity is stable across renders.
@@ -131,7 +131,7 @@ type LibClient.Components.Constructors.LC with
         let stableInnerRefCallback =
             Hooks.useMemo (
                 (fun () ->
-                    fun (nullableInstance: JsNullable<ReactXP.Components.ScrollView.IScrollViewRef>) ->
+                    fun (nullableInstance: JsNullable<Rn.Components.ScrollView.IScrollViewRef>) ->
                         maybeScrollViewRef.current <- nullableInstance.ToOption
                 ),
                 [||]
@@ -145,7 +145,7 @@ type LibClient.Components.Constructors.LC with
             onScroll |> Option.sideEffect (fun cb -> cb (top, left))
 
         // onContentLayout handler: updates content size and tries to restore scroll.
-        let handleContentLayout (layout: ReactXP.Types.ViewOnLayoutEvent) : unit =
+        let handleContentLayout (layout: Rn.Types.ViewOnLayoutEvent) : unit =
             maybeLastContentSizeRef.current <- Some { Width = layout.width; Height = layout.height }
             restoreWhenMatchRef.current
             |> Option.sideEffect (fun originalMeasurements ->
@@ -196,7 +196,7 @@ type LibClient.Components.Constructors.LC with
             | No     -> onScroll
             | _      -> Some handleScroll
 
-        RX.ScrollView (
+        Rn.ScrollView (
             horizontal                   = (scroll = Both || scroll = Horizontal),
             vertical                     = (scroll = Both || scroll = Vertical),
             showsHorizontalScrollIndicator = showsHoriz,
@@ -208,7 +208,7 @@ type LibClient.Components.Constructors.LC with
                     // Note: onContentSizeChange on the ScrollView doesn't work as expected
                     // (called once, not re-called when async content changes height). We use
                     // a wrapping View with onLayout instead, which fires reliably.
-                    RX.View (
+                    Rn.View (
                         onLayout = handleContentLayout,
                         styles   = [|
                             Styles.innerDiv

@@ -12,7 +12,7 @@ module LC =
             try element?focus() with _ -> ()
 #else
             try
-                ReactXP.RNSeam.AccessibilityInfoModule?setAccessibilityFocus(element) |> ignore
+                Rn.RnPrimitives.AccessibilityInfoModule?setAccessibilityFocus(element) |> ignore
             with _ ->
                 ()
 #endif

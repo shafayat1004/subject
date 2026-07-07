@@ -3,7 +3,7 @@ namespace LibClient.Components
 open LibClient
 open LibLifeCycleTypes.File
 open LibClient.Services.ImageService
-open ReactXP.Styles
+open Rn.Styles
 open LibClient.Components.Input.Image
 open Fable.Core.JsInterop
 
@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Input_ImageTypeExtensions =
     type LibClient.Components.Constructors.LC.Input with
-        static member Image(value: list<File>, validity: InputValidity, onChange: Result<list<File>, string> -> unit, ?children: ReactChildrenProp, ?showPreview: bool, ?selectionMode: SelectionMode, ?maxFileCount: Positive.PositiveInteger, ?maxFileSize: int<KB>, ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Image(value: list<File>, validity: InputValidity, onChange: Result<list<File>, string> -> unit, ?children: ReactChildrenProp, ?showPreview: bool, ?selectionMode: SelectionMode, ?maxFileCount: Positive.PositiveInteger, ?maxFileSize: int<KB>, ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Value = value

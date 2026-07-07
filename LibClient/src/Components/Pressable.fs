@@ -7,8 +7,8 @@ open Browser.Types
 open LibClient
 open LibClient.Accessibility
 open LibClient.AccessibilityHelpers
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -96,8 +96,8 @@ type private PressableComponent(initialProps: Props) =
             props.MaybePointerState |> Option.iter (fun ps -> ps.SetIsDepressed false e)
 
             if not isDrag then
-                ReactXP.UserInterface.dismissKeyboard()
-                if (e.cancelable && ReactXP.Runtime.isWeb()) || ReactXP.Runtime.isNative() then
+                Rn.UserInterface.dismissKeyboard()
+                if (e.cancelable && Rn.Runtime.isWeb()) || Rn.Runtime.isNative() then
                     e.stopPropagation()
                 props.MaybePointerState
                 |> Option.iter (fun pointerState ->
@@ -136,7 +136,7 @@ type private PressableComponent(initialProps: Props) =
         __props?onLayout <- ignore
         __props?disableTouchOpacityAnimation <- false
         Fable.React.ReactBindings.React.createElement(
-            ReactXP.RNSeam.Pressable,
+            Rn.RnPrimitives.Pressable,
             __props,
             ThirdParty.fixPotentiallySingleChild children
         )
@@ -162,7 +162,7 @@ type private PressableComponent(initialProps: Props) =
 
         if props.Overlay then
             if Array.isEmpty children then
-                RX.View(
+                Rn.View(
                     styles =
                         [|
                             Styles.overlayFill
@@ -175,7 +175,7 @@ type private PressableComponent(initialProps: Props) =
                         |]
                 )
             else
-                RX.View(
+                Rn.View(
                     styles =
                         [|
                             Styles.overlayContainer

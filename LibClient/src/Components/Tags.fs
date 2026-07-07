@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -28,7 +28,7 @@ type LibClient.Components.Constructors.LC with
         ) : ReactElement =
         key |> ignore
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.tags

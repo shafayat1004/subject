@@ -1,6 +1,6 @@
 module LibUiAdmin.Styles
 
-open ReactXP.LegacyStyles
+open Rn.LegacyStyles
 
 let styles = lazy (compile [
     "hack-forcefully-add-global-style" => []

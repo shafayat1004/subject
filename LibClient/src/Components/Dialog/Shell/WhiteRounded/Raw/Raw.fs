@@ -13,8 +13,8 @@ open LibClient.Components.Dialog.Shell.WhiteRounded.Raw
 open LibClient.Icons
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Dialog =
@@ -142,12 +142,12 @@ module private RawStyles =
     let closeButtonTestId = A11ySlug.testId "dialog-shell" "close"
 
     module LegacyBridge =
-        let viewStyles (xLegacyStyles: Option<List<ReactXP.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
+        let viewStyles (xLegacyStyles: Option<List<Rn.LegacyStyles.RuntimeStyles>>) (className: string) : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles ls className with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles ls className with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
 type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
@@ -159,7 +159,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ?inProgress: bool,
             ?accessibilityLabel: string,
             ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -169,7 +169,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
         let theTheme = Themes.GetMaybeUpdatedWith theme
 
         let panelOnPress =
-            if ReactXP.Runtime.isNative() then undefinedOnPress
+            if Rn.Runtime.isNative() then undefinedOnPress
             else fun (e: PointerEvent) -> e.stopPropagation()
 
         let dialogRole =
@@ -189,7 +189,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                         contentPosition = contentPosition,
                         children =
                             [|
-                                RX.View(
+                                Rn.View(
                                     styles =
                                         [|
                                             RawStyles.maxSizeLimiter position theTheme
@@ -197,7 +197,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                         |],
                                     children =
                                         [|
-                                            RX.View(
+                                            Rn.View(
                                                 onPress = panelOnPress,
                                                 styles =
                                                     [|
@@ -206,7 +206,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                     |],
                                                 children =
                                                     elements {
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles =
                                                                 [|
                                                                     RawStyles.content
@@ -216,7 +216,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                         )
 
                                                         if inProgress then
-                                                            RX.View(
+                                                            Rn.View(
                                                                 styles =
                                                                     [|
                                                                         RawStyles.inProgress
@@ -224,8 +224,8 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                                     |],
                                                                 children =
                                                                     [|
-                                                                        RX.ActivityIndicator(
-                                                                            color = (Color.Grey "cc").ToReactXPString
+                                                                        Rn.ActivityIndicator(
+                                                                            color = (Color.Grey "cc").ToRnString
                                                                         )
                                                                     |]
                                                             )

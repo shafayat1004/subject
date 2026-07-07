@@ -5,7 +5,7 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibRouter.Components
-open ReactXP.Styles
+open Rn.Styles
 open <%= appName %>.Navigation
 
 type Ui.Route with

@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Icons
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Input =
@@ -121,17 +121,17 @@ type LibClient.Components.Constructors.LC.Input with
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let isInvalid = validity.IsInvalid
 
-        RX.View(
+        Rn.View(
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [|
                             Styles.fieldFor theTheme isInvalid
                             yield! styles |> Option.defaultValue [||]
                         |],
                         children =
                             elements {
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.side |],
                                     children =
                                         elements {
@@ -159,7 +159,7 @@ type LibClient.Components.Constructors.LC.Input with
                                         }
                                 )
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.center |],
                                     children =
                                         elements {
@@ -178,7 +178,7 @@ type LibClient.Components.Constructors.LC.Input with
                                     value
                                     |> Option.mapOrElse PositiveInteger.One (fun q -> q + 1u)
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.side |],
                                     children =
                                         elements {
@@ -209,7 +209,7 @@ type LibClient.Components.Constructors.LC.Input with
 
                     match validity.InvalidReason with
                     | Some reason ->
-                        RX.View(
+                        Rn.View(
                             children =
                                 elements {
                                     LC.Text(

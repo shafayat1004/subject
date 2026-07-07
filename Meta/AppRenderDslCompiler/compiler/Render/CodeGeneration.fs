@@ -551,7 +551,7 @@ and generateCode (libAlias: string) (withStyles: bool) (node: ReactTemplateNode)
                             | Some classNameValue ->
                                 localBindings <- List.append localBindings [
                                     (NonemptyString.ofLiteral "__currClass",  Line classNameValue.Value)
-                                    (NonemptyString.ofLiteral "__currStyles", Line "(ReactXP.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)")
+                                    (NonemptyString.ofLiteral "__currStyles", Line "(Rn.LegacyStyles.Runtime.findApplicableStyles __mergedStyles __currClass)")
                                 ]
                                 true
 
@@ -561,35 +561,35 @@ and generateCode (libAlias: string) (withStyles: bool) (node: ReactTemplateNode)
                             match (metaAttributes.MaybeStyle, metaAttributes.MaybeAniStyle) with
                             | (Some (SingleLineExpression dynamicStylesExpression), None) ->
                                 localBindings <- List.append localBindings [
-                                    (NonemptyString.ofLiteral "__dynamicStyles: List<ReactXP.LegacyStyles.RuleFunctionReturnedStyleRules>", Line dynamicStylesExpression.Value)
-                                    (NonemptyString.ofLiteral "__currStyles", Line ((if hasCurrStyles then "__currStyles @ " else "") + "(ReactXP.LegacyStyles.Designtime.processDynamicStyles __dynamicStyles)"))
+                                    (NonemptyString.ofLiteral "__dynamicStyles: List<Rn.LegacyStyles.RuleFunctionReturnedStyleRules>", Line dynamicStylesExpression.Value)
+                                    (NonemptyString.ofLiteral "__currStyles", Line ((if hasCurrStyles then "__currStyles @ " else "") + "(Rn.LegacyStyles.Designtime.processDynamicStyles __dynamicStyles)"))
                                 ]
                                 true
                             | (None, Some (SingleLineExpression dynamicAniStylesExpression)) ->
                                 localBindings <- List.append localBindings [
-                                    (NonemptyString.ofLiteral "__dynamicAniStyles: List<ReactXP.LegacyStyles.RuntimeStyles>", Line dynamicAniStylesExpression.Value)
-                                    (NonemptyString.ofLiteral "__currStyles", Line ((if hasCurrStyles then "__currStyles @ " else "") + "(ReactXP.LegacyStyles.Designtime.processDynamicAniStyles __dynamicAniStyles)"))
+                                    (NonemptyString.ofLiteral "__dynamicAniStyles: List<Rn.LegacyStyles.RuntimeStyles>", Line dynamicAniStylesExpression.Value)
+                                    (NonemptyString.ofLiteral "__currStyles", Line ((if hasCurrStyles then "__currStyles @ " else "") + "(Rn.LegacyStyles.Designtime.processDynamicAniStyles __dynamicAniStyles)"))
                                 ]
                                 true
                             | (Some (SingleLineExpression dynamicStylesExpression), Some (SingleLineExpression dynamicAniStylesExpression)) ->
                                 localBindings <- List.append localBindings [
-                                    (NonemptyString.ofLiteral "__dynamicStyles: List<ReactXP.LegacyStyles.RuleFunctionReturnedStyleRules>", Line dynamicStylesExpression.Value)
-                                    (NonemptyString.ofLiteral "__dynamicAniStyles: List<ReactXP.LegacyStyles.RuntimeStyles>", Line dynamicAniStylesExpression.Value)
-                                    (NonemptyString.ofLiteral "__currStyles", Line ((if hasCurrStyles then "__currStyles @ " else "") + "(ReactXP.LegacyStyles.Designtime.processDynamicStyles __dynamicStyles) @ (ReactXP.LegacyStyles.Legacy.processDynamicAniStyles __dynamicAniStyles)"))
+                                    (NonemptyString.ofLiteral "__dynamicStyles: List<Rn.LegacyStyles.RuleFunctionReturnedStyleRules>", Line dynamicStylesExpression.Value)
+                                    (NonemptyString.ofLiteral "__dynamicAniStyles: List<Rn.LegacyStyles.RuntimeStyles>", Line dynamicAniStylesExpression.Value)
+                                    (NonemptyString.ofLiteral "__currStyles", Line ((if hasCurrStyles then "__currStyles @ " else "") + "(Rn.LegacyStyles.Designtime.processDynamicStyles __dynamicStyles) @ (Rn.LegacyStyles.Legacy.processDynamicAniStyles __dynamicAniStyles)"))
                                 ]
                                 true
                             | (None, None) -> hasCurrStyles
 
                         let maybeStyleInjectedProp =
                             if hasCurrStylesSecondRound then
-                                if nameSpace = "ReactXP.Components" then
+                                if nameSpace = "Rn.Components" then
                                     (
                                         AttributeName (NonemptyString.ofLiteral "?styles"),
                                         match metaAttributes.MaybeNewStyles with
-                                        | None -> Line (sprintf "(if (not __currStyles.IsEmpty) then (ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent \"%s\" __currStyles |> Some) else None)" fullyQualifiedComponentName)
+                                        | None -> Line (sprintf "(if (not __currStyles.IsEmpty) then (Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent \"%s\" __currStyles |> Some) else None)" fullyQualifiedComponentName)
                                         | Some (SingleLineExpression newStylesExpression) ->
                                             ParenthesizedBlock [
-                                                Line "let __currProcessedStyles = if (not __currStyles.IsEmpty) then (ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent \"%s\" __currStyles) else [||]"
+                                                Line "let __currProcessedStyles = if (not __currStyles.IsEmpty) then (Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent \"%s\" __currStyles) else [||]"
                                                 Line $"match {newStylesExpression.Value} with"
                                                 Line "| Some styles ->"
                                                 IndentedBlock [

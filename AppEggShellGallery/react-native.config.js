@@ -8,9 +8,6 @@ module.exports = {
     },
   },
   dependencies: {
-    'reactxp-netinfo': {
-      root: path.resolve(__dirname, "../LibClient/node_modules/reactxp-netinfo"),
-    },
     '@react-native-community/netinfo': {
       root: path.resolve(__dirname, "../LibClient/node_modules/@react-native-community/netinfo"),
     },

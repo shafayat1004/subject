@@ -7,9 +7,9 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.LegacyStyles
-open ReactXP.Styles
+open Rn.Components
+open Rn.LegacyStyles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Helpers =
@@ -22,7 +22,7 @@ module private Helpers =
                 |> List.fold
                     (fun (colors, fontSizes) currRuntimeStyles ->
                         match currRuntimeStyles with
-                        | ReactXP.LegacyStyles.RuntimeStyles.StaticRules lazyRulesObject ->
+                        | Rn.LegacyStyles.RuntimeStyles.StaticRules lazyRulesObject ->
                             lazyRulesObject.GetRawStyleRules
                             |> Seq.fold
                                 (fun (colors, fontSizes) rawRule ->
@@ -86,7 +86,7 @@ type LibClient.Components.Constructors.LC with
         let iconElement = icon color size :> ReactElement
 
         if decorative then
-            RX.View(
+            Rn.View(
                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
                 children = [| iconElement |]
             )

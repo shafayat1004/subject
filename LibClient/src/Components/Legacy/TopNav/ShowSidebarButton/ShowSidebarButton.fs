@@ -7,7 +7,7 @@ open LibClient.Icons
 
 type LibClient.Components.Constructors.LC.Legacy.TopNav with
     [<Component>]
-    static member ShowSidebarButton(onlyOnHandheld: bool, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
+    static member ShowSidebarButton(onlyOnHandheld: bool, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
         key |> ignore
         children |> ignore
         xLegacyStyles |> ignore

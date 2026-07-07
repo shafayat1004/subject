@@ -194,7 +194,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?maybeRoute:      Option<Route>,
             ?children:        ReactChildrenProp,
             ?key:             string,
-            ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         maybeRoute |> ignore

@@ -36,7 +36,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?children:          ReactChildrenProp,
             ?heading:          string,
             ?key:              string,
-            ?xLegacyStyles:    List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore

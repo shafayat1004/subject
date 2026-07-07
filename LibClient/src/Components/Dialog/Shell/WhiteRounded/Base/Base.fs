@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Components.Dialog.Shell.WhiteRounded.Base
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Dialog =
@@ -28,7 +28,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ?inProgress: bool,
             ?accessibilityLabel: string,
             ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -49,7 +49,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ?xLegacyStyles = xLegacyStyles,
             children =
                 [|
-                    RX.ScrollView(
+                    Rn.ScrollView(
                         vertical = true,
                         children =
                             (children |> Option.defaultValue [||])

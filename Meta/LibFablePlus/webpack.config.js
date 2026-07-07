@@ -46,10 +46,10 @@ const commonConfig = {
             // These RN ecosystem packages ship ESM builds with extensionless relative imports that
             // Webpack 5 refuses to resolve. Alias them to their CommonJS builds for web bundles.
             "@react-native-async-storage/async-storage$": libClientNodeModules
-                ? path.join(libClientNodeModules, "@react-native-async-storage/async-storage/lib/commonjs/index.js")
+                ? path.join(libClientNodeModules, "@react-native-async-storage/async-storage/lib/module/index.js")
                 : "@react-native-async-storage/async-storage",
             "react-native-gesture-handler$": libClientNodeModules
-                ? path.join(libClientNodeModules, "react-native-gesture-handler/lib/commonjs/index.js")
+                ? path.join(libClientNodeModules, "react-native-gesture-handler/lib/module/index.js")
                 : "react-native-gesture-handler",
         },
         extensions: [".web.js", ".web.jsx", ".web.ts", ".web.tsx", ".js", ".jsx", ".ts", ".tsx", ".json"],

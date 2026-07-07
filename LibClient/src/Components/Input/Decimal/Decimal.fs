@@ -3,7 +3,7 @@ namespace LibClient.Components.Input
 
 open LibClient
 open System.Text.RegularExpressions
-open ReactXP.Styles
+open Rn.Styles
 
 module Decimal =
 
@@ -41,8 +41,8 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_DecimalComponent =
@@ -87,7 +87,7 @@ module Input_DecimalComponent =
                 ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?styles:              array<ViewStyles>,
                 ?theme:               Theme -> Theme,
-                ?xLegacyStyles:       List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:                 string
             ) : ReactElement =
             key |> ignore

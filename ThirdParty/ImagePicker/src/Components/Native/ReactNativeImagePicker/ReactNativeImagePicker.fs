@@ -2,8 +2,8 @@
 module ThirdParty.ImagePicker.Components.ReactNativeImagePicker
 
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 open LibClient.LocalImages
 open Fable.Core.JsInterop
@@ -107,10 +107,10 @@ type ImagePicker.Native with
             | ImagePickingSource.Camera  -> launchCamera       options (onImageSelectTransformer onImageSelect)
 
 
-        RX.View (styles = [| Styles.view |], children = [|
-            RX.View(styles = [|Styles.photoSource|], children = [|
+        Rn.View (styles = [| Styles.view |], children = [|
+            Rn.View(styles = [|Styles.photoSource|], children = [|
                 LC.Text("Take Photo", styles = [|Styles.photoSourceText|])
-                RX.Image (
+                Rn.Image (
                     styles = [|Styles.photoSourceIcon|],
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/ImagePicker/images/camera.png"
@@ -124,9 +124,9 @@ type ImagePicker.Native with
                 )
             |])
 
-            RX.View(styles = [|Styles.photoSource|], children = [|
+            Rn.View(styles = [|Styles.photoSource|], children = [|
                 LC.Text("Photo Gallery", styles = [|Styles.photoSourceText|])
-                RX.Image (
+                Rn.Image (
                     styles = [|Styles.photoSourceIcon|],
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/ImagePicker/images/gallery.png"

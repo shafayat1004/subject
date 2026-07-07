@@ -121,10 +121,10 @@ type Navigation<'Route, 'ResultlessDialog, 'ResultfulDialog when 'Route: equalit
 type NavigationImplementation<'Route, 'ResultlessDialog, 'ResultfulDialog when 'Route: equality>(spec: LibRouter.RoutesSpec.Conversions<'Route, 'ResultlessDialog>, navigationState: NavigationState<'Route, 'ResultlessDialog, 'ResultfulDialog>, navigate: Router.Navigate, location: Router.Location, ?onNavigation: Location->bool) =
 
     let goUrlInNewTab (url: string) : unit =
-        if ReactXP.Runtime.isWeb() then
+        if Rn.Runtime.isWeb() then
             Browser.Dom.window?``open``(url, "_blank")
         else
-            ReactXP.Linking.openUrl url
+            Rn.Linking.openUrl url
 
     let makeExternalUrl (appUrlBase: string) (location: Location) : string =
         appUrlBase + location.ToString
@@ -220,10 +220,10 @@ type NavigationImplementation<'Route, 'ResultlessDialog, 'ResultfulDialog when '
         goUrlInNewTab url
 
     member _.GoExternalInSameTab (url: string) : unit =
-        if ReactXP.Runtime.isWeb() then
+        if Rn.Runtime.isWeb() then
             Browser.Dom.window?``open``(url, "_self")
         else
-            ReactXP.Linking.openUrl url
+            Rn.Linking.openUrl url
 
     member _.Reload () : unit =
         Browser.Dom.window?location?reload()

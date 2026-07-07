@@ -24,8 +24,8 @@ open Fable.React
 open LibClient
 open LibClient.Components.Input.ChoiceList
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module ChoiceList_fs =
@@ -47,7 +47,7 @@ module ChoiceList_fs =
                 ?children: ReactChildrenProp,
                 ?styles: array<ViewStyles>,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             key |> ignore
             children |> ignore
@@ -68,7 +68,7 @@ module ChoiceList_fs =
             )
 
             element {
-                RX.View(
+                Rn.View(
                     styles = [| yield! (styles |> Option.defaultValue [||]) |],
                     children =
                         elements {

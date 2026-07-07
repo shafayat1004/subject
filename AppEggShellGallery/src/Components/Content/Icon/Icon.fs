@@ -4,7 +4,7 @@ module AppEggShellGallery.Components.Content_Icon
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Styles
+open Rn.Styles
 open AppEggShellGallery.Icons
 
 module private Styles =

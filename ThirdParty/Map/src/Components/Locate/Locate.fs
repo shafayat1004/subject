@@ -2,8 +2,8 @@
 module ThirdParty.Map.Components.Locate
 
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 open LibClient.LocalImages
 
@@ -42,13 +42,13 @@ module private Styles =
 type Map.Locate with
     [<Component>]
     static member LocateButtonWrapper (children: ReactElement[]) =
-        RX.View (styles = [| Styles.locateButtonContainer |], children = children)
+        Rn.View (styles = [| Styles.locateButtonContainer |], children = children)
 
     [<Component>]
     static member LocateButton (onPress: LibClient.Input.ReactEvent.Action -> unit) =
         LC.Card ([|
-            RX.View (styles = [| Styles.locateImageContainer |], children = [|
-                RX.Image (
+            Rn.View (styles = [| Styles.locateImageContainer |], children = [|
+                Rn.Image (
                     styles = [|Styles.locateImage|],
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/Map/images/locate_icon.png"

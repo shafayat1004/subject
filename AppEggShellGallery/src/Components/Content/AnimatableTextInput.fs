@@ -5,9 +5,9 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -40,7 +40,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableTextInput(
+                    Rn.AnimatableTextInput(
                         value = textState.current,
                         placeholder = "Name",
                         onChangeText = textState.update,
@@ -92,10 +92,10 @@ type Ui.Content with
                     MaybeScrapeErrors = None
                 })
             ),
-            notes = LC.Text """RX.AnimatableTextInput is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated input styles.""",
+            notes = LC.Text """Rn.AnimatableTextInput is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated input styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "RX.AnimatableTextInput",
+                    componentName = "Rn.AnimatableTextInput",
                     role = "text field",
                     namePattern = "placeholder or value text; pair with visible label in production",
                     stateNotes = "Animated input styles; honor reduce-motion where wired",
@@ -114,7 +114,7 @@ type Ui.Content with
 let animatedValue = Hooks.useRef (AnimatedValue.Create 32.0)
 let text = Hooks.useState "My name"
 
-RX.AnimatableTextInput(
+Rn.AnimatableTextInput(
     value = text.current,
     placeholder = "Name",
     onChangeText = text.update,

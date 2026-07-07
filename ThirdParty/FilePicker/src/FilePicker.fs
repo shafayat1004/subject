@@ -8,8 +8,8 @@ open LibClient
 open LibClient.Components
 open LibClient.Components.Input.NamedFile
 open LibLifeCycleTypes.File
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 module private Styles =
@@ -231,7 +231,7 @@ type FilePicker =
             |> startSafely
 
         element {
-            RX.View (
+            Rn.View (
                 ?key = key,
                 styles = [| Styles.view |],
                 children =
@@ -241,7 +241,7 @@ type FilePicker =
                            state = ButtonHighLevelStateFactory.MakeLowLevel(ButtonLowLevelState.Actionable pickFiles)
                        )
 
-                       RX.View (
+                       Rn.View (
                            children =
                                [| LC.Text (
                                       styles = [| Styles.textCenter |],
@@ -256,10 +256,10 @@ type FilePicker =
                                   ) |]
                        )
 
-                       RX.View (
+                       Rn.View (
                            styles = [| Styles.messageContainer |],
                            children =
-                               [| RX.View
+                               [| Rn.View
                                       [| match value.Length with
                                          | 1 ->
                                              LC.Text (
@@ -278,10 +278,10 @@ type FilePicker =
                        | None ->
                            noElement
                        | Some reason ->
-                           RX.View [| LC.Text (styles = [| Styles.invalidReason |], value = reason) |]
+                           Rn.View [| LC.Text (styles = [| Styles.invalidReason |], value = reason) |]
 
                        if validity = InputValidity.Missing then
-                           RX.View [| LC.Text (styles = [| Styles.invalidReason |], value = "This field is required") |] |]
+                           Rn.View [| LC.Text (styles = [| Styles.invalidReason |], value = "This field is required") |] |]
             )
         }
     #endif

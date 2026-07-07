@@ -2,8 +2,8 @@
 module LibClient.Components.Card
 
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 open LibClient
 open LibClient.Accessibility
@@ -151,14 +151,14 @@ type LC with
 
         match onPress with
         | None ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     Styles.outerContainerDefaults
                     yield! outerStyles
                     Styles.outerContainerFor theTheme
                 |],
                 children = [|
-                    RX.View (
+                    Rn.View (
                         children = children,
                         styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                     )
@@ -170,7 +170,7 @@ type LC with
                 testId |> Option.orElse (Some (A11ySlug.testId "card" a11yLabel))
 
             LC.Pointer.State (fun pointerState ->
-                RX.View (
+                Rn.View (
                     styles = [|
                         Styles.outerContainerDefaults
                         yield! outerStyles
@@ -178,7 +178,7 @@ type LC with
                         Styles.outerContainerWithOnPressFor pointerState.IsHovered pointerState.IsDepressed
                     |],
                     children = [|
-                        RX.View (
+                        Rn.View (
                             children = children,
                             styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                         )

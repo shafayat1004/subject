@@ -5,12 +5,12 @@ open Fable.React
 open Fable.React.Props
 open LibClient
 open LibClient.Components
-open ReactXP.Components
+open Rn.Components
 
 module dom = Fable.React.Standard
 
 do
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 
 .aesg-ContentComponent-table .csg-heading {
     border-top:    24px solid transparent;
@@ -49,7 +49,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?notes:         ReactElement,
             ?heading:       string,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 

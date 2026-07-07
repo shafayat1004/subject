@@ -10,11 +10,11 @@ open LibUiAdmin.Components
 open LibUiAdmin.Components.Grid
 open LibUiSubjectAdmin.Components.Audit.Types
 open LibUiSubjectAdmin.Components.Constructors
-open ReactXP.Components
+open Rn.Components
 
 #if EGGSHELL_PLATFORM_IS_WEB
 do
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 td.audit-operation-str div div {
     white-space: pre !important;
 }
@@ -83,7 +83,7 @@ type LibUiSubjectAdmin.Components.Constructors.UiSubjectAdmin.Audit with
 
             let headers, makeDesktopRow = headersAndFields
 
-            RX.View (
+            Rn.View (
                 children =
                     [|
                         UiAdmin.Grid (

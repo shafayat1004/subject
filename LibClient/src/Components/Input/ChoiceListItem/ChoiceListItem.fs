@@ -21,8 +21,8 @@ open LibClient.Components.Input.ChoiceList
 open LibClient.Components.Input.ChoiceListItem
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module ChoiceListItem_fs =
@@ -135,7 +135,7 @@ module ChoiceListItem_fs =
                 ?iconPosition: IconPosition,
                 ?styles: array<ViewStyles>,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             key |> ignore
             xLegacyStyles |> ignore
@@ -156,7 +156,7 @@ module ChoiceListItem_fs =
                     styles = [| iconStyles |]
                 )
 
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         ChoiceListItemStyles.view
@@ -169,12 +169,12 @@ module ChoiceListItem_fs =
 
                         match label with
                         | Label.Children ->
-                            RX.View(
+                            Rn.View(
                                 styles = ChoiceListItemStyles.labelStyles iconPosition,
                                 children = (children |> Option.defaultValue [||])
                             )
                         | Label.String text ->
-                            RX.View(
+                            Rn.View(
                                 styles = ChoiceListItemStyles.labelStyles iconPosition,
                                 children = [| LC.UiText text |]
                             )

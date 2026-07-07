@@ -4,7 +4,7 @@ module AppEggShellGallery.Components.Content_Heading
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Styles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =

@@ -10,8 +10,8 @@ open LibClient.Dialogs
 
 module ShellStandard = LibClient.Components.Dialog.Shell.WhiteRounded.Standard
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Button =
 | Cancel       of Label: string * Components.Button.Level * (unit -> unit)
@@ -147,7 +147,7 @@ type private ConfirmContent =
             accessibilityLabel = Helpers.dialogLabel parameters.MaybeHeading parameters.Details,
             body =
                 element {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.details |],
                         children =
                             elements {

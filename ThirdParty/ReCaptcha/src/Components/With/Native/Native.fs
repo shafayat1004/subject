@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.JsInterop
-open ReactXP.Components
-open ReactXP.Components.WebView
+open Rn.Components
+open Rn.Components.WebView
 open ThirdParty.ReCaptcha.Components.Constructors
 
 type ThirdParty.ReCaptcha.Components.Constructors.ReCaptcha.With with
@@ -56,10 +56,10 @@ type ThirdParty.ReCaptcha.Components.Constructors.ReCaptcha.With with
                     |> deferredRef.current.Resolve
                 | None -> (failwith "empty token") |> deferredRef.current.Reject
 
-        RX.View(
+        Rn.View(
             children =
                 [|
-                    RX.WebView(
+                    Rn.WebView(
                         javaScriptEnabled = true,
                         ref =
                             (fun (nullableInstance: JsNullable<WebViewMethods>) ->

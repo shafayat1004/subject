@@ -11,8 +11,8 @@ open LibClient.Components
 open LibClient.Components.Dialog.Base
 open LC.Button
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module ButtonThemes =
     let private appearance textColor borderColor backgroundColor : Appearance =
@@ -20,7 +20,7 @@ module ButtonThemes =
             TextColor       = textColor
             BorderColor     = borderColor
             BackgroundColor = backgroundColor
-            FontWeight      = ReactXP.Styles.RulesRestricted.FontWeight.Normal
+            FontWeight      = Rn.Styles.RulesRestricted.FontWeight.Normal
         }
 
     let private stateAppearance textColor borderColor backgroundColor : StateAppearance =
@@ -84,12 +84,12 @@ type private DialogContent =
             canClose = When ([ OnEscape; OnBackground ], tryCancel),
             children =
                 [|
-                    RX.View(
+                    Rn.View(
                         onPress = (fun e -> e.stopPropagation(); tryCancel (ReactEvent.Action.OfBrowserEvent e)),
                         styles = [| Styles.dialogContents |],
                         children =
                             [|
-                                RX.ScrollView(
+                                Rn.ScrollView(
                                     vertical = true,
                                     styles = [| Styles.scrollView |],
                                     children =
@@ -99,9 +99,9 @@ type private DialogContent =
                                                 |> List.map (fun item ->
                                                     match item with
                                                     | Divider ->
-                                                        RX.View(styles = [| Styles.divider |])
+                                                        Rn.View(styles = [| Styles.divider |])
                                                     | Heading text ->
-                                                        RX.View(
+                                                        Rn.View(
                                                             children =
                                                                 [|
                                                                     LC.UiText(

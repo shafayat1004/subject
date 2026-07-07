@@ -58,5 +58,5 @@ type Props = (* GenerateMakeFunction *) {
     renderScene: (NavigatorRoute) -> ReactElement
 }
 
-let ReactXPNavigationRaw: obj = Fable.Core.JsInterop.import "*" "reactxp-navigation"
-let Make = LibClient.ThirdParty.wrapComponent<Props>(ReactXPNavigationRaw?Navigator)
+let RnNavigationRaw: obj = Fable.Core.JsInterop.import "*" "reactxp-navigation"
+let Make = LibClient.ThirdParty.wrapComponent<Props>(RnNavigationRaw?Navigator)

@@ -7,8 +7,8 @@ open LibClient.Chars
 open LibClient.Services.LocalStorageService
 open LibRouter.RoutesSpec
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.ReactNativeCodePush
 open LibAppUpdateManager.icons
 
@@ -163,19 +163,19 @@ type Helpers =
     [<Component>]
     static member progressbar (progressPercentage: Percentage.PositivePercentage) =
         LC.With.Layout (fun (onLayoutOption, maybeLayout) ->
-            RX.View (styles=[|Styles.progressBarLayoutProvider|], ?onLayout = onLayoutOption, children = [|
+            Rn.View (styles=[|Styles.progressBarLayoutProvider|], ?onLayout = onLayoutOption, children = [|
                 maybeLayout
                 |> Option.map(fun layout->
-                    RX.View(styles = [|Styles.progressBarContainer layout.Width|], children = [|
+                    Rn.View(styles = [|Styles.progressBarContainer layout.Width|], children = [|
                         match UnsignedDecimal.ofDecimal (decimal layout.Width) with
                         | Some widthUnsignedDecimal ->
                             let currentProgress = progressPercentage.PercentOf widthUnsignedDecimal
-                            RX.View(styles = [|Styles.progressBar (int currentProgress.Value)|])
+                            Rn.View(styles = [|Styles.progressBar (int currentProgress.Value)|])
                         | None -> noElement
                     |])
                 )
-                |> Option.defaultValue (RX.View(children=[|
-                    RX.Text "No Layout"
+                |> Option.defaultValue (Rn.View(children=[|
+                    Rn.Text "No Layout"
                 |]))
             |])
         )
@@ -210,7 +210,7 @@ type Helpers =
             | _ -> "You will be able to continue using the app as soon as the app update is complete"
 
             
-        let activityIndicator = RX.ActivityIndicator(color = "#ff3458", size = Size.Large)
+        let activityIndicator = Rn.ActivityIndicator(color = "#ff3458", size = Size.Large)
         let latestAppVersion =
             maybeLatestAppVersion |> Option.mapOrElse "" (fun appVersion -> appVersion)
             
@@ -224,46 +224,46 @@ type Helpers =
                 match maybePercentage with
                 | None -> activityIndicator
                 | Some percentage -> element {
-                    RX.Text (latestAppVersion, styles = [|Styles.newUpdateVersionText|])
-                    RX.View ( styles = [|Styles.updateScreenProgressBar|], children = [|
+                    Rn.Text (latestAppVersion, styles = [|Styles.newUpdateVersionText|])
+                    Rn.View ( styles = [|Styles.updateScreenProgressBar|], children = [|
                         Helpers.progressbar(percentage)    
                     |])
-                    RX.Text ($"{(int percentage.Value).ToString()}{Char.percent}", styles = [|Styles.progressBarPercentage|])
+                    Rn.Text ($"{(int percentage.Value).ToString()}{Char.percent}", styles = [|Styles.progressBarPercentage|])
                 }
             | DownloadComplete  -> noElement
             | NoUpdateAvailable maybeUpdateUrl->
                 match maybeUpdateUrl with
                 | Some updateUrl ->
-                    LC.Button (label = "Update app", state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> (ReactXP.Linking.openUrl(updateUrl.Value)))))
+                    LC.Button (label = "Update app", state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> (Rn.Linking.openUrl(updateUrl.Value)))))
                 | None -> noElement
 
         
-        RX.View( styles = [|Styles.updateScreenContainer; Styles.background|], children=[|
+        Rn.View( styles = [|Styles.updateScreenContainer; Styles.background|], children=[|
             // icon
-            RX.View( styles=[|Styles.updateScreenTopContent|], children=[|
-                RX.View( styles = [|Styles.iconContainer|], children=[|
+            Rn.View( styles=[|Styles.updateScreenTopContent|], children=[|
+                Rn.View( styles = [|Styles.iconContainer|], children=[|
                     LC.Icon(icon, styles=[|Styles.updateScreenIcon|])
                 |])
 
                 // Title
-                RX.View( styles = [|Styles.titleContainer|], children=[|
-                    RX.Text(title, styles=[|Styles.updateScreenTitle|])
-                    RX.Text(description, styles=[|Styles.updateScreenDescription|])
+                Rn.View( styles = [|Styles.titleContainer|], children=[|
+                    Rn.Text(title, styles=[|Styles.updateScreenTitle|])
+                    Rn.Text(description, styles=[|Styles.updateScreenDescription|])
                 |])
             |])
             
             // ProgressBar
-            RX.View( styles = [|Styles.primaryContent|], children=[|
+            Rn.View( styles = [|Styles.primaryContent|], children=[|
                 mainContent
             |])
             
             // footnote
-            RX.View(styles = [|Styles.updateScreenFootNoteContainer|], children=[|
-                RX.Text(footnote, styles = [|Styles.updateScreenFootNote|])
+            Rn.View(styles = [|Styles.updateScreenFootNoteContainer|], children=[|
+                Rn.Text(footnote, styles = [|Styles.updateScreenFootNote|])
                 
-                RX.Text (runningAppVersion, styles=[|Styles.currentAppVersion|])
+                Rn.Text (runningAppVersion, styles=[|Styles.currentAppVersion|])
                 match maybeSyncStatus with
-                | Some syncStatus -> RX.Text (syncStatus.ToString(), styles = [|Styles.syncStateText|])
+                | Some syncStatus -> Rn.Text (syncStatus.ToString(), styles = [|Styles.syncStateText|])
                 | None -> noElement
             |])
                     
@@ -408,8 +408,8 @@ type CodePushUpdateManager =
             ``try`` = (
                 match maybeInitialRouteState.current with
                 | InitialRouteState.Loading ->
-                    RX.View (styles = [| Styles.view |], children=[|
-                        RX.ActivityIndicator(color = "#aaaaaa", size = Size.Medium)
+                    Rn.View (styles = [| Styles.view |], children=[|
+                        Rn.ActivityIndicator(color = "#aaaaaa", size = Size.Medium)
                     |])
                 | InitialRouteState.Loaded maybeInitialRoute ->
                     ``with`` maybeInitialRoute (Some onNavigation)

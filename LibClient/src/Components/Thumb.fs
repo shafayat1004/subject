@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Services.ImageService
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Thumb =
@@ -131,7 +131,7 @@ type LibClient.Components.Constructors.LC with
             initialOnly = true,
             ``with`` =
                 fun (onLayoutOption, maybeLayout) ->
-                    RX.View (
+                    Rn.View (
                         styles =
                             [|
                                 theTheme.Thumb
@@ -145,10 +145,10 @@ type LibClient.Components.Constructors.LC with
                         ?onLayout = onLayoutOption,
                         children =
                             elements {
-                                RX.Image (
+                                Rn.Image (
                                     styles     = [| Styles.image |],
                                     source     = ``for``.Source,
-                                    resizeMode = ReactXP.Components.Image.ResizeMode.Cover,
+                                    resizeMode = Rn.Components.Image.ResizeMode.Cover,
                                     size       = Size.FromParentLayout maybeLayout
                                 )
 

@@ -540,7 +540,7 @@ and generateCode (libAlias: string) (withStyles: bool) (node: ReactTemplateNode)
                                                 )
                                                 |> String.concat "; "
                                                 |> fun items -> $"[|{items}|]"
-                                            if nameSpace = "ReactXP.Components" then
+                                            if nameSpace = "Rn.Components" then
                                                 (
                                                     AttributeName (NonemptyString.ofLiteral "style"),
                                                     Line value

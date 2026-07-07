@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -37,11 +37,11 @@ module private Styles =
 type private HelperComponents =
     [<Component>]
     static member ActivityIndicator(overlay: bool) : ReactElement =
-        RX.View(
+        Rn.View(
             key = "activityIndicator",
             children =
                 elements {
-                    RX.ActivityIndicator(
+                    Rn.ActivityIndicator(
                         color = "#aaaaaa"
                     )
                 },

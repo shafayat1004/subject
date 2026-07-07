@@ -17,8 +17,8 @@ open Fable.React
 open LibClient
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open Nav.Bottom.Base
 
@@ -49,7 +49,7 @@ module Nav_Bottom_Base =
                 desktop:        unit -> ReactElement,
                 ?styles:        array<ViewStyles>,
                 ?theme:         Theme -> Theme,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
             key |> ignore
@@ -59,16 +59,16 @@ module Nav_Bottom_Base =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some legacyStyles ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
             let wrap (content: ReactElement) (screenSize: ScreenSize) (includeExtraStyles: bool) =
                 if isNoElementOrEmptyFragmentOrEmptyArray content then
                     noElement
                 else
-                    RX.View(
+                    Rn.View(
                         styles =
                             [|
                                 Styles.view theTheme screenSize

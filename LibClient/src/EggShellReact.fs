@@ -18,7 +18,7 @@ let (|NoElement|Element|) (candidate: ReactElement) =
     else
         Element candidate
 
-type RenderFunction<'Props, 'EState, 'PState, 'Actions> = array<ReactElement> * 'Props * 'EState * 'PState * 'Actions * ReactXP.LegacyStyles.RuntimeStyles -> Fable.React.ReactElement
+type RenderFunction<'Props, 'EState, 'PState, 'Actions> = array<ReactElement> * 'Props * 'EState * 'PState * 'Actions * Rn.LegacyStyles.RuntimeStyles -> Fable.React.ReactElement
 
 type NoEstate = unit
 type NoEstate1<'T>                                                       = NoEstate1 of unit
@@ -37,10 +37,10 @@ type NoPstate = unit
 let getRenderFunction<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string) : RenderFunction<'Props, 'EState, 'PState, 'Actions> =
     ComponentRegistry.GetRender fullyQualifiedComponentName
 
-let getStyles<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string) (hasStyles: bool) : ReactXP.LegacyStyles.RuntimeStyles =
+let getStyles<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string) (hasStyles: bool) : Rn.LegacyStyles.RuntimeStyles =
     match hasStyles with
     | true  -> ComponentRegistry.GetStyles fullyQualifiedComponentName
-    | false -> ReactXP.LegacyStyles.RuntimeStyles.None
+    | false -> Rn.LegacyStyles.RuntimeStyles.None
 
 type PersistentStore private () =
     static let mutable maybeInstance: Option<PersistentStore> = None
@@ -165,7 +165,7 @@ type PstatefulComponent<'Props, 'Estate, 'Pstate, 'Actions, 'Self>(fullyQualifie
     inherit Component<'Props, PstatefulState<'Estate, 'Pstate>>(initialProps)
 
     let actions: 'Actions = actionsConstructor ((this :> obj) :?> 'Self)
-    let styles: ReactXP.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
+    let styles: Rn.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
 
     do
         match PersistentStore.MaybeInstance with
@@ -205,7 +205,7 @@ type EstatefulComponent<'Props, 'Estate, 'Actions, 'Self>(fullyQualifiedName: st
     inherit Component<'Props, 'Estate>(initialProps)
 
     let actions: 'Actions = actionsConstructor ((this :> obj) :?> 'Self)
-    let styles: ReactXP.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
+    let styles: Rn.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
 
     do
         this.setInitState(this.GetInitialEstate initialProps)
@@ -225,7 +225,7 @@ type PureStatelessComponent<'Props, 'Actions, 'Self>(fullyQualifiedName: string,
     inherit Component<'Props, obj>(initialProps)
 
     let actions: 'Actions = actionsConstructor ((this :> obj) :?> 'Self)
-    let styles: ReactXP.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
+    let styles: Rn.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
 
     member _.Actions : 'Actions = actions
 

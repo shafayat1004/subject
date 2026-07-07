@@ -3,7 +3,7 @@ module ThirdParty.GoogleAnalytics.Components.Base.ViewContent
 
 open Fable.React
 open LibClient
-open ReactXP.Components
+open Rn.Components
 
 type ThirdParty.GoogleAnalytics.Components.Constructors.GoogleAnalytics.Base with
     [<Component>]
@@ -21,4 +21,4 @@ type ThirdParty.GoogleAnalytics.Components.Constructors.GoogleAnalytics.Base wit
             [| box id; box name; box price; box currency |]
         )
 
-        RX.View()
+        Rn.View()

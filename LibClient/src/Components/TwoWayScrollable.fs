@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -40,7 +40,7 @@ type LibClient.Components.Constructors.LC with
         ) : ReactElement =
         let horizontalOnly = defaultArg horizontalOnly noElement
 
-        RX.ScrollView(
+        Rn.ScrollView(
             horizontal = true,
             vertical = false,
             styles =
@@ -51,13 +51,13 @@ type LibClient.Components.Constructors.LC with
                 |],
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.horizontalScrollViewContent |],
                         children =
                             elements {
                                 horizontalOnly
 
-                                RX.ScrollView(
+                                Rn.ScrollView(
                                     horizontal = false,
                                     vertical = true,
                                     styles = [| Styles.verticalScrollView |],

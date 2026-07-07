@@ -1,4 +1,4 @@
-// NOTE there's a lot more available in the ReactXP PopupOptions which we are
+// NOTE there's a lot more available in the Rn PopupOptions which we are
 // not exposing here. We can add this functionality when needed.
 [<AutoOpen>]
 module LibClient.Components.Popup
@@ -63,7 +63,7 @@ type LibClient.Components.Constructors.LC with
             render:    unit -> ReactElement,
             connector: Connector,
             ?id:       string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:      string
         ) : ReactElement =
         key           |> ignore
@@ -80,18 +80,18 @@ type LibClient.Components.Constructors.LC with
                     {
                         Show = (fun (anchor: ReactElement) ->
                             let options =
-                                ReactXP.Popup.popupShowOptions
+                                Rn.Popup.popupShowOptions
                                     (fun () -> anchor :> obj)
                                     (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
                                         render ())
                                     (fun () -> connector.CallOnDismissCallbacks ())
-                            ReactXP.Popup.show(options, popupId)
+                            Rn.Popup.show(options, popupId)
                         )
                         Hide = (fun () ->
-                            ReactXP.Popup.dismiss(popupId)
+                            Rn.Popup.dismiss(popupId)
                         )
                         IsShown = (fun () ->
-                            ReactXP.Popup.isDisplayed(popupId)
+                            Rn.Popup.isDisplayed(popupId)
                         )
                     }
 

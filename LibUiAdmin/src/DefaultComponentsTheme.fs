@@ -1,7 +1,7 @@
 module LibUiAdmin.DefaultComponentsTheme
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 open LibUiAdmin.Components
 
 

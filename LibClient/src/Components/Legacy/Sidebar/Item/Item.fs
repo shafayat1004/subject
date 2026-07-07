@@ -18,8 +18,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open Legacy.Sidebar.Item
 
@@ -164,7 +164,7 @@ module Legacy_Sidebar_Item =
             let a11yState =
                 { AccessibilityStateRecord.empty with Selected = Some isSelected }
 
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         match value with
@@ -173,7 +173,7 @@ module Legacy_Sidebar_Item =
                     |],
                 children =
                     elements {
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.content |],
                             children =
                                 elements {
@@ -181,7 +181,7 @@ module Legacy_Sidebar_Item =
                                     | Value.Primary (primaryLabel, maybeLeftIcon, maybeRight) ->
                                         match maybeLeftIcon with
                                         | Some icon ->
-                                            RX.View(
+                                            Rn.View(
                                                 styles = [| Styles.iconLeft |],
                                                 children = elements { icon 22 }
                                             )
@@ -195,7 +195,7 @@ module Legacy_Sidebar_Item =
 
                                         match maybeRight with
                                         | Some (Right.Count count) ->
-                                            RX.View(
+                                            Rn.View(
                                                 styles = [| Styles.countContainer theTheme |],
                                                 children =
                                                     elements {
@@ -206,7 +206,7 @@ module Legacy_Sidebar_Item =
                                                     }
                                             )
                                         | Some (Right.Icon icon) ->
-                                            RX.View(
+                                            Rn.View(
                                                 styles = [| Styles.iconRight |],
                                                 children = elements { icon 22 }
                                             )

@@ -9,8 +9,8 @@ open LibClient.Components
 open LibClient.Icons
 open LibClient.Components.Input.PickerModel
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Input =
@@ -151,7 +151,7 @@ module private Helpers =
 
         match items with
         | [] ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.noItemsMessage |],
                 children = [| LC.UiText(value = "No items", styles = [| Styles.noItemsMessageText theTheme |]) |]
             )
@@ -167,7 +167,7 @@ module private Helpers =
                         styles = [| Styles.item theTheme (index = 0) isHighlighted |],
                         componentName = "LC.Input.PickerInternals.Popup.Item",
                         children =
-                            [| RX.View(
+                            [| Rn.View(
                                    styles = [| Styles.itemSelectedness |],
                                    children =
                                        [| if modelState.Value.IsSelected item then
@@ -178,7 +178,7 @@ module private Helpers =
                                           else
                                               noElement |]
                                )
-                               RX.View(
+                               Rn.View(
                                    styles = [| Styles.itemBody |],
                                    children =
                                        [| match itemView with
@@ -225,11 +225,11 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
         let renderWhenAvailable (items: List<'Item>) : ReactElement =
             Helpers.renderItems theTheme modelState itemView onSelect items
 
-        RX.ScrollView(
+        Rn.ScrollView(
             vertical = true,
             styles = [| Styles.scrollViewFor modelState.MaybeFieldWidth theTheme |],
             children =
-                [| RX.View(
+                [| Rn.View(
                        styles = [| Styles.view theTheme |],
                        children =
                            [| LC.AsyncData(
@@ -239,10 +239,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                       fun maybeOldData ->
                                           match maybeOldData with
                                           | None ->
-                                              RX.View(
+                                              Rn.View(
                                                   styles = [| Styles.activityIndicatorBlock |],
                                                   children =
-                                                      [| RX.ActivityIndicator(
+                                                      [| Rn.ActivityIndicator(
                                                              size = ActivityIndicator.Medium,
                                                              color = "#aaaaaa"
                                                          ) |]
@@ -250,10 +250,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                           | Some oldData ->
                                               castAsElement
                                                   [| renderWhenAvailable oldData
-                                                     RX.View(
+                                                     Rn.View(
                                                          styles = [| Styles.activityIndicatorOverlay |],
                                                          children =
-                                                             [| RX.ActivityIndicator(
+                                                             [| Rn.ActivityIndicator(
                                                                     size = ActivityIndicator.Medium,
                                                                     color = "#aaaaaa"
                                                                 ) |]

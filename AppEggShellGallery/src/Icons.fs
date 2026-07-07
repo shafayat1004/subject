@@ -1,8 +1,8 @@
 [<AutoOpen>]
 module AppEggShellGallery.Icons
 
-open ReactXP.SVG
-open ReactXP.Styles
+open Rn.SVG
+open Rn.Styles
 
 
 // To convert SVG polygons to paths, use (installable through npm)

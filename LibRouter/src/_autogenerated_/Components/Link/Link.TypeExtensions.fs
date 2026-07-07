@@ -12,7 +12,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module LinkTypeExtensions =
     type LibRouter.Components.Constructors.LR with
-        static member Link(``to``: string, ?children: ReactChildrenProp, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Link(``to``: string, ?children: ReactChildrenProp, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     To = ``to``

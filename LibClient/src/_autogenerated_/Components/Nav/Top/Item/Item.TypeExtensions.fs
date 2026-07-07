@@ -1,7 +1,7 @@
 namespace LibClient.Components
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 open LibClient.Components.Nav.Top.Item
 open Fable.Core.JsInterop
 
@@ -11,7 +11,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Nav_Top_ItemTypeExtensions =
     type LibClient.Components.Constructors.LC.Nav.Top with
-        static member Item(state: State, style: Style, ?children: ReactChildrenProp, ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Item(state: State, style: Style, ?children: ReactChildrenProp, ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     State = state

@@ -4,7 +4,7 @@ namespace LibClient.Components.Input
 open LibClient
 open LibClient.Input
 open System.Text.RegularExpressions
-open ReactXP.Styles
+open Rn.Styles
 
 module UnsignedDecimal =
 
@@ -39,12 +39,12 @@ module UnsignedDecimal =
 
 
 // Backward-compatible styles module — referenced by external callers (e.g. SuiteCookups).
-// This section opens ReactXP.LegacyStyles in its own isolated scope.
+// This section opens Rn.LegacyStyles in its own isolated scope.
 namespace LibClient.Components.Input
 
 module UnsignedDecimalStyles =
 
-    open ReactXP.LegacyStyles
+    open Rn.LegacyStyles
 
     let private baseStyles = lazy (asBlocks [])
 
@@ -95,8 +95,8 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_UnsignedDecimalComponent =
@@ -141,7 +141,7 @@ module Input_UnsignedDecimalComponent =
                 ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?styles:              array<ViewStyles>,
                 ?theme:               Theme -> Theme,
-                ?xLegacyStyles:       List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:                 string
             ) : ReactElement =
             key |> ignore
@@ -189,6 +189,6 @@ module UnsignedDecimalRender =
              _estate:          Estate,
              _pstate:          Pstate,
              _actions:         Actions,
-             _componentStyles: ReactXP.LegacyStyles.RuntimeStyles)
+             _componentStyles: Rn.LegacyStyles.RuntimeStyles)
             : Fable.React.ReactElement =
         failwith "UnsignedDecimal is a modern [<Component>] — this render path is never called"

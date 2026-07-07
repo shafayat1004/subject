@@ -53,7 +53,7 @@
     <Compile Include="NetworkState.fs" />
     <Compile Include="Services/Subscription.fs" />
     <Compile Include="Services/EntityService/EntityService.fs" />
-    <Compile Include="Services/HttpService/ReactXPHttp.fs" />
+    <Compile Include="Services/HttpService/RnHttp.fs" />
     <Compile Include="Services/HttpService/TypeExtensions.fs" />
     <Compile Include="Services/HttpService/Types.fs" />
     <Compile Include="Services/HttpService/HttpService.fs" />
@@ -62,10 +62,10 @@
     <Compile Include="Services/DateService/DateService.fs" />
     <Compile Include="Services/IndexedDB/IndexedDBService.fs" />
 
-    <Compile Include="ReactXP/Types.fs" />
-    <Compile Include="ReactXP/NetInfo.fs" />
-    <Compile Include="ReactXP/ReactXPBindings.fs" />
-    <Compile Include="ReactXP/RNSeam.fs" />
+    <Compile Include="Rn/Types.fs" />
+    <Compile Include="Rn/NetInfo.fs" />
+    <Compile Include="Rn/RnBindings.fs" />
+    <Compile Include="Rn/RnPrimitives.fs" />
 
     <Compile Include="Services/PageTitleService/PageTitleService.fs" />
     <Compile Include="Services/ImageService/ImageService.fs" />
@@ -74,22 +74,22 @@
 
     <Compile Include="ServiceInstances.fs" />
 
-    <Compile Include="ReactXP/Styles/Types.fs" />
-    <Compile Include="ReactXP/Styles/Animation.fs" />
+    <Compile Include="Rn/Styles/Types.fs" />
+    <Compile Include="Rn/Styles/Animation.fs" />
 
-    <Compile Include="ReactXP/Styles/Legacy/Types.fs" />
-    <Compile Include="ReactXP/Styles/Legacy/Designtime.fs" />
-    <Compile Include="ReactXP/Styles/Legacy/RulesBasic.fs" />
-    <Compile Include="ReactXP/Styles/Legacy/RulesAdditional.fs" />
-    <Compile Include="ReactXP/Styles/Legacy/Runtime.fs" />
+    <Compile Include="Rn/Styles/Legacy/Types.fs" />
+    <Compile Include="Rn/Styles/Legacy/Designtime.fs" />
+    <Compile Include="Rn/Styles/Legacy/RulesBasic.fs" />
+    <Compile Include="Rn/Styles/Legacy/RulesAdditional.fs" />
+    <Compile Include="Rn/Styles/Legacy/Runtime.fs" />
 
-    <Compile Include="ReactXP/Styles/New/Types.fs" />
-    <Compile Include="ReactXP/Styles/New/RulesBasic.fs" />
-    <Compile Include="ReactXP/Styles/New/RulesAdditional.fs" />
-    <Compile Include="ReactXP/Styles/New/FSharpDialect.fs" />
+    <Compile Include="Rn/Styles/New/Types.fs" />
+    <Compile Include="Rn/Styles/New/RulesBasic.fs" />
+    <Compile Include="Rn/Styles/New/RulesAdditional.fs" />
+    <Compile Include="Rn/Styles/New/FSharpDialect.fs" />
 
-    <Compile Include="ReactXP/Styles/Css.fs" />
-    <Compile Include="ReactXP/SVG.fs" />
+    <Compile Include="Rn/Styles/Css.fs" />
+    <Compile Include="Rn/SVG.fs" />
 
 
     <Compile Include="Polyfill/abortController.fs" />
@@ -109,23 +109,23 @@
     <Compile Include="EggShellReact.fs" />
 
     <Compile Include="Input.fs" />
-    <Compile Include="ReactXP/Styles/Legacy/Theme.fs" />
+    <Compile Include="Rn/Styles/Legacy/Theme.fs" />
 
-    <Compile Include="ReactXP/ComponentsHierarchy.fs" />
+    <Compile Include="Rn/ComponentsHierarchy.fs" />
 
-    <Compile Include="ReactXP/Components/Button/Button.fs" />
-    <Compile Include="ReactXP/Components/Text/Text.fs" />
-    <Compile Include="ReactXP/Components/UiText/UiText.fs" />
-    <Compile Include="ReactXP/Components/Image/Image.fs" />
-    <Compile Include="ReactXP/Components/ActivityIndicator/ActivityIndicator.fs" />
-    <Compile Include="ReactXP/Components/Link/Link.fs" />
-    <Compile Include="ReactXP/Components/TextInput/TextInput.fs" />
-    <Compile Include="ReactXP/Components/Picker/Picker.fs" />
-    <Compile Include="ReactXP/Components/View/View.fs" />
-    <Compile Include="ReactXP/Components/ScrollView/ScrollView.fs" />
-    <Compile Include="ReactXP/Components/WebView/WebView.fs" />
-    <Compile Include="ReactXP/Components/GestureView/GestureView.fs" />
-    <Compile Include="ReactXP/Components/HorizontalPanArea/HorizontalPanArea.fs" />
+    <Compile Include="Rn/Components/Button/Button.fs" />
+    <Compile Include="Rn/Components/Text/Text.fs" />
+    <Compile Include="Rn/Components/UiText/UiText.fs" />
+    <Compile Include="Rn/Components/Image/Image.fs" />
+    <Compile Include="Rn/Components/ActivityIndicator/ActivityIndicator.fs" />
+    <Compile Include="Rn/Components/Link/Link.fs" />
+    <Compile Include="Rn/Components/TextInput/TextInput.fs" />
+    <Compile Include="Rn/Components/Picker/Picker.fs" />
+    <Compile Include="Rn/Components/View/View.fs" />
+    <Compile Include="Rn/Components/ScrollView/ScrollView.fs" />
+    <Compile Include="Rn/Components/WebView/WebView.fs" />
+    <Compile Include="Rn/Components/GestureView/GestureView.fs" />
+    <Compile Include="Rn/Components/HorizontalPanArea/HorizontalPanArea.fs" />
 
     <Compile Include="LegacyTextWrapping.fs" />
     <Compile Include="AdditionalAutoOpens.fs" />
@@ -139,10 +139,10 @@
     <Compile Include="ComponentsHierarchy.fs" />
 
     <Compile Include="RenderHelpers.fs" />
-    <Compile Include="ReactXP/Components/AnimatableImage.fs" />
-    <Compile Include="ReactXP/Components/AnimatableText.fs" />
-    <Compile Include="ReactXP/Components/AnimatableTextInput.fs" />
-    <Compile Include="ReactXP/Components/AnimatableView.fs" />
+    <Compile Include="Rn/Components/AnimatableImage.fs" />
+    <Compile Include="Rn/Components/AnimatableText.fs" />
+    <Compile Include="Rn/Components/AnimatableTextInput.fs" />
+    <Compile Include="Rn/Components/AnimatableView.fs" />
 
     <Compile Include="Components/Text/Text.fs" />
     <Compile Include="Components/Text/LegacyText.fs" />

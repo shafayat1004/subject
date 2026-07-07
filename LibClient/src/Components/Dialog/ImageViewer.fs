@@ -11,8 +11,8 @@ open LibClient.Icons
 open LibClient.Responsive
 open LibClient.Services.ImageService
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Dialog =
@@ -112,7 +112,7 @@ type private Helpers =
             requestFocusOnMount = true,
             slide =
                 fun index ->
-                    RX.Image(
+                    Rn.Image(
                         styles = [| Styles.image screenSize |],
                         source = sourcesList[index],
                         resizeMode = resizeMode,

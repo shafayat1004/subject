@@ -9,9 +9,9 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Components
 
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 
 module LC =
     module SegmentedControl =
@@ -37,9 +37,9 @@ module private GestureHelpers =
     let activationThreshold = 8
 
     let currentOrLastDatafulGestureState
-            (maybeLastGestureStateRef: IRefValue<Option<ReactXP.Components.GestureView.PanGestureState>>)
-            (current: ReactXP.Components.GestureView.PanGestureState)
-            : ReactXP.Components.GestureView.PanGestureState =
+            (maybeLastGestureStateRef: IRefValue<Option<Rn.Components.GestureView.PanGestureState>>)
+            (current: Rn.Components.GestureView.PanGestureState)
+            : Rn.Components.GestureView.PanGestureState =
         if current.isComplete && current.isTouch && isNullOrUndefined current.pageX then
             match maybeLastGestureStateRef.current with
             | Some last ->
@@ -57,7 +57,7 @@ module private GestureHelpers =
             maybeLastGestureStateRef.current <- Some current
             current
 
-    let panDelta (gs: ReactXP.Components.GestureView.PanGestureState) =
+    let panDelta (gs: Rn.Components.GestureView.PanGestureState) =
         int gs.pageX - int gs.initialPageX
 
 [<RequireQualifiedAccess>]
@@ -226,7 +226,7 @@ type LibClient.Components.Constructors.LC with
             if segments.[index].Value <> selected then
                 onSelect segments.[index].Value
 
-        let onPanHorizontal (rawGs: ReactXP.Components.GestureView.PanGestureState) =
+        let onPanHorizontal (rawGs: Rn.Components.GestureView.PanGestureState) =
             if not draggable || cellWidth <= 0 then
                 ()
             else
@@ -263,7 +263,7 @@ type LibClient.Components.Constructors.LC with
                     lastDragOffsetRef.current <- offset
                     translateXRef.current.SetValue (double offset)
 
-        let onTap (e: ReactXP.Components.GestureView.TapGestureState) =
+        let onTap (e: Rn.Components.GestureView.TapGestureState) =
             if not draggable || cellWidth <= 0 then
                 ()
             else
@@ -287,7 +287,7 @@ type LibClient.Components.Constructors.LC with
                     | None -> A11ySlug.testId "segmented-control" suffix)
                 |> Option.orElse testId
 
-            RX.View(
+            Rn.View(
                 styles = [| Styles.segmentCell cellWidth |],
                 accessibilityRole = AccessibilityRole.Radio,
                 accessibilityState = AccessibilityStateRecord.selected isActive,
@@ -306,18 +306,18 @@ type LibClient.Components.Constructors.LC with
             LC.With.ReducedMotion (fun reduceMotion ->
                 let thumbOffset = targetOffset selectedIndex
 
-                RX.View(
+                Rn.View(
                     styles = [| Styles.track theTheme |],
                     children = [|
                         if cellWidth > 0 then
                             if reduceMotion || not draggable then
-                                RX.View(
+                                Rn.View(
                                     importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
                                     styles = [| Styles.thumbStatic theTheme cellWidth thumbOffset |],
                                     children = [||]
                                 )
                             else
-                                RX.AnimatableView(
+                                Rn.AnimatableView(
                                     styles =
                                         [|
                                             Styles.thumbAnimated
@@ -329,21 +329,21 @@ type LibClient.Components.Constructors.LC with
                                 )
 
                         if draggable && not reduceMotion then
-                            RX.GestureView(
+                            Rn.GestureView(
                                 children =
                                     [|
                                         yield!
                                             segments
                                             |> Array.mapi (fun index segment -> renderSegment index segment)
                                     |],
-                                preferredPan = ReactXP.Components.GestureView.PreferredPanGesture.Horizontal,
+                                preferredPan = Rn.Components.GestureView.PreferredPanGesture.Horizontal,
                                 panPixelThreshold = float GestureHelpers.activationThreshold,
                                 onPanHorizontal = onPanHorizontal,
                                 onTap = onTap,
                                 styles = [| Styles.segmentsRow innerWidth |]
                             )
                         else
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.segmentsRow innerWidth |],
                                 children =
                                     [|
@@ -364,4 +364,4 @@ type LibClient.Components.Constructors.LC with
                 children = [| control |]
             )
         | None ->
-            RX.View(?testId = testId, children = [| control |])
+            Rn.View(?testId = testId, children = [| control |])

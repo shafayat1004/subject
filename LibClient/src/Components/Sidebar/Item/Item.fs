@@ -24,8 +24,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open Sidebar.Item
 
@@ -37,7 +37,7 @@ module Sidebar_Item =
             module Item =
                 type Colors = {
                     Label:           Color
-                    LabelWeight:     ReactXP.Styles.RulesRestricted.FontWeight
+                    LabelWeight:     Rn.Styles.RulesRestricted.FontWeight
                     Background:      Color
                     Border:          Color
                     LeftIcon:        Color
@@ -184,7 +184,7 @@ module Sidebar_Item =
                 ?styles: array<ViewStyles>,
                 ?testId: string,
                 ?theme: Theme -> Theme,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key: string
             ) : ReactElement =
             key |> ignore
@@ -196,9 +196,9 @@ module Sidebar_Item =
             let legacyViewStyles : array<ViewStyles> =
                 match xLegacyStyles with
                 | Some legacyStyles ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                     | []     -> [||]
-                    | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
                 | None -> [||]
 
             let onPress =
@@ -211,7 +211,7 @@ module Sidebar_Item =
                     let colors =
                         pickColors (interactionForState theTheme state) pointerState
 
-                    RX.View(
+                    Rn.View(
                         styles =
                             [|
                                 Styles.item theTheme.ItemHeight colors.Border colors.Background
@@ -222,7 +222,7 @@ module Sidebar_Item =
                             elements {
                                 match leftIcon with
                                 | Some icon ->
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.left |],
                                         children =
                                             elements {
@@ -235,7 +235,7 @@ module Sidebar_Item =
                                 | None ->
                                     noElement
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.middle |],
                                     children =
                                         elements {
@@ -249,21 +249,21 @@ module Sidebar_Item =
 
                                 match state with
                                 | InProgress ->
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.right |],
                                         children =
                                             elements {
-                                                RX.ActivityIndicator(color = "#aaaaaa", size = Size.Small)
+                                                Rn.ActivityIndicator(color = "#aaaaaa", size = Size.Small)
                                             }
                                     )
                                 | _ ->
                                     match right with
                                     | Some (Right.Badge count) ->
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.right |],
                                             children =
                                                 elements {
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [| Styles.badgeContainer colors.BadgeBackground |],
                                                         children =
                                                             elements {
@@ -276,7 +276,7 @@ module Sidebar_Item =
                                                 }
                                         )
                                     | Some (Right.Icon icon) ->
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.right |],
                                             children =
                                                 elements {

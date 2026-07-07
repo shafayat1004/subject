@@ -10,7 +10,7 @@ open LibUiAdmin
 open LibUiSubject.Components.Constructors
 open LibUiSubject.Components.With.Subject
 open LibUiSubjectAdmin.Components.Constructors
-open ReactXP.Components
+open Rn.Components
 
 module dom = Fable.React.Standard
 
@@ -54,7 +54,7 @@ type LibUiSubjectAdmin.Components.Constructors.UiSubjectAdmin with
                             |]
                         |]
                         #else
-                        RX.View (
+                        Rn.View (
                             children =
                                 [|
                                     dom.table [ ClassName "la-table-keyvalue" ] [|

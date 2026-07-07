@@ -4,8 +4,8 @@ module AppEggShellGallery.Components.Content_TouchableOpacity
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -24,9 +24,9 @@ type private Helpers =
                 onPress = (fun _ -> isPressed.update true),
                 testId = "touchable-opacity-click-me",
                 children = [|
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.view |],
-                        children = [| RX.Text "Click Me" |]
+                        children = [| Rn.Text "Click Me" |]
                     )
                 |]
             )
@@ -42,9 +42,9 @@ type private Helpers =
             label = "Submit order",
             testId = "touchable-opacity-submit-order",
             children = [|
-                RX.View(
+                Rn.View(
                     styles = [| Styles.view |],
-                    children = [| RX.Text "Place Order" |]
+                    children = [| Rn.Text "Place Order" |]
                 )
             |]
         )
@@ -116,9 +116,9 @@ let isPressed = Hooks.useState false
 LC.TouchableOpacity(
     onPress = (fun _ -> isPressed.update true),
     children = [|
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
-            children = [| RX.Text "Click Me" |]
+            children = [| Rn.Text "Click Me" |]
         )
     |]
 )
@@ -139,9 +139,9 @@ LC.TouchableOpacity(
     onPress = (fun _ -> ()),
     label = "Submit order",
     children = [|
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
-            children = [| RX.Text "Place Order" |]
+            children = [| Rn.Text "Place Order" |]
         )
     |]
 )

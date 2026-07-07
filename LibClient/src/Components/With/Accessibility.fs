@@ -65,7 +65,7 @@ module LC =
                 async {
                     try
                         let! result =
-                            ReactXP.RNSeam.AccessibilityInfoModule?(query)()
+                            Rn.RnPrimitives.AccessibilityInfoModule?(query)()
                             |> Async.AwaitPromise
                             |> Async.TryCatch
 
@@ -81,7 +81,7 @@ module LC =
                 async {
                     try
                         let! scale =
-                            ReactXP.RNSeam.AccessibilityInfoModule?getFontScale()
+                            Rn.RnPrimitives.AccessibilityInfoModule?getFontScale()
                             |> Async.AwaitPromise
                             |> Async.TryCatch
 
@@ -105,14 +105,14 @@ module LC =
                     let handler (isEnabled: bool) = bump (fun s -> update isEnabled s)
 
                     let subscription =
-                        ReactXP.RNSeam.AccessibilityInfoModule?addEventListener(eventName, handler)
+                        Rn.RnPrimitives.AccessibilityInfoModule?addEventListener(eventName, handler)
 
                     unsubscribers.Add(fun () ->
                         try
                             subscription?remove () |> ignore
                         with _ ->
                             try
-                                ReactXP.RNSeam.AccessibilityInfoModule?removeEventListener(eventName, handler)
+                                Rn.RnPrimitives.AccessibilityInfoModule?removeEventListener(eventName, handler)
                                 |> ignore
                             with _ ->
                                 ())

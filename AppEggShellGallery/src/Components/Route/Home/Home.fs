@@ -6,8 +6,8 @@ open LibClient
 open LibClient.Components
 open LibClient.ContextMenus
 open LibRouter.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open AppEggShellGallery.LocalImages
 
 module private Styles =
@@ -58,14 +58,14 @@ module private Styles =
     }
 
 let private techRow (name: string) (description: string) : ReactElement =
-    RX.View(
+    Rn.View(
         styles = [| Styles.row |],
         children = [|
-            RX.View(
+            Rn.View(
                 styles = [| Styles.cellLeft |],
                 children = [| LC.Text(name, styles = [| Styles.label |]) |]
             )
-            RX.View(
+            Rn.View(
                 styles = [| Styles.cellRight |],
                 children = [| LC.Text description |]
             )
@@ -83,25 +83,25 @@ type Ui.Route with
                     LC.Section.Padded(
                         styles = [| Styles.content |],
                         children = [|
-                            RX.Image(
+                            Rn.Image(
                                 source = localImage "/images/logo-sketch.jpg",
-                                size   = ReactXP.Components.Image.FromStyles,
+                                size   = Rn.Components.Image.FromStyles,
                                 styles = [| Styles.logoImage |]
                             )
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.subtitle |],
                                 children = [|
                                     LC.Text("EggShell is a tech stack for front end apps.", styles = [| Styles.contentText |])
                                     LC.Text("It combines a number of technologies:", styles = [| Styles.contentText |])
                                 |]
                             )
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.table |],
                                 children = [|
                                     techRow "F#"      "a functional programming language with a powerful type system"
                                     techRow "React"   "a JS library for building UIs declaratively"
                                     techRow "Fable"   "an F# to JS compiler"
-                                    techRow "ReactXP" "a layer on top of React that allows targeting ReactDOM and ReactNative from the same code base"
+                                    techRow "Rn" "a layer on top of React that allows targeting ReactDOM and ReactNative from the same code base"
                                 |]
                             )
                         |]

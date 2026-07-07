@@ -8,7 +8,7 @@ open LibClient.ServiceInstances
 open Fable.Core
 open Fable.Core.JsInterop
 open LibClient.Services.HttpService.Types
-open ReactXP.LegacyStyles.Css
+open Rn.LegacyStyles.Css
 
 do addCss ("""
 .markdown-global-link {
@@ -182,7 +182,7 @@ type ThirdParty.Showdown.Components.Constructors.Showdown with
                         let requestOptions =
                             (HttpRequestOptionsJs("text/plain", "text"))
                             |> box
-                        let! response = services().Http.RequestReactXPRaw url HttpAction.Get (Some requestOptions)
+                        let! response = services().Http.RequestRnRaw url HttpAction.Get (Some requestOptions)
                         sourceCodeHook.update (Available (response.body :?> string))
                     } |> startSafely
                 | Code _ ->

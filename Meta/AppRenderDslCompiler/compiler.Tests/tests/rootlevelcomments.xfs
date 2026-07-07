@@ -14,9 +14,9 @@ open Components.Test
 
 
 
-let render(props: Components.Test.Props, estate: Components.Test.Estate, pstate: Components.Test.Pstate, actions: Components.Test.Actions, __componentStyles: ReactXP.Styles.RuntimeStyles) : Fable.React.ReactElement =
-    let __class = (ReactXP.Helpers.extractProp "ClassName" props) |> Option.defaultValue ""
-    let __mergedStyles = ReactXP.Styles.Runtime.mergeComponentAndPropsStyles __componentStyles props
+let render(props: Components.Test.Props, estate: Components.Test.Estate, pstate: Components.Test.Pstate, actions: Components.Test.Actions, __componentStyles: Rn.Styles.RuntimeStyles) : Fable.React.ReactElement =
+    let __class = (Rn.Helpers.extractProp "ClassName" props) |> Option.defaultValue ""
+    let __mergedStyles = Rn.Styles.Runtime.mergeComponentAndPropsStyles __componentStyles props
     let __parentFQN = None
     (fun (__sibI, __sibC, __pFQN) ->
         let __parentFQN = Some "Components.div"
@@ -24,12 +24,12 @@ let render(props: Components.Test.Props, estate: Components.Test.Estate, pstate:
             (
                 let __currExplicitProps = (Components.TypeExtensions.TEs.MakedivProps())
                 let __currClass = (nthChildClasses __sibI __sibC)
-                let __currStyles = (ReactXP.Styles.Runtime.findApplicableStyles __mergedStyles __currClass)
+                let __currStyles = (Rn.Styles.Runtime.findApplicableStyles __mergedStyles __currClass)
                 let __implicitProps = [
                     if __currClass <> "" then ("ClassName", __currClass :> obj)
                     if (not __currStyles.IsEmpty) then ("__style", __currStyles :> obj)
                 ]
-                (ReactXP.Styles.Runtime.injectImplicitProps __implicitProps __currExplicitProps)
+                (Rn.Styles.Runtime.injectImplicitProps __implicitProps __currExplicitProps)
             )
             (
                 let __list = [

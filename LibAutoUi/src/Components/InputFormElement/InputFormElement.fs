@@ -11,8 +11,8 @@ open LibClient.Components.Input.PickerModel
 open LibAutoUi.Types
 open LibAutoUi.TypeExtensions
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type PrimitiveInputFieldProps = {
     OnChange:   InputValue -> unit
@@ -95,7 +95,7 @@ module private Styles =
 
 module private Helpers =
     let inlineLabelView (displayName: string) : ReactElement =
-        RX.View(
+        Rn.View(
             styles = [| Styles.inlineLabel |],
             children =
                 elements {
@@ -125,13 +125,13 @@ module private Helpers =
             acc.GetCurrentDerivedValue path
             |> Option.bind (findRangeIndex rangeList)
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.rangeValueSelection |],
             children =
                 elements {
                     inlineLabelView displayName
 
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.inlineValue |],
                         children =
                             elements {
@@ -172,13 +172,13 @@ module private Helpers =
             | Some (NumericValue n) -> Some (int n)
             | _                     -> None
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.unionCaseSelection |],
             children =
                 elements {
                     inlineLabelView displayName
 
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.inlineValue |],
                         children =
                             elements {
@@ -207,7 +207,7 @@ type UIAuto with
             onChange:                 Path -> InputValue -> unit,
             onChangeFromRange:        Path -> obj -> Type -> unit,
             primitiveInputComponents: PrimitiveInputComponents,
-            ?xLegacyStyles:           List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:           List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:                     string
         ) : ReactElement =
         key |> ignore
@@ -225,7 +225,7 @@ type UIAuto with
                 | None ->
                     match form.FormType with
                     | InputFormType.Primitive inputType ->
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.primitive |],
                             children =
                                 elements {
@@ -233,7 +233,7 @@ type UIAuto with
                                     | UnitInput -> ()
                                     | _         -> Helpers.inlineLabelView displayName
 
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.inlineValue |],
                                         children =
                                             elements {
@@ -268,13 +268,13 @@ type UIAuto with
                             | _                        -> false
 
                         element {
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.optionRow |],
                                 children =
                                     elements {
                                         Helpers.inlineLabelView displayName
 
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.inlineValue |],
                                             children =
                                                 elements {
@@ -309,7 +309,7 @@ type UIAuto with
                             |> List.map (fun fieldForm -> render fieldForm acc)
                             |> List.toArray
 
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.record |],
                             children =
                                 elements {
@@ -318,7 +318,7 @@ type UIAuto with
                                         styles = [| Styles.recordLabel |]
                                     )
 
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.indentedFields |],
                                         children = indentedFieldViews
                                     )
@@ -331,7 +331,7 @@ type UIAuto with
                             | Some (NumericValue n) -> Some (int n)
                             | _                     -> None
 
-                        RX.View(
+                        Rn.View(
                             children =
                                 elements {
                                     Helpers.renderUnionPicker path displayName caseInputForms acc onChange
@@ -344,7 +344,7 @@ type UIAuto with
                                             |> List.map (fun fieldForm -> render fieldForm acc)
                                             |> List.toArray
 
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.indentedFields |],
                                             children = caseFieldViews
                                         )
@@ -354,7 +354,7 @@ type UIAuto with
             else
                 noElement
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children = [| render form accumulator |]
         )

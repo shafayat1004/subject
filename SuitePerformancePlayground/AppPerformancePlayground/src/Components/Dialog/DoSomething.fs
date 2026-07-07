@@ -7,7 +7,7 @@ open LibClient.Dialogs
 open Fable.React
 open LibClient.Components.Form_Base.Types
 open AppPerformancePlayground.AppServices
-open ReactXP.Styles
+open Rn.Styles
 
 type Parameters = {
     Param: int

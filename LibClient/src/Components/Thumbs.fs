@@ -7,7 +7,7 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Services.ImageService
 
-open ReactXP.Styles
+open Rn.Styles
 
 module LC =
     module Thumbs =

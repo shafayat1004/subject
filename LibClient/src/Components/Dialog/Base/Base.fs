@@ -7,8 +7,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type ContentPosition =
 | Free
@@ -78,7 +78,7 @@ type LibClient.Components.Constructors.LC.Dialog with
             canClose: CanClose,
             contentPosition: ContentPosition,
             ?children: ReactChildrenProp,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -97,13 +97,13 @@ type LibClient.Components.Constructors.LC.Dialog with
             | _ -> Noop
 
         let onPress =
-            if ReactXP.Runtime.isNative() then undefinedOnPress else onBackgroundPress
+            if Rn.Runtime.isNative() then undefinedOnPress else onBackgroundPress
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.background |],
             children =
                 [|
-                    RX.View(
+                    Rn.View(
                         onKeyPress = onKeyPress,
                         onPress = onPress,
                         styles = [| Styles.dialog |],
@@ -112,12 +112,12 @@ type LibClient.Components.Constructors.LC.Dialog with
                                 match contentPosition with
                                 | Free -> defaultArg children [||] |> castAsElement
                                 | CenterTop ->
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.positionWrapper; Styles.positionCenterTop |],
                                         children = defaultArg children [||]
                                     )
                                 | Center ->
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.positionWrapper; Styles.positionCenter |],
                                         children = defaultArg children [||]
                                     )

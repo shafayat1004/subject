@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module LabelledFormField =
@@ -69,7 +69,7 @@ type LibClient.Components.Constructors.LC with
             ?fieldStyles:     array<ViewStyles>,
             ?theme:           Theme -> Theme,
             ?testId:          string,
-            ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:             string
         ) : ReactElement =
         key |> ignore
@@ -79,31 +79,31 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let legacyLabelStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyStyles "label" with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles legacyStyles "label" with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let legacyFieldStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyStyles "field" with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles legacyStyles "field" with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         LC.With.ScreenSize(
             ``with`` =
                 fun screenSize ->
-                    RX.View(
+                    Rn.View(
                         ?testId = testId,
                         styles =
                             [|
@@ -112,7 +112,7 @@ type LibClient.Components.Constructors.LC with
                             |],
                         children =
                             elements {
-                                RX.View(
+                                Rn.View(
                                     accessibilityLabel = label,
                                     styles = [| yield! legacyLabelStyles |],
                                     children =
@@ -128,7 +128,7 @@ type LibClient.Components.Constructors.LC with
                                         }
                                 )
 
-                                RX.View(
+                                Rn.View(
                                     styles =
                                         [|
                                             Styles.field screenSize

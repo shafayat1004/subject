@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Badge = LibClient.Output.Badge
 let Text      = Badge.Text
@@ -17,7 +17,7 @@ module LC =
     module Badge =
         type Theme = {
             FontSize:        int
-            FontWeight:      ReactXP.Styles.RulesRestricted.FontWeight
+            FontWeight:      Rn.Styles.RulesRestricted.FontWeight
             FontColor:       Color
             BackgroundColor: Color
         }
@@ -72,7 +72,7 @@ type LibClient.Components.Constructors.LC with
             badge:          Badge,
             ?theme:         Theme -> Theme,
             ?styles:        array<ViewStyles>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key |> ignore
@@ -82,16 +82,16 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let extraStyles = styles |> Option.defaultValue [||]
 
         match badge with
         | Badge.Count count ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.viewFor theTheme; yield! legacyViewStyles; yield! extraStyles |],
                 children =
                     elements {
@@ -99,7 +99,7 @@ type LibClient.Components.Constructors.LC with
                     }
             )
         | Badge.Text text ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.viewFor theTheme; yield! legacyViewStyles; yield! extraStyles |],
                 children =
                     elements {
@@ -111,6 +111,6 @@ type LibClient.Components.Constructors.LC with
                     }
             )
         | Badge.NoContent ->
-            RX.View(
+            Rn.View(
                 styles = [| Styles.noContentFor theTheme; yield! legacyViewStyles; yield! extraStyles |]
             )

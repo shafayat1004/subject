@@ -4,8 +4,8 @@ module LibClient.Components.InfoMessage
 open Fable.React
 open LibClient
 open LibClient.Accessibility
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Level =
 | Info
@@ -33,7 +33,7 @@ module private Styles =
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
-    static member InfoMessage(message: string, ?level: Level, ?styles: array<TextStyles>, ?theme: Theme -> Theme, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
+    static member InfoMessage(message: string, ?level: Level, ?styles: array<TextStyles>, ?theme: Theme -> Theme, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
         key |> ignore
         let theLevel = defaultArg level Level.Info
         let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -45,14 +45,14 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
-                | s  -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" s |]
+                | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
-        RX.View(
+        Rn.View(
             styles = [| Styles.view; yield! legacyViewStyles |],
             accessibilityRole = AccessibilityRole.Status,
-            accessibilityLiveRegion = unbox<ReactXP.Components.View.AccessibilityLiveRegion> (int AccessibilityLiveRegion.Polite),
+            accessibilityLiveRegion = unbox<Rn.Components.View.AccessibilityLiveRegion> (int AccessibilityLiveRegion.Polite),
             children = [|
                 LC.Text(message, styles = [| Styles.textForColorCss levelColor.ToCssString; yield! defaultArg styles [||] |])
             |]

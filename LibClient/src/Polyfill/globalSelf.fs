@@ -1,6 +1,6 @@
 module LibClient.Polyfill.GlobalSelf
 
-open ReactXP
+open Rn
 open Fable.Core
 open Fable.Core.JsInterop
 open LibClient.JsInterop

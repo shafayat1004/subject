@@ -21,8 +21,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 open LibClient.Components.Legacy
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Legacy_Card =
@@ -69,14 +69,14 @@ module Legacy_Card =
                 ?label:         string,
                 ?testId:        string,
                 ?styles:        array<ViewStyles>,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
             key           |> ignore
             xLegacyStyles |> ignore
             let theStyle  = defaultArg style Card.Shadowed
             let theTheme  = Themes.GetMaybeUpdatedWith theme
-            RX.View(
+            Rn.View(
                 styles = [| Styles.view theStyle theTheme; yield! defaultArg styles [||] |],
                 children = [|
                     yield! children

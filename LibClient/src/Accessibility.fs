@@ -1,4 +1,4 @@
-/// Cross-platform accessibility types aligned with @chaldal/reactxp CommonAccessibilityProps.
+/// Cross-platform accessibility types aligned with react-native CommonAccessibilityProps.
 module LibClient.Accessibility
 
 open Fable.Core
@@ -67,7 +67,7 @@ type AccessibilityStateRecord = {
 
 /// POJO prototype (Fable 5 `[<Pojo>]`): constructor args define a plain JS object, the class
 /// declaration is erased. Optional ctor args map to optional fields; member names set JS key
-/// casing (ReactXP wants camelCase `disabled`/`selected`/...). Replaces the hand-built
+/// casing (Rn wants camelCase `disabled`/`selected`/...). Replaces the hand-built
 /// `createObj` + `Option.map`/`box` prop bag below.
 [<Fable.Core.JS.Pojo>]
 type private AccessibilityStateJs

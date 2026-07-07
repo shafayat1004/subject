@@ -9,8 +9,8 @@ open LibClient.Components.Form_Base
 open LibClient.Components.Form_Base.Types
 open LibClient.Services.Subscription
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 open LibUiAdmin
 open LibUiAdmin.Components.Grid
@@ -101,7 +101,7 @@ type UiAdmin with
         ?customRender:   ReactElement * ReactElement -> ReactElement,
         ?children:       ReactChildrenProp,
         ?key:            string,
-        ?xLegacyStyles:  List<ReactXP.LegacyStyles.RuntimeStyles>
+        ?xLegacyStyles:  List<Rn.LegacyStyles.RuntimeStyles>
     ) : ReactElement =
         ignore (children, key)
 
@@ -261,9 +261,9 @@ type UiAdmin with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         let form =
@@ -276,7 +276,7 @@ type UiAdmin with
                     content     =
                         fun (form: FormHandle<'QueryFormField, 'QueryAcc, 'Query>) ->
                             element {
-                                RX.View (
+                                Rn.View (
                                     styles   = [| Styles.queryBlock |],
                                     children = [| queryFormFn form |]
                                 )
@@ -294,7 +294,7 @@ type UiAdmin with
                 )
 
         let grid =
-            RX.View (
+            Rn.View (
                 children =
                     [|
                         match handheldRow with
@@ -321,7 +321,7 @@ type UiAdmin with
                     |]
             )
 
-        RX.View (
+        Rn.View (
             styles   = legacyViewStyles,
             children =
                 match customRender with

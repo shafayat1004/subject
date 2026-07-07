@@ -1,7 +1,7 @@
 ﻿module  LibAppUpdateManager.icons
 
-open ReactXP.SVG
-open ReactXP.Styles
+open Rn.SVG
+open Rn.Styles
 
 type IconConstructor = LibClient.Icons.IconConstructor
 

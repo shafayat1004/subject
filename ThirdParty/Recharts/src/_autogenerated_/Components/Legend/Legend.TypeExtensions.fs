@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module LegendTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member Legend(?children: ReactChildrenProp, ?width: int, ?height: int, ?layout: Layout, ?horizontalAlignment: HorizontalAlignment, ?verticalAlignment: VerticalAlignment, ?iconSize: int, ?``type``: LegendType, ?margin: EdgeInsets, ?onClick: (unit -> unit), ?onMouseDown: (unit -> unit), ?onMouseUp: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseOver: (unit -> unit), ?onMouseOut: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Legend(?children: ReactChildrenProp, ?width: int, ?height: int, ?layout: Layout, ?horizontalAlignment: HorizontalAlignment, ?verticalAlignment: VerticalAlignment, ?iconSize: int, ?``type``: LegendType, ?margin: EdgeInsets, ?onClick: (unit -> unit), ?onMouseDown: (unit -> unit), ?onMouseUp: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseOver: (unit -> unit), ?onMouseOut: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Width = width |> Option.orElse (JsUndefined)

@@ -292,7 +292,7 @@ type LibClient.Components.Constructors.LC.Form with
             ?initializeAccOnSubmit: bool,
             ?executor:             MakeExecutor,
             ?key:                  string,
-            ?xLegacyStyles:        List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles:        List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         children |> ignore
         key |> ignore

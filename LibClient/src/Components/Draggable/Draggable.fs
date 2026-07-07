@@ -8,9 +8,9 @@ open Fable.Core.JsInterop
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 
 [<RequireQualifiedAccess>]
 type Position =
@@ -22,8 +22,8 @@ type Position =
 
 type IDraggableRef =
     abstract member SetPosition:     Position -> bool
-    abstract member OnPanHorizontal: ReactXP.Components.GestureView.PanGestureState -> unit
-    abstract member OnPanVertical:   ReactXP.Components.GestureView.PanGestureState -> unit
+    abstract member OnPanHorizontal: Rn.Components.GestureView.PanGestureState -> unit
+    abstract member OnPanVertical:   Rn.Components.GestureView.PanGestureState -> unit
 
 type DragTarget = {|
     ForwardThreshold:  int
@@ -43,7 +43,7 @@ type Direction =
 | Horizontal
 | Vertical
 
-type ReactXP.Components.GestureView.PanGestureState with
+type Rn.Components.GestureView.PanGestureState with
     member this.DeltaX : int =
         this.pageX - this.initialPageX |> int
 
@@ -65,9 +65,9 @@ module private Helpers =
         |> max (fst range)
 
     let currentOrLastDatafulGestureState
-            (maybeLastGestureStateRef: IRefValue<Option<ReactXP.Components.GestureView.PanGestureState>>)
-            (current: ReactXP.Components.GestureView.PanGestureState)
-            : ReactXP.Components.GestureView.PanGestureState =
+            (maybeLastGestureStateRef: IRefValue<Option<Rn.Components.GestureView.PanGestureState>>)
+            (current: Rn.Components.GestureView.PanGestureState)
+            : Rn.Components.GestureView.PanGestureState =
         if current.isComplete && current.isTouch && isNullOrUndefined current.pageX then
             match maybeLastGestureStateRef.current with
             | Some last ->
@@ -219,7 +219,7 @@ type private DraggableRuntime = {
     AniValueX:       AnimatedValue
     AniValueY:       AnimatedValue
     MaybeOngoingAnimation: IRefValue<Option<Animation>>
-    MaybeLastGestureState: IRefValue<Option<ReactXP.Components.GestureView.PanGestureState>>
+    MaybeLastGestureState: IRefValue<Option<Rn.Components.GestureView.PanGestureState>>
 }
 
 type LibClient.Components.Constructors.LC with
@@ -235,7 +235,7 @@ type LibClient.Components.Constructors.LC with
             ?draggableRef:    LibClient.JsInterop.JsNullable<IDraggableRef> -> unit,
             ?testId:          string,
             ?styles:          array<ViewStyles>,
-            ?xLegacyStyles:   List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:             string
         ) : ReactElement =
         key |> ignore
@@ -336,11 +336,11 @@ type LibClient.Components.Constructors.LC with
                 rawDeltaY
                 isGestureComplete
 
-        let onPanHorizontal (rawGestureState: ReactXP.Components.GestureView.PanGestureState) : unit =
+        let onPanHorizontal (rawGestureState: Rn.Components.GestureView.PanGestureState) : unit =
             let gestureState = Helpers.currentOrLastDatafulGestureState maybeLastGestureStateRef rawGestureState
             onPanX gestureState.DeltaX gestureState.isComplete
 
-        let onPanVertical (rawGestureState: ReactXP.Components.GestureView.PanGestureState) : unit =
+        let onPanVertical (rawGestureState: Rn.Components.GestureView.PanGestureState) : unit =
             let gestureState = Helpers.currentOrLastDatafulGestureState maybeLastGestureStateRef rawGestureState
             onPanY gestureState.DeltaY gestureState.isComplete
 
@@ -409,15 +409,15 @@ type LibClient.Components.Constructors.LC with
         let legacyGestureViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findApplicableStyles legacyStyles "gesture-view" with
+                match Rn.LegacyStyles.Runtime.findApplicableStyles legacyStyles "gesture-view" with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.GestureView" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.GestureView" styles |]
             | None -> [||]
 
         let legacyContentsStyles : array<AnimatableViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<array<AnimatableViewStyles>> "ReactXP.Components.View" legacyStyles
+                Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<array<AnimatableViewStyles>> "Rn.Components.View" legacyStyles
             | None -> [||]
 
         // When the wrapper is explicitly sized via the styles prop, the AnimatableView and
@@ -426,7 +426,7 @@ type LibClient.Components.Constructors.LC with
         let fillStyles = styles.IsSome
 
         let gestureView =
-            RX.GestureView(
+            Rn.GestureView(
                 ?onPanHorizontal = (if left.IsSome || right.IsSome then Some onPanHorizontal else None),
                 ?onPanVertical = (if up.IsSome || down.IsSome then Some onPanVertical else None),
                 styles =
@@ -437,7 +437,7 @@ type LibClient.Components.Constructors.LC with
                 children = defaultArg children [||]
             )
 
-        RX.View(
+        Rn.View(
             ?testId = testId,
             // box-none: the wrapper is a positioning container, never itself a pointer target,
             // but its interactive children (the GestureView) still are. Without this, a sized
@@ -448,7 +448,7 @@ type LibClient.Components.Constructors.LC with
             styles = [| Styles.wrapper; yield! defaultArg styles [||] |],
             children =
                 [|
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         styles =
                             [|
                                 yield! if fillStyles then [| Styles.animatableViewFill |] else [||]

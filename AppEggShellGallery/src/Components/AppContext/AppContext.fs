@@ -12,7 +12,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
     static member AppContext(
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (key, xLegacyStyles)
 

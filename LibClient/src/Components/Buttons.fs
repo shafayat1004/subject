@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 type Align = HorizontalAlignment
 
@@ -47,7 +47,7 @@ type LibClient.Components.Constructors.LC with
         let align = defaultArg align Align.Center
         let styles = defaultArg styles Array.empty
 
-        RX.View(
+        Rn.View(
             children = children,
             styles =
                 [|

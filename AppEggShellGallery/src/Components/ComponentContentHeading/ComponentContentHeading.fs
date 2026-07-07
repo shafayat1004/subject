@@ -6,8 +6,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Components
 open LibClient.Responsive
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -34,7 +34,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             isResponsive:   bool,
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore
@@ -43,7 +43,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
         LC.With.ScreenSize(
             ``with`` =
                 (fun screenSize ->
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.view |],
                         children =
                             [|

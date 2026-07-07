@@ -2,7 +2,7 @@
 module ThirdParty.SafeAreaContext.Components.SafeAreView
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 open Fable.Core
@@ -17,7 +17,7 @@ let private safeAreaView : obj = import "SafeAreaView" "react-native-safe-area-c
 let private MakeSafeAreaView: obj -> ReactElements -> ReactElement =
     ThirdParty.wrapComponent<obj>(safeAreaView)
 #else
-open ReactXP.Components
+open Rn.Components
 #endif
 
 type SafeAreaContext with
@@ -43,5 +43,5 @@ type SafeAreaContext with
             __props
             children
         #else
-        RX.View (?styles = styles, children = children)
+        Rn.View (?styles = styles, children = children)
         #endif

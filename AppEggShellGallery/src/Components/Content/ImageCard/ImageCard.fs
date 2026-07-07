@@ -7,8 +7,8 @@ open LibClient.Accessibility
 open LibClient.Components
 open AppEggShellGallery.LocalImages
 open AppEggShellGallery
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private MetadataStyles =
@@ -113,7 +113,7 @@ LC.ImageCard(
                                         label    = ImageCard.Children ImageCard.UseScrim.Yes,
                                         styles   = [| sampleImageCardStyles |],
                                         children = [|
-                                            RX.View(
+                                            Rn.View(
                                                 styles   = [| MetadataStyles.metadata |],
                                                 children = [|
                                                     LC.UiText("Painting", styles = [| MetadataStyles.title  |])
@@ -132,7 +132,7 @@ LC.ImageCard(
     label    = ImageCard.Children ImageCard.UseScrim.Yes,
     styles   = [| sampleImageCardStyles |],
     children = [|
-        RX.View(
+        Rn.View(
             styles   = [| MetadataStyles.metadata |],
             children = [|
                 LC.UiText("Painting", styles = [| MetadataStyles.title  |])

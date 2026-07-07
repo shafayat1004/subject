@@ -3,8 +3,8 @@ module LibClient.Components.Nav_Top_Image
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -22,7 +22,7 @@ type LibClient.Components.Constructors.LC.Nav.Top with
             ?key: string) : ReactElement =
         key |> ignore
 
-        RX.Image(
+        Rn.Image(
             styles =
                 [|
                     Styles.image

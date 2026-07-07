@@ -5,7 +5,7 @@ open LibClient
 open LibClient.JsInterop
 open Browser.Types
 open LibClient.Components.Text
-open ReactXP.Styles
+open Rn.Styles
 open LC.Text
 
 type LibClient.Components.Constructors.LC with

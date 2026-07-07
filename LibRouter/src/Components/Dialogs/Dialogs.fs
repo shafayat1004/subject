@@ -9,8 +9,8 @@ open LibRouter.RoutesSpec
 open LibRouter.Components.With.Navigation
 open LibRouter.Components.Constructors
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -56,18 +56,18 @@ type LR with
         )
 
         if dialogs.IsNonempty then
-            RX.View(
+            Rn.View(
                 styles = [| Styles.view |],
                 children =
                     elements {
                         // Sentinel keeps React continuity when dialog count changes.
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.sentinel |]
                         )
 
                         (List.rev dialogs)
                         |> List.map (fun dialog ->
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.frame |],
                                 children =
                                     [|

@@ -5,7 +5,7 @@ open System
 open Fable.React
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 module LC =
     module Timestamp =

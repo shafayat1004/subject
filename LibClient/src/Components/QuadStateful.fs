@@ -5,7 +5,7 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
+open Rn.Components
 
 module LC =
     module QuadStateful =
@@ -88,13 +88,13 @@ type LibClient.Components.Constructors.LC with
             }
 
         | InProgress ->
-            RX.ActivityIndicator(
+            Rn.ActivityIndicator(
                 color = "#aaaaaa"
             )
 
         | Error message ->
             element {
-                RX.View(
+                Rn.View(
                     elements {
                         LC.Text $"Error: {message}"
                     }

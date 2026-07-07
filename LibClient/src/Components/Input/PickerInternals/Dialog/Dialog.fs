@@ -13,8 +13,8 @@ open LibClient.Components.Dialog.Base
 open LibClient.Components.Dialog.Shell.WhiteRounded
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Parameters<'Item when 'Item : comparison> = {
     Placeholder:   string option
@@ -131,11 +131,11 @@ module private Helpers =
                     castAsElement (
                         items
                         |> Seq.mapi (fun index item ->
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.item fieldTheme |],
                                 children =
                                     [|
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.itemSelectedness |],
                                             children =
                                                 [|
@@ -148,7 +148,7 @@ module private Helpers =
                                                         noElement
                                                 |]
                                         )
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.itemBody |],
                                             children =
                                                 [|
@@ -249,17 +249,17 @@ type private DialogContent<'Item when 'Item : comparison> =
                                         onInitialize = (fun (input: ITextInputRef) -> input.requestFocus()),
                                         ``with`` =
                                             (fun (bindInput, _) ->
-                                                RX.View(
+                                                Rn.View(
                                                     onPress = (fun e -> e.stopPropagation()),
                                                     children =
                                                         [|
-                                                            RX.TextInput(
+                                                            Rn.TextInput(
                                                                 ``ref`` = bindInput,
                                                                 styles = [| Styles.textInput fieldTheme screenSize |],
                                                                 value = (modelState.MaybeQuery |> NonemptyString.optionToString),
                                                                 onChangeText = (NonemptyString.ofString >> onQueryChange),
                                                                 ?placeholder = parameters.Placeholder,
-                                                                placeholderTextColor = fieldTheme.PlaceholderColor.ToReactXPString
+                                                                placeholderTextColor = fieldTheme.PlaceholderColor.ToRnString
                                                             )
                                                         |]
                                                 ))
@@ -267,7 +267,7 @@ type private DialogContent<'Item when 'Item : comparison> =
                                 else
                                     noElement
 
-                                RX.ScrollView(
+                                Rn.ScrollView(
                                     vertical = true,
                                     children =
                                         [|
@@ -278,11 +278,11 @@ type private DialogContent<'Item when 'Item : comparison> =
                                                     fun maybeOldData ->
                                                         match maybeOldData with
                                                         | None ->
-                                                            RX.View(
+                                                            Rn.View(
                                                                 styles = [| Styles.activityIndicatorBlock |],
                                                                 children =
                                                                     [|
-                                                                        RX.ActivityIndicator(
+                                                                        Rn.ActivityIndicator(
                                                                             size = ActivityIndicator.Medium,
                                                                             color = "#aaaaaa"
                                                                         )
@@ -291,11 +291,11 @@ type private DialogContent<'Item when 'Item : comparison> =
                                                         | Some oldData ->
                                                             castAsElement [|
                                                                 renderWhenAvailable oldData
-                                                                RX.View(
+                                                                Rn.View(
                                                                     styles = [| Styles.activityIndicatorOverlay |],
                                                                     children =
                                                                         [|
-                                                                            RX.ActivityIndicator(
+                                                                            Rn.ActivityIndicator(
                                                                                 size = ActivityIndicator.Medium,
                                                                                 color = "#aaaaaa"
                                                                             )

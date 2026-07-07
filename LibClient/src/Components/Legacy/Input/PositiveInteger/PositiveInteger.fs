@@ -16,18 +16,18 @@ open Fable.React
 
 open LibClient
 open LibClient.Components.Legacy.Input.PositiveInteger
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Legacy_Input_PositiveIntegerComponent =
 
-    let private legacyTopLevelStyles (xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option) : array<ViewStyles> =
+    let private legacyTopLevelStyles (xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option) : array<ViewStyles> =
         match xLegacyStyles with
         | Some ls ->
-            match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+            match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
             | []     -> [||]
-            | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+            | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LC.Legacy.Input with
@@ -39,7 +39,7 @@ module Legacy_Input_PositiveIntegerComponent =
                 ?onKeyPress: Browser.Types.KeyboardEvent -> unit,
                 ?ref: LibClient.JsInterop.JsNullable<InputPositiveIntegerRef> -> unit,
                 ?key: string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
             key |> ignore
@@ -50,7 +50,7 @@ module Legacy_Input_PositiveIntegerComponent =
                 |> Option.getOrElse ""
 
             let currInputHook = Hooks.useState initialText
-            let maybeTextInput = Hooks.useRef<Option<ReactXP.Components.TextInput.ITextInputRef>> None
+            let maybeTextInput = Hooks.useRef<Option<Rn.Components.TextInput.ITextInputRef>> None
 
             let refImpl =
                 Hooks.useMemo(
@@ -86,7 +86,7 @@ module Legacy_Input_PositiveIntegerComponent =
                 [| |]
             )
 
-            let refTextInput (nullableInstance: LibClient.JsInterop.JsNullable<ReactXP.Components.TextInput.ITextInputRef>) : unit =
+            let refTextInput (nullableInstance: LibClient.JsInterop.JsNullable<Rn.Components.TextInput.ITextInputRef>) : unit =
                 maybeTextInput.current <- nullableInstance.ToOption
 
             let onChangeText (stringValue: string) : unit =
@@ -104,11 +104,11 @@ module Legacy_Input_PositiveIntegerComponent =
 
                 onChange result
 
-            RX.View(
+            Rn.View(
                 styles = legacyTopLevelStyles xLegacyStyles,
                 children =
                     [|
-                        RX.TextInput(
+                        Rn.TextInput(
                             value        = currInputHook.current,
                             onChangeText = onChangeText,
                             ?onKeyPress  = onKeyPress,

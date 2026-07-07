@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Badge = LibClient.Output.Badge
 let Text  = Badge.Text
@@ -52,7 +52,7 @@ type LibClient.Components.Constructors.LC with
             icon:           LibClient.Icons.IconConstructor,
             badge:          Badge,
             ?theme:         Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key |> ignore
@@ -62,17 +62,17 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.row; yield! legacyViewStyles |],
             children =
                 elements {
                     LC.Icon(icon = icon, styles = [| Styles.iconText theTheme.IconSize theTheme.IconColor |])
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.badgeWrap theTheme.BadgeMarginLeft |],
                         children =
                             elements {

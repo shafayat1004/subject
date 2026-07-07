@@ -3,8 +3,8 @@ module LibClient.Components.FormFieldsDivider
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -19,7 +19,7 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member FormFieldsDivider() : ReactElement =
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children = [||]
         )

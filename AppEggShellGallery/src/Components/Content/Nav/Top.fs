@@ -8,7 +8,7 @@ open LibRouter.Components
 open LibClient.Components
 open LibClient.Responsive
 open LibClient.Components.Layout.LC
-open ReactXP.Styles
+open Rn.Styles
 
 open AppEggShellGallery.Icons
 

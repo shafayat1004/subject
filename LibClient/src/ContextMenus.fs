@@ -14,7 +14,7 @@ Planned Improvements:
 
 NOTE whenever you need to debug popups not showing up in the desktop version, you
 want to set breakpoints in the RootView.prototype._recalcPosition function of RootView.js
-inside ReactXP, the ones that deal with anchor being null.
+inside Rn, the ones that deal with anchor being null.
 *)
 type ContextMenu =
     static member Open (items: List<ContextMenuItem>) (screenSize: ScreenSize) (maybeAnchor: Option<Fable.React.ReactElement>) (onClose: unit -> unit) (e: ReactEvent.Action) : unit =
@@ -26,12 +26,12 @@ type ContextMenu =
         let id = sprintf "popup-%i" (System.Random().Next())
 
         let hide () =
-            ReactXP.Popup.dismiss(id)
+            Rn.Popup.dismiss(id)
 
         let contextMenuPopup = makeContextMenuPopup items hide e
 
         let options =
-            ReactXP.Popup.popupShowOptions
+            Rn.Popup.popupShowOptions
                 (fun () ->
                     maybeAnchor
                     |> Option.getOrElseRaise (exn "Need an anchor react element for context menus; no time to fix now")
@@ -39,4 +39,4 @@ type ContextMenu =
                 (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
                     contextMenuPopup)
                 onClose
-        ReactXP.Popup.show(options, id)
+        Rn.Popup.show(options, id)

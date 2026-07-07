@@ -4,8 +4,8 @@ module AppEggShellGallery.Components.ColorVariants
 open Fable.React
 open LibClient
 open AppEggShellGallery.Components.ColorVariant.Base
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -19,13 +19,13 @@ type AppEggShellGallery.Components.Constructors.Ui with
             value:          Variants,
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 
         let main = value.Main
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children =
                 [|

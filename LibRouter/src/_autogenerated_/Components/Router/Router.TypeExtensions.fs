@@ -12,7 +12,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module RouterTypeExtensions =
     type LibRouter.Components.Constructors.LR with
-        static member Router(?children: ReactChildrenProp, ?future: obj, ?key: string, ?initialEntries: array<string>, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Router(?children: ReactChildrenProp, ?future: obj, ?key: string, ?initialEntries: array<string>, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     future = defaultArg future (LibRouter.Components.Router.defaultFuture)

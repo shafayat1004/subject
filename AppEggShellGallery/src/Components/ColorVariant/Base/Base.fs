@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open AppEggShellGallery.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -15,7 +15,7 @@ module private Styles =
     }
 
 let render (name: string) (color: Color) (isMain: bool) : ReactElement =
-    RX.View(
+    Rn.View(
         styles = [| Styles.view |],
         children =
             [|
@@ -32,7 +32,7 @@ type AppEggShellGallery.Components.Constructors.Ui.ColorVariant with
             isMain:         bool,
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
         render name color isMain

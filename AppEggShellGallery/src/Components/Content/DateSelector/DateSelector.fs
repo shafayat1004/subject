@@ -5,7 +5,7 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Styles
+open Rn.Styles
 open AppEggShellGallery.Colors
 
 type DateOnly = LibClient.Components.DateSelector.DateOnly

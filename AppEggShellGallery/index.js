@@ -1,6 +1,6 @@
 import { LogBox } from 'react-native';
 
-// ReactXP + React 18 emit legacy contextTypes warnings on every View/Text/Button
+// react-native-web app entry (Fable output bootstraps below).
 // mount, each with a deep component stack (~15 logcat lines per warning).
 const ignoredNativeWarningPatterns = [
   /legacy childContextTypes API/,

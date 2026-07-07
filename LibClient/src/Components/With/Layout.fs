@@ -7,11 +7,11 @@ open LibClient.Components
 
 type LC.With with
     [<Component>]
-    static member Layout (``with``: ((* OnLayoutOption *) (Option<ReactXP.Types.ViewOnLayoutEvent -> unit>) * Option<LibClient.Output.Layout>) -> ReactElement, ?initialOnly: bool) : ReactElement =
+    static member Layout (``with``: ((* OnLayoutOption *) (Option<Rn.Types.ViewOnLayoutEvent -> unit>) * Option<LibClient.Output.Layout>) -> ReactElement, ?initialOnly: bool) : ReactElement =
         let initialOnly = defaultArg initialOnly false
         let valueState = Hooks.useState<Option<LibClient.Output.Layout>> None
 
-        let onLayout (e: ReactXP.Types.ViewOnLayoutEvent) : unit =
+        let onLayout (e: Rn.Types.ViewOnLayoutEvent) : unit =
             let newValue = {
                 Width  = e.width
                 Height = e.height

@@ -5,8 +5,8 @@ open Fable.React
 open Fable.React.Props
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.Showdown.Components
 open ThirdParty.Showdown.Components.Constructors
 open AppEggShellGallery.Colors
@@ -55,7 +55,7 @@ module private Styles =
     }
 
 do
-    ReactXP.LegacyStyles.Css.addCss """
+    Rn.LegacyStyles.Css.addCss """
 
 .aesg-Snippets-table {
     border-collapse: collapse;
@@ -89,7 +89,7 @@ do
 """
 
 let private renderError (error: string) : ReactElement =
-    RX.View(
+    Rn.View(
         styles = [| Styles.error |],
         children =
             [|
@@ -143,12 +143,12 @@ let private renderNativeList (snippets: list<Scraping.Types.Snippet>) (scope: Sc
     snippets
     |> List.filter scope.Filter
     |> List.map (fun snippet ->
-        RX.View(
+        Rn.View(
             key = snippet.Key,
             styles = [| Styles.snippetRow |],
             children =
                 [|
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.snippetName |],
                         children =
                             [|
@@ -178,12 +178,12 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?children:      ReactChildrenProp,
             ?scope:         Scope,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
         let scope = defaultArg scope All
 
-        RX.View(
+        Rn.View(
             children =
                 [|
                     match ScrapedData.RenderDslSnippets.renderDslSnippetDataResult with

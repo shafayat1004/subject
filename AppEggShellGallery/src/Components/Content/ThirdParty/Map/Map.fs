@@ -9,8 +9,8 @@ open ThirdParty.Map.Components
 open AppEggShellGallery.Config
 
 module B = ThirdParty.Map.TypesBuilders
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -90,7 +90,7 @@ type private Helpers =
                 styles = [| Styles.map |]
             )
 
-            RX.View(children = [| LC.Text (sprintf "Position: %A" (values.current.TryFind "a")) |])
+            Rn.View(children = [| LC.Text (sprintf "Position: %A" (values.current.TryFind "a")) |])
         }
 
 type Ui.Content.ThirdParty with

@@ -6,10 +6,10 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions (flex, Overflow, FlexDirection,
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions (flex, Overflow, FlexDirection,
 // backgroundColor, ...) shadow the new-dialect ones and break the make*Styles computation expressions.
 // Reference legacy types/helpers fully-qualified instead (see the xLegacyStyles bridge below).
 
@@ -49,7 +49,7 @@ type LibClient.Components.Constructors.LC with
             ?label: string,
             ?styles: array<ScrollViewStyles>,
             ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         key |> ignore
@@ -62,12 +62,12 @@ type LibClient.Components.Constructors.LC with
         let legacyScrollViewStyles : array<ScrollViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ScrollViewStyles> "ReactXP.Components.ScrollView" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ScrollViewStyles> "Rn.Components.ScrollView" styles |]
             | None -> [||]
 
-        RX.ScrollView(
+        Rn.ScrollView(
             horizontal = true,
             styles =
                 [|
@@ -77,7 +77,7 @@ type LibClient.Components.Constructors.LC with
                 |],
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles   = [| Styles.view |],
                         ?accessibilityLabel = label,
                         accessibilityRole = AccessibilityRole.TabList,

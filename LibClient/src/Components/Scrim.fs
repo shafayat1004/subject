@@ -8,9 +8,9 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Styles
-open ReactXP.Styles.Animation
-open ReactXP.Components
+open Rn.Styles
+open Rn.Styles.Animation
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -66,8 +66,8 @@ type LibClient.Components.Constructors.LC with
     static member Scrim(
             isVisible: bool,
             ?onPress: ReactEvent.Action -> unit,
-            ?onPanVertical: ReactXP.Components.GestureView.PanGestureState -> unit,
-            ?onPanHorizontal: ReactXP.Components.GestureView.PanGestureState -> unit,
+            ?onPanVertical: Rn.Components.GestureView.PanGestureState -> unit,
+            ?onPanHorizontal: Rn.Components.GestureView.PanGestureState -> unit,
             ?testId: string,
             ?styles: array<ViewStyles>,
             ?key: string) : ReactElement =
@@ -98,7 +98,7 @@ type LibClient.Components.Constructors.LC with
         )
 
         if isMountedHook.current then
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         Styles.root
@@ -106,7 +106,7 @@ type LibClient.Components.Constructors.LC with
                     |],
                 children =
                     elements {
-                        RX.AnimatableView (
+                        Rn.AnimatableView (
                             styles = [| Styles.scrimInner (AnimatableValue.Value opacityAnimatableValue.current) |],
                             children = [||]
                         )
@@ -128,7 +128,7 @@ type LibClient.Components.Constructors.LC with
                         let isPanEnabled = onPanHorizontal.IsSome || onPanVertical.IsSome
 
                         if isPanEnabled then
-                            RX.GestureView(
+                            Rn.GestureView(
                                 styles = [| Styles.gestureView |],
                                 ?onPanHorizontal = onPanHorizontal,
                                 ?onPanVertical = onPanVertical,

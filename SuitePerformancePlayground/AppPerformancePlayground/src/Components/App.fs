@@ -4,8 +4,8 @@ module AppPerformancePlayground.Components.App
 open Fable.React
 open LibRouter.RoutesSpec
 open LibClient
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components
 open LibRouter.Components
 open AppPerformancePlayground.Navigation
@@ -16,7 +16,7 @@ type Ui.App with
     static member Root () : ReactElement =
         let isVisible = Hooks.useState false
 
-        RX.View [|
+        Rn.View [|
             LC.Button (
                 label = "Toggle",
                 state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (fun _ -> isVisible.update (fun curr -> not curr)))
@@ -24,7 +24,7 @@ type Ui.App with
             if isVisible.current then
                 [1 .. 100]
                 |> Seq.map (fun i ->
-                    RX.View (
+                    Rn.View (
                         key = $"{i}",
                         styles = [|Styles.Card|],
                         children = [|

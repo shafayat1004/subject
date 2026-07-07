@@ -3,9 +3,9 @@ namespace LibClient.Components
 open LibClient
 open System
 open Fable.Core.JsInterop
-open ReactXP.Components
-open ReactXP.Styles.Animation
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles.Animation
+open Rn.Styles
 open LibClient.Components.Draggable
 open Fable.Core.JsInterop
 
@@ -15,7 +15,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module DraggableTypeExtensions =
     type LibClient.Components.Constructors.LC with
-        static member Draggable(?children: ReactChildrenProp, ?baseOffset: int * int, ?left: DragTarget, ?right: DragTarget, ?up: DragTarget, ?down: DragTarget, ?onChange: (Change -> unit), ?key: string, ?draggableRef: (LibClient.JsInterop.JsNullable<IDraggableRef> -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Draggable(?children: ReactChildrenProp, ?baseOffset: int * int, ?left: DragTarget, ?right: DragTarget, ?up: DragTarget, ?down: DragTarget, ?onChange: (Change -> unit), ?key: string, ?draggableRef: (LibClient.JsInterop.JsNullable<IDraggableRef> -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     BaseOffset = defaultArg baseOffset ((0, 0))

@@ -7,8 +7,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Icons
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 // TODO: delete after RenderDSL migration
 type PropSuffixFactory = InputSuffixFactory
@@ -192,7 +192,7 @@ type LibClient.Components.Constructors.LC.Input with
                 state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable toggle)
             )
 
-        RX.View(
+        Rn.View(
             styles = (styles |> Option.defaultValue [||] ),
             children =
                 elements {
@@ -214,11 +214,11 @@ type LibClient.Components.Constructors.LC.Input with
                         connector = popupConnectorState.current,
                         render =
                             fun () ->
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.popup |],
                                     // XXX it looks like the component is rendered once and then cut
                                     // off from the world, i.e. updates to props.Value do not propagate
-                                    // to it. I think that's how ReactXP's popups infrastructure is set up,
+                                    // to it. I think that's how Rn's popups infrastructure is set up,
                                     // though it seems strange and unlikely.
                                     children =
                                         elements {

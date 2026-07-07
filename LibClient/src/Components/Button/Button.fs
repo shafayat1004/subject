@@ -7,8 +7,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Level =
 | Primary
@@ -50,7 +50,7 @@ module LC =
             TextColor:       Color
             BorderColor:     Color
             BackgroundColor: Color
-            FontWeight:      ReactXP.Styles.RulesRestricted.FontWeight
+            FontWeight:      Rn.Styles.RulesRestricted.FontWeight
         }
 
         type StateAppearance = {
@@ -100,33 +100,33 @@ let private levelTag (level: Level) =
     | Tertiary   -> 4
     | Cautionary -> 5
 
-let private fontWeightTag (weight: ReactXP.Styles.RulesRestricted.FontWeight) =
+let private fontWeightTag (weight: Rn.Styles.RulesRestricted.FontWeight) =
     match weight with
-    | ReactXP.Styles.RulesRestricted.FontWeight.Normal -> 0
-    | ReactXP.Styles.RulesRestricted.FontWeight.Bold   -> 1
-    | ReactXP.Styles.RulesRestricted.FontWeight.W100   -> 2
-    | ReactXP.Styles.RulesRestricted.FontWeight.W200   -> 3
-    | ReactXP.Styles.RulesRestricted.FontWeight.W300   -> 4
-    | ReactXP.Styles.RulesRestricted.FontWeight.W400   -> 5
-    | ReactXP.Styles.RulesRestricted.FontWeight.W500   -> 6
-    | ReactXP.Styles.RulesRestricted.FontWeight.W600   -> 7
-    | ReactXP.Styles.RulesRestricted.FontWeight.W700   -> 8
-    | ReactXP.Styles.RulesRestricted.FontWeight.W800   -> 9
-    | ReactXP.Styles.RulesRestricted.FontWeight.W900   -> 10
+    | Rn.Styles.RulesRestricted.FontWeight.Normal -> 0
+    | Rn.Styles.RulesRestricted.FontWeight.Bold   -> 1
+    | Rn.Styles.RulesRestricted.FontWeight.W100   -> 2
+    | Rn.Styles.RulesRestricted.FontWeight.W200   -> 3
+    | Rn.Styles.RulesRestricted.FontWeight.W300   -> 4
+    | Rn.Styles.RulesRestricted.FontWeight.W400   -> 5
+    | Rn.Styles.RulesRestricted.FontWeight.W500   -> 6
+    | Rn.Styles.RulesRestricted.FontWeight.W600   -> 7
+    | Rn.Styles.RulesRestricted.FontWeight.W700   -> 8
+    | Rn.Styles.RulesRestricted.FontWeight.W800   -> 9
+    | Rn.Styles.RulesRestricted.FontWeight.W900   -> 10
 
 let private fontWeightForTag (tag: int) =
     match tag with
-    | 1  -> ReactXP.Styles.RulesRestricted.FontWeight.Bold
-    | 2  -> ReactXP.Styles.RulesRestricted.FontWeight.W100
-    | 3  -> ReactXP.Styles.RulesRestricted.FontWeight.W200
-    | 4  -> ReactXP.Styles.RulesRestricted.FontWeight.W300
-    | 5  -> ReactXP.Styles.RulesRestricted.FontWeight.W400
-    | 6  -> ReactXP.Styles.RulesRestricted.FontWeight.W500
-    | 7  -> ReactXP.Styles.RulesRestricted.FontWeight.W600
-    | 8  -> ReactXP.Styles.RulesRestricted.FontWeight.W700
-    | 9  -> ReactXP.Styles.RulesRestricted.FontWeight.W800
-    | 10 -> ReactXP.Styles.RulesRestricted.FontWeight.W900
-    | _  -> ReactXP.Styles.RulesRestricted.FontWeight.Normal
+    | 1  -> Rn.Styles.RulesRestricted.FontWeight.Bold
+    | 2  -> Rn.Styles.RulesRestricted.FontWeight.W100
+    | 3  -> Rn.Styles.RulesRestricted.FontWeight.W200
+    | 4  -> Rn.Styles.RulesRestricted.FontWeight.W300
+    | 5  -> Rn.Styles.RulesRestricted.FontWeight.W400
+    | 6  -> Rn.Styles.RulesRestricted.FontWeight.W500
+    | 7  -> Rn.Styles.RulesRestricted.FontWeight.W600
+    | 8  -> Rn.Styles.RulesRestricted.FontWeight.W700
+    | 9  -> Rn.Styles.RulesRestricted.FontWeight.W800
+    | 10 -> Rn.Styles.RulesRestricted.FontWeight.W900
+    | _  -> Rn.Styles.RulesRestricted.FontWeight.Normal
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -249,7 +249,7 @@ type LibClient.Components.Constructors.LC with
             ?key: string,
             ?theme: Theme -> Theme,
             ?badgeTheme: LC.Badge.Theme -> LC.Badge.Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
         children |> ignore
@@ -264,9 +264,9 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         LC.With.ScreenSize(
@@ -294,7 +294,7 @@ type LibClient.Components.Constructors.LC with
                                     Some (AccessibilityStateRecord.toJs (AccessibilityStateRecord.busy true)),
                                     testId
 
-                            RX.View(
+                            Rn.View(
                                 styles =
                                     [|
                                         Styles.viewBase
@@ -314,7 +314,7 @@ type LibClient.Components.Constructors.LC with
                                 ?testId = maybeContainerTestId,
                                 children =
                                     elements {
-                                        RX.View(
+                                        Rn.View(
                                             styles =
                                                 [|
                                                     Styles.labelBlock
@@ -324,7 +324,7 @@ type LibClient.Components.Constructors.LC with
                                                 elements {
                                                     match icon.LeftOption with
                                                     | Some leftIcon ->
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles = [| Styles.leftIcon |],
                                                             children =
                                                                 elements {
@@ -347,7 +347,7 @@ type LibClient.Components.Constructors.LC with
 
                                                     match icon.RightOption with
                                                     | Some rightIcon ->
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles = [| Styles.rightIcon |],
                                                             children =
                                                                 elements {
@@ -363,7 +363,7 @@ type LibClient.Components.Constructors.LC with
 
                                                     match badge with
                                                     | Some badge ->
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles = [| Styles.badge |],
                                                             children =
                                                                 elements {
@@ -380,11 +380,11 @@ type LibClient.Components.Constructors.LC with
 
                                         match lowLevelState with
                                         | InProgress ->
-                                            RX.View(
+                                            Rn.View(
                                                 styles = [| Styles.spinnerBlock |],
                                                 children =
                                                     elements {
-                                                        RX.ActivityIndicator(
+                                                        Rn.ActivityIndicator(
                                                             color = "#aaaaaa",
                                                             size = Size.Tiny
                                                         )

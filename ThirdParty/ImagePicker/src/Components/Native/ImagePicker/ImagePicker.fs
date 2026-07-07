@@ -7,8 +7,8 @@ open LibClient.Components
 open LibLifeCycleTypes.File
 open Fable.Core
 open ThirdParty.ImagePicker.Components.ReactNativeImagePicker
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.ImagePicker.Components.Constructors
 
 type SelectionMode = LibClient.Components.Input.File.SelectionMode
@@ -64,7 +64,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
             ?showPreview:  bool,
             ?selectionMode: SelectionMode,
             ?styles:       array<ViewStyles>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:          string
         ) : ReactElement =
         ignore key
@@ -135,7 +135,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
             | Some reason -> Some reason
             | None -> validity.InvalidReason
 
-        RX.View(
+        Rn.View(
             children =
                 [|
                     if showPreview then
@@ -151,13 +151,13 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
                     else
                         noElement
 
-                    RX.View(
+                    Rn.View(
                         styles = mergedViewStyles,
                         children =
                             [|
                                 ImagePicker.Native.ReactNativeImagePicker(onImageSelect = selectImage)
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.constrainMessage |],
                                     children =
                                         [|
@@ -181,7 +181,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
                                         |]
                                 )
 
-                                RX.View(
+                                Rn.View(
                                     children =
                                         [|
                                             if value.Length = 1 then
@@ -204,7 +204,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
 
                                 match invalidReason with
                                 | Some reason ->
-                                    RX.View(
+                                    Rn.View(
                                         children =
                                             [|
                                                 LC.LegacyText(

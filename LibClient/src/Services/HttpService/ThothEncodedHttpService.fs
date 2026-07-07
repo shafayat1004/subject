@@ -34,8 +34,8 @@ let inline makeEndpoint<'UrlParams, 'Request, 'RequestTweaked, 'Response>
     }
 
 type RequestError =
-| Non200Code    of ErrorCode: int * Response: ReactXPHttp.WebResponse
-| DecodingError of ErrorMessage: string * Body: obj * Response: ReactXPHttp.WebResponse
+| Non200Code    of ErrorCode: int * Response: RnHttp.WebResponse
+| DecodingError of ErrorMessage: string * Body: obj * Response: RnHttp.WebResponse
 
 type ThothEncodedHttpService(httpService: HttpService.HttpService) =
     member this.Request<'Params, 'Payload, 'Result> (endpoint: ApiEndpoint<'Params, 'Payload, 'Result>) (parameters: 'Params) (payload: 'Payload) : Async<Result<'Result, RequestError>> =
@@ -74,7 +74,7 @@ type ThothEncodedHttpService(httpService: HttpService.HttpService) =
 
             let options = createObj (optionsPayload @ optionsHeaders @ optionsSourceReturnRawData)
 
-            httpService.RequestReactXPRaw url action (Some options)
+            httpService.RequestRnRaw url action (Some options)
 
         match result.statusCode with
         | 200 | 201 | 202 | 204 ->

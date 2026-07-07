@@ -7,7 +7,7 @@ open LibClient.Components
 open LibClient.Dialogs
 open Fable.React
 open LibClient.Components.Form_Base.Types
-open ReactXP.Styles
+open Rn.Styles
 
 type Parameters<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError
                  when 'Subject      :> Subject<'Id>

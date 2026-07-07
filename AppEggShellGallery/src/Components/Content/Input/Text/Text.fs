@@ -49,7 +49,7 @@ type Ui.Content.Input with
             displayName = "Input.Text",
             props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Text",
             notes       =
-                LC.Text "This component is a work in progress. If there's a feature that's not already supported, check if RX.TextInput supports it, and if so, plumb it through. Decorative prefixIcon is hidden from screen readers (importantForAccessibility = No).",
+                LC.Text "This component is a work in progress. If there's a feature that's not already supported, check if Rn.TextInput supports it, and if so, plumb it through. Decorative prefixIcon is hidden from screen readers (importantForAccessibility = No).",
             a11y =
                 Ui.A11yPanel(
                     componentName = "LC.Input.Text",

@@ -1,7 +1,7 @@
 namespace LibClient.Components
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 open LibClient.Components.Sidebar.Item
 open Fable.Core.JsInterop
 
@@ -11,7 +11,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Sidebar_ItemTypeExtensions =
     type LibClient.Components.Constructors.LC.Sidebar with
-        static member Item(label: string, state: State, ?children: ReactChildrenProp, ?leftIcon: Icons.IconConstructor, ?right: Right, ?styles: array<ViewStyles>, ?testId: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Item(label: string, state: State, ?children: ReactChildrenProp, ?leftIcon: Icons.IconConstructor, ?right: Right, ?styles: array<ViewStyles>, ?testId: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Label = label

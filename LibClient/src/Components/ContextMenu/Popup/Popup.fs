@@ -9,8 +9,8 @@ open LibClient.Components
 open LibClient.ContextMenus.Types
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -63,7 +63,7 @@ let private renderMenuItem
         (hide: unit -> unit)
         (openingEvent: ReactEvent.Action)
         : ReactElement =
-    RX.View(
+    Rn.View(
         key = sprintf "item-%i" index,
         styles = [| Styles.button (index = 0) |],
         children =
@@ -91,17 +91,17 @@ let private renderContextMenuPopup
         (items: List<ContextMenuItem>)
         (hide: unit -> unit)
         (openingEvent: ReactEvent.Action)
-        (xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles> option)
+        (xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option)
         : ReactElement =
     let legacyScrollViewStyles : array<ScrollViewStyles> =
         match xLegacyStyles with
         | Some legacyStyles ->
-            match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+            match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
             | []     -> [||]
             | styles ->
                 [|
-                    ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ScrollViewStyles>
-                        "ReactXP.Components.ScrollView"
+                    Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ScrollViewStyles>
+                        "Rn.Components.ScrollView"
                         styles
                 |]
         | None -> [||]
@@ -111,9 +111,9 @@ let private renderContextMenuPopup
         |> List.mapi (fun index item ->
             match item with
             | Divider ->
-                RX.View(key = sprintf "divider-%i" index)
+                Rn.View(key = sprintf "divider-%i" index)
             | Heading text ->
-                RX.View(
+                Rn.View(
                     key = sprintf "heading-%i" index,
                     children = [| LC.UiText(text, styles = [||]) |]
                 )
@@ -124,12 +124,12 @@ let private renderContextMenuPopup
         )
         |> Array.ofList
 
-    RX.ScrollView(
+    Rn.ScrollView(
         vertical = true,
         styles = [| Styles.scrollView; yield! legacyScrollViewStyles |],
         children =
             [|
-                RX.View(
+                Rn.View(
                     styles = [| Styles.view |],
                     children = itemElements
                 )
@@ -146,7 +146,7 @@ type LibClient.Components.Constructors.LC with
             hide: unit -> unit,
             openingEvent: ReactEvent.Action,
             ?children: ReactChildrenProp,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key: string
         ) : ReactElement =
         children |> ignore

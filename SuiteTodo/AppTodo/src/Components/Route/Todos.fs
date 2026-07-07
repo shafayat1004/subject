@@ -15,9 +15,9 @@ open LibUiSubject
 open LibUiSubject.Components.Constructors
 open LibUiSubject.Components.With.Subjects
 open LibClient.Services.Subscription
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 open AppTodo.Actions
 open AppTodo.Colors
 open AppTodo.I18nGlobal
@@ -109,7 +109,7 @@ type private Helpers =
                 )
 
             if isHandheld then
-                RX.View(styles = [| Styles.filterTabCell |], children = [| tab |])
+                Rn.View(styles = [| Styles.filterTabCell |], children = [| tab |])
             else
                 tab
 
@@ -121,7 +121,7 @@ type private Helpers =
         |]
 
         if isHandheld then
-            RX.View(
+            Rn.View(
                 styles = [| Styles.filterTabsRow palette |],
                 accessibilityRole = AccessibilityRole.TabList,
                 accessibilityLabel = i18n.t.FilterTabsLabel,
@@ -146,7 +146,7 @@ type private Helpers =
             testId: string,
             onPress: ReactEvent.Action -> unit)
         : ReactElement =
-        RX.View(
+        Rn.View(
             styles = [| Styles.categoryPill bg border isSelected |],
             children = [|
                 LC.TextButton(
@@ -330,7 +330,7 @@ type private Helpers =
                 restOffsetRef.current <- 0
                 animateTo 0 None
 
-        // The gesture source (RX.HorizontalPanArea) reports translationX in px from the
+        // The gesture source (Rn.HorizontalPanArea) reports translationX in px from the
         // gesture start (negative = leftward); native arbitration decides horizontal-vs-scroll.
         let onSwipeStart () =
             gestureActiveRef.current <- true
@@ -361,11 +361,11 @@ type private Helpers =
 
         LC.With.ReducedMotion (fun reduceMotion ->
             if reduceMotion then
-                RX.View(
+                Rn.View(
                     styles = [| Styles.swipeReducedMotionRow |],
                     children = [|
-                        RX.View(styles = [| Styles.swipeReducedMotionContent |], children = [| rowContent |])
-                        RX.View(
+                        Rn.View(styles = [| Styles.swipeReducedMotionContent |], children = [| rowContent |])
+                        Rn.View(
                             styles = [| Styles.swipeReducedMotionDelete |],
                             children = [|
                                 LC.TextButton(
@@ -382,16 +382,16 @@ type private Helpers =
                 LC.With.Layout (fun (onLayoutOption, maybeLayout) ->
                     maybeLayout |> Option.iter (fun layout -> rowWidthRef.current <- layout.Width)
 
-                    RX.View(
+                    Rn.View(
                         ?onLayout = onLayoutOption,
                         styles = [| Styles.swipeRowHost |],
                         children = [|
-                            RX.View(
+                            Rn.View(
                                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
                                 styles = [| Styles.swipeGradientOverlay gradientVisible |],
                                 children = [||]
                             )
-                            RX.View(
+                            Rn.View(
                                 importantForAccessibility =
                                     (if isOpen then
                                         LibClient.Accessibility.ImportantForAccessibility.Auto
@@ -416,10 +416,10 @@ type private Helpers =
                             // Animated surface OUTSIDE, gesture INSIDE: the whole gesture area
                             // translates with the content so a swipe reveals (never covers) the
                             // delete slot behind it, keeping tap-to-delete working.
-                            RX.AnimatableView(
+                            Rn.AnimatableView(
                                 styles = [| Styles.swipeContentAnimated (AnimatableValue.Value translateXRef.current) palette |],
                                 children = [|
-                                    RX.HorizontalPanArea(
+                                    Rn.HorizontalPanArea(
                                         onStart = onSwipeStart,
                                         onUpdate = onSwipeUpdate,
                                         onEnd = onSwipeEnd,
@@ -482,13 +482,13 @@ type private Helpers =
                                 | Some _ -> i18n.t.EmptySearch
                         )
                     else
-                        RX.View(
+                        Rn.View(
                             children = [|
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.listHeader |],
                                     children =
                                         tellReactArrayKeysAreOkay [|
-                                            RX.View(
+                                            Rn.View(
                                                 accessibilityRole = AccessibilityRole.Status,
                                                 accessibilityLiveRegion = AccessibilityLiveRegion.Polite,
                                                 accessibilityLabel = i18n.Format(i18n.t.StatsFormat, openCount, doneCount),
@@ -507,7 +507,7 @@ type private Helpers =
                                             )
                                         |]
                                 )
-                                RX.View(
+                                Rn.View(
                                     accessibilityRole = AccessibilityRole.List,
                                     accessibilityLabel = i18n.Format(i18n.t.ListCountFormat, List.length todos),
                                     styles = [| Styles.list |],
@@ -555,7 +555,7 @@ type private Helpers =
 
     [<Component>]
     static member StatChip(palette: SemanticPalette, label: string, ?testId: string) : ReactElement =
-        RX.View(
+        Rn.View(
             ?testId = testId,
             importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
             styles = [| Styles.statChip palette |],
@@ -600,7 +600,7 @@ type private Helpers =
                 })
 
         let metaChip chipBg chipBorder chipText (chipLabel: string) (spokenLabel: string) =
-            RX.View(
+            Rn.View(
                 accessibilityLabel = spokenLabel,
                 styles = [| Styles.metaChip chipBg chipBorder |],
                 children = [|
@@ -735,15 +735,15 @@ type private Helpers =
                 )
 
         let rowSurface =
-            RX.View(
+            Rn.View(
                 styles = [| Styles.todoRowSurface palette appearance; Styles.todoRow palette todo.Done useCompactUI |],
                 children =
                     tellReactArrayKeysAreOkay [|
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.todoMetaRow |],
                             children = tellReactArrayKeysAreOkay metaChips
                         )
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.todoBodyRow |],
                             children =
                                 tellReactArrayKeysAreOkay (
@@ -756,7 +756,7 @@ type private Helpers =
                                                 accessibilityLabel = toggleCheckboxLabel todo,
                                                 testId = todoItemTestId todo "toggle"
                                             )
-                                            RX.View(
+                                            Rn.View(
                                                 styles = [| Styles.todoContent |],
                                                 children = [| titleContent |]
                                             )
@@ -780,7 +780,7 @@ type private Helpers =
             else
                 rowSurface
 
-        RX.View(
+        Rn.View(
             testId = todoItemTestId todo "row",
             accessibilityRole = AccessibilityRole.ListItem,
             accessibilityLabel = rowLabel,
@@ -879,17 +879,17 @@ type Ui.Route with
                         }
 
                     let cardContent =
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.cardShell palette usePhoneChrome |],
                             testId = A11ySlug.testId "todo" "card",
                             children = [|
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.card palette usePhoneChrome |],
                                     children = [|
                                         LC.Column(
                                             gap = 20,
                                             children = [|
-                                                RX.View(
+                                                Rn.View(
                                                     styles = [| Styles.headerRow |],
                                                     children =
                                                         tellReactArrayKeysAreOkay [|
@@ -913,7 +913,7 @@ type Ui.Route with
                                                                 )
                                                             |]
                                                         )
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles = [| Styles.headerActions |],
                                                             children = [|
                                                                 Helpers.ThemeToggle(
@@ -936,12 +936,12 @@ type Ui.Route with
                                                         editingIdHook.update None)
                                                 )
 
-                                                RX.View(
+                                                Rn.View(
                                                     accessibilityLabel = i18n.t.ActiveFiltersLabel,
                                                     styles = [| Styles.subFiltersRow |],
                                                     children =
                                                         tellReactArrayKeysAreOkay [|
-                                                            RX.View(
+                                                            Rn.View(
                                                                 styles = [| Styles.subFilterPill palette.CategoryGreenSoft |],
                                                                 children = [|
                                                                     LC.Text(
@@ -951,7 +951,7 @@ type Ui.Route with
                                                                 |]
                                                             )
                                                             if usePhoneChrome then
-                                                                RX.View(
+                                                                Rn.View(
                                                                     styles = [| Styles.subFilterPill palette.CategoryBlueSoft |],
                                                                     children = [|
                                                                         LC.Text(
@@ -967,14 +967,14 @@ type Ui.Route with
                                                     label = i18n.t.ComposerGroupLabel,
                                                     testId = A11ySlug.testId "todo" "composer",
                                                     children = [|
-                                                RX.View(
+                                                Rn.View(
                                                     styles = [| Styles.composerPanel palette useCompactTabs |],
                                                     children = [|
                                                         LC.Column(
                                                             gap = 12,
                                                             styles = [| Styles.composerGrid useCompactTabs |],
                                                             children = [|
-                                                                RX.View(
+                                                                Rn.View(
                                                                     styles = [| Styles.fieldStack |],
                                                                     children = [|
                                                                         Helpers.FieldLabel(palette, i18n.t.TitleLabel)
@@ -988,7 +988,7 @@ type Ui.Route with
                                                                         )
                                                                     |]
                                                                 )
-                                                                RX.View(
+                                                                Rn.View(
                                                                     styles = [| Styles.fieldStack |],
                                                                     accessibilityLabel = i18n.t.PriorityFieldLabel,
                                                                     children = [|
@@ -1025,10 +1025,10 @@ type Ui.Route with
                                                     label = i18n.t.SearchLabel,
                                                     testId = A11ySlug.testId "todo" "search-group",
                                                     children = [|
-                                                RX.View(
+                                                Rn.View(
                                                     styles = [| Styles.searchField |],
                                                     children = [|
-                                                        RX.View(
+                                                        Rn.View(
                                                             styles = [| Styles.searchInputWrap palette |],
                                                             children = [|
                                                                 LC.Input.Text(
@@ -1087,16 +1087,16 @@ type Ui.Route with
                             |]
                         )
 
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.page palette usePhoneChrome |],
                         testId = A11ySlug.testId "todo" "page",
                         children = [|
                             if usePhoneChrome then
-                                RX.ScrollView(
+                                Rn.ScrollView(
                                     styles = [| Styles.pageScroll |],
                                     showsVerticalScrollIndicator = true,
                                     children = [|
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.pageScrollContent |],
                                             children = [| cardContent |]
                                         )
@@ -1117,7 +1117,7 @@ type Ui.Route with
         if appearanceResolvedHook.current then
             mainContent
         else
-            RX.View(
+            Rn.View(
                 styles = [| Styles.page (SemanticPalette.forMode AppearanceMode.Dark) true |],
                 children = [||]
             )

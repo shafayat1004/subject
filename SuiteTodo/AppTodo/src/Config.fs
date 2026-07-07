@@ -3,8 +3,8 @@ namespace AppTodo
 type ConfigSource = {
     AppUrlBase:                                    Option<string>
     BackendUrl:                                    Option<string>
-    InitializeReactXPInDevMode:                    Option<string>
-    InitializeReactXPInDebugMode:                  Option<string>
+    InitializeRnInDevMode:                    Option<string>
+    InitializeRnInDebugMode:                  Option<string>
     MaybeInBundleImageServiceBaseUrl:              Option<string>
     MaybeInBundleStaticResourceUrlPattern:         Option<string>
     MaybeExternalImageServiceBaseUrl:              Option<string>
@@ -14,8 +14,8 @@ type ConfigSource = {
     static member Base : ConfigSource = {
         AppUrlBase                                    = None
         BackendUrl                                    = None
-        InitializeReactXPInDevMode                    = Some "false"
-        InitializeReactXPInDebugMode                  = Some "false"
+        InitializeRnInDevMode                    = Some "false"
+        InitializeRnInDebugMode                  = Some "false"
         MaybeInBundleImageServiceBaseUrl              = None
         MaybeInBundleStaticResourceUrlPattern         = None
         MaybeExternalImageServiceBaseUrl              = None
@@ -29,8 +29,8 @@ type ConfigSource = {
 type Config = {
     AppUrlBase:                                    string
     BackendUrl:                                    Option<string>
-    InitializeReactXPInDevMode:                    bool
-    InitializeReactXPInDebugMode:                  bool
+    InitializeRnInDevMode:                    bool
+    InitializeRnInDebugMode:                  bool
     MaybeInBundleImageServiceBaseUrl:              Option<string>
     MaybeInBundleStaticResourceUrlPattern:         Option<string>
     MaybeExternalImageServiceBaseUrl:              Option<string>
@@ -40,14 +40,14 @@ type Config = {
     static member tryOfSource (source: ConfigSource) : Result<Config, string> =
         resultful {
             let! theAppUrlBase                   = source.AppUrlBase |> Result.ofOption "Missing AppUrlBase"
-            let! theInitializeReactXPInDevMode   = source.InitializeReactXPInDevMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDevMode"
-            let! theInitializeReactXPInDebugMode = source.InitializeReactXPInDebugMode |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeReactXPInDebugMode"
+            let! theInitializeRnInDevMode   = source.InitializeRnInDevMode   |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeRnInDevMode"
+            let! theInitializeRnInDebugMode = source.InitializeRnInDebugMode |> Option.flatMap System.Boolean.ParseOption |> Result.ofOption "Missing InitializeRnInDebugMode"
 
             return {
                 AppUrlBase                                    = theAppUrlBase
                 BackendUrl                                    = source.BackendUrl
-                InitializeReactXPInDevMode                    = theInitializeReactXPInDevMode
-                InitializeReactXPInDebugMode                  = theInitializeReactXPInDebugMode
+                InitializeRnInDevMode                    = theInitializeRnInDevMode
+                InitializeRnInDebugMode                  = theInitializeRnInDebugMode
                 MaybeInBundleImageServiceBaseUrl              = source.MaybeInBundleImageServiceBaseUrl
                 MaybeInBundleStaticResourceUrlPattern         = source.MaybeInBundleStaticResourceUrlPattern
                 MaybeExternalImageServiceBaseUrl              = source.MaybeExternalImageServiceBaseUrl

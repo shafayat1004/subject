@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open AppEggShellGallery.Colors
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -41,12 +41,12 @@ module private Styles =
 type Ui.Content with
     [<Component>]
     static member Icons () : ReactElement =
-        RX.View(
+        Rn.View(
             [|
                 yield!
                     AppEggShellGallery.ScrapedData.Icons.iconsList
                     |> List.map (fun (iconName, icon) ->
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.iconContainer |],
                             children = [|
                                 LC.Icon(icon, styles = [| Styles.icon |])

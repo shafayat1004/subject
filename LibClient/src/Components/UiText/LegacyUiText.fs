@@ -5,11 +5,11 @@ open LibClient
 open LibClient.JsInterop
 open Fable.Core.JsInterop
 open Browser.Types
-open ReactXP.LegacyStyles
+open Rn.LegacyStyles
 
-type EllipsizeMode = ReactXP.Components.Text.EllipsizeMode
-type TextBreakStrategy = ReactXP.Components.Text.TextBreakStrategy
-type ImportantForAccessibility = ReactXP.Components.Text.ImportantForAccessibility
+type EllipsizeMode = Rn.Components.Text.EllipsizeMode
+type TextBreakStrategy = Rn.Components.Text.TextBreakStrategy
+type ImportantForAccessibility = Rn.Components.Text.ImportantForAccessibility
 
 let Head   = EllipsizeMode.Head
 let Middle = EllipsizeMode.Middle
@@ -29,7 +29,7 @@ let private baseThemeStyle = lazy (
 )
 
 type LibClient.Components.Constructors.LC with
-    static member LegacyUiText(children: ReactChildrenProp, ?selectable: bool, ?numberOfLines: int, ?allowFontScaling: bool, ?maxContentSizeMultiplier: float, ?ellipsizeMode: EllipsizeMode, ?textBreakStrategy: TextBreakStrategy, ?importantForAccessibility: ImportantForAccessibility, ?accessibilityId: string, ?autoFocus: bool, ?onPress: (PointerEvent -> unit), ?id: string, ?onContextMenu: (MouseEvent -> unit), ?key: string, ?xLegacyStyles: List<RuntimeStyles>, ?xLegacyClassName: string, ?theme: LibClient.Components.Text.LC.Text.Theme -> LibClient.Components.Text.LC.Text.Theme, ?styles: array<ReactXP.Styles.FSharpDialect.TextStyles>) =
+    static member LegacyUiText(children: ReactChildrenProp, ?selectable: bool, ?numberOfLines: int, ?allowFontScaling: bool, ?maxContentSizeMultiplier: float, ?ellipsizeMode: EllipsizeMode, ?textBreakStrategy: TextBreakStrategy, ?importantForAccessibility: ImportantForAccessibility, ?accessibilityId: string, ?autoFocus: bool, ?onPress: (PointerEvent -> unit), ?id: string, ?onContextMenu: (MouseEvent -> unit), ?key: string, ?xLegacyStyles: List<RuntimeStyles>, ?xLegacyClassName: string, ?theme: LibClient.Components.Text.LC.Text.Theme -> LibClient.Components.Text.LC.Text.Theme, ?styles: array<Rn.Styles.FSharpDialect.TextStyles>) =
         ignore xLegacyClassName
         let themeStyles =
             match theme with
@@ -44,7 +44,7 @@ type LibClient.Components.Constructors.LC with
                 | styles ->
                     [|
                         themeStyles
-                        Runtime.prepareStylesForPassingToReactXpComponent "ReactXP.Components.Text" styles
+                        Runtime.prepareStylesForPassingToRnComponent "Rn.Components.Text" styles
                     |]
                     |> Some
             | _ -> Some !!themeStyles
@@ -73,7 +73,7 @@ type LibClient.Components.Constructors.LC with
         __props?style                     <- maybeStyleValueSecondPass
 
         Fable.React.ReactBindings.React.createElement(
-            ReactXP.RNSeam.Text,
+            Rn.RnPrimitives.Text,
             __props,
             ThirdParty.fixPotentiallySingleChild (tellReactArrayKeysAreOkay children)
         )

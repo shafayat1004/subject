@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module TextButton =
@@ -121,7 +121,7 @@ type LibClient.Components.Constructors.LC with
         let theRole = defaultArg role AccessibilityRole.Button
         let theA11yState = defaultArg accessibilityState AccessibilityStateRecord.empty
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view lowLevelState.GetName |],
             children =
                 elements {
@@ -137,11 +137,11 @@ type LibClient.Components.Constructors.LC with
 
                     match lowLevelState with
                     | InProgress ->
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.spinnerBlock |],
                             children =
                                 elements {
-                                    RX.ActivityIndicator(
+                                    Rn.ActivityIndicator(
                                         color = "#aaaaaa",
                                         size = Size.Tiny
                                     )

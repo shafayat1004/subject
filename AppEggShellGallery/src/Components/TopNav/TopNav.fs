@@ -6,8 +6,8 @@ open LibClient
 open LibClient.Components
 open LibClient.Responsive
 open LibRouter.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open AppEggShellGallery.Colors
 open AppEggShellGallery.Icons
 open AppEggShellGallery.Navigation
@@ -70,7 +70,7 @@ let private desktopNav (maybeCurrentRoute: Option<Route>) (maybeCurrentActualRou
 
     castAsElement
         [|
-            RX.View(
+            Rn.View(
                 styles = [| Styles.logo |],
                 children =
                     [|
@@ -87,7 +87,7 @@ let private desktopNav (maybeCurrentRoute: Option<Route>) (maybeCurrentActualRou
 
             desktopHeading maybeCurrentActualRoute
 
-            RX.View(
+            Rn.View(
                 styles = [| Styles.sampleVisualsScreenSize |],
                 children =
                     [|
@@ -188,7 +188,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?maybeRoute:    Option<Route>,
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (maybeRoute, children, key, xLegacyStyles)
 

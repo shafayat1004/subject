@@ -15,7 +15,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module AreaChartTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member AreaChart(?children: ReactChildrenProp, ?layout: Layout, ?width: int, ?height: int, ?data: obj array, ?margin: EdgeInsets, ?stackOffset: StackOffset, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member AreaChart(?children: ReactChildrenProp, ?layout: Layout, ?width: int, ?height: int, ?data: obj array, ?margin: EdgeInsets, ?stackOffset: StackOffset, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Layout = layout |> Option.orElse (JsUndefined)

@@ -5,12 +5,12 @@ open Fable.React
 open Fable.React.Props
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module dom = Fable.React.Standard
 
-do ReactXP.LegacyStyles.Css.addCss """
+do Rn.LegacyStyles.Css.addCss """
 .aesg-a11y-facts {
     border-collapse: collapse;
     align-self:      flex-start;
@@ -47,7 +47,7 @@ let private factRow (labelText: string) (value: ReactElement) =
             dom.td [] [| value |]
         |]
     #else
-    RX.View(
+    Rn.View(
         styles = [| Styles.row |],
         children =
             [|
@@ -65,7 +65,7 @@ let private renderFacts (rows: ReactElement array) =
             dom.tbody [] rows
         |]
     #else
-    RX.View(children = rows)
+    Rn.View(children = rows)
     #endif
 
 type AppEggShellGallery.Components.Constructors.Ui with

@@ -7,7 +7,7 @@ open LibClient
 open LibClient.Components
 open LibClient.RenderHelpers
 open LibUiAdmin.Components
-open ReactXP.Components
+open Rn.Components
 open AppEggShellGallery.Components
 open AppEggShellGallery.Components.ComponentSample
 

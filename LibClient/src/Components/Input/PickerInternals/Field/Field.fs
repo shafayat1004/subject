@@ -11,8 +11,8 @@ open LibClient.Components
 open LibClient.Icons
 open LibClient.Components.Input.PickerModel
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Input =
@@ -276,12 +276,12 @@ module private RenderHelpers =
                                | Any _ -> true
                                | _ -> false
 
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.tag (modelState.DeleteState = DeleteState.Selected item) |],
                             children =
-                                [| RX.View(styles = [| Styles.tagText |], children = [| renderItem item |])
+                                [| Rn.View(styles = [| Styles.tagText |], children = [| renderItem item |])
                                    if showUnselect then
-                                       RX.View(
+                                       Rn.View(
                                            children =
                                                [| LC.Icon(
                                                       icon = Icon.X,
@@ -320,7 +320,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             ?styles: array<ViewStyles>,
             ?theme: Theme -> Theme,
             ?key: string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
 
@@ -329,11 +329,11 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
         let legacyStyles: array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
                 | styles ->
-                    [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles>
-                           "ReactXP.Components.View"
+                    [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles>
+                           "Rn.Components.View"
                            styles |]
             | None -> [||]
 
@@ -372,7 +372,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
         let onClear (_e: ReactEvent.Action) : unit =
             model.HandleInputEvent UnselectAllIfAllowed
 
-        let onLayout (e: ReactXP.Types.ViewOnLayoutEvent) : unit =
+        let onLayout (e: Rn.Types.ViewOnLayoutEvent) : unit =
             if modelState.MaybeFieldWidth <> Some e.width then
                 model.HandleInputEvent(FieldWidthChange e.width)
 
@@ -396,7 +396,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                         member _.requestFocus() : unit = rawObj?focus () |> ignore
                         member _.blur() : unit = rawObj?blur () |> ignore })
 
-        let placeholderTextColor = theTheme.PlaceholderColor.ToReactXPString
+        let placeholderTextColor = theTheme.PlaceholderColor.ToRnString
 
         let resolvedTestId =
             testId
@@ -409,7 +409,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             if value.IsEmpty then openLabel
             else sprintf "%s, has selection" openLabel
 
-        RX.View(
+        Rn.View(
             testId = resolvedTestId,
             onLayout = onLayout,
             styles =
@@ -417,16 +417,16 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                    yield! legacyStyles
                    yield! (defaultArg styles [||]) |],
             children =
-                [| RX.View(
+                [| Rn.View(
                        styles = [| Styles.borderFor theTheme validity.IsInvalid isFocused |],
                        children =
-                           [| RX.View(
+                           [| Rn.View(
                                   styles = [| Styles.pickerActions |],
                                   children =
-                                      [| RX.View(
+                                      [| Rn.View(
                                              children =
                                                  [| if showClearButton then
-                                                        RX.View(
+                                                        Rn.View(
                                                             children =
                                                                 [| LC.Icon(
                                                                        icon = Icon.X,
@@ -449,7 +449,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                     else
                                                         noElement |]
                                          )
-                                         RX.View(
+                                         Rn.View(
                                              children =
                                                  [| LC.Icon(
                                                         icon = Icon.ChevronDown,
@@ -486,10 +486,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                               else
                                                   [| Styles.textInput; Styles.webFieldTextInput |]
 
-                                          RX.View(
+                                          Rn.View(
                                               styles = [| Styles.fieldValueArea |],
                                               children =
-                                                  [| RX.TextInput(
+                                                  [| Rn.TextInput(
                                                          styles = textInputStyles,
                                                          ``ref`` = bindTextInput,
                                                          value = (maybeQuery |> NonemptyString.optionToString),
@@ -506,10 +506,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                              Actions.onKeyPress model maybeTextInputRef.current
                                                      )
                                                      if showSelectedOverlay then
-                                                         RX.View(
+                                                         Rn.View(
                                                              styles = [| Styles.pickerValuesOverlay |],
                                                              children =
-                                                                 [| RX.View(
+                                                                 [| Rn.View(
                                                                         styles = [| Styles.pickerValues |],
                                                                         children =
                                                                             [| RenderHelpers.renderSelectedValue
@@ -559,10 +559,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                               else
                                                   [| Styles.textInput; Styles.webFieldTextInput |]
 
-                                          RX.View(
+                                          Rn.View(
                                               styles = [| Styles.fieldValueArea |],
                                               children =
-                                                  [| RX.TextInput(
+                                                  [| Rn.TextInput(
                                                          styles = textInputStyles,
                                                          editable = false,
                                                          placeholder =
@@ -574,10 +574,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                          placeholderTextColor = placeholderTextColor
                                                      )
                                                      if showSelectedOverlay then
-                                                         RX.View(
+                                                         Rn.View(
                                                              styles = [| Styles.pickerValuesOverlay |],
                                                              children =
-                                                                 [| RX.View(
+                                                                 [| Rn.View(
                                                                         styles = [| Styles.pickerValues |],
                                                                         children =
                                                                             [| RenderHelpers.renderSelectedValue
@@ -605,7 +605,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                                     ) |]
                                                          )
                                                      else
-                                                         RX.View(
+                                                         Rn.View(
                                                              styles = [| Styles.handheldFullWidthTapArea |],
                                                              children =
                                                                  [| LC.Pressable(
@@ -633,7 +633,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
 
                    match label with
                    | Some labelText ->
-                       RX.View(
+                       Rn.View(
                            styles = [| Styles.label theTheme.LabelBackgroundColor |],
                            children =
                                [| LC.UiText(

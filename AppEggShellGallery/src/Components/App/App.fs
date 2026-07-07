@@ -16,7 +16,7 @@ open AppEggShellGallery.Components
 open System.Text.RegularExpressions
 
 do
-    ReactXP.LegacyStyles.Css.addCss (sprintf """
+    Rn.LegacyStyles.Css.addCss (sprintf """
 
 .markdown-tag {
     background-color: %s;
@@ -150,7 +150,7 @@ type AppEggShellGallery.Components.Constructors.Ui.App with
             ?pstoreKey:     string,
             ?children:      ReactChildrenProp,
             ?key:           string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 

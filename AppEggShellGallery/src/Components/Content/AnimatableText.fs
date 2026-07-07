@@ -5,9 +5,9 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -38,7 +38,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableText(
+                    Rn.AnimatableText(
                         children =
                             elements {
                                 LC.Text "Here is some text"
@@ -79,10 +79,10 @@ type Ui.Content with
                     MaybeScrapeErrors = None
                 })
             ),
-            notes = LC.Text """RX.AnimatableText is a ReactXP animation primitive. Use ReactXP.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated text styles.""",
+            notes = LC.Text """Rn.AnimatableText is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated text styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "RX.AnimatableText",
+                    componentName = "Rn.AnimatableText",
                     role = "text",
                     namePattern = "Child text content",
                     stateNotes = "Animated font size/color; honor reduce-motion via LC.With.ReducedMotion where wired",
@@ -100,7 +100,7 @@ type Ui.Content with
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let animatedValue = Hooks.useRef (AnimatedValue.Create 32.0)
 
-RX.AnimatableText(
+Rn.AnimatableText(
     children = elements { LC.Text "Here is some text" },
     styles = [| makeAnimatableTextStyles {
         color Color.DevRed

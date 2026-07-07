@@ -2,7 +2,7 @@
 module LibUiAdmin.Components.InfoMessageRoute
 
 open Fable.React
-open ReactXP.Styles
+open Rn.Styles
 open LibClient
 open LibClient.Components
 open LibRouter.Components

@@ -5,7 +5,7 @@ open LibLang
 open LibClient
 open LibClient.Components
 open LibClient.Dialogs
-open ReactXP.Styles
+open Rn.Styles
 
 type Parameters = {
     SomeParam: int

@@ -5,7 +5,7 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibLifeCycleTypes.File
-open ReactXP.Styles
+open Rn.Styles
 open ThirdParty.ImagePicker.Components.Constructors
 open ThirdParty.ImagePicker.Components.Native.ImagePicker
 
@@ -24,7 +24,7 @@ type ImagePicker with
             ?showPreview:  bool,
             ?selectionMode: SelectionMode,
             ?styles:       array<ViewStyles>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:          string
         ) : ReactElement =
         ignore key

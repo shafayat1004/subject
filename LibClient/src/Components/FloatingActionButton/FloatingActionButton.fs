@@ -10,8 +10,8 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module FloatingActionButton =
@@ -153,7 +153,7 @@ type LibClient.Components.Constructors.LC with
             ?testId:        string,
             ?styles:        array<ViewStyles>,
             ?theme:         Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key |> ignore
@@ -173,9 +173,9 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
         LC.Pointer.State(
@@ -183,7 +183,7 @@ type LibClient.Components.Constructors.LC with
                 let isDepressed = pointerState.IsDepressed
                 let isHovered = pointerState.IsHovered && not isDepressed
 
-                RX.View(
+                Rn.View(
                     styles =
                         [|
                             Styles.viewThemeFor theTheme lowLevelState hasLabel isDepressed isHovered
@@ -199,7 +199,7 @@ type LibClient.Components.Constructors.LC with
 
                             match label with
                             | Some labelText ->
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.labelBlock |],
                                     children =
                                         elements {
@@ -214,11 +214,11 @@ type LibClient.Components.Constructors.LC with
 
                             match lowLevelState with
                             | InProgress ->
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.spinnerBlock |],
                                     children =
                                         elements {
-                                            RX.ActivityIndicator(
+                                            Rn.ActivityIndicator(
                                                 color = "#ffffff",
                                                 size = Size.Tiny
                                             )
