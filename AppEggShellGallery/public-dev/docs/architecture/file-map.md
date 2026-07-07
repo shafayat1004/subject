@@ -12,7 +12,7 @@ Where each concern lives in the source tree.
 | Codecs | `LibLangFsharp/src/CodecLib.fs`, `LibCodecGen/src/CodecGen.Common.fs`, `LibCodecValidation/*`, `validate-codec.sh` |
 | HTTP / realtime | `LibLifeCycleHost/src/Web/Api/V1/{GenericHttpHandler,JsonEncoding}.fs`, `Web/RealTime.fs`, `LibClient/src/Services/{HttpService,EntityService}` |
 | Tests | `LibLifeCycleTest/{SimulationBuilder,ClockSimulation,TestCluster,Ecosystem,SideEffectTracking}.fs` |
-| Frontend core | `LibClient/src/ChaldalReact.fs`, `ReactXP/*`, `LibRouter/src/*` |
+| Frontend core | `LibClient/src/ChaldalReact.fs`, `Rn/*`, `LibRouter/src/*` |
 | Toolchain | `Meta/AppEggshellCli`, `Meta/AppRenderDslCompiler`, `Meta/Lib{Eggshell,Scaffolding,RtCompilerFileSystemBindings,FablePlus}` |
 
 ## External context

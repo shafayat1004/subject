@@ -60,13 +60,13 @@ their original footing and are tracked in [Modernization](./modernization/index.
 |-----------|---------------------------------|------|
 | .NET SDK  | 10.0.301 (`global.json`)        | Build host is net10; many project TFMs still target older frameworks (full TFM migration is later). |
 | Fable     | 5.4.0 (tool)                    | `Fable.Core` 5.0.0, `Fable.React` 10.0.0-alpha.1; net10 target, MSBuild-direct cracking, `Pojo` bindings. |
-| Frontend primitives | `react-native` 0.7x + **`react-native-web`** 0.19.x | Migrated off the archived `@chaldal/reactxp` fork (now removed as a dependency). The web build aliases `react-native` → `react-native-web`. Stabilization ongoing (scroll, gestures, pickers). |
-| React     | 18.2.0                          | React 19 upgrade is a separate later step. |
+| Frontend primitives | `react-native` 0.86 + **`react-native-web`** 0.21.2 | Migrated off the archived `@chaldal/reactxp` fork (now removed as a dependency). The web build aliases `react-native` → `react-native-web`. New Architecture (Fabric) enabled; RNGH 3.0.2, Reanimated 4.5.1. Stabilization ongoing (scroll, gestures, pickers). |
+| React     | 19.2                            | Upgraded with the New Architecture swap (form Actions, `<title>` metadata, ref-as-prop). |
 | Orleans   | 3.7.2                           | 3.x → 7.x is a hard, non-rolling migration (wire protocol + grain identity changed); not started. |
 
 The strategic backstory: **ReactXP was archived upstream by Microsoft**, which points people at React
 Native for Web. EggShell ran on the `@chaldal/reactxp` fork for years and has now migrated the primitive
-layer (`LibClient/src/ReactXP`, a legacy-named directory) to react-native-web. See
+layer (`LibClient/src/Rn`) to react-native-web. See
 [ReactXP → RNW](./modernization/reactxp-to-rnw.md) for the full story.
 
 ## In this section

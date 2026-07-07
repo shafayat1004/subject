@@ -23,14 +23,14 @@ LC.Pressable(
 |------|---------|
 | `label` | Screen readers, automation text fallback |
 | `testId` | Stable selector for Playwright/Appium (always-on when provided) |
-| `role` | RN/ReactXP accessibility role (default `Button`) |
+| `role` | RN/RNW accessibility role (default `Button`) |
 | `state` | `AccessibilityStateRecord` (disabled, selected, busy, …) |
 
 Use `A11ySlug.testId prefix label` for slugged ids (e.g. `sidebar-item-docs`).
 
-## RX bindings
+## Rn bindings
 
-F# `RX.View`, `RX.Button`, and `RX.ScrollView` forward ReactXP `CommonAccessibilityProps` (`accessibilityLabel`, `accessibilityRole`, `accessibilityState`, `testId`, …). The fork already supports these; bindings were the gap.
+F# `Rn.View`, `Rn.Button`, and `Rn.ScrollView` forward the common accessibility props (`accessibilityLabel`, `accessibilityRole`, `accessibilityState`, `testId`, …) to the underlying react-native-web / React Native primitives. The primitives support these; the F# bindings were the gap.
 
 ## Dev-only UI observability
 
@@ -73,5 +73,5 @@ LC.LiveRegion.announce "Saved" AccessibilityLiveRegion.Polite
 
 ## Not in v1
 
-- `accessibilityHint` (not in this ReactXP fork)
+- `accessibilityHint` (not yet wired through the Rn primitives)
 - Full focus-trap audit (dialogs handle Escape via `Dialog.Base`; restrictFocusWithin not yet wired everywhere)

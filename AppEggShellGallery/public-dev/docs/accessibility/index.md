@@ -43,28 +43,29 @@ Each pattern in `ui2.html` maps to a framework primitive or recipe -- see [Recip
 
 ## Migration-safety contract
 
-The migration re-points the binding under `LibClient/src/ReactXP` and keeps the **F# constructor surface
+The migration re-pointed the binding under `LibClient/src/Rn` and kept the **F# constructor surface
 plus the style DSL identical**. Because the framework already exposes RN-native accessibility APIs, most
-accessibility work is `[safe]` and survives the migration unchanged.
+accessibility work is `[safe]` and survived the migration unchanged.
 
 Migration tags used throughout this section:
 
 | Tag | Meaning |
 |-----|---------|
-| `[safe]` | Uses RN-native props/styles/hooks. Survives ReactXP to RNW unchanged. **Build now.** |
+| `[safe]` | Uses RN-native props/styles/hooks. Survived the ReactXP to RNW migration unchanged. **Build now.** |
 | `[web-only]` | Only meaningful on the web target. Build behind the web seam, not in shared logic. |
-| `[rnw-blocked]` | Needs the RNW/New-Architecture host-element seam or a modern library the migration brings. Document intent; defer; do **not** hand-roll a throwaway. |
+| `[rnw-blocked]` | Needed the RNW/New-Architecture host-element seam or a modern library the migration brought. Now that the seam plus Reanimated 4 / RNGH 3 exist, most of these are unblocked (see [Backlog](./accessibility/backlog.md)). |
 | `[lib]` | Needs a third-party native library (haptics, media captions). Wire via the `ThirdParty` recipe, ideally after the migration settles the dependency stack. |
 
 The safe set (most things): `LC.Pressable(label, role, state, liveRegion, importantForAccessibility,
-tabIndex, actions)`; `RX.View(accessibilityLabel, accessibilityRole, accessibilityState,
+tabIndex, actions)`; `Rn.View(accessibilityLabel, accessibilityRole, accessibilityState,
 accessibilityLiveRegion, importantForAccessibility, accessibilityActions, ariaRoleDescription)`; types in
 `LibClient.Accessibility` (`AccessibilityRole`, `AccessibilityStateRecord`, `AccessibilityLiveRegion`,
 `ImportantForAccessibility`); `allowFontScaling`/`maxContentSizeMultiplier` on `UiText`/`Text`.
 
-The gated set (small, deferred): `:focus-visible` ring styling, true landmarks and heading levels, skip
-links, roving-tabindex mechanics, haptics, media captions. The migration unlocks these. Don't fake them
-now -- see [Backlog](./accessibility/backlog.md#deferred--do-not-hand-roll).
+The gated set (small): `:focus-visible` ring styling, true landmarks and heading levels, skip
+links, roving-tabindex mechanics, haptics, media captions. The migration has unlocked these (the RNW
+seam plus Reanimated 4 / RNGH 3 now exist); several are already built. Don't fake the rest by hand --
+see [Backlog](./accessibility/backlog.md#deferred--do-not-hand-roll).
 
 **Hard rule:** never reach past the seam (`document.*`, raw DOM attrs, RN/RNW internals) from app or
 framework F#.

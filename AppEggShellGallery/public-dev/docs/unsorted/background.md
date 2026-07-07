@@ -131,7 +131,7 @@ So, what we managed, in terms of features is:
 
 * Support for component libraries (using XML namespace prefix syntax).
 
-* RN/RNW primitives imported and wrapped to be usable in a type-safe way via the `RX.*` aliases (formerly ReactXP; now react-native-web on web, React Native on native).
+* RN/RNW primitives imported and wrapped to be usable in a type-safe way via the `Rn.*` aliases (react-native-web on web, React Native on native; formerly the ReactXP-backed seam).
 
 * Records with optional fields, default values for fields, and auto wrapping
   of values in Option.Some for cleanest readability of the XML based DSL.
@@ -286,9 +286,9 @@ directly anymore.
 * server-side rendering
   * runLater needs implementation
 
-* `RNSeam.mergeStyles` (formerly `ReactXP.Styles.mergeTwo`) had a naive implementation; tracked in the RNW migration workstream.
+* `RnPrimitives.mergeStyles` (formerly `ReactXP.Styles.mergeTwo`) had a naive implementation; tracked in the RNW migration workstream.
 
-* text shadows: see note in `LibClient/src/ReactXP/Styles.fs` in `createTextStyle`
+* text shadows: see note in `LibClient/src/Rn/Styles/Legacy/Types.fs` in `createTextStyle`
 
 
 ## Do Eventually

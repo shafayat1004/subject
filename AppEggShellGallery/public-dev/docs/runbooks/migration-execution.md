@@ -185,33 +185,38 @@ Run the `LibLifeCycleTest` simulation suite (in-memory Orleans `TestingHost`, no
 ## Phase 4: ReactXP to react-native-web seam {#phase4}
 
 **Owner:** STRONG model sets the pattern + does the first primitive + the style/animation layers. Weaker model fans out the remaining primitive wrappers ONCE the pattern is proven.  
-**Goal:** re-implement `LibClient/src/ReactXP/*` against RN (native) + react-native-web (web), keeping the F# public surface (`RX.*`/`LC.*`, the `makeViewStyles` DSL) identical.
+**Goal:** re-implement `LibClient/src/Rn/*` against RN (native) + react-native-web (web), keeping the F# public surface (`Rn.*`/`LC.*`, the `makeViewStyles` DSL) identical. (The seam directory was `LibClient/src/ReactXP` before the rename.)
 
 **Do NOT start the fan-out until a stronger model has:**
-1. Re-pointed `ReactXPBindings.fs` from `@chaldal/reactxp` to `react-native` (+ bundler alias `react-native` to `react-native-web` for web).
+1. Re-pointed `RnBindings.fs` (formerly `ReactXPBindings.fs`) from `@chaldal/reactxp` to `react-native` (+ bundler alias `react-native` to `react-native-web` for web).
 2. Ported ONE primitive end to end (e.g. `View`) as the reference pattern, validated in `dev-web` + native.
 3. Re-targeted the `Styles/{Legacy,New}` DSL to emit RN style objects.
 4. Established the animation layer (Reanimated 4 / RNGH 3 / Moti) F# wrappers. **Worklets are NOT authored in F#** (settled 2026-06-29, see [worklet rule](#worklet-rule) below).
 
 ### Proven stack and version pins {#version-pins}
 
-The spike (`eggshell-rnw-spike`) validated these exact versions. Install RN libs with `npx expo install`, not raw `npm install`, so versions stay Expo-compatible:
+These are the **shipped** versions (validated during the spike `eggshell-rnw-spike` and then shipped). Install RN libs with `npx expo install`, not raw `npm install`, so versions stay Expo-compatible:
 
 | Package | Version | Note |
 |---|---|---|
-| `react` / `react-dom` | **19.2.3** | React 19 (form Actions, `<title>` metadata, ref-as-prop) |
-| `react-native` | **0.85.3** | New Architecture is default (Fabric/TurboModules/JSI) |
+| `react` / `react-dom` | **19.2** | React 19 (form Actions, `<title>` metadata, ref-as-prop) |
+| `react-native` | **0.86.0** | New Architecture is default (Fabric/TurboModules/JSI) |
 | `react-native-web` | **^0.21.2** | maintenance mode (Oct 2024 latest); stable, production-proven |
-| `react-native-reanimated` | **4.3.1** | v4 = New-Arch only; UI-thread animation |
-| `react-native-worklets` | **0.8.3** | NEW split package -- Reanimated 4 moved its worklet runtime + Babel plugin here |
-| `react-native-gesture-handler` | **~2.31.1** | replaces RN `PanResponder` (UI-thread gestures) |
+| `react-native-reanimated` | **4.5.1** | v4 = New-Arch only; UI-thread animation |
+| `react-native-worklets` | **0.10.2** | NEW split package -- Reanimated 4 moved its worklet runtime + Babel plugin here |
+| `react-native-gesture-handler` | **3.0.2** | replaces RN `PanResponder` (UI-thread gestures) |
 | `moti` | **^0.30.0** | declarative animation (props); works on web via RNW -- **the default animation path** |
 | `expo` (+ `@expo/metro-runtime`, `babel-preset-expo`) | **~56.x** | toolchain: Metro for native AND web |
+
+**New Architecture (Android) build config that shipped with RN 0.86:** Gradle **9.3.1**, Kotlin
+**2.1.20**, `compileSdk`/`targetSdk` **36**, NDK **27**, and `MainApplication` rewritten to the
+`ReactHost` / `loadReactNative` model (the New-Architecture entry point, replacing the legacy
+`ReactNativeHost` / `SoLoader.init` bootstrap).
 
 **Tooling changes vs today's ReactXP/webpack web build:**
 - **babel.config.js:** `presets: ['babel-preset-expo']`, `plugins: ['react-native-worklets/plugin']` -- the worklets plugin **must be listed last**.
 - **App root:** wrap the tree in `GestureHandlerRootView` (RNGH requirement) at the JS root.
-- The current `LibClient/vendor/reactxp-native-common/` + `postinstall` copy mechanism is deleted with ReactXP.
+- The old `LibClient/vendor/reactxp-native-common/` + `postinstall` copy mechanism was deleted with ReactXP.
 
 ### Worklet rule (empirically settled 2026-06-29) {#worklet-rule}
 
@@ -251,15 +256,15 @@ If a primitive depends on one of these, branch with `LC.With.ScreenSize`/platfor
 Do ONE primitive at a time. Do not start the next until the current is green on web + iOS + Android. Run `export DOTNET_ROOT="$HOME/.dotnet"` once per shell.
 
 1. **Scope / STOP check.** If the component is `GestureView` or any `Animatable*`, STOP -- that is the animation/gesture workstream (design work, strong model; see escalation triggers below).
-2. **Read reference, then target.** Read `LibClient/src/ReactXP/Components/View/View.fs` (the pattern to imitate), `LibClient/src/ReactXP/RNSeam.fs` (the adapters to call), and the current `<Primitive>.fs` (note its import and every optional arg / DU / record type).
+2. **Read reference, then target.** Read `LibClient/src/Rn/Components/View/View.fs` (the pattern to imitate), `LibClient/src/Rn/RnPrimitives.fs` (the adapters to call, formerly `RNSeam.fs`), and the current `<Primitive>.fs` (note its import and every optional arg / DU / record type).
 3. **Keep the F# signature byte-identical.** Do not rename, drop, or reorder any public param. Keep `?xLegacyStyles`, every `accessibility*`/`aria*`/`testId`/`liveRegion`/`importantForAccessibility` param, public DU/record paths, and themeable fields (`Input.Text.Theme`, `PickerInternals.Field.Theme`). If RN/RNW cannot express a param, the param STAYS and is gated/no-op'd -- never silently dropped.
-4. **Repoint import + port styles.** Change `ReactXPRaw?X` / `@chaldal/reactxp*` to the RN target from the mapping table. Route style construction through `RNSeam.createViewStyle` / `createTextStyle`.
+4. **Repoint import + port styles.** Change the raw `@chaldal/reactxp*` import to the RN target from the mapping table. Route style construction through `RnPrimitives.createViewStyle` / `createTextStyle`.
 5. **Wire seam adapters** (in `View.fs` order), before `createElement`:  
-   `assignPointerEvents` then `assignTestId` then `assignOnLayout` (MANDATORY if the primitive has `onLayout` -- raw forwarding zeroes width/height) then `assignAccessibility` (role via `accessibilityRole |> Option.bind RNSeam.mapAccessibilityRole |> Option.map box`, never the raw int enum) then if pressable `assignPressableFeedback` then `RNSeam.createElement RNSeam.<Target> __props kids`.
+   `assignPointerEvents` then `assignTestId` then `assignOnLayout` (MANDATORY if the primitive has `onLayout` -- raw forwarding zeroes width/height) then `assignAccessibility` (role via `accessibilityRole |> Option.bind RnPrimitives.mapAccessibilityRole |> Option.map box`, never the raw int enum) then if pressable `assignPressableFeedback` then `RnPrimitives.createElement RnPrimitives.<Target> __props kids`.
 6. **Build `Web Debug` + defeat the Fable false-green:**
 
 ```bash
-touch LibClient/src/ReactXP/Components/<Primitive>/<Primitive>.fs
+touch LibClient/src/Rn/Components/<Primitive>/<Primitive>.fs
 rm -rf LibClient/.build/web/fable
 dotnet build LibClient/src/LibClient.fsproj -c "Web Debug" 2>&1 | tee /tmp/build-<p>.log
 rg "Started Fable compilation" /tmp/build-<p>.log    # MUST be present
@@ -284,11 +289,11 @@ If your symptom is here, apply the fix. If it is not here and not obvious in one
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `onLayout` width/height 0; drawer "always open"; responsive collapses | RNW delivers `{nativeEvent:{layout}}`; ReactXP flattened it; raw forwarding drops it | `RNSeam.assignOnLayout __props onLayout` |
-| `role="16"` in HTML; a11y role ignored | `AccessibilityRole` is an int enum boxed raw | `accessibilityRole |> Option.bind RNSeam.mapAccessibilityRole |> Option.map box` |
+| `onLayout` width/height 0; drawer "always open"; responsive collapses | RNW delivers `{nativeEvent:{layout}}`; ReactXP flattened it; raw forwarding drops it | `RnPrimitives.assignOnLayout __props onLayout` |
+| `role="16"` in HTML; a11y role ignored | `AccessibilityRole` is an int enum boxed raw | `accessibilityRole |> Option.bind RnPrimitives.mapAccessibilityRole |> Option.map box` |
 | Header view ~2em; children inherit big font | `Header -> "header" -> role="heading" -> <h1>` default font size | Map `Header -> "banner"` (RNW: `<header>` landmark) |
-| `lineHeight` huge (e.g. 384px) | Numeric `lineHeight` read as CSS unitless multiplier | Route through `RNSeam.createTextStyle` (appends `px`) |
-| `flex 0` element collapses to 0 | Identity style fn lets `flex:0` hit CSS as `0 1 0%` | Use `RNSeam.createViewStyle` (replicates ReactXP flex expansion) |
+| `lineHeight` huge (e.g. 384px) | Numeric `lineHeight` read as CSS unitless multiplier | Route through `RnPrimitives.createTextStyle` (appends `px`) |
+| `flex 0` element collapses to 0 | Identity style fn lets `flex:0` hit CSS as `0 1 0%` | Use `RnPrimitives.createViewStyle` (replicates ReactXP flex expansion) |
 | Pure-F# `[<Component>]` ignores its theme | Pure-F# components don't call `ComponentRegistry.GetStyles` | Bake themed values into `makeViewStyles`/`makeTextStyles` |
 | Absolute overlay/drawer wrapper swallows clicks + wheel | Wide/tall absolute wrapper stays a pointer target | `blockPointerEvents = true` (RN `box-none`); park closed overlay fully off-screen |
 | Build "green" but edit ignored | Fable cache false-green | `touch` `.fs` / `rm -rf .build/<plat>/fable`; confirm `Started Fable compilation` |
@@ -305,7 +310,7 @@ If your symptom is here, apply the fix. If it is not here and not obvious in one
 
 Hand back to a strong model; do not guess.
 
-- **A. Seam design.** A prop/event whose RN shape has no existing `RNSeam` adapter and you would design one. Report: primitive, full F# signature, the prop, and the ReactXP-vs-RN shape difference.
+- **A. Seam design.** A prop/event whose RN shape has no existing `RnPrimitives` adapter and you would design one. Report: primitive, full F# signature, the prop, and the ReactXP-vs-RN shape difference.
 - **B. Worklet / SIGABRT.** `Fatal signal 6 (SIGABRT)` / `getHostFunction`, or anything needing a UI-thread worklet. `Animatable*` and `GestureView` are pre-flagged. Report the animation/gesture intent + crash log.
 - **C. Fable AST / plugin.** `Meta/FablePlugins` or any transpile/AST/plugin error. Do not edit the AST. Report the full Fable error + file.
 - **D. Build red after 2 attempts** on something not in the pitfall checklist. Report exact `error FS.../red-box/logcat` text, file, and both attempts tried.
@@ -321,7 +326,7 @@ All blocks assume `export DOTNET_ROOT="$HOME/.dotnet"` first.
 # Build one framework lib (custom config, NOT plain Debug):
 dotnet build LibClient/src/LibClient.fsproj -c "Web Debug" 2>&1 | tee /tmp/build.log
 # Force-recompile / defeat Fable false-green:
-touch LibClient/src/ReactXP/Components/<Primitive>/<Primitive>.fs
+touch LibClient/src/Rn/Components/<Primitive>/<Primitive>.fs
 rm -rf LibClient/.build/web/fable        # .build/native/fable for native
 rg "Started Fable compilation" /tmp/build.log   # present
 rg "error FS" /tmp/build.log                    # empty
@@ -353,7 +358,7 @@ pkill -f "react-native start"; pkill -f "qemu-system-aarch64"; pkill -f "emulato
 
 A component is **done** only when web + iOS + Android (portrait + landscape) are green AND the gallery page + LEARNINGS row are updated.
 
-Already ported through `RNSeam`: View, Text, Button/Pressable, Image, TextInput, ScrollView, ActivityIndicator, VirtualListView (FlatList), AccessibilityInfo, NetInfo.
+Already ported through `RnPrimitives`: View, Text, Button/Pressable, Image, TextInput, ScrollView, ActivityIndicator, VirtualListView (FlatList), AccessibilityInfo, NetInfo.
 
 | Component | web | ios | android | gallery | learnings |
 |---|---|---|---|---|---|

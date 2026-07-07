@@ -19,7 +19,7 @@ it's fairly easy to just stay in the React world and not need to know much about
 non-virtual DOM (unless you're mixing JQuery in and doing non-idiomatic things).
 
 So, similarly, with EggShell, you have F#, converted into JS through Fable, and the conversion has
-issues. You have the `RX.*` wrappers over react-native-web (web) and React Native (native), and any
+issues. You have the `Rn.*` wrappers over react-native-web (web) and React Native (native), and any
 wrapper over such two vastly different runtimes is bound to have its issues. And then you have an
 additional layer that we built on top of the whole thing, with the goal of removing low level UI building,
 and moving it to a higher level with all the good defaults and other benefits. But because the

@@ -25,17 +25,18 @@ being retired (see [Render DSL Retirement](./modernization/render-dsl-retirement
 
 The frontend primitive layer has been migrated off the archived `@chaldal/reactxp` fork to
 **react-native-web** (the dependency is removed). Primitives are imported from `react-native` in
-`LibClient/src/ReactXP/RNSeam.fs` (the `LibClient/src/ReactXP` directory keeps its legacy name); the web
-build aliases `react-native` → `react-native-web` (`Meta/LibFablePlus/webpack.config.js`), while native
-builds resolve real React Native. Platform is detected at runtime (`Web | Native Android | Native iOS`)
-and at compile time via `#if EGGSHELL_PLATFORM_IS_WEB`. Wrapped primitives (F# surface unchanged): `View`,
-`Text`, `Button`, `ScrollView`, `TextInput`, `Image`, `VirtualListView`, `GestureView`, `WebView`, plus
-`Animatable*` and SVG.
+`LibClient/src/Rn/RnPrimitives.fs`; the web build aliases `react-native` → `react-native-web`
+(`Meta/LibFablePlus/webpack.config.js`), while native builds resolve real React Native. Platform is
+detected at runtime (`Web | Native Android | Native iOS`) and at compile time via
+`#if EGGSHELL_PLATFORM_IS_WEB`. Wrapped primitives (F# surface unchanged): `View`, `Text`, `Button`,
+`ScrollView`, `TextInput`, `Image`, `VirtualListView`, `GestureView`, `WebView`, plus `Animatable*` and
+SVG. The stack runs React 19.2, react-native 0.86, react-native-web 0.21.2, RNGH 3.0.2, and Reanimated
+4.5.1, with the New Architecture (Fabric) enabled.
 
-Styles are a typed F# DSL (`ReactXP/Styles/Legacy/` and a newer `New/` dialect) compiled to runtime style
+Styles are a typed F# DSL (`Rn/Styles/Legacy/` and a newer `New/` dialect) compiled to runtime style
 objects, with nesting (`&&`, `=>`), responsive breakpoints, and themes.
 
-> The **wrapped `RX.*` primitive layer in `LibClient/src/ReactXP` was the single seam** the migration
+> The **wrapped `Rn.*` primitive layer in `LibClient/src/Rn` is the single seam** the migration
 > re-implemented against react-native-web. Because the wrappers kept their F# signatures, the bulk of
 > component code was untouched. Stabilization (scroll, gestures, pickers) is ongoing. See
 > [ReactXP → RNW](./modernization/reactxp-to-rnw.md).
@@ -71,6 +72,7 @@ Animation is still thin. What exists is the RN `Animated` API (`Animation.Timing
 with a small set of easings, plus `Animatable*` wrappers, used in a few places (e.g. `Scrim.fs` opacity
 fades, a carousel). What's missing for a modern feel: spring/physics motion, gesture-driven animation,
 layout/shared-element transitions, route transitions, scroll-linked effects, and any coordinated
-timeline/stagger system. The react-native-web migration is what unlocks the modern RN motion/gesture
-stack (Reanimated / Moti, RNGH); a real animation story is the highest-visibility frontend win. See
+timeline/stagger system. The react-native-web migration unlocked the modern RN motion/gesture
+stack (Reanimated 4 / Moti, RNGH 3, now available on the New Architecture); a real animation story is
+the highest-visibility frontend win. See
 [ReactXP → RNW](./modernization/reactxp-to-rnw.md) (note the Fable worklet caveat).

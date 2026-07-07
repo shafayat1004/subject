@@ -4,7 +4,7 @@ The operating system exposes a set of accessibility preferences that the framewo
 Exposing these once, centrally, means every component benefits without per-screen wiring.
 
 All items in this section are `[safe]`: they use RN's `AccessibilityInfo` APIs and React Native's
-existing event system, which RNW maps to web media queries. They survive the ReactXP to RNW migration
+existing event system, which RNW maps to web media queries. They survived the ReactXP to RNW migration
 unchanged -- see [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the migration context.
 
 ---
@@ -72,8 +72,8 @@ benefits; survives migration (same RN APIs, same F# surface).
 - The `LC.With.ReducedMotion` helper (backlog #11, `[safe]`) exposes this flag for the animation layer.
 - Transitions should cross-fade or cut; spring/slide animations should skip.
 - Content remains fully accessible and readable without the animation -- motion is enhancement only.
-- Post-migration: the Reanimated 4 / Moti layer reads this flag declaratively, so per-screen code is not
-  needed. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the post-migration stack.
+- The Reanimated 4 / Moti layer (now on the stack) reads this flag declaratively, so per-screen code is
+  not needed. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the animation stack.
 
 ### Bold text and reduce transparency
 

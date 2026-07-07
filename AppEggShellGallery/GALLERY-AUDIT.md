@@ -236,8 +236,8 @@ When you add a gallery page, it is picked up automatically; add recipes in `audi
 ### 2. Interactions
 
 - Scoped to demo **visuals** cells: `.aesg-ContentComponent-table td.vertical-align-middle/top` (web) or `~aesg-sample-visuals` (Android)
-- **TestId-first:** use `audit-gallery-selectors.mjs` (`clickLabelOrTestId`, `clickByTestId`) before pseudo-element heuristics
-- ReactXP labels use `[data-text-as-pseudo-element="..."]` (not DOM text nodes) as fallback on web
+- **TestId-first:** use `audit-gallery-selectors.mjs` (`clickLabelOrTestId`, `clickByTestId`); prefer `[data-testid]` selectors and real DOM text
+- Under react-native-web, `Rn.Text` emits **real DOM text nodes** and `testId` renders as `data-testid` (RNW does not use the old ReactXP `data-text-as-pseudo-element` / `data-test-id`); match visible text or `data-testid` as the fallback on web
 - Horizontal sample scrolling before interacting
 - **File inputs:** never clicks `Select File` (OS picker); uses `setInputFiles` on hidden `<input type="file">`
 - **Native dialogs:** `window.alert/confirm` auto-accepted/dismissed → `native-dialogs.log`
@@ -449,10 +449,10 @@ On connect, the runner waits until the gallery UI is visible (sidebar menu `test
 |------|-----|---------|
 | Navigation | URL `/Desktop/Components/...` | testId sidebar (`~sidebar-component-*`) |
 | Sample scope | `.aesg-ContentComponent-table td...` | `~aesg-sample-visuals` (driver maps `~` → Android `resource-id`) |
-| Labels/buttons | `[data-text-as-pseudo-element]` | Native `TextView` text |
+| Labels/buttons | real DOM text / `[data-testid]` | Native `TextView` text |
 | Console | Playwright `page.on('console')` | `adb logcat` (ReactNativeJS) |
 | File inputs | `setInputFiles` on hidden input | Skipped (OS picker) |
-| REVIEW heuristic | Unhandled pseudo clickables | Disabled (no pseudo DOM) |
+| REVIEW heuristic | Unhandled clickables without a recipe | Disabled (no pseudo DOM) |
 
 ---
 

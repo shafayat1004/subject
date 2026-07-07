@@ -180,7 +180,7 @@ let cardPadding = makeViewStyles { padding 16 }
 type Ui with
     [<Component>]
     static member Something () : ReactElement =
-        RX.View(styles = [| cardPadding |], children = [||])
+        Rn.View(styles = [| cardPadding |], children = [||])
 ```
 
 2. **Named private module** when you have several related styles. Use a descriptive name, not a generic
@@ -202,10 +202,10 @@ type Ui with
 Prefer top-level `let` or a named `FooStyles` module in *new* code, and switch when you substantially
 touch an existing file — but matching a file's existing `module private Styles =` is acceptable.
 
-The `makeTextStyles` / `makeViewStyles` computation expressions come from `open ReactXP.Styles` (the
-module name is a legacy name; the underlying primitives are react-native-web on web and React Native
-on native, surfaced through the `RX.*` wrappers).
-Familiar `RX.*` and `LC.*` components accept `?styles: array<...Styles>`.
+The `makeTextStyles` / `makeViewStyles` computation expressions come from `open Rn.Styles` (the
+underlying primitives are react-native-web on web and React Native on native, surfaced through the
+`Rn.*` wrappers).
+Familiar `Rn.*` and `LC.*` components accept `?styles: array<...Styles>`.
 
 More on styles, including memoization and themes, is [here](./fsharp/styling.md).
 
@@ -265,8 +265,8 @@ module AppQQQ.Components.Something
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 let sampleText = makeTextStyles { fontSize 42 }
 

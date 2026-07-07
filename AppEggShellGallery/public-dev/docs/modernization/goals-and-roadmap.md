@@ -142,15 +142,19 @@ ReactXP is archived upstream; `@chaldal/reactxp` was the only living fork, and i
 forward without a substantial rewrite (React 19 removed `childContextTypes`, `findDOMNode`; the New
 Architecture deprecated `setNativeProps`, `findNodeHandle`). See [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
 
-The contained seam is `LibClient/src/ReactXP`. F# components above that seam call `RX.*` / `LC.*`
+The contained seam is `LibClient/src/Rn`. F# components above that seam call `Rn.*` / `LC.*`
 and are insulated from the swap. The seam has been re-implemented against RN + react-native-web
-(`RNSeam.fs`); `@chaldal/reactxp` is removed as a dependency.
+(`RnPrimitives.fs`); `@chaldal/reactxp` is removed as a dependency. The stack now runs React 19.2,
+react-native 0.86, react-native-web 0.21.2, RNGH 3.0.2, and Reanimated 4.5.1, with the New Architecture
+(Fabric) enabled.
 
 A real **animation story** (spring/physics motion, gesture-driven and layout/route
-transitions via Reanimated 4 + RNGH 3 + Moti) is the highest-visibility frontend win, and it is
-gated on the New Architecture, which this migration unlocks.
+transitions via Reanimated 4 + RNGH 3 + Moti) is the highest-visibility frontend win, and the New
+Architecture that unlocks it is now enabled.
 
-**Status:** Substantially done (stabilizing). Primitive layer migrated to react-native-web; `@chaldal/reactxp` removed. Scroll, gesture, and picker stabilization ongoing.
+**Status:** Done. Primitive layer migrated to react-native-web; `@chaldal/reactxp` removed; React 19 /
+RN 0.86 / RNW 0.21.2 / RNGH 3 / Reanimated 4 / New Architecture all in place. AppTodo verified on
+Android and iOS. Remaining: gallery and PerformancePlayground native passes, plus scaffolding polish.
 
 ### Security hardening
 
@@ -254,5 +258,7 @@ Items from the original roadmap that remain open.
 2. **Near-term (reinforce each other, low risk):** DSL machinery deletion (A closure) + scaffolding
    (B) + structure standardization (D) + verbosity wins (C) + render hygiene (I).
 3. **Platform baseline already done (F).**
-4. **Stabilize the RNW seam** (H, Phase 4 substantially done): scroll, gesture, and picker stabilization.
+4. **RNW seam done** (H): React 19 / RN 0.86 / RNW 0.21.2 / RNGH 3 / Reanimated 4 / New Architecture in
+   place; AppTodo verified on Android + iOS. Remaining polish: gallery + PerformancePlayground native
+   passes and scaffolding.
 5. **Larger initiative:** Orleans upgrade + PostgreSQL (G) as one coordinated storage workstream.

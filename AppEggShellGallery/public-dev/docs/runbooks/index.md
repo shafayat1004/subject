@@ -17,7 +17,7 @@ Related docs: [Architecture: Frontend](./architecture/frontend.md) | [Modernizat
 | [Web](./runbooks/web.md) | Start dev-web, observe, web-specific gotchas. |
 | [Audit toolkit](./runbooks/audit-toolkit.md) | The Tier 2 `audit/` toolkit: doctor, snapshot, add-todo, workflow, diff, logs; when to use it vs raw CLI. |
 | [Build and rebuild](./runbooks/build-rebuild.md) | Targeted recompile, confirming rebuild output, when a restart is mandatory, verifying a vendor patch reached the bundle, killing stale processes. |
-| [Troubleshooting](./runbooks/troubleshooting.md) | Symptom-to-fix catalog organized by theme (build/cache, styling, RNW/ReactXP bindings, layout, color, dark-mode inputs, picker, key warnings, gestures). |
+| [Troubleshooting](./runbooks/troubleshooting.md) | Symptom-to-fix catalog organized by theme (build/cache, styling, RNW/Rn bindings, layout, color, dark-mode inputs, picker, key warnings, gestures). |
 | [Migration execution](./runbooks/migration-execution.md) | The executor manual for the .NET 10 + Fable 5 + RNW modernization: per-phase step recipes, exact version pins, per-primitive mapping table, pitfall checklist, escalation gates. |
 
 ---

@@ -2,12 +2,13 @@
 
 Tracked work items for accessibility improvements. Items are tagged by migration safety:
 
-- `[safe]` -- uses RN-native APIs; survives the ReactXP to RNW migration unchanged. **Build now.**
-- `[web-only]` -- only meaningful on web. Build behind the web seam when the migration lands.
-- `[rnw-blocked]` -- blocked until the RNW/New-Architecture host-element seam exists. See
-  [ReactXP to RNW](./modernization/reactxp-to-rnw.md). Defer; do not hand-roll.
-- `[lib]` -- needs a third-party native library. Wire via the `ThirdParty` recipe after the migration
-  settles the dependency stack.
+- `[safe]` -- uses RN-native APIs; survived the ReactXP to RNW migration unchanged. **Build now.**
+- `[web-only]` -- only meaningful on web. Build behind the web seam (now on react-native-web).
+- `[rnw-blocked]` -- previously blocked on the RNW/New-Architecture host-element seam. The seam now
+  exists (react-native-web, New Architecture, Reanimated 4, RNGH 3), so these are **unblocked**; most
+  are not yet built. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
+- `[lib]` -- needs a third-party native library. Wire via the `ThirdParty` recipe now that the
+  dependency stack has settled.
 
 For context on why deferred items are sequenced, not abandoned, see the
 [post-migration target architecture](#post-migration-target-architecture) section below.
@@ -26,14 +27,14 @@ below remain.
   semantics to the screen reader. Ensure the field is a focusable control with a role and an
   `accessibilityLabel`, and that opening/selecting is reachable without sight.
 - **Controls go inert under reduce-motion.** `[safe]` -- when reduce-motion is on, `SegmentedControl`
-  renders a plain `RX.View` (no `onTap`/`onPan`) and `TodoSwipeShell` renders a static row, so a
+  renders a plain `Rn.View` (no `onTap`/`onPan`) and `TodoSwipeShell` renders a static row, so a
   reduce-motion user cannot toggle the theme or use the row actions via the normal path. Reduce-motion
   must remove *animation*, not *interaction* (keep the control tappable; just skip the sliding thumb /
   swipe animation). Violates the "any gesture has a non-gesture alternative" principle in
   [Recipes](./accessibility/recipes.md).
 - **Swipe-to-delete has no robust non-gesture alternative** (scroll-hijack part **done**). `[safe]` --
   vertical-scroll hijack and gesture jank were fixed in session 7 by rebuilding the swipe on
-  react-native-gesture-handler (`RX.HorizontalPanArea`; native `activeOffsetX`/`failOffsetY`
+  react-native-gesture-handler (`Rn.HorizontalPanArea`; native `activeOffsetX`/`failOffsetY`
   arbitration). Still open: add an `accessibilityAction` "delete" (rotor action so a screen-reader
   user can delete without the swipe). See the `accessibilityActions` note in
   [post-migration target architecture](#post-migration-target-architecture).
@@ -61,7 +62,7 @@ below remain.
 
 ## Large (multi-day; some gated)
 
-14. RTL / logical-layout pass (`start`/`end` vs `left`/`right`; text expansion). Partly `[rnw-blocked]` -- not started; logical CSS properties available in RNW but not yet adopted
+14. RTL / logical-layout pass (`start`/`end` vs `left`/`right`; text expansion). Was partly `[rnw-blocked]`; now **unblocked (not yet built)** -- logical CSS properties available in RNW / New Arch, not yet adopted
 15. Destructive-action **undo** pattern (snackbar plus announce) framework-wide. `[safe]` -- not started
 16. Programmatic focus management: basic utility done (`LC.FocusManager.setFocusTo` / `setFocusById`). `[safe]` -- **Partially done**. Wiring to route changes and dialog open/close still needed.
 17. Roving-tabindex keyboard navigation for tablists and menus. `[web-only]` -- not started. Tabs keyboard arrow nav deferred: current Tab.fs emits dual `role="tab"` nodes (outer View + inner Pressable) making `querySelectorAll("[role='tab']")` ambiguous; needs Tab API revision.
@@ -74,8 +75,8 @@ below remain.
 
 ## Deferred / do-not-hand-roll
 
-These items are sequenced, not abandoned. Deferring is a deliberate sequencing decision; the migration
-unlocks them cleanly.
+These items are sequenced, not abandoned. The migration has now landed the seam that unlocks them
+cleanly; the ones still tagged blocked below are unblocked but not yet built.
 
 | Item | Tag | Status | What unlocks it |
 |------|-----|--------|-----------------|
@@ -83,11 +84,11 @@ unlocks them cleanly.
 | `:focus-visible` ring styling | `[web-only]` | **Done** (`FocusVisibleStyles.injectIfNeeded` injects CSS on AppShell mount) | -- |
 | Landmarks + heading levels | `[web-only]` | **Done** (`role=Main`, `role=Navigation` on AppShell; `role=Complementary` available) | -- |
 | Roving-tabindex mechanics | `[web-only]` | **Deferred** -- Tab.fs dual role=tab nodes (View + Pressable) need API revision first | Tab API cleanup |
-| Accessible modals (focus trap, `inert`, light-dismiss) | `[rnw-blocked]` | Deferred | RNW `<dialog>` / Popover API |
-| Haptics | `[lib]` | Deferred | `expo-haptics` |
-| Media captions | `[lib]` | Deferred | `react-native-video` text tracks |
-| Reduced-motion-aware animation | `[rnw-blocked]` (rich) | Deferred | Reanimated 4 / Moti |
-| RTL logical properties | `[rnw-blocked]` (partly) | Deferred | New Arch logical CSS properties |
+| Accessible modals (focus trap, `inert`, light-dismiss) | `[rnw-blocked]` | **Unblocked (not yet built)** -- RNW `<dialog>` / Popover API now available | RNW seam (now present) |
+| Haptics | `[lib]` | **Unblocked (not yet built)** -- dependency stack settled | `expo-haptics` |
+| Media captions | `[lib]` | **Unblocked (not yet built)** -- dependency stack settled | `react-native-video` text tracks |
+| Reduced-motion-aware animation | `[rnw-blocked]` (rich) | **Unblocked (not yet built)** -- Reanimated 4 now on the stack | Reanimated 4 / Moti (now present) |
+| RTL logical properties | `[rnw-blocked]` (partly) | **Unblocked (not yet built)** -- New Arch logical CSS properties now available | New Arch (now present) |
 
 **Never patch vendored RN/RNW internals for accessibility.** Fix at the F# seam only (see the context
 key-warning fix in `AppShell/Context/Context.fs`, documented in the Engineering Log (2026-06-29)).
@@ -96,8 +97,9 @@ key-warning fix in `AppShell/Context/Context.fs`, documented in the Engineering 
 
 ## Post-migration target architecture
 
-The ReactXP to RNW migration is not just parity -- it **raises the accessibility ceiling** and retires
-most of the deferred items above. Full details in [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
+The ReactXP to RNW migration is done. It was not just parity -- it **raised the accessibility ceiling**
+and unblocks most of the deferred items above (they now need building, not waiting). Full details in
+[ReactXP to RNW](./modernization/reactxp-to-rnw.md).
 
 ### React Native New Architecture (Fabric / JSI / TurboModules)
 
@@ -118,7 +120,7 @@ RN converged on a cross-platform vocabulary the wrapper should map once:
   `onAccessibilityAction` (custom rotor actions -- for example, "delete" without the swipe); queued
   `announceForAccessibility`.
 
-The F# `LC.Pressable` / `RX.View` call sites stay the same; the **binding** maps them to `role` plus
+The F# `LC.Pressable` / `Rn.View` call sites stay the same; the **binding** maps them to `role` plus
 `aria-*` natively. This is the migration contract paying off (backlog #8, #15 become richer for free).
 
 ### react-native-web: real ARIA and DOM
