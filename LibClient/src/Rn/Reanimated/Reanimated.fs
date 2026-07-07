@@ -1,17 +1,16 @@
 [<AutoOpen>]
 module Rn.Components.Reanimated
 
-// Reanimated 4 / Moti animation seam. This replaces the legacy RN-`Animated` seam
-// (`Rn.Styles.Animation` + `Rn.Components.Animatable*`). Two paths, both authored here so app and
-// component code never touches a worklet:
+// Reanimated 4 animation seam. This replaces the legacy RN-`Animated` seam
+// (`Rn.Styles.Animation` + `Rn.Components.Animatable*`). App and component code never touches a
+// worklet: create a `Reanimated.SharedValue`, drive it (`SetValue` during a gesture,
+// `AnimateTiming`/`AnimateSpring` to settle), and render `Rn.ReanimatedView` with one of the
+// `useAnimated*` style hooks. The seam depends only on react-native-reanimated + worklets (both
+// already shipped by every app and the scaffold) — no extra animation dependency.
 //
-//   * Declarative (preferred) — `Rn.MotiView`: pass `from`/`animate`/`transition` prop objects.
-//     Moti drives the animation on the UI thread and marshals `onDidAnimate` back to the JS thread
-//     for us (it wraps `runOnJS` internally), so completion callbacks are safe.
-//
-//   * Imperative (follow-the-finger drag / gesture-driven) — a `Reanimated.SharedValue` plus one of
-//     the `useAnimated*` style hooks below, rendered through `Rn.ReanimatedView`. Drive the value
-//     directly (`SetValue`) during a gesture and with `AnimateTiming`/`AnimateSpring` to settle.
+// `AnimateTiming`'s optional `onComplete` fires on the JS thread via a matching timer, because a
+// worklet completion callback cannot safely call back into JS (`runOnJS` inside a Fable-emitted
+// worklet aborts libworklets).
 //
 // WORKLET RULE (hard): the only worklets in the framework live in this file, and their bodies do
 // nothing but read a shared value into a plain style object. NO host-function calls (`runOnJS`,
@@ -133,9 +132,6 @@ module Reanimated =
 let private MakeReanimatedView: obj -> array<Fable.React.ReactElement> -> Fable.React.ReactElement =
     LibClient.ThirdParty.wrapComponent<obj> Reanimated.AnimatedViewComponent
 
-let private MakeMotiView: obj -> array<Fable.React.ReactElement> -> Fable.React.ReactElement =
-    LibClient.ThirdParty.wrapComponent<obj> (import "MotiView" "moti")
-
 type Rn.Components.Constructors.Rn with
 
     /// A Reanimated animated view. Merge normal `styles` with an `animatedStyle` produced by one of
@@ -171,36 +167,3 @@ type Rn.Components.Constructors.Rn with
             |> LibClient.ThirdParty.fixPotentiallySingleChild
 
         MakeReanimatedView __props children
-
-    /// A Moti view: declarative animation via `from` / `animate` / `transition` prop objects. Moti
-    /// drives it on the UI thread and marshals `onDidAnimate` back to the JS thread for us.
-    static member MotiView(
-            ?from:         obj,
-            ?animate:      obj,
-            ?transition:   obj,
-            ?exitState:    obj,
-            ?onDidAnimate: string -> bool -> unit,
-            ?styles:       array<ViewStyles>,
-            ?children:     array<Fable.React.ReactElement>,
-            ?testId:       string,
-            ?importantForAccessibility: LibClient.Accessibility.ImportantForAccessibility,
-            ?key:          string) =
-        let __props = createEmpty
-
-        __props?from                      <- from
-        __props?animate                   <- animate
-        __props?transition                <- transition
-        __props?exit                      <- exitState
-        __props?onDidAnimate              <- onDidAnimate
-        __props?style                     <- styles
-        __props?testID                    <- testId
-        __props?importantForAccessibility <- importantForAccessibility
-        __props?key                       <- key
-
-        let children =
-            children
-            |> Option.map tellReactArrayKeysAreOkay
-            |> Option.getOrElse [||]
-            |> LibClient.ThirdParty.fixPotentiallySingleChild
-
-        MakeMotiView __props children

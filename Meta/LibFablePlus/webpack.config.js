@@ -57,11 +57,6 @@ const commonConfig = {
             "react-native-worklets$": libClientNodeModules
                 ? path.join(libClientNodeModules, "react-native-worklets/lib/module/index.js")
                 : "react-native-worklets",
-            // Moti's declarative animation seam (Rn.MotiView). Its CommonJS build resolves via
-            // `main`, but pin it to LibClient so the whole tree shares one Moti/Reanimated instance.
-            "moti$": libClientNodeModules
-                ? path.join(libClientNodeModules, "moti/build/index.js")
-                : "moti",
         },
         extensions: [".web.js", ".web.jsx", ".web.ts", ".web.tsx", ".js", ".jsx", ".ts", ".tsx", ".json"],
         modules: [

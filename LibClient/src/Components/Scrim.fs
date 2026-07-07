@@ -23,7 +23,7 @@ module private Styles =
             trbl 0 0 0 0
         }
 
-    // Opacity is driven by Moti's `animate` prop (see below), never set here.
+    // Opacity is driven by a Reanimated animated style (see below), never set here.
     let scrimInner =
         makeViewStyles {
             Position.Absolute
@@ -47,13 +47,31 @@ type LibClient.Components.Constructors.LC with
         key |> ignore
 
         let isMountedHook = Hooks.useState isVisible
+        let opacity = Reanimated.useSharedValue (if isVisible then 1.0 else 0.0)
+        let animatedStyle = Reanimated.useAnimatedOpacity opacity
+        // A token guards against a stale fade-out unmounting the overlay after a quick re-show.
+        let animTokenRef = Hooks.useRef 0
 
-        // Keep the overlay mounted while shown; when hidden, let the fade-out finish (Moti's
-        // onDidAnimate fires on the JS thread) before unmounting.
         Hooks.useEffect(
             (fun () ->
+                animTokenRef.current <- animTokenRef.current + 1
+                let token = animTokenRef.current
                 if isVisible then
                     isMountedHook.update true
+                    // runLater avoids the sporadically-botched animation seen without the deferral.
+                    LibClient.JsInterop.runLater (System.TimeSpan.FromMilliseconds 10.) (fun () ->
+                        if animTokenRef.current = token then
+                            opacity.AnimateTiming(1.0, durationMs = 500.0))
+                else
+                    LibClient.JsInterop.runLater (System.TimeSpan.FromMilliseconds 10.) (fun () ->
+                        if animTokenRef.current = token then
+                            opacity.AnimateTiming(
+                                0.0,
+                                durationMs = 500.0,
+                                onComplete =
+                                    (fun () ->
+                                        if animTokenRef.current = token then
+                                            isMountedHook.update false)))
             ),
             [| isVisible |]
         )
@@ -67,15 +85,9 @@ type LibClient.Components.Constructors.LC with
                     |],
                 children =
                     elements {
-                        Rn.MotiView(
-                            from        = createObj [ "opacity" ==> 0.0 ],
-                            animate     = createObj [ "opacity" ==> (if isVisible then 1.0 else 0.0) ],
-                            transition  = createObj [ "type" ==> "timing"; "duration" ==> 500 ],
-                            onDidAnimate =
-                                (fun _styleProp _finished ->
-                                    if not isVisible then
-                                        isMountedHook.update false),
+                        Rn.ReanimatedView(
                             styles = [| Styles.scrimInner |],
+                            animatedStyle = animatedStyle,
                             children = [||]
                         )
 
