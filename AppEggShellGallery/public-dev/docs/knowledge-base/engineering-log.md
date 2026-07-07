@@ -4,6 +4,36 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-08 (session 9 -- modernization tail: cleanup, gallery page, scaffold, docs, audit tooling; R2/R4 scoped)
+
+Follow-on to session 8. iOS was completed for AppTodo (verified on the iPhone 16 simulator, pod
+install only -- RN 0.86 keeps `RCTAppDelegate`, iOS min 15.1; gotcha: the ~94 MB prebuilt React-Core
+maven download can `curl (56)` and needs a retry, or `RCT_USE_PREBUILT_RNCORE=0`). Then the remaining
+polish items:
+
+- **RXNavigator deleted** -- dead LibRouter component importing the uninstalled `reactxp-navigation`.
+- **Gallery `HorizontalPanArea` page** added (rule 10), pure F# on the `Rn` API.
+- **Scaffold template -> RN 0.86** (`Meta/LibScaffolding/templates/app`): package.json, babel worklets
+  plugin, android gradle/SDK/NDK/Kotlin, MainApplication ReactHost model. Full `create-app` verify is
+  gated on Goal B (create-app is separately broken).
+- **Docs sweep** -- current-state reference docs to `Rn` / RN 0.86; migration-execution pins
+  refreshed; audit tooling reworked.
+- **Audit tooling (RNW)** -- ReactXP rendered `<Text>` with `data-text-as-pseudo-element="<text>"`;
+  **RNW renders real DOM text nodes** (`div[dir="auto"]`) and maps `testID` -> **`data-testid`** (not
+  `data-test-id`). Converted the gallery audits to `getByText` + `data-testid` (verified against the
+  live RNW gallery: `data-testid` resolves, clicking "Docs" by text navigates).
+
+### R2 (gallery native) and R4 (Reanimated in components) -- scoped as larger workstreams
+- **R2:** gallery `assembleDebug` fails fast at `react-native-push-notification` (`jcenter()` removed
+  in Gradle 9); v8.1.1 is the unmaintained latest and needs **patch/replacement**, not a bump. The
+  gallery autolinks **~20 ThirdParty native modules**, several unmaintained -- a multi-day
+  ThirdParty-modernization workstream. Gallery **web** works. Do NOT expect a quick "bump + build".
+- **R4:** `SegmentedControl` **already** slides via RN-Animated; adopting Reanimated means rewriting a
+  shared cross-platform control + new Moti bindings + per-platform verification. Defect 5 was on RN
+  0.76; re-test on 0.86 first and prefer a small remount/init fix over a risky Reanimated rewrite.
+
+---
+
 ## 2026-07-07 (session 8 -- de-ReactXP rename + upgrade to React 19 / RN 0.86 / New Architecture)
 
 Two-track effort on branch `modernization/rnw` (plan: clean the framework of the ReactXP name +
