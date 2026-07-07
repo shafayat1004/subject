@@ -103,6 +103,7 @@
     <Compile Include="Components/Content/ErrorBoundary/ErrorBoundary.fs" />
 
     <Compile Include="Components/Content/Draggable/Draggable.fs" />
+    <Compile Include="Components/Content/HorizontalPanArea/HorizontalPanArea.fs" />
 
     <Compile Include="Components/Content/Scrim/Scrim.fs" />
 

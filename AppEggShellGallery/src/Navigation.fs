@@ -69,6 +69,7 @@ and ComponentItem =
 | HandheldListItem
 | HeaderCell
 | Heading
+| HorizontalPanArea
 | Icon
 | IconButton
 | IconWithBadge
@@ -172,6 +173,7 @@ module ComponentItem =
         | HandheldListItem                -> "HandheldListItem"
         | HeaderCell                      -> "HeaderCell"
         | Heading                         -> "Heading"
+        | HorizontalPanArea               -> "HorizontalPanArea"
         | Icon                            -> "Icon"
         | IconButton                      -> "IconButton"
         | IconWithBadge                   -> "IconWithBadge"

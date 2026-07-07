@@ -31,6 +31,7 @@ let private renderContent (content: ComponentItem) : ReactElement =
     | DateSelector                  -> Ui.Content.DateSelector()
     | Dialogs                       -> Ui.Content.Dialogs()
     | Draggable                     -> Ui.Content.Draggable()
+    | HorizontalPanArea             -> Ui.Content.HorizontalPanArea()
     | ErrorBoundary                 -> Ui.Content.ErrorBoundary()
     | FloatingActionButton          -> Ui.Content.FloatingActionButton()
     | Forms                         -> Ui.Content.Forms()

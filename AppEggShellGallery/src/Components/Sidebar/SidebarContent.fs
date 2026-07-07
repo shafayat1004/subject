@@ -241,6 +241,7 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         compItemIcon "Carousel" Carousel itemState
         compItemIcon "Dialogs" Dialogs itemState
         compItemIcon "Draggable" Draggable itemState
+        compItemIcon "HorizontalPanArea" HorizontalPanArea itemState
         compItemIcon "ImageCard" ImageCard itemState
         compItemIcon "InfoMessage" InfoMessage itemState
         compItemIcon "ItemList" ItemList itemState
