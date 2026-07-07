@@ -115,12 +115,20 @@ type Rn.Components.Constructors.Rn with
                 | None        -> None
                 | Some layout -> LibClient.ServiceInstances.services().Image.MakeOptimizedUrl source (Some layout.Width) |> Some
 
-        match maybeUpdatedSource with
+        // A native-imported local asset must be passed to RN's Image as the bare asset reference
+        // (a numeric asset id), never wrapped as {uri} — that crashes RCTImageView on native
+        // ("Value for uri cannot be cast from Double to String"). Web/URL/data sources use {uri}.
+        let maybeSourceObj =
+            match source.RawNativeAsset with
+            | Some asset -> Some asset
+            | None       -> maybeUpdatedSource |> Option.map (fun uri -> ImageRN.makeSource uri headers)
+
+        match maybeSourceObj with
         | None -> noElement
-        | Some uri ->
+        | Some sourceObj ->
             let __props = createEmpty
 
-            __props?source              <- ImageRN.makeSource uri headers
+            __props?source              <- sourceObj
             __props?accessibilityLabel  <- accessibilityLabel
             __props?resizeMode          <- ImageRN.mapResizeMode resizeMode
             __props?androidResizeMethod <- androidResizeMethod

@@ -67,6 +67,15 @@ type ImageSource =
             | Global      value -> value
             | Data        value -> value
 
+        /// For a native-imported local asset, the raw RN asset reference (a numeric asset id at
+        /// runtime) that must be passed to `<Image source={...}>` *directly* — not wrapped as
+        /// `{uri}`, which crashes RCTImageView ("Value for uri cannot be cast from Double to String").
+        /// `None` for web/URL/data sources, which use the `{uri}` form.
+        member this.RawNativeAsset : obj option =
+            match this with
+            | LocalNative value -> Some (box value)
+            | _                 -> None
+
 module ImageSource =
     let private isDataUri (url: string) : bool =
         url.StartsWith "data:"
