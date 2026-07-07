@@ -122,6 +122,7 @@ let modernizationItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Divider()
         LC.Sidebar.Item(label = "Goals & Roadmap", state = itemState "modernization/goals-and-roadmap.md")
         LC.Sidebar.Item(label = "Phased Plan",     state = itemState "modernization/phased-plan.md")
+        LC.Sidebar.Item(label = "RN 0.86 Upgrade: Done & Remaining", state = itemState "modernization/rn86-upgrade-status.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Workstreams")
         LC.Sidebar.Item(label = "Rn → RNW",       state = itemState "modernization/reactxp-to-rnw.md")

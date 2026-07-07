@@ -23,6 +23,7 @@ Orientation for machine readers:
 - [Current Status](modernization/index.md): the authoritative status dashboard (toolchain, Goals A-I, Phases 0-6).
 - [Goals & Roadmap](modernization/goals-and-roadmap.md): Goals A-H plus security, short-term vs long-term.
 - [Phased Plan](modernization/phased-plan.md): Phases 0-6 with per-phase status.
+- [RN 0.86 Upgrade: Done and Remaining](modernization/rn86-upgrade-status.md): detailed done-vs-remaining tracker for the ReactXP-retirement + React 19 / RN 0.86 / Fabric upgrade (remaining: gallery native ThirdParty, Reanimated adoption, PerformancePlayground, create-app, ship).
 - [ReactXP to react-native-web](modernization/reactxp-to-rnw.md): the frontend migration rationale, fork audit, and RN/RNW ecosystem.
 - [Render DSL Retirement](modernization/render-dsl-retirement.md): Goal A status, verbosity/structure, a11y and automation bar.
 - [Build Performance](modernization/build-performance.md): frontend build bottlenecks and levers.

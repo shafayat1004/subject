@@ -64,6 +64,7 @@ See [Phased Plan](./modernization/phased-plan.md) for full per-phase detail.
 - [CLI reference](./tools/cli.md) — `eggshell` commands.
 - [Goals & Roadmap](./modernization/goals-and-roadmap.md) — Goals A through H + security, short-term vs long-term framing.
 - [Phased Plan](./modernization/phased-plan.md) — Phases 0 through 6, one clean table.
+- [RN 0.86 Upgrade: Done and Remaining](./modernization/rn86-upgrade-status.md) — detailed done-vs-remaining tracker for the ReactXP-retirement + React 19 / RN 0.86 / Fabric upgrade.
 - [ReactXP to RNW](./modernization/reactxp-to-rnw.md) — the strategy and research narrative for the seam swap.
 - [Render DSL Retirement](./modernization/render-dsl-retirement.md) — Goal A detail + Goals C/D + a11y/automation bar.
 - [Build Performance](./modernization/build-performance.md) — Goal E: bottlenecks and ranked levers.

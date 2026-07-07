@@ -126,7 +126,9 @@ targeted test run with the actual database in Phase 3 or a staging environment.
 > iOS** (iPhone 16 simulator, dark mode). The "proven version pins" below are from the
 > earlier spike (RN 0.85); the shipped apps are now on RN 0.86. Remaining: gallery +
 > PerformancePlayground native config; Reanimated 4 + Moti. See the session-8 engineering-log entry
-> for the full recipe + gotchas (render-compiler rebuild, native-module bumps, RNGH shim).
+> for the full recipe + gotchas (render-compiler rebuild, native-module bumps, RNGH shim), and
+> [RN 0.86 Upgrade: Done and Remaining](./modernization/rn86-upgrade-status.md) for the detailed
+> done-vs-remaining tracker.
 
 **Shape:** re-implement `LibClient/src/ReactXP` against React Native (native) + react-native-web
 (web) instead of `@chaldal/reactxp`, keeping F# constructor signatures and the style DSL surface
