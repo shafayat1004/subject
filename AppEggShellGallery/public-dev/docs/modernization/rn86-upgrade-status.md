@@ -21,6 +21,7 @@ RNGH **3.0.2**, Reanimated **4.5.1** + worklets **0.10.2** + Moti **0.30.0**, Ne
 | **RN 0.76→0.86 + New Architecture (AppTodo)** | RN 0.86, `newArchEnabled=true`, Gradle 9.3.1, Kotlin 2.1.20, SDK 36, NDK 27; `MainApplication` rewritten to the `ReactHost`/`loadReactNative` model; native modules bumped for RN-0.86 Fabric C++ (svg 15.15.5, webview 14.0.1, netinfo 12.0.1, picker 2.11.4, async-storage 3.1.1); RNGH 2.21→3.0.2 (2.31 imports a shim RN 0.86 removed) | **Android** POCO F1 (debug + standalone release): `Running "RnApp" {"fabric":true}`, swipe works. **iOS** iPhone 16 simulator: renders in dark mode under Fabric (pod install only) |
 | **Reanimated 4 stack (infra)** | reanimated 4.5.1 + worklets 0.10.2 in LibClient + AppTodo; `react-native-worklets/plugin` babel plugin; webpack aliases (`lib/module`). (Moti was trialled then dropped -- see RW2.) | reanimated/worklets **native compiled** in the AppTodo release build; web bundle green with all ESM aliases |
 | **Reanimated overhaul (RW2)** | New `Rn.Reanimated` seam (SharedValue, useSharedValue, useAnimated* worklet hooks, `Rn.ReanimatedView`); migrated Scrim, SegmentedControl, Carousel, Draggable, AppTodo swipe, gallery HorizontalPanArea off RN-Animated. RN-Animated primitives kept as legacy (load-bearing for the legacy style runtime). | gallery `package-web` green (Fable web + webpack, bundle emitted); AppTodo Fable native compile green (541 files); dotnet green. **Native runtime blocked by RW7 (pre-existing).** |
+| **Gallery Android build (RW1)** | Dropped 2 dead-end native modules (code-push, push-notification) from `react-native.config.js` + codepush gradle apply; all other linked modules build on RN 0.86 as-is | `./gradlew :app:assembleDebug --rerun-tasks` GREEN (329 tasks, fresh 150 MB APK). On-device launch still gated on RW7. |
 | **Audit tooling → RNW** | RNW renders real DOM text nodes (`div[dir="auto"]`) and maps `testID`→`data-testid` (not ReactXP's `data-text-as-pseudo-element` / `data-test-id`); gallery audits converted to `getByText` + `data-testid` | Verified live: `data-testid` resolves, clicking "Docs" by text navigates |
 | **Gallery `HorizontalPanArea` page** | New pure-F# Content page (rule 10) for the gesture primitive | Gallery type-checks 0 errors |
 | **Scaffold template → RN 0.86** | `Meta/LibScaffolding/templates/app`: package.json, `babel.config.js` (worklets plugin), android gradle/SDK/NDK/Kotlin, `MainApplication` 0.86 model | Templates emit an Rn-based RN-0.86 app (end-to-end `create-app` gated on Goal B, below) |
@@ -33,10 +34,11 @@ RNGH **3.0.2**, Reanimated **4.5.1** + worklets **0.10.2** + Moti **0.30.0**, Ne
 
 Ordered by value/dependency. Each item: **what / files / steps / verify / risk**.
 
-### RW1 — Gallery native build (Android + iOS) [large ThirdParty workstream]
+### RW1 — Gallery native build (Android + iOS) [Android GREEN; iOS pod install pending]
 
-The gallery's RN-0.86 config is applied and its **web build is verified**, but the **native** build
-is blocked by unmaintained third-party native modules.
+**Android `assembleDebug` is green** (session 10). The feared "~20-module multi-day workstream" turned
+out to be **2 dead-end modules** to drop; see the RESOLVED note below. Original scoping follows for
+history.
 
 - **First blocker (Android):** `assembleDebug` fails at
   `LibPushNotification/Client/node_modules/react-native-push-notification/android/build.gradle:5` --
@@ -58,24 +60,37 @@ is blocked by unmaintained third-party native modules.
 - **Risk:** high, iterative, multi-day; several modules need replacement, not just bumps. The gallery is
   web-primary, so this is lower urgency than it looks.
 
-**Progress (session 10, `assembleDebug` iterations):**
-1. **push-notification `jcenter()` — FIXED (needs persistence).** Patched
-   `react-native-push-notification/android/build.gradle`: removed the module's own `buildscript` block
-   (it pinned ancient AGP 3.2.0) and dropped `jcenter()` — the library inherits the root AGP +
-   repositories. **This edit is in `node_modules` (gitignored) and is NOT yet persisted** — wire
-   `patch-package` into `LibPushNotification/Client` (devDep + `postinstall`) and save
-   `patches/react-native-push-notification+8.1.1.patch`, or it is lost on the next `npm install`.
-2. **NEXT blocker: `react-native-code-push@9.0.1`** fails to compile —
-   `CodePushNativeModule.java: package ChoreographerCompat does not exist` / `cannot find symbol`. RN
-   0.86 removed `com.facebook.react.modules.core.ChoreographerCompat`; code-push 9.0.1 (2024) predates
-   that. Needs a newer code-push that supports RN 0.86, a patch, or **dropping code-push** (a product
-   decision — is OTA still used?).
-3. **Expect the same for the remaining ~8 native modules** (maps, vision-camera, contacts, device-info,
-   firebase/fbsdk, bg-geo, sunmi, …): each may hit a removed-API / Fabric-codegen wall requiring a
-   bump / patch / replace / drop. Several of those are **product decisions**, not mechanical bumps.
+**RESOLVED (session 10): gallery `assembleDebug` is GREEN.** The gallery links **11** native modules
+(`react-native.config.js`); only **2** were dead ends, and dropping them was the entire fix — every
+other module builds on RN 0.86 **as-is** (no bumps required): maps 1.20.1, image-picker 7.2.3,
+device-info 14.1.1, `@react-native-firebase/app`+`analytics` 21.14.0, fbsdk-next 13.4.3, svg 15.15.5,
+webview 14.0.1, netinfo 12.0.1, picker 2.11.4, async-storage 3.1.1 (+ RNGH 3, reanimated 4). Verified
+with a forced clean `./gradlew :app:assembleDebug --rerun-tasks` (329 tasks executed, `BUILD
+SUCCESSFUL`, fresh ~150 MB `app-debug.apk`).
 
-**Note:** even once `assembleDebug` is green, *launching* the gallery is currently blocked by **RW7**
+**Dropped (dead ends — no RN-0.86-compatible version):**
+- **`react-native-code-push`** — Microsoft App Center CodePush was **retired (March 2025)** and 9.0.1
+  (its last release) breaks on RN 0.86 (`ChoreographerCompat` removed). Removed from
+  `react-native.config.js` + the `codepush.gradle` apply in `android/app/build.gradle`. **OTA-update
+  replacement options** (confirmed 2026-07): **EAS Update / `expo-updates`** (Expo's supported path;
+  see [Migrate from CodePush](https://docs.expo.dev/eas-update/codepush/)), **Revopush** (drop-in — keeps
+  the `react-native-code-push` client SDK, just repoints the server), self-hosted CodePush Server
+  (Microsoft open-sourced then archived it — community-maintained), or Hot Updater.
+- **`react-native-push-notification`** — unmaintained since 2022 (latest 8.1.1; `jcenter()` + AGP
+  3.2.0). Removed from `react-native.config.js`. **Replacement if notifications are needed later:
+  Notifee** (`@notifee/react-native`) + FCM, or `@react-native-community/push-notification-ios` on iOS.
+  Dropped for now (a component gallery doesn't need runtime notifications).
+
+**Optional bumps (build already green, so not required):** maps 1.20.1 -> 1.29.0, image-picker
+7.2.3 -> 8.2.1, device-info 14.1.1 -> 15.0.2 are low-risk maintained bumps;
+`@react-native-firebase/*` 21 -> 25 is a **major** jump with its own migration guide — do it
+deliberately, not as part of this pass.
+
+**Note:** even with `assembleDebug` green, *launching* the gallery on-device is still gated on **RW7**
 (the clean-native-rebuild `GestureHandlerRootView` bug), which affects every native app here.
+
+**iOS:** gallery `pod install` was previously blocked behind these Android dead ends; with them gone it
+should be a `pod install` (like AppTodo) — not yet run.
 
 ### RW2 — Reanimated overhaul [DONE (code + web/compile verified); native runtime blocked by a separate pre-existing bug]
 

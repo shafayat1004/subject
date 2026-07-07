@@ -61,6 +61,23 @@ It blocks native runtime verification of AppTodo **and** the gallery (both wrap 
 (candidate: how Fable's `import "GestureHandlerRootView"` interops with RNGH 3's
 `export { default as GestureHandlerRootView }` under Metro). Tracked as a separate follow-up.
 
+### RW1 gallery Android build -- GREEN (the "~20-module workstream" was 2 dead-end drops)
+The gallery links **11** native modules (`react-native.config.js`), not ~20. Only **two** had no
+RN-0.86-compatible version, and dropping them was the whole fix:
+- **`react-native-code-push`** -- App Center CodePush retired (2025); 9.0.1 breaks on 0.86
+  (`ChoreographerCompat` removed). Dropped from `react-native.config.js` + the `codepush.gradle` apply.
+  OTA replacements (confirmed via web search): **EAS Update / `expo-updates`**, **Revopush** (drop-in),
+  self-hosted CodePush Server (archived, community), Hot Updater.
+- **`react-native-push-notification`** -- unmaintained since 2022 (`jcenter()`/AGP 3.2.0). Dropped;
+  **Notifee** + FCM is the replacement if needed later.
+
+Every other linked module built on RN 0.86 **as-is** (maps 1.20.1, image-picker 7.2.3, device-info
+14.1.1, firebase 21.14.0, fbsdk 13.4.3, svg/webview/netinfo/picker/async-storage, RNGH 3, reanimated 4)
+-- no bumps required. Verified with a forced clean `./gradlew :app:assembleDebug --rerun-tasks` (329
+tasks executed, `BUILD SUCCESSFUL`, fresh ~150 MB APK). On-device *launch* is still gated on RW7.
+**Lesson:** don't assume "unmaintained ThirdParty = build blocker" -- most modules are recent enough for
+0.86; triage by *actually building* and only act on the ones that fail.
+
 ---
 
 ## 2026-07-08 (session 9 -- modernization tail: cleanup, gallery page, scaffold, docs, audit tooling; R2/R4 scoped)
