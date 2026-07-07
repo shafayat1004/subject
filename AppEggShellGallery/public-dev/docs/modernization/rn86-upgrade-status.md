@@ -124,6 +124,12 @@ but has these UX/functional bugs (none block launch):
    app has no such server, so the markdown content likely isn't bundled/fetchable at runtime (and/or the
    `react-native-render-html` path renders nothing). Needs a native content-source strategy (bundle the
    `.md` as assets, or embed) + confirm the renderer.
+6. **Opening an input Picker green-flashes and jumps to the top of the page** (no options visible before
+   the flash). The green flash is the same **ErrorBoundary remount** signature as the earlier `crypto`
+   loop — opening the picker throws a JS exception, the ErrorBoundary catches it and remounts (losing
+   scroll position). Lead: reproduce with logcat open and read the thrown error at picker-open; likely the
+   `@react-native-picker/picker` modal/items path (a missing native prop, or another missing global like
+   the `crypto` case). Capture the exception first, then fix the specific cause.
 
 These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) session 10.
 

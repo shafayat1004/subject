@@ -129,6 +129,9 @@ the home screen renders, but with these bugs (documented, not yet fixed):
 5. All markdown/docs pages render blank — on native there's no docs server (web serves `public-dev/docs`),
    so the `.md` content isn't bundled/fetchable; needs a native content-source strategy + confirm the
    `react-native-render-html` renderer.
+6. Opening an input Picker green-flashes + jumps to top (no options shown) — same ErrorBoundary-remount
+   signature as the `crypto` loop; picker-open throws a JS exception. Capture it with logcat first, then
+   fix (likely the `@react-native-picker/picker` modal path / another missing global).
 Details + leads in [RN 0.86 status](./modernization/rn86-upgrade-status.md) RW1 "Known on-device defects".
 
 ---
