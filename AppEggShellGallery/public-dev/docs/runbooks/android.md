@@ -156,6 +156,29 @@ adb -s <phone-ip>:<CONNECT_PORT> shell am start -n com.eggshell.apptodo/.MainAct
 
 ---
 
+## Release build to judge performance {#release-perf-build}
+
+**Never judge performance on the dev/debug build.** Dev is slow for reasons that vanish in release: Metro **lazy bundling** (first interactions stream modules -- e.g. the theme toggle lags then smooths out), per-frame `deepFreezeAndThrowOnMutationInDev` on every native call (so JS-driven animations like `translateX.SetValue` pay a freeze each frame), unminified JS, and no Hermes bytecode precompile. A release build removes all of these.
+
+Fastest way to build + install a release variant on the connected device, signed with the debug keystore (throwaway) and only the device's ABI:
+
+```bash
+cd SuiteTodo/AppTodo
+export DOTNET_ROOT="$HOME/.dotnet"
+export ANDROID_HOME="$HOME/Library/Android/sdk"; export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export PATH="$ANDROID_HOME/platform-tools:$PATH"; export ANDROID_SERIAL=<device-serial>
+# sign the throwaway release with the debug keystore via ORG_GRADLE_PROJECT_* env vars
+export ORG_GRADLE_PROJECT_MYAPP_RELEASE_STORE_FILE=debug.keystore
+export ORG_GRADLE_PROJECT_MYAPP_RELEASE_STORE_PASSWORD=android
+export ORG_GRADLE_PROJECT_MYAPP_RELEASE_KEY_ALIAS=androiddebugkey
+export ORG_GRADLE_PROJECT_MYAPP_RELEASE_KEY_PASSWORD=android
+npx react-native run-android --mode release --active-arch-only
+```
+
+This produces a **standalone** APK (JS bundled + minified, no Metro, no live reload -- rebuild to see changes). It still embeds the `--define DEBUG` Fable output, so `FakeTodoService` and in-memory todos stay in (no backend needed). `--active-arch-only` keeps it to one ABI (smaller, avoids the `/data` full-storage install failure).
+
+---
+
 ## Android-specific gotchas {#gotchas}
 
 | Symptom | Cause | Fix |

@@ -60,32 +60,25 @@ module private SwipeGesture =
     /// Ignore micro-movements; real swipe must exceed this before we track or snap open.
     let activationThreshold = 10
 
-    let currentOrLastDatafulGestureState
-            (maybeLastGestureStateRef: IRefValue<Option<ReactXP.Components.GestureView.PanGestureState>>)
-            (current: ReactXP.Components.GestureView.PanGestureState)
-            : ReactXP.Components.GestureView.PanGestureState =
-        if current.isComplete && current.isTouch && isNullOrUndefined current.pageX then
-            match maybeLastGestureStateRef.current with
-            | Some last ->
-                if last.initialPageX = current.initialPageX && last.initialPageY = current.initialPageY then
-                    LibClient.JsInterop.extendRecord
-                        [
-                            "pageX" ==> last.pageX
-                            "pageY" ==> last.pageY
-                        ]
-                        current
-                else
-                    current
-            | None -> current
-        else
-            maybeLastGestureStateRef.current <- Some current
-            current
-
     let clampOffset rowWidth offset =
         max (-rowWidth) (min 0 offset)
 
-    let panDelta (gs: ReactXP.Components.GestureView.PanGestureState) =
-        int gs.pageX - int gs.initialPageX
+/// Briefly ignore row-control taps around a swipe so a swipe gesture never trips the
+/// edit/toggle actions underneath it. Only one row swipes at a time, so a single
+/// shared window is sufficient. This lives outside the gesture path, so it cannot
+/// interfere with the swipe itself.
+module private SwipeTapGuard =
+    let mutable private suppressUntil = 0.0
+
+    let suppressFor (ms: float) =
+        let until = Fable.Core.JS.Constructors.Date.now() + ms
+        if until > suppressUntil then suppressUntil <- until
+
+    let private isSuppressed () = Fable.Core.JS.Constructors.Date.now() < suppressUntil
+
+    /// Wrap a tap/press handler so it is ignored while a swipe is in progress or just ended.
+    let guard (f: 'a -> unit) : 'a -> unit =
+        fun x -> if not (isSuppressed ()) then f x
 
 type private Helpers =
     [<Component>]
@@ -285,7 +278,6 @@ type private Helpers =
         let panStartBaseRef = Hooks.useRef 0
         let gestureActiveRef = Hooks.useRef false
         let lastDragOffsetRef = Hooks.useRef 0
-        let lastGestureStateRef = Hooks.useRef None
 
         let stopAnimation () =
             maybeAnimationRef.current
@@ -325,7 +317,10 @@ type private Helpers =
             let fullDeleteThreshold = -(double rowWidth * SwipeGesture.fullDeleteRatio |> int)
 
             if offset <= fullDeleteThreshold then
-                onDelete ()
+                // Fling the row off the left edge before removing it, instead of
+                // deleting instantly at the drag position (which read as "stopped
+                // at the edge" on device).
+                animateTo -rowWidth (Some onDelete)
             elif offset < -openThreshold then
                 onOpenChange true
                 restOffsetRef.current <- -deleteWidth
@@ -335,42 +330,30 @@ type private Helpers =
                 restOffsetRef.current <- 0
                 animateTo 0 None
 
-        let onPanHorizontal (rawGs: ReactXP.Components.GestureView.PanGestureState) =
-            let gs = SwipeGesture.currentOrLastDatafulGestureState lastGestureStateRef rawGs
-            let delta = SwipeGesture.panDelta gs
+        // The gesture source (RX.HorizontalPanArea) reports translationX in px from the
+        // gesture start (negative = leftward); native arbitration decides horizontal-vs-scroll.
+        let onSwipeStart () =
+            gestureActiveRef.current <- true
+            panStartBaseRef.current <- (if isOpen then -deleteWidth else 0)
+            isDraggingHook.update true
+            // Suppress row-control taps while the swipe is active (refreshed on update)
+            // and briefly after it ends, so a swipe never trips edit/toggle.
+            SwipeTapGuard.suppressFor 600.0
 
-            if gs.isComplete then
-                let wasActive = gestureActiveRef.current
-                gestureActiveRef.current <- false
-                isDraggingHook.update false
+        let onSwipeUpdate (translationX: float) =
+            SwipeTapGuard.suppressFor 600.0
+            let offset =
+                SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + int translationX)
+            lastDragOffsetRef.current <- offset
+            translateXRef.current.SetValue (double offset)
 
-                if not wasActive && abs delta < SwipeGesture.activationThreshold then
-                    animateTo restOffsetRef.current None
-                else
-                    let offset =
-                        if wasActive then
-                            lastDragOffsetRef.current
-                        else
-                            SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
-
-                    settleFromOffset offset
-
-                lastGestureStateRef.current <- None
-            else
-                if delta > 0 && not isOpen then
-                    Noop
-                elif abs delta < SwipeGesture.activationThreshold && not isOpen then
-                    Noop
-                else
-                    if not gestureActiveRef.current then
-                        gestureActiveRef.current <- true
-                        panStartBaseRef.current <- (if isOpen then -deleteWidth else 0)
-
-                    isDraggingHook.update true
-                    let offset =
-                        SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + delta)
-                    lastDragOffsetRef.current <- offset
-                    translateXRef.current.SetValue (double offset)
+        let onSwipeEnd (translationX: float) =
+            gestureActiveRef.current <- false
+            isDraggingHook.update false
+            SwipeTapGuard.suppressFor 300.0
+            let offset =
+                SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + int translationX)
+            settleFromOffset offset
 
         let gradientVisible = isOpen || isDraggingHook.current
         let deleteButtonState =
@@ -430,13 +413,18 @@ type private Helpers =
                                     )
                                 |]
                             )
+                            // Animated surface OUTSIDE, gesture INSIDE: the whole gesture area
+                            // translates with the content so a swipe reveals (never covers) the
+                            // delete slot behind it, keeping tap-to-delete working.
                             RX.AnimatableView(
                                 styles = [| Styles.swipeContentAnimated (AnimatableValue.Value translateXRef.current) palette |],
                                 children = [|
-                                    RX.GestureView(
-                                        preferredPan = ReactXP.Components.GestureView.PreferredPanGesture.Horizontal,
-                                        panPixelThreshold = 10.0,
-                                        onPanHorizontal = onPanHorizontal,
+                                    RX.HorizontalPanArea(
+                                        onStart = onSwipeStart,
+                                        onUpdate = onSwipeUpdate,
+                                        onEnd = onSwipeEnd,
+                                        activeOffsetX = float SwipeGesture.activationThreshold,
+                                        failOffsetY = 12.0,
                                         children = [| rowContent |]
                                     )
                                 |]
@@ -681,7 +669,7 @@ type private Helpers =
                 elif useCompactUI then
                     LC.IconButton(
                         icon = Icon.Pencil,
-                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
+                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (SwipeTapGuard.guard (fun _ -> setEditingId (Some todo.Id)))),
                         label = todoActionLabel todo i18n.t.EditActionFormat,
                         testId = todoItemTestId todo "edit",
                         styles = [| Styles.actionIconButton palette |]
@@ -763,7 +751,7 @@ type private Helpers =
                                         [|
                                             LC.Input.Checkbox(
                                                 value = Some todo.Done,
-                                                onChange = (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
+                                                onChange = SwipeTapGuard.guard (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
                                                 validity = Valid,
                                                 accessibilityLabel = toggleCheckboxLabel todo,
                                                 testId = todoItemTestId todo "toggle"

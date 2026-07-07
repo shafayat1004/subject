@@ -125,6 +125,7 @@
     <Compile Include="ReactXP/Components/ScrollView/ScrollView.fs" />
     <Compile Include="ReactXP/Components/WebView/WebView.fs" />
     <Compile Include="ReactXP/Components/GestureView/GestureView.fs" />
+    <Compile Include="ReactXP/Components/HorizontalPanArea/HorizontalPanArea.fs" />
 
     <Compile Include="LegacyTextWrapping.fs" />
     <Compile Include="AdditionalAutoOpens.fs" />

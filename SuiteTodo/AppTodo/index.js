@@ -1,3 +1,6 @@
+// Must be the very first import: sets up the gesture-handler native module before
+// anything renders (required on Android, no-op on web).
+import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import { LogBox } from 'react-native';
 

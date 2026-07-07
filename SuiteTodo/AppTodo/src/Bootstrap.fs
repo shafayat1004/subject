@@ -43,7 +43,14 @@ let init (configRes: Result<AppTodo.Config, string>) =
             ReactXP.App.initialize (config.InitializeReactXPInDebugMode, config.InitializeReactXPInDevMode)
 
             ReactXP.UserInterface.setContextWrapper (fun rootView ->
+#if EGGSHELL_PLATFORM_IS_WEB
                 Ui.AppContext (children = [| rootView |])
+#else
+                // gesture-handler needs a root view ancestor or all Pan gestures no-op.
+                RX.GestureHandlerRootView(
+                    children = [| Ui.AppContext (children = [| rootView |]) |]
+                )
+#endif
             )
 
             #if DEBUG

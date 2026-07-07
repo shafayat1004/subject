@@ -4,6 +4,36 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-07 (session 7 -- native swipe-to-delete rebuilt on react-native-gesture-handler)
+
+Fixes session-6 field defects **1-4** (swipe janky/stops mid-drag, Y-drift leaks to edit, list scrolls during swipe, delete doesn't fling). Verified on the POCO F1 (release build).
+
+### Root cause: a JS-responder `GestureView` cannot beat a native `ScrollView` on Android
+Instrumented `GestureView`'s responder lifecycle on the device. During a swipe the log shows a rapid `grant -> TERMINATE (stolen) -> grant -> ...` ping-pong, and critically **`TERMINATE (stolen) isActive true`** -- the native Android `ScrollView` terminates the child's JS responder **even when `onResponderTerminationRequest` returns `false`**. So the custom `GestureView` (JS responder) cannot win against the page `ScrollView` on native: the ping-pong is the jank, the steal routes the finger-lift to the row's edit press, and the list keeps scrolling. Web was never affected -- there the `ScrollView` is a `div` and `touch-action` CSS already yields the pan, so **web keeps the `GestureView` path**. An earlier attempt to fix this inside `GestureView` (`onResponderTerminationRequest = not isActive`) was **reverted** -- the evidence proved Android ignores it.
+
+### Fix: native swipe via react-native-gesture-handler (RNGH)
+- New framework primitive **`RX.HorizontalPanArea`** (`LibClient/src/ReactXP/Components/HorizontalPanArea/HorizontalPanArea.fs`). Native uses RNGH `PanGestureHandler` with `activeOffsetX`/`failOffsetY`, so horizontal-vs-vertical arbitration happens in the **native** gesture system (scroll and swipe stop fighting). Web keeps the `GestureView` responder path. Unified callback API: `onStart` / `onUpdate translationX` / `onEnd translationX`.
+- **`RX.GestureHandlerRootView`** (native only) wired at the app root in `Bootstrap.fs` (`setContextWrapper`, `#if` native); `import 'react-native-gesture-handler'` is now the **first line** of `index.js` (required on Android).
+- `TodoSwipeShell` rewired onto `HorizontalPanArea`, keeping its `translateX`/settle logic. **Bug 4** fixed: `settleFromOffset` now `animateTo -rowWidth (Some onDelete)` (fling then delete) instead of deleting at the drag position.
+- **Edit-trip** mitigation: `SwipeTapGuard` (a module-level time window) suppresses the row's checkbox/edit taps during and ~300 ms after a swipe. An earlier `blockPointerEvents = isDragging` attempt was **reverted** -- toggling `pointerEvents` mid-touch cancels the live gesture and killed the swipe.
+
+### Gotchas (now distilled into troubleshooting)
+- **RNGH version vs RN 0.76.** RNGH 2.32 fails to compile against RN 0.76.5 (`Cannot access 'ViewManagerWithGeneratedInterface'`). Pinned **`react-native-gesture-handler@2.21.2`**.
+- **"Cannot define property" crash calling into RNGH (dev only).** A Fable `float[]`/`int[]` compiles to a **typed array** (`Float64Array`), whose indices are non-configurable. RN dev deep-freezes native-call arguments (`deepFreezeAndThrowOnMutationInDev`), and RNGH forwards `activeOffsetX`/`failOffsetY` straight into the native config, so freezing the typed array throws. Pass a **plain JS array** (`[<Emit("[$0, $1]")>]`). Diagnosed with a temporary error boundary logging `error.stack` -- React itself only logs the truncated message + component stack.
+- **Gesture element must sit INSIDE the animated/translating surface.** Wrapping the animated surface *inside* the gesture wrapper left the static gesture view full-width, covering the delete slot -> tap-to-delete stopped working. Correct layout: `AnimatableView(translateX) > HorizontalPanArea > rowContent`.
+- **RNGH child must be ref-forwarding.** `PanGestureHandler` attaches a `ref` + `collapsable` to its single child; a `wrapComponent` function component can't receive them, so the child is wrapped in a raw RN `View`.
+
+### Perf note
+The **dev** build feels laggy: Metro lazy bundling (first interactions stream modules, e.g. dark-mode toggle delayed then smooths out), per-frame `deepFreezeAndThrowOnMutationInDev` on the JS-driven `translateX.SetValue`, and unminified JS. A **release** build (single-ABI, debug-signed) is dramatically smoother and is the correct way to judge feel -- see [Android runbook: release perf build](./runbooks/android.md#release-perf-build). If native-thread animation is ever required, `react-native-reanimated` is the next step (not adopted now).
+
+### Field-defect status (session-6 list)
+- **1-4 fixed** (RNGH native arbitration + fling).
+- **5** (dark-mode toggle jumps on tap) and **6** (TalkBack can't focus Priority picker) **still open**.
+- **New open issue:** the native **text-selection cursor sometimes appears while swiping** over a card. Likely fix: `userSelect: none` / non-selectable row text, or suppress selection during the pan. Tracked in the accessibility backlog.
+- **Follow-up (rule 10):** `HorizontalPanArea` has no gallery page yet (native-only gesture; hard to demo on web). Add a swipeable-row gallery example when practical.
+
+---
+
 ## 2026-07-02 (session 6 -- standalone install on a physical device (POCO F1) + field findings)
 
 ### Installing a standalone build on a physical Android device
