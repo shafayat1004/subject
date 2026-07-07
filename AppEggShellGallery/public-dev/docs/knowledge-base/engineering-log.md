@@ -4,6 +4,65 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-08 (session 10 -- Reanimated overhaul: migrate framework animation off RN-Animated)
+
+Executed the "full Reanimated overhaul" (RW2). Built a new **`Rn.Reanimated`** seam and migrated
+**all real animated behaviour** in the framework + AppTodo off the RN-`Animated` seam.
+
+### What shipped
+- **New seam** `LibClient/src/Rn/Reanimated/Reanimated.fs`: `SharedValue` wrapper
+  (`SetValue`/`AnimateTiming`/`AnimateSpring`, get/set `.Value`), `useSharedValue`, in-seam worklet
+  style hooks (`useAnimatedTranslateX`/`Y`/`XY`, `useAnimatedOpacity` -- trivial bodies, no host
+  calls), `Rn.ReanimatedView` (merges normal `styles` with an `animatedStyle`), and `Reanimated.Easing`.
+- **Migrated consumers:** `Scrim` (opacity fade), `SegmentedControl` (select-slide + follow-finger
+  drag), `Carousel` (parallel two-slide), `Draggable` (two-axis gesture settle), **AppTodo**
+  `TodoSwipeShell` swipe (`Todos.fs` + `TodoTheme.swipeContentBase`), and the gallery
+  `HorizontalPanArea` demo page. The imperative pattern is uniform: `SetValue` during a gesture,
+  token-guarded `AnimateTiming` to settle (assigning a shared value cancels a running animation; a
+  monotonic token invalidates a superseded settle's JS-thread completion).
+- **The RN-Animated primitives stay as legacy.** `Rn.Animatable{View,Text,Image,TextInput}` +
+  `Rn.Styles.Animation` + the `animated*` style rules are **load-bearing for the legacy style runtime**
+  (`Rn/Styles/Legacy/Designtime.fs` -> `createAnimatedViewStyle`, used by ~28 components), so they were
+  NOT removed. They are now a documented legacy escape hatch; new code uses `Rn.Reanimated`.
+
+### Gotchas (new)
+- **Fable import arity.** Declare imported reanimated functions **with explicit parameters**
+  (`let f x y = import ...`), never as a value of function type (`let f: a -> b = import ...`) -- the
+  value form makes Fable emit `error FABLE: Change declaration of member`. dotnet type-check does NOT
+  catch this; only a real Fable compile does.
+- **Moti forces a per-app dependency; dropped it.** The first cut used `Rn.MotiView` for Scrim. On
+  **native**, Metro resolves modules from each app's `node_modules`, and `moti` lived only in
+  `LibClient/node_modules` -> runtime `Unable to resolve module moti`. Worse, the seam's module-level
+  `import "MotiView" "moti"` requires it at load even when unused, forcing **every app + the scaffold**
+  to add `moti`. Fix: **drop Moti entirely** -- Reanimated (already shipped everywhere) covers the one
+  declarative case. Lesson: the seam must only depend on packages every consumer already has
+  (reanimated + worklets), or the dep must be added to every app's `package.json` + the scaffold.
+- **Stale-cache false green (again).** `eggshell build-native` prints `Skipped compilation because all
+  generated files are up-to-date!` and skips Fable after edits. Force it: `touch` the changed `.fs` or
+  `rm -rf .build/native/fable`, and confirm `Started Fable compilation...`.
+
+### Verification
+- **Web:** `eggshell package-web` for the gallery is **green** -- Fable web + webpack, reanimated/
+  worklets aliases resolve, single bundle emitted. (Proves the seam's web path end-to-end.)
+- **Compile:** dotnet type-check green; **Fable native compile of AppTodo green** (full recompile,
+  541 files, 0 errors) for the new seam + all migrations.
+- **Native runtime: BLOCKED by a pre-existing bug (not the overhaul).** See next entry.
+
+### Discovered: clean native Fable rebuild breaks the app root (`GestureHandlerRootView`) [pre-existing]
+Running AppTodo on the iPhone 16 simulator after a **clean** `rm -rf .build/native/fable` +
+`build-native` redboxes at the app root: *"Element type is invalid ... but got:
+`<GestureHandlerRootView />`. Did you accidentally export a JSX literal instead of a component?"* --
+i.e. `react-native-gesture-handler`'s `GestureHandlerRootView` resolves to a React **element** instead
+of a component. **This reproduces on the pre-RW2 baseline commit (`4b38e50`) after the same clean
+rebuild**, so it is a pre-existing Fable-5 / RNGH-3 / Metro interop bug, unrelated to the Reanimated
+work, that a fresh Fable output triggers. It renders past root only on a *stale/incremental* `.build`.
+It blocks native runtime verification of AppTodo **and** the gallery (both wrap the app in
+`Rn.GestureHandlerRootView` via `Bootstrap` `setContextWrapper`). Needs dedicated runtime debugging
+(candidate: how Fable's `import "GestureHandlerRootView"` interops with RNGH 3's
+`export { default as GestureHandlerRootView }` under Metro). Tracked as a separate follow-up.
+
+---
+
 ## 2026-07-08 (session 9 -- modernization tail: cleanup, gallery page, scaffold, docs, audit tooling; R2/R4 scoped)
 
 Follow-on to session 8. iOS was completed for AppTodo (verified on the iPhone 16 simulator, pod

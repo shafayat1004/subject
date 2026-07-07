@@ -66,13 +66,24 @@ exists for action dispatch with built-in in-progress/error states (see
   `With/`), and `ComponentRegistration.fs` to register render+styles. This is the established, repeatable
   recipe for "manually supporting" a JS library.
 
-## Animation: current state
+## Animation
 
-Animation is still thin. What exists is the RN `Animated` API (`Animation.Timing` over `AnimatedValue`)
-with a small set of easings, plus `Animatable*` wrappers, used in a few places (e.g. `Scrim.fs` opacity
-fades, a carousel). What's missing for a modern feel: spring/physics motion, gesture-driven animation,
-layout/shared-element transitions, route transitions, scroll-linked effects, and any coordinated
-timeline/stagger system. The react-native-web migration unlocked the modern RN motion/gesture
-stack (Reanimated 4 / Moti, RNGH 3, now available on the New Architecture); a real animation story is
-the highest-visibility frontend win. See
+The default animation API is the **`Rn.Reanimated`** seam (`LibClient/src/Rn/Reanimated/Reanimated.fs`),
+on **Reanimated 4** (UI-thread animation under the New Architecture). Pattern: create a shared value
+(`Reanimated.useSharedValue`), read it into a style with an in-seam worklet hook
+(`Reanimated.useAnimatedTranslateX`/`Y`/`XY`/`useAnimatedOpacity`), and render `Rn.ReanimatedView` with
+that `animatedStyle`. Drive the value directly (`SetValue`) during a gesture and with `AnimateTiming`
+(optional JS-thread `onComplete`) / `AnimateSpring` to settle; assigning the value cancels a running
+animation, and a monotonic token guards a superseded settle's completion. **Worklets are authored only
+inside the seam** and are trivial (read a shared value into a style, no host calls) -- a `runOnJS` /
+host-function call inside a Fable-emitted worklet aborts libworklets. The seam depends only on
+`react-native-reanimated` + `react-native-worklets` (shipped by every app + the scaffold); **do not add
+a per-app animation dependency to the seam** (Moti was tried and dropped for exactly this reason -- see
+the [RN 0.86 status](./modernization/rn86-upgrade-status.md) RW2). Consumers: `Scrim`,
+`SegmentedControl`, `Carousel`, `Draggable`, AppTodo's swipe, and the gallery `HorizontalPanArea` page.
+
+The legacy RN-`Animated` seam (`Rn.Animatable{View,Text,Image,TextInput}`, `Rn.Styles.Animation`,
+`animated*` style rules) remains as an **escape hatch** (it is load-bearing for the legacy style
+runtime), but new code uses `Rn.Reanimated`. Still missing for a fuller motion story: layout /
+shared-element transitions, route transitions, scroll-linked effects, coordinated timeline/stagger. See
 [ReactXP → RNW](./modernization/reactxp-to-rnw.md) (note the Fable worklet caveat).
