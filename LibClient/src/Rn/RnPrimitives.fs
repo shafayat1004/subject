@@ -390,7 +390,13 @@ module UserInterface =
 #else
         let wrappedElement = contextWrapper element
         let rootComponent (_props: obj) : Fable.React.ReactElement = wrappedElement
-        RnPrimitives.AppRegistryModule?registerComponent("RnApp", fun () -> rootComponent) |> ignore
+        // AppRegistry expects a component *provider*: `() -> Component`. Returning `rootComponent`
+        // (itself a function) makes Fable uncurry `fun () -> rootComponent` into a single
+        // `(unit, props) => wrappedElement`, so RN's `provider()` yields the *element* instead of the
+        // component -> "Element type is invalid ... got <...>". Boxing to `obj` makes the provider
+        // `unit -> obj`, which Fable cannot uncurry, so `provider()` correctly returns the component.
+        let componentProvider : unit -> obj = fun () -> box rootComponent
+        RnPrimitives.AppRegistryModule?registerComponent("RnApp", componentProvider) |> ignore
 #endif
 
 module Linking =

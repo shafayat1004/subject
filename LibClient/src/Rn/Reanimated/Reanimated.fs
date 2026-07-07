@@ -9,14 +9,14 @@ module Rn.Components.Reanimated
 // already shipped by every app and the scaffold) — no extra animation dependency.
 //
 // `AnimateTiming`'s optional `onComplete` fires on the JS thread via a matching timer, because a
-// worklet completion callback cannot safely call back into JS (`runOnJS` inside a Fable-emitted
-// worklet aborts libworklets).
+// worklet completion callback cannot safely call back into JS.
 //
-// WORKLET RULE (hard): the only worklets in the framework live in this file, and their bodies do
-// nothing but read a shared value into a plain style object. NO host-function calls (`runOnJS`,
-// logging, JS callbacks) inside a worklet — those abort libworklets (SIGABRT at
-// jsi::Function::getHostFunction). `useAnimatedStyle` auto-workletizes its argument (Metro's
-// react-native-worklets/plugin on native; a plain JS-thread closure on web). Proven in the spike.
+// NO WORKLETS ARE AUTHORED IN F#. Fable-emitted closures are NOT recognised by
+// react-native-worklets/plugin, so a closure passed to `useAnimatedStyle` runs as a JS "remote
+// function" and throws on the UI runtime ("Tried to synchronously call a Remote Function"). Instead
+// the `useAnimated*` helpers embed the shared value *object* directly in a plain style object and
+// Reanimated's animated View drives that prop on the UI thread automatically ("inline shared
+// values") — worklet-free, and identical on web and native.
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -36,7 +36,6 @@ module Reanimated =
     // Fable emits them at the right arity — the value form triggers "Change declaration of member".
     let private reanimatedDefault: obj = importDefault "react-native-reanimated"
     let private rawUseSharedValue (_initial: float) : obj = import "useSharedValue" "react-native-reanimated"
-    let private rawUseAnimatedStyle (_worklet: unit -> obj) : obj = import "useAnimatedStyle" "react-native-reanimated"
     let private rawWithTiming (_toValue: float) (_config: obj) : obj = import "withTiming" "react-native-reanimated"
     let private rawWithSpring (_toValue: float) (_config: obj) : obj = import "withSpring" "react-native-reanimated"
 
@@ -93,39 +92,36 @@ module Reanimated =
     let useSharedValue (initial: float): SharedValue =
         SharedValue (rawUseSharedValue initial)
 
-    // --- Animated style hooks (the ONLY worklets in the framework) --------------------
-    // Each returns an animated style object to hand to `Rn.ReanimatedView animatedStyle=`. The
-    // closures below are the worklets; they only read `raw.value` into a style — no host calls.
+    // --- Animated style helpers (Reanimated "inline shared values", NO worklets) ------
+    // Each returns a plain style object with the shared value *object itself* embedded (not its
+    // `.value`). Reanimated's animated View detects a shared value inside its `style` and drives that
+    // prop on the UI thread automatically — no `useAnimatedStyle` worklet. This is deliberate: a
+    // Fable-emitted closure passed to `useAnimatedStyle` is NOT recognised by react-native-worklets/
+    // plugin, so it runs as a JS "remote function" and throws on the UI runtime ("Tried to
+    // synchronously call a Remote Function"). Inline shared values sidestep worklets entirely, so the
+    // seam needs no worklet authoring and works the same on web and native. These are plain functions
+    // (not hooks); the "useAnimated" prefix is kept for call-site familiarity/stability.
 
-    /// Animated `transform: [{ translateX }]` bound to `sv`.
+    /// `transform: [{ translateX }]` driven by `sv`.
     let useAnimatedTranslateX (sv: SharedValue): obj =
-        let raw = sv.Raw
-        rawUseAnimatedStyle (fun () ->
-            createObj [ "transform" ==> [| createObj [ "translateX" ==> raw?value ] |] ])
+        createObj [ "transform" ==> [| createObj [ "translateX" ==> sv.Raw ] |] ]
 
-    /// Animated `transform: [{ translateY }]` bound to `sv`.
+    /// `transform: [{ translateY }]` driven by `sv`.
     let useAnimatedTranslateY (sv: SharedValue): obj =
-        let raw = sv.Raw
-        rawUseAnimatedStyle (fun () ->
-            createObj [ "transform" ==> [| createObj [ "translateY" ==> raw?value ] |] ])
+        createObj [ "transform" ==> [| createObj [ "translateY" ==> sv.Raw ] |] ]
 
-    /// Animated `opacity` bound to `sv`.
+    /// `opacity` driven by `sv`.
     let useAnimatedOpacity (sv: SharedValue): obj =
-        let raw = sv.Raw
-        rawUseAnimatedStyle (fun () ->
-            createObj [ "opacity" ==> raw?value ])
+        createObj [ "opacity" ==> sv.Raw ]
 
-    /// Animated 2-axis `transform: [{ translateX }, { translateY }]` bound to two shared values.
+    /// 2-axis `transform: [{ translateX }, { translateY }]` driven by two shared values.
     let useAnimatedTranslateXY (svX: SharedValue) (svY: SharedValue): obj =
-        let rawX = svX.Raw
-        let rawY = svY.Raw
-        rawUseAnimatedStyle (fun () ->
-            createObj [
-                "transform" ==> [|
-                    createObj [ "translateX" ==> rawX?value ]
-                    createObj [ "translateY" ==> rawY?value ]
-                |]
-            ])
+        createObj [
+            "transform" ==> [|
+                createObj [ "translateX" ==> svX.Raw ]
+                createObj [ "translateY" ==> svY.Raw ]
+            |]
+        ]
 
 // --- Components -----------------------------------------------------------------------
 
