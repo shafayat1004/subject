@@ -117,6 +117,20 @@ never bundles, and dev-mode has different globals):
 masks all bundler-resolution + missing-polyfill issues. Verify natively with a **release** build early.
 RW7's fix (above) was the prerequisite that let any of this render at all.
 
+**RW8 — gallery on-device defects (observed on the POCO F1 release build, to fix):** the app runs and
+the home screen renders, but with these bugs (documented, not yet fixed):
+1. Header underlaps the phone status bar — needs a top safe-area inset on the AppShell top bar
+   (`react-native-safe-area-context`); a framework `AppShell` fix.
+2. Sidebar toggle chevron (`>`) not vertically centered.
+3. Scrolling the sidebar fires accidental taps that open unintended blades — needs a scroll/tap guard on
+   sidebar items.
+4. `HorizontalPanArea` "Drag me" slider doesn't drag on device — investigate the RNGH-3 imperative
+   `PanGestureHandler` path + inline-shared-value update under New Arch (framework gesture primitive).
+5. All markdown/docs pages render blank — on native there's no docs server (web serves `public-dev/docs`),
+   so the `.md` content isn't bundled/fetchable; needs a native content-source strategy + confirm the
+   `react-native-render-html` renderer.
+Details + leads in [RN 0.86 status](./modernization/rn86-upgrade-status.md) RW1 "Known on-device defects".
+
 ---
 
 ## 2026-07-08 (session 9 -- modernization tail: cleanup, gallery page, scaffold, docs, audit tooling; R2/R4 scoped)

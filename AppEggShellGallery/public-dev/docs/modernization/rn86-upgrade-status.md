@@ -101,6 +101,32 @@ tech-stack list), no crash. See the [Engineering Log](./knowledge-base/engineeri
 **iOS:** gallery `pod install` was previously blocked behind the Android dead ends; with them gone it
 should be a `pod install` (like AppTodo) — not yet run.
 
+**Known on-device defects (gallery release on POCO F1, observed 2026-07-08 — to fix):** the app runs
+but has these UX/functional bugs (none block launch):
+
+1. **Header sits behind the phone status bar.** The purple AppShell top bar isn't inset for the status
+   bar (content underlaps the clock/battery). Lead: apply a top **safe-area inset** to the AppShell
+   header on native (wire `react-native-safe-area-context` `SafeAreaView`/`useSafeAreaInsets`;
+   `gradle.properties` has `edgeToEdgeEnabled=false`, but the header still needs the top inset). Likely
+   a **framework** `AppShell` fix (also benefits every app).
+2. **Sidebar toggle (`>`) not vertically centered.** The open/collapse chevron button is misaligned
+   vertically. Lead: alignment in the AppShell sidebar toggle component.
+3. **Sidebar scroll triggers accidental blade opens.** Scrolling the sidebar to reach an entry fires a
+   tap and opens an unintended blade — the tap responder doesn't distinguish scroll from tap. Lead: a
+   scroll/tap guard (cancel tap on scroll movement) on the sidebar items, cf. the swipe-tap-guard pattern.
+4. **`HorizontalPanArea` "Drag me" slider not draggable on device.** The follow-the-finger drag doesn't
+   move on native (works conceptually on web). Lead: verify the RNGH-3 imperative `PanGestureHandler`
+   path in `Rn.HorizontalPanArea` under the New Architecture, and that the `Rn.ReanimatedView` inline
+   shared value updates from the gesture's `onUpdate` on the UI thread. **Functional regression to
+   investigate** (framework gesture primitive).
+5. **All markdown/docs pages are blank (white space, no text).** The docs pages render empty on native.
+   Lead: on web the docs are Markdown served from `public-dev/docs/` by the dev/prod server; a **native**
+   app has no such server, so the markdown content likely isn't bundled/fetchable at runtime (and/or the
+   `react-native-render-html` path renders nothing). Needs a native content-source strategy (bundle the
+   `.md` as assets, or embed) + confirm the renderer.
+
+These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) session 10.
+
 ### RW2 — Reanimated overhaul [DONE (code + web/compile verified); native runtime blocked by a separate pre-existing bug]
 
 **Done (session 10).** Built the `Rn.Reanimated` seam (`LibClient/src/Rn/Reanimated/Reanimated.fs`:
