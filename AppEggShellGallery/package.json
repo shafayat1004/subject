@@ -36,6 +36,7 @@
     "react-native-gesture-handler": "3.0.2",
     "react-native-get-random-values": "^1.11.0",
     "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "5.8.0",
     "react-native-worklets": "0.10.2",
     "react-templates-fable": "file:../Meta/AppRenderDslCompiler",
     "showdown-highlight": "^3.1.0"

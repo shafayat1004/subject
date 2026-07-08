@@ -115,6 +115,17 @@ module private Styles =
             paddingRight 10
         }
 
+    // The handheld drawer is anchored at top:0, so without this its first item underlaps the status
+    // bar. Pad its top by the device inset and fill that strip with the drawer's white background so
+    // the content starts below the status bar. Zero on web (SafeArea.useInsets returns 0 there).
+    let sidebarTopInset =
+        ViewStyles.Memoize (fun (insetTop: int) ->
+            makeViewStyles {
+                paddingTop      insetTop
+                backgroundColor Color.White
+            }
+        )
+
     let scrim =
         makeViewStyles {
             Position.Absolute
@@ -190,6 +201,9 @@ type LibClient.Components.Constructors.LC.AppShell with
                 | []     -> [||]
                 | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
+
+        // Device safe-area insets (status bar / notch); zero on web. Used to inset the handheld drawer top.
+        let insets = SafeArea.useInsets ()
 
         let isSidebarScrimVisibleHook = Hooks.useState false
         let sidebarPopupConnectorHook = Hooks.useStateLazy (fun () -> LibClient.Components.Popup.Connector())
@@ -317,7 +331,11 @@ type LibClient.Components.Constructors.LC.AppShell with
                                         elements {
                                             Rn.View(
                                                 ?onLayout = onLayoutOption,
-                                                styles = [| Styles.sidebarWrapper |],
+                                                styles =
+                                                    [|
+                                                        Styles.sidebarWrapper
+                                                        if insets.Top > 0 then Styles.sidebarTopInset insets.Top
+                                                    |],
                                                 children = [| sidebar |]
                                             )
                                         }
@@ -326,8 +344,10 @@ type LibClient.Components.Constructors.LC.AppShell with
                 )
 
         let renderShell (sidebarArea: ReactElement) =
+            // The top safe-area inset is applied by the header itself (LC.Nav.Top.Base) so the
+            // coloured bar fills the status-bar strip; the shell root must NOT inset (that would
+            // double-inset / leave a blank strip). See Rn.SafeArea + Nav/Top/Base.
             Rn.View(
-                useSafeInsets = true,
                 styles = [| Styles.safeInsetsView; yield! legacySafeInsetsViewStyles |],
                 children =
                     elements {

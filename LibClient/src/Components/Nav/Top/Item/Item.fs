@@ -246,9 +246,16 @@ module Nav_Top_Item =
                 }
         )
 
-    let private renderIcon (sizes: ScreenSizes) (colors: AppearanceColors) (theme: Theme) (icon: LibClient.Icons.IconConstructor) =
+    let private renderIcon (sizes: ScreenSizes) (colors: AppearanceColors) (theme: Theme) (screenSize: ScreenSize) (icon: LibClient.Icons.IconConstructor) =
+        // IconVerticalAdjust nudges the icon up to sit against the desktop label / tab-underline
+        // geometry. Handheld nav buttons (back, hamburger) are icon-only with no underline, so the
+        // nudge would lift them above the bar's centre -- apply it on desktop only.
+        let verticalAdjust =
+            match screenSize with
+            | ScreenSize.Desktop  -> theme.IconVerticalAdjust
+            | ScreenSize.Handheld -> 0
         Rn.View(
-            styles = [| Styles.iconAdjust theme.IconVerticalAdjust |],
+            styles = [| Styles.iconAdjust verticalAdjust |],
             children =
                 elements {
                     LC.Icon(icon = icon, styles = [| Styles.iconText sizes.IconFontSize colors.Icon.ToCssString |])
@@ -294,7 +301,7 @@ module Nav_Top_Item =
                 styles = [| Styles.contentRowWithBadge |],
                 children =
                     elements {
-                        renderIcon sizes colors theme icon
+                        renderIcon sizes colors theme screenSize icon
                         renderBadge badge sizes screenSize colors
                         renderLabelBlock sizes colors label true
                     }
@@ -304,7 +311,7 @@ module Nav_Top_Item =
                 styles = [| Styles.contentRowIconLabel |],
                 children =
                     elements {
-                        renderIcon sizes colors theme icon
+                        renderIcon sizes colors theme screenSize icon
                         renderLabelBlock sizes colors label false
                     }
             )
@@ -313,7 +320,7 @@ module Nav_Top_Item =
                 styles = [| Styles.contentRowWithBadge |],
                 children =
                     elements {
-                        renderIcon sizes colors theme icon
+                        renderIcon sizes colors theme screenSize icon
                         renderBadge badge sizes screenSize colors
                     }
             )
@@ -339,7 +346,7 @@ module Nav_Top_Item =
                 styles = [| Styles.contentRow |],
                 children =
                     elements {
-                        renderIcon sizes colors theme icon
+                        renderIcon sizes colors theme screenSize icon
                     }
             )
         | _ ->

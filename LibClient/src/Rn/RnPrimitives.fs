@@ -47,6 +47,13 @@ module RnPrimitives =
     let Picker: obj = import "Picker" "@react-native-picker/picker"
     let FlatList: obj = import "FlatList" "react-native"
 
+#if !EGGSHELL_PLATFORM_IS_WEB
+    // Provider for react-native-safe-area-context; mounted once at the app root in setMainView so
+    // `Rn.SafeArea.useInsets` (and any SafeAreaView) resolves real device insets. Web has no
+    // hardware insets, so the module is never imported there.
+    let SafeAreaProviderModule: obj = import "SafeAreaProvider" "react-native-safe-area-context"
+#endif
+
     // --- Styles -------------------------------------------------------------------
     // Rn's web Styles.createViewStyle expanded `flex: N` into explicit
     // flexGrow/flexShrink without setting flexBasis, so the element sized to
@@ -388,7 +395,15 @@ module UserInterface =
             mainRoot <- Some root
             root?render (wrappedElement)
 #else
-        let wrappedElement = contextWrapper element
+        // Mount SafeAreaProvider at the very root so descendants (framework AppShell/Nav headers via
+        // Rn.SafeArea.useInsets) get real device insets. Wraps the app-provided contextWrapper output.
+        let safeAreaWrapped =
+            Fable.React.ReactBindings.React.createElement(
+                RnPrimitives.SafeAreaProviderModule,
+                createEmpty,
+                [| contextWrapper element |]
+            )
+        let wrappedElement = safeAreaWrapped
         let rootComponent (_props: obj) : Fable.React.ReactElement = wrappedElement
         // AppRegistry expects a component *provider*: `() -> Component`. Returning `rootComponent`
         // (itself a function) makes Fable uncurry `fun () -> rootComponent` into a single

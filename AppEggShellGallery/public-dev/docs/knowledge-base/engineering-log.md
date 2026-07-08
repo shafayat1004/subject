@@ -4,6 +4,66 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-08 (session 11 -- RW8 gallery on-device defects 1-3 fixed on POCO F1)
+
+Fixed the first three RW8 defects on the physical POCO F1, iterating with a **debug** dev loop
+(`eggshell dev-native` + Metro + `run-android`) instead of the release APK. All three are framework fixes
+(benefit every app). Full status in [rn86-upgrade-status.md](./modernization/rn86-upgrade-status.md) (RW8).
+
+### What shipped
+- **Defect 1 — header behind status bar → new `Rn.SafeArea` seam.** The shell already asked for
+  `Rn.View(useSafeInsets = true)`, but the RN/RNW View seam **silently ignored** `useSafeInsets`, and
+  `react-native-safe-area-context` was never installed / no `SafeAreaProvider` mounted. Added
+  `LibClient/src/Rn/Components/SafeArea/SafeArea.fs` (`SafeArea.useInsets` hook → native
+  `useSafeAreaInsets`, zeros on web via `#if EGGSHELL_PLATFORM_IS_WEB`), mounted `SafeAreaProvider` at the
+  native root in `RnPrimitives.setMainView` (guarded import), and made `LC.Nav.Top.Base` apply the top
+  inset **on the header** (grow bar height by `insetTop` + `paddingTop insetTop`) so the coloured bar fills
+  the status-bar strip with content padded below. Added `react-native-safe-area-context` 5.8.0 to gallery
+  + AppTodo + scaffold template; dropped the ignored `useSafeInsets` arg from `AppShell.Content`.
+- **Defect 2 — handheld nav icons not centred.** `Nav.Top.Item.renderIcon` applied
+  `theme.IconVerticalAdjust` (=10px `bottom` nudge) on both screen sizes; it exists for the desktop
+  label/tab-underline geometry. Now applied **desktop-only** (handheld → 0), centring the back/hamburger.
+- **Defect 3 — sidebar scroll fired item taps.** Root-caused with on-device `console.log` probes in
+  `LC.Pressable`: the caller's `OnPress` ran from RN's **`onPressOut`**, which RN fires even when an
+  ancestor ScrollView cancels the press on a scroll, and RN reports `onPressOut` coords at the
+  **press-DOWN** point (pressIn ≈ pressOut ⇒ movement guard sees ~0px ⇒ "tap"). RN's real **`onPress`**
+  (correctly cancelled by a scroll) was a no-op. Fix: native drives the press from `onPress`; web keeps the
+  `onPressOut` + movement-guard path; shared effects extracted to `firePress`. Verified: the flick that
+  used to navigate now fires 0 accidental navs.
+
+### Build-unblock
+- **Stale `react-native-push-notification` receiver crashed the debug build at boot.**
+  `AndroidManifest.xml` still declared `com.dieam.reactnativepushnotification.*` receivers/service (module
+  dropped in RW1) → `ClassNotFoundException` `FATAL EXCEPTION: main` on a boot/package-replaced broadcast.
+  Removed those manifest entries. Release didn't hit it (boot receiver fires only on specific broadcasts).
+
+### Gotchas / lessons
+- **`useSafeInsets` was a documented no-op.** A prop a seam accepts and `ignore`s reads as "supported" at
+  the call site. When wiring device insets, verify the seam actually consumes the prop — grep the seam,
+  don't trust the signature.
+- **Native `onPressOut` is NOT a reliable tap signal.** RN calls it on scroll-cancelled presses and reports
+  its coordinates at press-down, so a pressIn/pressOut movement guard cannot detect a scroll. Use RN's
+  `onPress` for "a tap happened" on native; it is cancelled by an ancestor ScrollView.
+- **Adding a native module needs the dep in every consumer.** A framework `import` of
+  `react-native-safe-area-context` requires it in each app's `package.json` (gallery + AppTodo) **and** the
+  scaffold template, or that app's native build breaks (cf. the Moti lesson, session 10).
+- **Synthetic `adb input` taps/swipes are unreliable for gesture bugs.** They mis-fire the drawer pan and
+  can't reproduce the intermittent scroll-tap cleanly. For gesture disambiguation, add JS `console.log`
+  probes, let a human reproduce, and read logcat — far faster than guessing at swipe params.
+
+### Also fixed
+- **Open sidebar drawer top underlapped the status bar** (handheld drawer anchored at `top:0`).
+  `AppShell.Content` `renderHandheldSidebar` now pads the drawer wrapper by `SafeArea.useInsets().Top`
+  (white fill) so the first item clears the status bar. Verified on POCO F1.
+
+### Follow-ups (open)
+- Horizontal **drawer-close pan is over-sensitive** (near-vertical scroll with slight diagonal starts
+  closing the drawer) — separate `Draggable`/`Scrim` `onPanHorizontal` gesture. Reported "better" after the
+  defect-3 press fix, not explicitly addressed.
+- **Markdown/docs pages still blank on native** (RW8 defect 5) — no native docs content source.
+
+---
+
 ## 2026-07-08 (session 10 -- Reanimated overhaul: migrate framework animation off RN-Animated)
 
 Executed the "full Reanimated overhaul" (RW2). Built a new **`Rn.Reanimated`** seam and migrated

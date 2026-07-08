@@ -38,40 +38,12 @@
                 android:name="com.google.android.geo.API_KEY"
                 android:value="HIDDEN" />
 
-        <!-- Change the value to true to enable pop-up for in foreground on receiving remote notifications (for prevent duplicating while showing local notifications set this to false) -->
-        <meta-data
-                android:name="com.dieam.reactnativepushnotification.notification_foreground"
-                android:value="true" />
-        <!-- Change the resource name to your App's accent color - or any other color you want -->
-        <meta-data
-                android:name="com.dieam.reactnativepushnotification.notification_color"
-                android:resource="@color/lightGreen" />
-
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
         <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="ExampleNotifications" />
-
-        <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationActions" />
-        <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationPublisher" />
-        <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationBootEventReceiver" android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-
-        <!--        <service android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationRegistrationService" />-->
-        <service
-                android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService"
-                android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
 
         <!-- You will also only need to add this uses-library tag -->
         <uses-library

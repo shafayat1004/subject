@@ -104,16 +104,41 @@ should be a `pod install` (like AppTodo) — not yet run.
 **Known on-device defects (gallery release on POCO F1, observed 2026-07-08 — to fix):** the app runs
 but has these UX/functional bugs (none block launch):
 
-1. **Header sits behind the phone status bar.** The purple AppShell top bar isn't inset for the status
-   bar (content underlaps the clock/battery). Lead: apply a top **safe-area inset** to the AppShell
-   header on native (wire `react-native-safe-area-context` `SafeAreaView`/`useSafeAreaInsets`;
-   `gradle.properties` has `edgeToEdgeEnabled=false`, but the header still needs the top inset). Likely
-   a **framework** `AppShell` fix (also benefits every app).
-2. **Sidebar toggle (`>`) not vertically centered.** The open/collapse chevron button is misaligned
-   vertically. Lead: alignment in the AppShell sidebar toggle component.
-3. **Sidebar scroll triggers accidental blade opens.** Scrolling the sidebar to reach an entry fires a
-   tap and opens an unintended blade — the tap responder doesn't distinguish scroll from tap. Lead: a
-   scroll/tap guard (cancel tap on scroll movement) on the sidebar items, cf. the swipe-tap-guard pattern.
+1. **Header sits behind the phone status bar.** [FIXED, session 11 — verified on POCO F1] The purple
+   AppShell top bar wasn't inset for the status bar (content underlapped the clock/battery). Root cause:
+   the shell called `Rn.View(useSafeInsets = true)` but the RN/RNW View seam **ignored** `useSafeInsets`
+   (a documented no-op), and `react-native-safe-area-context` wasn't even installed / no `SafeAreaProvider`
+   was mounted. Fix (framework, benefits every app): added the `Rn.SafeArea` seam
+   (`LibClient/src/Rn/Components/SafeArea/SafeArea.fs`, `useInsets` hook → native
+   `useSafeAreaInsets`, zeros on web), mounted `SafeAreaProvider` at the native root
+   (`RnPrimitives.setMainView`), and made `LC.Nav.Top.Base` apply the top inset **on the header itself**
+   (grow the bar by `insetTop` + `paddingTop insetTop`) so the coloured bar fills the status-bar strip and
+   its content is padded below — the chosen "coloured header into status bar" look, no white gap. Added
+   `react-native-safe-area-context` 5.8.0 to the gallery, AppTodo, and the scaffold template. Removed the
+   now-misleading `useSafeInsets = true` from `AppShell.Content`.
+2. **Sidebar toggle (`>`) not vertically centered.** [FIXED, session 11 — verified on POCO F1] On handheld
+   the back `<` and hamburger `≡` sat ~10px above the centred heading. Root cause: `Nav.Top.Item`'s
+   `renderIcon` applied `theme.IconVerticalAdjust` (=10, a `bottom` nudge) on **both** screen sizes; that
+   nudge exists to centre desktop icons against their label / tab-underline, but handheld icon-only nav
+   buttons have no underline, so it lifted them off centre. Fix: apply `IconVerticalAdjust` on **desktop
+   only** (handheld → 0).
+3. **Sidebar scroll triggers accidental blade opens.** [FIXED, session 11 — root-caused with on-device
+   `console.log` probes; verified: the exact flick that used to navigate now fires 0 accidental navs, user
+   confirms "much much better"] Scrolling a list fired the item under the finger. **Root cause (probes):**
+   `LC.Pressable` invoked the caller's `OnPress` from RN's `onPressOut`, which RN calls **even when an
+   ancestor ScrollView cancels the press on a scroll**, and RN reports the `onPressOut` coordinates at the
+   **press-DOWN** point (pressIn ≈ pressOut, ~0px), so the old pressIn/pressOut movement guard could never
+   tell a scroll from a tap. RN's real `onPress` (which is cancelled by a scroll) was wired to a no-op. Fix:
+   on **native**, drive the press from RN's `onPress` (scroll-safe); `onPressOut` only resets the pressed
+   visual state. **Web keeps** the historical `onPressOut` + movement-guard path. Shared side-effects
+   (keyboard dismiss, action log, hover settle, `OnPress`) extracted into one `firePress`.
+   **Related fix (session 11):** the **open sidebar drawer's top** also underlapped the status bar (the
+   handheld drawer is anchored at `top:0`). Fixed in `AppShell.Content` `renderHandheldSidebar` — the drawer
+   wrapper now pads its top by `SafeArea.useInsets().Top` with a white fill, so the first item starts below
+   the status bar (verified on POCO F1).
+   **Follow-up (still open):** the **horizontal drawer-close pan is over-sensitive** — a near-vertical scroll
+   with a slight diagonal starts sliding the drawer closed. Separate gesture (`Draggable`/`Scrim`
+   `onPanHorizontal`). Reported "better" after the defect-3 press fix, but not explicitly addressed.
 4. **`HorizontalPanArea` "Drag me" slider not draggable on device.** The follow-the-finger drag doesn't
    move on native (works conceptually on web). Lead: verify the RNGH-3 imperative `PanGestureHandler`
    path in `Rn.HorizontalPanArea` under the New Architecture, and that the `Rn.ReanimatedView` inline
@@ -131,7 +156,15 @@ but has these UX/functional bugs (none block launch):
    `@react-native-picker/picker` modal/items path (a missing native prop, or another missing global like
    the `crypto` case). Capture the exception first, then fix the specific cause.
 
-These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) session 10.
+These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–11.
+
+**Build-unblock (session 11): stale push-notification receiver crashed the debug build at boot.**
+Bringing the gallery up as a **debug** build (Metro dev loop, needed to iterate the RW8 fixes) crashed on
+launch with `ClassNotFoundException: com.dieam.reactnativepushnotification.modules.RNPushNotificationBootEventReceiver`
+(`FATAL EXCEPTION: main`, receiver instantiated on a boot/package-replaced broadcast). `AndroidManifest.xml`
+still declared the receivers/service/meta-data of `react-native-push-notification`, which was **dropped** for
+the RN 0.86 upgrade (see RW1) — the classes no longer exist. Fix: removed all `com.dieam.reactnativepushnotification.*`
+manifest entries. (The release build didn't hit it because the boot receiver only fires on specific broadcasts.)
 
 ### RW2 — Reanimated overhaul [DONE (code + web/compile verified); native runtime blocked by a separate pre-existing bug]
 

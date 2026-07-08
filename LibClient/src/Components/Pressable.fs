@@ -69,14 +69,46 @@ type private PressableComponent(initialProps: Props) =
         ]
         |> Map.ofList
 
-    let onPress (_e: PointerEvent) =
-        ()
-
     let onPressIn
             (maybePointerState: LC.Pointer.State.PointerState option)
             (e: PointerEvent) =
         maybePressInCoords <- e.CrossPlatformPageXY
         maybePointerState |> Option.iter (fun ps -> ps.SetIsDepressed true e)
+
+    // The actual press effect: dismiss the keyboard, settle the hover/depressed state, log the
+    // interaction, and invoke the caller's OnPress. Shared by the native and web entry points below.
+    let firePress (source: ReactElement) (props: Props) (e: PointerEvent) =
+        Rn.UserInterface.dismissKeyboard()
+        if (e.cancelable && Rn.Runtime.isWeb()) || Rn.Runtime.isNative() then
+            e.stopPropagation()
+        props.MaybePointerState
+        |> Option.iter (fun pointerState ->
+            pointerState.SetIsHovered false e
+            maybeTimeoutReference <-
+                Some (Fable.Core.JS.setTimeout (fun () -> pointerState.SetIsDepressed false e) 1500))
+        let action = (ReactEvent.Pointer.OfBrowserEvent e).WithSource source |> ReactEvent.Action.Make
+        UiActionLog.record {
+            Kind = UiActionLog.UiActionKind.Press
+            TestId = props.A11y.TestId
+            Label = props.A11y.Label
+            ComponentName = Some props.ComponentName
+            Detail = Map.empty
+        }
+        props.OnPress action
+
+    // Native press path. RN's `onPress` fires ONLY for a completed tap -- when an ancestor
+    // ScrollView claims the touch (a scroll), RN cancels the press and never calls `onPress`. So we
+    // drive the press from here on native. The old path fired from `onPressOut`, which RN calls even
+    // on a scroll-cancelled press, and RN reports its coordinates at the press-DOWN point, so the
+    // pressIn/pressOut movement guard saw ~0px and could not tell a scroll from a tap -- scrolling a
+    // list fired the item under the finger (RW8 defect 3). `onPressOut` still resets the visual
+    // pressed state on native, but no longer fires the press.
+    let onPress
+            (source: ReactElement)
+            (props: Props)
+            (e: PointerEvent) =
+        if not props.Disabled && Rn.Runtime.isNative() then
+            firePress source props e
 
     let onPressOut
             (source: ReactElement)
@@ -84,35 +116,24 @@ type private PressableComponent(initialProps: Props) =
             (e: PointerEvent) =
         if props.Disabled then ()
         else
-            let isDrag =
-                match (maybePressInCoords, e.CrossPlatformPageXY) with
-                | Some (px, py), Some (x, y) ->
-                    let dx = x - px
-                    let dy = y - py
-                    dx * dx + dy * dy |> sqrt > 5.
-                | _ -> false
-
-            maybePressInCoords <- None
             props.MaybePointerState |> Option.iter (fun ps -> ps.SetIsDepressed false e)
 
-            if not isDrag then
-                Rn.UserInterface.dismissKeyboard()
-                if (e.cancelable && Rn.Runtime.isWeb()) || Rn.Runtime.isNative() then
-                    e.stopPropagation()
-                props.MaybePointerState
-                |> Option.iter (fun pointerState ->
-                    pointerState.SetIsHovered false e
-                    maybeTimeoutReference <-
-                        Some (Fable.Core.JS.setTimeout (fun () -> pointerState.SetIsDepressed false e) 1500))
-                let action = (ReactEvent.Pointer.OfBrowserEvent e).WithSource source |> ReactEvent.Action.Make
-                UiActionLog.record {
-                    Kind = UiActionLog.UiActionKind.Press
-                    TestId = props.A11y.TestId
-                    Label = props.A11y.Label
-                    ComponentName = Some props.ComponentName
-                    Detail = Map.empty
-                }
-                props.OnPress action
+            // Web keeps the historical onPressOut path with a small movement guard (react-native-web
+            // has no scroll-cancel on onPressOut, and this preserves web click semantics). Native
+            // fires from `onPress` above, so onPressOut only resets the pressed state there.
+            if Rn.Runtime.isWeb() then
+                let isDrag =
+                    match (maybePressInCoords, e.CrossPlatformPageXY) with
+                    | Some (px, py), Some (x, y) ->
+                        let dx = x - px
+                        let dy = y - py
+                        dx * dx + dy * dy |> sqrt > 5.
+                    | _ -> false
+                maybePressInCoords <- None
+                if not isDrag then
+                    firePress source props e
+            else
+                maybePressInCoords <- None
 
     let buttonStyles (props: Props) =
         [|
@@ -126,7 +147,7 @@ type private PressableComponent(initialProps: Props) =
         let __props = createEmpty
         AccessibilityHelpers.applyToProps __props props.A11y props.Disabled
         __props?style <- styles
-        __props?onPress <- onPress
+        __props?onPress <- onPress this props
         __props?onPressIn <- onPressIn props.MaybePointerState
         __props?onPressOut <- onPressOut this props
         props.MaybePointerState
