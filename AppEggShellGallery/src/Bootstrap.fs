@@ -53,6 +53,11 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
             let element = Ui.App.Root()
 
             Rn.App.initialize ((* DEBUG *) config.InitializeRnInDebugMode, (* DEV *) config.InitializeRnInDevMode)
+            // NB: no app-wide Rn.GestureHandlerRootView here. The gallery drives its
+            // drawer/scrim/draggable through the JS-responder path (Rn.GestureView); an
+            // app-wide RNGH root took over native touch arbitration and made the sidebar
+            // close on a vertical scroll. RNGH is scoped to the one page that needs it
+            // (the HorizontalPanArea demo wraps itself in Rn.GestureHandlerRootView).
             Rn.UserInterface.setContextWrapper (fun rootView ->
                 Ui.AppContext (children = [|rootView|])
             )

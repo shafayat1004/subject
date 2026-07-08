@@ -158,6 +158,14 @@ type Rn.Components.Constructors.Rn with
     /// Native gesture-handler root. Must be an ancestor of any `HorizontalPanArea`
     /// (or other gesture-handler) or the gestures silently no-op. Native only; on web
     /// no root wrapper is needed (guard the call site with the platform define).
-    static member GestureHandlerRootView(children: array<ReactElement>) : ReactElement =
-        Rngh.makeRootView (createObj [ "style" ==> createObj [ "flex" ==> 1 ] ]) children
+    ///
+    /// `fillParent` (default true) makes the root `flex: 1` -- correct at the app root.
+    /// Pass `false` to wrap only an inline widget (a demo, a single pannable row): the
+    /// root then sizes to its content instead of stretching. Scoping the root to just
+    /// the gesture subtree keeps RNGH's native touch arbitration off the rest of the
+    /// app, which otherwise breaks the JS-responder gestures (`Rn.GestureView` in
+    /// `Draggable`/`Scrim`) -- an app-wide root made the drawer close on vertical scroll.
+    static member GestureHandlerRootView(children: array<ReactElement>, ?fillParent: bool) : ReactElement =
+        let style = if defaultArg fillParent true then createObj [ "flex" ==> 1 ] else createEmpty
+        Rngh.makeRootView (createObj [ "style" ==> style ]) children
 #endif

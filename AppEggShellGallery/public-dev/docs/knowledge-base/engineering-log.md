@@ -4,6 +4,47 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-08 (session 12 -- RW8 gallery on-device defects 4 + 6 fixed on POCO F1)
+
+Fixed the pan-slider (defect 4) and the picker crash (defect 6) on the physical POCO F1, same debug dev
+loop as session 11. Both are framework fixes. Defect 5 (blank docs on native) remains — it is a feature,
+not a bug (see below). Full status in [rn86-upgrade-status.md](./modernization/rn86-upgrade-status.md) (RW8).
+
+### What shipped
+- **Defect 4 — `HorizontalPanArea` "Drag me" didn't drag on native.** RNGH's `PanGestureHandler`
+  silently no-ops without a `GestureHandlerRootView` ancestor; the gallery mounted none, and `index.js`
+  didn't `import 'react-native-gesture-handler'` (Android requirement). **The trap:** wrapping the whole
+  app in `Rn.GestureHandlerRootView` (as AppTodo does, and as the docs wrongly claimed the gallery did)
+  makes drag-me work but **regresses every JS-responder gesture** — RNGH's root took over native touch
+  arbitration and the sidebar drawer (`Rn.GestureView` in `Draggable`/`Scrim`) began closing on a
+  *vertical* scroll. The gallery drives its drawer through the JS-responder path, so RNGH must stay
+  **scoped**. Fix: RNGH import first in `index.js`; wrap **only the demo** in `Rn.GestureHandlerRootView`;
+  gave the primitive a `?fillParent` param (default true = app-root `flex:1`; false = content-sized for an
+  inline widget). Also bumped the demo `failOffsetY` 12 → 24 (quick diagonal drags were abandoned).
+- **Defect 6 — picker green-flash / crash = `ITextInputRef.requestFocus()` not implemented on native.**
+  Captured the boundary error on-device: `TypeError: undefined is not a function` at `AndroidTextInput`
+  render, inside the picker's handheld **Dialog** search bar. The dialog focuses via `With.Ref` →
+  `input.requestFocus()`, but `requestFocus()`/`selectAll()` are **ReactXP-era ref methods the raw RN/RNW
+  TextInput does not have** (`focus()`/`blur()`/`clear()` only). Post-de-ReactXP the `Rn.TextInput` seam
+  handed callers the raw instance, so the call was `undefined`. `LC.Input.Text` never crashed because it
+  focuses via the `autoFocus` **prop**, not the ref. Fix in the seam (all callers): adapt the instance in
+  place — `requestFocus()` → `focus()`, `selectAll()` → `setSelection(0, huge)` (RN clamps to text bounds).
+
+### Gotchas / lessons
+- **`GestureHandlerRootView` is not free to mount app-wide.** It changes native touch dispatch for its
+  whole subtree and can starve react-native's JS-responder gestures (`PanResponder` / RXP-style
+  `GestureView`). If an app mixes RNGH gestures with JS-responder gestures, scope the RNGH root to just
+  the RNGH subtree. An app that is *all* RNGH (AppTodo) can mount it at the root.
+- **A de-ReactXP seam can keep an interface it no longer satisfies.** `ITextInputRef` still advertised
+  `requestFocus`/`selectAll`; the backing object changed from a ReactXP component to a raw RN ref that
+  lacks them. Type-checks fine, throws at runtime only on the imperative path. When a seam's backing
+  changes, re-verify every method the seam's interface promises actually exists on the new backing.
+- **Two TextInputs, one works one crashes → diff the call, not the seam.** The isolating test (open the
+  plain `Input.Text` demo — renders fine) proved the seam was healthy and the fault was the picker's
+  specific ref-focus path.
+
+---
+
 ## 2026-07-08 (session 11 -- RW8 gallery on-device defects 1-3 fixed on POCO F1)
 
 Fixed the first three RW8 defects on the physical POCO F1, iterating with a **debug** dev loop

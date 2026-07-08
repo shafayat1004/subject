@@ -67,6 +67,29 @@ module private TextInputRN =
                 let y = e?nativeEvent?contentOffset?y |> float
                 handler x y))
 
+    [<Emit("$0 != null")>]
+    let private isPresent (x: obj) : bool = jsNative
+
+    // The RN / RNW TextInput instance exposes focus()/blur()/clear() but NOT the
+    // ReactXP-era requestFocus()/selectAll() that ITextInputRef still promises. After the
+    // de-ReactXP migration the seam handed the *raw* instance to callers, so any imperative
+    // focus (e.g. the Picker dialog search bar's `input.requestFocus()`) threw
+    // "undefined is not a function" and the field crashed on mount. Adapt the instance in
+    // place so it genuinely satisfies ITextInputRef before the caller sees it. focus() exists
+    // on both native and web, so this is platform-agnostic.
+    let adaptRef (userRef: LibClient.JsInterop.JsNullable<ITextInputRef> -> unit) : obj -> unit =
+        fun rnInstance ->
+            if isPresent rnInstance then
+                if not (isPresent rnInstance?requestFocus) then
+                    rnInstance?requestFocus <- (fun () -> rnInstance?focus () |> ignore)
+                if not (isPresent rnInstance?selectAll) then
+                    rnInstance?selectAll <-
+                        (fun () ->
+                            // RN clamps a selection to the text bounds, so (0, huge) selects all.
+                            if isPresent rnInstance?setSelection then rnInstance?setSelection (0, 1000000) |> ignore
+                            else rnInstance?focus () |> ignore)
+            userRef (unbox rnInstance)
+
     let assignWebProps (props: obj) (onPaste: (ClipboardEvent -> unit) option) (tabIndex: int option) : unit =
         #if EGGSHELL_PLATFORM_IS_WEB
         onPaste   |> Option.iter (fun v -> props?onPaste <- v)
@@ -147,7 +170,7 @@ type Rn.Components.Constructors.Rn with
         __props?onSelectionChange        <- TextInputRN.wrapOnSelectionChange onSelectionChange
         __props?onSubmitEditing          <- onSubmitEditing
         __props?onScroll                 <- TextInputRN.wrapOnScroll onScroll
-        __props?ref                      <- ref
+        __props?ref                      <- (ref |> Option.map TextInputRN.adaptRef)
         __props?accessibilityLabel       <- accessibilityLabel
         __props?accessibilityRole        <- (accessibilityRole |> Option.bind Rn.RnPrimitives.mapAccessibilityRole)
         __props?key                      <- key

@@ -1,3 +1,7 @@
+// Must be the very first import: sets up the gesture-handler native module before
+// anything renders (required on Android, no-op on web). Without it PanGestureHandler
+// silently no-ops (RW8 defect 4 -- the HorizontalPanArea "Drag me" slider did not drag).
+import 'react-native-gesture-handler';
 // Must be imported before any code touches `crypto` (native has no global crypto otherwise:
 // "ReferenceError: Property 'crypto' doesn't exist"). Polyfills crypto.getRandomValues.
 import 'react-native-get-random-values';

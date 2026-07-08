@@ -62,35 +62,50 @@ type private Helpers =
             offset.update 0.0
             translateX.AnimateTiming(0.0, durationMs = 220.0)
 
+        // The pannable track. HorizontalPanArea uses react-native-gesture-handler on
+        // native, which needs a GestureHandlerRootView ancestor -- but the gallery must
+        // NOT mount one app-wide (it would hijack the drawer's JS-responder pan). So the
+        // root is scoped to this demo only, sized to content (fillParent=false) so it
+        // does not stretch the sample. On web no root is needed.
+        let track =
+            Rn.View(
+                styles = [| Styles.track |],
+                children =
+                    elements {
+                        Rn.ReanimatedView(
+                            animatedStyle = animatedStyle,
+                            children =
+                                elements {
+                                    Rn.HorizontalPanArea(
+                                        onStart = onStart,
+                                        onUpdate = onUpdate,
+                                        onEnd = onEnd,
+                                        activeOffsetX = 12.0,
+                                        // Generous vertical tolerance so a quick, slightly
+                                        // diagonal drag is not abandoned mid-swipe (the demo
+                                        // has no surrounding vertical scroll to yield to).
+                                        failOffsetY = 24.0,
+                                        children =
+                                            [|
+                                                Rn.View(
+                                                    styles = [| Styles.handle |],
+                                                    children = elements { LC.Text("Drag me ↔", styles = [| Styles.handleText |]) }
+                                                )
+                                            |]
+                                    )
+                                }
+                        )
+                    }
+            )
+
         LC.Column(
             children =
                 elements {
-                    Rn.View(
-                        styles = [| Styles.track |],
-                        children =
-                            elements {
-                                Rn.ReanimatedView(
-                                    animatedStyle = animatedStyle,
-                                    children =
-                                        elements {
-                                            Rn.HorizontalPanArea(
-                                                onStart = onStart,
-                                                onUpdate = onUpdate,
-                                                onEnd = onEnd,
-                                                activeOffsetX = 12.0,
-                                                failOffsetY = 12.0,
-                                                children =
-                                                    [|
-                                                        Rn.View(
-                                                            styles = [| Styles.handle |],
-                                                            children = elements { LC.Text("Drag me ↔", styles = [| Styles.handleText |]) }
-                                                        )
-                                                    |]
-                                            )
-                                        }
-                                )
-                            }
-                    )
+#if EGGSHELL_PLATFORM_IS_WEB
+                    track
+#else
+                    Rn.GestureHandlerRootView(children = [| track |], fillParent = false)
+#endif
 
                     LC.Text(sprintf "translationX: %.0f px" offset.current, styles = [| Styles.readout |])
                 },

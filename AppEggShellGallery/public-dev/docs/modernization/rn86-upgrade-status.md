@@ -139,22 +139,34 @@ but has these UX/functional bugs (none block launch):
    **Follow-up (still open):** the **horizontal drawer-close pan is over-sensitive** — a near-vertical scroll
    with a slight diagonal starts sliding the drawer closed. Separate gesture (`Draggable`/`Scrim`
    `onPanHorizontal`). Reported "better" after the defect-3 press fix, but not explicitly addressed.
-4. **`HorizontalPanArea` "Drag me" slider not draggable on device.** The follow-the-finger drag doesn't
-   move on native (works conceptually on web). Lead: verify the RNGH-3 imperative `PanGestureHandler`
-   path in `Rn.HorizontalPanArea` under the New Architecture, and that the `Rn.ReanimatedView` inline
-   shared value updates from the gesture's `onUpdate` on the UI thread. **Functional regression to
-   investigate** (framework gesture primitive).
+4. **`HorizontalPanArea` "Drag me" slider not draggable on device.** [FIXED, session 12 — verified on
+   POCO F1] The follow-the-finger drag didn't move on native. **Root cause:** RNGH's
+   `PanGestureHandler` silently no-ops without a `GestureHandlerRootView` ancestor, and the gallery
+   mounted none (unlike AppTodo) — nor did `index.js` `import 'react-native-gesture-handler'` (required
+   on Android). **Fix (scoped, not app-wide):** added the RNGH import as the first line of `index.js`,
+   and wrapped **only the HorizontalPanArea demo** in `Rn.GestureHandlerRootView` (new `?fillParent`
+   param → content-sized, not `flex:1`). **Why not app-wide:** an app-wide root (first attempt) took
+   over native touch arbitration and broke the gallery's JS-responder gestures — the sidebar drawer
+   (`Rn.GestureView` in `Draggable`/`Scrim`) started closing on a vertical scroll. The gallery drives
+   its drawer via the JS-responder path, so RNGH must stay scoped to the one page that uses it. Also
+   bumped the demo's `failOffsetY` 12 → 24 so a quick, slightly diagonal drag is not abandoned mid-swipe.
 5. **All markdown/docs pages are blank (white space, no text).** The docs pages render empty on native.
    Lead: on web the docs are Markdown served from `public-dev/docs/` by the dev/prod server; a **native**
    app has no such server, so the markdown content likely isn't bundled/fetchable at runtime (and/or the
    `react-native-render-html` path renders nothing). Needs a native content-source strategy (bundle the
    `.md` as assets, or embed) + confirm the renderer.
-6. **Opening an input Picker green-flashes and jumps to the top of the page** (no options visible before
-   the flash). The green flash is the same **ErrorBoundary remount** signature as the earlier `crypto`
-   loop — opening the picker throws a JS exception, the ErrorBoundary catches it and remounts (losing
-   scroll position). Lead: reproduce with logcat open and read the thrown error at picker-open; likely the
-   `@react-native-picker/picker` modal/items path (a missing native prop, or another missing global like
-   the `crypto` case). Capture the exception first, then fix the specific cause.
+6. **Opening an input Picker green-flashes and jumps to the top of the page.** [FIXED, session 12 —
+   root-caused via on-device logcat; verified on POCO F1] The green flash was an **ErrorBoundary
+   remount**. **Root cause (captured error):** `TypeError: undefined is not a function` thrown at
+   `AndroidTextInput` render inside the picker's handheld **Dialog** search bar. The dialog focuses the
+   search field imperatively via `With.Ref` → `input.requestFocus()`, but `ITextInputRef`'s
+   `requestFocus()`/`selectAll()` are **ReactXP-era methods that the raw RN/RNW TextInput ref does not
+   implement** (it has `focus()`/`blur()`/`clear()`). After the de-ReactXP migration the `Rn.TextInput`
+   seam handed callers the raw instance, so `requestFocus()` was `undefined`. (`LC.Input.Text` never
+   crashed because it focuses via the declarative `autoFocus` **prop**, not the ref method.) **Fix
+   (framework, benefits every caller):** the `Rn.TextInput` seam now adapts the instance in place before
+   the caller sees it — `requestFocus()` → `focus()`, `selectAll()` → `setSelection(0, huge)` (RN clamps
+   to the text bounds). Platform-agnostic (`focus()` exists on native + web).
 
 These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–11.
 
