@@ -21,7 +21,7 @@ type Ui.Route with
                     LC.Section.Padded(
                         children = [|
                             Showdown.MarkdownViewer(
-                                source = MarkdownViewer.Url ("/docs/" + markdownUrl |> services().Http.PrepareInBundleResourceUrl),
+                                source = docMarkdownSource markdownUrl,
                                 globalLinkHandler = "globalMarkdownLinkHandler",
                                 imageUrlTransformer = markdownImageUrlTransformer,
                                 showdownConverter = showdownConverterWithSyntaxHighlighting

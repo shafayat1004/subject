@@ -32,52 +32,73 @@ do
         colors.Secondary.Main.ToCssString
     )
 
-let private registerGlobalMarkdownLinkHandler (nav: Navigation) : ReactElement =
-    Browser.Dom.window?globalMarkdownLinkHandler <- (fun (e: Browser.Types.PointerEvent) (markdownUrl: string) ->
-        let actionEvent = ReactEvent.Pointer.OfBrowserEvent e |> ReactEvent.Action.Make
+[<Fable.Core.Emit("globalThis")>]
+let private jsGlobalThis: obj = jsNative
 
-        if Regex.IsMatch (markdownUrl, "^(http|https)://") then
-            nav.GoExternalMaybeInNewTab markdownUrl actionEvent
-
-        else if markdownUrl.StartsWith "gallery://act/" then
-            match markdownUrl.Substring("gallery://act/".Length) with
-            | "toggleTapCaptureDebugVisualization" ->
-                LibClient.Components.TapCaptureDebugVisibility.toggleVisibleForDebug ()
-            | _ -> Noop
-
-        else if markdownUrl.StartsWith "gallery://" then
-            let encodedRoute = markdownUrl.Substring("gallery://".Length)
-            match routesSpec().FromLocation (Location.ofPath encodedRoute) with
-            | None       -> Browser.Dom.window.alert ("Could not decode in-gallery URL link from a markdown document. Please let the EggShell team know. " + encodedRoute)
-            | Some frame -> nav.Go frame actionEvent
-
+// Platform-neutral: turn a markdown link href into in-app navigation (or external open).
+// Shared by the web onclick handler and the native react-native-render-html anchor onPress.
+let private handleMarkdownLink (nav: Navigation) (actionEvent: ReactEvent.Action) (rawMarkdownUrl: string) : unit =
+    // react-native-render-html resolves a relative href against an "about://" base, so a native
+    // anchor arrives as e.g. "about:///modernization/x.md". Normalize it back to the "./modernization/x.md"
+    // form the rest of this handler (and the web onclick) expects. No-op on web (hrefs are already "./x").
+    let markdownUrl =
+        if rawMarkdownUrl.StartsWith "about://" then
+            let stripped = rawMarkdownUrl.Substring("about://".Length)
+            if stripped.StartsWith "/" then "." + stripped else "./" + stripped
         else
-            let route =
-                if markdownUrl.StartsWith "./" then
-                    let trimmedUrl = markdownUrl.Substring("./".Length)
-                    if markdownUrl.StartsWith "./tools/" then
-                        Tools trimmedUrl
-                    else if markdownUrl.StartsWith "./how-to/" then
-                        HowTo (HowToItem.Markdown trimmedUrl)
-                    else if markdownUrl.StartsWith "./subject/" then
-                        Subject trimmedUrl
-                    else if markdownUrl.StartsWith "./architecture/" then
-                        Architecture trimmedUrl
-                    else if markdownUrl.StartsWith "./modernization/" then
-                        Modernization trimmedUrl
-                    else if markdownUrl.StartsWith "./runbooks/" then
-                        Runbooks trimmedUrl
-                    else if markdownUrl.StartsWith "./accessibility/" then
-                        Accessibility trimmedUrl
-                    else if markdownUrl.StartsWith "./knowledge-base/" then
-                        KnowledgeBase trimmedUrl
-                    else
-                        Docs trimmedUrl
-                else
-                    Docs markdownUrl
+            rawMarkdownUrl
 
-            nav.Go (None, route) actionEvent
-    )
+    if Regex.IsMatch (markdownUrl, "^(http|https)://") then
+        nav.GoExternalMaybeInNewTab markdownUrl actionEvent
+
+    else if markdownUrl.StartsWith "gallery://act/" then
+        match markdownUrl.Substring("gallery://act/".Length) with
+        | "toggleTapCaptureDebugVisualization" ->
+            LibClient.Components.TapCaptureDebugVisibility.toggleVisibleForDebug ()
+        | _ -> Noop
+
+    else if markdownUrl.StartsWith "gallery://" then
+        let encodedRoute = markdownUrl.Substring("gallery://".Length)
+        match routesSpec().FromLocation (Location.ofPath encodedRoute) with
+        | None       -> Log.Error ("Could not decode in-gallery URL link from a markdown document: " + encodedRoute)
+        | Some frame -> nav.Go frame actionEvent
+
+    else
+        let route =
+            if markdownUrl.StartsWith "./" then
+                let trimmedUrl = markdownUrl.Substring("./".Length)
+                if markdownUrl.StartsWith "./tools/" then
+                    Tools trimmedUrl
+                else if markdownUrl.StartsWith "./how-to/" then
+                    HowTo (HowToItem.Markdown trimmedUrl)
+                else if markdownUrl.StartsWith "./subject/" then
+                    Subject trimmedUrl
+                else if markdownUrl.StartsWith "./architecture/" then
+                    Architecture trimmedUrl
+                else if markdownUrl.StartsWith "./modernization/" then
+                    Modernization trimmedUrl
+                else if markdownUrl.StartsWith "./runbooks/" then
+                    Runbooks trimmedUrl
+                else if markdownUrl.StartsWith "./accessibility/" then
+                    Accessibility trimmedUrl
+                else if markdownUrl.StartsWith "./knowledge-base/" then
+                    KnowledgeBase trimmedUrl
+                else
+                    Docs trimmedUrl
+            else
+                Docs markdownUrl
+
+        nav.Go (None, route) actionEvent
+
+let private registerGlobalMarkdownLinkHandler (nav: Navigation) : ReactElement =
+#if EGGSHELL_PLATFORM_IS_WEB
+    Browser.Dom.window?globalMarkdownLinkHandler <- (fun (e: Browser.Types.PointerEvent) (markdownUrl: string) ->
+        handleMarkdownLink nav (ReactEvent.Pointer.OfBrowserEvent e |> ReactEvent.Action.Make) markdownUrl)
+#else
+    // Native has no DOM event; the render-html anchor onPress passes just the href.
+    jsGlobalThis?globalMarkdownLinkHandler <- (fun (markdownUrl: string) ->
+        handleMarkdownLink nav ReactEvent.Action.NonUserOriginatingAction markdownUrl)
+#endif
     noElement
 
 let private routeContent (pstoreKey: string) (maybeRoute: Option<Route>) =

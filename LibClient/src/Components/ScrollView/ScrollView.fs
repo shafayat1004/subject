@@ -159,13 +159,17 @@ type LibClient.Components.Constructors.LC with
             )
             onLayout |> Option.sideEffect (fun cb -> cb layout)
 
-        // Mount/unmount effect — mirrors ComponentDidMount + ComponentWillUnmount.
+        // Runs on mount AND whenever the restore key (the route url) changes. A parent that
+        // navigates between pages of the same shape (e.g. LR.Route across docs) REUSES this
+        // ScrollView instance rather than remounting it, so keying on the url is what lets a new
+        // page start fresh: with deps [||] the effect never re-ran, the native scroll view kept
+        // the previous page's offset, and a new doc opened already scrolled down.
         Hooks.useEffectDisposable (
             (fun () ->
                 (match restoreScroll with
                  | WhenContentApproximatelyMatchesOriginalHeight key ->
-                     measurementStorage.TryFind key
-                     |> Option.sideEffect (fun measurements ->
+                     match measurementStorage.TryFind key with
+                     | Some measurements ->
                          restoreWhenMatchRef.current <- Some measurements
                          async {
                              // If we couldn't restore scroll for 10 seconds, give up.
@@ -173,10 +177,17 @@ type LibClient.Components.Constructors.LC with
                              if restoreWhenMatchRef.current.IsSome then
                                  restoreWhenMatchRef.current <- None
                          } |> startSafely
-                     )
+                     | None ->
+                         // Fresh page with no saved position: start at the top. Without this a
+                         // reused scroll view retains the previous page's offset.
+                         restoreWhenMatchRef.current <- None
+                         lastScrollPositionRef.current <- { Left = 0; Top = 0 }
+                         maybeScrollViewRef.current
+                         |> Option.sideEffect (fun sv -> sv.scrollTo (box {| x = 0; y = 0; animated = false |}))
                  | No -> Noop)
 
-                // componentWillUnmount: persist measurements for the next mount.
+                // On unmount OR before the next key's effect runs: persist this key's measurements
+                // so navigating back can restore the position.
                 { new IDisposable with
                     member _.Dispose() =
                         match (restoreScroll.MaybeKey, maybeLastContentSizeRef.current) with
@@ -185,7 +196,7 @@ type LibClient.Components.Constructors.LC with
                         | _ -> Noop
                 }
             ),
-            [||]
+            [| box restoreScroll.MaybeKey |]
         )
 
         // The effective onScroll:

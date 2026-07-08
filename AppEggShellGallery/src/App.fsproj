@@ -53,6 +53,7 @@
     <Compile Include="GallerySampleImages.fs" />
     <Compile Include="Actions.fs" />
     <Compile Include="SampleVisualsScreenSize.fs" />
+    <Compile Include="DocsContent.fs" />
     <Compile Include="RenderHelpers.fs" />
   </ItemGroup>
 

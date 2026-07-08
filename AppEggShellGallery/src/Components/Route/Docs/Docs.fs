@@ -36,11 +36,19 @@ type Ui.Route with
                                 [ ClassName (sprintf "url-%s" (markdownUrl.Replace("/", "-").Replace(".", "_"))) ]
                                 [|
                                     Showdown.MarkdownViewer(
-                                        source = MarkdownViewer.Url ("/docs/" + markdownUrl |> services().Http.PrepareInBundleResourceUrl),
+                                        source = docMarkdownSource markdownUrl,
                                         globalLinkHandler = "globalMarkdownLinkHandler",
                                         showdownConverter = showdownConverterWithSyntaxHighlighting
                                     )
                                 |]
+                            #else
+                            // Native has no docs server; render the bundled markdown directly.
+                            // globalLinkHandler routes internal doc links back into the app.
+                            Showdown.MarkdownViewer(
+                                source = docMarkdownSource markdownUrl,
+                                globalLinkHandler = "globalMarkdownLinkHandler",
+                                showdownConverter = showdownConverterWithSyntaxHighlighting
+                            )
                             #endif
                         |]
                     )

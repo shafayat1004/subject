@@ -4,11 +4,12 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
-## 2026-07-08 (session 12 -- RW8 gallery on-device defects 4 + 6 fixed on POCO F1)
+## 2026-07-08 (session 12 -- RW8 gallery on-device defects 4, 5, 6 fixed on POCO F1)
 
-Fixed the pan-slider (defect 4) and the picker crash (defect 6) on the physical POCO F1, same debug dev
-loop as session 11. Both are framework fixes. Defect 5 (blank docs on native) remains — it is a feature,
-not a bug (see below). Full status in [rn86-upgrade-status.md](./modernization/rn86-upgrade-status.md) (RW8).
+Fixed the pan-slider (defect 4), the picker crash (defect 6), and the blank docs (defect 5) on the
+physical POCO F1, same debug dev loop as session 11. 4 and 6 are framework fixes; 5 is app-level content
+bundling plus a framework render-html styling/link fix. Full status in
+[rn86-upgrade-status.md](./modernization/rn86-upgrade-status.md) (RW8).
 
 ### What shipped
 - **Defect 4 — `HorizontalPanArea` "Drag me" didn't drag on native.** RNGH's `PanGestureHandler`
@@ -29,6 +30,18 @@ not a bug (see below). Full status in [rn86-upgrade-status.md](./modernization/r
   handed callers the raw instance, so the call was `undefined`. `LC.Input.Text` never crashed because it
   focuses via the `autoFocus` **prop**, not the ref. Fix in the seam (all callers): adapt the instance in
   place — `requestFocus()` → `focus()`, `selectAll()` → `setSelection(0, huge)` (RN clamps to text bounds).
+- **Defect 5 — all docs blank on native = no server + web-only guards.** Web fetches the markdown over
+  HTTP from the server serving `public-dev/docs`; native has no server (relative fetch had no origin), and
+  several routes wrapped the viewer in `#if EGGSHELL_PLATFORM_IS_WEB`. Fix: bundle the markdown.
+  `scripts/gen-docs-bundle.js` (wired into `metro.config.js`) emits `src/DocsContent.generated.js` — a
+  `path → raw markdown` map (91 docs, ~672 KB); `DocsContent.fs` reads it on native only. One helper,
+  `RenderHelpers.docMarkdownSource`, chooses `MarkdownViewer.Url` (web) vs `.Code` (native) and all 7 doc
+  routes call it. Then two render-html follow-ons in `MarkdownViewer.fs`: (a) it ships **no default
+  typography**, so a full `tagsStyles` map + `baseStyle` + device `contentWidth` were needed or everything
+  renders as flat body text; (b) native has no DOM `onclick`, so anchor `onPress` is wired to the same
+  `globalMarkdownLinkHandler` (registered on `globalThis`) the web onclick uses, or links open the external
+  browser. Full table grid layout needs `@native-html/table-plugin` (WebView) — deferred; tables render as
+  boxed stacked cells.
 
 ### Gotchas / lessons
 - **`GestureHandlerRootView` is not free to mount app-wide.** It changes native touch dispatch for its
@@ -42,6 +55,14 @@ not a bug (see below). Full status in [rn86-upgrade-status.md](./modernization/r
 - **Two TextInputs, one works one crashes → diff the call, not the seam.** The isolating test (open the
   plain `Input.Text` demo — renders fine) proved the seam was healthy and the fault was the picker's
   specific ref-focus path.
+- **`react-native-render-html` renders HTML but applies no default typography.** Without a `tagsStyles`
+  entry per tag, `<h1>`, `<strong>`, `<code>`, `<li>`, `<td>` all look like flat body text — easy to
+  mistake for "markdown not converting." It also renders `<table>` as stacked blocks (no grid) unless you
+  add `@native-html/table-plugin` (which needs a WebView). And it has no DOM `onclick`: internal links
+  need `renderersProps.a.onPress`.
+- **Web-primary content needs an explicit native source.** Anything the web build fetches by relative URL
+  from a co-located server (docs, JSON, assets) has no origin on native. Either host it at an absolute URL
+  or bundle it (here: a generated content map inlined for native, kept fresh by a `metro.config.js` hook).
 
 ---
 

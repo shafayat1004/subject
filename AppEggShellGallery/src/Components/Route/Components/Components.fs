@@ -17,7 +17,7 @@ let private renderContent (content: ComponentItem) : ReactElement =
     match content with
     | Index ->
         Showdown.MarkdownViewer(
-            source = MarkdownViewer.Url ("/docs/components/index.md" |> services().Http.PrepareInBundleResourceUrl),
+            source = docMarkdownSource "components/index.md",
             globalLinkHandler = "globalMarkdownLinkHandler",
             showdownConverter = showdownConverterWithSyntaxHighlighting
         )

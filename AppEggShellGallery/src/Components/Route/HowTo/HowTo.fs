@@ -24,7 +24,7 @@ type Ui.Route with
                             match item with
                             | HowToItem.Markdown url ->
                                 Showdown.MarkdownViewer(
-                                    source = MarkdownViewer.Url ("/docs/" + url |> services().Http.PrepareInBundleResourceUrl),
+                                    source = docMarkdownSource url,
                                     globalLinkHandler = "globalMarkdownLinkHandler",
                                     imageUrlTransformer = markdownImageUrlTransformer,
                                     showdownConverter = showdownConverterWithSyntaxHighlighting

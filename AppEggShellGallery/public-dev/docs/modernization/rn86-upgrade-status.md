@@ -150,11 +150,23 @@ but has these UX/functional bugs (none block launch):
    (`Rn.GestureView` in `Draggable`/`Scrim`) started closing on a vertical scroll. The gallery drives
    its drawer via the JS-responder path, so RNGH must stay scoped to the one page that uses it. Also
    bumped the demo's `failOffsetY` 12 → 24 so a quick, slightly diagonal drag is not abandoned mid-swipe.
-5. **All markdown/docs pages are blank (white space, no text).** The docs pages render empty on native.
-   Lead: on web the docs are Markdown served from `public-dev/docs/` by the dev/prod server; a **native**
-   app has no such server, so the markdown content likely isn't bundled/fetchable at runtime (and/or the
-   `react-native-render-html` path renders nothing). Needs a native content-source strategy (bundle the
-   `.md` as assets, or embed) + confirm the renderer.
+5. **All markdown/docs pages are blank (white space, no text).** [FIXED, session 12 — verified on POCO
+   F1] Two causes: (a) on web the docs are fetched over HTTP from the server that serves
+   `public-dev/docs/`; a **native** app has no such server, so the fetch had no origin and returned
+   nothing; (b) some doc routes wrapped the viewer in `#if EGGSHELL_PLATFORM_IS_WEB`, so native rendered
+   an empty section. **Fix (bundle the markdown):** `scripts/gen-docs-bundle.js` walks
+   `public-dev/docs/**/*.md` and emits `src/DocsContent.generated.js` (a `path → raw markdown` map, ~672
+   KB, 91 docs); `DocsContent.fs` reads it on native (no-op on web, so the bundle stays out of the web
+   build). A single `RenderHelpers.docMarkdownSource` picks `MarkdownViewer.Url` (web, fetch) vs
+   `MarkdownViewer.Code` (native, bundled) and all 7 doc routes call it. The generator is wired into
+   `metro.config.js`, so editing a `.md` + reloading is enough (no separate build step). **Styling:**
+   `react-native-render-html` ships no default typography, so headings/bold/code/lists/tables all
+   rendered as flat body text — added a full `tagsStyles` map + `baseStyle` + device `contentWidth` in
+   `MarkdownViewer.fs`. (Real table *grid* layout needs `@native-html/table-plugin` + a WebView, out of
+   scope; tables render as boxed stacked cells.) **In-app links:** native has no DOM `onclick`, so the
+   viewer wires `react-native-render-html`'s anchor `onPress` to the same `globalMarkdownLinkHandler` the
+   web `onclick` uses (registered on `globalThis` on native), so internal doc links navigate in-app
+   instead of opening the external browser.
 6. **Opening an input Picker green-flashes and jumps to the top of the page.** [FIXED, session 12 —
    root-caused via on-device logcat; verified on POCO F1] The green flash was an **ErrorBoundary
    remount**. **Root cause (captured error):** `TypeError: undefined is not a function` thrown at

@@ -1,6 +1,12 @@
 const path      = require("path")
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
+// Keep the bundled docs (src/DocsContent.generated.js) fresh on every native bundle. Web fetches
+// docs over HTTP; native has no server, so the markdown is inlined and rendered via
+// MarkdownViewer.Code. Running the generator here means editing a .md and reloading is enough --
+// no separate build step. (Wrapped so a generator failure never blocks Metro.)
+try { require("./scripts/gen-docs-bundle.js") } catch (e) { console.warn("[docs-bundle] gen skipped:", e.message) }
+
 const defaultConfig = getDefaultConfig(__dirname);
 
 /**

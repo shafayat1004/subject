@@ -17,6 +17,9 @@ do addCss ("""
 }
 """)
 
+[<Fable.Core.Emit("globalThis")>]
+let private jsGlobalThis: obj = Fable.Core.JsInterop.jsNative
+
 let private showdown: obj = importDefault "showdown"
 let defaultShowdownConverter: obj = createNew showdown?Converter ()
 
@@ -136,19 +139,85 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
     #else
 
     let renderHtmlRaw: obj = import "default" "react-native-render-html"
+    let dimensions: obj = import "Dimensions" "react-native"
 
     let sourceObj =
         (RenderHtmlSourceJs($"<div>{html}</div>"))
         |> box
 
+    // react-native-render-html applies no default typography, so without per-tag styles every
+    // element (h1..h6, strong, code, li, td) renders as flat body text -- the docs looked
+    // unformatted on native. Give each tag a style so headings, emphasis, code, lists,
+    // blockquotes and tables get visible hierarchy. NB: real table *grid* layout needs
+    // @native-html/table-plugin (a WebView); without it table/tr/td render as stacked blocks,
+    // so we at least box + bold the cells for legibility.
+    let heading (fontSize: int) (marginTop: int) (color: string) =
+        createObj [ "fontSize" ==> fontSize; "fontWeight" ==> "700"; "marginTop" ==> marginTop; "marginBottom" ==> 8; "color" ==> color ]
+
     let tagsStyles =
-        (RenderHtmlTagsStylesJs(
-            (RenderHtmlDivTagStyleJs("Montserrat", 22.5, 800) |> box)
-        )) |> box
+        createObj [
+            "div"        ==> createObj [ "fontFamily" ==> "Montserrat"; "color" ==> "#24292e" ]
+            "p"          ==> createObj [ "fontSize" ==> 15; "lineHeight" ==> 22; "marginTop" ==> 0; "marginBottom" ==> 12; "color" ==> "#24292e" ]
+            "h1"         ==> heading 28 18 "#1a1a1a"
+            "h2"         ==> heading 23 16 "#1a1a1a"
+            "h3"         ==> heading 19 14 "#1a1a1a"
+            "h4"         ==> heading 17 12 "#1a1a1a"
+            "h5"         ==> heading 15 10 "#1a1a1a"
+            "h6"         ==> heading 14 10 "#57606a"
+            "a"          ==> createObj [ "color" ==> "#006ebd"; "textDecorationLine" ==> "none" ]
+            "strong"     ==> createObj [ "fontWeight" ==> "700" ]
+            "b"          ==> createObj [ "fontWeight" ==> "700" ]
+            "em"         ==> createObj [ "fontStyle" ==> "italic" ]
+            "code"       ==> createObj [ "fontFamily" ==> "monospace"; "fontSize" ==> 13; "backgroundColor" ==> "#eff1f3"; "color" ==> "#d6336c" ]
+            "pre"        ==> createObj [ "fontFamily" ==> "monospace"; "fontSize" ==> 13; "backgroundColor" ==> "#f6f8fa"; "padding" ==> 12; "borderRadius" ==> 6; "marginBottom" ==> 12; "color" ==> "#24292e" ]
+            "ul"         ==> createObj [ "marginBottom" ==> 12 ]
+            "ol"         ==> createObj [ "marginBottom" ==> 12 ]
+            "li"         ==> createObj [ "fontSize" ==> 15; "lineHeight" ==> 22; "marginBottom" ==> 4; "color" ==> "#24292e" ]
+            "blockquote" ==> createObj [ "borderLeftWidth" ==> 4; "borderLeftColor" ==> "#d0d7de"; "paddingLeft" ==> 12; "marginBottom" ==> 12; "color" ==> "#57606a" ]
+            "hr"         ==> createObj [ "backgroundColor" ==> "#d0d7de"; "height" ==> 1; "marginTop" ==> 16; "marginBottom" ==> 16 ]
+            "table"      ==> createObj [ "borderWidth" ==> 1; "borderColor" ==> "#d0d7de"; "marginBottom" ==> 12 ]
+            "th"         ==> createObj [ "fontWeight" ==> "700"; "padding" ==> 6; "borderWidth" ==> 1; "borderColor" ==> "#d0d7de"; "backgroundColor" ==> "#f6f8fa" ]
+            "td"         ==> createObj [ "padding" ==> 6; "borderWidth" ==> 1; "borderColor" ==> "#d0d7de" ]
+        ]
+
+    let baseStyle =
+        createObj [ "fontFamily" ==> "Montserrat"; "fontSize" ==> 15; "lineHeight" ==> 22; "color" ==> "#24292e" ]
+
+    // Match the render width to the device so long lines wrap and code/tables don't overflow.
+    let windowDimensions: obj = dimensions?get "window"
+    let contentWidth = (windowDimensions?width |> unbox<float>) - 40.0
+
+    // Native has no DOM onclick, so links would fall through to react-native-render-html's
+    // default anchor renderer (opens the external browser). Route anchor presses to the same
+    // global handler the web onclick uses (globalLinkHandler names a fn on globalThis that the
+    // app registers) so internal doc links navigate in-app. onPress is (event, href, attribs, target).
+    let renderersProps =
+        match maybeGlobalLinkHandler with
+        | Some handlerName ->
+            createObj [
+                "a" ==> createObj [
+                    // onPress is (event, href, ...). render-html resolves a relative href against an
+                    // "about://" base (so "./x.md" -> "about:///x.md"); the app-side handler normalizes
+                    // that prefix back to a routable path.
+                    // Must type the handler as a callable function: assigning to `obj` and applying it
+                    // makes Fable emit a `throw` (an `obj` isn't callable in F#), which surfaced as an
+                    // uncaught error on every link tap.
+                    "onPress" ==> System.Func<obj, string, unit>(fun _event href ->
+                        let handler: string -> unit = jsGlobalThis?(handlerName)
+                        if not (isNullOrUndefined (box handler)) then handler href)
+                ]
+            ]
+        | None -> createEmpty
 
     let props =
-        (RenderHtmlPropsJs(sourceObj, tagsStyles, [|"Montserrat"|], 800))
-        |> box
+        createObj [
+            "source"          ==> sourceObj
+            "tagsStyles"      ==> tagsStyles
+            "baseStyle"       ==> baseStyle
+            "systemFonts"     ==> [| "Montserrat" |]
+            "contentWidth"    ==> contentWidth
+            "renderersProps"  ==> renderersProps
+        ]
 
     Fable.React.ReactBindings.React.createElement(renderHtmlRaw, props, [||])
 

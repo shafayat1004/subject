@@ -10,7 +10,10 @@ same change**.
 1. **Docs live in the gallery.** The canonical documentation tree is
    `AppEggShellGallery/public-dev/docs/`. It is rendered inside the running gallery (served at `/docs/`)
    and packaged into builds via `AppEggShellGallery/eggshell.json` (`copyStaticFiles`). There is no other
-   docs tree (`Meta/Docs/` was removed). Edit docs here.
+   docs tree (`Meta/Docs/` was removed). Edit docs here. On **web** the gallery fetches these `.md` over
+   HTTP; on **native** there is no server, so they are inlined into `src/DocsContent.generated.js` by
+   `scripts/gen-docs-bundle.js`, wired into `metro.config.js` to regenerate on every native bundle — you
+   do not run it by hand for a dev reload. (Manual, if ever needed: `node scripts/gen-docs-bundle.js`.)
 2. **Update docs in the same commit as the code.** A behavior, API, convention, gotcha, status, or
    dependency change is not "done" until its docs are updated. Never leave docs describing the old world.
 3. **The Engineering Log is append-only.** Every discovery, wrong assumption you corrected, build quirk,
