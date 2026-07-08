@@ -151,8 +151,10 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
     // blockquotes and tables get visible hierarchy. NB: real table *grid* layout needs
     // @native-html/table-plugin (a WebView); without it table/tr/td render as stacked blocks,
     // so we at least box + bold the cells for legibility.
+    // Headings also need an explicit lineHeight: RN's default line box is too short for the
+    // larger heading glyphs, so descenders (y, g, p, q, j) get clipped without one. ~1.3x fontSize.
     let heading (fontSize: int) (marginTop: int) (color: string) =
-        createObj [ "fontSize" ==> fontSize; "fontWeight" ==> "700"; "marginTop" ==> marginTop; "marginBottom" ==> 8; "color" ==> color ]
+        createObj [ "fontSize" ==> fontSize; "lineHeight" ==> int (round (float fontSize * 1.3)); "fontWeight" ==> "700"; "marginTop" ==> marginTop; "marginBottom" ==> 8; "color" ==> color ]
 
     let tagsStyles =
         createObj [
