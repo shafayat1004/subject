@@ -63,6 +63,19 @@ bundling plus a framework render-html styling/link fix. Full status in
 - **Web-primary content needs an explicit native source.** Anything the web build fetches by relative URL
   from a co-located server (docs, JSON, assets) has no origin on native. Either host it at an absolute URL
   or bundle it (here: a generated content map inlined for native, kept fresh by a `metro.config.js` hook).
+- **A component reused across navigations won't re-run mount effects.** `LC.ScrollView`'s save/restore
+  effect keyed on `[||]` never re-fired when `LR.Route` reused the same ScrollView across doc pages, so a
+  new page kept the previous offset. Keying the effect on the restore key (url) fixes forward-nav (start
+  at top); the disposer running before the next key's effect saves the outgoing page's position.
+
+### Open follow-ups (deferred — noted, not yet fixed)
+- **Back-nav doesn't restore the saved doc scroll (lands at top).** The `restoreScroll`
+  height-≈-match path isn't re-engaging on the reused native ScrollView after the key-change effect;
+  exact restore-on-back never worked on native. Forward reset-to-top is fixed.
+- **Android hardware Back closes the app** — no `BackHandler` wired to LibRouter history on native
+  (app-wide nav gap, not docs-specific).
+- **Native markdown heading descenders (y/g/p/q/j) clipped** — the `MarkdownViewer.fs` heading
+  `tagsStyles` set no `lineHeight`; give each heading `lineHeight ≈ fontSize × 1.3`.
 
 ---
 

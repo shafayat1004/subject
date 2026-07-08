@@ -180,7 +180,25 @@ but has these UX/functional bugs (none block launch):
    the caller sees it — `requestFocus()` → `focus()`, `selectAll()` → `setSelection(0, huge)` (RN clamps
    to the text bounds). Platform-agnostic (`focus()` exists on native + web).
 
-These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–11.
+These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–12.
+
+**Open RW8 follow-ups (deferred — noted 2026-07-08, session 12, verified on POCO F1):** the six defects
+above are fixed; these smaller items remain and are **not yet done**:
+
+1. **Docs back-navigation does not restore the saved scroll position (lands at top).** Forward
+   navigation now correctly starts a new doc at the top (session-12 `LC.ScrollView` fix: the
+   save/restore effect re-runs on url change). But navigating **back** to a previously scrolled doc
+   lands at the top instead of the saved offset. The `restoreScroll` heuristic restores only
+   `WhenContentApproximatelyMatchesOriginalHeight` (revisited content height within ~10 % of the saved
+   height) and that path is not re-engaging on the **reused** native ScrollView (a timing/measurement
+   issue between the key-change effect and `onLayout`). Exact restore-on-back never worked on native.
+2. **Android hardware Back closes the app instead of navigating back.** No `BackHandler` is wired to
+   the LibRouter history on native, so the OS Back button exits the app rather than popping the
+   in-app route. App-wide native-nav gap (not docs-specific).
+3. **Native markdown heading descenders are clipped.** Letters with descenders (y, g, p, q, j) in
+   `<h1>`–`<h6>` have their bottoms slightly cut off — the session-12 `MarkdownViewer.fs` `tagsStyles`
+   headings set `fontSize`/`fontWeight` but no `lineHeight`, so RN's default line box is too short for
+   the larger heading glyphs. Fix: give each heading a `lineHeight` (≈ `fontSize` × 1.3).
 
 **Build-unblock (session 11): stale push-notification receiver crashed the debug build at boot.**
 Bringing the gallery up as a **debug** build (Metro dev loop, needed to iterate the RW8 fixes) crashed on
