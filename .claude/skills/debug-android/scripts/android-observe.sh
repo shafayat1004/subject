@@ -11,7 +11,10 @@ case "$CMD" in
     PAT="${1:-FATAL EXCEPTION|Uncaught|ReactNativeJS|error}"
     adb logcat -d | grep -iE "$PAT" | tail -200 ;;
   clear) adb logcat -c && echo "logcat cleared" ;;
-  tap) adb shell input tap "$1" "$2" && echo "tapped $1,$2 (brittle; prefer Tier 2 testId)" ;;
+  tap)
+    [[ $# -ge 2 ]] || { echo "usage: android-observe.sh tap X Y"; exit 2; }
+    adb shell input tap "$1" "$2" && echo "tapped $1,$2 (brittle; prefer Tier 2 testId)" ;;
+
   rotate)
     adb shell settings put system accelerometer_rotation 0
     [[ "${1:-portrait}" == "landscape" ]] && R=1 || R=0
