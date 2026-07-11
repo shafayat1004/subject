@@ -42,11 +42,7 @@ Related: [Build and rebuild](./runbooks/build-rebuild.md) | [Dev loop](./runbook
 | `FSharp.Core` pin conflict with `Fable.React 10.0.0-alpha.1` | Old pin `7.0.403` conflicts with `>= 9.0.201` requirement | Bump the central pin in `Directory.Build.targets` to `9.0.201`. |
 | `FS0046: The identifier 'component' is reserved` | Pojo record field named `component` | Escape it: `` ``component``: string ``. |
 | `FS0064: type variable 't has been constrained to be type 'obj'` | Explicit type parameter on an `inline` wrapper over-constrains `'t` | Drop the explicit type parameter list and let inference pick up the upstream constraints. |
-
-- **Symptom:** `.fs.js` files appear beside `.fs` sources; edits behave unpredictably.
-  **Cause:** a raw `dotnet fable` run (bypasses eggshell; output belongs under `.build/<platform>/`).
-  **Fix:** run `.claude/skills/fable-rebuild-verify/scripts/clean-stray-fable-output.sh`, then rebuild
-  via `./eggshell build-lib` / `eggshell dev-*`. Never invoke `dotnet fable` directly.
+| `.fs.js` files appear beside `.fs` sources; edits behave unpredictably | A raw `dotnet fable` run (bypasses eggshell; output belongs under `.build/<platform>/`) | Run `.claude/skills/fable-rebuild-verify/scripts/clean-stray-fable-output.sh`, then rebuild via `./eggshell build-lib` / `eggshell dev-*`. Never invoke `dotnet fable` directly. |
 
 ---
 
