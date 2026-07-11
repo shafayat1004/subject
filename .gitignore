@@ -1,6 +1,8 @@
 .cursor/
 .claude/*
 !.claude/skills/
+# impeccable is an installed third-party skill, not part of this repo
+.claude/skills/impeccable/
 
 # OS-specific metadata
 .DS_Store
