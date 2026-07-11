@@ -111,6 +111,13 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.5.2): two more param-alignment gaps. (1) Primary-constructor parameter lists where the
+first param shares the opening-paren line (`type X\n    ( ?disabled: bool,`) weren't grouped -- added
+`( ` as a leading-bracket alongside `{ ` in `keyCol`/`classify`. (2) Double-backtick identifiers
+(`` ?``checked`` ``, `` ``Deep Orange`` `` as a field) failed the `^[A-Za-z_]` first-word reader;
+`firstWord` now also matches `` ``...`` ``. Pristine `LibClient/src`: 213 files, idempotent, 0 syntax
+errors.
+
 Follow-up (v1.5.1): optional parameters (`?label: string`) were dropping out of param alignment groups
 because field detection read the first token with `^[A-Za-z_]`, which fails on the leading `?`. Now the
 `?` is stripped before reading the field name, so optional params align with the rest (and a stray

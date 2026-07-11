@@ -138,7 +138,10 @@ let indentOf (line: string) = line.Length - line.TrimStart(' ').Length
 let keyCol (masked: string) =
     let t = masked.TrimStart(' ')
     let indent = masked.Length - t.Length
-    if t.StartsWith "{ " then indent + (t.Length - t.Substring(1).TrimStart(' ').Length)
+    // Leading `{ ` (record) or `( ` (primary-ctor params) share the first item's
+    // line; the key column is where that item begins.
+    if t.StartsWith "{ " || t.StartsWith "( " then
+        indent + (t.Length - t.Substring(1).TrimStart(' ').Length)
     else indent
 
 let private reindent (line: string) (delta: int) =
@@ -251,7 +254,8 @@ let hasContentAfter (real: string) (idx: int) (width: int) =
     idx + width <= real.Length && real.Substring(idx + width).Trim() <> ""
 
 let firstWord (mb: string) =
-    let m = Regex.Match(mb, @"^[A-Za-z_][\w']*")
+    // Ordinary identifiers and double-backtick identifiers (``Deep Orange``, ``checked``).
+    let m = Regex.Match(mb, @"^(``[^`]+``|[A-Za-z_][\w']*)")
     if m.Success then m.Value else ""
 
 let classify (masked: string) (real: string) : string option =
@@ -266,8 +270,11 @@ let classify (masked: string) (real: string) : string option =
         // Leading-brace record style: `{ Field: T` / `{ Field = v` shares a line
         // with the opening brace. Strip the `{ ` to find the field name (but not
         // an inline record `{ A = 1 }`, which closes on the same line).
+        // First item sharing a leading bracket: `{ Field` (record) or `( param`
+        // (primary-constructor parameter list). Strip the bracket to find it.
         let braceLed = mb.StartsWith "{ " && not (mb.Contains "}")
-        let fieldMb0 = if braceLed then mb.Substring(1).TrimStart() else mb
+        let parenLed = mb.StartsWith "( " && not (mb.Contains ")")
+        let fieldMb0 = if braceLed || parenLed then mb.Substring(1).TrimStart() else mb
         // Optional parameters (`?label: string`) start with `?`; strip it so the
         // field name is found and the param joins the alignment group.
         let fieldMb = if fieldMb0.StartsWith "?" then fieldMb0.Substring(1) else fieldMb0
