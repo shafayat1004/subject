@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>EggShellFmt</RootNamespace>
+
+    <!-- Packaged as a dotnet tool: `dotnet eggshell-fmt ...` -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>eggshell-fmt</ToolCommandName>
+    <PackageId>EggShellFmt</PackageId>
+    <Version>1.0.0</Version>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)nupkg</PackageOutputPath>
+    <Description>EggShell F# column-alignment formatter (the alignment rules Fantomas cannot do).</Description>
+
+    <!-- This tool is internal; keep it out of the repo-wide formatting check. -->
+    <EggShellFmtSeverity>none</EggShellFmtSeverity>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+</Project>

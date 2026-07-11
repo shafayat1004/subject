@@ -601,7 +601,7 @@ before building; the MSBuild target calls `dotnet tool run fantomas` which resol
 
 Coverage breakdown: what each tool covers and what it can't touch.
 
-| Convention | EditorConfig | Fantomas | Rider | EggShellFmt (future) |
+| Convention | EditorConfig | Fantomas | Rider | eggshell-fmt |
 |---|---|---|---|---|
 | 4-space indent, no tabs | hint | enforced | enforced | -- |
 | Operator spacing | -- | enforced | enforced | -- |
@@ -717,10 +717,27 @@ boilerplate stubs (e.g. a record type with `:` signs already padded). Per-develo
 
 ---
 
-### 16d. EggShellFmt (future -- `Meta/EggShellFmt`)
+### 16d. EggShellFmt (implemented -- `Meta/EggShellFmt`, tool command `eggshell-fmt`)
 
-A planned opt-in dotnet local tool (no JS, no Node.js) that covers the alignment rules Fantomas
-cannot. Installed once at solution level via `.config/dotnet-tools.json`, invoked per project.
+A dotnet local tool (F#, no JS, no Node.js) that covers the alignment rules Fantomas cannot. Pinned
+in `.config/dotnet-tools.json`; the package is built into a git-ignored local feed
+(`Meta/EggShellFmt/nupkg`, wired in `nuget.config`).
+
+```bash
+./Meta/EggShellFmt/install.sh                            # one-time per machine (packs + installs)
+dotnet tool run eggshell-fmt -- LibClient/src            # format in place
+dotnet tool run eggshell-fmt -- --check LibClient/src    # CI: exit 3 if anything would change
+```
+
+Enforces 2a (record `:`), 2b (DU `of`), 2c (match `->`, only when all arms inline), and 7 (record
+literal `=`) always. The `=` binding-group rules **2d (let/and) and 13 (CE let!/and!) are opt-in**:
+a group is aligned only when the author already aligned it (>1 space before an `=`), so the tool
+never imposes let-alignment. It masks strings/comments before scanning (never edits inside them),
+leaves function params / named-args (trailing comma) alone, and is idempotent. It does not reflow
+lines or fix operator spacing -- run Fantomas for that. See the `fsharp-format` skill.
+
+Implementation is line-based (masking + indent-scoped block detection), not FCS-based as originally
+sketched below; the FCS notes are kept for reference.
 
 **Opt-in check:** EggShellFmt looks for a `.fantomasrc.json` in the same directory as the target
 file (walking up at most to the nearest `.fsproj`). If none is found, it exits without changes.

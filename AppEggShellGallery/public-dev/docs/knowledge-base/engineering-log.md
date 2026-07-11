@@ -4,6 +4,35 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-11 (session 17 -- EggShellFmt alignment tool implemented)
+
+Built `Meta/EggShellFmt/` (F# dotnet tool, command `eggshell-fmt`), realizing the previously-"future"
+tool in `fsharp/formatting.md` section 16d. It applies the column-alignment rules Fantomas cannot:
+2a record type `:`, 2b DU `of`, 2c match `->` (only when every arm is inline), 7 record literal `=`
+always; and 2d/13 (`let`/`and`/`let!`/`and!` `=` groups) **opt-in** -- aligned only when the author
+already aligned the group (>1 space before an `=`), so it never imposes let-alignment that
+hand-written files (e.g. `SegmentedControl.fs`) deliberately omit.
+
+Implementation notes / gotchas found while validating on real files:
+- **Line-based, not FCS.** Masks string/char literals and `//` / `(* *)` / `"""` comments to spaces
+  before scanning (length-preserving), so markers inside strings/comments are never matched and edits
+  apply at the same indices. Lines starting inside a multi-line string/comment are left byte-for-byte.
+  This proved reliable across `SegmentedControl.fs`, `TodoTheme.fs`, `AccessibilityHelpers.fs`; FCS
+  would have been far heavier for no correctness gain here.
+- **Trailing comma disambiguates records from calls.** Multi-line function params (`name: Type,`) and
+  named-arg calls (`name = value,`) look identical to record fields but end in `,`; records never do.
+  Excluding trailing-comma lines stopped it from wrongly aligning param/arg lists (first real bug
+  caught on `SegmentedControl.fs`).
+- **DU case with a function-typed payload** (`| Fn of (int -> int)`) has both ` of ` and ` -> `; the
+  block is left unaligned (safe fallback) rather than risk the inner arrow.
+- **Packaging a repo-internal dotnet tool.** `<PackAsTool>` + local feed dir (`Meta/EggShellFmt/nupkg`,
+  git-ignored) added to `nuget.config`; `install.sh` packs then `dotnet tool update --local`. Fresh
+  clones run `install.sh` once (analogous to `dotnet tool restore`, which can't build from source).
+- Wrapped by the `fsharp-format` skill. The tool sets `<EggShellFmtSeverity>none</EggShellFmtSeverity>`
+  to exclude itself from the repo-wide format check.
+
+---
+
 ## 2026-07-11 (session 16 -- reduce-motion a11y fallbacks + stale-cache false-green + vision delegation)
 
 Diagnosed and fixed a "UI looks like an old build" report on AppTodo Android that was NOT a stale
