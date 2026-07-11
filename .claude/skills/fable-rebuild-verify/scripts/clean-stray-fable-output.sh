@@ -6,6 +6,7 @@ set -u
 MODE="delete"
 [[ "${1:-}" == "--check" ]] && { MODE="check"; shift; }
 ROOT="${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+[[ -d "$ROOT" ]] || { echo "no such root: $ROOT"; exit 2; }
 STRAYS=$(find "$ROOT" \( -name "*.fs.js" -o -name "*.fs.js.map" \) \
   -not -path "*/.build/*" -not -path "*/node_modules/*" -not -path "*/fable_modules/*" 2>/dev/null)
 if [[ -z "$STRAYS" ]]; then

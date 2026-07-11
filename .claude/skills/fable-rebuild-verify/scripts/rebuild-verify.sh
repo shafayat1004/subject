@@ -28,8 +28,38 @@ echo "touched ${#FILES[@]} file(s); polling $OUT for fresher emitted JS (90s max
 FAIL=0
 for f in "${FILES[@]}"; do
   base="$(basename "$f" .fs)"
-  js="$(find "$OUT" -name "$base.js" 2>/dev/null | head -1)"
-  if [[ -z "$js" ]]; then echo "FAIL: no emitted $base.js under $OUT"; FAIL=1; continue; fi
+  typeset -a matches; matches=("${(f)$(find "$OUT" -name "$base.js" 2>/dev/null)}")
+  [[ ${#matches[@]} -eq 1 && -z "${matches[1]}" ]] && matches=()
+
+  js=""
+  if [[ ${#matches[@]} -eq 0 ]]; then
+    echo "FAIL: no emitted $base.js under $OUT"; FAIL=1; continue
+  elif [[ ${#matches[@]} -eq 1 ]]; then
+    js="${matches[1]}"
+  else
+    # Disambiguate by parent dir name matching the source file's parent dir.
+    parent="$(basename "$(dirname "$f")")"
+    typeset -a narrowed; narrowed=()
+    for m in "${matches[@]}"; do
+      [[ "$m" == */"$parent"/"$base.js" ]] && narrowed+=("$m")
+    done
+    if [[ ${#narrowed[@]} -eq 1 ]]; then
+      js="${narrowed[1]}"
+    else
+      echo "ambiguous basename; could not attribute: $base.js (${#matches[@]} candidates)"
+      for m in "${matches[@]}"; do echo "  candidate: $m"; done
+      allnewer=1
+      for m in "${matches[@]}"; do [[ "$m" -nt "$f" ]] || allnewer=0; done
+      if [[ $allnewer -eq 1 ]]; then
+        echo "PASS: ${#matches[@]} matches, all newer than $f"
+      else
+        echo "FAIL: ambiguous basename; could not attribute (not all candidates newer than $f)"
+        FAIL=1
+      fi
+      continue
+    fi
+  fi
+
   ok=0
   for i in {1..45}; do
     [[ "$js" -nt "$f" ]] && { ok=1; break; }
