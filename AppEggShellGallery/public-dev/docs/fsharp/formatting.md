@@ -746,6 +746,13 @@ treated as an outlier -- kept at a single space so it neither aligns nor drags t
 rest still align. Multi-line string/comment literals (including regular and verbatim strings that span
 lines) are never edited.
 
+**Record brace normalization** (structural levels, `--no-brace` to disable): the leading-brace style
+(`{ Field` sharing the first field's line) is reflowed to the canonical 2a/7 form -- `{` onto the
+`type X =` / `let x =` line, fields at +4, `}` on its own line -- then fields are aligned. Only records
+introduced by a line ending in `=`; skips record-updates (`{ x with`), object expressions, anonymous
+records, inline records, and blocks touching a multi-line string. Nested records handled. General
+bracket placement and line reflow remain out of scope.
+
 **Ignore files:** a gitignore-style `.eggshellfmtignore` (and `.fantomasignore`) in the working
 directory excludes files/globs; `--no-ignore` bypasses them.
 

@@ -55,16 +55,17 @@ type LetMode =
 
 type Config = {
     AlignStructural: bool
+    NormalizeBraces: bool
     Tolerance:       int
     LetMode:         LetMode
 }
 
 let configForLevel (level: string) : Config option =
     match level.ToLowerInvariant() with
-    | "whitespace" | "0" -> Some { AlignStructural = false; Tolerance = 0;      LetMode = Off }
-    | "conservative" | "1" -> Some { AlignStructural = true; Tolerance = 12;     LetMode = OptIn }
-    | "standard" | "2" -> Some { AlignStructural = true; Tolerance = 24;     LetMode = OptIn }
-    | "aggressive" | "3" -> Some { AlignStructural = true; Tolerance = 100000; LetMode = Force }
+    | "whitespace" | "0" -> Some { AlignStructural = false; NormalizeBraces = false; Tolerance = 0;      LetMode = Off }
+    | "conservative" | "1" -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 12;     LetMode = OptIn }
+    | "standard" | "2" -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 24;     LetMode = OptIn }
+    | "aggressive" | "3" -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 100000; LetMode = Force }
     | _ -> None
 
 let excl =
@@ -130,6 +131,100 @@ let maskLine (line: string) (state0: int) : string * int =
 
 let indentOf (line: string) = line.Length - line.TrimStart(' ').Length
 
+/// Column where a line's alignable key begins. Normally the indent, but for the
+/// leading-brace record style (`{ Field: T` / `{ Field = v`, first field sharing
+/// the opening brace's line) it is the column of the field name after `{ `, so
+/// such a line groups with the fields below it (which sit at that same column).
+let keyCol (masked: string) =
+    let t = masked.TrimStart(' ')
+    let indent = masked.Length - t.Length
+    if t.StartsWith "{ " then indent + (t.Length - t.Substring(1).TrimStart(' ').Length)
+    else indent
+
+let private reindent (line: string) (delta: int) =
+    if line.Trim() = "" then line
+    else
+        let ind = indentOf line
+        String(' ', max 0 (ind + delta)) + line.Substring(ind)
+
+/// One pass converting the leading-brace record style
+///   type X =                     type X = {
+///       { A: int          -->         A: int
+///         B: int }                    B: int
+///                                  }
+/// to the canonical section-2a/7 form. Only fires for a `{ Field...` block whose
+/// intro line ends with `=`; skips record-updates (`{ x with`), object/anonymous
+/// records, inline records, and any block touching a multi-line string/comment.
+/// Returns (newLines, changedAnything). Run to a fixed point for nested records.
+let normalizeBracesOnce (lines: string[]) : string[] * bool =
+    let n = lines.Length
+    let masked = Array.zeroCreate n
+    let startState = Array.zeroCreate n
+    let endState = Array.zeroCreate n
+    let mutable st = NORMAL
+    for i in 0 .. n - 1 do
+        startState.[i] <- st
+        let m, s = maskLine lines.[i] st
+        masked.[i] <- m
+        endState.[i] <- s
+        st <- s
+    let out = ResizeArray<string>()
+    let mutable changed = false
+    let mutable i = 0
+    while i < n do
+        let t = masked.[i].TrimStart(' ')
+        let after = if t.Length > 1 then t.Substring(1).TrimStart(' ') else ""
+        let looksBraceStart =
+            startState.[i] = NORMAL && endState.[i] = NORMAL
+            && t.StartsWith "{ " && not (t.StartsWith "{|")
+            && after.Length > 0 && (Char.IsLetter after.[0] || after.[0] = '_')
+            && not (Regex.IsMatch(t, @"\bwith\b"))
+            && out.Count > 0 && out.[out.Count - 1].TrimEnd().EndsWith "="
+        if not looksBraceStart then
+            out.Add lines.[i]
+            i <- i + 1
+        else
+            // find the matching close by brace depth over masked (braces in
+            // strings/comments are masked out, so they do not count)
+            let mutable depth = 0
+            let mutable closeLine = -1
+            let mutable closePos = -1
+            let mutable ok = true
+            let mutable j = i
+            while closeLine = -1 && ok && j < n do
+                if j > i && (startState.[j] <> NORMAL || endState.[j] <> NORMAL) then ok <- false
+                else
+                    let mj = masked.[j]
+                    let mutable p = 0
+                    while closeLine = -1 && p < mj.Length do
+                        if mj.[p] = '{' then depth <- depth + 1
+                        elif mj.[p] = '}' then
+                            depth <- depth - 1
+                            if depth = 0 then closeLine <- j; closePos <- p
+                        p <- p + 1
+                    j <- j + 1
+            let trailingClean =
+                closeLine >= 0 && masked.[closeLine].Substring(closePos + 1).Trim() = ""
+            if not ok || closeLine <= i || not trailingClean then
+                out.Add lines.[i]
+                i <- i + 1
+            else
+                let introIdx = out.Count - 1
+                let introIndent = indentOf out.[introIdx]
+                let fieldIndent = introIndent + 4
+                let delta = fieldIndent - keyCol masked.[i]
+                out.[introIdx] <- out.[introIdx].TrimEnd() + " {"
+                let firstField = lines.[i].TrimStart(' ').Substring(1).TrimStart(' ')
+                out.Add(String(' ', fieldIndent) + firstField)
+                for k in i + 1 .. closeLine - 1 do
+                    out.Add(reindent lines.[k] delta)
+                let before = lines.[closeLine].Substring(0, closePos).TrimEnd()
+                if before.Trim() <> "" then out.Add(reindent before delta)
+                out.Add(String(' ', introIndent) + "}")
+                changed <- true
+                i <- closeLine + 1
+    out.ToArray(), changed
+
 let findAssignEq (masked: string) =
     let mutable res = -1
     let mutable k = 1
@@ -167,7 +262,12 @@ let classify (masked: string) (real: string) : string option =
         let eqk = findAssignEq masked
         if eqk <> -1 && hasContentAfter real eqk 1 then Some "let" else None
     else
-        let fw = firstWord mb
+        // Leading-brace record style: `{ Field: T` / `{ Field = v` shares a line
+        // with the opening brace. Strip the `{ ` to find the field name (but not
+        // an inline record `{ A = 1 }`, which closes on the same line).
+        let braceLed = mb.StartsWith "{ " && not (mb.Contains "}")
+        let fieldMb = if braceLed then mb.Substring(1).TrimStart() else mb
+        let fw = firstWord fieldMb
         if fw <> "" && not (excl.Contains fw) then
             let trailingComma = masked.TrimEnd().EndsWith ","
             let eqk = findAssignEq masked
@@ -276,12 +376,30 @@ let formatSource (cfg: Config) (src0: string) : string =
             let joined = lead + stripped
             real.[i] <- if opensMultiline.[i] then joined else joined.TrimEnd()
 
+    // Pass 1.5: brace normalization (leading-brace record style -> section 2a).
+    // Runs to a fixed point so nested records fully convert; changes line count.
+    let real =
+        if cfg.NormalizeBraces then
+            let mutable arr = real
+            let mutable go = true
+            let mutable guard = 0
+            while go && guard < 100 do
+                let a, ch = normalizeBracesOnce arr
+                arr <- a
+                go <- ch
+                guard <- guard + 1
+            arr
+        else real
+    let n = real.Length
+
     let masked = Array.zeroCreate n
+    let protectedLine = Array.init n (fun _ -> false)
     st <- NORMAL
     for i in 0 .. n - 1 do
-        startState.[i] <- st
+        let ss = st
         let m, s = maskLine real.[i] st
         masked.[i] <- m
+        protectedLine.[i] <- ss <> NORMAL
         st <- s
 
     // Pass 2: alignment runs (skipped entirely at the whitespace level).
@@ -294,12 +412,12 @@ let formatSource (cfg: Config) (src0: string) : string =
                 match classify masked.[i] real.[i] with
                 | None -> i <- i + 1
                 | Some kind ->
-                    let ind = indentOf real.[i]
+                    let ind = keyCol masked.[i]
                     let run = ResizeArray<int>()
                     run.Add i
                     let mutable j = i + 1
                     let mutable go = true
-                    while go && j < n && not protectedLine.[j] && real.[j].Trim() <> "" && indentOf real.[j] = ind do
+                    while go && j < n && not protectedLine.[j] && real.[j].Trim() <> "" && keyCol masked.[j] = ind do
                         if classify masked.[j] real.[j] = Some kind then run.Add j; j <- j + 1
                         else go <- false
                     let runL = List.ofSeq run
@@ -388,7 +506,7 @@ let rec enumerateFs (patterns: (bool * Regex) list) (root: string) (path: string
 
 let usage () =
     eprintfn "usage: eggshell-fmt [--level <whitespace|conservative|standard|aggressive|0-3>]"
-    eprintfn "                    [--check] [--quiet] [--no-ignore] <file.fs | dir> ..."
+    eprintfn "                    [--check] [--quiet] [--no-ignore] [--no-brace] <file.fs | dir> ..."
 
 [<EntryPoint>]
 let main argv =
@@ -408,7 +526,8 @@ let main argv =
         eprintfn "error: unknown --level '%s'" levelArg
         usage ()
         2
-    | Some cfg ->
+    | Some cfg0 ->
+        let cfg = if argv |> Array.contains "--no-brace" then { cfg0 with NormalizeBraces = false } else cfg0
         // positional paths: not a flag, and not the value consumed by --level
         let levelValueIdx =
             match argv |> Array.tryFindIndex (fun a -> a = "--level" || a = "-l") with

@@ -111,6 +111,24 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.4.0): the tool now **normalizes record braces itself** (no Fantomas). Leading-brace
+records (`type X =` then `{ Field ... }`) are reflowed to the canonical 2a/7 layout (`{` onto the `=`
+line, fields at +4, `}` on its own line) before alignment. Implemented as a fixed-point pre-pass
+(`normalizeBracesOnce`) using masked brace-depth to find the matching close; conservative guards skip
+record-updates (`{ x with`), object expressions, `{| |}`, inline records, and any block touching a
+multi-line string. `--no-brace` disables it; it is on for structural levels. Validated by parsing the
+whole formatted `LibClient/src` (299 files) with FSharp.Compiler.Service: **0 syntax errors** (same as
+baseline), idempotent, 169 files changed, 0 runtime errors. Brace *placement* is therefore no longer a
+Fantomas dependency for records; general bracket placement / line reflow still are.
+
+Earlier (v1.3.0): leading-brace record style wasn't aligning its first field. In `{ Kind: T` /
+`{ Id = v` (first field sharing the opening brace's line), the field line starts with `{`, so it wasn't
+classified as a field and sat at a different raw indent from the fields below -- excluded from the
+group. Fix: classify strips a leading `{ ` to find the field, and run-grouping keys on `keyCol` (the
+field-name column, after `{ ` when present) instead of raw indent, so the brace line groups with the
+fields under it. Both brace styles now align the first field. Brace *placement* (moving `{`/`}` to their
+own lines) remains Fantomas's job. Pristine-tree run unchanged at 169 files, idempotent.
+
 ---
 
 ## 2026-07-11 (session 16 -- reduce-motion a11y fallbacks + stale-cache false-green + vision delegation)

@@ -42,6 +42,21 @@ very long record field name, or `| _ ->` beside a long pattern) is treated as an
 single space, so it neither aligns nor drags the block out; the rest still align. Follows the spec's
 "align ... when it significantly aids readability". `aggressive` disables relaxation.
 
+## Record brace normalization (structural levels; `--no-brace` to disable)
+
+The leading-brace style is reflowed to the canonical section-2a/7 form, then fields align:
+
+```
+type UiAction =                type UiAction = {
+    { Kind: UiActionKind   ->      Kind:      UiActionKind
+      Timestamp: int64 }           Timestamp: int64
+                               }
+```
+
+Only records introduced by a line ending in `=`. Skips `{ x with`, object expressions, `{| |}`, inline
+records, and blocks touching a multi-line string. Nested records handled. General bracket placement /
+line reflow is still not done (that's Fantomas).
+
 ## Ignore files
 
 `.eggshellfmtignore` (gitignore-style: globs, `#` comments, `!` negation, trailing `/` for dirs) in the
