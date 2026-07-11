@@ -7,6 +7,11 @@ PLAT="${1:-}"; shift 2>/dev/null || true
 URL=""; APPID=""; DUR=20; OUT="${TMPDIR:-/tmp}/capture-$(date +%H%M%S)"
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --url|--app|--duration|--out)
+      [[ $# -ge 2 ]] || { echo "usage: capture-session.sh {android|ios} [--url u] [--app id] [--duration N] [--out dir]"; exit 2; }
+      ;;
+  esac
+  case "$1" in
     --url) URL="$2"; shift 2 ;;
     --app) APPID="$2"; shift 2 ;;
     --duration) DUR="$2"; shift 2 ;;
@@ -42,7 +47,7 @@ fi
 echo "--- summary ($OUT) ---"
 echo "screenshots: $OUT/before.png $OUT/after.png"
 for bucket in "FATAL EXCEPTION" "Uncaught" "ReactNativeJS" "error"; do
-  C=$(grep -ic "$bucket" "$LOG" 2>/dev/null || echo 0)
-  echo "$bucket: $C"
+  C=$(grep -ic "$bucket" "$LOG" 2>/dev/null)
+  echo "$bucket: ${C:-0}"
 done
 echo "full log: $LOG (grep the buckets above for detail)"

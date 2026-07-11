@@ -27,8 +27,8 @@ verified; a screenshot of the working feature is.
 5. **Capture:** `scripts/capture-session.sh {android|ios} [--url <deeplink>] [--duration N]`
    records logs for the whole window + before/after screenshots. Web: observe snapshot captures
    screenshot + console + health.
-6. **Analyse:** the capture summary buckets FATAL / error / warn / ReactNativeJS. Zero fatals and
-   the expected UI in screenshots = PASS. Anything else: report evidence, do not claim done.
+6. **Analyse:** the capture summary buckets FATAL EXCEPTION / Uncaught / ReactNativeJS / error. Zero
+   fatals and the expected UI in screenshots = PASS. Anything else: report evidence, do not claim done.
 7. Repeat for landscape (`android-observe.sh rotate landscape`, or observe --orientation).
 
 ## Reporting
