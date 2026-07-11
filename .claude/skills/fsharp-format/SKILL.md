@@ -109,8 +109,9 @@ run Fantomas in `--check`/strict mode on aligned files: it flags the manual alig
 - **DU case with a function-typed payload** (`| Fn of (int -> int)`): the block is left unaligned
   rather than risk misreading the inner `->`. Align by hand if desired.
 - **A match split by blank lines**: each blank-separated segment aligns independently.
-- **Function params / named-args** (`name: Type,` / `name = value,` with trailing commas): left
-  untouched on purpose. Rules 2a/7 cover records only; records never use commas between fields.
+
+Multi-line named arguments and parameters (`name = value,` / `name: Type,`) are aligned like record
+fields (with relaxation + never-degrade).
 
 ## The alignment rules by hand (rare cases you edit without the tool)
 

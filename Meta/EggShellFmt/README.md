@@ -105,7 +105,8 @@ idempotent and this tool never calls Fantomas.
 - DU case with a function-typed payload (`| Fn of (int -> int)`) is left unaligned rather than risk
   the inner `->`.
 - A match split by blank lines aligns each blank-separated segment independently.
-- Function params / named-args (`name: Type,` / `name = value,` with trailing commas) are left
-  untouched; rules 2a/7 cover records, which never use commas between fields.
+
+Multi-line named arguments and parameters (`name = value,` / `name: Type,`) are aligned the same way as
+record fields.
 
 Wrapped by the `fsharp-format` skill.

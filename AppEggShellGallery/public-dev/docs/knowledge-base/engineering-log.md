@@ -111,6 +111,14 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.4.1): named-argument / parameter lists now align like record fields. The v1.1 trailing-
+comma exclusion (meant to keep call args untouched) was inconsistent: the *last* argument has no comma,
+so it was still classified and normalized to one space while the comma lines were skipped -- breaking
+the alignment on exactly one line (reported on `Legacy/TopNav/ShowSidebarButton` where `icon =` lost its
+padding relative to `state =`). Removed the exclusion; `name = value,` / `name: Type,` now group and
+align with relaxation + never-degrade preservation. Pristine `LibClient/src`: 207 files changed (up from
+169), 0 runtime errors, idempotent, and FCS parse of all 299 files still reports 0 syntax errors.
+
 Follow-up (v1.4.0): the tool now **normalizes record braces itself** (no Fantomas). Leading-brace
 records (`type X =` then `{ Field ... }`) are reflowed to the canonical 2a/7 layout (`{` onto the `=`
 line, fields at +4, `}` on its own line) before alignment. Implemented as a fixed-point pre-pass

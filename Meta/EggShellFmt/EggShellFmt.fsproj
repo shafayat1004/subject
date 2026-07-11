@@ -10,7 +10,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>eggshell-fmt</ToolCommandName>
     <PackageId>EggShellFmt</PackageId>
-    <Version>1.4.0</Version>
+    <Version>1.4.1</Version>
     <PackageOutputPath>$(MSBuildThisFileDirectory)nupkg</PackageOutputPath>
     <Description>EggShell F# column-alignment formatter (the alignment rules Fantomas cannot do).</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

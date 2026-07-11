@@ -269,13 +269,17 @@ let classify (masked: string) (real: string) : string option =
         let fieldMb = if braceLed then mb.Substring(1).TrimStart() else mb
         let fw = firstWord fieldMb
         if fw <> "" && not (excl.Contains fw) then
-            let trailingComma = masked.TrimEnd().EndsWith ","
+            // Aligns record fields (`Name: T` / `Name = v`) AND multi-line named
+            // arguments / parameters (`name = value,` / `name: Type,`). A trailing
+            // comma must NOT exclude the line: otherwise the last item of an arg
+            // list (which has no comma) is aligned while the comma lines are
+            // skipped, breaking the group. Relaxation + never-degrade keep it sane.
             let eqk = findAssignEq masked
-            if eqk <> -1 && hasContentAfter real eqk 1 && not trailingComma then
+            if eqk <> -1 && hasContentAfter real eqk 1 then
                 Some "field_eq"
             else
                 let ck = findFieldColon masked
-                if ck <> -1 && (eqk = -1 || ck < eqk) && hasContentAfter real ck 1 && not trailingComma then
+                if ck <> -1 && (eqk = -1 || ck < eqk) && hasContentAfter real ck 1 then
                     Some "field_colon"
                 else None
         else None

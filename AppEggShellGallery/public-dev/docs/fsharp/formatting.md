@@ -731,10 +731,10 @@ dotnet tool run eggshell-fmt -- --check LibClient/src    # CI: exit 3 if anythin
 
 Enforces 2a (record `:`), 2b (DU `of`), 2c (match `->`, only when all arms inline), and 7 (record
 literal `=`). The `=` binding-group rules **2d (let/and) and 13 (CE let!/and!) are opt-in** by default:
-a group is aligned only when the author already aligned it (>1 space before an `=`). It masks
-strings/comments before scanning (never edits inside them), leaves function params / named-args
-(trailing comma) alone, and is idempotent. It does not reflow lines or fix operator spacing -- run
-Fantomas for that. See the `fsharp-format` skill.
+a group is aligned only when the author already aligned it (>1 space before an `=`). Multi-line named
+arguments and parameters (`name = value,` / `name: Type,`) are aligned like record fields. It masks
+strings/comments before scanning (never edits inside them) and is idempotent. It does not reflow lines
+or fix operator spacing -- run Fantomas for that. See the `fsharp-format` skill.
 
 **Aggressiveness levels** (`--level`, default `standard`): `whitespace|0` (normalization only),
 `conservative|1` (tolerance 12), `standard|2` (tolerance 24), `aggressive|3` (forces let/CE and aligns
