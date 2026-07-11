@@ -261,19 +261,22 @@ type LibClient.Components.Constructors.LC with
                     |> min (segmentCount - 1)
                 selectIndex index
 
+        let segmentLabelColor (isActive: bool) =
+            if isActive then theTheme.SelectedLabelColor
+            else theTheme.UnselectedLabelColor
+
+        let segmentTestIdFor (segment: Segment<'T>) =
+            segment.TestIdSuffix
+            |> Option.map (fun suffix ->
+                match testId with
+                | Some root -> sprintf "%s-%s" root suffix
+                | None -> A11ySlug.testId "segmented-control" suffix)
+            |> Option.orElse testId
+
         let renderSegment (index: int) (segment: Segment<'T>) =
             let isActive = index = selectedIndex
-            let labelColor =
-                if isActive then theTheme.SelectedLabelColor
-                else theTheme.UnselectedLabelColor
-
-            let segmentTestId =
-                segment.TestIdSuffix
-                |> Option.map (fun suffix ->
-                    match testId with
-                    | Some root -> sprintf "%s-%s" root suffix
-                    | None -> A11ySlug.testId "segmented-control" suffix)
-                |> Option.orElse testId
+            let labelColor = segmentLabelColor isActive
+            let segmentTestId = segmentTestIdFor segment
 
             Rn.View(
                 styles = [| Styles.segmentCell cellWidth |],
@@ -282,6 +285,30 @@ type LibClient.Components.Constructors.LC with
                 accessibilityLabel = segment.Label,
                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.Yes,
                 ?testId = segmentTestId,
+                children = [|
+                    LC.UiText(
+                        value = segment.Label,
+                        styles = [| Styles.segmentLabel labelColor |]
+                    )
+                |]
+            )
+
+        // Reduce-motion / non-draggable fallback: the thumb slide is replaced by a static thumb, but
+        // each segment must stay tappable (rule 12 -- reduce-motion only skips decorative motion, not
+        // interaction). GestureView uses the JS responder system which is fine here because there is
+        // no competing native ScrollView inside the track.
+        let renderPressableSegment (index: int) (segment: Segment<'T>) =
+            let isActive = index = selectedIndex
+            let labelColor = segmentLabelColor isActive
+            let segmentTestId = segmentTestIdFor segment
+
+            LC.Pressable(
+                onPress = (fun _ -> selectIndex index),
+                label = segment.Label,
+                role = AccessibilityRole.Radio,
+                state = AccessibilityStateRecord.selected isActive,
+                ?testId = segmentTestId,
+                styles = [| Styles.segmentCell cellWidth |],
                 children = [|
                     LC.UiText(
                         value = segment.Label,
@@ -332,7 +359,7 @@ type LibClient.Components.Constructors.LC with
                                     [|
                                         yield!
                                             segments
-                                            |> Array.mapi (fun index segment -> renderSegment index segment)
+                                            |> Array.mapi (fun index segment -> renderPressableSegment index segment)
                                     |]
                             )
                     |]

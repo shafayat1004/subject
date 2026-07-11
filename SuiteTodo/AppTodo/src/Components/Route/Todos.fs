@@ -367,6 +367,7 @@ type private Helpers =
                             children = [|
                                 LC.TextButton(
                                     label = todoActionLabel todo i18n.t.DeleteActionFormat,
+                                    numberOfLines = 1,
                                     styles = [| Styles.swipeDeleteButtonText |],
                                     state = deleteButtonState,
                                     testId = todoItemTestId todo "delete"

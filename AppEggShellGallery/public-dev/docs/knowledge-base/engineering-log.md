@@ -4,6 +4,63 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-11 (session 16 -- reduce-motion a11y fallbacks + stale-cache false-green + vision delegation)
+
+Diagnosed and fixed a "UI looks like an old build" report on AppTodo Android that was NOT a stale
+bundle and NOT a code revert -- it was reduce-motion mode triggering broken a11y fallback paths.
+
+**Stale-cache false-green (re-confirmed).** First `eggshell build-native` printed only warnings +
+`completed!` and exited 0, but had silently served cached `.build/native/fable` output (no
+`Started Fable compilation...` line -- missed because I tailed). The embedded JS bundle was therefore
+from an old Fable compile, predating the Reanimated 4 seam / SegmentedControl / swipe fixes. Only
+`rm -rf .build/native/fable` + rebuild produced current code (bundle MD5 `c1e9dc7e...` ->
+`5fcc7a70...`). The fable-rebuild-verify skill already documents this; reinforced here: the proof
+gate's "Started Fable compilation..." check is mandatory, and tailing the build output hides it --
+grep for the literal string.
+
+**Reduce-motion is real on Android and breaks underimplemented fallbacks.** The POCO F1 had
+Developer Options animations disabled (all three `*_duration_scale` settings = 0.0). React Native's
+`AccessibilityInfo.isReduceMotionEnabled` returns `true` on Android when
+`ANIMATOR_DURATION_SCALE == 0`. So `LC.With.ReducedMotion` returned `true`, and two components had
+fallback paths that dropped functionality instead of just skipping decorative motion (rule 12
+violation -- reduce-motion is a legitimate a11y scenario; users disable animations on purpose):
+
+1. `SegmentedControl` (`LibClient/src/Components/SegmentedControl/SegmentedControl.fs`): the
+   reduce-motion branch rendered segments inside a plain `Rn.View` with no `GestureView` -> no tap
+   handler at all -> the dark mode toggle (and every SegmentedControl) was non-interactive when
+   reduce-motion was on. Fix: wrap each segment in `LC.Pressable` with `onPress -> selectIndex`,
+   keeping `role = Radio` + `selected` state + label + `minHeight 44` target. Only the thumb SLIDE
+   animation is replaced by a static thumb (already done). The animated path is unchanged.
+
+2. `TodoSwipeShell` (`SuiteTodo/AppTodo/src/Components/Route/Todos.fs`): the reduce-motion branch
+   rendered content + delete side-by-side statically (a legitimate gesture alternative), but the
+   layout blew out -- a full-width red delete block, content squeezed to a sliver, row overflowing
+   the screen, priority badge wrapping one char per line. Root cause: `swipeReducedMotionDelete`
+   had `minWidth 72` + `AlignSelf.Stretch` (delete grew unbounded) and content's `flex 1 minWidth 0`
+   lost. Fix: `width 72` + `flexShrink 0` + `Overflow.Hidden` on delete; `numberOfLines = 1` on the
+   delete `LC.TextButton` so the long `todoActionLabel` (includes the todo title) truncates instead
+   of growing the button. Styles in `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs`.
+
+**Pre-existing Pressable testId casing bug, exposed by fix 1.** Switching SegmentedControl to
+`LC.Pressable` revealed that `AccessibilityHelpers.applyToProps` set `props?testId` (lowercase d)
+-- RN's native prop is `testID` (capital ID). `Rn.View` maps `testId -> testID` internally via
+`RnPrimitives.assignTestId`, but `LC.Pressable` goes through `applyToProps` directly, so every
+Pressable's testId was silently dropped (`resource-id=""` in uiautomator). One-line fix:
+`props?testID <- v`. Affects all Pressable-based components' automation testIds; screen-reader
+name/role/state were never affected (those use correctly-cased props).
+
+**Reproduce reduce-motion on device:** `adb shell settings put global animator_duration_scale 0.0`
+(+ `window_animation_scale`, `transition_animation_scale`), relaunch app. Re-enable with `1.0`.
+Normal-path and reduce-motion-path must BOTH work (tap toggle -> `selected` flips; swipe row shows
+compact delete + full content). Verified via uiautomator dumps + a vision model describing the
+screenshots (see new `screenshot-describe` skill).
+
+**Vision delegation.** The orchestrator model cannot read images. Installed a `screenshot-describe`
+skill (`.claude/skills/screenshot-describe/`) that pipes a screenshot to the `claude` CLI
+(`echo "<prompt>" | claude -p --input-format text <image.png>`) -- the only working invocation;
+`claude -p "prompt" <image>` and `--file <image>` both fail ("No screenshot attached"). Use it for
+any UI screenshot analysis (broken layout, visual regression, a11y state verification).
+
 ## 2026-07-11 (session 15 -- project skills + F# formatting burn-in under .claude/skills/)
 
 Packaged the recurring RNW-modernization workflows as invocable Claude skills under `.claude/skills/`,

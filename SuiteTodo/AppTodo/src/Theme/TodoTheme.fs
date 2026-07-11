@@ -491,7 +491,7 @@ module Styles =
 
     let swipeReducedMotionDelete =
         makeViewStyles {
-            minWidth 72
+            width 72
             minHeight 44
             paddingHorizontal 14
             borderRadius 16
@@ -499,7 +499,7 @@ module Styles =
             AlignItems.Center
             backgroundColor (Color.Hex "#dc2626")
             flexShrink 0
-            AlignSelf.Stretch
+            Overflow.Hidden
         }
 
     let metaChip =

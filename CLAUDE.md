@@ -156,8 +156,8 @@ non-trivial F# edit. Hard rules (rule number in parens):
 
 Procedure skills live in `.claude/skills/` and wrap the runbooks (rule 11): `fable-rebuild-verify`,
 `debug-android`, `debug-ios`, `debug-web`, `style-leak-audit`, `a11y-check`, `docs-sync`,
-`gallery-page-add`, `release-build`, `verify-feature`. Prefer invoking the matching skill over
-improvising commands.
+`gallery-page-add`, `release-build`, `verify-feature`, `screenshot-describe`. Prefer invoking the
+matching skill over improvising commands.
 
 ## Build & validate
 

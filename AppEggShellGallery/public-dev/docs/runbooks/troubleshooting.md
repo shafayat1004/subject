@@ -20,6 +20,40 @@ Related: [Build and rebuild](./runbooks/build-rebuild.md) | [Dev loop](./runbook
 | Android crash: `Invalid accessibility role value: banner` (or `group`, `listitem`, `list`, etc.) | `mapRoleToString` returned an ARIA web role not in Android RN's `accessibilityRole` enum | `"banner"` fixed to `"header"`. Web-only ARIA roles (`list`, `listitem`, `listbox`, `group`, `log`, `status`, `dialog`, `option`, `main`, `navigation`, `complementary`) now return `None` on native via `#if EGGSHELL_PLATFORM_IS_WEB` guard. |
 | Android crash: `java.lang.Double cannot be cast to java.lang.String` on `accessibilityRole` | Raw F# int enum passed directly to `props?accessibilityRole` | Always pipe through `ReactXP.RNSeam.mapAccessibilityRole` before setting: `accessibilityRole \|> Option.bind RNSeam.mapAccessibilityRole \|> Option.iter (fun v -> props?accessibilityRole <- v)`. |
 | Android crash: `java.lang.String cannot be cast to java.lang.Double` on `lineHeight` in `RCTText` | `RNSeam.createTextStyle` appended `"px"` to numeric `lineHeight` on all platforms | Fixed: lineHeight-to-string conversion is now web-only (`#if EGGSHELL_PLATFORM_IS_WEB`). Native path keeps `lineHeight` as a number. |
+| `LC.Pressable` element has `resource-id=""` / missing `testID` in uiautomator | `AccessibilityHelpers.applyToProps` set `props?testId` (lowercase d); RN's native prop is `testID` (capital ID). `Rn.View` maps the casing internally, but `LC.Pressable` goes through `applyToProps` directly | Fixed: `applyToProps` now sets `props?testID <- v`. Affects all Pressable-based components' automation testIds (screen-reader name/role/state were never affected). |
+
+---
+
+## Reduce motion {#reduce-motion}
+
+Reduce-motion is a legitimate accessibility scenario, not a debug mode. On Android, React Native's
+`AccessibilityInfo.isReduceMotionEnabled` returns `true` when `ANIMATOR_DURATION_SCALE == 0`
+(developer-options "Disable animations" sets all three `*_duration_scale` globals to 0). Some
+users run this permanently. `LC.With.ReducedMotion` therefore returns `true` on such devices, so
+EVERY component's reduce-motion fallback path must keep functionality and only skip decorative
+motion (rule 12). Verify reduce-motion paths as routinely as the normal path.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Toggle / segmented control dead when device has animations off | Reduce-motion branch rendered segments without any tap handler (only the thumb animation was supposed to be skipped) | Keep per-segment tap (e.g. `LC.Pressable` with `onPress -> selectIndex`); only the animated thumb slide becomes a static thumb. See `SegmentedControl.fs`. |
+| Swipe-to-delete row renders as a huge full-width red block, content squeezed to a sliver, row overflows screen, when animations off | Reduce-motion fallback rendered content + delete side-by-side but delete grew unbounded (`minWidth` + `AlignSelf.Stretch`) and the long delete label expanded it | Cap delete width (`width 72` + `flexShrink 0` + `Overflow.Hidden`), `numberOfLines = 1` on the delete button; content keeps `flex 1 minWidth 0`. The always-visible delete is the correct gesture alternative -- just size it. See `TodoTheme.fs` `swipeReducedMotion*`. |
+| UI "looks like an old build" but bundle MD5 is current / code is not reverted | Device in reduce-motion mode triggering underimplemented fallback paths -- NOT a stale bundle or revert | Check `adb shell settings get global animator_duration_scale` (0.0 = reduce-motion on). Reproduce by setting all three scales to 0.0 + relaunch; fix the fallback path, not the normal one. |
+
+### Reproduce / verify reduce-motion on Android
+
+```
+adb shell settings put global animator_duration_scale 0.0
+adb shell settings put global window_animation_scale 0.0
+adb shell settings put global transition_animation_scale 0.0
+adb shell am force-stop <pkg> && adb shell monkey -p <pkg> -c android.intent.category.LAUNCHER 1
+# ... exercise the UI ...
+adb shell settings put global animator_duration_scale 1.0   # re-enable
+adb shell settings put global window_animation_scale 1.0
+adb shell settings put global transition_animation_scale 1.0
+```
+Proof the fallback works: tap a segmented control segment and confirm its `selected` attribute
+flips (via `uiautomator dump`); confirm a swipe row shows compact delete + full content. Both the
+reduce-motion path AND the normal (animations-on) path must work.
 
 ---
 
@@ -28,6 +62,7 @@ Related: [Build and rebuild](./runbooks/build-rebuild.md) | [Dev loop](./runbook
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Skipped compilation because all generated files are up-to-date!`, edit ignored | Fable cache false-green; exits 0 without type-checking | `touch` the changed `.fs` / `rm -rf .build/<platform>/fable`; confirm `Started Fable compilation...` and no `error FS`. |
+| `eggshell build-native` exits 0, app "looks like an old build", bundle MD5 matches a PRE-fix compile | Fable served cached `.build/native/fable` output; the run printed warnings + `completed!` but never emitted `Started Fable compilation...` (easy to miss when tailing output) | `rm -rf .build/native/fable` + rebuild. Grep the build log for the literal `Started Fable compilation...` rather than scanning by eye. Compare the regenerated bundle MD5 before/after -- if identical after a source change, the cache was served. |
 | Build green, but change not visible on device | App not reloaded, or Metro cached old bundle | Reload app; Metro `--reset-cache`; verify with `curl .../index.bundle... | grep -c <marker>`. |
 | `.fsproj` edit ignored by watch | Fable does not watch `.fsproj` | Restart `dev-native` (or `dev-web`). |
 | `Directory is locked, waiting for max 600s` | Prior `dotnet fable` run left `.build/web/fable/fable.lock` | Delete `LibStandard/.build/web/fable/fable.lock`; kill stray `dotnet fable` processes; confirm `dotnet fable --version` is `5.4.0`; wipe `.build/web/fable` after a tool bump. |
