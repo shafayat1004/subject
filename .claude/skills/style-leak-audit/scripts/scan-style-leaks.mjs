@@ -21,15 +21,62 @@ function* fsFiles(p) {
 let count = 0;
 const report = (file, line, cat, msg) => { count++; console.log(`${file}:${line} [${cat}] ${msg}`); };
 
+const indent = (l) => l.match(/^ */)[0].length;
+
+function checkInRender(lines, i, file) {
+  const n = i + 1;
+  const line = lines[i];
+
+  // 1. Inline style array leak: `styles = [| ... makeViewStyles ... |]` on the same line.
+  if (/styles\s*=\s*\[\|/.test(line)) {
+    report(file, n, 'INLINE-LEAK', 'make*Styles inline in a styles=[| ... |] array (runs during render)');
+    return;
+  }
+
+  // 2. Memoized nearby (within 3 lines above through current line) -> OK.
+  const nearMemoize = lines.slice(Math.max(0, i - 3), i + 1).some(l => /Memoize/.test(l));
+  if (nearMemoize) return;
+
+  // 3. Find the enclosing binding line B by scanning upward for `let`/`and`.
+  let bindIdx = -1;
+  for (let j = i; j >= 0; j--) {
+    if (/^(\s*)(let|and)\s+\S/.test(lines[j])) { bindIdx = j; break; }
+  }
+  if (bindIdx === -1) return; // no binding found; stay quiet
+  const bindIndent = indent(lines[bindIdx]);
+
+  // 4. Scan upward from B-1 for an enclosing render marker at indent < bindIndent.
+  let renderMarker = false;
+  for (let j = bindIdx - 1; j >= 0; j--) {
+    const lj = lines[j];
+    if (/^\s*$/.test(lj)) continue; // skip blank lines
+    const ij = indent(lj);
+    if (ij < bindIndent) {
+      if (/(\[<Component>\]|static member|member\s|Pointer\.State|With\.ScreenSize)/.test(lj)) {
+        renderMarker = true;
+        break;
+      } else if (/^\s*module\b/.test(lj) || ij === 0) {
+        break; // reached clean module/top-level scope
+      }
+    }
+  }
+
+  // 5. Decision.
+  if (renderMarker) {
+    report(file, n, 'IN-RENDER?', 'make*Styles inside a component body / callback (runs during render); hoist to top-level let or Memoize');
+  } else if (bindIndent <= 4) {
+    // top-level or module-level static; OK
+  } else {
+    // indented helper binding, no render evidence; stay quiet to avoid noise
+  }
+}
+
 for (const file of fsFiles(target)) {
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
     const n = i + 1;
     if (/make(View|Text)Styles/.test(line) && !/^\s*\/\//.test(line)) {
-      const topLevel = /^let\s/.test(line) || /^\s{0,4}let\s+\w+\s*=\s*make(View|Text)Styles/.test(line) && !/^\s{5,}/.test(line);
-      const nearMemoize = lines.slice(Math.max(0, i - 3), i + 1).some(l => /Memoize/.test(l));
-      if (!topLevel && !nearMemoize)
-        report(file, n, 'IN-RENDER?', 'make*Styles not at top level and not memoized; if this runs during render it is a leak');
+      checkInRender(lines, i, file);
     }
     const memo = line.match(/(View|Text)Styles\.Memoize\s*\(\s*fun\s*\(?([^)-]*)/);
     if (memo) {
