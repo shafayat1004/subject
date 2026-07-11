@@ -11,11 +11,16 @@ else
   exit 0
 fi
 if [[ -d "$APP/.build/web/fable" ]]; then
-  NEWSRC=$(find "$APP/src" -name "*.fs" -newer "$APP/.build/web/fable" 2>/dev/null | head -5)
-  if [[ -n "$NEWSRC" ]]; then
-    echo "WARN: sources newer than web build output (stale bundle?); run fable-rebuild-verify:"
-    echo "$NEWSRC"
+  REF=$(find "$APP/.build/web/fable" -type f -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1)
+  if [[ -z "$REF" ]]; then
+    echo "WARN: no build output files under $APP/.build/web/fable (build never ran?)"
   else
-    echo "bundle freshness OK"
+    NEWSRC=$(find "$APP/src" -name "*.fs" -newer "$REF" 2>/dev/null | head -5)
+    if [[ -n "$NEWSRC" ]]; then
+      echo "WARN: sources newer than newest web build output (stale bundle?); run fable-rebuild-verify:"
+      echo "$NEWSRC"
+    else
+      echo "bundle freshness OK"
+    fi
   fi
 fi
