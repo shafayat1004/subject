@@ -1,5 +1,6 @@
 .cursor/
-.claude/
+.claude/*
+!.claude/skills/
 
 # OS-specific metadata
 .DS_Store
