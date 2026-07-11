@@ -16,7 +16,7 @@ dotnet pack "$here/EggShellFmt.fsproj" -c Release
 
 # Install or update the tool in the local manifest.
 cd "$repo_root"
-dotnet tool update --local EggShellFmt --version 1.5.0
+dotnet tool update --local EggShellFmt --version 1.5.1
 
 echo
 echo "Installed. Try:  dotnet tool run eggshell-fmt -- --check LibClient/src"

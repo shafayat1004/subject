@@ -111,6 +111,12 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.5.1): optional parameters (`?label: string`) were dropping out of param alignment groups
+because field detection read the first token with `^[A-Za-z_]`, which fails on the leading `?`. Now the
+`?` is stripped before reading the field name, so optional params align with the rest (and a stray
+space before the colon, `?styles :`, is normalized). Pristine `LibClient/src`: 213 files, idempotent, 0
+syntax errors.
+
 Follow-up (v1.5.0): consecutive single-pipe statements (`expr |> f`) now align on `|>` -- a new
 convention added to the spec as section 2e (`key |> ignore` / `children |> ignore` /
 `xLegacyStyles |> ignore`). It was NOT previously in formatting.md (section 2 scoped alignment to type

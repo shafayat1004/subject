@@ -267,7 +267,10 @@ let classify (masked: string) (real: string) : string option =
         // with the opening brace. Strip the `{ ` to find the field name (but not
         // an inline record `{ A = 1 }`, which closes on the same line).
         let braceLed = mb.StartsWith "{ " && not (mb.Contains "}")
-        let fieldMb = if braceLed then mb.Substring(1).TrimStart() else mb
+        let fieldMb0 = if braceLed then mb.Substring(1).TrimStart() else mb
+        // Optional parameters (`?label: string`) start with `?`; strip it so the
+        // field name is found and the param joins the alignment group.
+        let fieldMb = if fieldMb0.StartsWith "?" then fieldMb0.Substring(1) else fieldMb0
         let fw = firstWord fieldMb
         // Aligns record fields (`Name: T` / `Name = v`) AND multi-line named
         // arguments / parameters (`name = value,` / `name: Type,`). A trailing
