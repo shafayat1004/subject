@@ -730,11 +730,21 @@ dotnet tool run eggshell-fmt -- --check LibClient/src    # CI: exit 3 if anythin
 ```
 
 Enforces 2a (record `:`), 2b (DU `of`), 2c (match `->`, only when all arms inline), and 7 (record
-literal `=`) always. The `=` binding-group rules **2d (let/and) and 13 (CE let!/and!) are opt-in**:
-a group is aligned only when the author already aligned it (>1 space before an `=`), so the tool
-never imposes let-alignment. It masks strings/comments before scanning (never edits inside them),
-leaves function params / named-args (trailing comma) alone, and is idempotent. It does not reflow
-lines or fix operator spacing -- run Fantomas for that. See the `fsharp-format` skill.
+literal `=`). The `=` binding-group rules **2d (let/and) and 13 (CE let!/and!) are opt-in** by default:
+a group is aligned only when the author already aligned it (>1 space before an `=`). It masks
+strings/comments before scanning (never edits inside them), leaves function params / named-args
+(trailing comma) alone, and is idempotent. It does not reflow lines or fix operator spacing -- run
+Fantomas for that. See the `fsharp-format` skill.
+
+**Aggressiveness levels** (`--level`, default `standard`): `whitespace|0` (normalization only),
+`conservative|1`, `standard|2`, `aggressive|3` (forces let/CE and aligns outliers). Levels 1-2 apply
+**aesthetic relaxation** consistent with section 2's "when it significantly aids readability": within a
+group, a member whose left part is far longer than the rest (one very long field name, or `| _ ->`
+beside a long pattern) is treated as an outlier -- kept at a single space so it neither aligns nor
+drags the block out, while the rest still align.
+
+**Ignore files:** a gitignore-style `.eggshellfmtignore` (and `.fantomasignore`) in the working
+directory excludes files/globs; `--no-ignore` bypasses them.
 
 Implementation is line-based (masking + indent-scoped block detection), not FCS-based as originally
 sketched below; the FCS notes are kept for reference.

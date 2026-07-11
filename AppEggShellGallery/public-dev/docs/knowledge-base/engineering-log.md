@@ -74,6 +74,23 @@ Implementation notes / gotchas found while validating on real files:
 - Wrapped by the `fsharp-format` skill. The tool sets `<EggShellFmtSeverity>none</EggShellFmtSeverity>`
   to exclude itself from the repo-wide format check.
 
+Follow-up (v1.1.0, same session): a first `--check` sweep exposed two problems that mechanical
+always-on alignment causes, both now fixed:
+- **Match-arrow alignment on non-short arms is ugly.** `| _ -> failwith "long..."` beside a long
+  concrete pattern dragged the `_` 50+ columns right. Rule 2c is for *short* arms. Added **aesthetic
+  relaxation**: within any alignment group the column is the widest left part within a tolerance of the
+  shortest; members beyond that (one very long field name, a wildcard beside a long pattern) are
+  outliers kept at a single space -- they neither align nor drag the block out. Consistent with
+  section 2's "when it significantly aids readability".
+- **One-size aggressiveness is wrong for a repo-wide sweep.** Added `--level`
+  (`whitespace|conservative|standard|aggressive`, default `standard`) controlling relaxation tolerance
+  and whether let/CE groups are opt-in vs forced; and a gitignore-style `.eggshellfmtignore` (the tool
+  also reads `.fantomasignore`) plus `--no-ignore`. This lets a sweep be scoped and dialed in rather
+  than imposing alignment on intentionally-ragged files.
+
+With relaxation, `SegmentedControl.fs` dropped from 48 to 8 changed lines at the default level. The
+repo-wide sweep itself was intentionally NOT run (owner verifies the tool first).
+
 ---
 
 ## 2026-07-11 (session 16 -- reduce-motion a11y fallbacks + stale-cache false-green + vision delegation)

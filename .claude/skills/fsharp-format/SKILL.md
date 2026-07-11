@@ -19,7 +19,30 @@ dotnet tool run eggshell-fmt -- path/to/File.fs another/File.fs
 
 # CI / pre-commit: don't write, exit 3 if anything would change
 dotnet tool run eggshell-fmt -- --check LibClient/src
+
+# pick an aggressiveness level (default: standard); bypass ignore files
+dotnet tool run eggshell-fmt -- --level conservative LibClient/src
+dotnet tool run eggshell-fmt -- --no-ignore LibClient/src
 ```
+
+## Levels (`--level`, default `standard`)
+
+| Level | Alias | Alignment | Relaxation | let/CE `=` |
+|---|---|---|---|---|
+| `whitespace`   | `0` | none | -- | none |
+| `conservative` | `1` | records/DU/match | strong | opt-in |
+| `standard`     | `2` | records/DU/match | moderate | opt-in |
+| `aggressive`   | `3` | records/DU/match | none (aligns outliers) | forced |
+
+**Aesthetic relaxation** (levels 1-2): a member far longer than the rest of its group (a very long
+record field name, or `| _ ->` beside a long pattern) is treated as an outlier and kept at a single
+space, so it neither aligns nor drags the block out; the rest still align. Follows the spec's
+"align ... when it significantly aids readability". `aggressive` disables relaxation.
+
+## Ignore files
+
+`.eggshellfmtignore` (gitignore-style: globs, `#` comments, `!` negation, trailing `/` for dirs) in the
+working dir excludes files/globs. The tool also reads `.fantomasignore`. `--no-ignore` bypasses both.
 
 First use on a machine (or after a version bump): `./Meta/EggShellFmt/install.sh` once. It packs the
 tool into the git-ignored local feed and registers it in `.config/dotnet-tools.json` (like
