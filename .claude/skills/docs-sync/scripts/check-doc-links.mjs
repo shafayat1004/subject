@@ -23,7 +23,12 @@ for (const file of mdFiles(ROOT)) {
   for (const m of text.matchAll(/\]\(([^)\s]+?\.md)(#[^)]*)?\)/g)) {
     const href = m[1];
     if (/^https?:/.test(href)) continue;
-    const targetPath = resolve(dirname(file), href);
+    // Docs use root-relative links (see maintaining-docs.md linking-convention section and its
+    // reference Python checker): a `./` prefix is stripped and resolved against the docs ROOT, not
+    // the source file's folder. Bare hrefs (no `./`) are likewise root-relative; a leading `/` is
+    // stripped too, matching the reference checker's `raw.lstrip("/")`.
+    const cleaned = href.startsWith('./') ? href.slice(2) : href.replace(/^\/+/, '');
+    const targetPath = resolve(ROOT, cleaned);
     if (!existsSync(targetPath)) broken.push(`${file}: ${href}`);
   }
 }

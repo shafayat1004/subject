@@ -27,7 +27,7 @@ in the SAME commit as code; engineering log is append-only, newest at top; statu
 
 ## Engineering log entry template (prepend under the title)
 
-    ## YYYY-MM-DD — <short title>
+    ## YYYY-MM-DD (<short title>)
     **Context:** <what was being done>
     **Learning/gotcha:** <what was wrong or missing, and the fix>
     **Distilled:** <added to runbooks/troubleshooting.md? which section? or "not durable">
