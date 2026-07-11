@@ -47,7 +47,8 @@ type Ui.Content with
                         code =
                             ComponentSample.SingleBlock(
                                 ComponentSample.Fsharp,
-                                LC.Text """
+                                LC.Text
+                                    """
 // TODO: sample code for __NAME__
 """
                             )
