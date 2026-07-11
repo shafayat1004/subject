@@ -77,6 +77,7 @@ Run it after editing F#, before declaring the work done.
 | 2a | record TYPE fields `Name: Type` | align the type after `:` | always |
 | 2b | DU cases `\| Case of ...` | align the `of` keyword | always |
 | 2c | short match arms `\| pat -> body` | align `->` (only when EVERY arm is inline) | always |
+| 2e | consecutive `expr \|> f` statements | align `\|>` | always |
 | 7  | record LITERAL fields `Name = value` | align `=` | always |
 | 2d | `let` / `and` binding groups | align `=` | **opt-in** |
 | 13 | CE `let!` / `and!` bindings | align `=` | **opt-in** |

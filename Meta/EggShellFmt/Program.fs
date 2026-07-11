@@ -245,6 +245,7 @@ let findFieldColon (masked: string) =
 
 let findOf (masked: string) = masked.IndexOf(" of ")
 let findArrow (masked: string) = masked.IndexOf(" -> ")
+let findPipe (masked: string) = masked.IndexOf(" |> ")
 
 let hasContentAfter (real: string) (idx: int) (width: int) =
     idx + width <= real.Length && real.Substring(idx + width).Trim() <> ""
@@ -268,21 +269,31 @@ let classify (masked: string) (real: string) : string option =
         let braceLed = mb.StartsWith "{ " && not (mb.Contains "}")
         let fieldMb = if braceLed then mb.Substring(1).TrimStart() else mb
         let fw = firstWord fieldMb
-        if fw <> "" && not (excl.Contains fw) then
-            // Aligns record fields (`Name: T` / `Name = v`) AND multi-line named
-            // arguments / parameters (`name = value,` / `name: Type,`). A trailing
-            // comma must NOT exclude the line: otherwise the last item of an arg
-            // list (which has no comma) is aligned while the comma lines are
-            // skipped, breaking the group. Relaxation + never-degrade keep it sane.
-            let eqk = findAssignEq masked
-            if eqk <> -1 && hasContentAfter real eqk 1 then
-                Some "field_eq"
-            else
-                let ck = findFieldColon masked
-                if ck <> -1 && (eqk = -1 || ck < eqk) && hasContentAfter real ck 1 then
-                    Some "field_colon"
-                else None
-        else None
+        // Aligns record fields (`Name: T` / `Name = v`) AND multi-line named
+        // arguments / parameters (`name = value,` / `name: Type,`). A trailing
+        // comma must NOT exclude the line: otherwise the last item of an arg
+        // list (which has no comma) is aligned while the comma lines are
+        // skipped, breaking the group. Relaxation + never-degrade keep it sane.
+        let fieldKind =
+            if fw <> "" && not (excl.Contains fw) then
+                let eqk = findAssignEq masked
+                if eqk <> -1 && hasContentAfter real eqk 1 then
+                    Some "field_eq"
+                else
+                    let ck = findFieldColon masked
+                    if ck <> -1 && (eqk = -1 || ck < eqk) && hasContentAfter real ck 1 then
+                        Some "field_colon"
+                    else None
+            else None
+        match fieldKind with
+        | Some _ -> fieldKind
+        | None ->
+            // Consecutive single-pipe statements (`expr |> f`) align on `|>`.
+            let pk = findPipe masked
+            if not (mb.StartsWith "|") && pk <> -1 && hasContentAfter real pk 4
+               && real.Substring(0, pk).Trim() <> "" then
+                Some "pipeop"
+            else None
 
 /// Align a marker across a run.
 ///
@@ -331,6 +342,7 @@ let alignEq real masked run tol = alignMarker real masked run findAssignEq 1 " =
 let alignColon real masked run tol = alignMarker real masked run findFieldColon 1 ": " true tol
 let alignOf real masked run tol = alignMarker real masked run findOf 4 " of " false tol
 let alignArrow real masked run tol = alignMarker real masked run findArrow 4 " -> " false tol
+let alignPipe real masked run tol = alignMarker real masked run findPipe 4 " |> " false tol
 
 /// A `let`/CE group counts as "already aligned" (opt-in signal) when at least one
 /// binding has more than one space before its `=`.
@@ -435,6 +447,7 @@ let formatSource (cfg: Config) (src0: string) : string =
                         if doIt then alignEq real masked runL cfg.Tolerance
                     | "field_eq" -> if cfg.AlignStructural then alignEq real masked runL cfg.Tolerance
                     | "field_colon" -> if cfg.AlignStructural then alignColon real masked runL cfg.Tolerance
+                    | "pipeop" -> if cfg.AlignStructural then alignPipe real masked runL cfg.Tolerance
                     | "pipe" -> if cfg.AlignStructural then handlePipe real masked runL cfg.Tolerance
                     | _ -> ()
                     i <- j

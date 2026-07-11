@@ -87,8 +87,8 @@ let private computeFoo
 
 ## 2. Column alignment
 
-Column alignment is used in **type definitions**, **`let` binding groups**, and **match case arms**
-when it significantly aids readability.
+Column alignment is used in **type definitions**, **`let` binding groups**, **match case arms**, and
+**consecutive single-pipe statements** when it significantly aids readability.
 
 ### 2a. Record type fields — align the `:` separator
 
@@ -169,6 +169,26 @@ let maybeCurrentDefault = getDefault ()
 
 A "group" ends at a blank line or a non-`let` expression. Bindings in separate groups do not need
 to align with each other.
+
+### 2e. Consecutive pipe statements — align `|>`
+
+When two or more consecutive statements at the same indent are single-pipe expressions
+(`expr |> f`), pad the shorter left-hand sides so the `|>` line up:
+
+```fsharp
+// CORRECT — |> aligned
+key           |> ignore
+children      |> ignore
+xLegacyStyles |> ignore
+
+// WRONG — ragged
+key |> ignore
+children |> ignore
+xLegacyStyles |> ignore
+```
+
+A group ends at a blank line or a non-pipe line. This applies only to single-pipe *statements*;
+it does NOT apply to a multi-line pipeline whose steps start with a leading `|>` (see section 10).
 
 ---
 
@@ -729,8 +749,9 @@ dotnet tool run eggshell-fmt -- LibClient/src            # format in place
 dotnet tool run eggshell-fmt -- --check LibClient/src    # CI: exit 3 if anything would change
 ```
 
-Enforces 2a (record `:`), 2b (DU `of`), 2c (match `->`, only when all arms inline), and 7 (record
-literal `=`). The `=` binding-group rules **2d (let/and) and 13 (CE let!/and!) are opt-in** by default:
+Enforces 2a (record `:`), 2b (DU `of`), 2c (match `->`, only when all arms inline), 2e (consecutive
+single-pipe statements align `|>`), and 7 (record literal `=`). The `=` binding-group rules
+**2d (let/and) and 13 (CE let!/and!) are opt-in** by default:
 a group is aligned only when the author already aligned it (>1 space before an `=`). Multi-line named
 arguments and parameters (`name = value,` / `name: Type,`) are aligned like record fields. It masks
 strings/comments before scanning (never edits inside them) and is idempotent. It does not reflow lines

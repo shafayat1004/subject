@@ -111,6 +111,14 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.5.0): consecutive single-pipe statements (`expr |> f`) now align on `|>` -- a new
+convention added to the spec as section 2e (`key |> ignore` / `children |> ignore` /
+`xLegacyStyles |> ignore`). It was NOT previously in formatting.md (section 2 scoped alignment to type
+defs, let groups, match arms); added there. Detection: a line with a top-level ` |> ` that does not
+start with a leading `|>` (multi-line pipelines per section 10 are left alone) and has an expression
+before the pipe. Structural (always), with relaxation + never-degrade. Pristine `LibClient/src`: 214
+files changed, 0 runtime errors, idempotent, FCS parse of all 299 still 0 syntax errors.
+
 Follow-up (v1.4.1): named-argument / parameter lists now align like record fields. The v1.1 trailing-
 comma exclusion (meant to keep call args untouched) was inconsistent: the *last* argument has no comma,
 so it was still classified and normalized to one space while the comma lines were skipped -- breaking

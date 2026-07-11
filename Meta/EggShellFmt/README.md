@@ -63,6 +63,7 @@ if present, so vendored/build exclusions are shared. `--no-ignore` bypasses both
 | 2a | record TYPE fields `Name: Type` (align type after `:`) | always |
 | 2b | DU cases `\| Case of ...` (align `of`) | always |
 | 2c | short match arms `\| pat -> body` (align `->`, only when every arm is inline) | always |
+| 2e | consecutive `expr \|> f` statements (align `\|>`) | always |
 | 7  | record LITERAL fields `Name = value` (align `=`) | always |
 | 2d | `let` / `and` binding groups (align `=`) | opt-in |
 | 13 | CE `let!` / `and!` bindings (align `=`) | opt-in |
