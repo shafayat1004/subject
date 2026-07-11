@@ -4,7 +4,50 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
-## 2026-07-11 (session 17 -- EggShellFmt alignment tool implemented)
+## 2026-07-11 (session 18 -- Accessibility Scanner audit of AppTodo)
+
+Ran Google's Accessibility Scanner (`com.google.android.apps.accessibility.auditor`) on AppTodo
+(POCO F1) to get a real on-device WCAG-AA audit. This is a Tier-1.5 tool: faster than the Appium
+harness and catches things `uiautomator dump` cannot (contrast ratios, touch target dp, duplicate
+descriptions, unexposed text, competing editable labels). New doc page:
+[Scanner Audits](./accessibility/scanner-audit.md).
+
+**How to use it.** Install from Play Store, enable as an accessibility service. A floating blue
+tick-mark overlay appears. Tap it with a **real finger** (synthetic `adb shell input tap` does not
+reach the overlay -- it filters accessibility-layer events), choose Record or Snapshot, navigate,
+stop. Share the results ZIP, pull, unzip. Each `reportN.txt` has category + bounds + detail per
+finding; `screenN.png` is the annotated screenshot.
+
+**Gotcha: synthetic taps on the overlay.** `adb shell input tap 540 480` on the floating tick mark
+or its popup menu does nothing -- the overlay sits in an accessibility window that adb `input`
+cannot target. Once the Scanner's own app window (results, history) is open, adb taps work
+normally on those windows. The `claude` CLI vision model (screenshot-describe skill) is needed to
+read the overlay menu coordinates since `uiautomator dump` does not include the overlay either.
+
+**Findings (5-screen session, dark + light themes, post reduce-motion fix).** Consolidated and
+deduplicated in [Scanner Audits](./accessibility/scanner-audit.md) and added to
+[Backlog](./accessibility/backlog.md). Summary:
+
+- **Touch target < 48dp**: 14 elements (filter tabs 40dp, category chips 44dp / Work 36x44dp, Add
+  todo 46dp, title + search inputs 42dp, todo checkbox 44dp w, edit button 42x42dp).
+- **Text contrast < 4.5:1 dark**: 9 elements. Worst: search placeholder #000000 on #2A1A10 =
+  1.25:1 (black text on dark bg), "High" badge 1.80:1, toggle label 2.85:1, selected chips 2.84:1.
+- **Text contrast < 4.5:1 light**: 8 elements. Placeholders 2.08-2.27:1, chips 2.88-3.19:1.
+- **Editable item label**: title + search inputs have competing `contentDescription`.
+- **Duplicate descriptions**: category chips in both new + edit forms ("Work" etc.), title
+  "Todo title", priority badge "Low".
+- **Unexposed text**: title placeholder "What needs doing?" not in a11y label; search typed text
+  same.
+- **"swipe" in row description (old audit)**: flagged in the earlier single-screen audit, NOT in
+  the post-fix 5-screen recording. Likely resolved by the reduce-motion / swipe work; needs
+  explicit confirmation.
+
+All findings are `[safe]` (RN-native props/styles), none gated on the migration. The dominant
+themes: theme colors do not meet AA in either appearance (teal #458B8C on various backgrounds is
+the worst repeat offender), and interactive elements are 40-46dp instead of the 48dp minimum. The
+scanner is now part of the a11y verification loop (rule 12) alongside TalkBack and axe-core.
+
+
 
 Built `Meta/EggShellFmt/` (F# dotnet tool, command `eggshell-fmt`), realizing the previously-"future"
 tool in `fsharp/formatting.md` section 16d. It applies the column-alignment rules Fantomas cannot:

@@ -159,6 +159,7 @@ let accessibilityItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Recipes & Playbook",   state = itemState "accessibility/recipes.md")
         LC.Sidebar.Item(label = "Platform Settings",    state = itemState "accessibility/platform-settings.md")
         LC.Sidebar.Item(label = "Backlog",              state = itemState "accessibility/backlog.md")
+        LC.Sidebar.Item(label = "Scanner Audits",       state = itemState "accessibility/scanner-audit.md")
     |]
 
 let knowledgeBaseItems (itemState: string -> SI.State) : ReactElement =

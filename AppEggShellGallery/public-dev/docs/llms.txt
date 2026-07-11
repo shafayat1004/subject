@@ -45,6 +45,7 @@ Orientation for machine readers:
 - [Recipes & Playbook](accessibility/recipes.md): screen-reader semantics and per-component patterns.
 - [Platform Settings](accessibility/platform-settings.md): OS settings to honor reactively.
 - [Backlog](accessibility/backlog.md): migration-safe vs deferred items with tags.
+- [Scanner Audits](accessibility/scanner-audit.md): on-device WCAG-AA audits with Google's Accessibility Scanner; AppTodo findings.
 
 ## Knowledge Base
 - [Overview](knowledge-base/index.md): how the KB relates to Architecture and Runbooks.

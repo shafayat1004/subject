@@ -190,3 +190,28 @@ This produces a **standalone** APK (JS bundled + minified, no Metro, no live rel
 | `libhermes_executor.so not found` at startup (RN 0.76) | `SoLoader.init(this, false)` in `MainApplication.kt` | Use `SoLoader.init(this, OpenSourceMergedSoMapping)`. **On RN 0.86** `MainApplication.kt` no longer calls `SoLoader.init` at all -- `loadReactNative(this)` handles it; see [RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade). |
 
 For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).
+
+---
+
+## Accessibility Scanner audit {#a11y-scanner}
+
+Google's Accessibility Scanner (Play Store, `com.google.android.apps.accessibility.auditor`) is a
+fast on-device a11y audit. It records a screen or session, draws annotated boxes on a screenshot,
+and exports a text report + screenshot ZIP. It catches contrast ratios, touch target dp,
+duplicate descriptions, and unexposed text that `uiautomator dump` cannot. Full how-to + AppTodo
+findings: [Scanner Audits](./accessibility/scanner-audit.md).
+
+Quick start:
+
+```bash
+# verify the service is enabled
+adb shell settings get secure enabled_accessibility_services   # should list ...auditor...ScannerService
+# launch your app, then tap the floating blue tick mark with a REAL FINGER (adb taps don't reach it)
+# choose Record or Snapshot, navigate, stop
+# share results -> save ZIP to Download/Accessibility Audit/
+adb pull "/sdcard/Download/Accessibility Audit/results_Todo_<timestamp>.zip" /tmp/
+unzip /tmp/results_Todo_*.zip -d /tmp/a11y_results   # -> reportN.txt + screenN.png
+```
+
+Pair with a TalkBack pass for announcement/focus-order verification. The Scanner does not test
+reduce-motion, keyboard nav, or color-independence.

@@ -15,6 +15,37 @@ For context on why deferred items are sequenced, not abandoned, see the
 
 ---
 
+## Accessibility Scanner findings (2026-07-11, post reduce-motion fix)
+
+Found by Google's Accessibility Scanner on the POCO F1, 5-screen recording session (dark + light
+themes). Full detail + how-to in [Scanner Audits](./accessibility/scanner-audit.md). All are
+`[safe]` (RN-native props/styles). None are gated on the migration.
+
+- **Touch targets under 48dp (14 elements).** Filter tabs (40dp h, All 32x40dp), category chips
+  (44dp h, Work 36x44dp, Health 46x44dp, Other 40x44dp), Add todo button (46dp), title + search
+  inputs (42dp), todo checkbox (44dp w), todo edit button (42x42dp). Fix: raise all interactive
+  elements to 48dp minimum in both dimensions.
+- **Text contrast under 4.5:1 (dark theme, 9 elements).** Dark toggle label 2.85:1, inactive tabs
+  3.34:1, category chips 2.84-4.25:1, Add todo 3.94:1, search placeholder 1.25:1 (**black on
+  dark**), "High" priority badge 1.80:1 (worst). Fix: adjust theme colors to meet AA.
+- **Text contrast under 4.5:1 (light theme, 8 elements).** Inactive tabs 3.77:1, title placeholder
+  2.27:1, category chips 2.88-3.19:1, Add todo 3.94:1, search placeholder 2.08:1. Fix: same --
+  theme colors must meet AA in both appearances.
+- **Editable item label (2 inputs).** Title + search inputs have `android:contentDescription`
+  competing with editable content. Fix: remove contentDescription from editable text fields.
+- **Item descriptions (duplicates).** Category chips appear in both new-todo and edit-todo forms
+  with identical labels ("Work", "Personal", etc.); title input "Todo title" duplicated; priority
+  badge "Low" duplicated. Fix: disambiguate with context (e.g. "New todo: Work" vs "Edit todo:
+  Work").
+- **Unexposed Text.** Title input placeholder "What needs doing?" and search input typed text not
+  in the field's accessible name. Fix: ensure placeholder/typed text is part of the accessible
+  name.
+- **Item type label "swipe" (resolved).** The old single-screen audit flagged
+  `todo-item-aaaaaaaa-row` content description containing "swipe". This did not appear in the
+  post-fix 5-screen recording. Worth confirming explicitly.
+
+---
+
 ## Field-reported defects (real device, POCO F1, 2026-07-02)
 
 Found during real-touch testing of the standalone build; detail + reproduction in the

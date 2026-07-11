@@ -146,3 +146,5 @@ A component is accessibility-complete when:
   scaling, screen reader, bold, high-contrast) and how the framework responds.
 - [Backlog](./accessibility/backlog.md) -- the migration-safe vs deferred item list with `[safe]`/`[rnw-blocked]`/
   `[web-only]`/`[lib]` tags, plus the "do-not-hand-roll" list.
+- [Scanner Audits](./accessibility/scanner-audit.md) -- how to use Google's Accessibility Scanner for on-device
+  WCAG-AA audits, plus the AppTodo finding set from the 2026-07-11 audit.
