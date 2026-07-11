@@ -5,6 +5,11 @@ Written so a human or an LLM agent can execute them without prior context.
 
 Related docs: [Architecture: Frontend](./architecture/frontend.md) | [Modernization overview](./modernization/index.md) | [ReactXP to RNW](./modernization/reactxp-to-rnw.md) | [Accessibility](./accessibility/index.md) | [CLI tools](./tools/cli.md)
 
+> **Skills front door:** executable wrappers for these runbooks live in `.claude/skills/`
+> (fable-rebuild-verify, debug-android, debug-ios, debug-web, verify-feature, release-build, plus
+> style-leak-audit, a11y-check, docs-sync, gallery-page-add). Invoke the skill; it follows the
+> runbook and reports evidence.
+
 ---
 
 ## Pages in this section

@@ -4,6 +4,27 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-11 (session 15 -- project skills + F# formatting burn-in under .claude/skills/)
+
+Packaged the recurring RNW-modernization workflows as invocable Claude skills under `.claude/skills/`,
+each a thin wrapper over the runbooks with a helper script: `fable-rebuild-verify` (stale-cache
+escalation + stray `.fs.js` cleaner), `debug-android` / `debug-ios` / `debug-web` (preflight + observe),
+`style-leak-audit` and `a11y-check` (advisory `.fs` scanners for new/edited components and pages),
+`docs-sync` (update-matrix routing + link checker + stale-framing scan), `gallery-page-add`
+(pure-F# Content page scaffolder), `release-build` (android/ios/web release + release-gap checklist),
+`verify-feature` (e2e capture: deep-link, screenshot, bucketed logs). Also burned the F# formatting
+hard rules and the "never run `dotnet fable` directly" guard into CLAUDE.md.
+
+Gotchas fixed while building the tooling:
+- `dotnet fable` run directly emits `.fs.js` beside sources (should live under `.build/<platform>/`);
+  the repo currently carries ~593 such stray files. `clean-stray-fable-output.sh` detects/removes them.
+- The docs use root-relative links with a `./` prefix (resolved against the docs root, per
+  maintaining-docs.md), not file-relative; a naive link checker reports ~308 false "broken" links.
+  `docs-sync/scripts/check-doc-links.mjs` resolves `./` against the docs root.
+- Style-leak and a11y `.fs` scanning must handle multi-line F# call/binding layout; single-line
+  heuristics false-positive on the dominant `module private Styles = / let x = / makeViewStyles {...}`
+  pattern.
+
 ## 2026-07-08 (session 14 -- RW8 on-device: thread 3 Android VERIFIED, thread 2 fix FAILED, iOS untested)
 
 Real-touch device session on the POCO F1 (Android 15 / SDK 35) to verify the session-13 code.
