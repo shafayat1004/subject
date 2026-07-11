@@ -21,54 +21,79 @@ function* fsFiles(p) {
 let count = 0;
 const report = (file, line, cat, msg) => { count++; console.log(`${file}:${line} [${cat}] ${msg}`); };
 
-const indent = (l) => l.match(/^ */)[0].length;
+const IN_RENDER_MSG = 'make*Styles not at top level and not memoized; if this runs during render it is a leak';
+
+const indentOf = (l) => l.match(/^ */)[0].length;
+
+// Block headers that establish a render/value context: a binding whose nearest enclosing
+// lower-indent header is one of these is NOT module-scope, so any make*Styles it owns leaks.
+const isRenderScopeHeader = (l) =>
+  /^\s*(\[<Component>\]|static\s+member|member\s)/.test(l) ||
+  /\bfun\s/.test(l) ||
+  /\.State\s*\(/.test(l) ||
+  /With\.ScreenSize\s*\(/.test(l);
+
+// Block headers that establish module scope: a binding directly under one of these (or at
+// column 0) is a static module-level binding, legal regardless of how it wraps across lines.
+const isModuleHeader = (l) => /^\s*module\b/.test(l);
+
+// Find the "owning" let-binding line for a make*Styles call on line index i: the line itself
+// if it already reads `let ... =`, else the nearest `let foo =` scanning upward over blank/
+// continuation lines within a small lookback, else the call line itself (covers inline
+// `styles = [| makeViewStyles {...} |]` with no owning let).
+function findOwnerIndex(lines, i) {
+  if (/^\s*let\s+\w+\s*=/.test(lines[i])) return i;
+  const lookback = 3;
+  for (let j = i - 1; j >= 0 && j >= i - lookback; j--) {
+    if (/^\s*let\s+\w+\s*=/.test(lines[j])) return j;
+  }
+  return i;
+}
+
+// Classify the owner line by walking upward for the nearest strictly-lower-indent block
+// header. module header (or column-0 owner) -> module scope, legal. render-scope header ->
+// in-render, flag - UNLESS that render-scope header is itself the lambda of a `*.Memoize(`
+// wrapper (the wrapper may open its `Memoize(` a line or two above the `fun ...->`), in which
+// case it is a legal memoized style and we keep walking up past it to find the real scope.
+function isModuleScopeOwner(lines, ownerIdx) {
+  const ownerIndent = indentOf(lines[ownerIdx]);
+  if (ownerIndent === 0) return true;
+  for (let j = ownerIdx - 1; j >= 0; j--) {
+    const lj = lines[j];
+    if (lj.trim() === '') continue;
+    if (indentOf(lj) < ownerIndent) {
+      if (isModuleHeader(lj)) return true;
+      if (isRenderScopeHeader(lj)) {
+        const nearMemoizeAboveHeader = lines
+          .slice(Math.max(0, j - 2), j + 1)
+          .some((l) => /Memoize/.test(l));
+        if (nearMemoizeAboveHeader) continue; // legal Memoize(fun ...) wrapper; keep walking up
+        return false;
+      }
+      // Any other lower-indent line is not a recognized header; keep walking up to find
+      // the real enclosing scope (e.g. a nested `let` block or comment at odd indent).
+    }
+  }
+  return true; // no enclosing header found; treat as module scope
+}
 
 function checkInRender(lines, i, file) {
   const n = i + 1;
   const line = lines[i];
 
-  // 1. Inline style array leak: `styles = [| ... makeViewStyles ... |]` on the same line.
-  if (/styles\s*=\s*\[\|/.test(line)) {
-    report(file, n, 'INLINE-LEAK', 'make*Styles inline in a styles=[| ... |] array (runs during render)');
-    return;
-  }
-
-  // 2. Memoized nearby (within 3 lines above through current line) -> OK.
+  // Memoized nearby (within 3 lines above through current line) -> OK, regardless of shape.
   const nearMemoize = lines.slice(Math.max(0, i - 3), i + 1).some(l => /Memoize/.test(l));
   if (nearMemoize) return;
 
-  // 3. Find the enclosing binding line B by scanning upward for `let`/`and`.
-  let bindIdx = -1;
-  for (let j = i; j >= 0; j--) {
-    if (/^(\s*)(let|and)\s+\S/.test(lines[j])) { bindIdx = j; break; }
-  }
-  if (bindIdx === -1) return; // no binding found; stay quiet
-  const bindIndent = indent(lines[bindIdx]);
-
-  // 4. Scan upward from B-1 for an enclosing render marker at indent < bindIndent.
-  let renderMarker = false;
-  for (let j = bindIdx - 1; j >= 0; j--) {
-    const lj = lines[j];
-    if (/^\s*$/.test(lj)) continue; // skip blank lines
-    const ij = indent(lj);
-    if (ij < bindIndent) {
-      if (/(\[<Component>\]|static member|member\s|Pointer\.State|With\.ScreenSize)/.test(lj)) {
-        renderMarker = true;
-        break;
-      } else if (/^\s*module\b/.test(lj) || ij === 0) {
-        break; // reached clean module/top-level scope
-      }
-    }
+  // Inline style array: `styles = [| ... |]` on this line -> always a leak.
+  if (/styles\s*=/.test(line) && /\[\|/.test(line)) {
+    report(file, n, 'IN-RENDER?', IN_RENDER_MSG);
+    return;
   }
 
-  // 5. Decision.
-  if (renderMarker) {
-    report(file, n, 'IN-RENDER?', 'make*Styles inside a component body / callback (runs during render); hoist to top-level let or Memoize');
-  } else if (bindIndent <= 4) {
-    // top-level or module-level static; OK
-  } else {
-    // indented helper binding, no render evidence; stay quiet to avoid noise
-  }
+  const ownerIdx = findOwnerIndex(lines, i);
+  if (!isModuleScopeOwner(lines, ownerIdx))
+    report(file, n, 'IN-RENDER?', IN_RENDER_MSG);
 }
 
 for (const file of fsFiles(target)) {
