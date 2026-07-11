@@ -17,7 +17,7 @@
       "rollForward": false
     },
     "eggshellfmt": {
-      "version": "1.5.2",
+      "version": "1.6.0",
       "commands": [
         "eggshell-fmt"
       ],

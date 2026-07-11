@@ -525,6 +525,16 @@ fit the limit if the natural reading is clearer as one line.
 
 One blank line between members inside a `type … with` block. Method bodies indent +4 from `member`.
 
+Consecutive `abstract [member] Name: Type` declarations in an interface align their type annotations,
+same rule as record fields (section 2a):
+
+```fsharp
+type MultiTouchGestureState =
+    abstract initialCenterClientX: float with get, set
+    abstract initialWidth:         float with get, set
+    abstract angle:                float with get, set
+```
+
 ```fsharp
 type Item with
     member this.GetLabel() =

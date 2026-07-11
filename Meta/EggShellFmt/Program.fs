@@ -274,10 +274,18 @@ let classify (masked: string) (real: string) : string option =
         // (primary-constructor parameter list). Strip the bracket to find it.
         let braceLed = mb.StartsWith "{ " && not (mb.Contains "}")
         let parenLed = mb.StartsWith "( " && not (mb.Contains ")")
-        let fieldMb0 = if braceLed || parenLed then mb.Substring(1).TrimStart() else mb
+        let led = if braceLed || parenLed then mb.Substring(1).TrimStart() else mb
+        // Interface abstract members: `abstract [member] Name: Type` -- strip the
+        // keyword prefix so the member name is found and the group aligns. (Only
+        // `abstract`; plain `member x = ...` methods are intentionally not grouped.)
+        let afterAbstract =
+            if led.StartsWith "abstract " then
+                let a = led.Substring(9)
+                if a.StartsWith "member " then a.Substring(7) else a
+            else led
         // Optional parameters (`?label: string`) start with `?`; strip it so the
         // field name is found and the param joins the alignment group.
-        let fieldMb = if fieldMb0.StartsWith "?" then fieldMb0.Substring(1) else fieldMb0
+        let fieldMb = if afterAbstract.StartsWith "?" then afterAbstract.Substring(1) else afterAbstract
         let fw = firstWord fieldMb
         // Aligns record fields (`Name: T` / `Name = v`) AND multi-line named
         // arguments / parameters (`name = value,` / `name: Type,`). A trailing

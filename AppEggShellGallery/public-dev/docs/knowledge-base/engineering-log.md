@@ -111,6 +111,20 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.6.0 + ragged sweep): interface `abstract [member] Name: Type` declarations now align their
+types like record fields (documented in spec section 14). They were skipped because `abstract` is an
+excluded keyword; classify now strips a leading `abstract `/`abstract member ` prefix. Biggest case:
+`Rn/Components/GestureView/GestureView.fs` (11+ members). Then ran a ragged-pattern sweep over the whole
+formatted `LibClient/src` (a Python detector flagging consecutive same-column colon/pipe/eq groups whose
+markers don't line up). Results: after the abstract fix, all remaining flags are either detector false
+positives (lines that ARE aligned) or NOT tool gaps -- `let X: T = v` bindings (aligned on `=`, not the
+annotation colon), CSS inside `"""` strings, and named-args whose pipe is inside parens. The only
+genuine "should align but doesn't" cases are **glued-`=` source typos** (`Logging.fs` `let x ="..."`,
+`Resolve.fs` `?whenFailed= whenFailed`): the tool detects only well-spaced ` = `, so those lines drop
+out. That is operator spacing, deliberately out of scope (the tool aligns/normalizes spacing only around
+markers it already detects). Pristine `LibClient/src` at v1.6.0: 215 files changed, 0 runtime errors,
+idempotent, FCS parse 0 syntax errors.
+
 Follow-up (v1.5.2): two more param-alignment gaps. (1) Primary-constructor parameter lists where the
 first param shares the opening-paren line (`type X\n    ( ?disabled: bool,`) weren't grouped -- added
 `( ` as a leading-bracket alongside `{ ` in `keyCol`/`classify`. (2) Double-backtick identifiers
