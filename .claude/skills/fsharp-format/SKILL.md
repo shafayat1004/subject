@@ -30,13 +30,16 @@ dotnet tool run eggshell-fmt -- --no-ignore LibClient/src
 | Level | Alias | Alignment | Relaxation | let/CE `=` |
 |---|---|---|---|---|
 | `whitespace`   | `0` | none | -- | none |
-| `conservative` | `1` | records/DU/match | strong | opt-in |
-| `standard`     | `2` | records/DU/match | moderate | opt-in |
+| `conservative` | `1` | records/DU/match | strong (tol 12) | opt-in |
+| `standard`     | `2` | records/DU/match | moderate (tol 24) | opt-in |
 | `aggressive`   | `3` | records/DU/match | none (aligns outliers) | forced |
 
-**Aesthetic relaxation** (levels 1-2): a member far longer than the rest of its group (a very long
-record field name, or `| _ ->` beside a long pattern) is treated as an outlier and kept at a single
-space, so it neither aligns nor drags the block out; the rest still align. Follows the spec's
+**Never degrades existing alignment:** a block the author already aligned is kept aligned exactly at any
+level. Relaxation applies only when newly aligning a ragged block.
+
+**Aesthetic relaxation** (levels 1-2, ragged blocks): a member far longer than the rest of its group (a
+very long record field name, or `| _ ->` beside a long pattern) is treated as an outlier and kept at a
+single space, so it neither aligns nor drags the block out; the rest still align. Follows the spec's
 "align ... when it significantly aids readability". `aggressive` disables relaxation.
 
 ## Ignore files

@@ -737,11 +737,14 @@ strings/comments before scanning (never edits inside them), leaves function para
 Fantomas for that. See the `fsharp-format` skill.
 
 **Aggressiveness levels** (`--level`, default `standard`): `whitespace|0` (normalization only),
-`conservative|1`, `standard|2`, `aggressive|3` (forces let/CE and aligns outliers). Levels 1-2 apply
-**aesthetic relaxation** consistent with section 2's "when it significantly aids readability": within a
-group, a member whose left part is far longer than the rest (one very long field name, or `| _ ->`
-beside a long pattern) is treated as an outlier -- kept at a single space so it neither aligns nor
-drags the block out, while the rest still align.
+`conservative|1` (tolerance 12), `standard|2` (tolerance 24), `aggressive|3` (forces let/CE and aligns
+outliers). The tool **never degrades existing alignment** -- a block the author already aligned is kept
+aligned exactly, at any level. When *newly* aligning a ragged block, levels 1-2 apply **aesthetic
+relaxation** consistent with section 2's "when it significantly aids readability": a member whose left
+part is far longer than the rest (one very long field name, or `| _ ->` beside a long pattern) is
+treated as an outlier -- kept at a single space so it neither aligns nor drags the block out, while the
+rest still align. Multi-line string/comment literals (including regular and verbatim strings that span
+lines) are never edited.
 
 **Ignore files:** a gitignore-style `.eggshellfmtignore` (and `.fantomasignore`) in the working
 directory excludes files/globs; `--no-ignore` bypasses them.

@@ -91,6 +91,26 @@ always-on alignment causes, both now fixed:
 With relaxation, `SegmentedControl.fs` dropped from 48 to 8 changed lines at the default level. The
 repo-wide sweep itself was intentionally NOT run (owner verifies the tool first).
 
+Follow-up (v1.2.1) after the owner test-ran `eggshell-fmt LibClient/src` and found a previously-aligned
+`match` (`ColorScheme.fs`, the `Deep Orange` variants) got un-aligned. Three fixes:
+- **Never degrade existing alignment.** `alignMarker` now detects a group that is already value-aligned
+  (all RHS at one column) and preserves it at the full max width regardless of spread or level -- so
+  author-aligned blocks are never relaxed apart. Relaxation applies only when newly aligning a ragged
+  block. `ColorScheme.fs` from HEAD is now byte-identical after formatting.
+- **Tolerances raised** (conservative 6->12, standard 12->24): moderate-spread enum/variant matches
+  (spread ~13) align rather than relax. The extreme `| _ -> failwith "long"` case (spread ~45) still
+  relaxes.
+- **Multi-line string masker bug (important).** The masker only tracked `"""` and `(* *)` across lines,
+  not regular `"..."` or verbatim `@"..."` strings -- which F# allows to span lines (e.g. the SVG path
+  data in `Icons.fs`). The tool was converting leading tabs inside those string bodies. Added
+  `IN_STRING`/`IN_VERBATIM` masker states; lines that begin inside any multi-line literal are now left
+  byte-for-byte, and a line that *opens* a multi-line literal keeps its trailing content (not stripped).
+
+Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src` (299 files) reformats
+169, runs with zero errors, and is idempotent (second pass = no changes). NB: a first test run of the
+older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
+`git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
+
 ---
 
 ## 2026-07-11 (session 16 -- reduce-motion a11y fallbacks + stale-cache false-green + vision delegation)

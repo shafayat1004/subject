@@ -45,6 +45,8 @@ open System.Text.RegularExpressions
 let NORMAL = 0
 let IN_TRIPLE = 1
 let IN_BLOCK = 2
+let IN_STRING = 3    // regular "..." spanning lines
+let IN_VERBATIM = 4  // @"..." spanning lines
 
 type LetMode =
     | Off
@@ -60,8 +62,8 @@ type Config = {
 let configForLevel (level: string) : Config option =
     match level.ToLowerInvariant() with
     | "whitespace" | "0" -> Some { AlignStructural = false; Tolerance = 0;      LetMode = Off }
-    | "conservative" | "1" -> Some { AlignStructural = true; Tolerance = 6;      LetMode = OptIn }
-    | "standard" | "2" -> Some { AlignStructural = true; Tolerance = 12;     LetMode = OptIn }
+    | "conservative" | "1" -> Some { AlignStructural = true; Tolerance = 12;     LetMode = OptIn }
+    | "standard" | "2" -> Some { AlignStructural = true; Tolerance = 24;     LetMode = OptIn }
     | "aggressive" | "3" -> Some { AlignStructural = true; Tolerance = 100000; LetMode = Force }
     | _ -> None
 
@@ -95,6 +97,15 @@ let maskLine (line: string) (state0: int) : string * int =
                 out.Append("   ") |> ignore; i <- i + 3; state <- NORMAL
             else
                 out.Append(' ') |> ignore; i <- i + 1
+        elif state = IN_VERBATIM then
+            if c = '"' then
+                if sub i 2 = "\"\"" then out.Append("  ") |> ignore; i <- i + 2   // "" escaped quote
+                else out.Append(' ') |> ignore; i <- i + 1; state <- NORMAL
+            else out.Append(' ') |> ignore; i <- i + 1
+        elif state = IN_STRING then
+            if c = '\\' && i + 1 < n then out.Append("  ") |> ignore; i <- i + 2  // \" \\ etc
+            elif c = '"' then out.Append(' ') |> ignore; i <- i + 1; state <- NORMAL
+            else out.Append(' ') |> ignore; i <- i + 1
         else
             if c = '"' && sub i 3 = "\"\"\"" then
                 out.Append("   ") |> ignore; i <- i + 3; state <- IN_TRIPLE
@@ -103,22 +114,9 @@ let maskLine (line: string) (state0: int) : string * int =
             elif c = '(' && sub i 2 = "(*" then
                 out.Append("  ") |> ignore; i <- i + 2; state <- IN_BLOCK
             elif c = '@' && sub i 2 = "@\"" then
-                out.Append("  ") |> ignore
-                i <- i + 2
-                let mutable go = true
-                while go && i < n do
-                    if line.[i] = '"' then
-                        if sub i 2 = "\"\"" then out.Append("  ") |> ignore; i <- i + 2
-                        else out.Append(' ') |> ignore; i <- i + 1; go <- false
-                    else out.Append(' ') |> ignore; i <- i + 1
+                out.Append("  ") |> ignore; i <- i + 2; state <- IN_VERBATIM
             elif c = '"' then
-                out.Append(' ') |> ignore
-                i <- i + 1
-                let mutable go = true
-                while go && i < n do
-                    if line.[i] = '\\' && i + 1 < n then out.Append("  ") |> ignore; i <- i + 2
-                    elif line.[i] = '"' then out.Append(' ') |> ignore; i <- i + 1; go <- false
-                    else out.Append(' ') |> ignore; i <- i + 1
+                out.Append(' ') |> ignore; i <- i + 1; state <- IN_STRING
             elif c = '\'' then
                 if sub i 2 = "'\\" then
                     let k = line.IndexOf('\'', i + 2)
@@ -182,30 +180,42 @@ let classify (masked: string) (real: string) : string option =
                 else None
         else None
 
-/// Align a marker across a run, with aesthetic relaxation: the alignment column is
-/// the widest left part that is within `tolerance` of the shortest -- members longer
-/// than that are outliers and keep a single space (they are not dragged into line,
-/// and they do not drag the block out).
+/// Align a marker across a run.
+///
+/// Two behaviours:
+///  - PRESERVE: if the group is ALREADY aligned (all values start at the same
+///    column), align to the full max width -- the tool never degrades alignment
+///    the author already applied, regardless of spread.
+///  - RELAX: when newly aligning a ragged group, the alignment column is the
+///    widest left part within `tolerance` of the shortest; members longer than
+///    that are outliers kept at a single space, so one very long member neither
+///    aligns nor drags the whole block out.
 let alignMarker (real: string[]) (masked: string[]) (run: int list)
                 (findIdx: string -> int) (markerWidth: int) (marker: string)
                 (attachToLeft: bool) (tolerance: int) =
-    let parts =
+    let info =
         run |> List.map (fun idx ->
             let k = findIdx masked.[idx]
-            if attachToLeft then
-                let left = real.[idx].Substring(0, k).TrimEnd() + marker.TrimEnd()
-                let right = real.[idx].Substring(k + markerWidth).TrimStart()
-                idx, left, right
-            else
-                let left = real.[idx].Substring(0, k).TrimEnd()
-                let right = real.[idx].Substring(k + markerWidth).TrimStart()
-                idx, left, right)
-    let widths = parts |> List.map (fun (_, l, _) -> l.Length)
-    let minW = List.min widths
-    let threshold = minW + tolerance
-    let cluster = widths |> List.filter (fun w -> w <= threshold)
-    let alignCol = if List.isEmpty cluster then List.max widths else List.max cluster
-    for (idx, left, right) in parts do
+            let left =
+                if attachToLeft then real.[idx].Substring(0, k).TrimEnd() + marker.TrimEnd()
+                else real.[idx].Substring(0, k).TrimEnd()
+            let rightRaw = real.[idx].Substring(k + markerWidth)
+            let right = rightRaw.TrimStart()
+            let valueCol = k + markerWidth + (rightRaw.Length - right.Length)
+            idx, left, right, valueCol)
+    let widths = info |> List.map (fun (_, l, _, _) -> l.Length)
+    let maxW = List.max widths
+    let alreadyAligned =
+        match info with
+        | [] | [ _ ] -> false
+        | (_, _, _, c0) :: rest -> rest |> List.forall (fun (_, _, _, c) -> c = c0)
+    let alignCol =
+        if alreadyAligned then maxW
+        else
+            let minW = List.min widths
+            let cluster = widths |> List.filter (fun w -> w <= minW + tolerance)
+            if List.isEmpty cluster then maxW else List.max cluster
+    for (idx, left, right, _) in info do
         if attachToLeft then
             if left.Length <= alignCol then real.[idx] <- left.PadRight(alignCol + 1) + right
             else real.[idx] <- left + " " + right
@@ -243,12 +253,19 @@ let formatSource (cfg: Config) (src0: string) : string =
     let n = raw.Length
 
     let startState = Array.zeroCreate n
+    let endState = Array.zeroCreate n
     let mutable st = NORMAL
     for i in 0 .. n - 1 do
         startState.[i] <- st
         let _, s = maskLine raw.[i] st
+        endState.[i] <- s
         st <- s
+    // A line that BEGINS inside a multi-line string/comment is protected (its
+    // whole content is literal). A line that begins in code but ENDS inside a
+    // multi-line string still has literal trailing content, so its trailing
+    // whitespace must not be stripped.
     let protectedLine = Array.init n (fun i -> startState.[i] <> NORMAL)
+    let opensMultiline = Array.init n (fun i -> startState.[i] = NORMAL && endState.[i] <> NORMAL)
 
     // Pass 1: safe per-line normalization.
     let real = Array.copy raw
@@ -256,7 +273,8 @@ let formatSource (cfg: Config) (src0: string) : string =
         if not protectedLine.[i] then
             let stripped = real.[i].TrimStart('\t', ' ')
             let lead = real.[i].Substring(0, real.[i].Length - stripped.Length).Replace("\t", "    ")
-            real.[i] <- (lead + stripped).TrimEnd()
+            let joined = lead + stripped
+            real.[i] <- if opensMultiline.[i] then joined else joined.TrimEnd()
 
     let masked = Array.zeroCreate n
     st <- NORMAL
