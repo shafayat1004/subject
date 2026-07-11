@@ -16,7 +16,9 @@ open, Metro reachable on :8081.
 
 - First install (from the app dir): `npx react-native run-ios --simulator "iPhone 16" --no-packager`
 - Subsequent runs: `scripts/ios-observe.sh terminate <bundleid> && scripts/ios-observe.sh launch <bundleid>`
-- Bundle ids: AppTodo `com.eggshell.apptodo`; gallery: `com.eggshell.apptodo`.
+- Bundle ids: AppTodo `com.eggshell.apptodo`; gallery: read it from
+  `AppEggShellGallery/ios/AppEggshellGallery/Info.plist` (CFBundleIdentifier, a build variable;
+  resolve via `xcrun simctl listapps booted | grep -i eggshell` when the app is installed).
 - Metro (from the app dir): `npx react-native start --port 8081`
 - Fable watch (from the app dir): `eggshell dev-native` (path-relative eggshell).
 
