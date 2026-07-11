@@ -18,7 +18,7 @@ do addCss ("""
 """)
 
 [<Fable.Core.Emit("globalThis")>]
-let private jsGlobalThis: obj = Fable.Core.JsInterop.jsNative
+let private jsGlobalThis: obj = jsNative
 
 let private showdown: obj = importDefault "showdown"
 let defaultShowdownConverter: obj = createNew showdown?Converter ()

@@ -2,6 +2,7 @@
 module AppEggShellGallery.Components.App
 
 open Fable.React
+open Fable.Core
 open Fable.Core.JsInterop
 open LibLang
 open LibClient
@@ -9,6 +10,7 @@ open LibClient.Components
 open LibRouter.Components
 open LibRouter.Components.Constructors
 open LibRouter.Components.With.Route
+open LibRouter.Components.With.Location
 open LibRouter.RoutesSpec
 open AppEggShellGallery.Colors
 open AppEggShellGallery.Navigation
@@ -98,6 +100,50 @@ let private registerGlobalMarkdownLinkHandler (nav: Navigation) : ReactElement =
     // Native has no DOM event; the render-html anchor onPress passes just the href.
     jsGlobalThis?globalMarkdownLinkHandler <- (fun (markdownUrl: string) ->
         handleMarkdownLink nav ReactEvent.Action.NonUserOriginatingAction markdownUrl)
+
+    // Deep-link handler: navigate to a path from an incoming URL (adb am start -a VIEW -d
+    // "http://example.app/components/Accessibility_Group"). The AndroidManifest already has an
+    // intent filter for host "example.app". This lets Appium / Tier-2 automation navigate
+    // without synthesising touches (which RNGH under Fabric swallows). The URL path maps
+    // directly to a gallery route via the existing handleMarkdownLink "gallery://" path.
+    let initDeepLinkNav () : unit =
+        let navigateFromUrl (rawUrl: string) : unit =
+            try
+                // Strip scheme://host, keep the path segments. The AndroidManifest
+                // intent filter has host "example.app". Incoming format:
+                //   http://example.app/components/Accessibility_Group
+                // The gallery routesSpec uses /{json}/Components/{json} format, e.g.
+                //   /"Desktop"/Components/"Accessibility_Group"
+                // So we map the incoming path to the routesSpec format.
+                let path =
+                    let u = rawUrl.Replace("http://", "").Replace("https://", "")
+                    let afterHost = u.IndexOf("example.app")
+                    if afterHost >= 0 then
+                        let p = u.Substring(afterHost + "example.app".Length)
+                        if p.StartsWith "/" then p.Substring(1) else p
+                    else
+                        rawUrl
+                let galleryUrl =
+                    // Map "components/Accessibility_Group" → "/\"Desktop\"/Components/\"Accessibility_Group\""
+                    let parts = path.Split('/')
+                    if parts.Length >= 2 then
+                        let section = parts.[0]
+                        let item = parts.[1]
+                        sprintf "/\"Desktop\"/%s/\"%s\"" (System.Char.ToUpper(section.[0]).ToString() + section.Substring(1)) item
+                    else
+                        path
+                jsGlobalThis?globalMarkdownLinkHandler("gallery://" + galleryUrl) |> ignore
+            with exn ->
+                Log.Error ("Deep-link navigation failed: " + rawUrl + " — " + string exn.Message)
+
+        Rn.Linking.deepLinkRequestEvent (navigateFromUrl)
+        // Also handle the initial URL that launched the app (cold start via deep link).
+        Async.StartImmediate (async {
+            let! maybeUrl = Rn.Linking.getInitialUrl ()
+            maybeUrl |> Option.iter navigateFromUrl
+        })
+
+    initDeepLinkNav ()
 #endif
     noElement
 
@@ -186,6 +232,25 @@ type AppEggShellGallery.Components.Constructors.Ui.App with
                             LR.LogRouteTransitions()
                             Ui.With.Navigation(
                                 ``with`` = registerGlobalMarkdownLinkHandler
+                            )
+                            // Native hardware back / edge-swipe back: pop the router history instead
+                            // of closing the app. LR.NativeBackButton handles Android's hardware Back
+                            // (no-op on web/iOS); LR.EdgeSwipeBack handles the iOS left-edge swipe
+                            // (no-op on web/Android). Both are noElement/overlays, safe to mount
+                            // unconditionally. canGoBack is false at the root route (pathname "/")
+                            // so Back at Home still lets the OS close the app instead of trapping
+                            // the user.
+                            Ui.With.Navigation(
+                                ``with`` = fun nav ->
+                                    LR.With.Location(
+                                        ``with`` = fun location ->
+                                            let canGoBack = (fun () -> location.pathname <> "/")
+                                            castAsElementAckingKeysWarning
+                                                [|
+                                                    LR.NativeBackButton(nav.GoBack, canGoBack = canGoBack, key = "nativeBack")
+                                                    LR.EdgeSwipeBack(nav.GoBack, canGoBack = canGoBack, key = "edgeSwipeBack")
+                                                |]
+                                    )
                             )
                             appShellContent pstoreKey maybeNavigationFrame
                         |]

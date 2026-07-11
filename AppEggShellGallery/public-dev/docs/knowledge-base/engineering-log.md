@@ -4,6 +4,130 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-08 (session 14 -- RW8 on-device: thread 3 Android VERIFIED, thread 2 fix FAILED, iOS untested)
+
+Real-touch device session on the POCO F1 (Android 15 / SDK 35) to verify the session-13 code.
+
+### Results
+- **Thread 3 -- Android hardware Back: VERIFIED WORKING.** Real touch confirms Back now pops the
+  in-app router history instead of closing the app, and Back at Home (`pathname "/"`, `canGoBack=false`)
+  correctly returns to the launcher. The raw-`adb` `input keyevent KEYCODE_BACK` path also works for
+  the Home case (confirmed: `topResumedActivity` → `com.android.launcher3`). The `castAsElementAckingKeysWarning`
+  + explicit `key=` props on both `NativeBackButton`/`EdgeSwipeBack` suppressed the `With_Location`
+  key warning I introduced on first mount.
+- **Thread 2 -- back-nav scroll restore: FIX DID NOT WORK.** Real touch: navigate Home → doc → scroll
+  down → Back → **lands at the top, not the saved scroll position.** The session-13 reasoning (RN
+  clamps the reused ScrollView to 0 on content shrink and `handleScroll` clears the pending-restore
+  flag) and its fix (re-arm from `measurementStorage` while `Top = 0` in `handleContentLayout`) did
+  not restore on the device. The root cause is still not fully understood; the ~10% height-match gate
+  (`heightApproximatelyMatches`) is also a suspect (async markdown reflow may settle at a height
+  outside ±10% of the stored height, so even if re-arm works the restore is skipped). Reopening.
+- **Thread 3 iOS edge-swipe: NOT TESTED.** No iOS simulator session this pass. `LR.EdgeSwipeBack`
+  remains brand-new, zero-runtime-test code.
+
+### Gotchas / lessons
+- **Raw `adb` cannot drive the gallery sidebar drawer.** The drawer opens via a JS-responder
+  `Rn.GestureView`; `adb shell input tap` on the Menu button is swallowed (the GestureView claims the
+  responder on touch-start and synthetic taps never negotiate to the child). Same caveat the Android
+  runbook already documents for swipe controls. This blocked ad-hoc thread-2 testing via Tier 1 — the
+  real-touch session (user) was needed to reach a doc page. For agent-driven scroll-restore testing,
+  use Tier 2 (`observe`/Appium, taps by `testId`) or a real touch.
+- **`Log.Info` does not appear in `adb logcat` for the gallery.** `ConsoleLogSink` writes to the JS
+  `console`, but the gallery's RN console hook does not forward to logcat with a `ReactNativeJS` tag
+  the way AppTodo's does (different/missing `console-patcher` wiring). To see a JS-side diagnostic on
+  the gallery, use a `[<Emit("console.log($0)")>]` binding — that does surface as
+  `ReactNativeJS: <msg>` in logcat. Confirmed: the `Emit`-based `jsLog` printed `[App.Root]
+  pathname=/ canGoBack=false` at `I ReactNativeJS`; the equivalent `Log.Info` was silent.
+- **`dev-native` watch can wedge on stale file content after rapid edits.** After several quick
+  edits to `App.fs`/`NativeBackButton.fs`, Fable kept re-reporting a `console`/`jsConsole` error
+  that no longer existed in the source (the watcher was caching an intermediate parse). A `touch` +
+  deleting the emitted `.js` did not recover it; only a full `pkill` of `eggshell dev-native` +
+  `dotnet fable` + `fable.dll` and restart cleared it. Per the build-rebuild runbook's "watch output
+  looks stale" row — escalate to restart, not just `touch`.
+
+### Open follow-ups
+- **Thread 2 (back-nav scroll restore) -- STILL BROKEN, reopening.** Next step: add a diagnostic
+  `jsLog` in `handleContentLayout`/`restoreNow` to trace on-device whether (a) `measurementStorage`
+  has a saved entry for the key, (b) the height gate passes/fails, (c) `restoreNow` is actually
+  called. Suspect the height-match gate (`heightApproximatelyMatches`, ±10%) is the real blocker --
+  native markdown reflow likely settles at a height > 10% off the stored height. Likely fix: drop the
+  height gate for back-nav restore (key matches == trust it), or key the stored measurements by the
+  settled content height instead of just the url.
+- **Thread 3 iOS edge-swipe -- UNTESTED.** Needs an iOS simulator session. `EdgeSwipeBack.fs` may
+  need `edgeWidth`/`threshold` tuning or may conflict with horizontal pan gestures (e.g. the
+  `HorizontalPanArea` demo, which is RNGH-scoped and so probably safe, but the sidebar drawer's
+  `GestureView` is JS-responder and could clash).
+
+---
+
+## 2026-07-08 (session 13 -- RW8 follow-ups 2 & 3: native back-nav + doc scroll restore-on-back)
+
+Closed two of the three RW8 open follow-ups from session 12: the app-wide native back-navigation gap
+(thread 3) and the back-nav doc scroll-restore failure (thread 2). The third (heading descender
+clipping) was already fixed in commit `33a27b5` just before this session. Follow-ups now: on-device
+verification of both fixes (esp. the iOS edge-swipe, which is new code with no device test yet).
+
+### What shipped
+- **Thread 3 -- native back navigation wired at the gallery root.** `LR.NativeBackButton` already
+  existed (Android hardware Back) and a prior uncommitted pass had added `canGoBack` + subscription
+  cleanup to it and a new `LR.EdgeSwipeBack` (iOS left-edge swipe via the JS responder system). But
+  **neither was mounted anywhere in the gallery**, so Android Back closed the app and iOS had no
+  edge-swipe. Fix: mount both once in `Ui.App.Root`, nested under `Ui.With.Navigation` (for `nav`)
+  + `LR.With.Location` (for `pathname`), with `canGoBack = (location.pathname <> "/")` so Back at
+  the Home route returns false and lets the OS close the app. Both are noElement/overlays and
+  no-op off-platform, so the mount is unconditional (no `#if`). `EdgeSwipeBack.fs` was added to
+  `LibRouter.fsproj` compile order in the prior pass.
+- **Thread 2 -- `LC.ScrollView` restores saved scroll on back-nav.** Root cause of "lands at top":
+  on back to a shorter page, RN clamps the reused ScrollView's offset to 0 and emits an `onScroll`;
+  `handleScroll` clears `restoreWhenMatchRef`, so the subsequent `onLayout` (which would have
+  restored) saw `None` and skipped. Fix in `ScrollView.fs`: (a) `handleContentLayout` re-arms the
+  pending restore from `measurementStorage` when the flag is `None` **and** we're still at the
+  clamped top (`lastScrollPositionRef.current.Top = 0`) -- so a genuine user scroll (non-zero
+  offset) still cancels the restore, preserving the original onScroll-cancel intent; (b) `restoreNow`
+  adopts the restored position into `lastScrollPositionRef` immediately so a follow-up `onLayout`
+  (before the `scrollTo`'s `onScroll` lands) doesn't re-arm and re-scroll. Forward reset-to-top
+  (session 12) is unchanged.
+- **Pre-existing `jsNative` build break fixed (Fable 5 migration).** `dotnet fable` on the gallery
+  failed with `FS0039: jsNative is not defined` at `App.fs` (`jsGlobalThis`) and
+  `MarkdownViewer.fs`. Fable.Core 5.0.0 moved `jsNative` to top-level `Fable.Core` (out of
+  `Fable.Core.JsInterop`); LibClient files already `open Fable.Core` so their 100+ usages were
+  unaffected, but `App.fs` opened only `Fable.Core.JsInterop` and `MarkdownViewer.fs` used the
+  now-stale fully-qualified `Fable.Core.JsInterop.jsNative`. Fix: `open Fable.Core` in `App.fs`;
+  qualify-→-unqualified `jsNative` in `MarkdownViewer.fs`. Added to
+  [Troubleshooting](./runbooks/troubleshooting.md#build-cache).
+
+### Gotchas / lessons
+- **`jsNative` moved in Fable.Core 5.0.0.** It is now top-level in `Fable.Core`, not in
+  `Fable.Core.JsInterop`. `open Fable.Core.JsInterop` alone no longer brings it into scope, and the
+  fully-qualified `Fable.Core.JsInterop.jsNative` is no longer valid. Any file that uses `jsNative`
+  must `open Fable.Core`. LibClient was already correct repo-wide; the gallery + Showdown had two
+  stale spots. A `dotnet build` (fsc) of the gallery had been failing at Showdown first, masking
+  the App.fs spot; `dotnet fable` reports all errors and surfaced both.
+- **A reused native ScrollView emits a clamp `onScroll` on content shrink.** When the outgoing
+  page's offset exceeds the new page's height, RN resets to 0 and fires `onScroll` -- which any
+  "cancel pending restore on scroll" logic will treat as a user scroll. Distinguishing the two is
+  not reliable; the safe heuristic is "only re-arm while still at the clamped top (`Top = 0`)," so a
+  real user scroll (non-zero) still cancels. See `ScrollView.fs` `handleContentLayout`.
+- **`LR.NativeBackButton` / `LR.EdgeSwipeBack` are platform-self-filtering.** Both return `noElement`
+  off their target platform (BackHandler is a stub on web/iOS; EdgeSwipeBack early-returns on
+  web/Android), so they can be mounted once unconditionally at the app root -- no `#if` guard, no
+  per-platform mount. The only caller concern is `canGoBack` (so Back at the root route can still
+  exit the app).
+- **`LR.With.Location` requires its own `open`.** `App.fs` opened `LibRouter.Components.With.Route`
+  (for `LR.With.Route`) but not `With.Location`; the `LR.With` type extension for `Location` is in
+  the auto-open module `LibRouter.Components.With.Location`, whose auto-open only triggers when the
+  containing namespace (`LibRouter.Components.With`) is opened -- opening a sibling (`With.Route`)
+  does not bring it in. Add `open LibRouter.Components.With.Location` explicitly.
+
+### Session-13 follow-ups (superseded by session 14 -- kept for the record)
+- On-device verification: done in session 14 (see above). Thread 3 Android = working; thread 2 = fix
+  did not work on device; iOS edge-swipe = untested.
+- Exact back-nav scroll restore on native: **still broken** as of session 14. The ~10% height-match
+  gate is the prime suspect (async markdown reflow settles at a height outside ±10% of the stored
+  height, so the restore is skipped even when re-armed). See session-14 open follow-ups.
+
+---
+
 ## 2026-07-08 (session 12 -- RW8 gallery on-device defects 4, 5, 6 fixed on POCO F1)
 
 Fixed the pan-slider (defect 4), the picker crash (defect 6), and the blank docs (defect 5) on the

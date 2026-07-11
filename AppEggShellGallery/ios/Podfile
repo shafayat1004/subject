@@ -41,5 +41,15 @@ target 'AppEggshellGallery' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # RNFB (react-native-firebase) includes React's non-modular headers
+    # (e.g. React/RCTBridgeModule.h) from inside its own framework module, which
+    # -Wnon-modular-include-in-framework-module turns into a hard error under
+    # `use_frameworks! :linkage => :static`. AppTodo doesn't carry RNFB, so this
+    # is gallery-specific. Allow the non-modular include so the Firebase pods
+    # compile; the app target itself still gets modular checking.
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    end
   end
 end

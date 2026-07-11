@@ -144,19 +144,49 @@ type LibClient.Components.Constructors.LC with
                 restoreWhenMatchRef.current <- None
             onScroll |> Option.sideEffect (fun cb -> cb (top, left))
 
+        // Restore scroll from a saved Measurements record, clearing the pending-restore flag.
+        // Used both from the onLayout path and the mount/key-change effect (closes the race where
+        // onLayout lands before the effect sets the pending-restore flag on the reused native view).
+        // Also adopts the restored position into lastScrollPositionRef immediately: a follow-up
+        // onLayout can fire before the scrollTo's onScroll lands, and without this the re-arm path
+        // in handleContentLayout (which only acts while Top = 0) would re-scroll to the same place.
+        let restoreNow (measurements: Measurements) : unit =
+            restoreWhenMatchRef.current <- None
+            lastScrollPositionRef.current <- measurements.ScrollPosition
+            maybeScrollViewRef.current
+            |> Option.sideEffect (fun sv ->
+                sv.scrollTo (box {| x = measurements.ScrollPosition.Left
+                                    y = measurements.ScrollPosition.Top
+                                    animated = false |}))
+
+        // Returns true if `currentHeight` approximately matches the saved content height (~10%).
+        let heightApproximatelyMatches (currentHeight: int) (saved: Measurements) : bool =
+            abs (currentHeight - saved.ContentSize.Height) < int (float currentHeight * 0.1)
+
         // onContentLayout handler: updates content size and tries to restore scroll.
         let handleContentLayout (layout: Rn.Types.ViewOnLayoutEvent) : unit =
             maybeLastContentSizeRef.current <- Some { Width = layout.width; Height = layout.height }
-            restoreWhenMatchRef.current
-            |> Option.sideEffect (fun originalMeasurements ->
-                if abs (layout.height - originalMeasurements.ContentSize.Height) < (int ((float layout.height) * 0.1)) then
-                    restoreWhenMatchRef.current <- None
-                    maybeScrollViewRef.current |> Option.sideEffect (fun sv ->
-                        sv.scrollTo (box {| x = originalMeasurements.ScrollPosition.Left
-                                            y = originalMeasurements.ScrollPosition.Top
-                                            animated = false |})
-                    )
-            )
+            // Restore from a pending measurement, or re-arm from storage if the pending flag was
+            // cleared by a native clamp onScroll. Back-nav race: when the outgoing page's offset
+            // exceeds the new (shorter) page's height, RN clamps the reused ScrollView to 0 and
+            // emits an onScroll; handleScroll clears restoreWhenMatchRef, so by the time this
+            // layout event fires the restore would be skipped and back-nav lands at the top. Re-arm
+            // only while we're still at the clamped top (Top = 0) so a genuine user scroll (non-zero
+            // offset) still cancels the pending restore, matching the original onScroll-cancel intent.
+            let tryRestore (measurements: Measurements) : unit =
+                if heightApproximatelyMatches layout.height measurements then
+                    restoreNow measurements
+            match restoreWhenMatchRef.current with
+            | Some measurements -> tryRestore measurements
+            | None ->
+                match restoreScroll.MaybeKey with
+                | Some key when lastScrollPositionRef.current.Top = 0 ->
+                    match measurementStorage.TryFind key with
+                    | Some measurements ->
+                        restoreWhenMatchRef.current <- Some measurements
+                        tryRestore measurements
+                    | None -> ()
+                | _ -> ()
             onLayout |> Option.sideEffect (fun cb -> cb layout)
 
         // Runs on mount AND whenever the restore key (the route url) changes. A parent that
@@ -171,6 +201,18 @@ type LibClient.Components.Constructors.LC with
                      match measurementStorage.TryFind key with
                      | Some measurements ->
                          restoreWhenMatchRef.current <- Some measurements
+                         // Close a race on the reused native ScrollView: onLayout is a native
+                         // bridge event and can land BEFORE this passive useEffect sets
+                         // restoreWhenMatchRef (so handleContentLayout saw None and skipped the
+                         // restore), and onLayout does not re-fire when the revisited content
+                         // settles at the same height. Re-check the last measured size here: if
+                         // it already approximately matches the saved height, restore immediately
+                         // instead of waiting for an onLayout that will never come.
+                         maybeLastContentSizeRef.current
+                         |> Option.sideEffect (fun currentSize ->
+                             if heightApproximatelyMatches currentSize.Height measurements then
+                                 restoreNow measurements
+                         )
                          async {
                              // If we couldn't restore scroll for 10 seconds, give up.
                              do! Async.Sleep (TimeSpan.FromSeconds 10.)

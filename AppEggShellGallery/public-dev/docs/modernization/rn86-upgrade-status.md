@@ -180,25 +180,28 @@ but has these UX/functional bugs (none block launch):
    the caller sees it — `requestFocus()` → `focus()`, `selectAll()` → `setSelection(0, huge)` (RN clamps
    to the text bounds). Platform-agnostic (`focus()` exists on native + web).
 
-These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–12.
+These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–14.
 
-**Open RW8 follow-ups (deferred — noted 2026-07-08, session 12, verified on POCO F1):** the six defects
-above are fixed; these smaller items remain and are **not yet done**:
+**RW8 follow-ups status (updated session 14, after on-device test on POCO F1):** the six defects
+above are fixed. Of the three smaller follow-ups noted in session 12:
 
-1. **Docs back-navigation does not restore the saved scroll position (lands at top).** Forward
-   navigation now correctly starts a new doc at the top (session-12 `LC.ScrollView` fix: the
-   save/restore effect re-runs on url change). But navigating **back** to a previously scrolled doc
-   lands at the top instead of the saved offset. The `restoreScroll` heuristic restores only
-   `WhenContentApproximatelyMatchesOriginalHeight` (revisited content height within ~10 % of the saved
-   height) and that path is not re-engaging on the **reused** native ScrollView (a timing/measurement
-   issue between the key-change effect and `onLayout`). Exact restore-on-back never worked on native.
-2. **Android hardware Back closes the app instead of navigating back.** No `BackHandler` is wired to
-   the LibRouter history on native, so the OS Back button exits the app rather than popping the
-   in-app route. App-wide native-nav gap (not docs-specific).
-3. **Native markdown heading descenders are clipped.** Letters with descenders (y, g, p, q, j) in
-   `<h1>`–`<h6>` have their bottoms slightly cut off — the session-12 `MarkdownViewer.fs` `tagsStyles`
-   headings set `fontSize`/`fontWeight` but no `lineHeight`, so RN's default line box is too short for
-   the larger heading glyphs. Fix: give each heading a `lineHeight` (≈ `fontSize` × 1.3).
+1. **Docs back-nav scroll restore — STILL BROKEN (session-14 device test failed the fix).** The
+   session-13 `LC.ScrollView` fix (re-arm the pending restore from `measurementStorage` while at the
+   clamped top in `handleContentLayout`) did **not** restore the saved scroll position on the device
+   (Home → doc → scroll → Back → lands at top). Root cause not fully confirmed; the prime suspect is
+   the `heightApproximatelyMatches` ±10% gate — native markdown reflow likely settles at a height
+   outside ±10% of the stored height, so the restore is skipped even when re-armed. Forward reset-to-top
+   (session 12) still works. Next: add an `Emit`-based `jsLog` trace in `handleContentLayout`/
+   `restoreNow` to see on-device whether (a) a stored entry exists for the key, (b) the height gate
+   passes, (c) `restoreNow` runs. Likely fix: drop the height gate for back-nav restore (key matches
+   == trust it), or key stored measurements by settled content height. See engineering-log session 14.
+2. **Android hardware Back — VERIFIED WORKING (session-14 device test).** Real touch + `adb
+   keyevent` both confirm Back pops the in-app history; at Home (`canGoBack=false`) Back returns to
+   the launcher. **iOS edge-swipe — STILL UNTESTED** (no iOS session). `LR.EdgeSwipeBack` is new
+   responder code; may need `edgeWidth`/`threshold` tuning or may clash with the sidebar drawer's
+   JS-responder `GestureView`.
+3. **Native markdown heading descenders clipped — DONE** (commit `33a27b5`): `MarkdownViewer.fs`
+   heading `tagsStyles` now set `lineHeight ≈ fontSize × 1.3`.
 
 **Build-unblock (session 11): stale push-notification receiver crashed the debug build at boot.**
 Bringing the gallery up as a **debug** build (Metro dev loop, needed to iterate the RW8 fixes) crashed on
