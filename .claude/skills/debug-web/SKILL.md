@@ -15,6 +15,15 @@ argument-hint: "[preflight [port]]"
 `scripts/web-preflight.sh [port]` checks the server responds and warns if source `.fs` files are
 newer than `.build/web/fable` output (stale bundle: invoke fable-rebuild-verify).
 
+## No backend needed — fake service (READ THIS before "app won't load")
+
+AppTodo runs on **fake in-memory todos** by default: `BackendUrl` is commented out in
+`SuiteTodo/AppTodo/configSourceOverrides.dev.js`. So `dev-web` alone gives a fully working app with
+seeded todos — you do **not** need the Orleans/SQL backend running (and on some hosts, e.g. Apple
+Silicon, SQL Server full-text search will not start at all). If `BackendUrl` is uncommented and no
+backend answers, the app hangs on **"Loading…"** and `audit:web` reports *"Todo UI not ready"* — comment
+`BackendUrl` back out. See `runbooks/web.md` #fake-service.
+
 ## Observe (Tier 2, preferred)
 
 From the app dir:

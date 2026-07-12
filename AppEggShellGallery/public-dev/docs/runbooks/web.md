@@ -30,6 +30,19 @@ On startup, webpack prints every reachable URL (127.0.0.1, LAN IPs, etc.).
 
 ---
 
+## No backend needed — fake service {#fake-service}
+
+`dev-web` alone gives a fully working AppTodo with seeded todos; you do **not** need the Orleans/SQL backend. AppTodo uses **fake in-memory todos** whenever `BackendUrl` is commented out in `SuiteTodo/AppTodo/configSourceOverrides.dev.js` (the default), wiring `FakeTodoService`:
+
+```js
+// SuiteTodo/AppTodo/configSourceOverrides.dev.js
+// eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001";  // ← leave COMMENTED for fake todos
+```
+
+This matters because the backend does not run everywhere — on **Apple Silicon** the SQL Server full-text-search container will not start, so fake service is the only way to exercise the web app there. If `BackendUrl` is **uncommented** and nothing answers on it, the app hangs on **"Loading…"** and `npm run audit:web` fails with *"Todo UI not ready (no heading or inputs)"*. Fix: comment `BackendUrl` back out and restart `dev-web`. (Gallery has no backend dependency at all.)
+
+---
+
 ## Observe {#observe}
 
 **Scripted / headless (Tier 2):**
@@ -61,7 +74,9 @@ curl http://127.0.0.1:9080/index.js | grep -c "<your-marker>"   # 0 = stale; res
 | Framework change not visible after `dev-web` restart | Stale precompiled lib served by webpack | Run `dotnet fable precompile src -o .build/web/fable ...` from `LibStandard/`, then `touch` the app's `App.fs` to trigger webpack. |
 | `Module not found: Can't resolve 'react'` | JS deps live in library `node_modules`, not the app | Run the **root** `./initialize` (installs every lib's `node_modules`), not just the app's. |
 | `--run webpack-dev-server` never starts | The first Fable compile failed; webpack only starts after a successful compile | Fix the F# error, then webpack starts on the next successful compile. |
-| `window.__DEV__` errors at load time | RN/RNW expects `__DEV__` to be set at load | Add `window.__DEV__ = true` in the app's `public-dev/index.html` (already set in AppEggShellGallery). |
+| App stuck on **"Loading…"**; `audit:web` says *"Todo UI not ready"* | Either a boot-time page error (open DevTools console / dump `pageerror`), or AppTodo is trying to reach a backend that is not running | Check the console first. If it is a backend timeout, comment out `BackendUrl` in `configSourceOverrides.dev.js` to use the fake service (see [#fake-service](#fake-service)). |
+| Boot `ReferenceError: process is not defined` (from `react-native-worklets/.../platformChecker.js`) | Webpack 5 does not polyfill `process`; worklets reads `process.env.JEST_WORKER_ID` at import | **Fixed centrally**: `Meta/LibFablePlus/webpack.config.js` defines it via `DefinePlugin`. If it recurs, that plugin was dropped. |
+| Boot `ReferenceError: __DEV__ is not defined` (from `react-native-reanimated`) | `__DEV__` is a Metro/RN global webpack does not inject | **Fixed centrally**: same `DefinePlugin` defines `__DEV__` for every app's web bundle. (Superseded the old per-app `window.__DEV__ = true` in `public-dev/index.html`, which AppTodo lacked.) |
 | RNGH or async-storage Webpack 5 `fullySpecified` errors | ESM modules without explicit extensions | Add `fullySpecified: false` rule in `Meta/LibFablePlus/webpack.config.js` for those packages. |
 
 For a complete catalog of build, styling, and layout gotchas across all platforms, see [Troubleshooting](./runbooks/troubleshooting.md).

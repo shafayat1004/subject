@@ -25,9 +25,24 @@ console.log("LOADED CUSTOM WEBPACK CONFIG: alias", {
         : null,
 });
 
+// Globals the react-native-reanimated / react-native-worklets stack reads at import time that
+// webpack 5 does not provide for the browser. Without these the web bundle throws at boot and
+// the app is stuck on "Loading…":
+//   - `process.env.JEST_WORKER_ID` (worklets platformChecker) -> "ReferenceError: process is
+//     not defined" (webpack does not polyfill `process`; NODE_ENV is already set by `mode`).
+//   - `__DEV__` (reanimated JSReanimated) -> "ReferenceError: __DEV__ is not defined" (a React
+//     Native global the Metro bundler injects but webpack does not).
+// There are no other bare `process`/RN-global references in the bundled RN packages.
+// See runbooks/troubleshooting.md (RN 0.86 section).
+const definePlugin = new webpack.DefinePlugin({
+    "process.env.JEST_WORKER_ID": "undefined",
+    __DEV__:                      JSON.stringify(isDev),
+});
+
 const commonConfig = {
     // Do we want source maps in production? If so, move the source-map-loader from dev to common config.
     devtool: isDev ? "eval-source-map" : false,
+    plugins: [definePlugin],
     mode: isDev ? "development" : "production",
     entry: BUNDLE_ENTRY_PATH,
     output: {
@@ -191,8 +206,9 @@ if (isDev) {
             runtimeChunk: false,
         },
         plugins: [
+            definePlugin,
             // This plugin is used to ensure that the output bundle is a single file.
-            // Sometimes webpack creates multiple chunks for runtime imports, 
+            // Sometimes webpack creates multiple chunks for runtime imports,
             // which can cause issues with our setup.
             new webpack.optimize.LimitChunkCountPlugin({
                 maxChunks: 1,

@@ -47,14 +47,19 @@ dotnet-only failures are unchanged and NOT formatter-caused: `LibLifeCycleCore` 
 `test-build` is a false-green risk: it prints `Fable precompilation failed` / `error! 1` but exits 0
 -- grep the log for `error`/`failed`, do not trust its exit code.
 
-**Pre-existing web-boot blocker (not formatter):** AppTodo web (`dev-web` :9080, fake service, no
-backend needed) boots to `Loading…` then dies on `ReferenceError: process is not defined` from
-`react-native-worklets/lib/module/platformChecker.js` (a `node_modules` file, never touched by the
-formatter). This is a webpack polyfill gap in the RN 0.86 / worklets modernization tail (worklets
-reads `process` at import time; the web bundle has no `process` shim). Blocks headless web runtime
-validation (`npm run audit:web` -> "Todo UI not ready"). Backend runtime is also unavailable on this
-M4 host (SQL Server full-text search will not start). Track the worklets `process` shim with the
-Reanimated-4 / Moti work.
+**Web-boot blocker found + fixed (not formatter-related).** AppTodo web (`dev-web` :9080, fake
+service, no backend needed) booted to `Loading…` then died on `ReferenceError: process is not
+defined` from `react-native-worklets/lib/module/platformChecker.js` (a `node_modules` file, never
+touched by the formatter -- 0 node_modules files changed). Webpack 5 does not inject the globals the
+reanimated + worklets stack reads at import time. Fixed in `Meta/LibFablePlus/webpack.config.js` with
+a `DefinePlugin` (dev + prod) defining the exact two the bundled packages read:
+`process.env.JEST_WORKER_ID` (worklets; `process.env.NODE_ENV` was already covered by webpack `mode`)
+and, after that surfaced the next one, `__DEV__` (reanimated `JSReanimated`; supersedes the old
+per-app `window.__DEV__ = true` in `public-dev/index.html`, which AppTodo lacked). After the fix the
+app renders fully with seeded fake todos (verified: heading, tabs, add-todo form, "8 open / 3 done",
+todo rows; `audit:web` gets past readiness and creates a todo). Backend runtime remains unavailable
+on this M4 host (SQL Server full-text search will not start) -- fake service is the web path there;
+documented in [Web Runbook](./runbooks/web.md) #fake-service + the `debug-web` skill.
 
 ---
 
