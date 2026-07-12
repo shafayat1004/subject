@@ -774,8 +774,9 @@ aligned exactly, at any level. When *newly* aligning a ragged block, levels 1-2 
 relaxation** consistent with section 2's "when it significantly aids readability": a member whose left
 part is far longer than the rest (one very long field name, or `| _ ->` beside a long pattern) is
 treated as an outlier -- kept at a single space so it neither aligns nor drags the block out, while the
-rest still align. Multi-line string/comment literals (including regular and verbatim strings that span
-lines) are never edited.
+rest still align. **Match arms (2c) are exempt from relaxation**: their `->` always align in full, so a
+long guarded pattern (`… when … ->`) still lines its arrow up with the short arms. Multi-line
+string/comment literals (including regular and verbatim strings that span lines) are never edited.
 
 **Record brace normalization** (structural levels, `--no-brace` to disable): the leading-brace style
 (`{ Field` sharing the first field's line) is reflowed to the canonical 2a/7 form -- `{` onto the

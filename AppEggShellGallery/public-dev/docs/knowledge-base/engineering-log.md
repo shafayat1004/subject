@@ -111,6 +111,16 @@ Verified: a full `--check`/apply over a pristine `git archive HEAD LibClient/src
 older build left ~175 `LibClient/src` files reformatted in the working tree; recover by
 `git restore LibClient/src` then re-running the fixed tool (preservation keeps author-aligned blocks).
 
+Follow-up (v1.6.2): match arms now always align their `->` in full (no relaxation), so an author-aligned
+`match` with long guarded patterns (`… when selectedDay = day ->`) keeps its arrows lined up with the
+short arms instead of being relaxed apart (`DayOfTheWeek.fs` OnPress). A first attempt used a spacing-
+based "snap if spread <= 2" preservation, which **broke idempotency** (relaxation can leave a residual
+spread of 1-2, so the next pass re-snapped -- caught by the whole-tree idempotency check). Correct fix:
+`forceFullAlign` for arms, decided purely by pattern widths (stable across runs); preservation for other
+constructs stayed the exact all-columns-equal check. Because it ignores current spacing, re-running also
+repairs a file a prior build had relaxed. Lesson: any preserve-vs-relax decision must key on the text
+(widths), never on current spacing, or it oscillates. 215 files, idempotent, 0 syntax errors.
+
 Follow-up (v1.6.0 + ragged sweep): interface `abstract [member] Name: Type` declarations now align their
 types like record fields (documented in spec section 14). They were skipped because `abstract` is an
 excluded keyword; classify now strips a leading `abstract `/`abstract member ` prefix. Biggest case:

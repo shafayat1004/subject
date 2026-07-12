@@ -325,7 +325,7 @@ let classify (masked: string) (real: string) : string option =
 ///    aligns nor drags the whole block out.
 let alignMarker (real: string[]) (masked: string[]) (run: int list)
                 (findIdx: string -> int) (markerWidth: int) (marker: string)
-                (attachToLeft: bool) (tolerance: int) =
+                (attachToLeft: bool) (tolerance: int) (forceFullAlign: bool) =
     let info =
         run |> List.map (fun idx ->
             let k = findIdx masked.[idx]
@@ -338,12 +338,16 @@ let alignMarker (real: string[]) (masked: string[]) (run: int list)
             idx, left, right, valueCol)
     let widths = info |> List.map (fun (_, l, _, _) -> l.Length)
     let maxW = List.max widths
+    // Preserve a block the author already fully aligned (all values at one
+    // column); otherwise relax so one long member does not drag the rest out.
+    // `forceFullAlign` (match arms) always aligns to the max, decided purely by
+    // widths so it is idempotent regardless of current spacing.
     let alreadyAligned =
         match info with
         | [] | [ _ ] -> false
         | (_, _, _, c0) :: rest -> rest |> List.forall (fun (_, _, _, c) -> c = c0)
     let alignCol =
-        if alreadyAligned then maxW
+        if forceFullAlign || alreadyAligned then maxW
         else
             let minW = List.min widths
             let cluster = widths |> List.filter (fun w -> w <= minW + tolerance)
@@ -356,11 +360,13 @@ let alignMarker (real: string[]) (masked: string[]) (run: int list)
             if left.Length <= alignCol then real.[idx] <- left.PadRight(alignCol) + marker + right
             else real.[idx] <- left + marker + right
 
-let alignEq real masked run tol = alignMarker real masked run findAssignEq 1 " = " false tol
-let alignColon real masked run tol = alignMarker real masked run findFieldColon 1 ": " true tol
-let alignOf real masked run tol = alignMarker real masked run findOf 4 " of " false tol
-let alignArrow real masked run tol = alignMarker real masked run findArrow 4 " -> " false tol
-let alignPipe real masked run tol = alignMarker real masked run findPipe 4 " |> " false tol
+let alignEq real masked run tol = alignMarker real masked run findAssignEq 1 " = " false tol false
+let alignColon real masked run tol = alignMarker real masked run findFieldColon 1 ": " true tol false
+let alignOf real masked run tol = alignMarker real masked run findOf 4 " of " false tol false
+// Match arms always fully align on `->` (no relaxation) -- long guarded patterns
+// still line their arrows up with the short arms.
+let alignArrow real masked run tol = alignMarker real masked run findArrow 4 " -> " false tol true
+let alignPipe real masked run tol = alignMarker real masked run findPipe 4 " |> " false tol false
 
 /// A `let`/CE group counts as "already aligned" (opt-in signal) when at least one
 /// binding has more than one space before its `=`.
