@@ -62,11 +62,11 @@ type Config = {
 
 let configForLevel (level: string) : Config option =
     match level.ToLowerInvariant() with
-    | "whitespace" | "0" -> Some { AlignStructural = false; NormalizeBraces = false; Tolerance = 0;      LetMode = Off }
+    | "whitespace" | "0"   -> Some { AlignStructural = false; NormalizeBraces = false; Tolerance = 0;      LetMode = Off }
     | "conservative" | "1" -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 12;     LetMode = OptIn }
-    | "standard" | "2" -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 24;     LetMode = OptIn }
-    | "aggressive" | "3" -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 100000; LetMode = Force }
-    | _ -> None
+    | "standard" | "2"     -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 24;     LetMode = OptIn }
+    | "aggressive" | "3"   -> Some { AlignStructural = true;  NormalizeBraces = true;  Tolerance = 100000; LetMode = Force }
+    | _                    -> None
 
 let excl =
     set [
@@ -101,12 +101,12 @@ let maskLine (line: string) (state0: int) : string * int =
         elif state = IN_VERBATIM then
             if c = '"' then
                 if sub i 2 = "\"\"" then out.Append("  ") |> ignore; i <- i + 2   // "" escaped quote
-                else out.Append(' ') |> ignore; i <- i + 1; state <- NORMAL
+                else out.Append(' ')                      |> ignore; i <- i + 1; state <- NORMAL
             else out.Append(' ') |> ignore; i <- i + 1
         elif state = IN_STRING then
             if c = '\\' && i + 1 < n then out.Append("  ") |> ignore; i <- i + 2  // \" \\ etc
             elif c = '"' then out.Append(' ') |> ignore; i <- i + 1; state <- NORMAL
-            else out.Append(' ') |> ignore; i <- i + 1
+            else out.Append(' ')              |> ignore; i <- i + 1
         else
             if c = '"' && sub i 3 = "\"\"\"" then
                 out.Append("   ") |> ignore; i <- i + 3; state <- IN_TRIPLE
@@ -208,12 +208,31 @@ let normalizeBracesOnce (lines: string[]) : string[] * bool =
                     j <- j + 1
             let trailingClean =
                 closeLine >= 0 && masked.[closeLine].Substring(closePos + 1).Trim() = ""
-            if not ok || closeLine <= i || not trailingClean then
+            let introIdx = out.Count - 1
+            let introIndent = indentOf out.[introIdx]
+            // A record TYPE that has members (`static member` / `member` / `interface`
+            // / `override` ...) must keep the leading-brace form: reflowing it to
+            // `type X = {` ... `}` puts the closing `}` at the type's own column, which
+            // ends the type block per the offside rule and orphans the trailing members
+            // (FS0010 "Unexpected keyword 'static'/'interface'"). Detect this by looking
+            // past the close for the next real line: if it is indented deeper than the
+            // intro, this block is followed by nested content and must not be reflowed.
+            let orphansFollow =
+                let mutable k = closeLine + 1
+                let mutable res = false
+                let mutable stop = false
+                while not stop && k < n do
+                    let rawTrim = lines.[k].TrimStart()
+                    if masked.[k].Trim() = "" || rawTrim.StartsWith "#" then
+                        k <- k + 1
+                    else
+                        res <- indentOf lines.[k] > introIndent
+                        stop <- true
+                res
+            if not ok || closeLine <= i || not trailingClean || orphansFollow then
                 out.Add lines.[i]
                 i <- i + 1
             else
-                let introIdx = out.Count - 1
-                let introIndent = indentOf out.[introIdx]
                 let fieldIndent = introIndent + 4
                 let delta = fieldIndent - keyCol masked.[i]
                 out.[introIdx] <- out.[introIdx].TrimEnd() + " {"
@@ -344,7 +363,7 @@ let alignMarker (real: string[]) (masked: string[]) (run: int list)
     // widths so it is idempotent regardless of current spacing.
     let alreadyAligned =
         match info with
-        | [] | [ _ ] -> false
+        | [] | [ _ ]            -> false
         | (_, _, _, c0) :: rest -> rest |> List.forall (fun (_, _, _, c) -> c = c0)
     let alignCol =
         if forceFullAlign || alreadyAligned then maxW
@@ -465,15 +484,15 @@ let formatSource (cfg: Config) (src0: string) : string =
                     | "let" ->
                         let doIt =
                             match cfg.LetMode with
-                            | Off -> false
+                            | Off   -> false
                             | Force -> true
                             | OptIn -> letGroupAlreadyAligned real masked runL
                         if doIt then alignEq real masked runL cfg.Tolerance
-                    | "field_eq" -> if cfg.AlignStructural then alignEq real masked runL cfg.Tolerance
+                    | "field_eq"    -> if cfg.AlignStructural then alignEq real masked runL cfg.Tolerance
                     | "field_colon" -> if cfg.AlignStructural then alignColon real masked runL cfg.Tolerance
-                    | "pipeop" -> if cfg.AlignStructural then alignPipe real masked runL cfg.Tolerance
-                    | "pipe" -> if cfg.AlignStructural then handlePipe real masked runL cfg.Tolerance
-                    | _ -> ()
+                    | "pipeop"      -> if cfg.AlignStructural then alignPipe real masked runL cfg.Tolerance
+                    | "pipe"        -> if cfg.AlignStructural then handlePipe real masked runL cfg.Tolerance
+                    | _             -> ()
                     i <- j
 
     (String.Join("\n", real)).TrimEnd('\n') + "\n"
@@ -499,8 +518,8 @@ let compilePattern (pat0: string) : (bool * Regex) option =
             if c = '*' && k + 1 < core.Length && core.[k + 1] = '*' then
                 sb.Append(".*") |> ignore; k <- k + 2
                 if k < core.Length && core.[k] = '/' then k <- k + 1  // `**/` -> `.*`
-            elif c = '*' then sb.Append("[^/]*") |> ignore; k <- k + 1
-            elif c = '?' then sb.Append("[^/]") |> ignore; k <- k + 1
+            elif c = '*' then sb.Append("[^/]*")   |> ignore; k <- k + 1
+            elif c = '?' then sb.Append("[^/]")    |> ignore; k <- k + 1
             else sb.Append(Regex.Escape(string c)) |> ignore; k <- k + 1
         let body = sb.ToString()
         // A match on a directory also matches everything under it: allow (/.*)?
@@ -560,7 +579,7 @@ let main argv =
         let idx = argv |> Array.tryFindIndex (fun a -> a = "--level" || a = "-l")
         match idx with
         | Some i when i + 1 < argv.Length -> argv.[i + 1]
-        | _ -> "standard"
+        | _                               -> "standard"
 
     match configForLevel levelArg with
     | None ->
@@ -573,7 +592,7 @@ let main argv =
         let levelValueIdx =
             match argv |> Array.tryFindIndex (fun a -> a = "--level" || a = "-l") with
             | Some i -> i + 1
-            | None -> -1
+            | None   -> -1
         let paths =
             argv
             |> Array.mapi (fun i a -> i, a)

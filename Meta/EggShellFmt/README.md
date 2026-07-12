@@ -94,8 +94,11 @@ type UiAction =                          type UiAction = {
 ```
 
 Only records introduced by a line ending in `=` are reflowed. It skips record-updates (`{ x with`),
-object expressions, anonymous records (`{| |}`), inline records, and any block touching a multi-line
-string. Nested records are handled (run to a fixed point).
+object expressions, anonymous records (`{| |}`), inline records, any block touching a multi-line
+string, and **record TYPES that have members** -- a `static member`/`member`/`interface` following the
+fields means the type must keep the indented-brace form (`{ ... }` under `type X =`); reflowing it to
+`type X = {` ... `}` puts the closing `}` at the type's own column, which ends the `type` block per the
+offside rule and orphans the member (`FS0010`). Nested records are handled (run to a fixed point).
 
 It does **not** reflow long lines, break signatures, do general bracket placement, or fix operator
 spacing inside expressions. For those run Fantomas (`dotnet tool run fantomas <file.fs>`); both are

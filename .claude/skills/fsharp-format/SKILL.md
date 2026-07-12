@@ -54,8 +54,10 @@ type UiAction =                type UiAction = {
 ```
 
 Only records introduced by a line ending in `=`. Skips `{ x with`, object expressions, `{| |}`, inline
-records, and blocks touching a multi-line string. Nested records handled. General bracket placement /
-line reflow is still not done (that's Fantomas).
+records, blocks touching a multi-line string, and **record TYPES that have members** (a
+`static member`/`member`/`interface` follows -- those must keep the indented-brace form, or the col-0
+`}` ends the `type` block and orphans the member: `FS0010`). Nested records handled. General bracket
+placement / line reflow is still not done (that's Fantomas).
 
 ## Ignore files
 

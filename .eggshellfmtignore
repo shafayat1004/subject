@@ -5,6 +5,9 @@
 # node_modules/, .git/, and *.fs.js -- so build output and vendored source are already excluded.
 # Add project-specific opt-outs below.
 #
+
+# Generated Fable output tree (copied third-party + compiled .fs; never our source).
+**/.build/
 # Examples:
 #   SuiteLegacy/                         # never reformat a whole suite
 #   LibClient/src/Rn/Styles/Legacy/      # a subtree kept in its old shape
