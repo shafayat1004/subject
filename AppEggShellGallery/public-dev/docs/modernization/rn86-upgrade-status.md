@@ -274,6 +274,29 @@ generated app build web + native end-to-end and adds the `create-app -> dev-web`
 - **React "unique key" warnings** (CLAUDE.md rule I): route static child arrays through
   `castAsElementAckingKeysWarning`.
 
+### RW9 — Safari: horizontal `LC.ScrollView` clips on first mount [BACKLOG]
+
+A horizontal `LC.ScrollView` (e.g. AppTodo's category chip row) renders **clipped at the top on the
+first mount in Safari only**, and self-corrects on the next render (pressing a chip "fixed" it).
+Chrome and the steady state are fine.
+
+Fixed in `LC.ScrollView` and verified in-tool (Chromium + WebKit engine): a horizontal scroller's
+outer gets `flexShrink 0` (RNW's base `flexShrink: 1` let a column parent collapse the cross-axis)
+and its content reserves a scrollbar-height bottom strip (`paddingBottom`) so a classic
+space-reserving scrollbar can't squeeze the row. These resolved the Chrome clip and the
+stray-scrollbar-eats-the-bottom case.
+
+**Still open (Safari-only, first mount):** the clip persists until a re-render. Root cause is
+Safari.app laying out the RNW/Fabric horizontal ScrollView wrong on first paint; `LC.ScrollView`'s
+size is static (not state-driven), so it is a browser layout quirk, not our JS. **Not reproducible in
+tooling:** headless/headed Chromium and the WebKit engine (Playwright) all render it correct from
+first paint — Playwright always uses overlay scrollbars, so it cannot replicate Safari.app's
+classic-scrollbar first-mount layout. A tried-and-reverted mount-time forced re-render did **not**
+fix it (a no-op React re-render doesn't force Safari to reflow). Likely next step: give the horizontal
+scroller an **explicit definite height** (a framework prop) so there is no async layout for Safari to
+get wrong on first paint. Needs a real Safari to verify. See
+[Troubleshooting](./runbooks/troubleshooting.md) (web section) and [Web Runbook](./runbooks/web.md).
+
 ### RW6 — Ship [after the above]
 
 Broader consumer check for any other `App*`/`Suite*` that build native, then open the PR from

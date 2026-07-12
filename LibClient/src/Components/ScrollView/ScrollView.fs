@@ -67,6 +67,26 @@ module private Styles =
             Overflow.Visible
         }
 
+    // A horizontal scroller's cross axis is its HEIGHT: it must size to its content. RNW's
+    // ScrollView base style is flexShrink 1, so in a column-flex parent (the common case) the
+    // scroller gets shrunk below its content height, collapsing it — the row clips on first
+    // paint and a stray scrollbar appears. Pinning flexShrink 0 makes the height track content.
+    // Vertical / Both scrollers keep the default (fill available space and scroll on the main axis).
+    let horizontalOuter =
+        makeScrollViewStyles {
+            flexShrink 0
+        }
+
+    // Reserve room for a horizontal scrollbar. The scroller is overflow-y:hidden, so a
+    // space-reserving (classic / "always show") scrollbar eats a strip off the bottom of the
+    // content box and clips the row. Padding the content bottom by a scrollbar's height puts the
+    // bar in that strip instead of over the content. On overlay-scrollbar systems (the macOS
+    // default) it is just a few px of empty space. Appended last so it wins over caller padding.
+    let horizontalScrollbarReserve =
+        makeViewStyles {
+            paddingBottom 16
+        }
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -249,9 +269,15 @@ type LibClient.Components.Constructors.LC with
             | No -> onScroll
             | _  -> Some handleScroll
 
+        let outerStyles =
+            match scroll with
+            | Horizontal -> Some [| Styles.horizontalOuter |]
+            | _          -> None
+
         Rn.ScrollView (
             horizontal = (scroll = Both || scroll = Horizontal),
             vertical   = (scroll = Both || scroll = Vertical),
+            ?styles    = outerStyles,
             showsHorizontalScrollIndicator = showsHoriz,
             showsVerticalScrollIndicator = showsVert,
             ?onScroll  = effectiveOnScroll,
@@ -266,6 +292,8 @@ type LibClient.Components.Constructors.LC with
                         styles   = [|
                             Styles.innerDiv
                             yield! (defaultArg styles [||])
+                            if scroll = Horizontal || scroll = Both then
+                                Styles.horizontalScrollbarReserve
                         |],
                         children = children
                     )

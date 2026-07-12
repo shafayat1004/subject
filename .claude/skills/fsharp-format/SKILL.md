@@ -25,6 +25,24 @@ dotnet tool run eggshell-fmt -- --level conservative LibClient/src
 dotnet tool run eggshell-fmt -- --no-ignore LibClient/src
 ```
 
+## Validate a sweep (before committing a wide run)
+
+The tool is alignment-only, but brace normalization CAN break code at parse level (a record type
+with members reflowed to the `= {` form orphaned its `static member` → `FS0010`; see engineering log
+session 19). A plain build can miss it when the affected lib only compiles under Fable. The cheap,
+complete safety net for a whitespace-only sweep is a **parse check vs HEAD** — flags only files that
+parse now but didn't before (ignores pre-existing / conditional-compilation false positives):
+
+```bash
+# after running the sweep, before committing:
+git diff --name-only | grep '\.fs$' | dotnet fsi .claude/skills/fsharp-format/scripts/parsecheck.fsx -
+# or point it at trees/files directly:
+dotnet fsi .claude/skills/fsharp-format/scripts/parsecheck.fsx LibClient/src
+```
+
+Exit 0 = no introduced parse errors. Also confirm idempotency (`eggshell-fmt --check .` = clean) and,
+for a wide run, a real frontend Fable build + backend `dotnet build` of the affected libs.
+
 ## Levels (`--level`, default `standard`)
 
 | Level | Alias | Alignment | Relaxation | let/CE `=` |

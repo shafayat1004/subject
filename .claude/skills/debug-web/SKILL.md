@@ -35,6 +35,32 @@ From the app dir:
 Gallery audit toolkit: `AppEggShellGallery/audit-gallery-*.mjs` (components, interactions, a11y,
 style-leaks). Selectors use `data-testid` (react-native-web DOM).
 
+## Diagnosing layout bugs (measure the DOM, don't eyeball)
+
+For a layout bug (clipping, collapse, stray scrollbar, wrong size), a throwaway Playwright script that
+**measures** beats screenshots. `page.evaluate` inside the app's `node_modules` (run the `.mjs` from
+the app dir so `import { chromium } from 'playwright'` resolves):
+- `el.getBoundingClientRect()` for box geometry; `getComputedStyle(el)` for `flexShrink`, `overflowX`,
+  `scrollbarWidth`, padding, etc. Diff a child's rect against its container's to quantify a clip.
+- `el.scrollWidth > el.clientWidth` to detect real overflow; `rect.height - el.clientHeight` = the
+  scrollbar strip a space-reserving bar is eating.
+- Poll the same measure at `t = 150 / 500 / 1500 / 3500 ms` after `domcontentloaded` to catch a
+  first-paint transient that self-corrects.
+- `select:data-testid` selectors (RNW emits `data-testid`); the outermost element of an `LC.TextButton`
+  is an absolutely-positioned tap-capture overlay inset **-12px** — measure the bordered child, not the
+  testid element, for the visible box.
+
+## Browser-engine caveats (learned the hard way)
+
+- **Playwright WebKit ≠ Safari.app.** Playwright (Chromium AND WebKit, headless or headed) always uses
+  **overlay** scrollbars (reserve no space), so it CANNOT reproduce a Safari.app bug caused by classic
+  space-reserving scrollbars, nor Safari's first-mount RNW/Fabric layout quirks. If a bug reproduces
+  only in the user's real Safari, your Playwright probes will look healthy — say so; don't claim fixed.
+- **Headed mode exists** (`chromium.launch({ headless:false })`, same for `webkit`) — use it when you
+  suspect headless-specific rendering, but it does not change the overlay-scrollbar limitation above.
+- Known open example: horizontal `LC.ScrollView` clips on first mount **in Safari only**
+  (`modernization/rn86-upgrade-status.md` RW9) — not reproducible in tooling.
+
 ## Console errors
 
 Playwright observe captures page errors. For manual checks, load the page and read the browser
