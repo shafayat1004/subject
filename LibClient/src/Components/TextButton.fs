@@ -22,31 +22,31 @@ module LC =
 
         type StateTheme = {
             TextColor: Color
-            FontSize: int
-            Opacity: float
+            FontSize:  int
+            Opacity:   float
         }
 
         type StatesTheme = {
             Actionable: StateTheme
-            Disabled: StateTheme
+            Disabled:   StateTheme
             InProgress: StateTheme
         }
 
         type Theme = {
-            Primary: StatesTheme
+            Primary:   StatesTheme
             Secondary: StatesTheme
         }
         with
             member this.StateTheme (level: Level) (state: ButtonLowLevelState) =
                 let statesTheme =
                     match level with
-                    | Primary -> this.Primary
+                    | Primary   -> this.Primary
                     | Secondary -> this.Secondary
 
                 match state with
                 | Actionable _ -> statesTheme.Actionable
-                | InProgress -> statesTheme.InProgress
-                | Disabled -> statesTheme.Disabled
+                | InProgress   -> statesTheme.InProgress
+                | Disabled     -> statesTheme.Disabled
 
 open LC.TextButton
 
@@ -101,16 +101,16 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member TextButton(
-            state: ButtonHighLevelState,
-            label: string,
-            ?level: Level,
-            ?numberOfLines: int,
-            ?testId: string,
-            ?role: AccessibilityRole,
+            state:               ButtonHighLevelState,
+            label:               string,
+            ?level:              Level,
+            ?numberOfLines:      int,
+            ?testId:             string,
+            ?role:               AccessibilityRole,
             ?accessibilityState: AccessibilityStateRecord,
-            ?styles: array<TextStyles>,
-            ?theme:   Theme -> Theme,
-            ?key: string
+            ?styles:             array<TextStyles>,
+            ?theme:              Theme -> Theme,
+            ?key:                string
         ) : ReactElement =
         key |> ignore
 
@@ -143,7 +143,7 @@ type LibClient.Components.Constructors.LC with
                                 elements {
                                     Rn.ActivityIndicator(
                                         color = "#aaaaaa",
-                                        size = Size.Tiny
+                                        size  = Size.Tiny
                                     )
                                 }
                         )
@@ -153,13 +153,13 @@ type LibClient.Components.Constructors.LC with
                     match lowLevelState with
                     | Actionable onPress ->
                         LC.Pressable(
-                            onPress = onPress,
-                            label = label,
-                            role = theRole,
-                            state = theA11yState,
-                            testId = theTestId,
-                            overlay = true,
-                            styles = [| Styles.tapCapture |],
+                            onPress       = onPress,
+                            label         = label,
+                            role          = theRole,
+                            state         = theA11yState,
+                            testId        = theTestId,
+                            overlay       = true,
+                            styles        = [| Styles.tapCapture |],
                             componentName = "LC.TextButton"
                         )
                     | _ ->

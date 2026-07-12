@@ -42,10 +42,10 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Avatar(
-            source: ImageSource,
+            source:  ImageSource,
             ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?theme:  Theme -> Theme,
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 
@@ -63,10 +63,10 @@ type LibClient.Components.Constructors.LC with
                     children =
                         elements {
                             Rn.Image(
-                                source = source,
-                                styles = [| Styles.image |],
+                                source     = source,
+                                styles     = [| Styles.image |],
                                 resizeMode = Image.ResizeMode.Cover,
-                                size = Size.FromParentLayout maybeLayout
+                                size       = Size.FromParentLayout maybeLayout
                             )
                         }
                 )),

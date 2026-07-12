@@ -103,10 +103,10 @@ module Nav_Top_Base =
                                 yield! legacyViewStyles
                                 yield! defaultArg styles [||]
                             |],
-                        testId = testId,
-                        accessibilityRole = AccessibilityRole.Header,
+                        testId             = testId,
+                        accessibilityRole  = AccessibilityRole.Header,
                         accessibilityLabel = "Top navigation",
-                        children = [| content |]
+                        children           = [| content |]
                     )
 
             LC.Responsive(

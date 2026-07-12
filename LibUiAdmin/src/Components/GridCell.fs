@@ -87,13 +87,13 @@ type UiAdmin with
     /// Cross-platform table cell: `dom.td` on web (styled by `table.la-table`), flex column on native.
     [<Component>]
     static member GridCell (
-            children:           ReactElements,
-            ?columnIndex:        int,
-            ?widthUnits:         int,
-            ?columnTotalUnits:   int,
-            ?className:          string,
-            ?isFirstColumn:      bool,
-            ?key:                string
+            children:          ReactElements,
+            ?columnIndex:      int,
+            ?widthUnits:       int,
+            ?columnTotalUnits: int,
+            ?className:        string,
+            ?isFirstColumn:    bool,
+            ?key:              string
         ) : ReactElement =
         let columnIndex = defaultArg columnIndex 0
         let widthUnits = resolveWidthUnits columnIndex widthUnits
@@ -117,11 +117,11 @@ type UiAdmin with
         #else
         ignore className
         Rn.View(
-            key = cellKey,
-            styles = [| Styles.cell widthUnits totalUnits isFirstColumn |],
+            key      = cellKey,
+            styles   = [| Styles.cell widthUnits totalUnits isFirstColumn |],
             children = [|
                 Rn.View(
-                    styles = [| Styles.cellContent |],
+                    styles   = [| Styles.cellContent |],
                     children = children
                 )
             |]

@@ -12,7 +12,7 @@ open ThirdParty.ReactLeafletOsmMap.Components
 
 [<Fable.Core.JS.Pojo>]
 type private FullscreenControlPropsJs
-    ( ?position: string, ?title: string, ?titleCancel: string, ?content: string,
+    ( ?position:            string, ?title: string, ?titleCancel: string, ?content: string,
       ?forceSeparateButton: bool, ?forcePseudoFullscreen: bool ) =
     member val position = position
     member val title = title
@@ -35,11 +35,11 @@ type OsmMap with
         : ReactElement =
         let wrappedProps =
             FullscreenControlPropsJs(
-                ?position = (position |> Option.map (fun x -> x.ToJs())),
-                ?title = title,
-                ?titleCancel = titleCancel,
-                ?content = content,
-                ?forceSeparateButton = forceSeparateButton,
+                ?position              = (position |> Option.map (fun x -> x.ToJs())),
+                ?title                 = title,
+                ?titleCancel           = titleCancel,
+                ?content               = content,
+                ?forceSeparateButton   = forceSeparateButton,
                 ?forcePseudoFullscreen = forcePseudoFullscreen
             ) |> box
 

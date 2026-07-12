@@ -23,7 +23,7 @@ module LC =
         }
 
         type CardType =
-        | Flat of FlatCardProperties
+        | Flat     of FlatCardProperties
         | Shadowed of ShadowedCardProperties
 
         type Theme = {
@@ -138,8 +138,8 @@ type LC with
     static member Card (
         children:     array<ReactElement>,
         ?onPress:     (ReactEvent.Action -> unit),
-        ?label:        string,
-        ?testId:       string,
+        ?label:       string,
+        ?testId:      string,
         ?theme:       Theme -> Theme,
         ?outerStyles: array<ViewStyles>,
         ?key:         string
@@ -183,12 +183,12 @@ type LC with
                             styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                         )
                         LC.Pressable (
-                            onPress      = onPress,
-                            label        = a11yLabel,
-                            testId       = resolvedTestId.Value,
-                            role         = AccessibilityRole.Button,
-                            overlay      = true,
-                            pointerState = pointerState,
+                            onPress       = onPress,
+                            label         = a11yLabel,
+                            testId        = resolvedTestId.Value,
+                            role          = AccessibilityRole.Button,
+                            overlay       = true,
+                            pointerState  = pointerState,
                             componentName = "LC.Card"
                         )
                     |]

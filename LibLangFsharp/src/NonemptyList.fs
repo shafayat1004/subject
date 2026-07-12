@@ -18,7 +18,7 @@ type NonemptyList<'T> =
     member this.Tail: List<'T> =
         match this.ToList with
         | _ :: tail -> tail
-        | [] -> failwith "unexpected"
+        | []        -> failwith "unexpected"
 
     member this.Item(index: int) : Option<'T> = this.ToList |> List.tryItem index
 
@@ -41,7 +41,7 @@ module NonemptyList =
     let ofList (source: List<'T>) : Option<NonemptyList<'T>> =
         match source with
         | [] -> None
-        | _ -> Some(NonemptyList source)
+        | _  -> Some(NonemptyList source)
 
     let ofListUnsafe (source: List<'T>) : NonemptyList<'T> = source |> ofList |> Option.get
 
@@ -60,7 +60,7 @@ module NonemptyList =
 
     let without (item: 'T) (source: NonemptyList<'T>) : Option<NonemptyList<'T>> =
         match source.ToList |> List.without item with
-        | [] -> None
+        | []     -> None
         | result -> NonemptyList result |> Some
 
     let map (mapper: 'T -> 'U) (source: NonemptyList<'T>) : NonemptyList<'U> =
@@ -83,7 +83,7 @@ module NonemptyList =
     let addOrAppend (map: Map<'K, NonemptyList<'V>>) (key: 'K) (value: 'V) : Map<'K, NonemptyList<'V>> =
         match map.TryFind key with
         | Some values -> map.AddOrUpdate(key, values.Cons value)
-        | None -> map.Add(key, ofOneItem value)
+        | None        -> map.Add(key, ofOneItem value)
 
     let addOrAppendMultiple
         (key: 'K)
@@ -92,7 +92,7 @@ module NonemptyList =
         : Map<'K, NonemptyList<'V>> =
         match map.TryFind key with
         | Some existing -> map.AddOrUpdate(key, existing.Append values)
-        | None -> map.Add(key, values)
+        | None          -> map.Add(key, values)
 
     let groupBy (projection: 'T -> 'K) (source: NonemptyList<'T>) : NonemptyList<'K * NonemptyList<'T>> =
         source

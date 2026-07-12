@@ -12,7 +12,7 @@ type private AnimationLoopOptionsJs (?restartFrom: float) =
 [<Fable.Core.JS.Pojo>]
 type private AnimatedTimingOptionsJs
     ( toValue: float, duration: float, useNativeDriver: bool,
-      ?delay: float, ?easing: obj, ?loop: obj ) =
+      ?delay:  float, ?easing: obj, ?loop: obj ) =
     member val toValue = toValue
     member val duration = duration
     member val useNativeDriver = useNativeDriver
@@ -44,7 +44,7 @@ type Easing =
 | InOutBack
 | StepStart
 | StepEnd
-| Steps of Intervals: int * MaybeEnd: Option<bool>
+| Steps       of Intervals: int * MaybeEnd: Option<bool>
 | CubicBezier of Coords1: (double * double) * Coords2: (double * double)
 with
     member this.ToRn : obj =
@@ -102,7 +102,7 @@ type InterpolatedValue internal(raw: RawInterpolatedValue) =
     member internal _.Raw = raw
 
 type RawAnimatedValue =
-    abstract member setValue: double -> unit
+    abstract member setValue:    double -> unit
     abstract member interpolate: obj -> RawInterpolatedValue
 
 type AnimatedValue internal(raw: RawAnimatedValue) =
@@ -127,12 +127,12 @@ type AnimatedValue internal(raw: RawAnimatedValue) =
 
 [<RequireQualifiedAccess>]
 type AnimatableValue =
-| Value of AnimatedValue
+| Value        of AnimatedValue
 | Interpolated of InterpolatedValue
 with
     member this.Raw =
         match this with
-        | Value value -> box value.Raw
+        | Value value               -> box value.Raw
         | Interpolated interpolated -> box interpolated.Raw
 
 type RawAnimation =
@@ -142,11 +142,11 @@ type RawAnimation =
 type Animation internal(raw: RawAnimation) =
     static member Timing(
             animatedValue: AnimatedValue,
-            toValue: double,
-            duration: TimeSpan,
-            ?delay: TimeSpan,
-            ?easing: Easing,
-            ?restartFrom: double)
+            toValue:       double,
+            duration:      TimeSpan,
+            ?delay:        TimeSpan,
+            ?easing:       Easing,
+            ?restartFrom:  double)
             : Animation =
         let maybeDelayMs = delay |> Option.map (fun d -> d.TotalMilliseconds)
         let maybeEasing = easing |> Option.map (fun e -> e.ToRn)
@@ -159,9 +159,9 @@ type Animation internal(raw: RawAnimation) =
                 toValue,
                 duration.TotalMilliseconds,
                 false,
-                ?delay = maybeDelayMs,
+                ?delay  = maybeDelayMs,
                 ?easing = maybeEasing,
-                ?loop = maybeLoop
+                ?loop   = maybeLoop
             ) |> box
 
         Rn.RnPrimitives.Animated?timing(animatedValue.Raw, fields)

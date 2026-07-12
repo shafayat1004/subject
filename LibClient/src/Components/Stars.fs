@@ -12,7 +12,7 @@ open Rn.Styles
 module LC =
     module Stars =
         type Theme = {
-            OnColor: Color
+            OnColor:  Color
             OffColor: Color
             IconSize: int
         }
@@ -48,11 +48,11 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Stars(
-            count: int,
-            ?total: int,
+            count:   int,
+            ?total:  int,
             ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?theme:  Theme -> Theme,
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 

@@ -55,7 +55,7 @@ type private PromptContent =
     [<Component>]
     static member Render(
             dialogProps: DialogProps<Parameters, unit>,
-            parameters: Parameters
+            parameters:  Parameters
         ) : ReactElement =
         Hooks.useEffect(
             (fun () ->
@@ -79,12 +79,12 @@ type private PromptContent =
 
         Constructors.LC.Form.Base(
             accumulator = Accumulator.ManageInternallyInitializingWith Acc.Initial,
-            submit = submit,
+            submit      = submit,
             content =
                 fun form ->
                     LC.Dialog.Shell.WhiteRounded.Standard(
-                        canClose = Shell.WhiteRounded.Standard.Never,
-                        ?heading = parameters.MaybeHeading,
+                        canClose           = Shell.WhiteRounded.Standard.Never,
+                        ?heading           = parameters.MaybeHeading,
                         accessibilityLabel = Helpers.dialogLabel parameters.MaybeHeading parameters.Details,
                         body =
                             Rn.View(
@@ -95,15 +95,15 @@ type private PromptContent =
                                             children =
                                                 [|
                                                     LC.UiText(
-                                                        value = parameters.Details,
+                                                        value  = parameters.Details,
                                                         styles = [| Styles.detailsText |]
                                                     )
                                                 |]
                                         )
                                         LC.Input.Text(
-                                            label = "Value",
+                                            label    = "Value",
                                             validity = form.FieldValidity Field.Value,
-                                            value = form.Acc.Value,
+                                            value    = form.Acc.Value,
                                             onChange =
                                                 fun value ->
                                                     form.UpdateAcc (fun acc -> { acc with Value = value })
@@ -145,8 +145,8 @@ let Open (maybeHeading: Option<string>) (details: string) (onResult: Option<None
         "Prompt"
         {
             MaybeHeading = maybeHeading
-            Details = details
-            OnResult = onResult
+            Details      = details
+            OnResult     = onResult
         }
         (fun dialogProps _ ->
             PromptContent.Render(
@@ -155,7 +155,7 @@ let Open (maybeHeading: Option<string>) (details: string) (onResult: Option<None
             )
         )
         {
-            OnResult = NoopFn
+            OnResult      = NoopFn
             MaybeOnCancel = None
         }
         close

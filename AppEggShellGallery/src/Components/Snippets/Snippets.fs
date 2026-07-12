@@ -99,7 +99,7 @@ let private renderError (error: string) : ReactElement =
 
 let private renderMarkdown (description: string) : ReactElement =
     Showdown.MarkdownViewer(
-        source = MarkdownViewer.Code description,
+        source            = MarkdownViewer.Code description,
         globalLinkHandler = "globalMarkdownLinkHandler"
     )
 
@@ -144,7 +144,7 @@ let private renderNativeList (snippets: list<Scraping.Types.Snippet>) (scope: Sc
     |> List.filter scope.Filter
     |> List.map (fun snippet ->
         Rn.View(
-            key = snippet.Key,
+            key    = snippet.Key,
             styles = [| Styles.snippetRow |],
             children =
                 [|
@@ -153,7 +153,7 @@ let private renderNativeList (snippets: list<Scraping.Types.Snippet>) (scope: Sc
                         children =
                             [|
                                 LC.Heading(
-                                    level = Heading.Tertiary,
+                                    level    = Heading.Tertiary,
                                     children = [| LC.Text snippet.Key |]
                                 )
                             |]

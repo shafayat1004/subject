@@ -16,27 +16,27 @@ module LR =
         module Top =
             module BackButtonTypes =
                 type Colors = {
-                    Label: Color
-                    LabelWeight: LegacyFontWeight
-                    Background: Color
-                    Border: Color
-                    Icon: Color
-                    BadgeFontWeight: LegacyFontWeight
-                    BadgeFontColor: Color
+                    Label:                Color
+                    LabelWeight:          LegacyFontWeight
+                    Background:           Color
+                    Border:               Color
+                    Icon:                 Color
+                    BadgeFontWeight:      LegacyFontWeight
+                    BadgeFontColor:       Color
                     BadgeBackgroundColor: Color
                 }
 
                 type StateTheme = {
-                    BaseColors: Colors
-                    HoveredColors: Colors
+                    BaseColors:      Colors
+                    HoveredColors:   Colors
                     DepressedColors: Colors
                 }
 
                 type Theme = {
-                    Actionable: StateTheme
-                    InProgress: StateTheme
-                    Disabled: StateTheme
-                    Selected: StateTheme
+                    Actionable:         StateTheme
+                    InProgress:         StateTheme
+                    Disabled:           StateTheme
+                    Selected:           StateTheme
                     SelectedActionable: StateTheme
                 }
 
@@ -45,8 +45,8 @@ open LR.Nav.Top.BackButtonTypes
 let private mapFontWeight (weight: LegacyFontWeight) : Rn.Styles.RulesRestricted.FontWeight =
     match weight with
     | LegacyFontWeight.Normal -> Rn.Styles.RulesRestricted.FontWeight.Normal
-    | LegacyFontWeight.Bold  -> Rn.Styles.RulesRestricted.FontWeight.Bold
-    | _ -> Rn.Styles.RulesRestricted.FontWeight.Normal
+    | LegacyFontWeight.Bold   -> Rn.Styles.RulesRestricted.FontWeight.Bold
+    | _                       -> Rn.Styles.RulesRestricted.FontWeight.Normal
 
 let private mapColors (colors: Colors) : LC.Nav.Top.Item.AppearanceColors =
     {
@@ -80,9 +80,9 @@ let private toItemTheme (backTheme: Theme) (itemTheme: LC.Nav.Top.Item.Theme) : 
 type LibRouter.Components.Constructors.LR.Nav.Top with
     [<Component>]
     static member BackButton(
-            ?theme: Theme -> Theme,
+            ?theme:  Theme -> Theme,
             ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?key:    string) : ReactElement =
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -93,7 +93,7 @@ type LibRouter.Components.Constructors.LR.Nav.Top with
 
         LC.Nav.Top.Item(
             styles = (styles |> Option.defaultValue [||]),
-            style = Nav.Top.Item.iconOnly Icon.Back,
-            state = Nav.Top.Item.State.Actionable goBack,
-            theme = toItemTheme theTheme
+            style  = Nav.Top.Item.iconOnly Icon.Back,
+            state  = Nav.Top.Item.State.Actionable goBack,
+            theme  = toItemTheme theTheme
         )

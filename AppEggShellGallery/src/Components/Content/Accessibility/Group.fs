@@ -29,8 +29,8 @@ type private Helpers =
             children =
                 [|
                     LC.TextButton(
-                        label = "Email",
-                        role = AccessibilityRole.Radio,
+                        label              = "Email",
+                        role               = AccessibilityRole.Radio,
                         accessibilityState = AccessibilityStateRecord.selected (selected.current = "Email"),
                         state =
                             PropStateFactory.MakeLowLevel (
@@ -38,8 +38,8 @@ type private Helpers =
                             )
                     )
                     LC.TextButton(
-                        label = "Phone",
-                        role = AccessibilityRole.Radio,
+                        label              = "Phone",
+                        role               = AccessibilityRole.Radio,
                         accessibilityState = AccessibilityStateRecord.selected (selected.current = "Phone"),
                         state =
                             PropStateFactory.MakeLowLevel (
@@ -58,10 +58,10 @@ type Ui.Content.Accessibility with
                 LC.Text "LC.Group names a related set of elements. LC.RadioGroup names a set of mutually exclusive choices; pair with controls using role = AccessibilityRole.Radio.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Group / LC.RadioGroup",
-                    role = "group (LC.Group); radiogroup (LC.RadioGroup)",
-                    namePattern = "label or ?accessibilityLabel on LC.Group; label on LC.RadioGroup",
-                    stateNotes = "Group is static; radio children expose selected state",
+                    componentName  = "LC.Group / LC.RadioGroup",
+                    role           = "group (LC.Group); radiogroup (LC.RadioGroup)",
+                    namePattern    = "label or ?accessibilityLabel on LC.Group; label on LC.RadioGroup",
+                    stateNotes     = "Group is static; radio children expose selected state",
                     scalesWithFont = true
                 ),
             samples =

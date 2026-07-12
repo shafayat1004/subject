@@ -43,10 +43,10 @@ module private ViewRN =
         region
         |> Option.map (
             function
-            | AccessibilityLiveRegion.None -> box "none"
-            | AccessibilityLiveRegion.Polite -> box "polite"
+            | AccessibilityLiveRegion.None      -> box "none"
+            | AccessibilityLiveRegion.Polite    -> box "polite"
             | AccessibilityLiveRegion.Assertive -> box "assertive"
-            | _ -> box "none"
+            | _                                 -> box "none"
         )
 
     let unboxStyles (styles: array<Rn.Styles.FSharpDialect.ViewStyles> option) : array<obj> option =
@@ -68,17 +68,17 @@ module private ViewRN =
             (onContextMenu: (MouseEvent -> unit) option)
             : unit =
         #if EGGSHELL_PLATFORM_IS_WEB
-        onMouseEnter |> Option.iter (fun v -> props?onMouseEnter <- v)
-        onMouseLeave |> Option.iter (fun v -> props?onMouseLeave <- v)
-        onDragStart |> Option.iter (fun v -> props?onDragStart <- v)
-        onDrag |> Option.iter (fun v -> props?onDrag <- v)
-        onDragEnd |> Option.iter (fun v -> props?onDragEnd <- v)
-        onDragEnter |> Option.iter (fun v -> props?onDragEnter <- v)
-        onDragOver |> Option.iter (fun v -> props?onDragOver <- v)
-        onDragLeave |> Option.iter (fun v -> props?onDragLeave <- v)
-        onDrop |> Option.iter (fun v -> props?onDrop <- v)
-        onMouseOver |> Option.iter (fun v -> props?onMouseOver <- v)
-        onMouseMove |> Option.iter (fun v -> props?onMouseMove <- v)
+        onMouseEnter  |> Option.iter (fun v -> props?onMouseEnter <- v)
+        onMouseLeave  |> Option.iter (fun v -> props?onMouseLeave <- v)
+        onDragStart   |> Option.iter (fun v -> props?onDragStart <- v)
+        onDrag        |> Option.iter (fun v -> props?onDrag <- v)
+        onDragEnd     |> Option.iter (fun v -> props?onDragEnd <- v)
+        onDragEnter   |> Option.iter (fun v -> props?onDragEnter <- v)
+        onDragOver    |> Option.iter (fun v -> props?onDragOver <- v)
+        onDragLeave   |> Option.iter (fun v -> props?onDragLeave <- v)
+        onDrop        |> Option.iter (fun v -> props?onDrop <- v)
+        onMouseOver   |> Option.iter (fun v -> props?onMouseOver <- v)
+        onMouseMove   |> Option.iter (fun v -> props?onMouseMove <- v)
         onContextMenu |> Option.iter (fun v -> props?onContextMenu <- v)
         #endif
         ()
@@ -193,21 +193,21 @@ type Rn.Components.Constructors.Rn with
             onContextMenu
 
         onKeyPress |> Option.iter (fun v -> __props?onKeyPress <- v)
-        onFocus |> Option.iter (fun v -> __props?onFocus <- v)
-        onBlur |> Option.iter (fun v -> __props?onBlur <- v)
+        onFocus    |> Option.iter (fun v -> __props?onFocus <- v)
+        onBlur     |> Option.iter (fun v -> __props?onBlur <- v)
 
-        onStartShouldSetResponder |> Option.iter (fun v -> __props?onStartShouldSetResponder <- v)
-        onMoveShouldSetResponder |> Option.iter (fun v -> __props?onMoveShouldSetResponder <- v)
+        onStartShouldSetResponder        |> Option.iter (fun v -> __props?onStartShouldSetResponder <- v)
+        onMoveShouldSetResponder         |> Option.iter (fun v -> __props?onMoveShouldSetResponder <- v)
         onStartShouldSetResponderCapture |> Option.iter (fun v -> __props?onStartShouldSetResponderCapture <- v)
-        onMoveShouldSetResponderCapture |> Option.iter (fun v -> __props?onMoveShouldSetResponderCapture <- v)
-        onResponderGrant |> Option.iter (fun v -> __props?onResponderGrant <- v)
-        onResponderReject |> Option.iter (fun v -> __props?onResponderReject <- v)
-        onResponderRelease |> Option.iter (fun v -> __props?onResponderRelease <- v)
-        onResponderStart |> Option.iter (fun v -> __props?onResponderStart <- v)
-        onResponderMove |> Option.iter (fun v -> __props?onResponderMove <- v)
-        onResponderEnd |> Option.iter (fun v -> __props?onResponderEnd <- v)
-        onResponderTerminate |> Option.iter (fun v -> __props?onResponderTerminate <- v)
-        onResponderTerminationRequest |> Option.iter (fun v -> __props?onResponderTerminationRequest <- v)
+        onMoveShouldSetResponderCapture  |> Option.iter (fun v -> __props?onMoveShouldSetResponderCapture <- v)
+        onResponderGrant                 |> Option.iter (fun v -> __props?onResponderGrant <- v)
+        onResponderReject                |> Option.iter (fun v -> __props?onResponderReject <- v)
+        onResponderRelease               |> Option.iter (fun v -> __props?onResponderRelease <- v)
+        onResponderStart                 |> Option.iter (fun v -> __props?onResponderStart <- v)
+        onResponderMove                  |> Option.iter (fun v -> __props?onResponderMove <- v)
+        onResponderEnd                   |> Option.iter (fun v -> __props?onResponderEnd <- v)
+        onResponderTerminate             |> Option.iter (fun v -> __props?onResponderTerminate <- v)
+        onResponderTerminationRequest    |> Option.iter (fun v -> __props?onResponderTerminationRequest <- v)
 
         __props?ref <- ref
         __props?key <- key
@@ -225,7 +225,7 @@ type Rn.Components.Constructors.Rn with
             || (activeOpacity.IsSome && activeOpacity <> Some 1.0)
 
         if usePressable then
-            onPress |> Option.iter (fun v -> __props?onPress <- v)
+            onPress     |> Option.iter (fun v -> __props?onPress <- v)
             onLongPress |> Option.iter (fun v -> __props?onLongPress <- v)
             Rn.RnPrimitives.assignPressableFeedback __props disableTouchOpacityAnimation activeOpacity underlayColor
             Rn.RnPrimitives.createElement Rn.RnPrimitives.Pressable __props kids

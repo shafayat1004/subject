@@ -50,10 +50,10 @@ type LibClient.Components.Constructors.LC with
                 | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
         Rn.View(
-            styles = [| Styles.view; yield! legacyViewStyles |],
-            accessibilityRole = AccessibilityRole.Status,
+            styles                  = [| Styles.view; yield! legacyViewStyles |],
+            accessibilityRole       = AccessibilityRole.Status,
             accessibilityLiveRegion = unbox<Rn.Components.View.AccessibilityLiveRegion> (int AccessibilityLiveRegion.Polite),
-            children = [|
+            children                = [|
                 LC.Text(message, styles = [| Styles.textForColorCss levelColor.ToCssString; yield! defaultArg styles [||] |])
             |]
         )

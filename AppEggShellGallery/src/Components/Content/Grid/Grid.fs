@@ -123,9 +123,9 @@ module private PaginatedWordsDemo =
         let goToPage (pageSize: PositiveInteger) (pageNumber: PositiveInteger) (_e: Option<ReactEvent.Action>) =
             currentPageHook.update (fun _ ->
                 {
-                    PageNumber          = pageNumber
-                    PageSize            = pageSize
-                    MaybePageCount      = None
+                    PageNumber     = pageNumber
+                    PageSize       = pageSize
+                    MaybePageCount = None
                     Items               =
                         Available (
                             Demo.words
@@ -140,7 +140,7 @@ module private PaginatedWordsDemo =
         goToPageRef.current <- goToPage
 
         UiAdmin.Grid(
-            input = LibUiAdmin.Components.Grid.Paginated(currentPageHook.current, Samples.makeWordRow, None),
+            input   = LibUiAdmin.Components.Grid.Paginated(currentPageHook.current, Samples.makeWordRow, None),
             headers = Samples.wordHeaders,
             itemKey = id
         )
@@ -150,19 +150,19 @@ type Ui.Content with
     static member Grid () : ReactElement =
         Ui.ComponentContent(
             displayName = "Grid",
-            props = ComponentContent.ForFullyQualifiedName "LibUiAdmin.Components.Grid",
+            props       = ComponentContent.ForFullyQualifiedName "LibUiAdmin.Components.Grid",
             notes =
                 LC.Text
                     "The grid is currently fairly basic, we're building it out as we go. If you have needs that are currently not supported, tell Anton and we'll make it happen. Also see QueryGrid and WithSortAndFilter for additional options.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Grid",
-                    role = "table/grid (data display)",
-                    namePattern = "Column headers label each column; row cells inherit cell content",
-                    stateNotes = "Pagination controls are pressable buttons; sortable headers expose sort state",
+                    componentName  = "Grid",
+                    role           = "table/grid (data display)",
+                    namePattern    = "Column headers label each column; row cells inherit cell content",
+                    stateNotes     = "Pagination controls are pressable buttons; sortable headers expose sort state",
                     scalesWithFont = true,
-                    contrastNotes = "Header and cell text colors meet WCAG AA",
-                    deferredTags = ["[web-only] table semantics"]
+                    contrastNotes  = "Header and cell text colors meet WCAG AA",
+                    deferredTags   = ["[web-only] table semantics"]
                 ),
             samples =
                 element {
@@ -173,7 +173,7 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Dynamic asynchronous rows, paginated",
                         verticalAlignment = VerticalAlignment.Top,
-                        visuals = PaginatedWordsDemo.Render(),
+                        visuals           = PaginatedWordsDemo.Render(),
                         code =
                             ComponentSample.Children(
                                 element {
@@ -215,7 +215,7 @@ UiAdmin.Grid(
                         verticalAlignment = VerticalAlignment.Top,
                         visuals =
                             UiAdmin.Grid(
-                                input = LibUiAdmin.Components.Grid.Everything(Available Demo.fruit, Samples.makeFruitRow, None),
+                                input   = LibUiAdmin.Components.Grid.Everything(Available Demo.fruit, Samples.makeFruitRow, None),
                                 headers = Samples.fruitHeaders
                             ),
                         code =
@@ -247,7 +247,7 @@ UiAdmin.Grid(
                         verticalAlignment = VerticalAlignment.Top,
                         visuals =
                             UiAdmin.Grid(
-                                input = LibUiAdmin.Components.Grid.Static(Samples.staticRows.Value, None),
+                                input   = LibUiAdmin.Components.Grid.Static(Samples.staticRows.Value, None),
                                 headers = Samples.fruitHeaders
                             ),
                         code =

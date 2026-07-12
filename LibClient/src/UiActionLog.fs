@@ -18,35 +18,39 @@ type UiActionKind =
     | AsyncStateChange
     | Announce
 
-type UiAction =
-    { Kind: UiActionKind
-      TestId: string option
-      Label: string option
-      Route: string option
-      Component: string option
-      Detail: Map<string, string>
-      Timestamp: int64 }
+type UiAction = {
+    Kind:      UiActionKind
+    TestId:    string option
+    Label:     string option
+    Route:     string option
+    Component: string option
+    Detail:    Map<string, string>
+    Timestamp: int64
+}
 
-type UiActionInput =
-    { Kind: UiActionKind
-      TestId: string option
-      Label: string option
-      ComponentName: string option
-      Detail: Map<string, string> }
+type UiActionInput = {
+    Kind:          UiActionKind
+    TestId:        string option
+    Label:         string option
+    ComponentName: string option
+    Detail:        Map<string, string>
+}
 
-type InteractiveSnapshot =
-    { TestId: string option
-      Label: string option
-      Role: string option
-      Component: string option
-      Visible: bool
-      State: Map<string, string> }
+type InteractiveSnapshot = {
+    TestId:    string option
+    Label:     string option
+    Role:      string option
+    Component: string option
+    Visible:   bool
+    State:     Map<string, string>
+}
 
-type UiSnapshot =
-    { Route: string option
-      Focused: InteractiveSnapshot option
-      Interactives: InteractiveSnapshot list
-      RecentActions: UiAction list }
+type UiSnapshot = {
+    Route:         string option
+    Focused:       InteractiveSnapshot option
+    Interactives:  InteractiveSnapshot list
+    RecentActions: UiAction list
+}
 
 [<Fable.Core.JS.Pojo>]
 type private UiActionJs
@@ -88,17 +92,17 @@ module private Registry =
 
     let kindName kind =
         match kind with
-        | UiActionKind.Press -> "Press"
-        | UiActionKind.Navigate -> "Navigate"
-        | UiActionKind.InputCommit -> "InputCommit"
-        | UiActionKind.SidebarOpen -> "SidebarOpen"
-        | UiActionKind.SidebarClose -> "SidebarClose"
-        | UiActionKind.Focus -> "Focus"
-        | UiActionKind.Blur -> "Blur"
-        | UiActionKind.DialogOpen -> "DialogOpen"
-        | UiActionKind.DialogClose -> "DialogClose"
+        | UiActionKind.Press            -> "Press"
+        | UiActionKind.Navigate         -> "Navigate"
+        | UiActionKind.InputCommit      -> "InputCommit"
+        | UiActionKind.SidebarOpen      -> "SidebarOpen"
+        | UiActionKind.SidebarClose     -> "SidebarClose"
+        | UiActionKind.Focus            -> "Focus"
+        | UiActionKind.Blur             -> "Blur"
+        | UiActionKind.DialogOpen       -> "DialogOpen"
+        | UiActionKind.DialogClose      -> "DialogClose"
         | UiActionKind.AsyncStateChange -> "AsyncStateChange"
-        | UiActionKind.Announce -> "Announce"
+        | UiActionKind.Announce         -> "Announce"
 
     let detailToJs (detail: Map<string, string>) : obj =
         detail |> Map.toList |> List.map (fun (k, v) -> (k, box v)) |> createObj
@@ -106,9 +110,9 @@ module private Registry =
     let actionToJs (a: UiAction) =
         UiActionJs(
             kindName a.Kind,
-            a.TestId |> Option.defaultValue "",
-            a.Label |> Option.defaultValue "",
-            a.Route |> Option.defaultValue "",
+            a.TestId    |> Option.defaultValue "",
+            a.Label     |> Option.defaultValue "",
+            a.Route     |> Option.defaultValue "",
             a.Component |> Option.defaultValue "",
             detailToJs a.Detail,
             a.Timestamp
@@ -117,9 +121,9 @@ module private Registry =
 
     let interactiveToJs (i: InteractiveSnapshot) =
         InteractiveSnapshotJs(
-            i.TestId |> Option.defaultValue "",
-            i.Label |> Option.defaultValue "",
-            i.Role |> Option.defaultValue "",
+            i.TestId    |> Option.defaultValue "",
+            i.Label     |> Option.defaultValue "",
+            i.Role      |> Option.defaultValue "",
             i.Component |> Option.defaultValue "",
             i.Visible,
             detailToJs i.State
@@ -129,7 +133,7 @@ module private Registry =
     let snapshotToJs () =
         UiSnapshotJs(
             currentRoute |> Option.defaultValue "",
-            focused |> Option.map interactiveToJs |> Option.defaultValue JS.undefined,
+            focused      |> Option.map interactiveToJs |> Option.defaultValue JS.undefined,
             interactives
             |> Map.values
             |> Seq.filter (fun i -> i.Visible)
@@ -158,12 +162,12 @@ let setCurrentRoute route =
         Registry.currentRoute <- Some route
 
         Registry.actions <-
-            { Kind = UiActionKind.Navigate
-              TestId = None
-              Label = None
-              Route = Some route
+            { Kind      = UiActionKind.Navigate
+              TestId    = None
+              Label     = None
+              Route     = Some route
               Component = None
-              Detail = Map.empty
+              Detail    = Map.empty
               Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() }
             :: Registry.actions
             |> List.truncate Registry.maxActions
@@ -173,12 +177,12 @@ let record (input: UiActionInput) =
         ()
     else
         Registry.actions <-
-            { Kind = input.Kind
-              TestId = input.TestId
-              Label = input.Label
-              Route = Registry.currentRoute
+            { Kind      = input.Kind
+              TestId    = input.TestId
+              Label     = input.Label
+              Route     = Registry.currentRoute
               Component = input.ComponentName
-              Detail = input.Detail
+              Detail    = input.Detail
               Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() }
             :: Registry.actions
             |> List.truncate Registry.maxActions
@@ -199,12 +203,12 @@ let registerInteractive
             Registry.interactives
             |> Map.add
                 key
-                { TestId = testId
-                  Label = label
-                  Role = role
+                { TestId    = testId
+                  Label     = label
+                  Role      = role
                   Component = componentName
-                  Visible = visible
-                  State = state }
+                  Visible   = visible
+                  State     = state }
 
 let unregisterInteractive (key: string) =
     if not (isDevEnabled ()) then
@@ -227,12 +231,12 @@ let installGlobalHook (globalObj: obj) (appName: string) =
 
     let eggshell =
         match globalObj?("eggshell") with
-        | null -> createObj []
+        | null     -> createObj []
         | existing -> existing
 
     let app =
         match eggshell?(appName) with
-        | null -> createObj []
+        | null     -> createObj []
         | existing -> existing
 
     app?uiLog <- (fun () -> Registry.actions |> List.map Registry.actionToJs |> List.toArray)
@@ -243,8 +247,8 @@ let installGlobalHook (globalObj: obj) (appName: string) =
 module UiObservability =
     let announce (message: string) (politeness: LibClient.Accessibility.AccessibilityLiveRegion) =
         record
-            { Kind = UiActionKind.Announce
-              TestId = None
-              Label = Some message
+            { Kind          = UiActionKind.Announce
+              TestId        = None
+              Label         = Some message
               ComponentName = None
-              Detail = Map [ "politeness", string politeness ] }
+              Detail        = Map [ "politeness", string politeness ] }

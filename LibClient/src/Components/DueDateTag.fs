@@ -98,7 +98,7 @@ type LibClient.Components.Constructors.LC with
             text = (
                 match offset with
                 | Some offset -> LibClient.Services.DateService.formatDateWithOffset format dueOn offset
-                | None        -> LibClient.Services.DateService.formatDate           format dueOn 
+                | None        -> LibClient.Services.DateService.formatDate           format dueOn
             ),
             isSelected = true,
             theme      = Styles.tagTheme dueOn currentDateHook.current,

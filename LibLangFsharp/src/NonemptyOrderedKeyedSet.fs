@@ -8,7 +8,7 @@ module NonemptyOrderedKeyedSet
 *)
 type NonemptyOrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
     private
-        { Map: NonemptyMap<'K, 'V>
+        { Map:         NonemptyMap<'K, 'V>
           OrderedKeys: array<'K> }
 
     member this.ToMap: NonemptyMap<'K, 'V> = this.Map
@@ -20,7 +20,7 @@ type NonemptyOrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
     member this.RemoveByKey(key: 'K) : Option<NonemptyOrderedKeyedSet<'K, 'V>> =
         this.Map.Remove key
         |> Option.map (fun map ->
-            { Map = map
+            { Map         = map
               OrderedKeys = this.OrderedKeys |> Array.filter ((<>) key) })
 
     member this.Remove(value: 'V) : Option<NonemptyOrderedKeyedSet<'K, 'V>> = this.RemoveByKey value.Key
@@ -29,7 +29,7 @@ type NonemptyOrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
         let key = value.Key
 
         if this.Map.ContainsKey key then
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = this.OrderedKeys }
         else
             failwithf "can't update, key not found in nonempty ordered keyed set"
@@ -38,10 +38,10 @@ type NonemptyOrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
         let key = value.Key
 
         if this.Map.ContainsKey key then
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = this.OrderedKeys }
         else
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = Array.append [| key |] this.OrderedKeys }
 
     member this.PrependOrUpdate(values: seq<'V>) : NonemptyOrderedKeyedSet<'K, 'V> =
@@ -51,10 +51,10 @@ type NonemptyOrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
         let key = value.Key
 
         if this.Map.ContainsKey key then
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = this.OrderedKeys }
         else
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = Array.append this.OrderedKeys [| key |] }
 
     member this.AppendOrUpdate(values: seq<'V>) : NonemptyOrderedKeyedSet<'K, 'V> =

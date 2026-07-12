@@ -19,8 +19,8 @@ type TransactionOutcome =
 type TxnBatchOpNo = (* BatchNo *) uint16 * (* OpNo *) uint16
 
 type RunningTransactionOp<'Op when 'Op: comparison> =
-    { Op: 'Op
-      No: TxnBatchOpNo
+    { Op:       'Op
+      No:       TxnBatchOpNo
       Finished: bool }
 
     interface IKeyed<'Op> with
@@ -38,20 +38,20 @@ type SubjectTransactionState<'Op when 'Op: comparison> =
     | Running of
         NonemptyKeyedSet<'Op, RunningTransactionOp<'Op>> *
         PendingRollbackReason: Option<TransactionRollbackReason>
-    | Prepared of NonemptyKeyedSet<'Op, IdleTransactionOp<'Op>>
+    | Prepared   of NonemptyKeyedSet<'Op, IdleTransactionOp<'Op>>
     | Finalizing of TransactionOutcome * NonemptyKeyedSet<'Op, RunningTransactionOp<'Op>>
     | Finalized of
         TransactionOutcome *
         KeyedSet<'Op, IdleTransactionOp<'Op>> *
-        FinalizedOn: DateTimeOffset *
+        FinalizedOn:     DateTimeOffset *
         CheckedPhantoms: bool
 
 type SubjectTransaction<'Op when 'Op: comparison> =
     { TransactionId: SubjectTransactionId
-      StartedOn: DateTimeOffset
-      Timeout: TimeSpan
-      NextNo: TxnBatchOpNo
-      State: SubjectTransactionState<'Op> }
+      StartedOn:     DateTimeOffset
+      Timeout:       TimeSpan
+      NextNo:        TxnBatchOpNo
+      State:         SubjectTransactionState<'Op> }
 
     interface Subject<SubjectTransactionId> with
         member this.SubjectId = this.TransactionId
@@ -60,10 +60,10 @@ type SubjectTransaction<'Op when 'Op: comparison> =
 [<RequireQualifiedAccess>]
 type SubjectTransactionAction<'Op when 'Op: comparison> =
     | OnOperationPrepared of OpNo: uint16
-    | OnOperationFailed of OpNo: uint16 * Error: NonemptyString
-    | Continue of NonemptySet<'Op>
+    | OnOperationFailed   of OpNo: uint16 * Error: NonemptyString
+    | Continue            of NonemptySet<'Op>
     | Commit
-    | Rollback of TimedOut: bool
+    | Rollback            of TimedOut: bool
     // same callback for finalization for both success and error is OK
     // implementation guarantees that request to commit or rollback will not leave subject in prepared state,
     // as long as we heard _anything_ back it means it's not locked in transaction anymore
@@ -80,7 +80,7 @@ type SubjectTransactionOpError<'Op when 'Op: comparison> =
 
 [<RequireQualifiedAccess>]
 type SubjectTransactionConstructor<'Op when 'Op: comparison> =
-    | New of SubjectTransactionId * Operations: NonemptySet<'Op> * Timeout: Option<TimeSpan>
+    | New                      of SubjectTransactionId * Operations: NonemptySet<'Op> * Timeout: Option<TimeSpan>
     | NewOrphanedBeforePrepare of SubjectTransactionId
 
     interface Constructor
@@ -89,7 +89,7 @@ type SubjectTransactionConstructor<'Op when 'Op: comparison> =
 type SubjectTransactionLifeEvent =
     // same event for success and failure so external clients can await for it
     | OnPreparedOrFailed of Prepared: bool
-    | OnFinalized of TransactionOutcome
+    | OnFinalized        of TransactionOutcome
 
     interface LifeEvent
 
@@ -163,7 +163,7 @@ type TransactionRollbackReason with
                 let! payload =
                     reqWith (NonemptyString.get_Codec ()) "Failure" (function
                         | Failure x -> Some x
-                        | _ -> None)
+                        | _         -> None)
 
                 return Failure payload
             }
@@ -172,7 +172,7 @@ type TransactionRollbackReason with
                 let! _ =
                     reqWith Codecs.unit "Timeout" (function
                         | Timeout -> Some()
-                        | _ -> None)
+                        | _       -> None)
 
                 return Timeout
             }
@@ -181,7 +181,7 @@ type TransactionRollbackReason with
                 let! _ =
                     reqWith Codecs.unit "Request" (function
                         | Request -> Some()
-                        | _ -> None)
+                        | _       -> None)
 
                 return Request
             }
@@ -190,7 +190,7 @@ type TransactionRollbackReason with
                 let! _ =
                     reqWith Codecs.unit "OrphanedBeforePrepare" (function
                         | OrphanedBeforePrepare -> Some()
-                        | _ -> None)
+                        | _                     -> None)
 
                 return OrphanedBeforePrepare
             }
@@ -205,7 +205,7 @@ type TransactionOutcome with
                 let! payload =
                     reqWith (TransactionRollbackReason.get_Codec ()) "RolledBack" (function
                         | (RolledBack x) -> Some x
-                        | _ -> None)
+                        | _              -> None)
 
                 return RolledBack payload
             }
@@ -214,7 +214,7 @@ type TransactionOutcome with
                 let! _ =
                     reqWith Codecs.unit "Committed" (function
                         | Committed -> Some()
-                        | _ -> None)
+                        | _         -> None)
 
                 return Committed
             }
@@ -229,8 +229,8 @@ type RunningTransactionOp<'Op when 'Op: comparison> with
             and! finished = reqWith Codecs.boolean "Finished" (fun x -> Some x.Finished)
 
             return
-                { Op = op
-                  No = no
+                { Op       = op
+                  No       = no
                   Finished = finished }
         }
 
@@ -261,7 +261,7 @@ type SubjectTransactionState<'Op when 'Op: comparison> with
                         "Running"
                         (function
                          | (Running(x1, x2)) -> Some(x1, x2)
-                         | _ -> None)
+                         | _                 -> None)
 
                 return Running payload
             }
@@ -270,7 +270,7 @@ type SubjectTransactionState<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith (NonemptyKeyedSet.codec codecFor<_, IdleTransactionOp<'op>>) "Prepared" (function
                         | (Prepared x) -> Some x
-                        | _ -> None)
+                        | _            -> None)
 
                 return Prepared payload
             }
@@ -284,7 +284,7 @@ type SubjectTransactionState<'Op when 'Op: comparison> with
                         "Finalizing"
                         (function
                          | (Finalizing(x1, x2)) -> Some(x1, x2)
-                         | _ -> None)
+                         | _                    -> None)
 
                 return Finalizing payload
             }
@@ -300,7 +300,7 @@ type SubjectTransactionState<'Op when 'Op: comparison> with
                         "Finalized"
                         (function
                          | (Finalized(x1, x2, x3, x4)) -> Some(x1, x2, x3, x4)
-                         | _ -> None)
+                         | _                           -> None)
 
                 return Finalized payload
             }
@@ -335,10 +335,10 @@ type SubjectTransaction<'Op when 'Op: comparison> with
 
             return
                 { TransactionId = transactionId
-                  StartedOn = startedOn
-                  Timeout = timeout
-                  NextNo = nextNo
-                  State = state }
+                  StartedOn     = startedOn
+                  Timeout       = timeout
+                  NextNo        = nextNo
+                  State         = state }
         }
 
     static member inline get_ObjCodec() =
@@ -362,7 +362,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith Codecs.uint16 "OnOperationPrepared" (function
                         | (OnOperationPrepared x) -> Some x
-                        | _ -> None)
+                        | _                       -> None)
 
                 return OnOperationPrepared payload
             }
@@ -371,7 +371,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith (Codecs.tuple2 Codecs.uint16 (NonemptyString.get_Codec ())) "OnOperationFailed" (function
                         | (OnOperationFailed(x1, x2)) -> Some(x1, x2)
-                        | _ -> None)
+                        | _                           -> None)
 
                 return OnOperationFailed payload
             }
@@ -380,7 +380,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith (NonemptySet.codec codecFor<_, 'op>) "Continue" (function
                         | (Continue x) -> Some x
-                        | _ -> None)
+                        | _            -> None)
 
                 return Continue payload
             }
@@ -389,7 +389,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! _ =
                     reqWith Codecs.unit "Commit" (function
                         | Commit -> Some()
-                        | _ -> None)
+                        | _      -> None)
 
                 return Commit
             }
@@ -398,7 +398,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith Codecs.boolean "Rollback" (function
                         | (Rollback x) -> Some x
-                        | _ -> None)
+                        | _            -> None)
 
                 return Rollback payload
             }
@@ -407,7 +407,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith Codecs.uint16 "OnOperationFinalized" (function
                         | (OnOperationFinalized x) -> Some x
-                        | _ -> None)
+                        | _                        -> None)
 
                 return OnOperationFinalized payload
             }
@@ -416,7 +416,7 @@ type SubjectTransactionAction<'Op when 'Op: comparison> with
                 let! _ =
                     reqWith Codecs.unit "CheckForPhantoms" (function
                         | CheckForPhantoms -> Some()
-                        | _ -> None)
+                        | _                -> None)
 
                 return CheckForPhantoms
             }
@@ -474,7 +474,7 @@ type SubjectTransactionConstructor<'Op when 'Op: comparison> with
                         "New"
                         (function
                          | (New(x1, x2, x3)) -> Some(x1, x2, x3)
-                         | _ -> None)
+                         | _                 -> None)
 
                 return New payload
             }
@@ -483,7 +483,7 @@ type SubjectTransactionConstructor<'Op when 'Op: comparison> with
                 let! payload =
                     reqWith codecFor<_, SubjectTransactionId> "NewOrphanedBeforePrepare" (function
                         | NewOrphanedBeforePrepare x -> Some x
-                        | _ -> None)
+                        | _                          -> None)
 
                 return NewOrphanedBeforePrepare payload
             }
@@ -510,7 +510,7 @@ type SubjectTransactionLifeEvent with
                 let! payload =
                     reqWith (TransactionOutcome.get_Codec ()) "OnFinalized" (function
                         | (OnFinalized x) -> Some x
-                        | _ -> None)
+                        | _               -> None)
 
                 return OnFinalized payload
             }
@@ -519,7 +519,7 @@ type SubjectTransactionLifeEvent with
                 let! payload =
                     reqWith Codecs.boolean "OnPreparedOrFailed" (function
                         | (OnPreparedOrFailed x) -> Some x
-                        | _ -> None)
+                        | _                      -> None)
 
                 return OnPreparedOrFailed payload
             }
@@ -543,9 +543,10 @@ let inline addSubjectTransactionLifeCycleDef
     (constructorTypeArgsLabel: SubjectTransactionConstructor<'Op> -> Option<string>)
     : SubjectTransactionLifeCycleDef<'Op> * EcosystemDef =
 
-    let lifeCycleDef: SubjectTransactionLifeCycleDef<'Op> =
-        { Key = LifeCycleKey("_SubjectTransaction", ecosystemDef.Name)
-          ProjectionDefs = KeyedSet.empty }
+    let lifeCycleDef: SubjectTransactionLifeCycleDef<'Op> = {
+        Key            = LifeCycleKey("_SubjectTransaction", ecosystemDef.Name)
+        ProjectionDefs = KeyedSet.empty
+    }
 
     PRIVATE_addLifeCycleDefImpl
         (Some(

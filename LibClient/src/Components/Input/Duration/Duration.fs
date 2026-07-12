@@ -108,8 +108,8 @@ module Duration =
 
         override this.ToString () : string =
             let (maybeDays, hours, minutes) = this.Raw
-            let hours   = hours   |> Option.mapOrElse "00" (fun h -> h.Value)
-            let minutes = minutes |> Option.mapOrElse "00" (fun m -> m.Value)
+            let hours                       = hours   |> Option.mapOrElse "00" (fun h -> h.Value)
+            let minutes                     = minutes |> Option.mapOrElse "00" (fun m -> m.Value)
 
             match maybeDays with
             | Some days ->
@@ -119,8 +119,8 @@ module Duration =
 
     let wrap (value: TimeSpan) : Value =
         Value.FromRaw (
-            value.Days.ToString() |> NonemptyString.ofString,
-            value.Hours.ToString() |> NonemptyString.ofString,
+            value.Days.ToString()        |> NonemptyString.ofString,
+            value.Hours.ToString()       |> NonemptyString.ofString,
             sprintf "%02i" value.Minutes |> NonemptyString.ofString
         )
 
@@ -169,16 +169,16 @@ module Input_DurationComponent =
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member Duration(
-                value:               Value,
-                validity:            InputValidity,
-                onChange:            Value -> unit,
-                ?label:              string,
+                value:                Value,
+                validity:             InputValidity,
+                onChange:             Value -> unit,
+                ?label:               string,
                 ?testId:              string,
-                ?onEnterKeyPress:    (ReactEvent.Keyboard -> unit),
+                ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
-                ?shouldDisplayDays:  bool,
-                ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key:                string
+                ?shouldDisplayDays:   bool,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
+                ?key:                 string
             ) : ReactElement =
             key |> ignore
 
@@ -260,12 +260,12 @@ module Input_DurationComponent =
                                                 [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", lbl)) |]
                                         )
                                         LC.Pressable(
-                                            onPress = (fun _ -> focusHoursInput ()),
-                                            label = lbl,
-                                            testId = sprintf "%s-focus" resolvedTestId,
-                                            role = AccessibilityRole.Button,
-                                            overlay = true,
-                                            styles = [| Styles.pressableOverlay |],
+                                            onPress       = (fun _ -> focusHoursInput ()),
+                                            label         = lbl,
+                                            testId        = sprintf "%s-focus" resolvedTestId,
+                                            role          = AccessibilityRole.Button,
+                                            overlay       = true,
+                                            styles        = [| Styles.pressableOverlay |],
                                             componentName = "LC.Input.Duration.Focus"
                                         )
                                     |]
@@ -273,7 +273,7 @@ module Input_DurationComponent =
                          | None -> noElement)
 
                         Rn.View(
-                            styles   = [| Styles.fields |],
+                            styles = [| Styles.fields |],
                             children =
                                 [|
                                     (if shouldDisplayDays then

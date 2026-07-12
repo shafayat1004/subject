@@ -86,9 +86,9 @@ type LibClient.Components.Constructors.LC with
                 |],
                 children = [|
                     Rn.Image (
-                        styles = [|Styles.stencilImage|],
-                        size   = Image.Size.FromStyles,
-                        source = localImage "/libs/LibClient/images/stencil.gif",
+                        styles     = [|Styles.stencilImage|],
+                        size       = Image.Size.FromStyles,
+                        source     = localImage "/libs/LibClient/images/stencil.gif",
                         resizeMode = ResizeMode.Cover
                     )
                 |]

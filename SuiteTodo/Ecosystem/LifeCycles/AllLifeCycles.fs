@@ -7,8 +7,8 @@ open SuiteTodo.LifeCycles
 
 type TodoEcosystem = {
     TodoLifeCycle: LifeCycle<Todo, TodoAction, TodoOpError, TodoConstructor, TodoLifeEvent, TodoIndex, TodoId, AccessPredicateInput, NoSession, NoRole, TodoEnvironment>
-    TodoListView: View<NoInput, TodoListViewOutput, NoViewError, AccessPredicateInput, NoSession, NoRole, TodoListViewEnvironment>
-    Ecosystem: Ecosystem
+    TodoListView:  View<NoInput, TodoListViewOutput, NoViewError, AccessPredicateInput, NoSession, NoRole, TodoListViewEnvironment>
+    Ecosystem:     Ecosystem
 }
 
 let createTodoEcosystem () : TodoEcosystem =
@@ -19,8 +19,8 @@ let createTodoEcosystem () : TodoEcosystem =
         |> EcosystemBuilder.addView todoListView
         |> EcosystemBuilder.build
 
-    { Ecosystem = ecosystem
+    { Ecosystem     = ecosystem
       TodoLifeCycle = todoLifeCycle
-      TodoListView = todoListView }
+      TodoListView  = todoListView }
 
 let todoEcosystem = createTodoEcosystem ()

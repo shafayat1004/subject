@@ -169,9 +169,9 @@ type Rn.Components.Constructors.Rn with
         __props?allowsInlineMediaPlayback       <- allowsInlineMediaPlayback
         __props?startInLoadingState             <- startInLoadingState
 
-        onLoad    |> Option.iter (fun v -> __props?onLoad    <- v)
+        onLoad      |> Option.iter (fun v -> __props?onLoad    <- v)
         onLoadStart |> Option.iter (fun v -> __props?onLoadStart <- v)
-        onError   |> Option.iter (fun v -> __props?onError   <- v)
+        onError     |> Option.iter (fun v -> __props?onError   <- v)
 
         onMessage |> Option.iter (fun v ->
             __props?onMessage <- WebViewRN.wrapOnMessage v)
@@ -185,7 +185,7 @@ type Rn.Components.Constructors.Rn with
 
         match xLegacyStyles with
         | Option.None | Option.Some [] -> ()
-        | Option.Some ls -> __props?__style <- ls
+        | Option.Some ls               -> __props?__style <- ls
 
         Rn.RnPrimitives.createElement
             WebViewRN.WebViewComponent

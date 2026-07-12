@@ -30,13 +30,13 @@ module LC =
         | Last
 
         type ColorTheme = {
-            TextColor: Color
-            BorderColor: Color
+            TextColor:       Color
+            BorderColor:     Color
             BackgroundColor: Color
         }
 
         type Theme = {
-            Selected: ColorTheme
+            Selected:   ColorTheme
             Unselected: ColorTheme
         }
         with
@@ -117,14 +117,14 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member ToggleButton<'T>(
-            style: Style,
-            value: 'T,
-            group: ToggleButtons.Group<'T>,
+            style:     Style,
+            value:     'T,
+            group:     ToggleButtons.Group<'T>,
             ?position: Position,
-            ?testId: string,
-            ?theme: Theme -> Theme,
-            ?styles : array<ViewStyles>,
-            ?key: string
+            ?testId:   string,
+            ?theme:    Theme -> Theme,
+            ?styles:   array<ViewStyles>,
+            ?key:      string
         ) : ReactElement =
         key |> ignore
 
@@ -149,7 +149,7 @@ type LibClient.Components.Constructors.LC with
 
                     match position with
                     | Position.First -> Styles.firstView
-                    | Position.Last -> Styles.lastView
+                    | Position.Last  -> Styles.lastView
                     | Position.Inner -> Noop
 
                     yield! (styles |> Option.defaultValue [||])
@@ -168,7 +168,7 @@ type LibClient.Components.Constructors.LC with
                                             | Some icon ->
                                                 LC.Icon(
                                                     styles = [| Styles.iconTheme theTheme isSelected |],
-                                                    icon = icon
+                                                    icon   = icon
                                                 )
                                             | None ->
                                                 noElement
@@ -178,7 +178,7 @@ type LibClient.Components.Constructors.LC with
                                 match maybeLabel with
                                 | Some label ->
                                     LC.UiText(
-                                        value = label,
+                                        value  = label,
                                         styles = [| Styles.labelTheme theTheme isSelected |]
                                     )
                                 | None ->
@@ -187,12 +187,12 @@ type LibClient.Components.Constructors.LC with
                     )
 
                     LC.Pressable(
-                        onPress = group.Toggle value,
-                        label = a11yLabel,
-                        role = AccessibilityRole.Radio,
-                        state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
-                        testId = (testId |> Option.defaultValue defaultTestId),
-                        overlay = true,
+                        onPress       = group.Toggle value,
+                        label         = a11yLabel,
+                        role          = AccessibilityRole.Radio,
+                        state         = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                        testId        = (testId |> Option.defaultValue defaultTestId),
+                        overlay       = true,
                         componentName = "LC.ToggleButton"
                     )
                 }

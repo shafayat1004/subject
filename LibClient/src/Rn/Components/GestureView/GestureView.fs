@@ -11,59 +11,59 @@ open LibClient
 // consumption, I'm leaving them as auto-converted ts2fable interfaces
 
 type [<AllowNullLiteral>] GestureState =
-    abstract isTouch: bool with get, set
+    abstract isTouch:   bool with get, set
     abstract timeStamp: float with get, set
 
 type [<AllowNullLiteral>] MultiTouchGestureState =
     inherit GestureState
     abstract initialCenterClientX: float with get, set
     abstract initialCenterClientY: float with get, set
-    abstract initialCenterPageX: float with get, set
-    abstract initialCenterPageY: float with get, set
-    abstract initialWidth: float with get, set
-    abstract initialHeight: float with get, set
-    abstract initialDistance: float with get, set
-    abstract initialAngle: float with get, set
-    abstract centerClientX: float with get, set
-    abstract centerClientY: float with get, set
-    abstract centerPageX: float with get, set
-    abstract centerPageY: float with get, set
-    abstract velocityX: float with get, set
-    abstract velocityY: float with get, set
-    abstract width: float with get, set
-    abstract height: float with get, set
-    abstract distance: float with get, set
-    abstract angle: float with get, set
-    abstract isComplete: bool with get, set
+    abstract initialCenterPageX:   float with get, set
+    abstract initialCenterPageY:   float with get, set
+    abstract initialWidth:         float with get, set
+    abstract initialHeight:        float with get, set
+    abstract initialDistance:      float with get, set
+    abstract initialAngle:         float with get, set
+    abstract centerClientX:        float with get, set
+    abstract centerClientY:        float with get, set
+    abstract centerPageX:          float with get, set
+    abstract centerPageY:          float with get, set
+    abstract velocityX:            float with get, set
+    abstract velocityY:            float with get, set
+    abstract width:                float with get, set
+    abstract height:               float with get, set
+    abstract distance:             float with get, set
+    abstract angle:                float with get, set
+    abstract isComplete:           bool with get, set
 
 type [<AllowNullLiteral>] ScrollWheelGestureState =
     inherit GestureState
-    abstract clientX: float with get, set
-    abstract clientY: float with get, set
-    abstract pageX: float with get, set
-    abstract pageY: float with get, set
+    abstract clientX:      float with get, set
+    abstract clientY:      float with get, set
+    abstract pageX:        float with get, set
+    abstract pageY:        float with get, set
     abstract scrollAmount: float with get, set
 
 type [<AllowNullLiteral>] PanGestureState =
     inherit GestureState
     abstract initialClientX: float with get, set
     abstract initialClientY: float with get, set
-    abstract initialPageX: float with get, set
-    abstract initialPageY: float with get, set
-    abstract clientX: float with get, set
-    abstract clientY: float with get, set
-    abstract pageX: float with get, set
-    abstract pageY: float with get, set
-    abstract velocityX: float with get, set
-    abstract velocityY: float with get, set
-    abstract isComplete: bool with get, set
+    abstract initialPageX:   float with get, set
+    abstract initialPageY:   float with get, set
+    abstract clientX:        float with get, set
+    abstract clientY:        float with get, set
+    abstract pageX:          float with get, set
+    abstract pageY:          float with get, set
+    abstract velocityX:      float with get, set
+    abstract velocityY:      float with get, set
+    abstract isComplete:     bool with get, set
 
 type [<AllowNullLiteral>] TapGestureState =
     inherit GestureState
     abstract clientX: float with get, set
     abstract clientY: float with get, set
-    abstract pageX: float with get, set
-    abstract pageY: float with get, set
+    abstract pageX:   float with get, set
+    abstract pageY:   float with get, set
 
 type GestureMouseCursor =
 | Default    =  0
@@ -154,21 +154,21 @@ module private GestureViewImpl =
     let private dispatchPan (props: Props) (state: PanGestureState) : unit =
         match props.OnPan with
         | Some f -> f state
-        | None -> ()
+        | None   -> ()
 
         match props.PreferredPan with
         | Some PreferredPanGesture.Vertical -> ()
         | _ ->
             match props.OnPanHorizontal with
             | Some f -> f state
-            | None -> ()
+            | None   -> ()
 
         match props.PreferredPan with
         | Some PreferredPanGesture.Horizontal -> ()
         | _ ->
             match props.OnPanVertical with
             | Some f -> f state
-            | None -> ()
+            | None   -> ()
 
     [<Component>]
     let private Render (props: Props) : ReactElement =
@@ -202,7 +202,7 @@ module private GestureViewImpl =
                 with _ -> ()
 
         let inline preventDefault (e: obj) =
-            try e?preventDefault() |> ignore with _ -> ()
+            try e?preventDefault()             |> ignore with _ -> ()
             try e?nativeEvent?preventDefault() |> ignore with _ -> ()
 
         // React Native pools synthetic events: after a responder handler returns, RN nulls
@@ -422,14 +422,14 @@ type Rn.Components.Constructors.Rn with
         // Pinch, rotate, scroll wheel, double-tap, long-press, context-menu,
         // mouse cursor and release-on-request are not wired to the responder system.
         // They are accepted to preserve the public API but currently have no effect.
-        onPinchZoom    |> ignore
-        onRotate       |> ignore
-        onScrollWheel  |> ignore
-        onTap          |> ignore
-        onDoubleTap    |> ignore
-        onLongPress    |> ignore
-        onContextMenu  |> ignore
-        mouseOverCursor |> ignore
+        onPinchZoom      |> ignore
+        onRotate         |> ignore
+        onScrollWheel    |> ignore
+        onTap            |> ignore
+        onDoubleTap      |> ignore
+        onLongPress      |> ignore
+        onContextMenu    |> ignore
+        mouseOverCursor  |> ignore
         releaseOnRequest |> ignore
 
         GestureViewImpl.build

@@ -50,7 +50,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                    and  'SubjectId            : comparison>
     (
         lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
-        connStrings: SqlServerConnectionStrings
+        connStrings:      SqlServerConnectionStrings
     ) as this =
 
     let ecosystemName = lifeCycleAdapter.LifeCycle.Def.LifeCycleKey.EcosystemName
@@ -406,13 +406,13 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
         | OptimizedUntypedPredicate.And (OptimizedUntypedPredicate.Matches _, p)
         | OptimizedUntypedPredicate.And (p, OptimizedUntypedPredicate.Matches _)
             when isTopLevelAnd && excludeTopLevelSearchIndex        -> generateSqlForIndexQueryNode p excludeTopLevelSearchIndex isTopLevelAnd paramGroupSuffix inputParameters
-        | OptimizedUntypedPredicate.Matches (key, value)                     -> freeTextSearchQuery key value
-        | OptimizedUntypedPredicate.MatchesExact (key, value)                -> exactSearchQuery key value
-        | OptimizedUntypedPredicate.MatchesPrefix (key, value)               -> prefixSearchQuery key value
-        | OptimizedUntypedPredicate.IntersectsGeography (key, value)         -> geographyBoolQuery key "STIntersects" value
-        | OptimizedUntypedPredicate.And (left, right)                        -> combineQueries isTopLevelAnd             "INTERSECT" left right
-        | OptimizedUntypedPredicate.Or (left, right)                         -> combineQueries (* isTopLevelAnd *) false "UNION"     left right
-        | OptimizedUntypedPredicate.Diff (left, right)                       -> combineQueries (* isTopLevelAnd *) false "EXCEPT"    left right
+        | OptimizedUntypedPredicate.Matches (key, value)             -> freeTextSearchQuery key value
+        | OptimizedUntypedPredicate.MatchesExact (key, value)        -> exactSearchQuery key value
+        | OptimizedUntypedPredicate.MatchesPrefix (key, value)       -> prefixSearchQuery key value
+        | OptimizedUntypedPredicate.IntersectsGeography (key, value) -> geographyBoolQuery key "STIntersects" value
+        | OptimizedUntypedPredicate.And (left, right)                -> combineQueries isTopLevelAnd             "INTERSECT" left right
+        | OptimizedUntypedPredicate.Or (left, right)                 -> combineQueries (* isTopLevelAnd *) false "UNION"     left right
+        | OptimizedUntypedPredicate.Diff (left, right)               -> combineQueries (* isTopLevelAnd *) false "EXCEPT"    left right
 
     let tryFindExactlyOneTopLevelFreeTextMatchArgs =
         let rec flatTopMatches p =
@@ -662,7 +662,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                         else
                             ""
                     )
-           QueryParams = queryParams
+           QueryParams          = queryParams
            NextParamGroupSuffix = nextGroupSuffix |}
 
     let totalCountSql =
@@ -687,11 +687,11 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
         let version = cursor.Item 4 :?> int64 |> uint64
 
         {
-            AsOf = asOf
-            By = by
-            Subject = subject
+            AsOf      = asOf
+            By        = by
+            Subject   = subject
             Operation = operation
-            Version = version
+            Version   = version
         }
 
     let readSubjectAuditData (cursor: SqlDataReader) =
@@ -714,9 +714,9 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
         let by = cursor.GetString (3)
         let version = cursor.Item 0 :?> int64 |> uint64
         {
-            AsOf = asOf
-            By = by
-            Version = version
+            AsOf      = asOf
+            By        = by
+            Version   = version
             Operation = operation
         }
 
@@ -809,7 +809,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                 (cursor.Item 0 :?> byte[])
                                 |> Compression.ofCompressedJsonTextWithContextInfoInError lifeCycleAdapter.LifeCycle.Name idStr
                                 |> fun (x: Subject<'SubjectId>) -> x :?> 'Subject
-                            AsOf = cursor.GetDateTimeOffset 1
+                            AsOf    = cursor.GetDateTimeOffset 1
                             Version = cursor.GetInt64 2 |> uint64
                         }
                         |> Some
@@ -865,7 +865,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                                         (cursor.Item 0 :?> byte[])
                                                         |> Compression.ofCompressedJsonTextWithContextInfoInError lifeCycleAdapter.LifeCycle.Name pKey
                                                         |> fun (x: Subject<'SubjectId>) -> x :?> 'Subject
-                                                    AsOf = cursor.GetDateTimeOffset 1
+                                                    AsOf    = cursor.GetDateTimeOffset 1
                                                     Version = cursor.GetInt64 2 |> uint64
                                                 },
                                                 Nothing
@@ -969,7 +969,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                         compressedJson
                                         |> Compression.ofCompressedJsonTextWithContextInfoInError lifeCycleAdapter.LifeCycle.Name pKey
                                         |> fun (x: Subject<'SubjectId>) -> x :?> 'Subject
-                                    AsOf = asOf
+                                    AsOf    = asOf
                                     Version = version
                                 }))
                     |> Task.map Task.WhenAll
@@ -1037,7 +1037,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                     (cursor.Item 0 :?> byte[])
                                     |> Compression.ofCompressedJsonTextWithContextInfoInError lifeCycleAdapter.LifeCycle.Name pKey
                                     |> fun (x: Subject<'SubjectId>) -> x :?> 'Subject
-                                AsOf = cursor.GetDateTimeOffset 1
+                                AsOf    = cursor.GetDateTimeOffset 1
                                 Version = cursor.GetInt64 2 |> uint64
                             })
 
@@ -1108,7 +1108,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                     (cursor.Item 0 :?> byte[])
                                     |> Compression.ofCompressedJsonTextWithContextInfoInError lifeCycleAdapter.LifeCycle.Name pKey
                                     |> fun (x: Subject<'SubjectId>) -> x :?> 'Subject
-                                AsOf = cursor.GetDateTimeOffset 1
+                                AsOf    = cursor.GetDateTimeOffset 1
                                 Version = cursor.GetInt64 2 |> uint64
                             })
             }
@@ -1158,7 +1158,7 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                     (cursor.Item 0 :?> byte[])
                                     |> Compression.ofCompressedJsonTextWithContextInfoInError lifeCycleAdapter.LifeCycle.Name pKey
                                     |> fun (x: Subject<'SubjectId>) -> x :?> 'Subject
-                                AsOf = cursor.GetDateTimeOffset 1
+                                AsOf    = cursor.GetDateTimeOffset 1
                                 Version = cursor.GetInt64 2 |> uint64
                             })
 
@@ -1232,11 +1232,11 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
 
                 // TODO from/to parameters were missing here, safe to add?
                 match fromLastUpdatedOn with
-                | None -> ()
+                | None    -> ()
                 | Some dt -> command.Parameters.AddWithValue("@from", dt).SqlDbType <- SqlDbType.DateTimeOffset
 
                 match toLastUpdatedOn with
-                | None -> ()
+                | None    -> ()
                 | Some dt -> command.Parameters.AddWithValue("@to", dt).SqlDbType <- SqlDbType.DateTimeOffset
 
                 do! connection.OpenAsync()
@@ -1340,13 +1340,13 @@ type SqlServerSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEv
                                     let failureSeverity = reader.GetByte 6
 
                                     return Some ({
-                                        SubjectIdStr = subjectId
-                                        SideEffectId = sideEffectId
-                                        SeqNum = sideEffectSeqNum
+                                        SubjectIdStr    = subjectId
+                                        SideEffectId    = sideEffectId
+                                        SeqNum          = sideEffectSeqNum
                                         FailureSeverity = failureSeverity
-                                        FailureReason = failureReason
-                                        SideEffectData = sideEffectData
-                                        CreatedOn = createdOn
+                                        FailureReason   = failureReason
+                                        SideEffectData  = sideEffectData
+                                        CreatedOn       = createdOn
                                     }, Nothing)
                                 | false ->
                                     return None
@@ -1370,7 +1370,7 @@ type SqlServerSubjectBlobRepo
                 use connection = new SqlConnection(sqlConnectionString)
                 use command    = new SqlCommand(sql, connection)
                 command.Parameters.AddWithValue("@subjectId", subjectRef.SubjectIdStr) |> ignore
-                command.Parameters.AddWithValue("@id", blobId) |> ignore
+                command.Parameters.AddWithValue("@id", blobId)                         |> ignore
                 do! connection.OpenAsync()
                 use! cursor = command.ExecuteReaderAsync()
                 match! cursor.ReadAsync() with
@@ -1391,7 +1391,7 @@ type SqlServerSubjectBlobRepo
                 use connection = new SqlConnection(sqlConnectionString)
                 use command    = new SqlCommand(sql, connection)
                 command.Parameters.AddWithValue("@subjectId", subjectRef.SubjectIdStr) |> ignore
-                command.Parameters.AddWithValue("@id", blobId) |> ignore
+                command.Parameters.AddWithValue("@id", blobId)                         |> ignore
                 do! connection.OpenAsync()
                 use! cursor = command.ExecuteReaderAsync(CommandBehavior.SequentialAccess)
                 match! cursor.ReadAsync() with

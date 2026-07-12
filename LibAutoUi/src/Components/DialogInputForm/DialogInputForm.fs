@@ -62,13 +62,13 @@ type private DialogInputFormContent =
                 [|
                     Rn.View(
                         onPress = stopPropagation,
-                        styles = [| Styles.dialogContents |],
+                        styles  = [| Styles.dialogContents |],
                         children =
                             elements {
                                 UIAuto.InputForm(
                                     formWrapper = parameters.FormWrapper,
-                                    settings = parameters.Settings,
-                                    onChange = onChange
+                                    settings    = parameters.Settings,
+                                    onChange    = onChange
                                 )
 
                                 Rn.View(
@@ -90,8 +90,8 @@ type private DialogInputFormContent =
                                                 state =
                                                     ButtonHighLevelState.LowLevel (
                                                         match maybeValueHook.current with
-                                                        | None        -> ButtonLowLevelState.Disabled
-                                                        | Some value  -> ButtonLowLevelState.Actionable (submitResult value)
+                                                        | None       -> ButtonLowLevelState.Disabled
+                                                        | Some value -> ButtonLowLevelState.Actionable (submitResult value)
                                                     )
                                             )
                                         }

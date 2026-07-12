@@ -31,12 +31,12 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member TextInputWithIcon(
-            icon: int -> LibClient.Icons.Icon,
-            ?iconSize: int,
-            ?placeholder: string,
+            icon:                  int -> LibClient.Icons.Icon,
+            ?iconSize:             int,
+            ?placeholder:          string,
             ?placeholderTextColor: Color,
-            ?onChangeText: string -> unit,
-            ?styles: array<ViewStyles>
+            ?onChangeText:         string -> unit,
+            ?styles:               array<ViewStyles>
         ) : ReactElement =
         let iconSize = defaultArg iconSize 26
 
@@ -57,10 +57,10 @@ type LibClient.Components.Constructors.LC with
                     )
 
                     Rn.TextInput(
-                        styles = [| Styles.textInput |],
-                        ?placeholder = placeholder,
+                        styles                = [| Styles.textInput |],
+                        ?placeholder          = placeholder,
                         ?placeholderTextColor = (placeholderTextColor |> Option.map (fun c -> c.ToRnString)),
-                        ?onChangeText = onChangeText
+                        ?onChangeText         = onChangeText
                     )
                 }
         )

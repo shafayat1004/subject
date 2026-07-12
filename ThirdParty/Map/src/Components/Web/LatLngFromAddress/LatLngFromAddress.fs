@@ -59,10 +59,10 @@ let private onMapAnchorLoaded (apiKey: string) (address: string) (div: Browser.T
 type ThirdParty.Map.Components.Constructors.Map.Web with
     [<Component>]
     static member LatLngFromAddress(
-            address: string,
+            address:  string,
             ``with``: AsyncData<LatLng> -> ReactElement,
-            apiKey:  string,
-            ?key:    string
+            apiKey:   string,
+            ?key:     string
         ) : ReactElement =
         ignore key
 
@@ -74,7 +74,7 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
                         Fable.React.Standard.div [ Fable.React.Props.Ref bindDivRef ] [||]
                         LC.Subscribe(
                             subscription = subscriptionImplementationValue.Subscribe,
-                            ``with`` = Subscribe.Raw ``with``
+                            ``with``     = Subscribe.Raw ``with``
                         )
                     }
                 )

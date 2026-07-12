@@ -21,17 +21,17 @@ type AnchorTypeForModule = private AnchorTypeForModule of unit
 
 [<RequireQualifiedAccess>]
 type SideEffectProcessorMessage<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError> =
-| ProcessSideEffectGroup of SideEffectGroup<'LifeAction, 'OpError>
+| ProcessSideEffectGroup      of SideEffectGroup<'LifeAction, 'OpError>
 | ShutdownSideEffectProcessor of AsyncReplyChannel<unit>
-| NoOpAndContinue of AsyncReplyChannel<unit> // this is used to wait until side effects flushed, but without the shutdown
+| NoOpAndContinue             of AsyncReplyChannel<unit> // this is used to wait until side effects flushed, but without the shutdown
 
 [<RequireQualifiedAccess>]
 type private DispatchGrainRpc<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError> =
-| Rpc of GrainRpcOperation * SubjectReference
-| TriggerSubscription of GrainTriggerSubscriptionRpc
+| Rpc                      of GrainRpcOperation * SubjectReference
+| TriggerSubscription      of GrainTriggerSubscriptionRpc
 | TriggerTimerActionOnSelf of TentativeDueAction: 'LifeAction
 | HandleSubscriptionResponseOnSelf of TriggerSubscriptionResponse<'LifeAction, 'OpError>
-| TryDeleteSelf of GrainSideEffectId * RequiredVersion: uint64 * RequiredNextSideEffectSequenceNumber: uint64 * RetryAttempt: byte
+| TryDeleteSelf            of GrainSideEffectId * RequiredVersion: uint64 * RequiredNextSideEffectSequenceNumber: uint64 * RetryAttempt: byte
 
 type private SideEffectTracing =
 | DoNotSendTelemetry of TraceContext
@@ -47,13 +47,13 @@ type private DispatchSideEffectResult =
 | FatalTransient of string
 
 type private ProcessedSideEffectResult =
-| ProcessedNormal of RetryNo: uint32 * Success: bool
+| ProcessedNormal         of RetryNo: uint32 * Success: bool
 | ProcessedFatalTransient of RetryNo: uint32 // fatal error signals SE processor to shut down
 
 type private SideEffectProcessingStatus =
 | NotDispatched
 | Dispatched of GrainSideEffectResult // dispatched but side effect status not updated in storage
-| Processed of ProcessedSideEffectResult // dispatched and side effect status updated in storage
+| Processed  of ProcessedSideEffectResult // dispatched and side effect status updated in storage
 
 [<RequireQualifiedAccess>]
 type private RpcArgsAndRetValToHandle =
@@ -177,11 +177,11 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 | Error exn -> $"EXCEPTION: %s{exn}"
                 | Ok (Choice1Of2 successDecision) ->
                     match successDecision with
-                    | SideEffectSuccessDecision.RogerThat -> "RogerThat"
+                    | SideEffectSuccessDecision.RogerThat       -> "RogerThat"
                     | SideEffectSuccessDecision.Continue action -> $"Continue with action %A{action}"
                 | Ok (Choice2Of2 failureDecision) ->
                     match failureDecision with
-                    | SideEffectFailureDecision.Dismiss -> "Dismiss"
+                    | SideEffectFailureDecision.Dismiss           -> "Dismiss"
                     | SideEffectFailureDecision.Escalate severity -> $"Escalate to %A{severity}"
                     | SideEffectFailureDecision.Compensate action -> $"Compensate with action %A{action}"
             match response with
@@ -277,7 +277,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                                     | OBSOLETE_LocalLifeCycleKey _ ->
                                         failwith "unexpected obsolete local LC key in SE processor" }
 
-                        { Id = sideEffectId // simply use side-effect Id as it's already persisted
+                        { Id     = sideEffectId // simply use side-effect Id as it's already persisted
                           Caller = fakeResponseCaller }
 
                     backgroundTask {
@@ -368,7 +368,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 | Ok () ->
                     let responses = [
                         SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                        SideEffectSuccess.ActOk (subjectRef, action) |> SideEffectResponse.Success
+                        SideEffectSuccess.ActOk (subjectRef, action)              |> SideEffectResponse.Success
                     ]
                     return! handleSideEffectResponses responses
                 | Error (SubjectFailure.Err err) ->
@@ -376,19 +376,19 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     | GrainTransitionError.SubjectNotInitialized _ ->
                         let responses = [
                             SideEffectFailure.SubscribeNotInitialized (subjectRef, subscriptions) |> SideEffectResponse.Failure
-                            SideEffectFailure.ActNotInitialized (subjectRef, action) |> SideEffectResponse.Failure
+                            SideEffectFailure.ActNotInitialized (subjectRef, action)              |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
                     | GrainTransitionError.TransitionError terr ->
                         let responses = [
                             SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                            SideEffectFailure.ActError (subjectRef, action, terr) |> SideEffectResponse.Failure
+                            SideEffectFailure.ActError (subjectRef, action, terr)     |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
                     | GrainTransitionError.TransitionNotAllowed ->
                         let responses = [
                             SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                            SideEffectFailure.ActNotAllowed (subjectRef, action) |> SideEffectResponse.Failure
+                            SideEffectFailure.ActNotAllowed (subjectRef, action)      |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
                     | GrainTransitionError.LockedInTransaction ->
@@ -424,7 +424,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 | Ok _ ->
                     let responses = [
                         SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                        SideEffectSuccess.ActOk (subjectRef, action) |> SideEffectResponse.Success
+                        SideEffectSuccess.ActOk (subjectRef, action)              |> SideEffectResponse.Success
                     ]
                     return! handleSideEffectResponses responses
                 | Error (SubjectFailure.Err err) ->
@@ -432,7 +432,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     | GrainOperationError.TransitionError terr ->
                         let responses = [
                             SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                            SideEffectFailure.ActError (subjectRef, action, terr) |> SideEffectResponse.Failure
+                            SideEffectFailure.ActError (subjectRef, action, terr)     |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
                     | GrainOperationError.ConstructionError cerr ->
@@ -441,7 +441,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     | GrainOperationError.TransitionNotAllowed ->
                         let responses = [
                             SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                            SideEffectFailure.ActNotAllowed (subjectRef, action) |> SideEffectResponse.Failure
+                            SideEffectFailure.ActNotAllowed (subjectRef, action)      |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
                     | GrainOperationError.LockedInTransaction ->
@@ -489,7 +489,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         return! handleSideEffectResponses responses
                     | GrainConstructionError.SubjectAlreadyInitialized _, false ->
                         let responses = [
-                            SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
+                            SideEffectSuccess.SubscribeOk (subjectRef, subscriptions)        |> SideEffectResponse.Success
                             SideEffectFailure.ConstructAlreadyInitialized (subjectRef, ctor) |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
@@ -517,9 +517,10 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         return DispatchPermanentFailure (exnDetails, SideEffectFailureSeverity.Error)
         }
 
-    let dedupInfo sideEffectId =
-        { Id = sideEffectId // simply use side-effect Id as it's already persisted
-          Caller = thisSubjectPKeyRef }
+    let dedupInfo sideEffectId = {
+        Id     = sideEffectId // simply use side-effect Id as it's already persisted
+        Caller = thisSubjectPKeyRef
+    }
 
     let dispatchGrainRpc
         (grainRpcChoice: DispatchGrainRpc<'LifeAction, 'OpError>)
@@ -559,7 +560,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     backgroundTask {
                         let beforeActSubscriptions = {
                             Subscriptions = subscriptions
-                            Subscriber = thisSubjectPKeyRef
+                            Subscriber    = thisSubjectPKeyRef
                         }
                         let! result = targetLifeCycleAdapter.RunActionOnGrain grainProvider grainPartition (maybeDedupInfo deduplicate) subjectRef.SubjectId.IdString action (Some beforeActSubscriptions)
                         return! handleRpcGrainCallResult sideEffectId subjectRef (RpcArgsAndRetValToHandle.ActAndSubscribe (action, beforeActSubscriptions.Subscriptions, result))
@@ -875,8 +876,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     {|
                         OperationType = OperationType.SideEffectVanilla
                         TelemetryName = $"%s{lifeCycleKeyToTelemetryString thisLifeCycleKey} ActOnSelf"
-                        Target = thisSubjectPKeyRef
-                        TraceContext = traceContext
+                        Target        = thisSubjectPKeyRef
+                        TraceContext  = traceContext
                     |}
                     |> Choice2Of2
                 else
@@ -895,8 +896,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     {|
                         OperationType = OperationType.SideEffectVanilla
                         TelemetryName = $"%s{lifeCycleKeyToTelemetryString thisLifeCycleKey} Timer"
-                        Target = thisSubjectPKeyRef
-                        TraceContext = traceContext
+                        Target        = thisSubjectPKeyRef
+                        TraceContext  = traceContext
                     |}
                     |> Choice2Of2
                 else
@@ -916,8 +917,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         {|
                             OperationType = OperationType.SideEffectVanilla
                             TelemetryName = $"%s{lifeCycleKeyToTelemetryString thisLifeCycleKey} TriggerSub"
-                            Target = thisSubjectPKeyRef
-                            TraceContext = traceContext
+                            Target        = thisSubjectPKeyRef
+                            TraceContext  = traceContext
                         |}
                         |> Choice2Of2
                     else
@@ -935,8 +936,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 {|
                     OperationType = OperationType.SideEffectDeleteSelf
                     TelemetryName = $"%s{lifeCycleKeyToTelemetryString thisLifeCycleKey} TryDeleteSelf"
-                    Target = thisSubjectPKeyRef
-                    TraceContext = emptyTraceContext // TODO: pass context? who cares
+                    Target        = thisSubjectPKeyRef
+                    TraceContext  = emptyTraceContext // TODO: pass context? who cares
                 |}
                 |> Choice2Of2
             , // send telemetry for TryDeleteSelf only if it's a retry
@@ -980,8 +981,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     {|
                         OperationType = OperationType.SideEffectVanilla
                         TelemetryName = $"{lifeCycleKeyToTelemetryString rpc.SubjectReference.LifeCycleKey} %s{opName}"
-                        Target = rpc.SubjectReference.SubjectPKeyReference
-                        TraceContext = rpc.TraceContext
+                        Target        = rpc.SubjectReference.SubjectPKeyReference
+                        TraceContext  = rpc.TraceContext
                     |}
                     |> Choice2Of2)
             |> Option.defaultWith (fun () -> Choice1Of2 rpc.TraceContext),
@@ -997,8 +998,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
             {|
                 OperationType = OperationType.SideEffectVanilla
                 TelemetryName = $"{lifeCycleKeyToTelemetryString rpc.SubjectPKeyReference.LifeCycleKey} TriggerSub"
-                Target = rpc.SubjectPKeyReference
-                TraceContext = rpc.TraceContext
+                Target        = rpc.SubjectPKeyReference
+                TraceContext  = rpc.TraceContext
             |}
                     |> Choice2Of2)
             |> Option.defaultWith (fun () -> Choice1Of2 rpc.TraceContext)
@@ -1030,7 +1031,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         OperationType = OperationType.SideEffectTransaction
                         TelemetryName = $"{lifeCycleKeyToTelemetryString step.SubjectReference.LifeCycleKey} %s{stepOpName}"
                         // report txn target in telemetry although technically reply fed back to self
-                        Target = step.SubjectReference.SubjectPKeyReference
+                        Target       = step.SubjectReference.SubjectPKeyReference
                         TraceContext = step.TraceContext
                     |}
                     |> Choice2Of2)
@@ -1474,12 +1475,12 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                                 if String.IsNullOrEmpty traceContext.ParentId then None else  Some traceContext.ParentId
 
                             operationTracker.TrackOperation<_>
-                                { Partition = grainPartition
-                                  Type = sideEffectOperationType
-                                  Name = sideEffectTelemetryName
-                                  MaybeParentActivityId = maybeParentActivityId
+                                { Partition                 = grainPartition
+                                  Type                      = sideEffectOperationType
+                                  Name                      = sideEffectTelemetryName
+                                  MaybeParentActivityId     = maybeParentActivityId
                                   MakeItNewParentActivityId = makeItNewParentActivityId
-                                  BeforeRunProperties = beforeRunProperties }
+                                  BeforeRunProperties       = beforeRunProperties }
                                 (fun () ->
                                     task {
                                         let! result = createSideEffectTask sideEffectId

@@ -32,18 +32,18 @@ type Ui.Content.ThirdParty with
     static member ImagePicker () : ReactElement =
         Ui.ComponentContent(
             displayName = "ImagePicker",
-            props = ComponentContent.ForFullyQualifiedName "ThirdParty.ImagePicker.Components.Base",
+            props       = ComponentContent.ForFullyQualifiedName "ThirdParty.ImagePicker.Components.Base",
             notes =
                 LC.Text
                     "ImagePicker wraps LC.Input.Image on web and a native picker on mobile. Same value/validity/onChange contract as Input.File.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "ImagePicker",
-                    role = "button (file picker) with image preview",
-                    namePattern = "Inherits LC.Input.Image label pattern",
-                    stateNotes = "Invalid/Missing validity surfaces error text; selected files shown as thumbnails",
+                    componentName  = "ImagePicker",
+                    role           = "button (file picker) with image preview",
+                    namePattern    = "Inherits LC.Input.Image label pattern",
+                    stateNotes     = "Invalid/Missing validity surfaces error text; selected files shown as thumbnails",
                     scalesWithFont = true,
-                    contrastNotes = "Label, button text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, button text, and error colors meet WCAG AA"
                 ),
             samples =
                 element {

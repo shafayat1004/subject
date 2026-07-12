@@ -15,9 +15,9 @@ let tryParse (url: string) =
         | [ theProtocol; theHost; thePath; theQuery; theFragment ] ->
             Some
                 {| Protocol = theProtocol
-                   Host = theHost.TrimStart('/').TrimStart('/')
-                   Path = thePath
-                   Query = theQuery.TrimStart('?')
+                   Host     = theHost.TrimStart('/').TrimStart('/')
+                   Path     = thePath
+                   Query    = theQuery.TrimStart('?')
                    Fragment = theFragment.TrimStart('#') |}
         | _ -> None
     else
@@ -37,8 +37,8 @@ let regexShouldParseAllValidUrl () =
     |> List.tryFind (fun url ->
         match tryParse url with
         | Some _ -> false
-        | None -> true)
+        | None   -> true)
     |> fun option ->
         match option with
-        | None -> Ok "Success: Regex validate all valid url"
+        | None       -> Ok "Success: Regex validate all valid url"
         | Some value -> Error value

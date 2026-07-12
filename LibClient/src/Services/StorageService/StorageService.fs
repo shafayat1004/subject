@@ -7,6 +7,6 @@ module LibClient.Services.StorageService
 // that is then implemented with `override member inline`. Sigh.
 [<AbstractClass>]
 type StorageService() =
-    abstract member Get<'T> : key: string -> decode: (string -> Result<'T, string>) -> Async<Option<'T>>
-    abstract member Put<'T> : key: string -> value: 'T -> encode: ('T -> string) -> Async<unit>
-    abstract member Remove : key: string -> Async<unit>
+    abstract member Get<'T>: key: string -> decode: (string -> Result<'T, string>) -> Async<Option<'T>>
+    abstract member Put<'T>: key: string -> value: 'T -> encode: ('T -> string) -> Async<unit>
+    abstract member Remove:  key: string -> Async<unit>

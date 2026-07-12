@@ -14,7 +14,7 @@ open Fable.Core.JsInterop
 [<Fable.Core.JS.Pojo>]
 type private CircleMarkerPropsJs
     ( center: obj, radius: int, key: string, ?color: string, ?weight: int, ?opacity: float,
-      ?fill: bool, ?fillColor: string, ?fillOpacity: float, ?eventHandlers: obj ) =
+      ?fill:  bool, ?fillColor: string, ?fillOpacity: float, ?eventHandlers: obj ) =
     member val center = center
     member val radius = radius
     member val key = key
@@ -31,17 +31,17 @@ let private CircleMarkerComp: obj -> ReactElement = JsInterop.import "CircleMark
 type OsmMap with
     [<Component>]
     static member CircleMarker (
-        center:        GeoLocation,
-        radius:        int,
-        ?key:          NonemptyString,
-        ?color:        string,
-        ?weight:       int,
-        ?opacity:      float,
-        ?fill:         bool,
-        ?fillColor:    string,
-        ?fillOpacity:  float,
+        center:         GeoLocation,
+        radius:         int,
+        ?key:           NonemptyString,
+        ?color:         string,
+        ?weight:        int,
+        ?opacity:       float,
+        ?fill:          bool,
+        ?fillColor:     string,
+        ?fillOpacity:   float,
         ?eventHandlers: array<LeafletEvent>,
-        ?children:     ReactChildrenProp
+        ?children:      ReactChildrenProp
         )
         : ReactElement =
         let wrappedProps =
@@ -49,18 +49,15 @@ type OsmMap with
                 center.ToJs(),
                 radius,
                 (key |> Option.map (fun x -> x.Value) |> Option.defaultValue (System.Guid.NewGuid().ToString())),
-                ?color = color,
-                ?weight = weight,
-                ?opacity = opacity,
-                ?fill = fill,
-                ?fillColor = fillColor,
-                ?fillOpacity = fillOpacity,
+                ?color         = color,
+                ?weight        = weight,
+                ?opacity       = opacity,
+                ?fill          = fill,
+                ?fillColor     = fillColor,
+                ?fillOpacity   = fillOpacity,
                 ?eventHandlers = (eventHandlers |> Option.map LeafletEvent.ToJsObj)
             ) |> box
 
         Fable.React.ReactBindings.React.createElement (CircleMarkerComp, wrappedProps, (children |> Option.defaultValue Array.empty))
 
 #endif
-
-
-

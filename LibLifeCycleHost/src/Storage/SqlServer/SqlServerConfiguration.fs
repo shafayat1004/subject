@@ -20,4 +20,4 @@ with
     member this.ForEcosystem (name: string) =
         match this.ByEcosystemName.TryFind name with
         | Some connStr -> connStr
-        | None -> failwithf "Connection string not found for ecosystem: %s" name
+        | None         -> failwithf "Connection string not found for ecosystem: %s" name

@@ -37,6 +37,6 @@ type LibClient.Components.Constructors.LC.Nav.Top with
                 )
 
         Rn.Components.Constructors.Rn.View(
-            testId = "eggshell-sidebar-menu",
+            testId   = "eggshell-sidebar-menu",
             children = elements { item }
         )

@@ -9,14 +9,15 @@ open System.Text.RegularExpressions
 let cleanFullDisplayName str =
     Regex.Replace(str, @"`\d+", "").Replace(".", "_")
 
-let makeIdent name : Fable.Ident =
-    { Name = name
-      Type = Fable.Any
-      IsCompilerGenerated = true
-      IsThisArgument = false
-      IsMutable = false
-      IsInlineIfLambda = false
-      Range = None }
+let makeIdent name : Fable.Ident = {
+    Name                = name
+    Type                = Fable.Any
+    IsCompilerGenerated = true
+    IsThisArgument      = false
+    IsMutable           = false
+    IsInlineIfLambda    = false
+    Range               = None
+}
 
 let makeUniqueIdent (name: string) =
     let hashToString (i: int) =
@@ -34,21 +35,23 @@ let makeStrConst (x: string) =
 
 let nullValue = Fable.Expr.Value(Fable.ValueKind.Null(Fable.Type.Any), None)
 
-let makeCallInfo args : Fable.CallInfo =
-    { ThisArg = None
-      Args = args
-      SignatureArgTypes = []
-      GenericArgs = []
-      MemberRef = None
-      Tags = [] }
+let makeCallInfo args : Fable.CallInfo = {
+    ThisArg           = None
+    Args              = args
+    SignatureArgTypes = []
+    GenericArgs       = []
+    MemberRef         = None
+    Tags              = []
+}
 
 let emitJs macro args =
     let callInfo = makeCallInfo args
 
-    let emitInfo: Fable.AST.Fable.EmitInfo =
-        { Macro = macro
-          IsStatement = false
-          CallInfo = callInfo }
+    let emitInfo: Fable.AST.Fable.EmitInfo = {
+        Macro       = macro
+        IsStatement = false
+        CallInfo    = callInfo
+    }
 
     Fable.Expr.Emit(emitInfo, Fable.Type.Any, None)
 
@@ -58,16 +61,16 @@ let rec flattenList (head: Fable.Expr) (tail: Fable.Expr) =
       | Fable.Expr.Value(value, range) ->
           match value with
           | Fable.ValueKind.NewList(Some(nextHead, nextTail), _listType) -> yield! flattenList nextHead nextTail
-          | Fable.ValueKind.NewList(None, _listType) -> yield! []
-          | _ -> yield! [ Fable.Expr.Value(value, range) ]
+          | Fable.ValueKind.NewList(None, _listType)                     -> yield! []
+          | _                                                            -> yield! [ Fable.Expr.Value(value, range) ]
 
       | _ -> yield! [] ]
 
 let makeImport (selector: string) (path: string) =
     Fable.Import(
         { Selector = selector.Trim()
-          Path = path.Trim()
-          Kind = Fable.UserImport(false) },
+          Path     = path.Trim()
+          Kind     = Fable.UserImport(false) },
         Fable.Any,
         None
     )
@@ -108,7 +111,7 @@ let isPropertyList (_compiler: PluginHelper) (fableType: Fable.Type) =
     | Fable.Type.List(genericArg) ->
         match genericArg with
         | Fable.Type.DeclaredType(entity, _genericArgs) -> entity.FullName.EndsWith "IReactProperty"
-        | _ -> false
+        | _                                             -> false
     | _ -> false
 
 let isPascalCase (input: string) =
@@ -119,12 +122,12 @@ let isCamelCase (input: string) = not (isPascalCase input)
 let isAnonymousRecord (fableType: Fable.Type) =
     match fableType with
     | Fable.Type.AnonymousRecordType _ -> true
-    | _ -> false
+    | _                                -> false
 
 let isReactElement (fableType: Fable.Type) =
     match fableType with
     | Fable.Type.DeclaredType(entity, _genericArgs) -> entity.FullName.EndsWith "ReactElement"
-    | _ -> false
+    | _                                             -> false
 
 let recordHasField name (compiler: PluginHelper) (fableType: Fable.Type) =
     match fableType with
@@ -139,7 +142,7 @@ let recordHasField name (compiler: PluginHelper) (fableType: Fable.Type) =
 
 let memberName =
     function
-    | Fable.MemberRef(_, m) -> m.CompiledName
+    | Fable.MemberRef(_, m)      -> m.CompiledName
     | Fable.GeneratedMemberRef m -> m.Info.Name
 
 let makeCall callee args =
@@ -155,21 +158,23 @@ let createElement reactElementType args =
 let emptyReactElement reactElementType =
     Fable.Expr.Value(Fable.Null(reactElementType), None)
 
-let makeMemberInfo isInstance typ name : Fable.GeneratedMemberInfo =
-    { Name = name
-      ParamTypes = []
-      ReturnType = typ
-      IsInstance = isInstance
-      HasSpread = false
-      IsMutable = false
-      DeclaringEntity = None }
+let makeMemberInfo isInstance typ name : Fable.GeneratedMemberInfo = {
+    Name            = name
+    ParamTypes      = []
+    ReturnType      = typ
+    IsInstance      = isInstance
+    HasSpread       = false
+    IsMutable       = false
+    DeclaringEntity = None
+}
 
-let objValue (k, v) : Fable.ObjectExprMember =
-    { Name = k
-      Args = []
-      Body = v
-      MemberRef = makeMemberInfo true v.Type k |> Fable.GeneratedValue |> Fable.GeneratedMemberRef
-      IsMangled = false }
+let objValue (k, v) : Fable.ObjectExprMember = {
+    Name      = k
+    Args      = []
+    Body      = v
+    MemberRef = makeMemberInfo true v.Type k |> Fable.GeneratedValue |> Fable.GeneratedMemberRef
+    IsMangled = false
+}
 
 let objExpr kvs =
     Fable.ObjectExpr(List.map objValue kvs, Fable.Any, None)

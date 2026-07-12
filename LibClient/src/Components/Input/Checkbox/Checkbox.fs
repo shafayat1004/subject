@@ -24,10 +24,10 @@ module Input_CheckboxComponent =
         module Input =
             module Checkbox =
                 type Theme = {
-                    IconCheckedColor: Color
+                    IconCheckedColor:   Color
                     IconUncheckedColor: Color
-                    LabelColor: Color
-                    IconSize: int
+                    LabelColor:         Color
+                    IconSize:           int
                 }
 
     open LC.Input.Checkbox
@@ -112,17 +112,17 @@ module Input_CheckboxComponent =
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member Checkbox(
-                onChange: bool -> unit,
-                value: Option<bool>,
-                validity: InputValidity,
-                ?children: ReactChildrenProp,
-                ?label: Label,
+                onChange:            bool -> unit,
+                value:               Option<bool>,
+                validity:            InputValidity,
+                ?children:           ReactChildrenProp,
+                ?label:              Label,
                 ?accessibilityLabel: string,
-                ?testId: string,
-                ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?key: string,
-                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+                ?testId:             string,
+                ?styles:             array<ViewStyles>,
+                ?theme:              Theme -> Theme,
+                ?key:                string,
+                ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             key |> ignore
 
@@ -166,9 +166,9 @@ module Input_CheckboxComponent =
                             children =
                                 elements {
                                     LC.Icon(
-                                        icon = checkboxIcon,
+                                        icon       = checkboxIcon,
                                         decorative = true,
-                                        styles = [| Styles.iconTheme theTheme.IconSize iconColorCss |]
+                                        styles     = [| Styles.iconTheme theTheme.IconSize iconColorCss |]
                                     )
 
                                     match label with
@@ -185,18 +185,18 @@ module Input_CheckboxComponent =
                                         )
                                     | Children ->
                                         Rn.View(
-                                            styles = [| Styles.labelBlock |],
+                                            styles   = [| Styles.labelBlock |],
                                             children = childElements
                                         )
 
                                     LC.Pressable(
-                                        onPress = onPress,
-                                        label = a11yLabel,
-                                        role = AccessibilityRole.CheckBox,
-                                        testId = resolvedTestId,
-                                        state = checkedState value,
-                                        overlay = true,
-                                        styles = [| Styles.tapCapture |],
+                                        onPress       = onPress,
+                                        label         = a11yLabel,
+                                        role          = AccessibilityRole.CheckBox,
+                                        testId        = resolvedTestId,
+                                        state         = checkedState value,
+                                        overlay       = true,
+                                        styles        = [| Styles.tapCapture |],
                                         componentName = "LC.Input.Checkbox"
                                     )
                                 }

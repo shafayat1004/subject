@@ -23,10 +23,10 @@ module private Styles =
 type LibClient.Components.Constructors.LC.AppShell with
     [<Component>]
     static member Context(
-            children:      array<ReactElement>,
+            children:                    array<ReactElement>,
             ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:           string
+            ?xLegacyStyles:              List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:                        string
         ) : ReactElement =
         key           |> ignore
         xLegacyStyles |> ignore

@@ -52,30 +52,30 @@ with
 
 type Size =
 | Percentage of float
-| Number of int
+| Number     of int
 with
     member this.ToJS =
         match this with
         | Percentage v -> sprintf "%f%%" v |> box
-        | Number v -> box v
+        | Number v     -> box v
 
 type Offset =
 | Percentage of float
-| Number of int
+| Number     of int
 with
     member this.ToJS =
         match this with
         | Percentage v -> sprintf "%f%%" v |> box
-        | Number v -> box v
+        | Number v     -> box v
 
 type Radius =
 | Percentage of float
-| Number of int
+| Number     of int
 with
     member this.ToJS =
         match this with
         | Percentage v -> sprintf "%f%%" v |> box
-        | Number v -> box v
+        | Number v     -> box v
 
 type AxisId =
 | String of string

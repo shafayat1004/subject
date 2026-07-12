@@ -37,13 +37,13 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Scrim(
-            isVisible: bool,
-            ?onPress: ReactEvent.Action -> unit,
-            ?onPanVertical: Rn.Components.GestureView.PanGestureState -> unit,
+            isVisible:        bool,
+            ?onPress:         ReactEvent.Action -> unit,
+            ?onPanVertical:   Rn.Components.GestureView.PanGestureState -> unit,
             ?onPanHorizontal: Rn.Components.GestureView.PanGestureState -> unit,
-            ?testId: string,
-            ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?testId:          string,
+            ?styles:          array<ViewStyles>,
+            ?key:             string) : ReactElement =
         key |> ignore
 
         let isMountedHook = Hooks.useState isVisible
@@ -86,20 +86,20 @@ type LibClient.Components.Constructors.LC with
                 children =
                     elements {
                         Rn.ReanimatedView(
-                            styles = [| Styles.scrimInner |],
+                            styles        = [| Styles.scrimInner |],
                             animatedStyle = animatedStyle,
-                            children = [||]
+                            children      = [||]
                         )
 
                         let child =
                             match onPress with
                             | Some onPress ->
                                 LC.Pressable(
-                                    onPress = onPress,
-                                    label = "Dismiss",
-                                    role = AccessibilityRole.Button,
-                                    testId = (testId |> Option.defaultValue "scrim-dismiss"),
-                                    overlay = true,
+                                    onPress       = onPress,
+                                    label         = "Dismiss",
+                                    role          = AccessibilityRole.Button,
+                                    testId        = (testId |> Option.defaultValue "scrim-dismiss"),
+                                    overlay       = true,
                                     componentName = "LC.Scrim"
                                 )
                             | None ->
@@ -109,9 +109,9 @@ type LibClient.Components.Constructors.LC with
 
                         if isPanEnabled then
                             Rn.GestureView(
-                                styles = [| Styles.gestureView |],
+                                styles           = [| Styles.gestureView |],
                                 ?onPanHorizontal = onPanHorizontal,
-                                ?onPanVertical = onPanVertical,
+                                ?onPanVertical   = onPanVertical,
                                 children =
                                     elements {
                                         child

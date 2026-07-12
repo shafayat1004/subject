@@ -26,7 +26,7 @@ type NonemptyOrderedSet<'V when 'V: comparison> =
         let updated = this.ToOrderedSet.Remove item
 
         match updated.IsEmpty with
-        | true -> None
+        | true  -> None
         | false -> Some(NonemptyOrderedSet updated)
 
     member this.Contains(item: 'V) : bool = this.ToOrderedSet.Contains item
@@ -36,19 +36,19 @@ let ofOneItem (item: 'V) : NonemptyOrderedSet<'V> =
 
 let tryOfOrderedSet (orderedSet: OrderedSet<'V>) : Option<NonemptyOrderedSet<'V>> =
     match orderedSet.IsEmpty with
-    | true -> None
+    | true  -> None
     | false -> orderedSet |> NonemptyOrderedSet |> Some
 
 let ofOrderedSetUnsafe (orderedSet: OrderedSet<'V>) : NonemptyOrderedSet<'V> = orderedSet |> NonemptyOrderedSet
 
 let tryOfList (list: List<'V>) : Option<NonemptyOrderedSet<'V>> =
     match list.IsEmpty with
-    | true -> None
+    | true  -> None
     | false -> list |> OrderedSet.ofList |> NonemptyOrderedSet |> Some
 
 let tryOfSeq (source: seq<'V>) : Option<NonemptyOrderedSet<'V>> =
     match source |> Seq.isEmpty with
-    | true -> None
+    | true  -> None
     | false -> source |> OrderedSet.ofSeq |> NonemptyOrderedSet |> Some
 
 let toUnorderedSet (nonemptyOrderedSet: NonemptyOrderedSet<'V>) : Set<'V> =

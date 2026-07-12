@@ -12,9 +12,9 @@ type KeyboardBehavior =
     with
         member this.toJS =
             match this with
-            | Height -> "height"
+            | Height   -> "height"
             | Position -> "position"
-            | Padding -> "padding"
+            | Padding  -> "padding"
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 let ReactNativeKeyboardAvoidingViewRaw: obj = import "KeyboardAvoidingView" "react-native"
@@ -37,10 +37,10 @@ type private KeyboardAvoidingViewPropsJs
 
 type ReactNative.Components.Constructors.RN with
     static member KeyboardAvoidingView(
-        ?children: ReactElements,
-        ?behavior: KeyboardBehavior,
+        ?children:               ReactElements,
+        ?behavior:               KeyboardBehavior,
         ?keyboardVerticalOffset: int,
-        ?key:      string
+        ?key:                    string
     ) =
         let keyboardBehavior = defaultArg behavior KeyboardBehavior.Height
         let keyboardVerticalOffset = defaultArg keyboardVerticalOffset 0
@@ -66,16 +66,16 @@ type ReactNative.Components.Constructors.RN with
                 children
 
         RN.TouchableWithoutFeedback (
-            onPress = (fun _ -> KeyboardRaw?dismiss()),
+            onPress  = (fun _ -> KeyboardRaw?dismiss()),
             children = [|keyboardAvoidingView|]
         )
 #else
 type ReactNative.Components.Constructors.RN with
     static member KeyboardAvoidingView(
-        ?children: ReactElements,
-        ?behavior: KeyboardBehavior,
+        ?children:               ReactElements,
+        ?behavior:               KeyboardBehavior,
         ?keyboardVerticalOffset: int,
-        ?key:      string
+        ?key:                    string
     ) =
         ignore key
         ignore behavior

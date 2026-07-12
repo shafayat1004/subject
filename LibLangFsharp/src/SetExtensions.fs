@@ -30,14 +30,14 @@ type Microsoft.FSharp.Collections.Set<'V when 'V: comparison> with
 
     member this.Toggle(value: 'V) : Set<'V> =
         match this.Contains value with
-        | true -> this.Remove value
+        | true  -> this.Remove value
         | false -> this.Add value
 
     member this.SetMembership (value: 'V) (shouldBeMember: bool) : Set<'V> =
         match (shouldBeMember, this.Contains value) with
         | (true, false) -> this.Add value
         | (false, true) -> this.Remove value
-        | _ -> this
+        | _             -> this
 
     member this.ContainsAll(values: Set<'V>) : bool = Set.isSubset values this
 

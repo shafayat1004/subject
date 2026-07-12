@@ -279,8 +279,8 @@ type ButtonHighLevelState with
 
 [<RequireQualifiedAccess>]
 type InputSuffix =
-| Text of string
-| Icon of LibClient.Icons.IconConstructor
+| Text    of string
+| Icon    of LibClient.Icons.IconConstructor
 | Element of ReactElement
 
 type InputSuffixFactory =
@@ -322,4 +322,3 @@ type Browser.Types.PointerEvent with
             |> Option.map (fun touches -> (touches.[0].pageX, touches.[0].pageY))
         else
             Some (this.pageX, this.pageY)
-

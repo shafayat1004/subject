@@ -35,7 +35,7 @@ type UiSubjectAdmin.Route.Debug with
                  and  'Event        :> LifeEvent
                  and  'OpError      :> OpError
                  and  'Index        :> SubjectIndex<'OpError>> (
-        service:  LibUiSubject.Services.SubjectService.ISubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError>,
+        service:    LibUiSubject.Services.SubjectService.ISubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError>,
         idToString: 'Id -> string,
         toString:   'Projection -> string,
         id:         'Id,
@@ -72,7 +72,7 @@ type UiSubjectAdmin.Route.Debug with
                  and  'Event        :> LifeEvent
                  and  'OpError      :> OpError
                  and  'Index        :> SubjectIndex<'OpError>> (
-        service: LibUiSubject.Services.SubjectService.ISubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError>,
+        service:    LibUiSubject.Services.SubjectService.ISubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError>,
         idToString: 'Id -> string,
         render:     Render<'Projection>,
         id:         'Id,

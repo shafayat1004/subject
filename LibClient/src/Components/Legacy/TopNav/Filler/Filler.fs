@@ -12,8 +12,8 @@ module private Styles =
 type LibClient.Components.Constructors.LC.Legacy.TopNav with
     [<Component>]
     static member Filler(?children: ReactChildrenProp, ?count: int, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
-        key |> ignore
-        children |> ignore
+        key           |> ignore
+        children      |> ignore
         xLegacyStyles |> ignore
         let n = defaultArg count 1
         Rn.View(

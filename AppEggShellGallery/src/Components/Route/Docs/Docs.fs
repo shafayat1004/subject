@@ -27,7 +27,7 @@ type Ui.Route with
         element {
             LC.SetPageMetadata(title = "Docs")
             LR.Route(
-                scroll = LibRouter.Components.Route.Vertical,
+                scroll   = LibRouter.Components.Route.Vertical,
                 children = [|
                     LC.Section.Padded(
                         children = [|
@@ -36,7 +36,7 @@ type Ui.Route with
                                 [ ClassName (sprintf "url-%s" (markdownUrl.Replace("/", "-").Replace(".", "_"))) ]
                                 [|
                                     Showdown.MarkdownViewer(
-                                        source = docMarkdownSource markdownUrl,
+                                        source            = docMarkdownSource markdownUrl,
                                         globalLinkHandler = "globalMarkdownLinkHandler",
                                         showdownConverter = showdownConverterWithSyntaxHighlighting
                                     )
@@ -45,7 +45,7 @@ type Ui.Route with
                             // Native has no docs server; render the bundled markdown directly.
                             // globalLinkHandler routes internal doc links back into the app.
                             Showdown.MarkdownViewer(
-                                source = docMarkdownSource markdownUrl,
+                                source            = docMarkdownSource markdownUrl,
                                 globalLinkHandler = "globalMarkdownLinkHandler",
                                 showdownConverter = showdownConverterWithSyntaxHighlighting
                             )

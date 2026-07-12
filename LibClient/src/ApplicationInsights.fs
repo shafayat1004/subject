@@ -83,7 +83,7 @@ type ApplicationInsightsSink (config: AppInsightsConfig) =
 
     let setUser (user: TelemetryUser) : unit =
         match user with
-        | TelemetryUser.Anonymous -> appInsights?clearAuthenticatedUserContext()
+        | TelemetryUser.Anonymous              -> appInsights?clearAuthenticatedUserContext()
         | TelemetryUser.Identified (userId, _) -> appInsights?setAuthenticatedUserContext userId
 
     let trackTrace (level: LogLevel) (maybeCategory: Option<string>) (properties: LogProperties) (event: Event) : Unit =
@@ -93,8 +93,8 @@ type ApplicationInsightsSink (config: AppInsightsConfig) =
                     "severity",
                     match level with
                     | LogLevel.Debug -> box "debug"
-                    | LogLevel.Info -> box "info"
-                    | LogLevel.Warn -> box "warning"
+                    | LogLevel.Info  -> box "info"
+                    | LogLevel.Warn  -> box "warning"
                     | LogLevel.Error -> box "error"
                 )
 

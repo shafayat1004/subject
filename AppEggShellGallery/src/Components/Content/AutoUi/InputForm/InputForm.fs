@@ -30,8 +30,8 @@ module private Sample =
         element {
             UIAuto.InputForm(
                 formWrapper = formWrapper,
-                settings = List.empty,
-                onChange = onChange
+                settings    = List.empty,
+                onChange    = onChange
             )
 
             match validationResultHook.current with
@@ -75,17 +75,17 @@ UIAuto.InputForm(
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "UIAuto.InputForm",
-                    role = "none (auto-generated form)",
-                    namePattern = "Field names from F# record properties via reflection",
-                    stateNotes = "Validation surfaced via onChange InputValidationResult",
+                    componentName  = "UIAuto.InputForm",
+                    role           = "none (auto-generated form)",
+                    namePattern    = "Field names from F# record properties via reflection",
+                    stateNotes     = "Validation surfaced via onChange InputValidationResult",
                     scalesWithFont = true
                 ),
             samples =
                 element {
                     Ui.ComponentSample(
                         verticalAlignment = ComponentSample.VerticalAlignment.Top,
-                        visuals = Sample.Render(),
+                        visuals           = Sample.Render(),
                         code =
                             ComponentSample.Children(
                                 element {

@@ -6,9 +6,9 @@ open LibDsl.Parsing.XmlParsing
 
 [<AbstractClass>]
 type DslCompiler<'InputParams, 'ParsedCode, 'ParseError, 'OutputCode, 'CodeGenerationResult, 'CodeGenerationError> (_inputParams: 'InputParams) =
-    abstract member Parse : (* source *) string -> Result<'ParsedCode, 'ParseError>
-    abstract member GenerateCode : (* parsedCode *) 'ParsedCode -> Result<'OutputCode, 'CodeGenerationError>
-    abstract member CodeToFiles : 'OutputCode -> Result<'CodeGenerationResult, 'CodeGenerationError>
+    abstract member Parse:        (* source *) string -> Result<'ParsedCode, 'ParseError>
+    abstract member GenerateCode: (* parsedCode *) 'ParsedCode -> Result<'OutputCode, 'CodeGenerationError>
+    abstract member CodeToFiles:  'OutputCode -> Result<'CodeGenerationResult, 'CodeGenerationError>
 
 and OneFile   = OneFile of Contents: string
 and ManyFiles = ManyFiles of Map<Filename, string>
@@ -28,9 +28,8 @@ type XmlDslCompiler<'InputParams, 'ParsedCode, 'ParseError, 'OutputCode, 'CodeGe
             |> Result.mapError ParseError
     }
 
-    abstract member ParseXml : (* sourceRootNode *) XmlNode -> Result<'ParsedCode, 'ParseError>
+    abstract member ParseXml: (* sourceRootNode *) XmlNode -> Result<'ParsedCode, 'ParseError>
 
 and XmlDslParseError<'ParseError> =
 | XmlSyntaxError of Message: string
 | ParseError     of 'ParseError
-

@@ -68,8 +68,8 @@ module Page =
 
     let withNumber (number: PositiveInteger) (value: Page<'Query>) : Page<'Query> =
         match value with
-        | BlankPage size       -> BlankPage size
-        | QueryPage queryPage  -> QueryPage { queryPage with PageNumber = number }
+        | BlankPage size      -> BlankPage size
+        | QueryPage queryPage -> QueryPage { queryPage with PageNumber = number }
 
 type Mode<'Item, 'Query> =
 | OneTime                    of Execute: (QueryPage<'Query> -> Async<AsyncData<seq<'Item>>>)
@@ -322,7 +322,7 @@ type UiAdmin with
             )
 
         Rn.View (
-            styles   = legacyViewStyles,
+            styles = legacyViewStyles,
             children =
                 match customRender with
                 | None        -> [| form; grid |]

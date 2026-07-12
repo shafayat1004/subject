@@ -21,11 +21,11 @@ type private Helpers =
 
         element {
             LC.TouchableOpacity(
-                onPress = (fun _ -> isPressed.update true),
-                testId = "touchable-opacity-click-me",
+                onPress  = (fun _ -> isPressed.update true),
+                testId   = "touchable-opacity-click-me",
                 children = [|
                     Rn.View(
-                        styles = [| Styles.view |],
+                        styles   = [| Styles.view |],
                         children = [| Rn.Text "Click Me" |]
                     )
                 |]
@@ -38,12 +38,12 @@ type private Helpers =
     [<Component>]
     static member CustomLabelSample() : ReactElement =
         LC.TouchableOpacity(
-            onPress = (fun _ -> ()),
-            label = "Submit order",
-            testId = "touchable-opacity-submit-order",
+            onPress  = (fun _ -> ()),
+            label    = "Submit order",
+            testId   = "touchable-opacity-submit-order",
             children = [|
                 Rn.View(
-                    styles = [| Styles.view |],
+                    styles   = [| Styles.view |],
                     children = [| Rn.Text "Place Order" |]
                 )
             |]
@@ -61,27 +61,27 @@ type Ui.Content with
                             Fields =
                                 (Choice2Of2 [
                                     {
-                                        Name = "onPress"
-                                        Type = "ReactEvent.Action -> unit"
-                                        Default = None
+                                        Name        = "onPress"
+                                        Type        = "ReactEvent.Action -> unit"
+                                        Default     = None
                                         Description = None
                                     }
                                     {
-                                        Name = "children"
-                                        Type = "ReactElements"
-                                        Default = None
+                                        Name        = "children"
+                                        Type        = "ReactElements"
+                                        Default     = None
                                         Description = None
                                     }
                                     {
-                                        Name = "label"
-                                        Type = "string"
-                                        Default = Some "\"Button\""
+                                        Name        = "label"
+                                        Type        = "string"
+                                        Default     = Some "\"Button\""
                                         Description = Some "Accessibility label for the overlay Pressable"
                                     }
                                     {
-                                        Name = "pointerState"
-                                        Type = "LC.Pointer.State.PointerState"
-                                        Default = Some "None"
+                                        Name        = "pointerState"
+                                        Type        = "LC.Pointer.State.PointerState"
+                                        Default     = Some "None"
                                         Description = None
                                     }
                                 ])
@@ -93,10 +93,10 @@ type Ui.Content with
                 LC.Text "TouchableOpacity renders children and adds an overlay LC.Pressable on top (overlay = true) so the entire region is tappable while children remain visible underneath.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.TouchableOpacity",
-                    role = "button",
-                    namePattern = "?label prop (defaults to \"Button\")",
-                    stateNotes = "N/A — no disabled or busy states",
+                    componentName  = "LC.TouchableOpacity",
+                    role           = "button",
+                    namePattern    = "?label prop (defaults to \"Button\")",
+                    stateNotes     = "N/A — no disabled or busy states",
                     scalesWithFont = false
                 ),
             samples =

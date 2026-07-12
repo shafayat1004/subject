@@ -87,4 +87,3 @@ type ThothEncodedHttpService(httpService: HttpService.HttpService) =
         | statusCode ->
             return Non200Code (statusCode, result) |> Error
     }
-

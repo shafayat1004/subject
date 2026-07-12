@@ -60,9 +60,9 @@ type AccessibilityLiveRegion =
 type AccessibilityStateRecord = {
     Disabled: bool option
     Selected: bool option
-    Checked: bool option
+    Checked:  bool option
     Expanded: bool option
-    Busy: bool option
+    Busy:     bool option
 }
 
 /// POJO prototype (Fable 5 `[<Pojo>]`): constructor args define a plain JS object, the class
@@ -86,9 +86,9 @@ module AccessibilityStateRecord =
     let empty = {
         Disabled = None
         Selected = None
-        Checked = None
+        Checked  = None
         Expanded = None
-        Busy = None
+        Busy     = None
     }
 
     let disabled value = { empty with Disabled = Some value }
@@ -107,28 +107,28 @@ module AccessibilityStateRecord =
         ) |> box
 
 type A11yProps = {
-    Label: string option
-    Role: AccessibilityRole
-    State: AccessibilityStateRecord
-    TestId: string option
-    AccessibilityId: string option
+    Label:                     string option
+    Role:                      AccessibilityRole
+    State:                     AccessibilityStateRecord
+    TestId:                    string option
+    AccessibilityId:           string option
     ImportantForAccessibility: ImportantForAccessibility option
-    LiveRegion: AccessibilityLiveRegion option
-    TabIndex: int option
-    Actions: string list
+    LiveRegion:                AccessibilityLiveRegion option
+    TabIndex:                  int option
+    Actions:                   string list
 }
 
 module A11yProps =
     let defaults = {
-        Label = None
-        Role = AccessibilityRole.Button
-        State = AccessibilityStateRecord.empty
-        TestId = None
-        AccessibilityId = None
+        Label                     = None
+        Role                      = AccessibilityRole.Button
+        State                     = AccessibilityStateRecord.empty
+        TestId                    = None
+        AccessibilityId           = None
         ImportantForAccessibility = None
-        LiveRegion = None
-        TabIndex = None
-        Actions = []
+        LiveRegion                = None
+        TabIndex                  = None
+        Actions                   = []
     }
 
 module A11ySlug =
@@ -144,21 +144,21 @@ module A11ySlug =
 /// Reactive OS accessibility flags (§6 / accessibility/backlog.md item #7).
 type AccessibilitySettings = {
     ScreenReaderEnabled: bool
-    ReduceMotion: bool
-    BoldText: bool
-    ReduceTransparency: bool
-    InvertColors: bool
-    Grayscale: bool
-    FontScale: float
+    ReduceMotion:        bool
+    BoldText:            bool
+    ReduceTransparency:  bool
+    InvertColors:        bool
+    Grayscale:           bool
+    FontScale:           float
 }
 
 module AccessibilitySettings =
     let defaults = {
         ScreenReaderEnabled = false
-        ReduceMotion = false
-        BoldText = false
-        ReduceTransparency = false
-        InvertColors = false
-        Grayscale = false
-        FontScale = 1.0
+        ReduceMotion        = false
+        BoldText            = false
+        ReduceTransparency  = false
+        InvertColors        = false
+        Grayscale           = false
+        FontScale           = 1.0
     }

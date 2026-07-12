@@ -36,12 +36,12 @@ module EmailAddress =
             // Taking a leaf out of NET core's book here by keeping it simple, but largely effective, even if not to the letter of the RFC.
             // https://github.com/dotnet/runtime/blob/main/src/libraries/System.ComponentModel.Annotations/src/System/ComponentModel/DataAnnotations/EmailAddressAttribute.cs
             match cleanedSource.IndexOf("@"), cleanedSource.LastIndexOf("@") with
-            | -1, -1 -> Error NoAtSymbol
-            | x, y when x <> y && y > -1 -> Error MultipleAtSymbols
-            | 0, _ -> Error AtSymbolAtStart
-            | x, _ when x = cleanedSource.Length - 1 -> Error AtSymbolAtEnd
+            | -1, -1                                            -> Error NoAtSymbol
+            | x, y when x <> y && y > -1                        -> Error MultipleAtSymbols
+            | 0, _                                              -> Error AtSymbolAtStart
+            | x, _ when x = cleanedSource.Length - 1            -> Error AtSymbolAtEnd
             | _, _ when not (emailRegex.IsMatch(cleanedSource)) -> Error NotAValidEmail
-            | _ -> { Value_ = cleanedSource } |> Ok
+            | _                                                 -> { Value_ = cleanedSource } |> Ok
 
 
 // CODECs

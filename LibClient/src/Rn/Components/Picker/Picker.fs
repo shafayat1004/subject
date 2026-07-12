@@ -63,7 +63,7 @@ type Rn.Components.Constructors.Rn with
 
         match xLegacyStyles with
         | Option.None | Option.Some [] -> ()
-        | Option.Some ls -> __props?__style <- ls
+        | Option.Some ls               -> __props?__style <- ls
 
         Rn.RnPrimitives.createElement
             PickerRN.PickerComponent

@@ -12,7 +12,7 @@ module private SampleThemes =
         { theme with
             IconColor = Color.Black
             IconSize  = 26
-            Badge = {
+            Badge     = {
                 theme.Badge with
                     FontSize  = 22
                     FontColor = Color.Black
@@ -24,16 +24,16 @@ type Ui.Content with
     static member IconWithBadge() : ReactElement =
         Ui.ComponentContent(
             displayName = "IconWithBadge",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconWithBadge",
-            notes = LC.Text "IconWithBadge overlays a count or text badge on an icon. Use theme to customize icon and badge styling.",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconWithBadge",
+            notes       = LC.Text "IconWithBadge overlays a count or text badge on an icon. Use theme to customize icon and badge styling.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.IconWithBadge",
-                    role = "text (status indicator)",
-                    namePattern = "Badge count/text combined with icon label via accessibilityLabel",
-                    stateNotes = "Static indicator; not pressable by default",
+                    componentName  = "LC.IconWithBadge",
+                    role           = "text (status indicator)",
+                    namePattern    = "Badge count/text combined with icon label via accessibilityLabel",
+                    stateNotes     = "Static indicator; not pressable by default",
                     scalesWithFont = true,
-                    contrastNotes = "Badge text/background pairs meet WCAG AA"
+                    contrastNotes  = "Badge text/background pairs meet WCAG AA"
                 ),
             samples =
                 element {
@@ -83,7 +83,7 @@ LC.IconWithBadge(
                         visuals =
                             element {
                                 LC.IconWithBadge(
-                                    icon = Icon.ShoppingCart,
+                                    icon  = Icon.ShoppingCart,
                                     badge = Count 9,
                                     theme = SampleThemes.custom
                                 )
@@ -103,7 +103,7 @@ LC.IconWithBadge(
                                     )
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
 theme = fun theme ->

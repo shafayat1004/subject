@@ -85,7 +85,7 @@ type private XAxisPropsJs
       ?width:                   int,
       ?height:                  int,
       ?orientation:             XAxisOrientation,
-      ?``type``:               AxisType,
+      ?``type``:                AxisType,
       ?allowDecimals:           bool,
       ?allowDataOverflow:       bool,
       ?allowDuplicatedCategory: bool,

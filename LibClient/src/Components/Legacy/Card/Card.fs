@@ -74,10 +74,10 @@ module Legacy_Card =
             ) : ReactElement =
             key           |> ignore
             xLegacyStyles |> ignore
-            let theStyle  = defaultArg style Card.Shadowed
-            let theTheme  = Themes.GetMaybeUpdatedWith theme
+            let theStyle = defaultArg style Card.Shadowed
+            let theTheme = Themes.GetMaybeUpdatedWith theme
             Rn.View(
-                styles = [| Styles.view theStyle theTheme; yield! defaultArg styles [||] |],
+                styles   = [| Styles.view theStyle theTheme; yield! defaultArg styles [||] |],
                 children = [|
                     yield! children
                     match onPress with
@@ -86,13 +86,13 @@ module Legacy_Card =
                         let resolvedTestId =
                             testId |> Option.orElse (Some (A11ySlug.testId "legacy-card" a11yLabel))
                         LC.Pressable(
-                            onPress = f,
-                            label = a11yLabel,
-                            testId = resolvedTestId.Value,
-                            role = AccessibilityRole.Button,
-                            overlay = true,
+                            onPress       = f,
+                            label         = a11yLabel,
+                            testId        = resolvedTestId.Value,
+                            role          = AccessibilityRole.Button,
+                            overlay       = true,
                             componentName = "LC.Legacy.Card"
                         )
-                    | None   -> ()
+                    | None -> ()
                 |]
             )

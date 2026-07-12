@@ -30,8 +30,8 @@ type private Helpers =
             children =
                 [|
                     LC.TextButton(
-                        label = "Standard",
-                        role = AccessibilityRole.Radio,
+                        label              = "Standard",
+                        role               = AccessibilityRole.Radio,
                         accessibilityState = AccessibilityStateRecord.selected (selected.current = "Standard"),
                         state =
                             PropStateFactory.MakeLowLevel (
@@ -39,8 +39,8 @@ type private Helpers =
                             )
                     )
                     LC.TextButton(
-                        label = "Express",
-                        role = AccessibilityRole.Radio,
+                        label              = "Express",
+                        role               = AccessibilityRole.Radio,
                         accessibilityState = AccessibilityStateRecord.selected (selected.current = "Express"),
                         state =
                             PropStateFactory.MakeLowLevel (
@@ -55,17 +55,17 @@ type Ui.Content with
     static member TextButton() : ReactElement =
         Ui.ComponentContent(
             displayName = "TextButton",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.TextButton",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.TextButton",
             notes =
                 LC.Text "Actionable text buttons auto-slug testId from the label (text-button-add-to-cart). Pass ?testId to override. Minimum tap target is 44px (padding applied by the component).",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.TextButton",
-                    role = "button (default); radio when ?role = AccessibilityRole.Radio inside LC.RadioGroup",
-                    namePattern = "Visible label text (label prop)",
-                    stateNotes = "disabled when MakeDisabled; busy when InProgress; selected when ?accessibilityState.Selected = Some true (Radio role)",
+                    componentName  = "LC.TextButton",
+                    role           = "button (default); radio when ?role = AccessibilityRole.Radio inside LC.RadioGroup",
+                    namePattern    = "Visible label text (label prop)",
+                    stateNotes     = "disabled when MakeDisabled; busy when InProgress; selected when ?accessibilityState.Selected = Some true (Radio role)",
                     scalesWithFont = true,
-                    contrastNotes = "Primary theme text color meets WCAG AA on typical backgrounds"
+                    contrastNotes  = "Primary theme text color meets WCAG AA on typical backgrounds"
                 ),
             samples =
                 element {
@@ -179,7 +179,7 @@ LC.TextButton(
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
 let special (theme: LC.TextButton.Theme) =

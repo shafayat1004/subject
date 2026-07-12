@@ -105,9 +105,9 @@ type TraceContextIncomingGrainCallFilter
                                     yield!
                                         arguments
                                         |> Seq.choose (function
-                                            | :? SideEffectDedupInfo as dedupInfo -> Some dedupInfo
+                                            | :? SideEffectDedupInfo as dedupInfo              -> Some dedupInfo
                                             | :? Option<SideEffectDedupInfo> as maybeDedupInfo -> maybeDedupInfo
-                                            | _ -> None)
+                                            | _                                                -> None)
                                         |> Seq.mapi (fun i dedupInfo ->
                                             let getKey key = if i = 0 then key else $"%s{key}_%d{i+1}"
                                             [
@@ -124,13 +124,13 @@ type TraceContextIncomingGrainCallFilter
                                 if (String.IsNullOrEmpty parentActivityId |> not) then Some parentActivityId  else  None
 
                             do! operationTracker.TrackOperation<_>
-                                 { Partition = telemetryData.Partition
-                                   Type = telemetryData.Type
-                                   Name = opName
+                                 { Partition             = telemetryData.Partition
+                                   Type                  = telemetryData.Type
+                                   Name                  = opName
                                    MaybeParentActivityId = maybeParentActivityId
                                    // create new parent Id at this tracked level of nesting so the yielded "Side Effect" dependencies appear below this "Grain" dependency
                                    MakeItNewParentActivityId = true
-                                   BeforeRunProperties = beforeRunProperties }
+                                   BeforeRunProperties       = beforeRunProperties }
                                  (fun () ->
                                     task {
                                         do! context.Invoke ()
@@ -158,4 +158,3 @@ type TraceContextIncomingGrainCallFilter
             | _ ->
                 // pass thru calls to untracked grains
                 context.Invoke()
-

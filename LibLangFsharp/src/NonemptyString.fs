@@ -29,7 +29,7 @@ module NonemptyString =
     let optionToString (candidate: Option<NonemptyString>) : string =
         match candidate with
         | Some(NonemptyString value) -> value
-        | None -> ""
+        | None                       -> ""
 
     let ofString (candidate: string) : Option<NonemptyString> =
         match candidate with
@@ -54,13 +54,13 @@ module NonemptyLowerCaseString =
     let optionToString (candidate: Option<NonemptyLowerCaseString>) : string =
         match candidate with
         | Some(NonemptyLowerCaseString value) -> value
-        | None -> ""
+        | None                                -> ""
 
     /// Converts empty strings to None but fails for null string, i.e. ofString and optionToString make an isomorphism
     let ofString (candidate: string) : Option<NonemptyLowerCaseString> =
         match candidate with
-        | null -> failwith "null string is not isomorphic to Option<NonemptyLowerCaseString>"
-        | "" -> None
+        | null  -> failwith "null string is not isomorphic to Option<NonemptyLowerCaseString>"
+        | ""    -> None
         | value -> Some(NonemptyLowerCaseString(value.ToLowerInvariant()))
 
 

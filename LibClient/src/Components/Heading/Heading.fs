@@ -129,14 +129,14 @@ type LibClient.Components.Constructors.LC with
             match xLegacyStyles with
             | Some ls ->
                 match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-                | []  -> [||]
-                | s   -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" s |]
+                | [] -> [||]
+                | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" s |]
             | None -> [||]
 
         LC.With.ScreenSize (fun screenSize ->
             LC.LegacyText(
                 accessibilityRole = AccessibilityRole.Header,
-                children = children,
+                children          = children,
                 styles   =
                     [|
                         Styles.text screenSize theLevel

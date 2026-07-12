@@ -47,14 +47,14 @@ type TerminalJsonNode =
 
 [<RequireQualifiedAccess>]
 type JsonNode =
-    | Terminal of TerminalJsonNode
-    | Choice of NonEmptyList<JsonNode>
-    | Result of Ok: JsonNode * Error: JsonNode
-    | Option of JsonNode
-    | Array of JsonNode
-    | Record of Map<string, JsonNode>
-    | Tuple of NonEmptyList<JsonNode>
-    | AnyOneOf of NonEmptyList<JsonNode>
+    | Terminal      of TerminalJsonNode
+    | Choice        of NonEmptyList<JsonNode>
+    | Result        of Ok: JsonNode * Error: JsonNode
+    | Option        of JsonNode
+    | Array         of JsonNode
+    | Record        of Map<string, JsonNode>
+    | Tuple         of NonEmptyList<JsonNode>
+    | AnyOneOf      of NonEmptyList<JsonNode>
     | Any // anything only for decode
     | OptWithOption of JsonNode
 with
@@ -77,7 +77,7 @@ module JsonNode =
     let UnwrapRecord (node: JsonNode) : Map<string, JsonNode> =
         match node with
         | JsonNode.Record x -> x
-        | _ -> failwithf $"expected record found {node}"
+        | _                 -> failwithf $"expected record found {node}"
 
 type [<Struct>] Encoding = Encoding of JsonNode
 with
@@ -138,271 +138,306 @@ module Decode =
 // CodecPropertyList has virtual Decoders : NonemptyList<Map<string ,JsonNode>> in decoder NonemptyList<JsonNode.Record> case
 
 module Codecs =
-    let unit<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding , unit> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Unit
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Unit)
-            |> Decoder }
+    let unit<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding , unit> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Unit
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Unit)
+          |> Decoder
+    }
 
-    let [<GeneralizableValue>] string<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, string> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.String
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.String)
-            |> Decoder }
+    let [<GeneralizableValue>] string<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, string> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.String
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.String)
+          |> Decoder
+    }
 
-    let [<GeneralizableValue>] int<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, int> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Int
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Int)
-            |> Decoder }
+    let [<GeneralizableValue>] int<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, int> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Int
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Int)
+          |> Decoder
+    }
 
-    let int16<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, int16> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Int16
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Int16)
-            |> Decoder }
+    let int16<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, int16> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Int16
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Int16)
+          |> Decoder
+    }
 
-    let int64<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, int64> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Int64
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Int64)
-            |> Decoder }
+    let int64<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, int64> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Int64
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Int64)
+          |> Decoder
+    }
 
-    let uint16<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, uint16> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Uint16
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Uint16)
-            |> Decoder }
+    let uint16<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, uint16> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Uint16
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Uint16)
+          |> Decoder
+    }
 
-    let uint32<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, uint32> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Uint32
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Uint32)
-            |> Decoder }
+    let uint32<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, uint32> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Uint32
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Uint32)
+          |> Decoder
+    }
 
-    let uint64<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, uint64> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Uint64
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Uint64)
-            |> Decoder }
+    let uint64<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, uint64> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Uint64
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Uint64)
+          |> Decoder
+    }
 
-    let decimal<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, decimal> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Decimal
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Decimal)
-            |> Decoder }
+    let decimal<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, decimal> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Decimal
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Decimal)
+          |> Decoder
+    }
 
-    let boolean<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, Boolean> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Boolean
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Boolean)
-            |> Decoder }
+    let boolean<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, Boolean> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Boolean
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Boolean)
+          |> Decoder
+    }
 
-    let date<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, DateOnly> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.DateTime
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.DateTime)
-            |> Decoder }
+    let date<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, DateOnly> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.DateTime
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.DateTime)
+          |> Decoder
+    }
 
-    let time<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, TimeOnly> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.TimeSpan
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.TimeSpan)
-            |> Decoder }
+    let time<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, TimeOnly> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.TimeSpan
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.TimeSpan)
+          |> Decoder
+    }
 
-    let float<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, float> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Float
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Float)
-            |> Decoder }
+    let float<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, float> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Float
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Float)
+          |> Decoder
+    }
 
-    let float32<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, float32> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Float32
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Float32)
-            |> Decoder }
+    let float32<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, float32> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Float32
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Float32)
+          |> Decoder
+    }
 
-    let dateTimeOffset<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, DateTimeOffset> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.DateTimeOffset
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.DateTimeOffset)
-            |> Decoder }
+    let dateTimeOffset<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, DateTimeOffset> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.DateTimeOffset
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.DateTimeOffset)
+          |> Decoder
+    }
 
-    let timeSpan<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, TimeSpan> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.TimeSpan
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.TimeSpan)
-            |> Decoder }
+    let timeSpan<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, TimeSpan> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.TimeSpan
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.TimeSpan)
+          |> Decoder
+    }
 
-    let guid<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, Guid> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Guid
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Guid)
-            |> Decoder }
+    let guid<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, Guid> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Guid
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Guid)
+          |> Decoder
+    }
 
-    let char<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, char> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Char
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Char)
-            |> Decoder }
+    let char<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, char> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Char
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Char)
+          |> Decoder
+    }
 
-    let byte<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, byte> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.Byte
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Byte)
-            |> Decoder }
+    let byte<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, byte> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.Byte
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.Byte)
+          |> Decoder
+    }
 
-    let base64Bytes<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, byte []> =
-        { Encoder = JsonNode.Terminal TerminalJsonNode.String
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.String)
-            |> Decoder }
+    let base64Bytes<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, byte []> = {
+        Encoder = JsonNode.Terminal TerminalJsonNode.String
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Terminal TerminalJsonNode.String)
+          |> Decoder
+    }
 
-    let list (x: Codec<'Encoding, 'T>) : Codec<'Encoding, list<'T>> =
-        { Encoder = JsonNode.Array x.Encoder
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Array(makeAnyOneOf (Decoder.run x.Decoder)))
-            |> Decoder }
+    let list (x: Codec<'Encoding, 'T>) : Codec<'Encoding, list<'T>> = {
+        Encoder = JsonNode.Array x.Encoder
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Array(makeAnyOneOf (Decoder.run x.Decoder)))
+          |> Decoder
+    }
 
-    let set (x: Codec<'Encoding, 'T>) : Codec<'Encoding, Set<'T>> =
-        { Encoder = JsonNode.Array x.Encoder
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Array(makeAnyOneOf (Decoder.run x.Decoder)))
-            |> Decoder }
+    let set (x: Codec<'Encoding, 'T>) : Codec<'Encoding, Set<'T>> = {
+        Encoder = JsonNode.Array x.Encoder
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Array(makeAnyOneOf (Decoder.run x.Decoder)))
+          |> Decoder
+    }
 
-    let tuple2 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) : Codec<'Encoding, 'a * 'b> =
-        { Encoder = makeTuple [a.Encoder; b.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                makeTuple [
-                    makeAnyOneOf (Decoder.run a.Decoder)
-                    makeAnyOneOf (Decoder.run b.Decoder)
-                ]
-            )
-            |> Decoder }
+    let tuple2 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) : Codec<'Encoding, 'a * 'b> = {
+        Encoder = makeTuple [a.Encoder; b.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              makeTuple [
+                  makeAnyOneOf (Decoder.run a.Decoder)
+                  makeAnyOneOf (Decoder.run b.Decoder)
+              ]
+          )
+          |> Decoder
+    }
 
-    let tuple3 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) : Codec<'Encoding, 'a * 'b * 'c> =
-        { Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                makeTuple [
-                    makeAnyOneOf (Decoder.run a.Decoder)
-                    makeAnyOneOf (Decoder.run b.Decoder)
-                    makeAnyOneOf (Decoder.run c.Decoder)
-                ]
-            )
-            |> Decoder }
+    let tuple3 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) : Codec<'Encoding, 'a * 'b * 'c> = {
+        Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              makeTuple [
+                  makeAnyOneOf (Decoder.run a.Decoder)
+                  makeAnyOneOf (Decoder.run b.Decoder)
+                  makeAnyOneOf (Decoder.run c.Decoder)
+              ]
+          )
+          |> Decoder
+    }
 
-    let tuple4 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) : Codec<'Encoding, 'a * 'b * 'c * 'd> =
-        { Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                makeTuple [
-                    makeAnyOneOf (Decoder.run a.Decoder)
-                    makeAnyOneOf (Decoder.run b.Decoder)
-                    makeAnyOneOf (Decoder.run c.Decoder)
-                    makeAnyOneOf (Decoder.run d.Decoder)
-                ]
-            )
-            |> Decoder }
+    let tuple4 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) : Codec<'Encoding, 'a * 'b * 'c * 'd> = {
+        Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              makeTuple [
+                  makeAnyOneOf (Decoder.run a.Decoder)
+                  makeAnyOneOf (Decoder.run b.Decoder)
+                  makeAnyOneOf (Decoder.run c.Decoder)
+                  makeAnyOneOf (Decoder.run d.Decoder)
+              ]
+          )
+          |> Decoder
+    }
 
-    let tuple5 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) (e: Codec<'Encoding, 'e>) : Codec<'Encoding, 'a * 'b * 'c * 'd * 'e> =
-        { Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder; e.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                makeTuple [
-                    makeAnyOneOf (Decoder.run a.Decoder)
-                    makeAnyOneOf (Decoder.run b.Decoder)
-                    makeAnyOneOf (Decoder.run c.Decoder)
-                    makeAnyOneOf (Decoder.run d.Decoder)
-                    makeAnyOneOf (Decoder.run e.Decoder)
-                ]
-            )
-            |> Decoder }
+    let tuple5 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) (e: Codec<'Encoding, 'e>) : Codec<'Encoding, 'a * 'b * 'c * 'd * 'e> = {
+        Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder; e.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              makeTuple [
+                  makeAnyOneOf (Decoder.run a.Decoder)
+                  makeAnyOneOf (Decoder.run b.Decoder)
+                  makeAnyOneOf (Decoder.run c.Decoder)
+                  makeAnyOneOf (Decoder.run d.Decoder)
+                  makeAnyOneOf (Decoder.run e.Decoder)
+              ]
+          )
+          |> Decoder
+    }
 
-    let tuple6 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) (e: Codec<'Encoding, 'e>) (f: Codec<'Encoding, 'f>) : Codec<'Encoding, 'a * 'b * 'c * 'd * 'e * 'f> =
-        { Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder; e.Encoder; f.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                makeTuple [
-                    makeAnyOneOf (Decoder.run a.Decoder)
-                    makeAnyOneOf (Decoder.run b.Decoder)
-                    makeAnyOneOf (Decoder.run c.Decoder)
-                    makeAnyOneOf (Decoder.run d.Decoder)
-                    makeAnyOneOf (Decoder.run e.Decoder)
-                    makeAnyOneOf (Decoder.run f.Decoder)
-                ]
-            )
-            |> Decoder }
+    let tuple6 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) (e: Codec<'Encoding, 'e>) (f: Codec<'Encoding, 'f>) : Codec<'Encoding, 'a * 'b * 'c * 'd * 'e * 'f> = {
+        Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder; e.Encoder; f.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              makeTuple [
+                  makeAnyOneOf (Decoder.run a.Decoder)
+                  makeAnyOneOf (Decoder.run b.Decoder)
+                  makeAnyOneOf (Decoder.run c.Decoder)
+                  makeAnyOneOf (Decoder.run d.Decoder)
+                  makeAnyOneOf (Decoder.run e.Decoder)
+                  makeAnyOneOf (Decoder.run f.Decoder)
+              ]
+          )
+          |> Decoder
+    }
 
-    let tuple7 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) (e: Codec<'Encoding, 'e>) (f: Codec<'Encoding, 'f>) (g: Codec<'Encoding, 'g>) : Codec<'Encoding, 'a * 'b * 'c * 'd * 'e * 'f * 'g> =
-        { Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder; e.Encoder; f.Encoder; g.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                makeTuple [
-                    makeAnyOneOf (Decoder.run a.Decoder)
-                    makeAnyOneOf (Decoder.run b.Decoder)
-                    makeAnyOneOf (Decoder.run c.Decoder)
-                    makeAnyOneOf (Decoder.run d.Decoder)
-                    makeAnyOneOf (Decoder.run e.Decoder)
-                    makeAnyOneOf (Decoder.run f.Decoder)
-                    makeAnyOneOf (Decoder.run g.Decoder)
-                ]
-            )
-            |> Decoder }
+    let tuple7 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) (d: Codec<'Encoding, 'd>) (e: Codec<'Encoding, 'e>) (f: Codec<'Encoding, 'f>) (g: Codec<'Encoding, 'g>) : Codec<'Encoding, 'a * 'b * 'c * 'd * 'e * 'f * 'g> = {
+        Encoder = makeTuple [a.Encoder; b.Encoder; c.Encoder; d.Encoder; e.Encoder; f.Encoder; g.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              makeTuple [
+                  makeAnyOneOf (Decoder.run a.Decoder)
+                  makeAnyOneOf (Decoder.run b.Decoder)
+                  makeAnyOneOf (Decoder.run c.Decoder)
+                  makeAnyOneOf (Decoder.run d.Decoder)
+                  makeAnyOneOf (Decoder.run e.Decoder)
+                  makeAnyOneOf (Decoder.run f.Decoder)
+                  makeAnyOneOf (Decoder.run g.Decoder)
+              ]
+          )
+          |> Decoder
+    }
 
-    let array (x: Codec<'Encoding, 'a>) : Codec<'Encoding, 'a []> =
-        { Encoder = JsonNode.Array x.Encoder
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Array(makeAnyOneOf (Decoder.run x.Decoder)))
-            |> Decoder }
+    let array (x: Codec<'Encoding, 'a>) : Codec<'Encoding, 'a []> = {
+        Encoder = JsonNode.Array x.Encoder
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Array(makeAnyOneOf (Decoder.run x.Decoder)))
+          |> Decoder
+    }
 
-    let option (x: Codec<'Encoding, 'a>) : Codec<'Encoding, Option<'a>> =
-        { Encoder = JsonNode.Option x.Encoder
-          Decoder =
-            NonEmptyList.singleton (JsonNode.Option(makeAnyOneOf (Decoder.run x.Decoder)))
-            |> Decoder }
+    let option (x: Codec<'Encoding, 'a>) : Codec<'Encoding, Option<'a>> = {
+        Encoder = JsonNode.Option x.Encoder
+        Decoder =
+          NonEmptyList.singleton (JsonNode.Option(makeAnyOneOf (Decoder.run x.Decoder)))
+          |> Decoder
+    }
 
-    let result (a: Codec<'Encoding ,'a>) (b: Codec<'Encoding, 'b>) : Codec<'Encoding, Result<'a, 'b>> =
-        { Encoder = JsonNode.Result(a.Encoder, b.Encoder)
-          Decoder =
-            NonEmptyList.singleton (
-                JsonNode.Result((makeAnyOneOf (Decoder.run a.Decoder)), (makeAnyOneOf (Decoder.run b.Decoder)))
-            )
-            |> Decoder }
+    let result (a: Codec<'Encoding ,'a>) (b: Codec<'Encoding, 'b>) : Codec<'Encoding, Result<'a, 'b>> = {
+        Encoder = JsonNode.Result(a.Encoder, b.Encoder)
+        Decoder =
+          NonEmptyList.singleton (
+              JsonNode.Result((makeAnyOneOf (Decoder.run a.Decoder)), (makeAnyOneOf (Decoder.run b.Decoder)))
+          )
+          |> Decoder
+    }
 
-    let choice (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) : Codec<'Encoding, Choice<'a, 'b>> =
-        { Encoder = JsonNode.Choice <| NonEmptyList.ofList [a.Encoder; b.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                JsonNode.Choice <| NonEmptyList.ofList [(makeAnyOneOf (Decoder.run a.Decoder)); (makeAnyOneOf (Decoder.run b.Decoder))]
-            )
-            |> Decoder }
+    let choice (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) : Codec<'Encoding, Choice<'a, 'b>> = {
+        Encoder = JsonNode.Choice <| NonEmptyList.ofList [a.Encoder; b.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              JsonNode.Choice <| NonEmptyList.ofList [(makeAnyOneOf (Decoder.run a.Decoder)); (makeAnyOneOf (Decoder.run b.Decoder))]
+          )
+          |> Decoder
+    }
 
-    let choice3 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) : Codec<'Encoding, Choice<'a, 'b, 'c>> =
-        { Encoder = JsonNode.Choice <| NonEmptyList.ofList [a.Encoder; b.Encoder; c.Encoder]
-          Decoder =
-            NonEmptyList.singleton (
-                JsonNode.Choice <| NonEmptyList.ofList [(makeAnyOneOf (Decoder.run a.Decoder)); (makeAnyOneOf (Decoder.run b.Decoder)); (makeAnyOneOf (Decoder.run c.Decoder))]
-            )
-            |> Decoder }
+    let choice3 (a: Codec<'Encoding, 'a>) (b: Codec<'Encoding, 'b>) (c: Codec<'Encoding, 'c>) : Codec<'Encoding, Choice<'a, 'b, 'c>> = {
+        Encoder = JsonNode.Choice <| NonEmptyList.ofList [a.Encoder; b.Encoder; c.Encoder]
+        Decoder =
+          NonEmptyList.singleton (
+              JsonNode.Choice <| NonEmptyList.ofList [(makeAnyOneOf (Decoder.run a.Decoder)); (makeAnyOneOf (Decoder.run b.Decoder)); (makeAnyOneOf (Decoder.run c.Decoder))]
+          )
+          |> Decoder
+    }
 
-    let gmap (keyCodec: Codec<'Encoding, 'k>) (valueCodec: Codec<'Encoding, 'v>) : Codec<'Encoding, Map<'k, 'v>> =
-        { Encoder = JsonNode.Array(JsonNode.Tuple <| NonEmptyList.ofList [keyCodec.Encoder; valueCodec.Encoder])
-          Decoder =
-            NonEmptyList.singleton (
-                JsonNode.Array(
-                    JsonNode.Tuple <| NonEmptyList.ofList [
-                        (makeAnyOneOf (Decoder.run keyCodec.Decoder))
-                        (makeAnyOneOf (Decoder.run valueCodec.Decoder))
-                    ]
-                )
-            )
-            |> Decoder }
+    let gmap (keyCodec: Codec<'Encoding, 'k>) (valueCodec: Codec<'Encoding, 'v>) : Codec<'Encoding, Map<'k, 'v>> = {
+        Encoder = JsonNode.Array(JsonNode.Tuple <| NonEmptyList.ofList [keyCodec.Encoder; valueCodec.Encoder])
+        Decoder =
+          NonEmptyList.singleton (
+              JsonNode.Array(
+                  JsonNode.Tuple <| NonEmptyList.ofList [
+                      (makeAnyOneOf (Decoder.run keyCodec.Decoder))
+                      (makeAnyOneOf (Decoder.run valueCodec.Decoder))
+                  ]
+              )
+          )
+          |> Decoder
+    }
 
-    let decodeAnyToUnit<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, unit> =
-        { Encoder = JsonNode.Any
-          Decoder = NonEmptyList.singleton JsonNode.Any |> Decoder }
+    let decodeAnyToUnit<'Encoding when 'Encoding :> IEncoding and 'Encoding : (new : unit -> 'Encoding)> : Codec<'Encoding, unit> = {
+        Encoder = JsonNode.Any
+        Decoder = NonEmptyList.singleton JsonNode.Any |> Decoder
+    }
 
 module Codec =
 

@@ -42,7 +42,7 @@ type private RevalidationTimestampAction =
 
 [<RequireQualifiedAccess>]
 type private RevalidationRequestAction<'Session> =
-| Continue of MaybeSession: Option<'Session>
+| Continue                  of MaybeSession: Option<'Session>
 | ContinueAfterRevalidation of SessionHandler: EcosystemSessionHandler<'Session> * Session: 'Session
 
 // Figures out what actions are required with respect to session revalidation. Does not perform these actions itself.
@@ -222,7 +222,7 @@ module Http =
         let hasSessionRevalidateOn, encryptedSessionRevalidateOn = httpContext.Request.Cookies.TryGetValue(sessionRevalidateOnCookieName ecosystem)
         let maybeEncryptedSessionRevalidateOn =
             match hasSessionRevalidateOn with
-            | true -> Some encryptedSessionRevalidateOn
+            | true  -> Some encryptedSessionRevalidateOn
             | false -> None
         maybeEncryptedSessionRevalidateOn
 
@@ -259,7 +259,7 @@ module Http =
         let hasSessionHandle, encryptedSessionHandle = httpContext.Request.Cookies.TryGetValue(sessionHandleCookieName ecosystem)
         let maybeEncryptedSessionHandle =
             match hasSessionHandle with
-            | true -> Some encryptedSessionHandle
+            | true  -> Some encryptedSessionHandle
             | false -> None
         maybeEncryptedSessionHandle
 

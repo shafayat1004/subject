@@ -21,39 +21,39 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member TouchableOpacity (
-            children: ReactElements,
-            onPress: ReactEvent.Action -> unit,
+            children:      ReactElements,
+            onPress:       ReactEvent.Action -> unit,
             ?onHoverStart: Browser.Types.PointerEvent -> unit,
-            ?onHoverEnd: Browser.Types.PointerEvent -> unit,
-            ?onPressIn: Browser.Types.PointerEvent -> unit,
-            ?onPressOut: Browser.Types.PointerEvent -> unit,
+            ?onHoverEnd:   Browser.Types.PointerEvent -> unit,
+            ?onPressIn:    Browser.Types.PointerEvent -> unit,
+            ?onPressOut:   Browser.Types.PointerEvent -> unit,
             ?pointerState: LC.Pointer.State.PointerState,
-            ?label: string,
-            ?testId: string,
-            ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?label:        string,
+            ?testId:       string,
+            ?styles:       array<ViewStyles>,
+            ?key:          string) : ReactElement =
         onHoverStart |> ignore
-        onHoverEnd |> ignore
-        onPressIn |> ignore
-        onPressOut |> ignore
+        onHoverEnd   |> ignore
+        onPressIn    |> ignore
+        onPressOut   |> ignore
 
         let a11yLabel = defaultArg label "Button"
         let theTestId = testId |> Option.defaultValue (A11ySlug.testId "touchable-opacity" a11yLabel)
 
         Rn.View(
-            styles = [| Styles.container |],
+            styles   = [| Styles.container |],
             children = elements {
                 children
                 LC.Pressable (
-                    onPress = onPress,
-                    label = a11yLabel,
-                    role = AccessibilityRole.Button,
-                    testId = theTestId,
-                    overlay = true,
+                    onPress       = onPress,
+                    label         = a11yLabel,
+                    role          = AccessibilityRole.Button,
+                    testId        = theTestId,
+                    overlay       = true,
                     ?pointerState = pointerState,
-                    ?styles = styles,
+                    ?styles       = styles,
                     componentName = "LC.TouchableOpacity",
-                    ?key = key
+                    ?key          = key
                 )
             }
         )

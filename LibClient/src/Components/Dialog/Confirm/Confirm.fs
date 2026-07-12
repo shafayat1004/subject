@@ -65,7 +65,7 @@ module private Helpers =
                     ButtonHighLevelState.LowLevel (
                         match mode with
                         | ConfirmMode.InProgress -> ButtonLowLevelState.Disabled
-                        | _ -> ButtonLowLevelState.Actionable (fun e -> callback(); tryCancel e)
+                        | _                      -> ButtonLowLevelState.Actionable (fun e -> callback(); tryCancel e)
                     ),
                 ?testId = buttonTestId label
             )
@@ -77,7 +77,7 @@ module private Helpers =
                     ButtonHighLevelState.LowLevel (
                         match mode with
                         | ConfirmMode.InProgress -> ButtonLowLevelState.Disabled
-                        | _ -> ButtonLowLevelState.Actionable (fun e -> callback(); hide e)
+                        | _                      -> ButtonLowLevelState.Actionable (fun e -> callback(); hide e)
                     ),
                 ?testId = buttonTestId label
             )
@@ -89,7 +89,7 @@ module private Helpers =
                     ButtonHighLevelState.LowLevel (
                         match mode with
                         | ConfirmMode.InProgress -> ButtonLowLevelState.InProgress
-                        | _ -> ButtonLowLevelState.Actionable (asyncConfirm work)
+                        | _                      -> ButtonLowLevelState.Actionable (asyncConfirm work)
                     ),
                 ?testId = buttonTestId label
             )
@@ -98,7 +98,7 @@ type private ConfirmContent =
     [<Component>]
     static member Render(
             dialogProps: DialogProps<Parameters, unit>,
-            parameters: Parameters
+            parameters:  Parameters
         ) : ReactElement =
         let modeHook = Hooks.useState ConfirmMode.Initial
 
@@ -125,15 +125,15 @@ type private ConfirmContent =
             async {
                 match! work() with
                 | Error message -> modeHook.update (ConfirmMode.Error message)
-                | Ok _ -> Dialogs.hide dialogProps DialogCloseMethod.HistoryBack e
+                | Ok _          -> Dialogs.hide dialogProps DialogCloseMethod.HistoryBack e
             }
             |> startSafely
 
         let shellMode : LibClient.Components.Dialog.Shell.WhiteRounded.Standard.Mode =
             match modeHook.current with
-            | ConfirmMode.InProgress -> ShellStandard.Mode.InProgress
+            | ConfirmMode.InProgress    -> ShellStandard.Mode.InProgress
             | ConfirmMode.Error message -> ShellStandard.Mode.Error message
-            | _ -> ShellStandard.Mode.Default
+            | _                         -> ShellStandard.Mode.Default
 
         let buttons =
             parameters.Buttons
@@ -141,9 +141,9 @@ type private ConfirmContent =
             |> List.toArray
 
         LC.Dialog.Shell.WhiteRounded.Standard(
-            canClose = ShellStandard.Never,
-            mode = shellMode,
-            ?heading = parameters.MaybeHeading,
+            canClose           = ShellStandard.Never,
+            mode               = shellMode,
+            ?heading           = parameters.MaybeHeading,
             accessibilityLabel = Helpers.dialogLabel parameters.MaybeHeading parameters.Details,
             body =
                 element {
@@ -152,7 +152,7 @@ type private ConfirmContent =
                         children =
                             elements {
                                 LC.UiText(
-                                    value = parameters.Details,
+                                    value  = parameters.Details,
                                     styles = [| Styles.detailsText |]
                                 )
                             }
@@ -167,8 +167,8 @@ let Open (maybeHeading: Option<string>) (details: string) (buttons: List<Button>
         "DialogConfirm"
         {
             MaybeHeading = maybeHeading
-            Details = details
-            Buttons = buttons
+            Details      = details
+            Buttons      = buttons
         }
         (fun dialogProps _ ->
             ConfirmContent.Render(
@@ -177,7 +177,7 @@ let Open (maybeHeading: Option<string>) (details: string) (buttons: List<Button>
             )
         )
         {
-            OnResult = NoopFn
+            OnResult      = NoopFn
             MaybeOnCancel = None
         }
         close

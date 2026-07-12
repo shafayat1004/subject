@@ -27,7 +27,7 @@ type I18n<'T>(en: 'T, bn: 'T, subscribeOnChanges: (Language -> unit) -> Subscrib
     let settings () : Language * 'T =
         match maybeSettings with
         | Some t -> t
-        | None -> failwith "I18n not initialized — call StartWithDefault in Bootstrap.fs before rendering."
+        | None   -> failwith "I18n not initialized — call StartWithDefault in Bootstrap.fs before rendering."
 
     member _.CurrentLanguage : Language =
         settings () |> fst
@@ -38,7 +38,7 @@ type I18n<'T>(en: 'T, bn: 'T, subscribeOnChanges: (Language -> unit) -> Subscrib
         subscribeOnChanges (fun maybeUpdatedLanguage ->
             match maybeSettings with
             | Some (currentLanguage, _) when currentLanguage = maybeUpdatedLanguage -> Noop
-            | _ -> setLanguageAndReloadApp getApp maybeUpdatedLanguage
+            | _                                                                     -> setLanguageAndReloadApp getApp maybeUpdatedLanguage
         )
         |> ignore
 

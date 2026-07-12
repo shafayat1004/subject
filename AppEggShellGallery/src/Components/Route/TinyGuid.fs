@@ -29,7 +29,7 @@ type Ui.Route with
                 LC.Centered (
                     child = LC.Constrained (
                         maxWidth = 500,
-                        child = LC.Column (crossAxisAlignment = LC.CrossAxisAlignment.Stretch, children = [|
+                        child    = LC.Column (crossAxisAlignment = LC.CrossAxisAlignment.Stretch, children = [|
                             LC.Sized (height = 40)
                             LC.Row [|
                                 LC.Input.Text (
@@ -42,7 +42,7 @@ type Ui.Route with
                                 LC.Sized (width = 10)
                                 Rn.View (styles = [|Styles.Expand|], children = [|
                                     LC.Text (
-                                        value  = match maybeGuid with Some guid -> guid.ToTinyUuid () | None -> ""
+                                        value = match maybeGuid with Some guid -> guid.ToTinyUuid () | None -> ""
                                     )
                                 |])
                             |]
@@ -74,4 +74,3 @@ and private Styles() =
         flex 1
         flexBasis 0
     }
-

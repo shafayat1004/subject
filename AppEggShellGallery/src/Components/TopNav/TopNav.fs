@@ -76,10 +76,10 @@ let private desktopNav (maybeCurrentRoute: Option<Route>) (maybeCurrentActualRou
                     [|
                         LC.Icon(icon = AppEggShellGallery.Icons.Icon.EggShell, styles = [| Styles.logoIcon |])
                         LC.Pressable(
-                            onPress = nav.Go (maybeCurrentRoute, Home),
-                            label = "Home",
-                            testId = "topnav-logo-home",
-                            overlay = true,
+                            onPress       = nav.Go (maybeCurrentRoute, Home),
+                            label         = "Home",
+                            testId        = "topnav-logo-home",
+                            overlay       = true,
                             componentName = "Ui.TopNav"
                         )
                     |]
@@ -108,15 +108,15 @@ let private desktopNav (maybeCurrentRoute: Option<Route>) (maybeCurrentActualRou
                                     castAsElement
                                         [|
                                             LC.ToggleButton(
-                                                value = ScreenSize.Desktop,
-                                                style = LC.ToggleButton.Label "Desktop",
-                                                group = group,
+                                                value    = ScreenSize.Desktop,
+                                                style    = LC.ToggleButton.Label "Desktop",
+                                                group    = group,
                                                 position = LC.ToggleButton.Position.First
                                             )
                                             LC.ToggleButton(
-                                                value = ScreenSize.Handheld,
-                                                style = LC.ToggleButton.Label "Handheld",
-                                                group = group,
+                                                value    = ScreenSize.Handheld,
+                                                style    = LC.ToggleButton.Label "Handheld",
+                                                group    = group,
                                                 position = LC.ToggleButton.Position.Last
                                             )
                                         |]
@@ -199,7 +199,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                     let maybeCurrentActualRoute = nav.CurrentActualRoute maybeCurrentRoute
 
                     LC.Nav.Top.Base(
-                        desktop = (fun _ -> desktopNav maybeCurrentRoute maybeCurrentActualRoute),
+                        desktop  = (fun _ -> desktopNav maybeCurrentRoute maybeCurrentActualRoute),
                         handheld = handheldNav
                     )
         )

@@ -25,13 +25,13 @@ type Microsoft.FSharp.Control.Async with
 
             match choice with
             | Choice1Of2 result -> return (Ok result)
-            | Choice2Of2 e -> return (Error e)
+            | Choice2Of2 e      -> return (Error e)
         }
 
     static member TryStart (exceptionHandler: exn -> unit) (raw: Async<unit>) : unit =
         async {
             match! raw |> Async.TryCatch with
-            | Ok() -> return ()
+            | Ok()    -> return ()
             | Error e -> exceptionHandler e
         }
 #if FABLE_COMPILER

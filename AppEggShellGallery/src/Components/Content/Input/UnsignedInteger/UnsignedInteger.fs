@@ -22,15 +22,15 @@ type Ui.Content.Input with
     static member UnsignedInteger () : ReactElement =
         Ui.ComponentContent (
             displayName = "Input.UnsignedInteger",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.UnsignedInteger",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.UnsignedInteger",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.UnsignedInteger",
-                    role = "text field (numeric)",
-                    namePattern = "Floating label text",
-                    stateNotes = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
+                    componentName  = "LC.Input.UnsignedInteger",
+                    role           = "text field (numeric)",
+                    namePattern    = "Floating label text",
+                    stateNotes     = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
                     scalesWithFont = true,
-                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, input text, and error colors meet WCAG AA"
                 ),
             samples = (
                 element {
@@ -40,7 +40,7 @@ type Ui.Content.Input with
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.Sample(initialText = "42", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.UnsignedInteger(
     label    = "Quantity",
     value    = value,
@@ -54,25 +54,25 @@ LC.Input.UnsignedInteger(
 
                     Ui.ComponentSampleGroup(
                         heading = "Internal Validation",
-                        notes = LC.Text "This component performs internal validation of the input, which has higher precedence for display than externally supplied validation. e.g. if the input is non-numeric and the caller is also passing InputValidity.Missing, then it's the non-numeric error message that'll be displayed. Note that an empty field is not considered internally invalid — the component returns Ok None so the caller can supply Missing on form submission.",
+                        notes   = LC.Text "This component performs internal validation of the input, which has higher precedence for display than externally supplied validation. e.g. if the input is non-numeric and the caller is also passing InputValidity.Missing, then it's the non-numeric error message that'll be displayed. Note that an empty field is not considered internally invalid — the component returns Ok None so the caller can supply Missing on form submission.",
                         samples = (
                             element {
                                 Ui.ComponentSample(
                                     heading = "Non-numeric input",
                                     visuals = Helpers.Sample(initialText = "thirteen", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "thirteen" -> internal error: Only numbers allowed""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "thirteen" -> internal error: Only numbers allowed""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Negative number",
                                     visuals = Helpers.Sample(initialText = "-13", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "-13" -> internal error: Only numbers allowed""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "-13" -> internal error: Only numbers allowed""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Empty field (no error)",
                                     visuals = Helpers.Sample(initialText = "", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// empty -> Ok None (no internal error)""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// empty -> Ok None (no internal error)""")
                                 )
                             }
                         )
@@ -85,7 +85,7 @@ LC.Input.UnsignedInteger(
                                 Ui.ComponentSample(
                                     heading = "Missing",
                                     visuals = Helpers.Sample(initialText = "12", validity = Missing),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.UnsignedInteger(
     label    = "Quantity",
     value    = value,
@@ -97,7 +97,7 @@ LC.Input.UnsignedInteger(
                                 Ui.ComponentSample(
                                     heading = "Invalid with message",
                                     visuals = Helpers.Sample(initialText = "11", validity = Invalid "This input is just bad"),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.UnsignedInteger(
     label    = "Quantity",
     value    = value,
@@ -116,31 +116,31 @@ LC.Input.UnsignedInteger(
                                 Ui.ComponentSample(
                                     heading = "Zero (valid unsigned)",
                                     visuals = Helpers.Sample(initialText = "0", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "0" -> Ok (Some 0) — zero is a valid unsigned integer""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "0" -> Ok (Some 0) — zero is a valid unsigned integer""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Negative zero",
                                     visuals = Helpers.Sample(initialText = "-0", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "-0" -> internal error: Only numbers allowed (dash disallowed)""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "-0" -> internal error: Only numbers allowed (dash disallowed)""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Int32 max value",
                                     visuals = Helpers.Sample(initialText = "2147483647", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "2147483647" -> Ok (Some 2147483647)""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "2147483647" -> Ok (Some 2147483647)""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Int32 overflow",
                                     visuals = Helpers.Sample(initialText = "2147483648", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "2147483648" -> internal error: Int32 parse fails""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "2147483648" -> internal error: Int32 parse fails""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Whitespace",
                                     visuals = Helpers.Sample(initialText = "   1", validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "   1" -> internal error: Only numbers allowed""")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """// "   1" -> internal error: Only numbers allowed""")
                                 )
                             }
                         )

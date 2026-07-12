@@ -14,7 +14,7 @@ module private Styles =
     let specialTheme (theme: LibClient.Components.Tabs.Theme) : LibClient.Components.Tabs.Theme =
         { theme with
             BackgroundColor = Color.Hex "#e8eaf6"
-            BorderColor = Color.Hex "#6200ee"
+            BorderColor     = Color.Hex "#6200ee"
         }
 
 type private Helpers =
@@ -24,7 +24,7 @@ type private Helpers =
 
         element {
             LC.Tabs(
-                label = "Section tabs",
+                label    = "Section tabs",
                 children = [|
                     LC.Tab(
                         label = "Home",
@@ -54,7 +54,7 @@ type private Helpers =
             )
 
             match selectedTab.current with
-            | Home -> LC.UiText "This is the HOME tab"
+            | Home    -> LC.UiText "This is the HOME tab"
             | Profile -> LC.UiText "This is the PROFILE tab"
             | Contact -> LC.UiText "This is the CONTACT tab"
         }
@@ -97,18 +97,18 @@ type Ui.Content with
     [<Component>]
     static member Tabs() : ReactElement =
         Ui.ComponentContent(
-            displayName = "Tabs",
+            displayName  = "Tabs",
             isResponsive = true,
             props =
                 ComponentContent.Manual(
                     element {
                         Ui.ScrapedComponentProps(
-                            heading = "Tabs",
+                            heading            = "Tabs",
                             fullyQualifiedName = "LibClient.Components.Tabs"
                         )
 
                         Ui.ScrapedComponentProps(
-                            heading = "Tab",
+                            heading            = "Tab",
                             fullyQualifiedName = "LibClient.Components.Tab"
                         )
                     }
@@ -119,12 +119,12 @@ type Ui.Content with
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Tabs / LC.Tab",
-                    role = "tablist (LC.Tabs); tab (LC.Tab)",
-                    namePattern = "Tab label text; tablist named via label prop on LC.Tabs",
-                    stateNotes = "selected tab exposes selected state; inactive tabs are pressable",
+                    componentName  = "LC.Tabs / LC.Tab",
+                    role           = "tablist (LC.Tabs); tab (LC.Tab)",
+                    namePattern    = "Tab label text; tablist named via label prop on LC.Tabs",
+                    stateNotes     = "selected tab exposes selected state; inactive tabs are pressable",
                     scalesWithFont = true,
-                    contrastNotes = "Active tab underline and text use theme colors meeting WCAG AA"
+                    contrastNotes  = "Active tab underline and text use theme colors meeting WCAG AA"
                 ),
             samples =
                 element {
@@ -195,8 +195,8 @@ LC.Tabs(
                     Ui.ComponentSample(
                         visuals =
                             LC.Tabs(
-                                label = "Section tabs",
-                                theme = Styles.specialTheme,
+                                label    = "Section tabs",
+                                theme    = Styles.specialTheme,
                                 children = [|
                                     LC.Tab(label = "Active", state = LC.Tab.Selected)
                                     LC.Tab(label = "Inactive", state = LC.Tab.Unselected ignore)
@@ -223,7 +223,7 @@ LC.Tabs(
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
 LC.Tabs(

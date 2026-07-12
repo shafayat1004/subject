@@ -47,7 +47,7 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
 
                     match maybeTelemetrySink with
                     | Some telemetrySink -> telemetrySink
-                    | None -> ()
+                    | None               -> ()
 
                     match config.MaybeSeqConfig with
                     | Some seqConfig ->
@@ -65,7 +65,7 @@ let init(configRes: Result<AppPerformancePlayground.Config, string>) =
 
                     match maybeTelemetrySink with
                     | Some telemetrySink -> telemetrySink
-                    | None -> ()
+                    | None               -> ()
                 }
 
             registerTelemetrySinks telemetrySinks

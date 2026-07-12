@@ -46,7 +46,7 @@ let private defaultPrimitiveInputComponents: PrimitiveInputComponents =
             InputType.StringInput,
             fun props _children ->
                 UIAuto.InputFieldString(
-                    onChange = props.OnChange,
+                    onChange   = props.OnChange,
                     maybeValue = props.MaybeValue
                 )
         )
@@ -54,7 +54,7 @@ let private defaultPrimitiveInputComponents: PrimitiveInputComponents =
             InputType.DateTimeInput,
             fun props _children ->
                 UIAuto.InputFieldDateTime(
-                    onChange = props.OnChange,
+                    onChange   = props.OnChange,
                     maybeValue = props.MaybeValue
                 )
         )
@@ -81,13 +81,13 @@ module private Styles =
 type UIAuto with
     [<Component>]
     static member InputForm<'T>(
-            formWrapper:      FormWrapper<'T>,
-            settings:         Settings,
-            onChange:         InputValidationResult<'T> -> unit,
-            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:             string
+            formWrapper:    FormWrapper<'T>,
+            settings:       Settings,
+            onChange:       InputValidationResult<'T> -> unit,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let estateHook =
@@ -130,10 +130,10 @@ type UIAuto with
                 [|
                     if estateHook.current.ReadyToRender then
                         UIAuto.InputFormElement(
-                            form = formWrapper.Form,
-                            accumulator = estateHook.current.Accumulator,
-                            onChange = onChangePath,
-                            onChangeFromRange = onChangeFromRange,
+                            form                     = formWrapper.Form,
+                            accumulator              = estateHook.current.Accumulator,
+                            onChange                 = onChangePath,
+                            onChangeFromRange        = onChangeFromRange,
                             primitiveInputComponents = defaultPrimitiveInputComponents
                         )
                     else

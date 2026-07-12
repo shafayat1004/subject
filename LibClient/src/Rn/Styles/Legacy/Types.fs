@@ -61,7 +61,7 @@ type LazilyCreatedRnStyleObject (typedValues: seq<TypedRnStyleRule>) =
     member this.CreateForRnComponent (fullyQualifiedComponentName: string)  : RnStyleRulesObject =
         match cache.TryFind fullyQualifiedComponentName with
         | Some result -> result
-        | None -> this.ReallyCreateForRnComponentAndCache fullyQualifiedComponentName
+        | None        -> this.ReallyCreateForRnComponentAndCache fullyQualifiedComponentName
 
     member private _.ReallyCreateForRnComponentAndCache (fullyQualifiedComponentName: string) : RnStyleRulesObject =
         let allowedTypes = fullyQualifiedComponentNameToAllowedTypes.TryFind fullyQualifiedComponentName |> Option.getOrElse allowedTypesFallback
@@ -113,7 +113,7 @@ type ISheetBuildingBlock () =
         match this with
         | :? SheetBuildingBlockOne  as oneBlock  -> oneCase  oneBlock
         | :? SheetBuildingBlockMany as manyBlock -> manyCase manyBlock
-        | _ -> failwith "Did you create another subclass of ISheetBuildingBlock and forget to include it here? Standard inheritance doesn't give us exhaustiveness checks."
+        | _                                      -> failwith "Did you create another subclass of ISheetBuildingBlock and forget to include it here? Standard inheritance doesn't give us exhaustiveness checks."
 
 and SheetBuildingBlockOne (selector: Selector, styles: Styles) =
     inherit ISheetBuildingBlock ()
@@ -138,7 +138,7 @@ with
     static member MergeSheets (a: RuntimeStyles) (b: RuntimeStyles) : RuntimeStyles =
         match (a, b) with
         | (RuntimeStyles.Sheet sheetA, RuntimeStyles.Sheet sheetB) -> RuntimeStyles.Sheet (List.append sheetA sheetB)
-        | _ -> failwith "Can only merge RuntimeStyle.Sheet instances"
+        | _                                                        -> failwith "Can only merge RuntimeStyle.Sheet instances"
 
     static member FixmeCrappyStyleSharing (a: Lazy<RuntimeStyles>) (b: Lazy<RuntimeStyles>) : Lazy<RuntimeStyles> =
         lazy (RuntimeStyles.MergeSheets a.Value b.Value)

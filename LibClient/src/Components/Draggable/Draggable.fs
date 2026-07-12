@@ -35,8 +35,8 @@ type PositionChangeReason =
 | ManualDrag
 
 type Change =
-| DragInducedAnimationStarted  of Target: Position
-| PositionChanged of Target: Position * PositionChangeReason
+| DragInducedAnimationStarted of Target: Position
+| PositionChanged             of Target: Position * PositionChangeReason
 
 type Direction =
 | Horizontal
@@ -142,16 +142,16 @@ module private Helpers =
             | _ ->
                 let (targetRestP, targetRestPosition) =
                     match (lastRestP, deltaP > 0, fst maybeNegativeDragTarget, fst maybePositiveDragTarget) with
-                    | (0, false, Some negativeTarget, _) when -nextP > negativeTarget.ForwardThreshold -> (-negativeTarget.Offset, snd maybeNegativeDragTarget)
-                    | (0, false, Some negativeTarget, _) when -nextP <= negativeTarget.ForwardThreshold -> (0, Position.Base)
-                    | (0, true, _, Some positiveTarget) when nextP > positiveTarget.ForwardThreshold -> (positiveTarget.Offset, snd maybePositiveDragTarget)
-                    | (0, true, _, Some positiveTarget) when nextP <= positiveTarget.ForwardThreshold -> (0, Position.Base)
-                    | (lastRestP, true, Some negativeTarget, _) when (lastRestP = -negativeTarget.Offset) && (deltaP > negativeTarget.BackwardThreshold) -> (0, Position.Base)
-                    | (lastRestP, true, Some negativeTarget, _) when (lastRestP = -negativeTarget.Offset) && (deltaP <= negativeTarget.BackwardThreshold) -> (-negativeTarget.Offset, snd maybeNegativeDragTarget)
-                    | (lastRestP, false, _, Some positiveTarget) when (lastRestP = positiveTarget.Offset) && (-deltaP > positiveTarget.BackwardThreshold) -> (0, Position.Base)
+                    | (0, false, Some negativeTarget, _) when -nextP > negativeTarget.ForwardThreshold                                                     -> (-negativeTarget.Offset, snd maybeNegativeDragTarget)
+                    | (0, false, Some negativeTarget, _) when -nextP <= negativeTarget.ForwardThreshold                                                    -> (0, Position.Base)
+                    | (0, true, _, Some positiveTarget) when nextP > positiveTarget.ForwardThreshold                                                       -> (positiveTarget.Offset, snd maybePositiveDragTarget)
+                    | (0, true, _, Some positiveTarget) when nextP <= positiveTarget.ForwardThreshold                                                      -> (0, Position.Base)
+                    | (lastRestP, true, Some negativeTarget, _) when (lastRestP = -negativeTarget.Offset) && (deltaP > negativeTarget.BackwardThreshold)   -> (0, Position.Base)
+                    | (lastRestP, true, Some negativeTarget, _) when (lastRestP = -negativeTarget.Offset) && (deltaP <= negativeTarget.BackwardThreshold)  -> (-negativeTarget.Offset, snd maybeNegativeDragTarget)
+                    | (lastRestP, false, _, Some positiveTarget) when (lastRestP = positiveTarget.Offset) && (-deltaP > positiveTarget.BackwardThreshold)  -> (0, Position.Base)
                     | (lastRestP, false, _, Some positiveTarget) when (lastRestP = positiveTarget.Offset) && (-deltaP <= positiveTarget.BackwardThreshold) -> (positiveTarget.Offset, snd maybePositiveDragTarget)
-                    | (_, _, None, None) -> (0, Position.Base)
-                    | _ -> (lastRestP, lastRestPosition)
+                    | (_, _, None, None)                                                                                                                   -> (0, Position.Base)
+                    | _                                                                                                                                    -> (lastRestP, lastRestPosition)
 
                 maybeOnChange |> Option.sideEffect (fun fn -> fn (DragInducedAnimationStarted targetRestPosition))
                 animate animationTokenRef setRestP aniValue baseOffset (Some nextP) targetRestP (Some (fun () ->
@@ -196,39 +196,39 @@ module private Styles =
         }
 
 type private DraggableRuntime = {
-    Left:            Option<DragTarget>
-    Right:           Option<DragTarget>
-    Up:              Option<DragTarget>
-    Down:            Option<DragTarget>
-    BaseOffsetX:     int
-    BaseOffsetY:     int
-    OnChange:        Option<Change -> unit>
-    LastRestX:       IRefValue<int>
-    LastRestY:       IRefValue<int>
-    LastRestPosition: IRefValue<Position>
-    RangeX:          int * int
-    RangeY:          int * int
-    AniValueX:       Reanimated.SharedValue
-    AniValueY:       Reanimated.SharedValue
-    AnimationToken:  IRefValue<int>
+    Left:                  Option<DragTarget>
+    Right:                 Option<DragTarget>
+    Up:                    Option<DragTarget>
+    Down:                  Option<DragTarget>
+    BaseOffsetX:           int
+    BaseOffsetY:           int
+    OnChange:              Option<Change -> unit>
+    LastRestX:             IRefValue<int>
+    LastRestY:             IRefValue<int>
+    LastRestPosition:      IRefValue<Position>
+    RangeX:                int * int
+    RangeY:                int * int
+    AniValueX:             Reanimated.SharedValue
+    AniValueY:             Reanimated.SharedValue
+    AnimationToken:        IRefValue<int>
     MaybeLastGestureState: IRefValue<Option<Rn.Components.GestureView.PanGestureState>>
 }
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Draggable(
-            ?children:        ReactChildrenProp,
-            ?baseOffset:      int * int,
-            ?left:            DragTarget,
-            ?right:           DragTarget,
-            ?up:              DragTarget,
-            ?down:            DragTarget,
-            ?onChange:        Change -> unit,
-            ?draggableRef:    LibClient.JsInterop.JsNullable<IDraggableRef> -> unit,
-            ?testId:          string,
-            ?styles:          array<ViewStyles>,
-            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:             string
+            ?children:      ReactChildrenProp,
+            ?baseOffset:    int * int,
+            ?left:          DragTarget,
+            ?right:         DragTarget,
+            ?up:            DragTarget,
+            ?down:          DragTarget,
+            ?onChange:      Change -> unit,
+            ?draggableRef:  LibClient.JsInterop.JsNullable<IDraggableRef> -> unit,
+            ?testId:        string,
+            ?styles:        array<ViewStyles>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -261,21 +261,21 @@ type LibClient.Components.Constructors.LC with
 
         let runtimeRef = Hooks.useRef Unchecked.defaultof<DraggableRuntime>
         runtimeRef.current <- {
-            Left = left
-            Right = right
-            Up = up
-            Down = down
-            BaseOffsetX = baseOffsetX
-            BaseOffsetY = baseOffsetY
-            OnChange = onChange
-            LastRestX = lastRestXRef
-            LastRestY = lastRestYRef
-            LastRestPosition = lastRestPositionRef
-            RangeX = rangeX
-            RangeY = rangeY
-            AniValueX = aniValueX
-            AniValueY = aniValueY
-            AnimationToken = animationTokenRef
+            Left                  = left
+            Right                 = right
+            Up                    = up
+            Down                  = down
+            BaseOffsetX           = baseOffsetX
+            BaseOffsetY           = baseOffsetY
+            OnChange              = onChange
+            LastRestX             = lastRestXRef
+            LastRestY             = lastRestYRef
+            LastRestPosition      = lastRestPositionRef
+            RangeX                = rangeX
+            RangeY                = rangeY
+            AniValueX             = aniValueX
+            AniValueY             = aniValueY
+            AnimationToken        = animationTokenRef
             MaybeLastGestureState = maybeLastGestureStateRef
         }
 
@@ -414,7 +414,7 @@ type LibClient.Components.Constructors.LC with
         let gestureView =
             Rn.GestureView(
                 ?onPanHorizontal = (if left.IsSome || right.IsSome then Some onPanHorizontal else None),
-                ?onPanVertical = (if up.IsSome || down.IsSome then Some onPanVertical else None),
+                ?onPanVertical   = (if up.IsSome || down.IsSome then Some onPanVertical else None),
                 styles =
                     [|
                         if fillStyles then Styles.gestureViewFill else Styles.gestureView
@@ -431,7 +431,7 @@ type LibClient.Components.Constructors.LC with
             // content beneath and swallows pointer + wheel events across its whole box even while
             // the drawer itself is translated off-screen.
             blockPointerEvents = true,
-            styles = [| Styles.wrapper; yield! defaultArg styles [||] |],
+            styles             = [| Styles.wrapper; yield! defaultArg styles [||] |],
             children =
                 [|
                     Rn.ReanimatedView(
@@ -442,7 +442,7 @@ type LibClient.Components.Constructors.LC with
                                 Styles.contents
                             |],
                         animatedStyle = contentsAnimatedStyle,
-                        children = [| gestureView |]
+                        children      = [| gestureView |]
                     )
                 |]
         )

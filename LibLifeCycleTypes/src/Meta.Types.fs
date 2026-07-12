@@ -9,7 +9,7 @@ open LibLifeCycleTypes
 
 type IndexRebuildError =
     | InvalidLifeCycle of LifeCycleName: string
-    | InvalidIndex of IndexKey
+    | InvalidIndex     of IndexKey
 
 type IndexRebuildType =
     | All
@@ -26,13 +26,15 @@ type StalledSideEffectsError = InvalidLifeCycle of LifeCycleName: string
 // anonymous types would do just fine but unfortunately it breaks Orleans codegen in LibLifeCycleHostBuild. Can we fix it somehow?
 type StalledSideEffectsLastDetected = { On: DateTimeOffset; IdStr: string }
 
-type StalledSideEffectsLastChecked =
-    { On: DateTimeOffset
-      Error: Option<StalledSideEffectsError> }
+type StalledSideEffectsLastChecked = {
+    On:    DateTimeOffset
+    Error: Option<StalledSideEffectsError>
+}
 
-type StalledSideEffects =
-    { LastDetected: Option<StalledSideEffectsLastDetected>
-      LastChecked: Option<StalledSideEffectsLastChecked> }
+type StalledSideEffects = {
+    LastDetected: Option<StalledSideEffectsLastDetected>
+    LastChecked:  Option<StalledSideEffectsLastChecked>
+}
 
 [<RequireQualifiedAccess>]
 type TimersSubsRebuildError = InvalidLifeCycle of LifeCycleName: string
@@ -59,13 +61,15 @@ type ReEncodeSubjectsHistoryBatchResult =
 [<RequireQualifiedAccess>]
 type ClearExpiredSubjectsHistoryError = InvalidLifeCycle of LifeCycleName: string
 
-type ClearExpiredSubjectsHistoryLastChecked =
-    { On: DateTimeOffset
-      Error: Option<ClearExpiredSubjectsHistoryError> }
+type ClearExpiredSubjectsHistoryLastChecked = {
+    On:    DateTimeOffset
+    Error: Option<ClearExpiredSubjectsHistoryError>
+}
 
-type ClearExpiredSubjectsHistory =
-    { LastDetectedOn: Option<DateTimeOffset>
-      LastChecked: Option<ClearExpiredSubjectsHistoryLastChecked> }
+type ClearExpiredSubjectsHistory = {
+    LastDetectedOn: Option<DateTimeOffset>
+    LastChecked:    Option<ClearExpiredSubjectsHistoryLastChecked>
+}
 
 type MetaId =
     | MetaId of LifeCycleName: string
@@ -73,50 +77,56 @@ type MetaId =
     interface SubjectId with
         member this.IdString = let (MetaId name) = this in name
 
-type IndexRebuildOperation =
-    { RebuildType: IndexRebuildType
-      StartedOn: DateTimeOffset
-      LastUpdatedOn: DateTimeOffset
-      LastSubjectIdRebuilt: Option<string>
-      BatchSize: uint16 }
+type IndexRebuildOperation = {
+    RebuildType:          IndexRebuildType
+    StartedOn:            DateTimeOffset
+    LastUpdatedOn:        DateTimeOffset
+    LastSubjectIdRebuilt: Option<string>
+    BatchSize:            uint16
+}
 
-type CompletedIndexRebuildData =
-    { FinalBatchSize: uint16
-      CompletedOn: DateTimeOffset }
+type CompletedIndexRebuildData = {
+    FinalBatchSize: uint16
+    CompletedOn:    DateTimeOffset
+}
 
-type LastIndexRebuildOperation =
-    { RebuildType: IndexRebuildType
-      StartedOn: DateTimeOffset
-      Result: Result<CompletedIndexRebuildData, IndexRebuildError> }
+type LastIndexRebuildOperation = {
+    RebuildType: IndexRebuildType
+    StartedOn:   DateTimeOffset
+    Result:      Result<CompletedIndexRebuildData, IndexRebuildError>
+}
 
-type TimersSubsRebuildOperation =
-    { RepairGrainIdHash: bool
-      StartedOn: DateTimeOffset
-      LastUpdatedOn: DateTimeOffset
-      LastSubjectIdRebuilt: Option<string>
-      LastError: Option<TimersSubsRebuildError>
-      BatchSize: uint16 // how many subjects to load from repo at a time
-      Parallelism: uint16 } // how many affected grains to activate at a time
+type TimersSubsRebuildOperation = {
+    RepairGrainIdHash:    bool
+    StartedOn:            DateTimeOffset
+    LastUpdatedOn:        DateTimeOffset
+    LastSubjectIdRebuilt: Option<string>
+    LastError:            Option<TimersSubsRebuildError>
+    BatchSize:            uint16 // how many subjects to load from repo at a time
+    Parallelism:          uint16
+}
 
-type ReEncodeSubjectsOperation =
-    { StartedOn: DateTimeOffset
-      LastUpdatedOn: DateTimeOffset
-      LastSubjectIdReEncoded: Option<string>
-      LastError: Option<ReEncodeSubjectsError>
-      BatchSize: uint16 }
+type ReEncodeSubjectsOperation = {
+    StartedOn:              DateTimeOffset
+    LastUpdatedOn:          DateTimeOffset
+    LastSubjectIdReEncoded: Option<string>
+    LastError:              Option<ReEncodeSubjectsError>
+    BatchSize:              uint16
+}
 
-type ReEncodeSubjectsHistoryOperation =
-    { StartedOn: DateTimeOffset
-      LastUpdatedOn: DateTimeOffset
-      LastSubjectIdVersionReEncoded: Option<string * uint64>
-      LastError: Option<ReEncodeSubjectsError>
-      BatchSize: uint16 }
+type ReEncodeSubjectsHistoryOperation = {
+    StartedOn:                     DateTimeOffset
+    LastUpdatedOn:                 DateTimeOffset
+    LastSubjectIdVersionReEncoded: Option<string * uint64>
+    LastError:                     Option<ReEncodeSubjectsError>
+    BatchSize:                     uint16
+}
 
 [<RequireQualifiedAccess>]
 type UpdatePermanentFailuresScope =
-    | SeqNum of SubjectIdStr: string * SeqNum: uint64
-    | Subject of SubjectIdStr: string
-    | Single of SubjectIdStr: string * SideEffectId: Guid
+    | SeqNum       of SubjectIdStr: string * SeqNum: uint64
+    | Subject      of SubjectIdStr: string
+    | Single       of SubjectIdStr: string * SideEffectId: Guid
     | NextSeqBatch of BatchSize: uint8 // Why not just "All" ? if too many failed subjects then Retry All can lead to disaster.
 // Could be a batched job similar to index rebuild, but it goes against idea of manual failure resolution.
 
@@ -131,23 +141,24 @@ type UpdatePermanentFailuresOperation =
     | Retry
     | Delete
 
-type LastUpdatePermanentFailuresResult =
-    { LastSubjectIdStr: string
-      LastSideEffectId: Guid
-      SideEffectSeqNum: uint64
-      LastOperation: UpdatePermanentFailuresOperation }
+type LastUpdatePermanentFailuresResult = {
+    LastSubjectIdStr: string
+    LastSideEffectId: Guid
+    SideEffectSeqNum: uint64
+    LastOperation:    UpdatePermanentFailuresOperation
+}
 
 type Meta =
-    { Id: MetaId
-      CreatedOn: DateTimeOffset
-      IndexRebuildOp: Option<IndexRebuildOperation>
-      LastIndexRebuildOp: Option<LastIndexRebuildOperation>
-      TimersSubsRebuildOp: Option<TimersSubsRebuildOperation>
-      ReEncodeSubjectsOp: Option<ReEncodeSubjectsOperation>
+    { Id:                        MetaId
+      CreatedOn:                 DateTimeOffset
+      IndexRebuildOp:            Option<IndexRebuildOperation>
+      LastIndexRebuildOp:        Option<LastIndexRebuildOperation>
+      TimersSubsRebuildOp:       Option<TimersSubsRebuildOperation>
+      ReEncodeSubjectsOp:        Option<ReEncodeSubjectsOperation>
       ReEncodeSubjectsHistoryOp: Option<ReEncodeSubjectsHistoryOperation>
       ClearExpiredSubjectsHistory: ClearExpiredSubjectsHistory
-      StalledSideEffects: StalledSideEffects
-      LastMetricsReportOn: Option<DateTimeOffset>
+      StalledSideEffects:        StalledSideEffects
+      LastMetricsReportOn:       Option<DateTimeOffset>
       LastUpdatePermanentFailures: Option<DateTimeOffset * LastUpdatePermanentFailuresResult> }
 
     interface Subject<MetaId> with
@@ -166,11 +177,11 @@ type MetaAction =
     | StartTimersSubsRebuild of
         RepairGrainIdHash: bool *
         SkipToIdInclusive: Option<string> *
-        BatchSize: Option<uint16> *
-        Parallelism: Option<uint16>
+        BatchSize:         Option<uint16> *
+        Parallelism:       Option<uint16>
     | RunNextTimersSubsRebuildBatch
     | ForceStopTimersSubsRebuild
-    | StartReEncodeSubjects of SkipToIdInclusive: Option<string> * BatchSize: Option<uint16>
+    | StartReEncodeSubjects        of SkipToIdInclusive: Option<string> * BatchSize: Option<uint16>
     | RunNextReEncodeSubjectsBatch
     | ForceStopReEncodeSubjects
     | StartReEncodeSubjectsHistory of SkipToIdVersionInclusive: Option<string * uint64> * BatchSize: Option<uint16>
@@ -205,9 +216,9 @@ type MetaNumericIndex = NoNumericIndex<MetaOpError>
 
 [<RequireQualifiedAccess>]
 type MetaStringIndex =
-    | RebuildingTimersAndSubs of LastRebuiltSubjectId: string // this index used by AllStalledTimers view
-    | RebuildingIndices of LastRebuiltSubjectId: string
-    | ReEncodingSubjects of LastReEncodedSubjectId: string
+    | RebuildingTimersAndSubs   of LastRebuiltSubjectId: string // this index used by AllStalledTimers view
+    | RebuildingIndices         of LastRebuiltSubjectId: string
+    | ReEncodingSubjects        of LastReEncodedSubjectId: string
     | ReEncodingSubjectsHistory of LastReEncodedSubjectId: string * LastReEncodedVersion: uint64
 
     interface SubjectStringIndex<MetaOpError> with
@@ -238,7 +249,7 @@ type IndexRebuildError with
                 let! payload =
                     reqWith Codecs.string "InvalidLifeCycle" (function
                         | InvalidLifeCycle x -> Some x
-                        | _ -> None)
+                        | _                  -> None)
 
                 return InvalidLifeCycle payload
             }
@@ -247,7 +258,7 @@ type IndexRebuildError with
                 let! payload =
                     reqWith (IndexKey.get_Codec ()) "InvalidIndex" (function
                         | InvalidIndex x -> Some x
-                        | _ -> None)
+                        | _              -> None)
 
                 return InvalidIndex payload
             }
@@ -262,7 +273,7 @@ type IndexRebuildType with
                 let! _ =
                     reqWith Codecs.unit "All" (function
                         | All -> Some()
-                        | _ -> None)
+                        | _   -> None)
 
                 return All
             }
@@ -271,7 +282,7 @@ type IndexRebuildType with
                 let! payload =
                     reqWith (NonemptySet.codec codecFor<_, IndexKey>) "Selected" (function
                         | Selected x -> Some x
-                        | _ -> None)
+                        | _          -> None)
 
                 return Selected payload
             }
@@ -322,7 +333,7 @@ type StalledSideEffects with
 
             return
                 { LastDetected = lastDetected
-                  LastChecked = lastChecked }
+                  LastChecked  = lastChecked }
         }
 
 type TimersSubsRebuildError with
@@ -387,7 +398,7 @@ type ClearExpiredSubjectsHistory with
 
             return
                 { LastDetectedOn = lastDetectedOn
-                  LastChecked = lastChecked }
+                  LastChecked    = lastChecked }
         }
 
 type MetaId with
@@ -420,11 +431,11 @@ type IndexRebuildOperation with
             and! batchSize = reqWith Codecs.uint16 "BatchSize" (fun x -> Some x.BatchSize)
 
             return
-                { RebuildType = rebuildType
-                  StartedOn = startedOn
-                  LastUpdatedOn = lastUpdatedOn
+                { RebuildType          = rebuildType
+                  StartedOn            = startedOn
+                  LastUpdatedOn        = lastUpdatedOn
                   LastSubjectIdRebuilt = lastSubjectIdRebuilt
-                  BatchSize = batchSize }
+                  BatchSize            = batchSize }
         }
 
 type CompletedIndexRebuildData with
@@ -436,7 +447,7 @@ type CompletedIndexRebuildData with
 
             return
                 { FinalBatchSize = finalBatchSize
-                  CompletedOn = completedOn }
+                  CompletedOn    = completedOn }
         }
 
 type LastIndexRebuildOperation with
@@ -454,8 +465,8 @@ type LastIndexRebuildOperation with
 
             return
                 { RebuildType = rebuildType
-                  StartedOn = startedOn
-                  Result = result }
+                  StartedOn   = startedOn
+                  Result      = result }
         }
 
 type TimersSubsRebuildOperation with
@@ -471,13 +482,13 @@ type TimersSubsRebuildOperation with
             and! maybeRepairGrainIdHash = optWith Codecs.boolean "RepairGrainIdHash" (fun x -> Some x.RepairGrainIdHash)
 
             return
-                { RepairGrainIdHash = maybeRepairGrainIdHash |> Option.defaultValue false
-                  StartedOn = startedOn
-                  LastUpdatedOn = lastUpdatedOn
+                { RepairGrainIdHash    = maybeRepairGrainIdHash |> Option.defaultValue false
+                  StartedOn            = startedOn
+                  LastUpdatedOn        = lastUpdatedOn
                   LastSubjectIdRebuilt = lastSubjectIdRebuilt
-                  LastError = lastError
-                  BatchSize = batchSize
-                  Parallelism = maybeParallelism |> Option.defaultValue 1us }
+                  LastError            = lastError
+                  BatchSize            = batchSize
+                  Parallelism          = maybeParallelism |> Option.defaultValue 1us }
         }
 
 type ReEncodeSubjectsOperation with
@@ -494,11 +505,11 @@ type ReEncodeSubjectsOperation with
             and! batchSize = reqWith Codecs.uint16 "BatchSize" (fun x -> Some x.BatchSize)
 
             return
-                { StartedOn = startedOn
-                  LastUpdatedOn = lastUpdatedOn
+                { StartedOn              = startedOn
+                  LastUpdatedOn          = lastUpdatedOn
                   LastSubjectIdReEncoded = lastSubjectIdReEncoded
-                  LastError = lastError
-                  BatchSize = batchSize }
+                  LastError              = lastError
+                  BatchSize              = batchSize }
         }
 
 type ReEncodeSubjectsHistoryOperation with
@@ -516,11 +527,11 @@ type ReEncodeSubjectsHistoryOperation with
             and! batchSize = reqWith Codecs.uint16 "BatchSize" (fun x -> Some x.BatchSize)
 
             return
-                { StartedOn = startedOn
-                  LastUpdatedOn = lastUpdatedOn
+                { StartedOn                     = startedOn
+                  LastUpdatedOn                 = lastUpdatedOn
                   LastSubjectIdVersionReEncoded = lastSubjectIdVersionReEncoded
-                  LastError = lastError
-                  BatchSize = batchSize }
+                  LastError                     = lastError
+                  BatchSize                     = batchSize }
         }
 
 type UpdatePermanentFailuresScope with
@@ -531,7 +542,7 @@ type UpdatePermanentFailuresScope with
                 let! payload =
                     reqWith (Codecs.tuple2 Codecs.string Codecs.uint64) "SeqNum" (function
                         | SeqNum(x1, x2) -> Some(x1, x2)
-                        | _ -> None)
+                        | _              -> None)
 
                 return SeqNum payload
             }
@@ -540,7 +551,7 @@ type UpdatePermanentFailuresScope with
                 let! payload =
                     reqWith Codecs.string "Subject" (function
                         | Subject x -> Some x
-                        | _ -> None)
+                        | _         -> None)
 
                 return Subject payload
             }
@@ -549,7 +560,7 @@ type UpdatePermanentFailuresScope with
                 let! payload =
                     reqWith Codecs.byte "NextSeqBatch" (function
                         | NextSeqBatch x -> Some x
-                        | _ -> None)
+                        | _              -> None)
 
                 return NextSeqBatch payload
             }
@@ -558,7 +569,7 @@ type UpdatePermanentFailuresScope with
                 let! payload =
                     reqWith (Codecs.tuple2 Codecs.string Codecs.guid) "Single" (function
                         | Single(x1, x2) -> Some(x1, x2)
-                        | _ -> None)
+                        | _              -> None)
 
                 return Single payload
             }
@@ -573,7 +584,7 @@ type UpdatePermanentFailuresFilter with
                 let! _ =
                     reqWith Codecs.unit "OnlyWarnings" (function
                         | OnlyWarnings -> Some()
-                        | _ -> None)
+                        | _            -> None)
 
                 return OnlyWarnings
             }
@@ -582,7 +593,7 @@ type UpdatePermanentFailuresFilter with
                 let! payload =
                     reqWith Codecs.string "ReasonContains" (function
                         | ReasonContains x -> Some x
-                        | _ -> None)
+                        | _                -> None)
 
                 return ReasonContains payload
             }
@@ -597,7 +608,7 @@ type UpdatePermanentFailuresOperation with
                 let! payload =
                     reqWith Codecs.timeSpan "Ack" (function
                         | Ack x -> Some x
-                        | _ -> None)
+                        | _     -> None)
 
                 return Ack payload
             }
@@ -606,7 +617,7 @@ type UpdatePermanentFailuresOperation with
                 let! _ =
                     reqWith Codecs.unit "Delete" (function
                         | Delete -> Some()
-                        | _ -> None)
+                        | _      -> None)
 
                 return Delete
             }
@@ -615,7 +626,7 @@ type UpdatePermanentFailuresOperation with
                 let! _ =
                     reqWith Codecs.unit "Retry" (function
                         | Retry -> Some()
-                        | _ -> None)
+                        | _     -> None)
 
                 return Retry
             }
@@ -637,7 +648,7 @@ type LastUpdatePermanentFailuresResult with
                 { LastSubjectIdStr = lastSubjectIdStr
                   LastSideEffectId = lastSideEffectId
                   SideEffectSeqNum = sideEffectSeqNum
-                  LastOperation = lastOperation }
+                  LastOperation    = lastOperation }
         }
 
 type Meta with
@@ -685,25 +696,25 @@ type Meta with
                 maybeStalledSideEffects
                 |> Option.defaultValue
                     { LastDetected = None
-                      LastChecked = None }
+                      LastChecked  = None }
 
             let clearExpiredSubjectsHistory =
                 maybeClearExpiredSubjectsHistory
                 |> Option.defaultValue
                     { LastDetectedOn = None
-                      LastChecked = None }
+                      LastChecked    = None }
 
             return
-                { Id = id
-                  CreatedOn = createdOn
-                  IndexRebuildOp = indexRebuildOp
-                  LastIndexRebuildOp = lastIndexRebuildOp
-                  TimersSubsRebuildOp = timersSubsRebuildOp
-                  ReEncodeSubjectsOp = reEncodeSubjectsOp
+                { Id                        = id
+                  CreatedOn                 = createdOn
+                  IndexRebuildOp            = indexRebuildOp
+                  LastIndexRebuildOp        = lastIndexRebuildOp
+                  TimersSubsRebuildOp       = timersSubsRebuildOp
+                  ReEncodeSubjectsOp        = reEncodeSubjectsOp
                   ReEncodeSubjectsHistoryOp = reEncodeSubjectsHistoryOp
                   ClearExpiredSubjectsHistory = clearExpiredSubjectsHistory
-                  StalledSideEffects = stalledSideEffects
-                  LastMetricsReportOn = lastMetricsReportOn
+                  StalledSideEffects        = stalledSideEffects
+                  LastMetricsReportOn       = lastMetricsReportOn
                   LastUpdatePermanentFailures = lastUpdatePermanentFailures }
         }
 
@@ -748,7 +759,7 @@ type MetaAction with
                         "StartIndexRebuild"
                         (function
                          | StartIndexRebuild(x1, x2, x3) -> Some(x1, x2, x3)
-                         | _ -> None)
+                         | _                             -> None)
 
                 return StartIndexRebuild payload
             }
@@ -757,7 +768,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "RunNextIndexRebuildBatch" (function
                         | RunNextIndexRebuildBatch -> Some()
-                        | _ -> None)
+                        | _                        -> None)
 
                 return RunNextIndexRebuildBatch
             }
@@ -766,7 +777,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "ForceStopIndexRebuild" (function
                         | ForceStopIndexRebuild -> Some()
-                        | _ -> None)
+                        | _                     -> None)
 
                 return ForceStopIndexRebuild
             }
@@ -782,7 +793,7 @@ type MetaAction with
                         "StartTimersSubsRebuild"
                         (function
                          | StartTimersSubsRebuild(x1, x2, x3, x4) -> Some(x1, x2, x3, x4)
-                         | _ -> None)
+                         | _                                      -> None)
 
                 return StartTimersSubsRebuild payload
             }
@@ -791,7 +802,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "RunNextTimersSubsRebuildBatch" (function
                         | RunNextTimersSubsRebuildBatch -> Some()
-                        | _ -> None)
+                        | _                             -> None)
 
                 return RunNextTimersSubsRebuildBatch
             }
@@ -800,7 +811,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "ForceStopTimersSubsRebuild" (function
                         | ForceStopTimersSubsRebuild -> Some()
-                        | _ -> None)
+                        | _                          -> None)
 
                 return ForceStopTimersSubsRebuild
             }
@@ -812,7 +823,7 @@ type MetaAction with
                         "StartReEncodeSubjects"
                         (function
                          | StartReEncodeSubjects(x1, x2) -> Some(x1, x2)
-                         | _ -> None)
+                         | _                             -> None)
 
                 return StartReEncodeSubjects payload
             }
@@ -821,7 +832,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "RunNextReEncodeSubjectsBatch" (function
                         | RunNextReEncodeSubjectsBatch -> Some()
-                        | _ -> None)
+                        | _                            -> None)
 
                 return RunNextReEncodeSubjectsBatch
             }
@@ -830,7 +841,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "ForceStopReEncodeSubjects" (function
                         | ForceStopReEncodeSubjects -> Some()
-                        | _ -> None)
+                        | _                         -> None)
 
                 return ForceStopReEncodeSubjects
             }
@@ -844,7 +855,7 @@ type MetaAction with
                         "StartReEncodeSubjectsHistory"
                         (function
                          | StartReEncodeSubjectsHistory(x1, x2) -> Some(x1, x2)
-                         | _ -> None)
+                         | _                                    -> None)
 
                 return StartReEncodeSubjectsHistory payload
             }
@@ -853,7 +864,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "RunNextReEncodeSubjectsHistoryBatch" (function
                         | RunNextReEncodeSubjectsHistoryBatch -> Some()
-                        | _ -> None)
+                        | _                                   -> None)
 
                 return RunNextReEncodeSubjectsHistoryBatch
             }
@@ -862,7 +873,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "ForceStopReEncodeSubjectsHistory" (function
                         | ForceStopReEncodeSubjectsHistory -> Some()
-                        | _ -> None)
+                        | _                                -> None)
 
                 return ForceStopReEncodeSubjectsHistory
             }
@@ -871,7 +882,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "StalledSideEffectsCheck" (function
                         | StalledSideEffectsCheck -> Some()
-                        | _ -> None)
+                        | _                       -> None)
 
                 return StalledSideEffectsCheck
             }
@@ -880,7 +891,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "RunClearExpiredSubjectsHistoryBatch" (function
                         | RunClearExpiredSubjectsHistoryBatch -> Some()
-                        | _ -> None)
+                        | _                                   -> None)
 
                 return RunClearExpiredSubjectsHistoryBatch
             }
@@ -889,7 +900,7 @@ type MetaAction with
                 let! _ =
                     reqWith Codecs.unit "ReportMetrics" (function
                         | ReportMetrics -> Some()
-                        | _ -> None)
+                        | _             -> None)
 
                 return ReportMetrics
             }
@@ -904,7 +915,7 @@ type MetaAction with
                         "UpdatePermanentFailure"
                         (function
                          | UpdatePermanentFailure(x1, x2, x3) -> Some(x1, x2, x3)
-                         | _ -> None)
+                         | _                                  -> None)
 
                 return UpdatePermanentFailure payload
             }
@@ -951,7 +962,7 @@ type MetaOpError with
                 let! _ =
                     reqWith Codecs.unit "IndexRebuildAlreadyInProgress" (function
                         | IndexRebuildAlreadyInProgress -> Some()
-                        | _ -> None)
+                        | _                             -> None)
 
                 return IndexRebuildAlreadyInProgress
             }
@@ -960,7 +971,7 @@ type MetaOpError with
                 let! _ =
                     reqWith Codecs.unit "TimersSubsRebuildAlreadyInProgress" (function
                         | TimersSubsRebuildAlreadyInProgress -> Some()
-                        | _ -> None)
+                        | _                                  -> None)
 
                 return TimersSubsRebuildAlreadyInProgress
             }
@@ -969,7 +980,7 @@ type MetaOpError with
                 let! _ =
                     reqWith Codecs.unit "ReEncodeAlreadyInProgress" (function
                         | ReEncodeAlreadyInProgress -> Some()
-                        | _ -> None)
+                        | _                         -> None)
 
                 return ReEncodeAlreadyInProgress
             }
@@ -978,7 +989,7 @@ type MetaOpError with
                 let! payload =
                     reqWith Codecs.string "InvalidLifeCycle" (function
                         | InvalidLifeCycle x -> Some x
-                        | _ -> None)
+                        | _                  -> None)
 
                 return InvalidLifeCycle payload
             }
@@ -987,7 +998,7 @@ type MetaOpError with
                 let! _ =
                     reqWith Codecs.unit "NoPermanentFailuresFound" (function
                         | NoPermanentFailuresFound -> Some()
-                        | _ -> None)
+                        | _                        -> None)
 
                 return NoPermanentFailuresFound
             }

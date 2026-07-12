@@ -40,8 +40,8 @@ module private StandardStyles =
                     marginHorizontal 20
 
                     match screenSize with
-                    | ScreenSize.Desktop -> marginBottom 40
-                    | ScreenSize.Handheld  -> marginBottom 22
+                    | ScreenSize.Desktop  -> marginBottom 40
+                    | ScreenSize.Handheld -> marginBottom 22
                 }
         )
 
@@ -50,8 +50,8 @@ module private StandardStyles =
             fun (screenSize: ScreenSize) ->
                 makeTextStyles {
                     match screenSize with
-                    | ScreenSize.Desktop -> fontSize 32
-                    | ScreenSize.Handheld  -> fontSize 20
+                    | ScreenSize.Desktop  -> fontSize 32
+                    | ScreenSize.Handheld -> fontSize 20
                 }
         )
 
@@ -114,17 +114,17 @@ module private StandardStyles =
 type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
     [<Component>]
     static member Standard(
-            canClose: CanClose,
-            ?children: ReactChildrenProp,
-            ?body: ReactElement,
-            ?buttons: ReactElement,
-            ?mode: ShellStandard.Mode,
-            ?heading: string,
+            canClose:            CanClose,
+            ?children:           ReactChildrenProp,
+            ?body:               ReactElement,
+            ?buttons:            ReactElement,
+            ?mode:               ShellStandard.Mode,
+            ?heading:            string,
             ?accessibilityLabel: string,
-            ?key: string,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+            ?key:                string,
+            ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
+        key      |> ignore
         children |> ignore
 
         let body = defaultArg body noElement
@@ -141,7 +141,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             ``with`` =
                 fun screenSize ->
                     LC.Dialog.Shell.WhiteRounded.Raw(
-                        canClose = canClose,
+                        canClose            = canClose,
                         ?accessibilityLabel = accessibilityLabel,
                         children =
                             [|

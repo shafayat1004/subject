@@ -13,7 +13,7 @@ open LibClient.Components
 
 [<Fable.Core.JS.Pojo>]
 type private MapContainerPropsJs
-    ( ?id: string, ?center: obj, ?zoom: int, ?bounds: obj, ?scrollWheelZoom: bool,
+    ( ?id:    string, ?center: obj, ?zoom: int, ?bounds: obj, ?scrollWheelZoom: bool,
       ?style: obj, ?ref: IRefValue<obj> ) =
     member val id = id
     member val center = center
@@ -42,13 +42,13 @@ type OsmMap with
         : ReactElement =
         let wrappedProps =
             MapContainerPropsJs(
-                ?id = id,
-                ?center = (center |> Option.map (fun x -> x.ToJs())),
-                ?zoom = zoom,
-                ?bounds = (bounds |> Option.map (fun x -> x.ToJs())),
+                ?id              = id,
+                ?center          = (center |> Option.map (fun x -> x.ToJs())),
+                ?zoom            = zoom,
+                ?bounds          = (bounds |> Option.map (fun x -> x.ToJs())),
                 ?scrollWheelZoom = scrollWheelZoom,
-                ?style = (style |> Option.map (fun x -> x.ToJs())),
-                ?ref = mapRef
+                ?style           = (style |> Option.map (fun x -> x.ToJs())),
+                ?ref             = mapRef
             ) |> box
 
         Fable.React.ReactBindings.React.createElement (MapContainerComp, wrappedProps, children |> Option.defaultValue Array.empty)

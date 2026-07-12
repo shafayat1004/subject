@@ -135,7 +135,7 @@ module private RawStyles =
             Actionable =
                 { theme.Actionable with
                     IconColor = Color.Grey "50"
-                    IconSize = 22
+                    IconSize  = 22
                 }
         }
 
@@ -153,14 +153,14 @@ module private RawStyles =
 type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
     [<Component>]
     static member Raw(
-            canClose: CanClose,
-            ?children: ReactChildrenProp,
-            ?position: DialogPosition,
-            ?inProgress: bool,
+            canClose:            CanClose,
+            ?children:           ReactChildrenProp,
+            ?position:           DialogPosition,
+            ?inProgress:         bool,
             ?accessibilityLabel: string,
-            ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?theme:              Theme -> Theme,
+            ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:                string
         ) : ReactElement =
         key |> ignore
 
@@ -185,7 +185,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                         ContentPosition.Center
 
                     LC.Dialog.Base(
-                        canClose = canClose,
+                        canClose        = canClose,
                         contentPosition = contentPosition,
                         children =
                             [|
@@ -233,17 +233,17 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
                                                         if canClose.ShouldShowCloseButton then
                                                             LC.IconButton(
                                                                 styles = [| RawStyles.closeButton theTheme |],
-                                                                icon = Icon.X,
-                                                                label = "Close",
+                                                                icon   = Icon.X,
+                                                                label  = "Close",
                                                                 state =
                                                                     ButtonHighLevelState.LowLevel (
                                                                         ButtonLowLevelState.Actionable canClose.OnClose
                                                                     ),
-                                                                theme = RawStyles.closeButtonTheme,
+                                                                theme  = RawStyles.closeButtonTheme,
                                                                 testId = RawStyles.closeButtonTestId
                                                             )
                                                     },
-                                                ?accessibilityRole = dialogRole,
+                                                ?accessibilityRole  = dialogRole,
                                                 ?accessibilityLabel = accessibilityLabel
                                             )
                                         |]

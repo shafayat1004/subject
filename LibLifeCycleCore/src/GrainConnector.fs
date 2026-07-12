@@ -13,7 +13,7 @@ type GrainConnector (grainFactory: IGrainFactory, grainPartition: GrainPartition
     let clientGrainCallContext =
         {
             SessionHandle = sessionHandle
-            CallOrigin = callOrigin
+            CallOrigin    = callOrigin
         }
 
     member _.SessionHandle = sessionHandle

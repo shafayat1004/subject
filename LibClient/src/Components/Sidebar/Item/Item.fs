@@ -176,18 +176,18 @@ module Sidebar_Item =
     type Constructors.LC.Sidebar with
         [<Component>]
         static member Item(
-                label: string,
-                state: State,
-                ?children: ReactChildrenProp,
-                ?leftIcon: Icons.IconConstructor,
-                ?right: Right,
-                ?styles: array<ViewStyles>,
-                ?testId: string,
-                ?theme: Theme -> Theme,
+                label:          string,
+                state:          State,
+                ?children:      ReactChildrenProp,
+                ?leftIcon:      Icons.IconConstructor,
+                ?right:         Right,
+                ?styles:        array<ViewStyles>,
+                ?testId:        string,
+                ?theme:         Theme -> Theme,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key: string
+                ?key:           string
             ) : ReactElement =
-            key |> ignore
+            key      |> ignore
             children |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -227,7 +227,7 @@ module Sidebar_Item =
                                         children =
                                             elements {
                                                 LC.Icon(
-                                                    icon = icon,
+                                                    icon   = icon,
                                                     styles = [| Styles.iconText theTheme.IconFontSize colors.LeftIcon |]
                                                 )
                                             }
@@ -240,9 +240,9 @@ module Sidebar_Item =
                                     children =
                                         elements {
                                             LC.UiText(
-                                                value = label,
+                                                value      = label,
                                                 selectable = true,
-                                                styles = [| Styles.labelText theTheme.LabelFontSize colors.Label colors.LabelWeight |]
+                                                styles     = [| Styles.labelText theTheme.LabelFontSize colors.Label colors.LabelWeight |]
                                             )
                                         }
                                 )
@@ -268,7 +268,7 @@ module Sidebar_Item =
                                                         children =
                                                             elements {
                                                                 LC.UiText(
-                                                                    value = badgeText count,
+                                                                    value  = badgeText count,
                                                                     styles = [| Styles.badgeTextStyle theTheme.BadgeFontSize colors.BadgeText |]
                                                                 )
                                                             }
@@ -281,7 +281,7 @@ module Sidebar_Item =
                                             children =
                                                 elements {
                                                     LC.Icon(
-                                                        icon = icon,
+                                                        icon   = icon,
                                                         styles = [| Styles.iconText theTheme.IconFontSize colors.RightIcon |]
                                                     )
                                                 }
@@ -292,13 +292,13 @@ module Sidebar_Item =
                                 match onPress with
                                 | Some onPress ->
                                     LC.Pressable(
-                                        onPress = onPress,
-                                        label = label,
-                                        role = AccessibilityRole.MenuItem,
-                                        state = itemA11yState state isSelected,
-                                        testId = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "sidebar-item" label)),
-                                        overlay = true,
-                                        pointerState = pointerState,
+                                        onPress       = onPress,
+                                        label         = label,
+                                        role          = AccessibilityRole.MenuItem,
+                                        state         = itemA11yState state isSelected,
+                                        testId        = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "sidebar-item" label)),
+                                        overlay       = true,
+                                        pointerState  = pointerState,
                                         componentName = "LC.Sidebar.Item"
                                     )
                                 | None ->

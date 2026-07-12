@@ -24,7 +24,7 @@ type SqlServerTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'U
     and  'OpError :> OpError
     and  'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>>
     (
-        timeSeries: ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>,
+        timeSeries:  ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>,
         connStrings: SqlServerConnectionStrings
     ) =
 
@@ -172,14 +172,14 @@ type SqlServerTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'U
 
                 use command =
                     match aggregate with
-                    | FirstValue -> commandByTemplate connection interval "[Value]" (Some "ORDER BY [TimeIndex] ASC, [Id] ASC") ignore
-                    | LastValue -> commandByTemplate connection interval "[Value]" (Some "ORDER BY [TimeIndex] DESC, [Id] DESC") ignore
-                    | MinimumValue -> commandByTemplate connection interval "MIN([Value])" None ignore
-                    | MaximumValue -> commandByTemplate connection interval "MAX([Value])" None ignore
-                    | AverageValue -> commandByTemplate connection interval "AVG([Value])" None ignore
-                    | MedianValue -> percentileCommand (PositivePercentage.ofDecimalUnsafe 50m)
+                    | FirstValue        -> commandByTemplate connection interval "[Value]" (Some "ORDER BY [TimeIndex] ASC, [Id] ASC") ignore
+                    | LastValue         -> commandByTemplate connection interval "[Value]" (Some "ORDER BY [TimeIndex] DESC, [Id] DESC") ignore
+                    | MinimumValue      -> commandByTemplate connection interval "MIN([Value])" None ignore
+                    | MaximumValue      -> commandByTemplate connection interval "MAX([Value])" None ignore
+                    | AverageValue      -> commandByTemplate connection interval "AVG([Value])" None ignore
+                    | MedianValue       -> percentileCommand (PositivePercentage.ofDecimalUnsafe 50m)
                     | PercentileValue p -> percentileCommand p
-                    | SumValue -> commandByTemplate connection interval "SUM([Value])" None ignore
+                    | SumValue          -> commandByTemplate connection interval "SUM([Value])" None ignore
 
                 use! cursor = command.ExecuteReaderAsync()
                 match! cursor.ReadAsync() with
@@ -227,12 +227,12 @@ type SqlServerTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'U
                         // TODO implement LastValue
                         //groupCommandByTemplate connection groupInterval "[Value] ORDER BY DESC" ignore
                         failwith "AggregateValuesBy LastValue not implemented yet"
-                    | MinimumValue -> groupCommandByTemplate connection groupInterval "MIN([Value])" ignore
-                    | MaximumValue -> groupCommandByTemplate connection groupInterval "MAX([Value])" ignore
-                    | AverageValue -> groupCommandByTemplate connection groupInterval "AVG([Value])" ignore
-                    | MedianValue -> percentileCommand (PositivePercentage.ofDecimalUnsafe 50m)
+                    | MinimumValue      -> groupCommandByTemplate connection groupInterval "MIN([Value])" ignore
+                    | MaximumValue      -> groupCommandByTemplate connection groupInterval "MAX([Value])" ignore
+                    | AverageValue      -> groupCommandByTemplate connection groupInterval "AVG([Value])" ignore
+                    | MedianValue       -> percentileCommand (PositivePercentage.ofDecimalUnsafe 50m)
                     | PercentileValue p -> percentileCommand p
-                    | SumValue -> groupCommandByTemplate connection groupInterval "SUM([Value])" ignore
+                    | SumValue          -> groupCommandByTemplate connection groupInterval "SUM([Value])" ignore
 
                 use! cursor = command.ExecuteReaderAsync()
                 return!
@@ -261,7 +261,7 @@ type SqlServerTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'U
             let orderBy =
                 match aggregate with
                 | FirstPoint -> "ASC"
-                | LastPoint -> "DESC"
+                | LastPoint  -> "DESC"
                 |> fun directionSql -> $"ORDER BY TimeIndex %s{directionSql}, [Id] %s{directionSql}"
 
             fun () -> backgroundTask {

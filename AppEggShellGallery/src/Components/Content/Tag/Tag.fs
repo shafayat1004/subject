@@ -12,12 +12,12 @@ let private cautionTheme (theme: LC.Tag.Theme) : LC.Tag.Theme =
             { theme.Tags with
                 Selected =
                     { theme.Tags.Selected with
-                        TextColor = Color.White
+                        TextColor       = Color.White
                         BackgroundColor = Color.DevRed
                     }
                 Unselected =
                     { theme.Tags.Selected with
-                        TextColor = Color.White
+                        TextColor       = Color.White
                         BackgroundColor = Color.DevOrange
                     }
             }
@@ -34,17 +34,17 @@ type Ui.Content with
     [<Component>]
     static member Tag () : ReactElement =
         Ui.ComponentContent(
-            displayName = "Tag",
+            displayName  = "Tag",
             isResponsive = true,
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Tag",
+            props        = ComponentContent.ForFullyQualifiedName "LibClient.Components.Tag",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Tag",
-                    role = "text (ViewOnly) or button (Actionable/Removable)",
-                    namePattern = "text prop; removable tags announce remove action",
-                    stateNotes = "ViewOnly is static; Actionable and Removable expose pressable state",
+                    componentName  = "LC.Tag",
+                    role           = "text (ViewOnly) or button (Actionable/Removable)",
+                    namePattern    = "text prop; removable tags announce remove action",
+                    stateNotes     = "ViewOnly is static; Actionable and Removable expose pressable state",
                     scalesWithFont = true,
-                    contrastNotes = "Tag text and background colors meet WCAG AA"
+                    contrastNotes  = "Tag text and background colors meet WCAG AA"
                 ),
             samples =
                 element {

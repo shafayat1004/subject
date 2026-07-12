@@ -106,7 +106,7 @@ type LibClient.Components.Constructors.LC with
             | _                  -> None
 
         Rn.View(
-            styles   = [| Styles.view; yield! legacyViewStyles |],
+            styles            = [| Styles.view; yield! legacyViewStyles |],
             accessibilityRole = AccessibilityRole.ListItem,
             children =
                 [|
@@ -115,7 +115,7 @@ type LibClient.Components.Constructors.LC with
                      | None      -> noElement)
 
                     Rn.View(
-                        styles   = [| Styles.label |],
+                        styles = [| Styles.label |],
                         children =
                             [|
                                 (match label with
@@ -127,7 +127,7 @@ type LibClient.Components.Constructors.LC with
                     (match right with
                      | Some right ->
                         Rn.View(
-                            styles   = [| Styles.right |],
+                            styles = [| Styles.right |],
                             children =
                                 (match right with
                                  | Right.Number number ->
@@ -145,12 +145,12 @@ type LibClient.Components.Constructors.LC with
                     match onPress with
                     | Some onPress ->
                         LC.Pressable(
-                            onPress = onPress,
-                            label = a11yLabel label,
-                            role = AccessibilityRole.Button,
-                            state = itemA11yState state,
-                            testId = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "handheld-list-item" (a11yLabel label))),
-                            overlay = true,
+                            onPress       = onPress,
+                            label         = a11yLabel label,
+                            role          = AccessibilityRole.Button,
+                            state         = itemA11yState state,
+                            testId        = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "handheld-list-item" (a11yLabel label))),
+                            overlay       = true,
                             componentName = "LC.HandheldListItem"
                         )
                     | None ->

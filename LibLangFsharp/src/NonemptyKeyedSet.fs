@@ -53,7 +53,7 @@ let tryFind<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>>
     : Option<'V> =
     match tryFindKey predicate source with
     | Some key -> source.GetByKey key
-    | None -> None
+    | None     -> None
 
 let ofSeq<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> (source: seq<'V>) : Option<NonemptyKeyedSet<'K, 'V>> =
     source
@@ -132,7 +132,7 @@ let addMultipleToMap
     : Map<'K, NonemptyKeyedSet<'K2, 'V>> =
     match map.TryFind key with
     | Some existing -> map.AddOrUpdate(key, mergeWith existing values)
-    | None -> map.Add(key, values)
+    | None          -> map.Add(key, values)
 
 let mergeMaps
     (existingMap: Map<'K, NonemptyKeyedSet<'K2, 'V>>)
@@ -144,8 +144,8 @@ let mergeMaps
 [<RequireQualifiedAccess>]
 type NonemptyKeyedSetUpdateOrRemoveResult<'K, 'V> =
     | NoAction
-    | Update of 'V
-    | Replace of 'V
+    | Update       of 'V
+    | Replace      of 'V
     | UpdateAndAdd of UpdateValue: 'V * AddValue: 'V
 
 let updateOrReplace

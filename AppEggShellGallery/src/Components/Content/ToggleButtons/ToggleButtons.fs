@@ -89,12 +89,12 @@ type Ui.Content with
                 ComponentContent.Manual(
                     element {
                         Ui.ScrapedComponentProps(
-                            heading = "ToggleButtons",
+                            heading            = "ToggleButtons",
                             fullyQualifiedName = "LibClient.Components.ToggleButtons"
                         )
 
                         Ui.ScrapedComponentProps(
-                            heading = "ToggleButton",
+                            heading            = "ToggleButton",
                             fullyQualifiedName = "LibClient.Components.ToggleButton"
                         )
                     }
@@ -103,12 +103,12 @@ type Ui.Content with
                 LC.Text "Each toggle button auto-slugs testId from its label (toggle-button-mango) or from the value for icon-only styles (toggle-button-mango). Pass label on LC.ToggleButtons to name the radio group.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.ToggleButtons / LC.ToggleButton",
-                    role = "radiogroup (LC.ToggleButtons); radio (LC.ToggleButton)",
-                    namePattern = "Button label or icon+value; group named via label prop on LC.ToggleButtons",
-                    stateNotes = "selected toggle exposes selected state via accessibilityState",
+                    componentName  = "LC.ToggleButtons / LC.ToggleButton",
+                    role           = "radiogroup (LC.ToggleButtons); radio (LC.ToggleButton)",
+                    namePattern    = "Button label or icon+value; group named via label prop on LC.ToggleButtons",
+                    stateNotes     = "selected toggle exposes selected state via accessibilityState",
                     scalesWithFont = true,
-                    contrastNotes = "Selected/unselected states use theme colors with non-color selected indicator"
+                    contrastNotes  = "Selected/unselected states use theme colors with non-color selected indicator"
                 ),
             samples =
                 element {

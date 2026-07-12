@@ -128,11 +128,11 @@ let ``serialize an interface with a custom writer`` () =
     Assert.AreEqual("\"foo\"", found)
 
 type SimpleTypes = {
-    b: bool
-    i: int
-    c: char
-    s: string
-    webUri: Uri
+    b:       bool
+    i:       int
+    c:       char
+    s:       string
+    webUri:  Uri
     fileUri: Uri
 }
 
@@ -161,11 +161,11 @@ type NestedField = {
 }
 
 type ComplexTypes = {
-    nested: NestedField
-    intList: int list
-    stringAsInt: int
+    nested:           NestedField
+    intList:          int list
+    stringAsInt:      int
     intOptionPresent: int option
-    intOptionAbsent: int option
+    intOptionAbsent:  int option
 }
 
 [<Test>]

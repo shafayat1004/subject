@@ -16,16 +16,16 @@ let Linear    = AnimationEasing.Linear
 
 type Payload = {
     color: string
-    name: obj
+    name:  obj
     value: obj
 
     // Some other parts elided for now. See https://github.com/recharts/recharts/blob/master/src/component/DefaultTooltipContent.tsx#L24.
 }
 
 type ContentInput = {
-    active: bool
+    active:  bool
     payload: Payload array
-    label: obj
+    label:   obj
 }
 
 type Props = (* GenerateMakeFunction *) {

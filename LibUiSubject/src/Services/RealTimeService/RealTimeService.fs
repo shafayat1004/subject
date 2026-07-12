@@ -73,7 +73,7 @@ type RealTimeService(eventBus: LibClient.EventBus.EventBus, backendUrl: string, 
                 lockRequestPromise
                     .``then``(
                         onfulfilled = (fun _ -> log.Debug("Lock with ID {LockId} was released", lockId)),
-                        onrejected = (fun _ -> log.Debug("Lock with ID {LockId} was rejected", lockId))
+                        onrejected  = (fun _ -> log.Debug("Lock with ID {LockId} was rejected", lockId))
                     )
                 |> ignore
 

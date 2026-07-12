@@ -79,16 +79,16 @@ type Rn.Components.Constructors.Rn with
         ?selectionColor:           string,
         ?styles:                   array<AnimatableTextInputStyles>,
         // windows and iOS only
-        ?clearButtonMode:          ClearButtonMode,
-        ?onKeyPress:               KeyboardEvent -> unit,
-        ?onFocus:                  FocusEvent -> unit,
-        ?onBlur:                   FocusEvent -> unit,
-        ?onPaste:                  ClipboardEvent -> unit,
-        ?onChangeText:             string -> unit,
-        ?onSelectionChange:        float -> float -> unit,
-        ?onSubmitEditing:          unit -> unit,
-        ?onScroll:                 float -> float -> unit,
-        ?ref:                      LibClient.JsInterop.JsNullable<ITextInputRef> -> unit
+        ?clearButtonMode:   ClearButtonMode,
+        ?onKeyPress:        KeyboardEvent -> unit,
+        ?onFocus:           FocusEvent -> unit,
+        ?onBlur:            FocusEvent -> unit,
+        ?onPaste:           ClipboardEvent -> unit,
+        ?onChangeText:      string -> unit,
+        ?onSelectionChange: float -> float -> unit,
+        ?onSubmitEditing:   unit -> unit,
+        ?onScroll:          float -> float -> unit,
+        ?ref:               LibClient.JsInterop.JsNullable<ITextInputRef> -> unit
     ) =
         let __props = createEmpty
 

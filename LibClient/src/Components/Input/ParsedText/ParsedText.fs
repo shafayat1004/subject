@@ -104,34 +104,34 @@ module Input_ParsedTextComponent =
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member ParsedText(
-                parse:                      Option<NonemptyString> -> Result<Option<'T>, string>,
-                value:                      Value<'T>,
-                validity:                   InputValidity,
-                requestFocusOnMount:        bool,
-                onChange:                   Value<'T> -> unit,
-                ?children:                  ReactChildrenProp,
-                ?editable:                  bool,
-                ?keyboardType:              KeyboardType,
-                ?returnKeyType:             ReturnKeyType,
+                parse:                       Option<NonemptyString> -> Result<Option<'T>, string>,
+                value:                       Value<'T>,
+                validity:                    InputValidity,
+                requestFocusOnMount:         bool,
+                onChange:                    Value<'T> -> unit,
+                ?children:                   ReactChildrenProp,
+                ?editable:                   bool,
+                ?keyboardType:               KeyboardType,
+                ?returnKeyType:              ReturnKeyType,
                 ?shouldShowValidationErrors: bool,
-                ?label:                     string,
-                ?placeholder:               string,
-                ?prefix:                    string,
-                ?suffix:                    InputSuffix,
-                ?tabIndex:                  int,
-                ?onKeyPress:                (Browser.Types.KeyboardEvent -> unit),
-                ?onEnterKeyPress:           (ReactEvent.Keyboard -> unit),
-                ?styles:                    array<ViewStyles>,
-                ?testId:                    string,
-                ?key:                       string,
-                ?xLegacyStyles:             List<Rn.LegacyStyles.RuntimeStyles>
+                ?label:                      string,
+                ?placeholder:                string,
+                ?prefix:                     string,
+                ?suffix:                     InputSuffix,
+                ?tabIndex:                   int,
+                ?onKeyPress:                 (Browser.Types.KeyboardEvent -> unit),
+                ?onEnterKeyPress:            (ReactEvent.Keyboard -> unit),
+                ?styles:                     array<ViewStyles>,
+                ?testId:                     string,
+                ?key:                        string,
+                ?xLegacyStyles:              List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
-            key |> ignore
+            key      |> ignore
 
-            let editable                  = defaultArg editable true
-            let keyboardType              = defaultArg keyboardType KeyboardType.Default
-            let returnKeyType             = defaultArg returnKeyType ReturnKeyType.Done
+            let editable                   = defaultArg editable true
+            let keyboardType               = defaultArg keyboardType KeyboardType.Default
+            let returnKeyType              = defaultArg returnKeyType ReturnKeyType.Done
             let shouldShowValidationErrors = defaultArg shouldShowValidationErrors true
 
             let computedValidity =

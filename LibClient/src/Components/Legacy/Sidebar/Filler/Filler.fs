@@ -31,10 +31,10 @@ type LibClient.Components.Constructors.LC.Legacy.Sidebar with
     static member Filler(
             ?children: ReactChildrenProp,
             ?hackWeDoNotSupportProplessComponents: bool,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?theme:    Theme -> Theme,
+            ?key:      string
         ) : ReactElement =
-        key |> ignore
+        key      |> ignore
         children |> ignore
         hackWeDoNotSupportProplessComponents |> ignore
 

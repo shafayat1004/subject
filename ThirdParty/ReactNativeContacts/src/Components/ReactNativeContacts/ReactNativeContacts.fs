@@ -9,21 +9,21 @@ open LibClient
 let private PermissionsAndroid: obj        = import "PermissionsAndroid"  "react-native";
 let private Contacts:           obj -> obj = importDefault "react-native-contacts"
 
-type PhoneNumber = 
+type PhoneNumber =
     {
         id:     string
         label:  string
         number: string
     }
 
-type Contact = 
+type Contact =
     {
         name:  string
         phone: List<string>
     }
     static member fromJsObj(jsContact: obj) : Contact =
-        let givenName  = jsContact?givenName 
-        let familyName = jsContact?familyName 
+        let givenName  = jsContact?givenName
+        let familyName = jsContact?familyName
         let middleName = jsContact?middleName
 
         let phoneNumebrs = (jsContact?phoneNumbers :> obj :?> PhoneNumber[])

@@ -13,7 +13,7 @@ open ThirdParty.ReactLeafletOsmMap.Components
 [<Fable.Core.JS.Pojo>]
 type private TooltipPropsJs
     ( direction: string, permanent: bool, ?key: string, ?sticky: bool, ?opacity: float,
-      ?offset: obj, ?position: obj ) =
+      ?offset:   obj, ?position: obj ) =
     member val key = key
     member val direction = direction
     member val permanent = permanent
@@ -40,10 +40,10 @@ type OsmMap with
             TooltipPropsJs(
                 (direction |> Option.defaultValue TooltipDirection.Auto |> fun x -> x.ToJs()),
                 (permanent |> Option.defaultValue false),
-                ?key = key,
-                ?sticky = sticky,
-                ?opacity = opacity,
-                ?offset = (offset |> Option.map (fun x -> x.ToJs())),
+                ?key      = key,
+                ?sticky   = sticky,
+                ?opacity  = opacity,
+                ?offset   = (offset |> Option.map (fun x -> x.ToJs())),
                 ?position = (position |> Option.map (fun x -> x.ToJs()))
             ) |> box
 

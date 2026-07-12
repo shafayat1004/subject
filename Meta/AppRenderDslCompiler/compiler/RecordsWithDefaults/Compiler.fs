@@ -126,8 +126,8 @@ let extractModuleName (lines: List<string>): Result<string, ParsingError> =
 
     match candidates with
     | [candidate] -> candidate.Substring(7 (* for "module " *)).Trim() |> Ok
-    | [] -> ParsingError.Generic "No lines matching the file top level module declaration" |> Error
-    | _  -> ParsingError.Generic "Too many lines matching the file top level module declaration" |> Error
+    | []          -> ParsingError.Generic "No lines matching the file top level module declaration" |> Error
+    | _           -> ParsingError.Generic "Too many lines matching the file top level module declaration" |> Error
 
 
 type RecordsWithDefaultsCompiler(inputParams: InputParams) =

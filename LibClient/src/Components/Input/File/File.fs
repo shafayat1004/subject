@@ -11,7 +11,7 @@ module File =
 
     type AcceptedType =
     | FileNameExtension of string
-    | MimeType of MimeType
+    | MimeType          of MimeType
     | AnyAudioFile
     | AnyVideoFile
     | AnyImageFile
@@ -118,40 +118,40 @@ module Input_FileComponent =
                 let allFiles =
                     match (selectionMode, mappedResults) with
                     | (AppendToExisting, Ok result) -> Ok (value @ result)
-                    | _ -> mappedResults
+                    | _                             -> mappedResults
                 match (InputValidity.Valid, allFiles, maxFileCount) with
                 | (InputValidity.Valid, Ok loadedFiles, Some (maxCount: Positive.PositiveInteger)) when loadedFiles.Length > maxCount.Value ->
                     setInternalValidity (InputValidity.Invalid "Too many files")
                 | (InputValidity.Valid, Ok _, _) -> onChange allFiles
-                | _ -> Noop
+                | _                              -> Noop
             } |> startSafely
 
     let private legacyTopLevelStyles xLegacyStyles =
         match xLegacyStyles with
         | Some ls ->
             match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-            | [] -> [||]
+            | []     -> [||]
             | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member File(
-                value: list<LibLifeCycleFile>,
-                validity: InputValidity,
-                onChange: Result<list<LibLifeCycleFile>, string> -> unit,
-                ?children: ReactChildrenProp,
+                value:          list<LibLifeCycleFile>,
+                validity:       InputValidity,
+                onChange:       Result<list<LibLifeCycleFile>, string> -> unit,
+                ?children:      ReactChildrenProp,
                 ?acceptedTypes: Set<AcceptedType>,
                 ?selectionMode: SelectionMode,
-                ?maxFileCount: Positive.PositiveInteger,
-                ?maxFileSize: int<KB>,
-                ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?key: string,
+                ?maxFileCount:  Positive.PositiveInteger,
+                ?maxFileSize:   int<KB>,
+                ?styles:        array<ViewStyles>,
+                ?theme:         Theme -> Theme,
+                ?key:           string,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
-            key |> ignore
+            key      |> ignore
 
             let acceptedTypes = defaultArg acceptedTypes Set.empty
             let selectionMode = defaultArg selectionMode ReplacedExisting
@@ -164,7 +164,7 @@ module Input_FileComponent =
                     internalValidityHook.update (fun current ->
                         match current with
                         | InputValidity.Valid -> current
-                        | _ -> InputValidity.Valid)),
+                        | _                   -> InputValidity.Valid)),
                 [| box valueLength |]
             )
 
@@ -195,7 +195,7 @@ module Input_FileComponent =
                     (fun () ->
                         fun (div: Browser.Types.Element) ->
                             div.addEventListener("dragover", fun (e: Browser.Types.Event) -> e.preventDefault())
-                            div.addEventListener("drop", fun (e: Browser.Types.Event) ->
+                            div.addEventListener("drop", fun (e:     Browser.Types.Event) ->
                                 e.preventDefault()
                                 let maybeDataTransfer: Option<Browser.Types.DataTransfer> = e?dataTransfer
                                 maybeDataTransfer |> Option.sideEffect (fun dt ->
@@ -214,15 +214,15 @@ module Input_FileComponent =
                 internalValidityHook.current.IsInvalid || validity.IsInvalid || validity = InputValidity.Missing
 
             Rn.View(
-                styles = [| Styles.view; if isInvalid then Styles.viewInvalid theTheme.InvalidColor.ToCssString; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
+                styles   = [| Styles.view; if isInvalid then Styles.viewInvalid theTheme.InvalidColor.ToCssString; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
                 children = [|
                     LC.With.RefDom(
                         onInitialize = onDropZoneInitialize,
-                        ``with`` = fun (bindDivRef, _) ->
+                        ``with``     = fun (bindDivRef, _) ->
                             FRS.div [ Ref bindDivRef ] [|
                                 LC.With.RefDom(
                                     onInitialize = onInputInitialize,
-                                    ``with`` = fun (bindRef, maybeFileInputElement) ->
+                                    ``with``     = fun (bindRef, maybeFileInputElement) ->
                                         [|
                                             FRS.input [ FRP.Type "file"; FRP.Multiple true; FRP.Hidden true; FRP.Ref bindRef; FRP.Accept acceptValue ]
                                             LC.Button(
@@ -235,14 +235,14 @@ module Input_FileComponent =
                                         |> castAsElement
                                 )
                                 Rn.View(
-                                    styles = [| Styles.dragAndDropMessage |],
+                                    styles   = [| Styles.dragAndDropMessage |],
                                     children = [|
                                         LC.LegacyText(
-                                            styles = [| Styles.textCenter |],
+                                            styles   = [| Styles.textCenter |],
                                             children = [|
                                                 match maxFileCount with
                                                 | Some c when c.Value = 1 -> makeTextNode2 (Some "LibClient.Components.LegacyText") "or drag and drop file here"
-                                                | _ -> makeTextNode2 (Some "LibClient.Components.LegacyText") "or drag and drop files here"
+                                                | _                       -> makeTextNode2 (Some "LibClient.Components.LegacyText") "or drag and drop files here"
                                             |]
                                         )
                                     |]
@@ -250,30 +250,30 @@ module Input_FileComponent =
                                 Rn.View(
                                     children = [|
                                         LC.LegacyText(
-                                            styles = [| Styles.textCenter |],
+                                            styles   = [| Styles.textCenter |],
                                             children = [|
                                                 match (maxFileCount, maxFileSize) with
                                                 | (Some c, Some s) when c.Value > 1 -> makeTextNode2 (Some "LibClient.Components.LegacyText") $"Maximum {c.Value} files each below {kBToMB s} MB"
-                                                | (Some c, None) when c.Value > 1 -> makeTextNode2 (Some "LibClient.Components.LegacyText") $"Maximum {c.Value} files"
-                                                | (_, Some s) -> makeTextNode2 (Some "LibClient.Components.LegacyText") $"Size below {kBToMB s} MB"
-                                                | _ -> noElement
+                                                | (Some c, None) when c.Value > 1   -> makeTextNode2 (Some "LibClient.Components.LegacyText") $"Maximum {c.Value} files"
+                                                | (_, Some s)                       -> makeTextNode2 (Some "LibClient.Components.LegacyText") $"Size below {kBToMB s} MB"
+                                                | _                                 -> noElement
                                             |]
                                         )
                                     |]
                                 )
                                 Rn.View(
-                                    styles = [| Styles.messageContainer |],
+                                    styles   = [| Styles.messageContainer |],
                                     children = [|
                                         Rn.View(
                                             children = [|
                                                 if value.Length = 1 then
                                                     LC.LegacyText(
-                                                        styles = [| Styles.infoMessage |],
+                                                        styles   = [| Styles.infoMessage |],
                                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") $"{value.Length} file selected" |]
                                                     )
                                                 elif value.Length > 1 then
                                                     LC.LegacyText(
-                                                        styles = [| Styles.infoMessage |],
+                                                        styles   = [| Styles.infoMessage |],
                                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") $"{value.Length} files selected" |]
                                                     )
                                                 else noElement
@@ -284,7 +284,7 @@ module Input_FileComponent =
                                             Rn.View(
                                                 children = [|
                                                     LC.LegacyText(
-                                                        styles = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
+                                                        styles   = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
                                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") reason |]
                                                     )
                                                 |]
@@ -295,7 +295,7 @@ module Input_FileComponent =
                                             Rn.View(
                                                 children = [|
                                                     LC.LegacyText(
-                                                        styles = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
+                                                        styles   = [| Styles.invalidReason theTheme.InvalidColor.ToCssString |],
                                                         children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "This field is required" |]
                                                     )
                                                 |]

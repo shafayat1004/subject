@@ -21,7 +21,7 @@ type NonemptyMap<'K, 'V when 'K: comparison> =
         let updated = this.ToMap.Remove key
 
         match updated.IsEmpty with
-        | true -> None
+        | true  -> None
         | false -> Some(NonemptyMap updated)
 
     member this.TryFind(key: 'K) : Option<'V> = this.ToMap.TryFind key
@@ -48,14 +48,14 @@ let filter (predicate: 'K -> 'V -> bool) (source: NonemptyMap<'K, 'V>) : Map<'K,
 
 let ofMap (map: Map<'K, 'V>) : Option<NonemptyMap<'K, 'V>> =
     match map.IsEmpty with
-    | true -> None
+    | true  -> None
     | false -> Some(NonemptyMap map)
 
 let ofSeq (source: seq<'K * 'V>) : Option<NonemptyMap<'K, 'V>> = source |> Map.ofSeq |> ofMap
 
 let ofSeqUnsafe (source: seq<'K * 'V>) : NonemptyMap<'K, 'V> =
     match source |> Seq.isEmpty with
-    | true -> failwith "NonemptyMap.ofSeqUnsafe : Cannot create NonemptyMap from an empty Seq"
+    | true  -> failwith "NonemptyMap.ofSeqUnsafe : Cannot create NonemptyMap from an empty Seq"
     | false -> source |> Map.ofSeq |> ofMap |> Option.get
 
 let ofNonemptyList (source: NonemptyList<'K * 'V>) : NonemptyMap<'K, 'V> =
@@ -107,7 +107,7 @@ let find (key: 'K) (source: NonemptyMap<'K, 'V>) : 'V = Map.find key (toMap sour
 
 let updateValue (key: 'K) (updater: 'V -> 'V) (source: NonemptyMap<'K, 'V>) : NonemptyMap<'K, 'V> =
     match source.TryFind key with
-    | None -> source
+    | None       -> source
     | Some value -> source.AddOrUpdate(key, updater value)
 
 let mergeMany (maps: NonemptyList<NonemptyMap<'K, 'V>>) : NonemptyMap<'K, 'V> =
@@ -135,7 +135,7 @@ let multiPartition (keyer: 'K -> 'V -> 'PartitionKey) (source: Map<'K, 'V>) : Ma
             let updatedPartition =
                 match acc.TryFind partitionKey with
                 | Some partition -> partition.AddOrUpdate(key, value)
-                | None -> ofOneItem (key, value)
+                | None           -> ofOneItem (key, value)
 
             acc.AddOrUpdate(partitionKey, updatedPartition))
         Map.empty
@@ -148,7 +148,7 @@ let multiPartitionNonempty
 
 let addOrUpdateOrCreate (maybeSource: Option<NonemptyMap<'K, 'V>>) (key: 'K, value: 'V) : NonemptyMap<'K, 'V> =
     match maybeSource with
-    | None -> ofOneItem (key, value)
+    | None        -> ofOneItem (key, value)
     | Some source -> source.AddOrUpdate(key, value)
 
 let updateValueOrCreate
@@ -157,14 +157,14 @@ let updateValueOrCreate
     (maybeSource: Option<NonemptyMap<'K, 'V>>)
     : NonemptyMap<'K, 'V> =
     match maybeSource with
-    | None -> ofOneItem (key, updater None)
+    | None        -> ofOneItem (key, updater None)
     | Some source -> source |> updateValue key (fun value -> updater (Some value))
 
 [<RequireQualifiedAccess>]
 type NonemptyMapUpdateOrRemoveResult<'K, 'V> =
     | NoAction
-    | Update of 'V
-    | Replace of 'K * 'V
+    | Update       of 'V
+    | Replace      of 'K * 'V
     | UpdateAndAdd of ('V) * ('K * 'V)
 
 let updateOrReplace
@@ -209,7 +209,7 @@ let removeAndUpdateInNonemptyMap
     (valueToRemove: 'V)
     : Option<NonemptyMap<'K, NonemptySet<'V>>> =
     match nonemptySet.Remove valueToRemove with
-    | None -> map.Remove key
+    | None                    -> map.Remove key
     | Some updatedNonemtpySet -> map.AddOrUpdate(key, updatedNonemtpySet) |> Some
 
 let removeMultipleAndUpdateInNonemptyMap
@@ -219,7 +219,7 @@ let removeMultipleAndUpdateInNonemptyMap
     (valuesToRemove: NonemptySet<'V>)
     : Option<NonemptyMap<'K, NonemptySet<'V>>> =
     match nonemptySet.Remove valuesToRemove with
-    | None -> map.Remove key
+    | None                    -> map.Remove key
     | Some updatedNonemtpySet -> map.AddOrUpdate(key, updatedNonemtpySet) |> Some
 
 

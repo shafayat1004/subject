@@ -17,9 +17,9 @@ module private Styles =
 type LibClient.Components.Constructors.LC.Nav.Top with
     [<Component>]
     static member Image(
-            source: LibClient.Services.ImageService.ImageSource,
+            source:  LibClient.Services.ImageService.ImageSource,
             ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?key:    string) : ReactElement =
         key |> ignore
 
         Rn.Image(
@@ -28,7 +28,7 @@ type LibClient.Components.Constructors.LC.Nav.Top with
                     Styles.image
                     yield! (styles |> Option.defaultValue [||])
                 |],
-            source = source,
-            size = FromStyles,
+            source     = source,
+            size       = FromStyles,
             resizeMode = Cover
         )

@@ -64,7 +64,7 @@ type MapTypeId = ThirdParty.Map.Types.MapTypeId
 type ThirdParty.Map.Components.Constructors.Map with
     [<Component>]
     static member Base(
-            apiKey:            string,
+            apiKey:             string,
             ?position:          MapPosition,
             ?onPositionChanged: MapPosition -> unit,
             ?zoom:              int,
@@ -105,7 +105,7 @@ type ThirdParty.Map.Components.Constructors.Map with
             maybeNativeRef.current
             |> Option.sideEffect (fun nativeRef ->
                 nativeRef.animateCamera ({
-                    zoom = config.zoom
+                    zoom   = config.zoom
                     center = (config.location |> LatLng.asNativeMapViewCoordinates)
                 })
             )
@@ -123,41 +123,41 @@ type ThirdParty.Map.Components.Constructors.Map with
                 [|
                     #if EGGSHELL_PLATFORM_IS_WEB
                     Map.Web.Map(
-                        apiKey = apiKey,
-                        position = position,
+                        apiKey             = apiKey,
+                        position           = position,
                         ?onPositionChanged = onPositionChanged,
-                        ?zoom = zoom,
-                        ?markers = markers,
-                        ?shapes = shapes,
-                        ?directions = directions,
-                        ?backgroundColor = backgroundColor,
-                        ?clickableIcons = clickableIcons,
-                        ?disableDefaultUI = disableDefaultUI,
-                        ?minZoom = minZoom,
-                        ?maxZoom = maxZoom,
-                        ?fullScreen = fullScreen,
-                        ?mapStyles = mapStyles,
-                        ?mapTypeId = mapTypeId,
-                        ref = (fun webRef -> maybeWebRef.current <- Some webRef)
+                        ?zoom              = zoom,
+                        ?markers           = markers,
+                        ?shapes            = shapes,
+                        ?directions        = directions,
+                        ?backgroundColor   = backgroundColor,
+                        ?clickableIcons    = clickableIcons,
+                        ?disableDefaultUI  = disableDefaultUI,
+                        ?minZoom           = minZoom,
+                        ?maxZoom           = maxZoom,
+                        ?fullScreen        = fullScreen,
+                        ?mapStyles         = mapStyles,
+                        ?mapTypeId         = mapTypeId,
+                        ref                = (fun webRef -> maybeWebRef.current <- Some webRef)
                     )
                     #else
                     let isFullScreen = fullScreen |> Option.defaultValue false
                     Map.Native.Map(
                         apiKey = apiKey,
-                        ?zoom = zoom,
+                        ?zoom  = zoom,
                         value =
                             (match position with
                              | MapPosition.LatLng latLng -> latLng
-                             | MapPosition.Auto -> failwith "MapPosition.Auto not supported on native"),
-                        ?markers = markers,
+                             | MapPosition.Auto          -> failwith "MapPosition.Auto not supported on native"),
+                        ?markers   = markers,
                         fullScreen = isFullScreen,
-                        ?shapes = shapes,
-                        ref = (fun nativeRef -> maybeNativeRef.current <- Some nativeRef),
+                        ?shapes    = shapes,
+                        ref        = (fun nativeRef -> maybeNativeRef.current <- Some nativeRef),
                         onChange =
                             (fun maybeLatLng ->
                                 match onPositionChanged, maybeLatLng with
                                 | Some handler, Some latLng -> latLng |> MapPosition.LatLng |> handler
-                                | _ -> ())
+                                | _                         -> ())
                     )
                     #endif
                     match onLocatePress with

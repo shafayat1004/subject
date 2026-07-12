@@ -20,6 +20,6 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member FormFieldsDivider() : ReactElement =
         Rn.View(
-            styles = [| Styles.view |],
+            styles   = [| Styles.view |],
             children = [||]
         )

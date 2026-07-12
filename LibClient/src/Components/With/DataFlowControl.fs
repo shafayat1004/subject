@@ -86,7 +86,7 @@ type LibClient.Components.Constructors.LC.With with
                                 children =
                                     elements {
                                         LC.Text(
-                                            value = message,
+                                            value  = message,
                                             styles = [| Styles.confirmMessage |]
                                         )
                                         LC.TextButton(

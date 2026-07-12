@@ -15,7 +15,7 @@ type OrderedSet<'V when 'V: comparison> =
     private
         { ValueToIndex: Map<'V, uint32>
           IndexToValue: Map<uint32, 'V>
-          LastIndex: uint32 }
+          LastIndex:    uint32 }
 
 #if !FABLE_COMPILER
     override this.GetHashCode() = this.IndexToValue.GetHashCode()
@@ -33,7 +33,7 @@ type OrderedSet<'V when 'V: comparison> =
         member this.CompareTo(other) =
             match other with
             | :? OrderedSet<'V> as typedOther -> (this.ToList :> IComparable<_>).CompareTo typedOther.ToList
-            | _ -> invalidArg "obj" "not a OrderedSet"
+            | _                               -> invalidArg "obj" "not a OrderedSet"
 #endif
 
     member this.ToSeq: seq<'V> = this.IndexToValue.Values
@@ -47,7 +47,7 @@ type OrderedSet<'V when 'V: comparison> =
     member this.ContainsOneOf(items: List<'V>) : bool =
         let rec loop (currentItems: List<'V>) : bool =
             match currentItems with
-            | [] -> false
+            | []           -> false
             | head :: tail -> if this.Contains head then true else this.ContainsOneOf tail
 
         loop items
@@ -71,7 +71,7 @@ type OrderedSet<'V when 'V: comparison> =
 
                 { ValueToIndex = this.ValueToIndex.Add(item, nextIndex)
                   IndexToValue = this.IndexToValue.Add(nextIndex, item)
-                  LastIndex = nextIndex }
+                  LastIndex    = nextIndex }
 
     member this.Add(items: seq<'V>) : OrderedSet<'V> =
         Seq.fold (fun (acc: OrderedSet<'V>) (curr: 'V) -> acc.Add curr) this items
@@ -97,10 +97,11 @@ open CodecLib
 #endif
 
 module OrderedSet =
-    let empty<'V when 'V: comparison> : OrderedSet<'V> =
-        { ValueToIndex = Map.empty<'V, uint32>
-          IndexToValue = Map.empty<uint32, 'V>
-          LastIndex = 0u }
+    let empty<'V when 'V: comparison> : OrderedSet<'V> = {
+        ValueToIndex = Map.empty<'V, uint32>
+        IndexToValue = Map.empty<uint32, 'V>
+        LastIndex    = 0u
+    }
 
     let ofOneItem (item: 'V) : OrderedSet<'V> = empty<'V>.Add item
 

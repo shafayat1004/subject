@@ -23,8 +23,8 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tags(
             children: ReactElements,
-            ?styles: array<ViewStyles>,
-            ?key: string
+            ?styles:  array<ViewStyles>,
+            ?key:     string
         ) : ReactElement =
         key |> ignore
 

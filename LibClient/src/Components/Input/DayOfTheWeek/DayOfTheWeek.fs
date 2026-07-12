@@ -21,8 +21,8 @@ module DayOfTheWeek =
 
         member this.OnPress (day: DayOfTheWeek) (_e: ReactEvent.Action) : unit =
             match this with
-            | MaybeOne (Some selectedDay, onChange) when selectedDay = day -> onChange None
-            | MaybeOne (_, onChange)                                       -> onChange (Some day)
+            | MaybeOne (Some selectedDay, onChange) when selectedDay = day  -> onChange None
+            | MaybeOne (_, onChange)                                        -> onChange (Some day)
             | One      (Some selectedDay, _onChange) when selectedDay = day -> Noop
             | One      (_, onChange)                                        -> onChange day
             | Set      (days, onChange)                                     -> onChange (days.Toggle day)
@@ -162,7 +162,7 @@ module Input_DayOfTheWeek =
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
-            key |> ignore
+            key           |> ignore
             xLegacyStyles |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith (None : Option<Theme -> Theme>)
@@ -174,7 +174,7 @@ module Input_DayOfTheWeek =
                         match label with
                         | Some lbl ->
                             Rn.View(
-                                styles   = [| Styles.label |],
+                                styles = [| Styles.label |],
                                 children =
                                     [|
                                         LC.Text(
@@ -190,7 +190,7 @@ module Input_DayOfTheWeek =
                         | None ->
                             if validity = Missing then
                                 Rn.View(
-                                    styles   = [| Styles.label |],
+                                    styles = [| Styles.label |],
                                     children =
                                         [|
                                             LC.Text(
@@ -208,7 +208,7 @@ module Input_DayOfTheWeek =
                             children =
                                 [|
                                     Rn.View(
-                                        styles   = [| Styles.days |],
+                                        styles = [| Styles.days |],
                                         children =
                                             [|
                                                 for day in LibClient.Components.Input.DayOfTheWeek.days do
@@ -233,12 +233,12 @@ module Input_DayOfTheWeek =
                                                                         |]
                                                                 )
                                                                 LC.Pressable(
-                                                                    onPress = mode.OnPress day,
-                                                                    label = dayLabel,
-                                                                    testId = A11ySlug.testId "day-of-week" dayLabel,
-                                                                    role = AccessibilityRole.Button,
-                                                                    state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
-                                                                    overlay = true,
+                                                                    onPress       = mode.OnPress day,
+                                                                    label         = dayLabel,
+                                                                    testId        = A11ySlug.testId "day-of-week" dayLabel,
+                                                                    role          = AccessibilityRole.Button,
+                                                                    state         = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                                                                    overlay       = true,
                                                                     componentName = "LC.Input.DayOfTheWeek"
                                                                 )
                                                             |]

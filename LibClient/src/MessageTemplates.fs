@@ -6,7 +6,7 @@ open System.Text
 
 type NamedHole =
     {
-        Name: string
+        Name:               string
         TemplateStartIndex: int
     }
 
@@ -37,7 +37,7 @@ with
                     if index - currentNamedHoleStartIndex > 1 then
                         yield
                             {
-                                Name = templateStr.Substring(currentNamedHoleStartIndex + 1, index - currentNamedHoleStartIndex - 1)
+                                Name               = templateStr.Substring(currentNamedHoleStartIndex + 1, index - currentNamedHoleStartIndex - 1)
                                 TemplateStartIndex = currentNamedHoleStartIndex
                             }
                     else
@@ -53,13 +53,13 @@ with
 type Property =
     {
         NamedHole: NamedHole
-        Value: obj
+        Value:     obj
     }
 
 type Event =
     {
         MessageTemplate: MessageTemplate
-        Arguments: obj[]
+        Arguments:       obj[]
     }
 with
     member internal this.GetNamedHolesAndValues(): seq<ZipOuterResult<NamedHole, obj>> =
@@ -73,7 +73,7 @@ with
             | ZipOuterResult.BothPresent (namedHole, value) ->
                 {
                     NamedHole = namedHole
-                    Value = value
+                    Value     = value
                 }
                 |> Some
             | _ -> None

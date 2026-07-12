@@ -244,9 +244,9 @@ module InfallibleOperationBuilderExtensions =
             let! subjectRef = context.Query CurrentSubjectRef
             let! guid = unique.Query NewUuid
             return
-                { Id_ = guid
+                { Id_       = guid
                   Revision_ = 0u
-                  Owner_ = subjectRef }
+                  Owner_    = subjectRef }
         }
 
     type InfallibleOperationBuilder with

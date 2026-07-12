@@ -39,7 +39,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
                     match maybeTelemetrySink with
                     | Some telemetrySink -> telemetrySink
-                    | None -> ()
+                    | None               -> ()
                 }
 
             setLogLevel LogLevel.Info

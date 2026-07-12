@@ -16,9 +16,10 @@ let ``convert prefix Range to offsets``() =
                 bar\r\n\
                 doh"
     let textBuilder = new StringBuilder(text)
-    let range =
-        { start = {line = 0; character = 0}
-          ``end`` = {line = 0; character = 3} }
+    let range = {
+        start   = {line = 0; character = 0}
+        ``end`` = {line = 0; character = 3}
+    }
     let found = DocumentStoreUtils.findRange(textBuilder, range)
     Assert.AreEqual((0, 3), found)
 
@@ -28,9 +29,10 @@ let ``convert suffix Range to offsets``() =
                 bar\r\n\
                 doh"
     let textBuilder = new StringBuilder(text)
-    let range =
-        { start = {line = 2; character = 1}
-          ``end`` = {line = 2; character = 3} }
+    let range = {
+        start   = {line = 2; character = 1}
+        ``end`` = {line = 2; character = 3}
+    }
     let found = DocumentStoreUtils.findRange(textBuilder, range)
     Assert.AreEqual((11, 13), found)
 
@@ -40,9 +42,10 @@ let ``convert line-spanning Range to offsets``() =
                 bar\r\n\
                 doh"
     let textBuilder = new StringBuilder(text)
-    let range =
-        { start = {line = 1; character = 2}
-          ``end`` = {line = 2; character = 1} }
+    let range = {
+        start   = {line = 1; character = 2}
+        ``end`` = {line = 2; character = 1}
+    }
     let found = DocumentStoreUtils.findRange(textBuilder, range)
     Assert.AreEqual((7, 11), found)
 
@@ -53,12 +56,14 @@ let ``open document``() =
     let store = DocumentStore()
     let exampleUri = exampleUri
     let helloWorld = "Hello world!"
-    let openDoc: DidOpenTextDocumentParams =
-        { textDocument =
-            { uri = exampleUri
-              languageId = "plaintext"
-              version = 1
-              text = helloWorld } }
+    let openDoc: DidOpenTextDocumentParams = {
+        textDocument = {
+            uri        = exampleUri
+            languageId = "plaintext"
+            version    = 1
+            text       = helloWorld
+        }
+    }
     store.Open(openDoc)
     let found = store.GetText(FileInfo(exampleUri.LocalPath))
     Assert.AreEqual(Some(helloWorld), found)
@@ -66,12 +71,14 @@ let ``open document``() =
 let helloStore() =
     let store = DocumentStore()
     let helloWorld = "Hello world!"
-    let openDoc: DidOpenTextDocumentParams =
-        { textDocument =
-            { uri = exampleUri
-              languageId = "plaintext"
-              version = 1
-              text = helloWorld } }
+    let openDoc: DidOpenTextDocumentParams = {
+        textDocument = {
+            uri        = exampleUri
+            languageId = "plaintext"
+            version    = 1
+            text       = helloWorld
+        }
+    }
     store.Open(openDoc)
     store
 
@@ -79,14 +86,16 @@ let helloStore() =
 let ``replace a document``() =
     let store = helloStore()
     let newText = "Replaced everything"
-    let replaceAll: DidChangeTextDocumentParams =
-        { textDocument =
-            { uri = exampleUri
-              version = 2 }
-          contentChanges =
-            [ { range = None
-                rangeLength = None
-                text = newText } ] }
+    let replaceAll: DidChangeTextDocumentParams = {
+        textDocument = {
+            uri     = exampleUri
+            version = 2
+        }
+        contentChanges =
+          [ { range = None
+              rangeLength = None
+              text        = newText } ]
+    }
     store.Change(replaceAll)
     let found = store.GetText(FileInfo(exampleUri.LocalPath))
     Assert.AreEqual(Some(newText), found)
@@ -95,15 +104,17 @@ let ``replace a document``() =
 let ``patch a document``() =
     let store = helloStore()
     let newText = "George"
-    let replaceAll: DidChangeTextDocumentParams =
-        { textDocument =
-            { uri = exampleUri
-              version = 2 }
-          contentChanges =
-            [ { range = Some { start = {line = 0; character = 6}
-                               ``end`` = {line = 0; character = 11} }
-                rangeLength = None
-                text = newText } ] }
+    let replaceAll: DidChangeTextDocumentParams = {
+        textDocument = {
+            uri     = exampleUri
+            version = 2
+        }
+        contentChanges =
+          [ { range = Some { start = {line = 0; character = 6}
+                             ``end`` = {line = 0; character = 11} }
+              rangeLength = None
+              text        = newText } ]
+    }
     store.Change(replaceAll)
     let found = store.GetText(FileInfo(exampleUri.LocalPath))
     Assert.AreEqual(Some("Hello George!"), found)

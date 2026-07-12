@@ -17,8 +17,8 @@ let private getOrCreateLiveRegion (politeness: string) : Browser.Types.Element =
     | _ ->
         let el = Browser.Dom.document.createElement "div"
         el?id <- id
-        el?setAttribute ("aria-live", politeness) |> ignore
-        el?setAttribute ("aria-atomic", "true") |> ignore
+        el?setAttribute ("aria-live", politeness)           |> ignore
+        el?setAttribute ("aria-atomic", "true")             |> ignore
         el?setAttribute ("aria-relevant", "additions text") |> ignore
         el?setAttribute (
             "style",
@@ -32,7 +32,7 @@ let private announceWeb (message: string) (politeness: AccessibilityLiveRegion) 
     let p =
         match politeness with
         | AccessibilityLiveRegion.Assertive -> "assertive"
-        | _ -> "polite"
+        | _                                 -> "polite"
 
     let region = getOrCreateLiveRegion p
     region?textContent <- ""

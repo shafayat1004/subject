@@ -19,31 +19,32 @@ module private Helpers =
         (items: Items<'Item>)
         (value: SelectableValue<'Item>)
         : PickerModel<'Item> =
-        let initialState =
-            { SelectableItems = WillStartFetchingSoonHack
-              Value = value
-              MaybeQuery = None
-              MaybeHighlightedItemIndex = None
-              KeyboardSelectionState = KeyboardSelectionState.NothingSelected
-              DeleteState = DeleteState.Idle
-              IsListVisible = false
-              MaybeFieldWidth = None }
+        let initialState = {
+            SelectableItems           = WillStartFetchingSoonHack
+            Value                     = value
+            MaybeQuery                = None
+            MaybeHighlightedItemIndex = None
+            KeyboardSelectionState    = KeyboardSelectionState.NothingSelected
+            DeleteState               = DeleteState.Idle
+            IsListVisible             = false
+            MaybeFieldWidth           = None
+        }
 
         PickerModel(LibClient.ServiceInstances.services().EventBus, items, initialState)
 
 let renderPickerBase<'Item when 'Item: comparison>
     (
-        items: Items<'Item>,
-        itemView: PickerItemView<'Item>,
-        value: SelectableValue<'Item>,
-        validity: InputValidity,
-        screenSize: ScreenSize,
+        items:         Items<'Item>,
+        itemView:      PickerItemView<'Item>,
+        value:         SelectableValue<'Item>,
+        validity:      InputValidity,
+        screenSize:    ScreenSize,
         showSearchBar: bool,
-        label: string option,
-        placeholder: string option,
-        testId: string option,
-        pickerId: string option,
-        styles: ViewStyles array option,
+        label:         string option,
+        placeholder:   string option,
+        testId:        string option,
+        pickerId:      string option,
+        styles:        ViewStyles array option,
         xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option
     ) : ReactElement =
     let popupId = "LibClient.Components.Input.Picker"
@@ -55,7 +56,7 @@ let renderPickerBase<'Item when 'Item: comparison>
     Hooks.useEffect ((fun () -> modelRef.current.SetValue value), [| box value |])
 
     let hideList () : unit =
-        maybePopupHideRef.current |> Option.sideEffect (fun hide -> hide ())
+        maybePopupHideRef.current  |> Option.sideEffect (fun hide -> hide ())
         maybeDialogHideRef.current |> Option.sideEffect (fun hide -> hide ())
 
     let showList () : unit =
@@ -112,7 +113,7 @@ let renderPickerBase<'Item when 'Item: comparison>
                     match (update.Prev.IsListVisible, update.Next.IsListVisible) with
                     | (false, true) -> showList ()
                     | (true, false) -> hideList ()
-                    | _ -> Noop)
+                    | _             -> Noop)
 
             { new System.IDisposable with
                 member _.Dispose() =
@@ -129,14 +130,14 @@ let renderPickerBase<'Item when 'Item: comparison>
         ref = (fun r -> anchorRef.current <- r),
         children =
             [| LC.Input.PickerInternals.Field(
-                   model = modelRef.current,
-                   ?label = label,
-                   ?placeholder = placeholder,
-                   ?testId = testId,
-                   value = value,
-                   validity = validity,
-                   itemView = itemView,
-                   ?styles = styles,
+                   model          = modelRef.current,
+                   ?label         = label,
+                   ?placeholder   = placeholder,
+                   ?testId        = testId,
+                   value          = value,
+                   validity       = validity,
+                   itemView       = itemView,
+                   ?styles        = styles,
                    ?xLegacyStyles = xLegacyStyles
                ) |]
     )
@@ -145,18 +146,18 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
     [<Component>]
     static member Base<'Item when 'Item: comparison>
         (
-            items: Items<'Item>,
-            itemView: PickerItemView<'Item>,
-            value: SelectableValue<'Item>,
-            validity: InputValidity,
-            screenSize: ScreenSize,
-            showSearchBar: bool,
-            ?label: string,
-            ?placeholder: string,
-            ?testId: string,
-            ?pickerId: string,
-            ?styles: array<ViewStyles>,
-            ?key: string,
+            items:          Items<'Item>,
+            itemView:       PickerItemView<'Item>,
+            value:          SelectableValue<'Item>,
+            validity:       InputValidity,
+            screenSize:     ScreenSize,
+            showSearchBar:  bool,
+            ?label:         string,
+            ?placeholder:   string,
+            ?testId:        string,
+            ?pickerId:      string,
+            ?styles:        array<ViewStyles>,
+            ?key:           string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore

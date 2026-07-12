@@ -39,7 +39,7 @@ let rec getUsedComponents (node: ReactTemplateNode): Set<string> =
 
     | DomNode (_, maybeChildren, _, _) ->
         match maybeChildren with
-        | None -> Set.empty
+        | None          -> Set.empty
         | Some children -> getUsedComponentsPlural children
 
     | Component (_libraryAlias, nameSpace, name, _, children, _) ->
@@ -87,7 +87,7 @@ type RenderDslCompiler(inputParams: InputParams) =
         let bodyCodeAdjusted =
             match inputParams.WithStyles with
             | false -> bodyCodeWithTypeConversion
-            | true -> Codes [
+            | true  -> Codes [
                 (Line "let __class = (Rn.Helpers.extractProp \"ClassName\" props) |> Option.defaultValue \"\"")
                 (Line "let __mergedStyles = Rn.LegacyStyles.Runtime.mergeComponentAndPropsStyles __componentStyles props")
                 bodyCodeWithTypeConversion

@@ -64,7 +64,7 @@ type ThirdParty.ReCaptcha.Components.Constructors.ReCaptcha.With with
                         ref =
                             (fun (nullableInstance: JsNullable<WebViewMethods>) ->
                                 maybeBrowserRef.update nullableInstance.ToOption),
-                        source = { html = sourceHtml siteKey; baseUrl = Some baseUrl },
+                        source    = { html = sourceHtml siteKey; baseUrl = Some baseUrl },
                         onMessage = onMessageHandler
                     )
                     ``with`` getToken

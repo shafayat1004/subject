@@ -8,10 +8,10 @@ and FullyTypedReferencedViewFunction<'Res, 'Input, 'Output, 'OpError when 'OpErr
     abstract member Invoke: ReferencedView<'Input, 'Output, 'OpError, 'AccessPredicateInput, 'Session, 'Role> -> 'Res
 
 and IReferencedView =
-    abstract member Name: string
-    abstract member Def: IViewDef
+    abstract member Name:            string
+    abstract member Def:             IViewDef
     abstract member EnableApiAccess: bool
-    abstract member Invoke: FullyTypedReferencedViewFunction<'Res> -> 'Res
+    abstract member Invoke:          FullyTypedReferencedViewFunction<'Res> -> 'Res
 
 and IReferencedView<'Input, 'Output, 'OpError when 'OpError :> OpError> =
     inherit IReferencedView

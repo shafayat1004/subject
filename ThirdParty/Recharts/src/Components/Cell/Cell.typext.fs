@@ -33,4 +33,3 @@ let Make =
                 ?strokeWidth = props.StrokeWidth
             ) |> box
         )
-

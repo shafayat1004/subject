@@ -7,11 +7,11 @@ open CodecLib
 open EvolutionCheckerLib
 
 let shouldNotEvolve = function
-    | Ok o -> failwithf $"Evolution should fail, but got Ok: %A{o}"
+    | Ok o    -> failwithf $"Evolution should fail, but got Ok: %A{o}"
     | Error _ -> ()
 
 let shouldEvolve = function
-    | Ok _ -> ()
+    | Ok _    -> ()
     | Error e -> failwithf $"Evolution should pass, but got error: %A{e}"
 
 type TypeWithOptionalFieldOptWtih = {

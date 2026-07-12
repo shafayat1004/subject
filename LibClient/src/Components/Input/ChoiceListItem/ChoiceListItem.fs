@@ -76,7 +76,7 @@ module ChoiceListItem_fs =
     module private ChoiceListItemHelpers =
         let isCheckboxMode (value: SelectableValue<'T>) =
             match value with
-            | SelectableValue.AtLeastOne _ | SelectableValue.Any _ -> true
+            | SelectableValue.AtLeastOne _ | SelectableValue.Any _       -> true
             | SelectableValue.AtMostOne _ | SelectableValue.ExactlyOne _ -> false
 
         let accessibilityRole (value: SelectableValue<'T>) =
@@ -101,7 +101,7 @@ module ChoiceListItem_fs =
         let maybeLabelString (label: Label) =
             match label with
             | Label.String text -> Some text
-            | Label.Children -> None
+            | Label.Children    -> None
 
         let resolveAccessibilityLabel (label: Label) (accessibilityLabel: string option) (resolvedTestId: string) : string =
             match label with
@@ -126,18 +126,18 @@ module ChoiceListItem_fs =
     type Constructors.LC.Input with
         [<Component>]
         static member ChoiceListItem<'T when 'T: comparison>(
-                value: 'T,
-                group: Group<'T>,
-                ?children: ReactChildrenProp,
-                ?label: Label,
+                value:               'T,
+                group:               Group<'T>,
+                ?children:           ReactChildrenProp,
+                ?label:              Label,
                 ?accessibilityLabel: string,
-                ?testId: string,
-                ?iconPosition: IconPosition,
-                ?styles: array<ViewStyles>,
-                ?key: string,
-                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+                ?testId:             string,
+                ?iconPosition:       IconPosition,
+                ?styles:             array<ViewStyles>,
+                ?key:                string,
+                ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
-            key |> ignore
+            key           |> ignore
             xLegacyStyles |> ignore
 
             let label = defaultArg label Label.Children
@@ -152,7 +152,7 @@ module ChoiceListItem_fs =
 
             let iconElement =
                 LC.Icon(
-                    icon = ChoiceListItemHelpers.selectionIcon group.Value isSelected,
+                    icon   = ChoiceListItemHelpers.selectionIcon group.Value isSelected,
                     styles = [| iconStyles |]
                 )
 
@@ -170,12 +170,12 @@ module ChoiceListItem_fs =
                         match label with
                         | Label.Children ->
                             Rn.View(
-                                styles = ChoiceListItemStyles.labelStyles iconPosition,
+                                styles   = ChoiceListItemStyles.labelStyles iconPosition,
                                 children = (children |> Option.defaultValue [||])
                             )
                         | Label.String text ->
                             Rn.View(
-                                styles = ChoiceListItemStyles.labelStyles iconPosition,
+                                styles   = ChoiceListItemStyles.labelStyles iconPosition,
                                 children = [| LC.UiText text |]
                             )
 
@@ -183,12 +183,12 @@ module ChoiceListItem_fs =
                             iconElement
 
                         LC.Pressable(
-                            onPress = group.Toggle value,
-                            label = a11yLabel,
-                            testId = resolvedTestId,
-                            role = a11yRole,
-                            state = a11yState,
-                            overlay = true,
+                            onPress       = group.Toggle value,
+                            label         = a11yLabel,
+                            testId        = resolvedTestId,
+                            role          = a11yRole,
+                            state         = a11yState,
+                            overlay       = true,
                             componentName = "LC.Input.ChoiceListItem"
                         )
                     }

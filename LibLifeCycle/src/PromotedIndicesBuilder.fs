@@ -14,7 +14,7 @@ type PromotedIndex<'NumericIndex, 'StringIndex>
     when 'StringIndex :> Union
     and 'NumericIndex :> Union =
 | Numeric of UnionCase<'NumericIndex>
-| String of UnionCase<'StringIndex>
+| String  of UnionCase<'StringIndex>
     static member PromoteIndex (caseFactory: 'TupleOrSingleValue -> 'NumericIndex) =
         UnionCase.ofCase caseFactory |> PromotedIndex<'NumericIndex, 'StringIndex>.Numeric
     static member PromoteIndex (caseFactory: 'TupleOrSingleValue -> 'StringIndex) =
@@ -26,7 +26,7 @@ type PromotedIndex<'NumericIndex, 'StringIndex>
     member this.CaseName =
         match this with
         | Numeric case -> case.CaseName
-        | String case -> case.CaseName
+        | String case  -> case.CaseName
 
 type PromotedIndicesConfig =
     private PromotedIndicesConfig of Option<(* 'SubjectNumericIndexType *) Type * (* 'SubjectStringIndexType *) Type * Map<PromotedKey, NonemptyList<Choice<BaseKey, BaseSeparator>>>>
@@ -35,7 +35,7 @@ with
         let (PromotedIndicesConfig maybeConfig) = this
         match maybeConfig with
         | Some (_, _, mappings) -> mappings
-        | None -> Map.empty
+        | None                  -> Map.empty
 
     member internal this.SubjectNumericAndStringIndexTypes =
         let (PromotedIndicesConfig maybeConfig) = this

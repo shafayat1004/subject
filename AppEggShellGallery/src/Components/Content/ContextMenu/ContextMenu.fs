@@ -37,7 +37,7 @@ type Ui.Content with
     [<Component>]
     static member ContextMenu () : ReactElement =
         Ui.ComponentContent(
-            displayName = "Context Menu",
+            displayName  = "Context Menu",
             isResponsive = true,
             notes =
                 element {
@@ -45,12 +45,12 @@ type Ui.Content with
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "ContextMenu (Popup / Dialog)",
-                    role = "menuitem on actionable items; headings and dividers non-interactive",
-                    namePattern = "Visible label text on each ContextMenuItem.Button",
-                    stateNotes = "ButtonCautionary items styled red; popup items expose selected state when isSelected",
+                    componentName  = "ContextMenu (Popup / Dialog)",
+                    role           = "menuitem on actionable items; headings and dividers non-interactive",
+                    namePattern    = "Visible label text on each ContextMenuItem.Button",
+                    stateNotes     = "ButtonCautionary items styled red; popup items expose selected state when isSelected",
                     scalesWithFont = true,
-                    contrastNotes = "Normal and cautionary item text colors meet WCAG AA",
+                    contrastNotes  = "Normal and cautionary item text colors meet WCAG AA",
                     deferredTags =
                         [
                             "[rnw-blocked] desktop popup menu landmark and focus management pending RNW migration"

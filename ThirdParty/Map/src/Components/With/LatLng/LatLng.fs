@@ -13,10 +13,10 @@ type LatLngType = ThirdParty.Map.Types.LatLng
 type ThirdParty.Map.Components.Constructors.Map.With with
     [<Component>]
     static member LatLng(
-            address: string,
+            address:  string,
             ``with``: AsyncData<LatLngType> -> ReactElement,
-            apiKey:  string,
-            ?key:    string
+            apiKey:   string,
+            ?key:     string
         ) : ReactElement =
         ignore key
 

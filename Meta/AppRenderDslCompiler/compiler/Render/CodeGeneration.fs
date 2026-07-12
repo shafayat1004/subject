@@ -61,7 +61,7 @@ let private generateForTextNodeValue (rawValue: string) : List<FsharpCode> =
     | [lonelyString] ->
         match NonemptyString.ofString lonelyString with
         | Some nonemptyLonelyString -> [ Line (sprintf "makeTextNode2 __parentFQN %O" (generateForStringExpressionValue nonemptyLonelyString)) ]
-        | None -> []
+        | None                      -> []
     | [""; lonelyExpression; ""] -> [ Line lonelyExpression ]
     | _ ->
         parts

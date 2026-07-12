@@ -395,4 +395,3 @@ type TextStyles with
 
     static member Memoize (fn: 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> TextStyles) : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> TextStyles =
         memoize6 fn
-

@@ -12,9 +12,9 @@ open ThirdParty.ReactLeafletOsmMap.Components
 
 [<Fable.Core.JS.Pojo>]
 type private PopupPropsJs
-    ( key: string, offset: obj, maxWidth: int, minWidth: int, autoPan: bool, keepInView: bool,
+    ( key:         string, offset: obj, maxWidth: int, minWidth: int, autoPan: bool, keepInView: bool,
       closeButton: bool, autoClose: bool, closeOnClick: bool, closeOnEscapeKey: bool,
-      ?position: obj, ?maxHeight: int, ?autoPanPadding: obj ) =
+      ?position:   obj, ?maxHeight: int, ?autoPanPadding: obj ) =
     member val key = key
     member val offset = offset
     member val position = position
@@ -52,17 +52,17 @@ type OsmMap with
         let wrappedProps =
             PopupPropsJs(
                 key,
-                (offset |> Option.defaultValue (Point (0, 7)) |> fun x -> x.ToJs()),
-                (maxWidth |> Option.defaultValue 300),
-                (minWidth |> Option.defaultValue 50),
-                (autoPan |> Option.defaultValue false),
-                (keepInView |> Option.defaultValue false),
-                (closeButton |> Option.defaultValue true),
-                (autoClose |> Option.defaultValue true),
-                (closeOnClick |> Option.defaultValue true),
+                (offset           |> Option.defaultValue (Point (0, 7)) |> fun x -> x.ToJs()),
+                (maxWidth         |> Option.defaultValue 300),
+                (minWidth         |> Option.defaultValue 50),
+                (autoPan          |> Option.defaultValue false),
+                (keepInView       |> Option.defaultValue false),
+                (closeButton      |> Option.defaultValue true),
+                (autoClose        |> Option.defaultValue true),
+                (closeOnClick     |> Option.defaultValue true),
                 (closeOnEscapeKey |> Option.defaultValue true),
-                ?position = (position |> Option.map (fun x -> x.ToJs())),
-                ?maxHeight = maxHeight,
+                ?position       = (position |> Option.map (fun x -> x.ToJs())),
+                ?maxHeight      = maxHeight,
                 ?autoPanPadding = (autoPanPadding |> Option.map (fun x -> x.ToJs()))
             ) |> box
 

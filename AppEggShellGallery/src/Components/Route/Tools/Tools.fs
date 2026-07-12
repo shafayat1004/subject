@@ -17,12 +17,12 @@ type Ui.Route with
         element {
             LC.SetPageMetadata(title = "Tools")
             LR.Route(
-                scroll = LibRouter.Components.Route.Vertical,
+                scroll   = LibRouter.Components.Route.Vertical,
                 children = [|
                     LC.Section.Padded(
                         children = [|
                             Showdown.MarkdownViewer(
-                                source = docMarkdownSource markdownUrl,
+                                source            = docMarkdownSource markdownUrl,
                                 globalLinkHandler = "globalMarkdownLinkHandler",
                                 showdownConverter = showdownConverterWithSyntaxHighlighting
                             )

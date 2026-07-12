@@ -12,12 +12,12 @@ open System.IO
 let (+-+) (a : string) (b : string) = Path.Combine(a, b).Replace("\\", "/")
 
 type SuiteInputs = {
-    TypesProjectPath: string
-    TypesProjectName: string
+    TypesProjectPath:                string
+    TypesProjectName:                string
     TypesProjectSourceShouldCompile: string -> bool // return false for .fs files that break codec generation, other modules shouldn't depend on them
-    ShouldIncludeCodecTypeLabel: FSharpEntity -> bool
-    AbbreviateGenericParamWitness: bool // use false if not sure
-    CrossEcosystemTypeLabelPrefix: string // to qualify type labels for cross-ecosystems calls, applies only to LifeEvent and SubjectId
+    ShouldIncludeCodecTypeLabel:     FSharpEntity -> bool
+    AbbreviateGenericParamWitness:   bool // use false if not sure
+    CrossEcosystemTypeLabelPrefix:   string // to qualify type labels for cross-ecosystems calls, applies only to LifeEvent and SubjectId
 }
 
 [<Literal>]
@@ -46,7 +46,7 @@ type Field =
     member x.DisplayName =
         match x with
         | Anon    (n, _) -> n
-        | Nominal f -> f.DisplayName
+        | Nominal f      -> f.DisplayName
 
 type Fields =
     | Anons    of fields: (string * FSharpType) []
@@ -59,7 +59,7 @@ type Fields =
 [<RequireQualifiedAccess>]
 type DuCaseQualifyStyle =
     | Unqualified
-    | Prefixed    of Prefix: string
+    | Prefixed of Prefix: string
     | QualifyFunc
 
 let private newLineDetectBufferSize = 128
@@ -82,7 +82,7 @@ let private tryAutoDetectLineEndings (fileName: string) =
                 if currentRead.Length > firstLineEndingIndex + 1 then
                     match currentRead.[firstLineEndingIndex + 1] with
                     | '\n' -> "\r\n" |> Some
-                    | _ -> "\r" |> Some
+                    | _    -> "\r" |> Some
                 else
                     let singleRead = streamReader.Read()
                     if singleRead = (int '\n') then
@@ -230,7 +230,7 @@ let private getCode (maybeFileName: Option<string>) (tys: FSharpEntity list) (su
                         c |> Option.map (fun c -> $"({c} {lst |> String.intercalate String.Space})")
                     | None -> None
 
-                | _, _, _  -> None
+                | _, _, _ -> None
             elif t.IsTupleType then
                 match traverse getExplicitCodec (toList t.GenericArguments) with
                 | Some lst when length lst >= 2 && length lst < 8 ->
@@ -334,7 +334,7 @@ let private getCode (maybeFileName: Option<string>) (tys: FSharpEntity list) (su
     let printFieldBinding (fld: Field) =
         let fDisplayName, fieldType =
             match fld with
-            | Nominal f -> f.DisplayName, f.FieldType
+            | Nominal f                      -> f.DisplayName, f.FieldType
             | Anon (fDisplayName, fieldType) -> (fDisplayName, fieldType)
         $" {toCamel fDisplayName} = {printRecCombinator [fieldType]} \"{fDisplayName}\" (fun x -> Some x.{fDisplayName})"
 
@@ -508,10 +508,10 @@ let private getCode (maybeFileName: Option<string>) (tys: FSharpEntity list) (su
                 (witness_gn: List<FSharpGenericParameter>) : string =
         // let fields = toList t.FSharpFields
         // let cases  = toList t.UnionCases
-        let gen      = genParams false false gn
+        let gen            = genParams false false gn
         let genConstraints = genParams false true gn
-        let genLower = genParams true false gn
-        let genImplicit = genImplicitParams gn
+        let genLower       = genParams true false gn
+        let genImplicit    = genImplicitParams gn
 
         let isRecordVsUnion = List.length cases = 0
         let objCodecVersion = if isRecordVsUnion then "V1" else "AllCases"
@@ -558,7 +558,7 @@ let private getCode (maybeFileName: Option<string>) (tys: FSharpEntity list) (su
             // anon types need annotation
             | Anons fieldNames, _, _ -> ": Codec<_, {| " + (fieldNames |> Array.map (fun (n, t) -> n + ": " + t.TypeDefinition.DisplayName) |> intercalate "; ") +  " |}> "
             // non-generic types, or generic but not inheriting interface don't need the annotation
-            | _, _, "" -> ""
+            | _, _, ""   -> ""
             | _, None, _ -> ""
             // generics that used as interface do need the annotation
             | _, Some _, _ -> $": Codec<MultiObj<'RawEncoding>, {name}<{genLower}>> "
@@ -758,7 +758,7 @@ let generateCodecs (suiteInputs: SuiteInputs) =
     let shouldSkipCodecAutoGenerate (x: FSharpEntity) =
         seq {
             yield! x.Attributes
-            yield! x.BaseType |> Option.map (fun t -> toList t.TypeDefinition.Attributes) |> Option.defaultValue []
+            yield! x.BaseType      |> Option.map (fun t -> toList t.TypeDefinition.Attributes) |> Option.defaultValue []
             yield! x.AllInterfaces |> Seq.collect (fun t -> t.TypeDefinition.Attributes)
         }
         |> Seq.exists (fun a -> a.AttributeType.CompiledName = "SkipCodecAutoGenerate")
@@ -789,4 +789,3 @@ let generateCodecs (suiteInputs: SuiteInputs) =
             File.WriteAllText (x.FileName, code, System.Text.Encoding.UTF8)
             File.AppendAllText (x.FileName, y)
         | _ -> ())
-

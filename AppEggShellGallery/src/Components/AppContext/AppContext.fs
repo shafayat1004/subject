@@ -17,9 +17,9 @@ type AppEggShellGallery.Components.Constructors.Ui with
         ignore (key, xLegacyStyles)
 
         LR.NavigationRouter(
-            spec = routesSpec(),
+            spec            = routesSpec(),
             navigationState = navigationState,
-            queue = navigationQueue,
+            queue           = navigationQueue,
             child =
                 LC.AppShell.Context(
                     children = defaultArg children [||]

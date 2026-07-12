@@ -104,9 +104,9 @@ type LibClient.Components.Constructors.LC with
                 children =
                     elements {
                         LC.UiText(
-                            value = text,
+                            value         = text,
                             numberOfLines = 1,
-                            styles = [| Styles.textFor theTheme |]
+                            styles        = [| Styles.textFor theTheme |]
                         )
                     }
             )

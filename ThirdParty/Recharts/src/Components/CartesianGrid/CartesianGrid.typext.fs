@@ -58,4 +58,3 @@ let Make =
                 ?strokeDasharray  = props.StrokeDashArray
             ) |> box
         )
-

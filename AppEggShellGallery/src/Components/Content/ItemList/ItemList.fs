@@ -45,9 +45,9 @@ type Ui.Content with
     [<Component>]
     static member ItemList () : ReactElement =
         Ui.ComponentContent(
-            displayName = "ItemList",
+            displayName  = "ItemList",
             isResponsive = true,
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.ItemList",
+            props        = ComponentContent.ForFullyQualifiedName "LibClient.Components.ItemList",
             notes =
                 element {
                     LC.Text "Never forget to have a proper message for empty lists by using this component."
@@ -72,12 +72,12 @@ let fruits = [
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.ItemList",
-                    role = "list (container); list items inherit child semantics",
-                    namePattern = "Empty-state message via emptyMessage prop; list items use child content",
-                    stateNotes = "SeeAll link is a pressable button when present",
+                    componentName  = "LC.ItemList",
+                    role           = "list (container); list items inherit child semantics",
+                    namePattern    = "Empty-state message via emptyMessage prop; list items use child content",
+                    stateNotes     = "SeeAll link is a pressable button when present",
                     scalesWithFont = true,
-                    contrastNotes = "List text and empty-state message colors meet WCAG AA"
+                    contrastNotes  = "List text and empty-state message colors meet WCAG AA"
                 ),
             samples =
                 element {
@@ -88,8 +88,8 @@ let fruits = [
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = fruits,
-                                            style = ItemList.Responsive HorizontalAlignment.Center,
+                                            items        = fruits,
+                                            style        = ItemList.Responsive HorizontalAlignment.Center,
                                             whenNonempty = fruitCards
                                         ),
                                     code =
@@ -111,8 +111,8 @@ LC.ItemList(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = fruits,
-                                            style = ItemList.Responsive HorizontalAlignment.Right,
+                                            items        = fruits,
+                                            style        = ItemList.Responsive HorizontalAlignment.Right,
                                             whenNonempty = fruitCards
                                         ),
                                     code =
@@ -130,8 +130,8 @@ LC.ItemList(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = fruits,
-                                            style = ItemList.Responsive HorizontalAlignment.Left,
+                                            items        = fruits,
+                                            style        = ItemList.Responsive HorizontalAlignment.Left,
                                             whenNonempty = fruitCards
                                         ),
                                     code =
@@ -149,8 +149,8 @@ LC.ItemList(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = fruits,
-                                            style = ItemList.Raw,
+                                            items        = fruits,
+                                            style        = ItemList.Raw,
                                             whenNonempty = fruitCards
                                         ),
                                     code =
@@ -168,8 +168,8 @@ LC.ItemList(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = [],
-                                            style = ItemList.Raw,
+                                            items        = [],
+                                            style        = ItemList.Raw,
                                             whenNonempty = fruitCards
                                         ),
                                     code =
@@ -187,9 +187,9 @@ LC.ItemList(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = [],
-                                            whenEmpty = WhenEmpty.Message "Fruitless",
-                                            style = ItemList.Raw,
+                                            items        = [],
+                                            whenEmpty    = WhenEmpty.Message "Fruitless",
+                                            style        = ItemList.Raw,
                                             whenNonempty = fruitCards
                                         ),
                                     code =
@@ -213,7 +213,7 @@ LC.ItemList(
                                             whenEmpty =
                                                 WhenEmpty.Children(
                                                     Rn.View(
-                                                        styles = [| Styles.emptyMessage |],
+                                                        styles   = [| Styles.emptyMessage |],
                                                         children = [| LC.UiText("No Fruit!", styles = [| Styles.emptyMessageText |]) |]
                                                     )
                                                 ),
@@ -246,11 +246,11 @@ LC.ItemList(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.ItemList(
-                                            items = fruits,
-                                            style = ItemList.Horizontal,
-                                            seeAll = SeeAll.Default Actions.greet,
+                                            items        = fruits,
+                                            style        = ItemList.Horizontal,
+                                            seeAll       = SeeAll.Default Actions.greet,
                                             whenNonempty = fruitCards,
-                                            theme = (fun theme -> { theme with SeeAll = { Height = 70; MarginVertical = 0 } })
+                                            theme        = (fun theme -> { theme with SeeAll = { Height = 70; MarginVertical = 0 } })
                                         ),
                                     code =
                                         ComponentSample.SingleBlock(
@@ -274,7 +274,7 @@ LC.ItemList(
                                             seeAll =
                                                 SeeAll.Children(
                                                     Rn.View(
-                                                        styles = [| Styles.customSeeAll |],
+                                                        styles   = [| Styles.customSeeAll |],
                                                         children = [|
                                                             LC.TextButton(
                                                                 label = "See More",

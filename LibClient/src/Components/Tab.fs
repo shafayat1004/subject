@@ -16,7 +16,7 @@ module LC =
         | Unselected of OnPress: (ReactEvent.Action -> unit)
 
         type Theme = {
-            SelectedColor: Color
+            SelectedColor:   Color
             UnselectedColor: Color
         }
 
@@ -57,7 +57,7 @@ module private Styles =
 
                     color
                         (match state with
-                        | Selected -> theme.SelectedColor
+                        | Selected     -> theme.SelectedColor
                         | Unselected _ -> theme.UnselectedColor)
                 }
         )
@@ -65,12 +65,12 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tab(
-            label: string,
-            state: State,
+            label:   string,
+            state:   State,
             ?testId: string,
             ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?theme:  Theme -> Theme,
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 
@@ -79,7 +79,7 @@ type LibClient.Components.Constructors.LC with
 
         let isSelected =
             match state with
-            | Selected -> true
+            | Selected     -> true
             | Unselected _ -> false
 
         let tabState =
@@ -92,9 +92,9 @@ type LibClient.Components.Constructors.LC with
                     yield! styles |> Option.defaultValue [||]
                 |],
             accessibilityLabel = label,
-            accessibilityRole = AccessibilityRole.Tab,
+            accessibilityRole  = AccessibilityRole.Tab,
             accessibilityState = AccessibilityStateRecord.toJs tabState,
-            testId = theTestId,
+            testId             = theTestId,
             children =
                 elements {
                     Rn.View(
@@ -114,12 +114,12 @@ type LibClient.Components.Constructors.LC with
                     match state with
                     | Unselected onPress ->
                         LC.Pressable(
-                            onPress = onPress,
-                            label = label,
-                            role = AccessibilityRole.Tab,
-                            state = tabState,
-                            testId = theTestId,
-                            overlay = true,
+                            onPress       = onPress,
+                            label         = label,
+                            role          = AccessibilityRole.Tab,
+                            state         = tabState,
+                            testId        = theTestId,
+                            overlay       = true,
                             componentName = "LC.Tab"
                         )
                     | _ ->

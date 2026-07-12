@@ -10,7 +10,7 @@ open Microsoft.Extensions.DependencyInjection
 
 type ITimeSeriesAdapter =
     abstract member TimeSeries: ITimeSeries
-    abstract member Ingest: serviceProvider: IServiceProvider -> clock: Service<Clock> -> callOrigin: CallOrigin -> ``list<'TimeSeriesDataPoint>``: obj -> Task<Result<unit, OpError>>
+    abstract member Ingest:     serviceProvider: IServiceProvider -> clock: Service<Clock> -> callOrigin: CallOrigin -> ``list<'TimeSeriesDataPoint>``: obj -> Task<Result<unit, OpError>>
 
 type TimeSeriesAdapter<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex
     when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
@@ -36,7 +36,7 @@ with
                 let storageProvider = serviceProvider.GetRequiredService<ITimeSeriesStorageHandler<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'TimeSeriesIndex>>()
                 match
                     transformedPoints |> List.map (fun pt ->
-                        { Point = pt
+                        { Point   = pt
                           Indices = this.TimeSeries.Indices pt |> List.ofSeq })
                     |> NonemptyList.ofList
                     with
@@ -77,4 +77,4 @@ type TimeSeriesAdapterCollection = TimeSeriesAdapterCollection of Map<TimeSeries
             | TimeSeriesAdapterCollection dictionary ->
                 match dictionary.TryGetValue key with
                 | true, adapter -> Some adapter
-                | false, _ -> None
+                | false, _      -> None

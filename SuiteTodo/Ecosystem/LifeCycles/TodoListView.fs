@@ -10,9 +10,9 @@ type TodoListViewEnvironment = {
 
 let private toListItem (todo: Todo) : TodoListItem =
     {
-        Id = todo.Id
-        Title = todo.Title
-        Done = todo.Done
+        Id        = todo.Id
+        Title     = todo.Title
+        Done      = todo.Done
         CreatedOn = todo.CreatedOn
     }
 

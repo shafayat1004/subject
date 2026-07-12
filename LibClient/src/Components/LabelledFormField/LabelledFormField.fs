@@ -56,21 +56,21 @@ module private Styles =
                 Overflow.Visible
 
                 match screenSize with
-                | ScreenSize.Desktop -> flex 1
+                | ScreenSize.Desktop  -> flex 1
                 | ScreenSize.Handheld -> ()
             })
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member LabelledFormField(
-            label:            string,
-            ?children:        ReactChildrenProp,
-            ?labelStyles:     array<TextStyles>,
-            ?fieldStyles:     array<ViewStyles>,
-            ?theme:           Theme -> Theme,
-            ?testId:          string,
-            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:             string
+            label:          string,
+            ?children:      ReactChildrenProp,
+            ?labelStyles:   array<TextStyles>,
+            ?fieldStyles:   array<ViewStyles>,
+            ?theme:         Theme -> Theme,
+            ?testId:        string,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -114,7 +114,7 @@ type LibClient.Components.Constructors.LC with
                             elements {
                                 Rn.View(
                                     accessibilityLabel = label,
-                                    styles = [| yield! legacyLabelStyles |],
+                                    styles             = [| yield! legacyLabelStyles |],
                                     children =
                                         elements {
                                             LC.UiText(

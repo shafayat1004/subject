@@ -40,7 +40,7 @@ let makeSafeMailboxProcessor<'Message, 'State>
 
                 match nextStep with
                 | NextStep.Continue nextState -> return! mainLoop nextState
-                | NextStep.Shutdown -> ()
+                | NextStep.Shutdown           -> ()
             }
 
         async { do! mainLoop initialState })
@@ -55,6 +55,6 @@ let makeSafeStatelessMailboxProcessor<'Message>
     (onError: 'Message -> exn -> Async<StatelessNextStep>)
     =
     makeSafeMailboxProcessor<'Message, unit>
-        (fun _ message -> processMessageRaw message |> Async.Map mapStatelessToStatefulUnitNextStep)
+        (fun _ message -> processMessageRaw message   |> Async.Map mapStatelessToStatefulUnitNextStep)
         (fun _ message error -> onError message error |> Async.Map mapStatelessToStatefulUnitNextStep)
         ()

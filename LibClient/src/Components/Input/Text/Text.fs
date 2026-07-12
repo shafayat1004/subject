@@ -7,9 +7,9 @@ open Rn.Components
 module Text =
 
     type ITextRef =
-        abstract member SelectAll: unit -> unit
+        abstract member SelectAll:    unit -> unit
         abstract member RequestFocus: unit -> unit
-        abstract member Blur: unit -> unit
+        abstract member Blur:         unit -> unit
 
     type PropSuffixFactory = InputSuffixFactory
 
@@ -68,16 +68,16 @@ module TextStyles =
 
         static member All
             (
-                borderLabelBlurredColor: Color,
-                borderLabelFocusedColor: Color,
-                borderLabelInvalidColor: Color,
-                textColor: Color,
-                noneditableTextColor: Color,
+                borderLabelBlurredColor:    Color,
+                borderLabelFocusedColor:    Color,
+                borderLabelInvalidColor:    Color,
+                textColor:                  Color,
+                noneditableTextColor:       Color,
                 noneditableBackgroundColor: Color,
-                invalidReasonColor: Color,
-                placeholderColor: Color,
-                theVerticalPadding: int,
-                ?theBorderRadius: int
+                invalidReasonColor:         Color,
+                placeholderColor:           Color,
+                theVerticalPadding:         int,
+                ?theBorderRadius:           int
             ) : unit =
             Theme.Customize
                 [ Theme.Rules(
@@ -95,16 +95,16 @@ module TextStyles =
 
         static member One
             (
-                borderLabelBlurredColor: Color,
-                borderLabelFocusedColor: Color,
-                borderLabelInvalidColor: Color,
-                textColor: Color,
-                noneditableTextColor: Color,
+                borderLabelBlurredColor:    Color,
+                borderLabelFocusedColor:    Color,
+                borderLabelInvalidColor:    Color,
+                textColor:                  Color,
+                noneditableTextColor:       Color,
                 noneditableBackgroundColor: Color,
-                invalidReasonColor: Color,
-                placeholderColor: Color,
-                theVerticalPadding: int,
-                ?theBorderRadius: int
+                invalidReasonColor:         Color,
+                placeholderColor:           Color,
+                theVerticalPadding:         int,
+                ?theBorderRadius:           int
             ) : Styles =
             Theme.Rules(
                 borderLabelBlurredColor,
@@ -131,16 +131,16 @@ module TextStyles =
 
         static member Rules
             (
-                borderLabelBlurredColor: Color,
-                borderLabelFocusedColor: Color,
-                borderLabelInvalidColor: Color,
-                textColor: Color,
-                noneditableTextColor: Color,
+                borderLabelBlurredColor:    Color,
+                borderLabelFocusedColor:    Color,
+                borderLabelInvalidColor:    Color,
+                textColor:                  Color,
+                noneditableTextColor:       Color,
                 noneditableBackgroundColor: Color,
-                invalidReasonColor: Color,
-                placeholderColor: Color,
-                theVerticalPadding: int,
-                ?theBorderRadius: int
+                invalidReasonColor:         Color,
+                placeholderColor:           Color,
+                theVerticalPadding:         int,
+                ?theBorderRadius:           int
             ) : List<ISheetBuildingBlock> =
             let theBorderRadius = defaultArg theBorderRadius 4
 
@@ -195,15 +195,15 @@ module TextStyles =
                 List.concat
                     [ baseStyles.Value
                       Theme.Rules(
-                          borderLabelBlurredColor = Color.Grey "44",
-                          borderLabelFocusedColor = Color.DevGreen,
-                          borderLabelInvalidColor = Color.DevRed,
-                          textColor = Color.Grey "44",
-                          noneditableTextColor = Color.Grey "22",
+                          borderLabelBlurredColor    = Color.Grey "44",
+                          borderLabelFocusedColor    = Color.DevGreen,
+                          borderLabelInvalidColor    = Color.DevRed,
+                          textColor                  = Color.Grey "44",
+                          noneditableTextColor       = Color.Grey "22",
                           noneditableBackgroundColor = Color.Grey "66",
-                          invalidReasonColor = Color.DevRed,
-                          placeholderColor = Color.Grey "aa",
-                          theVerticalPadding = 10
+                          invalidReasonColor         = Color.DevRed,
+                          placeholderColor           = Color.Grey "aa",
+                          theVerticalPadding         = 10
                       ) ]
             ))
 
@@ -229,19 +229,20 @@ module Input_TextComponent =
     module LC =
         module Input =
             module Text =
-                type Theme =
-                    { BorderLabelBlurredColor: Color
-                      BorderLabelFocusedColor: Color
-                      BorderLabelInvalidColor: Color
-                      TextColor: Color
-                      NoneditableTextColor: Color
-                      NoneditableBackgroundColor: Color
-                      EditableBackgroundColor: Color
-                      LabelBackgroundColor: Color
-                      InvalidReasonColor: Color
-                      PlaceholderColor: Color
-                      TheVerticalPadding: int
-                      BorderRadius: int }
+                type Theme = {
+                    BorderLabelBlurredColor:    Color
+                    BorderLabelFocusedColor:    Color
+                    BorderLabelInvalidColor:    Color
+                    TextColor:                  Color
+                    NoneditableTextColor:       Color
+                    NoneditableBackgroundColor: Color
+                    EditableBackgroundColor:    Color
+                    LabelBackgroundColor:       Color
+                    InvalidReasonColor:         Color
+                    PlaceholderColor:           Color
+                    TheVerticalPadding:         int
+                    BorderRadius:               int
+                }
 
     open LC.Input.Text
 
@@ -391,36 +392,36 @@ module Input_TextComponent =
         [<Component>]
         static member Text
             (
-                value: Option<NonemptyString>,
-                onChange: Option<NonemptyString> -> unit,
-                validity: InputValidity,
-                ?label: string,
-                ?accessibilityLabel: string,
-                ?accessibilityRole: AccessibilityRole,
-                ?onKeyPress: KeyboardEvent -> unit,
-                ?onEnterKeyPress: ReactEvent.Keyboard -> unit,
-                ?onFocus: FocusEvent -> unit,
-                ?onBlur: FocusEvent -> unit,
-                ?placeholder: string,
-                ?prefix: string,
-                ?prefixIcon: LibClient.Icons.IconConstructor,
-                ?suffix: InputSuffix,
-                ?maxLength: int,
-                ?tabIndex: int,
-                ?editable: bool,
-                ?blurOnSubmit: bool,
-                ?multiline: bool,
+                value:                Option<NonemptyString>,
+                onChange:             Option<NonemptyString> -> unit,
+                validity:             InputValidity,
+                ?label:               string,
+                ?accessibilityLabel:  string,
+                ?accessibilityRole:   AccessibilityRole,
+                ?onKeyPress:          KeyboardEvent -> unit,
+                ?onEnterKeyPress:     ReactEvent.Keyboard -> unit,
+                ?onFocus:             FocusEvent -> unit,
+                ?onBlur:              FocusEvent -> unit,
+                ?placeholder:         string,
+                ?prefix:              string,
+                ?prefixIcon:          LibClient.Icons.IconConstructor,
+                ?suffix:              InputSuffix,
+                ?maxLength:           int,
+                ?tabIndex:            int,
+                ?editable:            bool,
+                ?blurOnSubmit:        bool,
+                ?multiline:           bool,
                 ?requestFocusOnMount: bool,
-                ?secureTextEntry: bool,
-                ?keyboardType: KeyboardType,
-                ?returnKeyType: ReturnKeyType,
-                ?autoCapitalize: AutoCapitalize,
-                ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?testId: string,
-                ?ref: LibClient.JsInterop.JsNullable<ITextRef> -> unit,
-                ?key: string,
-                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+                ?secureTextEntry:     bool,
+                ?keyboardType:        KeyboardType,
+                ?returnKeyType:       ReturnKeyType,
+                ?autoCapitalize:      AutoCapitalize,
+                ?styles:              array<ViewStyles>,
+                ?theme:               Theme -> Theme,
+                ?testId:              string,
+                ?ref:                 LibClient.JsInterop.JsNullable<ITextRef> -> unit,
+                ?key:                 string,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             key |> ignore
 
@@ -494,7 +495,7 @@ module Input_TextComponent =
             let onKeyPressOption =
                 match (onKeyPress, onEnterKeyPress) with
                 | (None, None) -> None
-                | _ -> Some handleOnKeyPress
+                | _            -> Some handleOnKeyPress
 
             let bindTextInput (nullableInstance: LibClient.JsInterop.JsNullable<ITextInputRef>) : unit =
                 textInputRef.current <-
@@ -508,13 +509,13 @@ module Input_TextComponent =
 
                                 let len =
                                     match rawObj?value with
-                                    | null -> 0
+                                    | null        -> 0
                                     | (s: string) -> s.Length
 
                                 rawObj?setSelection (0, len) |> ignore
 
                             member _.requestFocus() : unit = rawObj?focus () |> ignore
-                            member _.blur() : unit = rawObj?blur () |> ignore })
+                            member _.blur() : unit = rawObj?blur ()          |> ignore })
 
             let resolvedTestId =
                 testId
@@ -529,10 +530,10 @@ module Input_TextComponent =
             let containerRole =
                 match accessibilityRole with
                 | Some AccessibilityRole.Search -> accessibilityRole
-                | _ -> None
+                | _                             -> None
 
             Rn.View(
-                testId = resolvedTestId,
+                testId             = resolvedTestId,
                 ?accessibilityRole = containerRole,
                 styles =
                     [| Styles.view label.IsSome
@@ -547,7 +548,7 @@ module Input_TextComponent =
                                       Rn.View(
                                           importantForAccessibility =
                                               LibClient.Accessibility.ImportantForAccessibility.No,
-                                          styles = [| Styles.prefixIconWrap |],
+                                          styles   = [| Styles.prefixIconWrap |],
                                           children = [| iconCtor theTheme.PlaceholderColor 16 |]
                                       )
                                   | None -> noElement
@@ -564,10 +565,10 @@ module Input_TextComponent =
                                                  theTheme.NoneditableBackgroundColor
                                                  editable
                                                  (not multiline) |],
-                                      value = draftValueHook.current,
-                                      onChangeText = handleChangeText,
+                                      value               = draftValueHook.current,
+                                      onChangeText        = handleChangeText,
                                       ?accessibilityLabel = inputA11yLabel,
-                                      ?accessibilityRole = accessibilityRole,
+                                      ?accessibilityRole  = accessibilityRole,
                                       onFocus =
                                           (fun e ->
                                               isFocusedHook.update true
@@ -576,17 +577,17 @@ module Input_TextComponent =
                                           (fun e ->
                                               isFocusedHook.update false
                                               onBlur |> Option.sideEffect (fun f -> f e)),
-                                      multiline = multiline,
-                                      autoFocus = requestFocusOnMount,
-                                      editable = editable,
-                                      blurOnSubmit = blurOnSubmit,
-                                      placeholder = (placeholder |> Option.defaultValue ""),
+                                      multiline            = multiline,
+                                      autoFocus            = requestFocusOnMount,
+                                      editable             = editable,
+                                      blurOnSubmit         = blurOnSubmit,
+                                      placeholder          = (placeholder |> Option.defaultValue ""),
                                       placeholderTextColor = theTheme.PlaceholderColor.ToRnString,
-                                      ``ref`` = bindTextInput,
-                                      secureTextEntry = secureTextEntry,
-                                      keyboardType = keyboardType,
-                                      returnKeyType = returnKeyType,
-                                      autoCapitalize = autoCapitalize
+                                      ``ref``              = bindTextInput,
+                                      secureTextEntry      = secureTextEntry,
+                                      keyboardType         = keyboardType,
+                                      returnKeyType        = returnKeyType,
+                                      autoCapitalize       = autoCapitalize
                                   )
 #else
                                   // Native: Rn TextInput patched via LibClient/vendor (metro resolveRequest)
@@ -597,10 +598,10 @@ module Input_TextComponent =
                                                  theTheme.NoneditableBackgroundColor
                                                  editable
                                                  (not multiline) |],
-                                      value = (value |> NonemptyString.optionToString),
-                                      onChangeText = handleChangeText,
+                                      value               = (value |> NonemptyString.optionToString),
+                                      onChangeText        = handleChangeText,
                                       ?accessibilityLabel = inputA11yLabel,
-                                      ?accessibilityRole = accessibilityRole,
+                                      ?accessibilityRole  = accessibilityRole,
                                       onFocus =
                                           (fun e ->
                                               isFocusedHook.update true
@@ -609,17 +610,17 @@ module Input_TextComponent =
                                           (fun e ->
                                               isFocusedHook.update false
                                               onBlur |> Option.sideEffect (fun f -> f e)),
-                                      multiline = multiline,
-                                      autoFocus = requestFocusOnMount,
-                                      editable = editable,
-                                      blurOnSubmit = blurOnSubmit,
-                                      placeholder = (placeholder |> Option.defaultValue ""),
+                                      multiline            = multiline,
+                                      autoFocus            = requestFocusOnMount,
+                                      editable             = editable,
+                                      blurOnSubmit         = blurOnSubmit,
+                                      placeholder          = (placeholder |> Option.defaultValue ""),
                                       placeholderTextColor = theTheme.PlaceholderColor.ToRnString,
-                                      ``ref`` = bindTextInput,
-                                      secureTextEntry = secureTextEntry,
-                                      keyboardType = keyboardType,
-                                      returnKeyType = returnKeyType,
-                                      autoCapitalize = autoCapitalize
+                                      ``ref``              = bindTextInput,
+                                      secureTextEntry      = secureTextEntry,
+                                      keyboardType         = keyboardType,
+                                      returnKeyType        = returnKeyType,
+                                      autoCapitalize       = autoCapitalize
                                   )
 #endif
 
@@ -629,7 +630,7 @@ module Input_TextComponent =
                                   | (true, Some(InputSuffix.Icon icon)) ->
                                       LC.Icon(icon = icon, styles = [| Styles.suffixIcon theTheme.TextColor |])
                                   | (true, Some(InputSuffix.Element element)) -> element
-                                  | _ -> Rn.View(styles = [| Styles.focusPreservingSentinel |]) |]
+                                  | _                                         -> Rn.View(styles = [| Styles.focusPreservingSentinel |]) |]
                        )
 
                        match validity.InvalidReason with
@@ -656,11 +657,11 @@ module Input_TextComponent =
                                               (fun _ ->
                                                   textInputRef.current
                                                   |> Option.sideEffect (fun textInput -> textInput.requestFocus ())),
-                                          label = labelText,
-                                          testId = sprintf "%s-focus" resolvedTestId,
-                                          role = AccessibilityRole.Button,
-                                          overlay = true,
-                                          styles = [| Styles.pressableOverlay |],
+                                          label         = labelText,
+                                          testId        = sprintf "%s-focus" resolvedTestId,
+                                          role          = AccessibilityRole.Button,
+                                          overlay       = true,
+                                          styles        = [| Styles.pressableOverlay |],
                                           componentName = "LC.Input.Text.Focus"
                                       ) |]
                            )

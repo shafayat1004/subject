@@ -3,16 +3,16 @@ module AutoOpenModuleForOr
 
 [<RequireQualifiedAccess>]
 type Or<'T, 'U> =
-    | Left of 'T
+    | Left  of 'T
     | Right of 'U
-    | Both of 'T * 'U
+    | Both  of 'T * 'U
 
     static member OfOptions (maybeLeft: Option<'T>) (maybeRight: Option<'U>) : Option<Or<'T, 'U>> =
         match (maybeLeft, maybeRight) with
         | Some left, Some right -> Some(Both(left, right))
-        | Some left, None -> Some(Left left)
-        | None, Some right -> Some(Right right)
-        | None, None -> None
+        | Some left, None       -> Some(Left left)
+        | None, Some right      -> Some(Right right)
+        | None, None            -> None
 
     member this.LeftOption: Option<'T> =
         match this with
@@ -28,26 +28,26 @@ type Or<'T, 'U> =
 
     member this.WithoutLeft: Option<Or<'T, 'U>> =
         match this with
-        | Left _ -> None
-        | Right right -> Right right |> Some
+        | Left _         -> None
+        | Right right    -> Right right |> Some
         | Both(_, right) -> Right right |> Some
 
     member this.WithLeft(newLeft: 'T) : Or<'T, 'U> =
         match this with
-        | Left _ -> Left newLeft
-        | Right right -> Both(newLeft, right)
+        | Left _         -> Left newLeft
+        | Right right    -> Both(newLeft, right)
         | Both(_, right) -> Both(newLeft, right)
 
     member this.WithoutRight: Option<Or<'T, 'U>> =
         match this with
-        | Right _ -> None
-        | Left left -> Left left |> Some
+        | Right _       -> None
+        | Left left     -> Left left |> Some
         | Both(left, _) -> Left left |> Some
 
     member this.WithRight(newRight: 'U) : Or<'T, 'U> =
         match this with
-        | Right _ -> Right newRight
-        | Left left -> Both(left, newRight)
+        | Right _       -> Right newRight
+        | Left left     -> Both(left, newRight)
         | Both(left, _) -> Both(left, newRight)
 
 #if !FABLE_COMPILER

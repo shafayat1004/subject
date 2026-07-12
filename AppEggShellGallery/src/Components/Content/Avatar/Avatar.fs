@@ -11,15 +11,15 @@ type Ui.Content with
     static member Avatar() : ReactElement =
         Ui.ComponentContent(
             displayName = "Avatar",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Avatar",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Avatar",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Avatar",
-                    role = "image",
-                    namePattern = "?accessibilityLabel for the person or entity depicted",
-                    stateNotes = "Static image; no interactive state",
+                    componentName  = "LC.Avatar",
+                    role           = "image",
+                    namePattern    = "?accessibilityLabel for the person or entity depicted",
+                    stateNotes     = "Static image; no interactive state",
                     scalesWithFont = false,
-                    contrastNotes = "N/A — photographic content"
+                    contrastNotes  = "N/A — photographic content"
                 ),
             samples =
                 element {
@@ -40,7 +40,7 @@ LC.Avatar(source = localImage "/images/avatar.png")
                         visuals =
                             LC.Avatar(
                                 source = localImage "/images/avatar2.png",
-                                theme = fun theme -> { theme with Size = 120 }
+                                theme  = fun theme -> { theme with Size = 120 }
                             ),
                         code =
                             ComponentSample.SingleBlock(

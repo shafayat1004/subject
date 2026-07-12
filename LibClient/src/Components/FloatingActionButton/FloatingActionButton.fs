@@ -85,9 +85,9 @@ module private Styles =
                         paddingHorizontal (fabSize / 4)
 
                     match stateName with
-                    | "Disabled"     -> opacity 0.5
-                    | "Actionable"   -> Cursor.Pointer
-                    | _              -> Noop
+                    | "Disabled"   -> opacity 0.5
+                    | "Actionable" -> Cursor.Pointer
+                    | _            -> Noop
 
                     if isDepressed then
                         shadow (Color.BlackAlpha 0.2) 3 (0, 0)
@@ -193,7 +193,7 @@ type LibClient.Components.Constructors.LC with
                     children =
                         elements {
                             LC.Icon(
-                                icon = icon,
+                                icon   = icon,
                                 styles = [| Styles.iconThemeFor theTheme lowLevelState |]
                             )
 
@@ -204,7 +204,7 @@ type LibClient.Components.Constructors.LC with
                                     children =
                                         elements {
                                             LC.UiText(
-                                                value = labelText,
+                                                value  = labelText,
                                                 styles = [| Styles.labelTextThemeFor theTheme lowLevelState |]
                                             )
                                         }
@@ -220,7 +220,7 @@ type LibClient.Components.Constructors.LC with
                                         elements {
                                             Rn.ActivityIndicator(
                                                 color = "#ffffff",
-                                                size = Size.Tiny
+                                                size  = Size.Tiny
                                             )
                                         }
                                 )
@@ -230,13 +230,13 @@ type LibClient.Components.Constructors.LC with
                             match lowLevelState with
                             | Actionable onPress ->
                                 LC.Pressable(
-                                    onPress = onPress,
-                                    label = a11yLabel,
-                                    ?testId = resolvedTestId,
-                                    role = AccessibilityRole.Button,
-                                    overlay = true,
-                                    pointerState = pointerState,
-                                    styles = [| Styles.pressableTapTarget |],
+                                    onPress       = onPress,
+                                    label         = a11yLabel,
+                                    ?testId       = resolvedTestId,
+                                    role          = AccessibilityRole.Button,
+                                    overlay       = true,
+                                    pointerState  = pointerState,
+                                    styles        = [| Styles.pressableTapTarget |],
                                     componentName = "LC.FloatingActionButton"
                                 )
                             | _ ->

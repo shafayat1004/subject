@@ -9,16 +9,16 @@ type TelemetryUser =
 | Identified of UserId: string * UserProperties: TelemetryProperties
 
 type ITelemetrySink =
-    abstract member TrackEvent: name: string -> user: TelemetryUser -> properties: TelemetryProperties -> unit
+    abstract member TrackEvent:      name: string -> user: TelemetryUser -> properties: TelemetryProperties -> unit
     abstract member TrackScreenView: url: string -> user: TelemetryUser -> properties: TelemetryProperties -> unit
 
 type ITelemetry =
-    abstract member GetUser: unit -> TelemetryUser
-    abstract member SetUser: user: TelemetryUser -> unit
-    abstract member SetProperty: property: TelemetryProperty -> unit
-    abstract member SetProperties: properties: TelemetryProperties -> unit
-    abstract member ClearProperty: key: string -> unit
-    abstract member TrackEvent: name: string -> additionalProperties: TelemetryProperties -> unit
+    abstract member GetUser:         unit -> TelemetryUser
+    abstract member SetUser:         user: TelemetryUser -> unit
+    abstract member SetProperty:     property: TelemetryProperty -> unit
+    abstract member SetProperties:   properties: TelemetryProperties -> unit
+    abstract member ClearProperty:   key: string -> unit
+    abstract member TrackEvent:      name: string -> additionalProperties: TelemetryProperties -> unit
     abstract member TrackScreenView: url: string -> additionalProperties: TelemetryProperties -> unit
 
 [<AutoOpen>]
@@ -27,7 +27,7 @@ module TelemetryHelpers =
         match value with
         // We don't want to include quotes around string values because it makes filtering on those values clunky.
         | :? string as str -> str
-        | _ -> value |> Fable.Core.JS.JSON.stringify
+        | _                -> value |> Fable.Core.JS.JSON.stringify
 
 type ConsoleTelemetrySink() =
     let log = Log.WithCategory("ConsoleTelemetrySink")
@@ -110,7 +110,7 @@ type private TelemetryImpl(telemetrySink: ITelemetrySink) =
 [<AutoOpen>]
 module Telemetry =
     let mutable private compositeTelemetrySink = CompositeTelemetrySink([ ConsoleTelemetrySink() ])
-    
+
     let private telemetry: ITelemetry = TelemetryImpl(compositeTelemetrySink)
     let Telemetry: ITelemetry = telemetry
 

@@ -11,6 +11,6 @@ open LibRouter.Components.With.Route
 type LibRouter.Components.Constructors.LR.With with
     static member CurrentRoute (spec: Conversions<'Route, 'ResultlessDialog>, fn: Option<'Route> -> ReactElement) : ReactElement =
         LR.With.Route (
-            spec = spec,
+            spec     = spec,
             ``with`` = (Option.map NavigationFrame.route >> fn)
         )

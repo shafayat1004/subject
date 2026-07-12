@@ -20,25 +20,25 @@ module private Styles =
 type UIAuto with
     [<Component>]
     static member InputFieldString(
-            onChange:         InputValue -> unit,
-            maybeValue:       Option<InputValue>,
-            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:             string
+            onChange:       InputValue -> unit,
+            maybeValue:     Option<InputValue>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         match maybeValue with
         | Some (StringValue value) ->
             Rn.TextInput(
-                value = value,
+                value        = value,
                 onChangeText = (fun v -> onChange (StringValue v)),
-                styles = [| Styles.textInput |]
+                styles       = [| Styles.textInput |]
             )
         | None ->
             Rn.TextInput(
                 onChangeText = (fun v -> onChange (StringValue v)),
-                styles = [| Styles.textInput |]
+                styles       = [| Styles.textInput |]
             )
         | other ->
             LC.UiText(value = sprintf "XXX not a string value! %A" other)

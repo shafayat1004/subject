@@ -28,12 +28,12 @@ module Input_WeeklyCalendarComponent =
         module Input =
             module WeeklyCalendar =
                 type Theme = {
-                    DayOfWeekText: Color
+                    DayOfWeekText:       Color
                     DateTextUnavailable: Color
-                    DateTextAvailable: Color
-                    DateTextSelected: Color
-                    Circle: Color
-                    InvalidReason: Color
+                    DateTextAvailable:   Color
+                    DateTextSelected:    Color
+                    Circle:              Color
+                    InvalidReason:       Color
                 }
 
     open LC.Input.WeeklyCalendar
@@ -82,26 +82,26 @@ module Input_WeeklyCalendarComponent =
         match xLegacyStyles with
         | Some ls ->
             match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-            | [] -> [||]
+            | []     -> [||]
             | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member WeeklyCalendar(
-                value: Set<Date>,
-                onChange: Set<Date> -> unit,
-                validity: InputValidity,
-                ?label: string,
-                ?startDate: Date,
-                ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?children: ReactChildrenProp,
-                ?key: string,
+                value:          Set<Date>,
+                onChange:       Set<Date> -> unit,
+                validity:       InputValidity,
+                ?label:         string,
+                ?startDate:     Date,
+                ?styles:        array<ViewStyles>,
+                ?theme:         Theme -> Theme,
+                ?children:      ReactChildrenProp,
+                ?key:           string,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
-            key |> ignore
+            key      |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith theme
             let initialStartDate = startDate |> Option.defaultWith (fun () -> services().Date.GetNow |> Date.ofDateTimeOffset)
@@ -111,7 +111,7 @@ module Input_WeeklyCalendarComponent =
 
             LC.With.ScreenSize(``with`` = fun screenSize ->
                 Rn.View(
-                    styles = [| Styles.view; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
+                    styles   = [| Styles.view; yield! legacyTopLevelStyles xLegacyStyles; yield! defaultArg styles [||] |],
                     children = [|
                         Rn.View(styles = [| Styles.weeklyCalendarContainer |], children = [|
                             match label with
@@ -145,12 +145,12 @@ module Input_WeeklyCalendarComponent =
                                                     LC.UiText(value = string day.Day, styles = [| Styles.dateText theTheme isSelected |])
                                                 |])
                                                 LC.Pressable(
-                                                    onPress = (fun _ -> onChange (value.Toggle day)),
-                                                    label = dayLabel,
-                                                    testId = A11ySlug.testId "weekly-calendar" dayLabel,
-                                                    role = AccessibilityRole.Button,
-                                                    state = { AccessibilityStateRecord.empty with Selected = Some isSelected },
-                                                    overlay = true,
+                                                    onPress       = (fun _ -> onChange (value.Toggle day)),
+                                                    label         = dayLabel,
+                                                    testId        = A11ySlug.testId "weekly-calendar" dayLabel,
+                                                    role          = AccessibilityRole.Button,
+                                                    state         = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                                                    overlay       = true,
                                                     componentName = "LC.Input.WeeklyCalendar"
                                                 )
                                             |])

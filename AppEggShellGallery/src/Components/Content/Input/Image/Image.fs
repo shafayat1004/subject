@@ -12,7 +12,7 @@ type private Helpers =
         let state = Hooks.useState (Ok [])
         LC.Input.Image(
             onChange = state.update,
-            testId = "input-image",
+            testId   = "input-image",
             value =
                 (state.current
                  |> Result.recover (fun _ -> [])),
@@ -31,16 +31,16 @@ type Ui.Content.Input with
     static member Image () : ReactElement =
         Ui.ComponentContent (
             displayName = "Input.Image",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Image",
-            notes = LC.Text "Input.Image wraps Input.File with image preview thumbs. Use maxFileCount and maxFileSize to constrain uploads, same as Input.File.",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Image",
+            notes       = LC.Text "Input.Image wraps Input.File with image preview thumbs. Use maxFileCount and maxFileSize to constrain uploads, same as Input.File.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.Image",
-                    role = "button (file picker) with image preview",
-                    namePattern = "Floating label text",
-                    stateNotes = "Invalid/Missing validity surfaces error text; selected files shown as thumbnails",
+                    componentName  = "LC.Input.Image",
+                    role           = "button (file picker) with image preview",
+                    namePattern    = "Floating label text",
+                    stateNotes     = "Invalid/Missing validity surfaces error text; selected files shown as thumbnails",
                     scalesWithFont = true,
-                    contrastNotes = "Label, button text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, button text, and error colors meet WCAG AA"
                 ),
             samples =
                 element {

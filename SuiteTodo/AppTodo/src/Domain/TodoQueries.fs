@@ -51,24 +51,24 @@ let archivedTodosSearchQuery (term: NonemptyString) : IndexQuery<TodoIndex> =
 
 let queryForFilterAndSearch (filter: TodoListFilter) (maybeSearch: Option<NonemptyString>) : IndexQuery<TodoIndex> =
     match filter, maybeSearch with
-    | TodoListFilter.Archived, None -> archivedTodosQuery ()
+    | TodoListFilter.Archived, None      -> archivedTodosQuery ()
     | TodoListFilter.Archived, Some term -> archivedTodosSearchQuery term
-    | _, None -> activeTodosQuery ()
-    | _, Some term -> activeTodosSearchQuery term
+    | _, None                            -> activeTodosQuery ()
+    | _, Some term                       -> activeTodosSearchQuery term
 
 let private priorityScore (priority: TodoPriority) =
     match priority with
-    | TodoPriority.High -> 3
+    | TodoPriority.High   -> 3
     | TodoPriority.Medium -> 2
-    | TodoPriority.Low -> 1
+    | TodoPriority.Low    -> 1
 
 let filterTodosClientSide (filter: TodoListFilter) (todos: seq<Todo>) : list<Todo> =
     todos
     |> Seq.filter (fun todo ->
         match filter with
         | TodoListFilter.Archived -> todo.ArchivedOn.IsSome
-        | TodoListFilter.Open -> todo.ArchivedOn.IsNone && not todo.Done
-        | TodoListFilter.Done -> todo.ArchivedOn.IsNone && todo.Done
-        | TodoListFilter.All -> todo.ArchivedOn.IsNone)
+        | TodoListFilter.Open     -> todo.ArchivedOn.IsNone && not todo.Done
+        | TodoListFilter.Done     -> todo.ArchivedOn.IsNone && todo.Done
+        | TodoListFilter.All      -> todo.ArchivedOn.IsNone)
     |> Seq.sortByDescending (fun t -> int64 (priorityScore t.Priority) * 1_000_000_000_000L + t.CreatedOn.UtcTicks)
     |> Seq.toList

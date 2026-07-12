@@ -10,4 +10,3 @@ type NetworkStateEvent =
 | NonBackendConnectivityFailed
 
 let networkStateEventQueue: LibClient.EventBus.Queue<NetworkStateEvent> = LibClient.EventBus.Queue "networkState"
-

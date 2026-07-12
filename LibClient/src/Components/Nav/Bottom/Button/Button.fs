@@ -40,25 +40,25 @@ module Nav_Bottom_Button =
     type Constructors.LC.Nav.Bottom with
         [<Component>]
         static member Button(
-                label: string,
-                state: ButtonHighLevelState,
-                ?level: Level,
-                ?icon: Icon,
-                ?badge: Badge,
-                ?styles: array<ViewStyles>,
+                label:                   string,
+                state:                   ButtonHighLevelState,
+                ?level:                  Level,
+                ?icon:                   Icon,
+                ?badge:                  Badge,
+                ?styles:                 array<ViewStyles>,
                 ?contentContainerStyles: array<ViewStyles>,
-                ?badgeTheme: LC.Badge.Theme -> LC.Badge.Theme,
-                ?key: string
+                ?badgeTheme:             LC.Badge.Theme -> LC.Badge.Theme,
+                ?key:                    string
             ) : ReactElement =
             key |> ignore
 
             LC.Button(
-                label = label,
-                state = state,
-                ?level = level,
-                ?icon = icon,
-                ?badge = badge,
-                ?styles = styles,
+                label                   = label,
+                state                   = state,
+                ?level                  = level,
+                ?icon                   = icon,
+                ?badge                  = badge,
+                ?styles                 = styles,
                 ?contentContainerStyles = contentContainerStyles,
-                ?badgeTheme = badgeTheme
+                ?badgeTheme             = badgeTheme
             )

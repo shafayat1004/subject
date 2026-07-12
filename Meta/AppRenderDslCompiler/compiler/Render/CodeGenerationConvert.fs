@@ -60,7 +60,7 @@ let private generateForTextNodeValue (rawValue: string) : List<FsharpCode> =
     | [lonelyString] ->
         match NonemptyString.ofString lonelyString with
         | Some nonemptyLonelyString -> [ Line (generateForStringExpressionValue nonemptyLonelyString).Value ]
-        | None -> []
+        | None                      -> []
     | [""; lonelyExpression; ""] -> [ Line lonelyExpression ]
     | _ ->
         parts

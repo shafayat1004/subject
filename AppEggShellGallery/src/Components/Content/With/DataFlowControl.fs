@@ -26,12 +26,12 @@ type Ui.Content.With with
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.With.DataFlowControl",
-                    role = "none (data propagation wrapper)",
-                    namePattern = "Child render function content provides accessible names",
-                    stateNotes = "May block or delay data propagation; confirmation prompts are dialogs",
+                    componentName  = "LC.With.DataFlowControl",
+                    role           = "none (data propagation wrapper)",
+                    namePattern    = "Child render function content provides accessible names",
+                    stateNotes     = "May block or delay data propagation; confirmation prompts are dialogs",
                     scalesWithFont = true,
-                    contrastNotes = "Child content contrast unchanged by wrapper"
+                    contrastNotes  = "Child content contrast unchanged by wrapper"
                 ),
             samples =
                 element {
@@ -82,7 +82,7 @@ LC.With.DataFlowControl(
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
-                                                        data = now,
+                                                        data           = now,
                                                         dataFlowPolicy = LC.With.DataFlowControlTypes.DataFlowPolicy.Block,
                                                         ``with`` =
                                                             fun data ->

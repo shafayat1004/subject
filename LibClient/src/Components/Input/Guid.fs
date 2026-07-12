@@ -12,7 +12,7 @@ module private Helpers =
         |> Option.mapOrElse (Ok None)
             (fun maybeGuidString ->
                 match maybeGuidString.Value |> Guid.ParseOption with
-                | None -> Error "Invalid Guid"
+                | None      -> Error "Invalid Guid"
                 | Some guid -> Ok (Some guid)
             )
 

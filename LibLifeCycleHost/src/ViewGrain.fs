@@ -19,10 +19,10 @@ type ViewGrain<'Input, 'Output, 'OpError
     and 'OpError :> ViewOpError<'OpError>
     and 'OpError :> OpError>
     (
-        viewAdapterCollection: ViewAdapterCollection,
+        viewAdapterCollection:   ViewAdapterCollection,
         autoResolvedViewAdapter: ViewAdapter<'Input, 'Output, 'OpError>,
-        serviceProvider: IServiceProvider,
-        ctx: IGrainActivationContext
+        serviceProvider:         IServiceProvider,
+        ctx:                     IGrainActivationContext
     ) =
     inherit Grain()
 
@@ -38,7 +38,7 @@ type ViewGrain<'Input, 'Output, 'OpError
         | Some untypedAdapter ->
             match untypedAdapter with
             | :? ViewAdapter<'Input, 'Output, 'OpError> as adapter -> adapter
-            | _ -> autoResolvedViewAdapter
+            | _                                                    -> autoResolvedViewAdapter
         | None ->
             autoResolvedViewAdapter
 

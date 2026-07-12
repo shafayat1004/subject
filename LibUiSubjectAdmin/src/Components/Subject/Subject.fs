@@ -41,7 +41,7 @@ type LibUiSubjectAdmin.Components.Constructors.UiSubjectAdmin with
 
             UiSubject.With.Subject (
                 service = service,
-                id = id,
+                id      = id,
                 whenAvailable =
                     (fun subject ->
                         #if EGGSHELL_PLATFORM_IS_WEB

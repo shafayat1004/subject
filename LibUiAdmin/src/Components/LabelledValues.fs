@@ -154,7 +154,7 @@ type UiAdmin with
     ) : ReactElement = element {
         let styles =
             styles
-            |> Option.defaultValue 
+            |> Option.defaultValue
                 (
                     makeViewStyles {
                         paddingHV    10 13
@@ -178,7 +178,7 @@ type UiAdmin with
                                 | ScreenSize.Desktop  ->
                                     {
                                         theme with
-                                            LabelColor = (Color.Grey "66")
+                                            LabelColor  = (Color.Grey "66")
                                             LabelIsBold = false
                                     }
                                 | ScreenSize.Handheld -> theme

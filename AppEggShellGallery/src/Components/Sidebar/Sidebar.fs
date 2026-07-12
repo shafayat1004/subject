@@ -51,7 +51,7 @@ let private routeSidebar (maybeCurrentRoute: Option<Route>) (currentRoute: Actua
     match currentRoute with
     | Home | TinyGuid ->
         LC.Responsive(
-            desktop = (fun _ -> noElement),
+            desktop  = (fun _ -> noElement),
             handheld = (fun _ -> LC.Sidebar.Base(scrollableMiddle = bladesScrollable))
         )
 
@@ -191,17 +191,17 @@ let private sidebarBody (maybeCurrentRoute: Option<Route>) : ReactElement =
 type AppEggShellGallery.Components.Constructors.Ui with
     [<Component>]
     static member Sidebar(
-            ?maybeRoute:      Option<Route>,
-            ?children:        ReactChildrenProp,
-            ?key:             string,
-            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>
+            ?maybeRoute:    Option<Route>,
+            ?children:      ReactChildrenProp,
+            ?key:           string,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
-        maybeRoute |> ignore
-        children |> ignore
+        key           |> ignore
+        maybeRoute    |> ignore
+        children      |> ignore
         xLegacyStyles |> ignore
 
         LR.With.CurrentRoute(
             spec = routesSpec(),
-            fn = fun maybeCurrentRoute -> sidebarBody maybeCurrentRoute
+            fn   = fun maybeCurrentRoute -> sidebarBody maybeCurrentRoute
         )

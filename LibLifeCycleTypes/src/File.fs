@@ -22,14 +22,14 @@ let asB (value: int) : int<B> = value * 1<B>
 
 [<RequireQualifiedAccess>]
 type FileData =
-    | Bytes of byte[]
+    | Bytes  of byte[]
     | Base64 of string * Size: int<B>
 #if !FABLE_COMPILER // Disabled on frontend
     | InternalOnlyTransferBlob of TransferBlobHandlerName: string * TransferBlobId: Guid * Size: int<B>
 #endif
     member this.ToBase64: string =
         match this with
-        | Bytes bytes -> Convert.ToBase64String bytes
+        | Bytes bytes      -> Convert.ToBase64String bytes
         | Base64(value, _) -> value
 #if !FABLE_COMPILER
         | InternalOnlyTransferBlob _ -> failwith "ToBase64 unsupported on InternalOnlyTransferBlob"
@@ -37,7 +37,7 @@ type FileData =
 
     member this.ToBytes: byte[] =
         match this with
-        | FileData.Bytes bytes -> bytes
+        | FileData.Bytes bytes        -> bytes
         | FileData.Base64(encoded, _) -> Convert.FromBase64String encoded
 #if !FABLE_COMPILER
         | InternalOnlyTransferBlob _ -> failwith "ToBytes unsupported on InternalOnlyTransferBlob"
@@ -45,11 +45,12 @@ type FileData =
 
 type File =
     { MimeType: MimeType
-      Data: FileData }
+      Data:     FileData }
 
-    static member redact(file: File) : File =
-        { MimeType = file.MimeType
-          Data = FileData.Bytes [||] }
+    static member redact(file: File) : File = {
+        MimeType = file.MimeType
+        Data     = FileData.Bytes [||]
+    }
 
     member this.ToDataUri: string =
         "data:" + this.MimeType.Value + ";base64," + this.Data.ToBase64
@@ -59,7 +60,7 @@ type File =
 type NamedFile = { File: File; Name: NonemptyString }
 
 type HttpFile =
-    { File: File
+    { File:                  File
       MaybeTextEncodingName: Option<string>
       MaybeDownloadFileName: Option<string> }
 #if !FABLE_COMPILER
@@ -69,10 +70,11 @@ type HttpFile =
 
 [<RequireQualifiedAccess>]
 module HttpFile =
-    let ofFile (file: File) =
-        { File = file
-          MaybeDownloadFileName = None
-          MaybeTextEncodingName = None }
+    let ofFile (file: File) = {
+        File                  = file
+        MaybeDownloadFileName = None
+        MaybeTextEncodingName = None
+    }
 
 #if !FABLE_COMPILER
     let withEncoding (encoding: Encoding) (httpFile: HttpFile) =
@@ -99,12 +101,12 @@ type FileData with
                 let! _version =
                     reqWith Codecs.int "__v2" (function
                         | Bytes _ -> Some 0
-                        | _ -> None)
+                        | _       -> None)
 
                 and! payload =
                     reqWith Codecs.base64Bytes "Bytes" (function
                         | (Bytes x) -> Some x
-                        | _ -> None)
+                        | _         -> None)
 
                 return Bytes payload
             }
@@ -120,12 +122,12 @@ type FileData with
                 let! _version =
                     reqWith Codecs.int "__v1" (function
                         | Base64 _ -> Some 0
-                        | _ -> None)
+                        | _        -> None)
 
                 and! (value, size) =
                     reqWith (Codecs.tuple2 Codecs.string Codecs.uint32) "Base64" (function
                         | (Base64(value, size)) -> Some(value, uint32 (size / 1<B>))
-                        | _ -> None)
+                        | _                     -> None)
 
                 return Base64(value, (int size) * 1<B>)
             }
@@ -134,7 +136,7 @@ type FileData with
                 let! _version =
                     reqWith Codecs.int "__v1" (function
                         | InternalOnlyTransferBlob _ -> Some 0
-                        | _ -> None)
+                        | _                          -> None)
 
                 and! (handlerName, transferBlobId, size) =
                     reqWith (Codecs.tuple3 Codecs.string Codecs.guid Codecs.uint32) "InternalOnlyTransferBlob" (function
@@ -174,7 +176,7 @@ type HttpFile with
                 reqWith (Codecs.option Codecs.string) "Encoding" (fun x -> Some x.MaybeDownloadFileName)
 
             return
-                { File = file
+                { File                  = file
                   MaybeTextEncodingName = maybeTextEncodingName
                   MaybeDownloadFileName = maybeDownloadFileName }
         }

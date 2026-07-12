@@ -9,16 +9,16 @@ open LibLifeCycle
 
 
 type JobRunnerConnectorEnvironment = {
-    Clock: Service<Clock>
+    Clock:         Service<Clock>
     Configuration: IConfiguration
 }
 with interface Env
 
 type RunJobRequestData = {
-    Ticket: Guid
-    JobId: JobId // jobId is unused but is helpful for testing
+    Ticket:       Guid
+    JobId:        JobId // jobId is unused but is helpful for testing
     IsAtMostOnce: bool
-    Payload: JobPayload
+    Payload:      JobPayload
 }
 
 [<RequireQualifiedAccess>]

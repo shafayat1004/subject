@@ -19,14 +19,14 @@ type NonemptySet<'V when 'V: comparison> =
         let updated = this.ToSet.Remove value
 
         match updated.IsEmpty with
-        | true -> None
+        | true  -> None
         | false -> Some(NonemptySet updated)
 
     member this.Remove(values: NonemptySet<'V>) : Option<NonemptySet<'V>> =
         let updated = this.ToSet.Remove values.ToSet
 
         match updated.IsEmpty with
-        | true -> None
+        | true  -> None
         | false -> Some(NonemptySet updated)
 
     member this.Contains(value: 'V) : bool = this.ToSet.Contains value
@@ -38,14 +38,14 @@ module NonemptySet =
 
     let ofSet (set: Set<'V>) : Option<NonemptySet<'V>> =
         match set.IsEmpty with
-        | true -> None
+        | true  -> None
         | false -> set |> NonemptySet |> Some
 
     let ofSetUnsafe (set: Set<'V>) : NonemptySet<'V> = set |> ofSet |> Option.get
 
     let ofList (list: List<'V>) : Option<NonemptySet<'V>> =
         match list.IsEmpty with
-        | true -> None
+        | true  -> None
         | false -> list |> Set.ofList |> NonemptySet |> Some
 
     let ofListUnsafe (list: List<'V>) : NonemptySet<'V> = list |> ofList |> Option.get
@@ -80,7 +80,7 @@ module NonemptySet =
         | None -> map
         | Some currentValues ->
             match currentValues.Remove valueToRemove with
-            | None -> map.Remove key
+            | None                    -> map.Remove key
             | Some updatedNonemptySet -> map.AddOrUpdate(key, updatedNonemptySet)
 
     let removeMultipleAndUpdateInMap
@@ -92,7 +92,7 @@ module NonemptySet =
         | None -> map
         | Some currentValues ->
             match currentValues.Remove valuesToRemove with
-            | None -> map.Remove key
+            | None                    -> map.Remove key
             | Some updatedNonemptySet -> map.AddOrUpdate(key, updatedNonemptySet)
 
     let addAll (values: seq<'V>) (a: NonemptySet<'V>) : NonemptySet<'V> =
@@ -122,7 +122,7 @@ module NonemptySet =
     // Option of NonemptySet will naturally come up, so we make convenience functions for dealing with it
     let unionMaybe (a: NonemptySet<'V>) (maybeB: Option<NonemptySet<'V>>) : NonemptySet<'V> =
         match maybeB with
-        | None -> a
+        | None   -> a
         | Some b -> union a b
 
     let map (mapper: 'V -> 'U) (source: NonemptySet<'V>) : NonemptySet<'U> =
@@ -134,7 +134,7 @@ module NonemptySet =
     let addToMap (key: 'K) (value: 'V) (map: Map<'K, NonemptySet<'V>>) : Map<'K, NonemptySet<'V>> =
         match map.TryFind key with
         | Some values -> map.AddOrUpdate(key, values.Add value)
-        | None -> map.Add(key, ofOneItem value)
+        | None        -> map.Add(key, ofOneItem value)
 
     let addMultipleToMap
         (key: 'K)
@@ -143,7 +143,7 @@ module NonemptySet =
         : Map<'K, NonemptySet<'V>> =
         match map.TryFind key with
         | Some existing -> map.AddOrUpdate(key, union existing values)
-        | None -> map.Add(key, values)
+        | None          -> map.Add(key, values)
 
     let removeMultipleFromMap
         (key: 'K)
@@ -156,7 +156,7 @@ module NonemptySet =
 
         match maybeRemaining with
         | Some remaining -> map.AddOrUpdate(key, remaining)
-        | None -> map.Remove key
+        | None           -> map.Remove key
 
     let mergeMaps
         (existingMap: Map<'K, NonemptySet<'V>>)

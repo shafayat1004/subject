@@ -52,7 +52,7 @@ type ThirdParty.ReCaptcha.Components.Constructors.ReCaptcha.With with
                     return
                         match NonemptyString.ofString token with
                         | Some nonemptyTokenString -> Ok nonemptyTokenString
-                        | None -> Error (failwith "empty token")
+                        | None                     -> Error (failwith "empty token")
                 with e ->
                     return Error e
             }

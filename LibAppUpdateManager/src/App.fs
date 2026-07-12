@@ -17,7 +17,7 @@ module private Styles =
         padding   0
         minHeight 600
     }
-    
+
 
 type UpdateManager =
     [<Component>]

@@ -22,15 +22,15 @@ type Ui.Content with
     static member Thumb () : ReactElement =
         Ui.ComponentContent(
             displayName = "Thumb",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Thumb",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Thumb",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Thumb",
-                    role = "image or button when pressable",
-                    namePattern = "?accessibilityLabel describing the thumbnail content",
-                    stateNotes = "Pressable thumbs expose button role",
+                    componentName  = "LC.Thumb",
+                    role           = "image or button when pressable",
+                    namePattern    = "?accessibilityLabel describing the thumbnail content",
+                    stateNotes     = "Pressable thumbs expose button role",
                     scalesWithFont = false,
-                    contrastNotes = "N/A — image content"
+                    contrastNotes  = "N/A — image content"
                 ),
             samples =
                 element {
@@ -46,7 +46,7 @@ type Ui.Content with
                     Ui.ComponentSample(
                         visuals =
                             LC.Thumb(
-                                ``for`` = LC.Thumb.For.Of (localImage "/images/yuumei1.jpg"),
+                                ``for``    = LC.Thumb.For.Of (localImage "/images/yuumei1.jpg"),
                                 isSelected = true
                             ),
                         code =
@@ -65,7 +65,7 @@ LC.Thumb(
                             LC.Thumb(
                                 ``for`` = LC.Thumb.For.Of (localImage "/images/yuumei1.jpg"),
                                 onPress = (fun _ -> Action.alert "Thumbnail selected"),
-                                testId = A11ySlug.testId "thumb" "select"
+                                testId  = A11ySlug.testId "thumb" "select"
                             ),
                         code =
                             ComponentSample.SingleBlock(
@@ -85,7 +85,7 @@ LC.Thumb(
                         visuals =
                             LC.Thumb(
                                 ``for`` = LC.Thumb.For.Of (localImage "/images/yuumei2.jpg"),
-                                theme = fun theme -> { theme with Size = 120 }
+                                theme   = fun theme -> { theme with Size = 120 }
                             ),
                         code =
                             ComponentSample.SingleBlock(

@@ -7,10 +7,10 @@ open LibLifeCycle
 open LibLifeCycle.MetaServices
 
 type MetaEnvironment = {
-    Clock: Service<Clock>
+    Clock:                  Service<Clock>
     DataMaintenanceManager: Service<SubjectDataMaintenanceManager>
     EcosystemHealthManager: Service<EcosystemHealthManager>
-    MetricsReporter:             Service<MetricsReporter>
+    MetricsReporter:        Service<MetricsReporter>
 } with interface Env
 
 let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) : TransitionResult<Meta, MetaAction, MetaOpError, MetaLifeEvent, MetaConstructor> =
@@ -26,11 +26,11 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                 return {
                     meta with
                         IndexRebuildOp = Some {
-                            RebuildType    = indexRebuildType
-                            StartedOn      = now
-                            LastUpdatedOn  = now
+                            RebuildType          = indexRebuildType
+                            StartedOn            = now
+                            LastUpdatedOn        = now
                             LastSubjectIdRebuilt = skipToIdInclusive
-                            BatchSize      = batchSize |> Option.defaultValue 50us
+                            BatchSize            = batchSize |> Option.defaultValue 50us
                         }
                 }
 
@@ -55,7 +55,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                         let nextRebuildOp = {
                             rebuildOp with
                                 LastSubjectIdRebuilt = Some lastRebuiltKey
-                                LastUpdatedOn  = now
+                                LastUpdatedOn        = now
                         }
                         ((Some nextRebuildOp), meta.LastIndexRebuildOp)
 
@@ -63,7 +63,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                         let nextRebuildOp = {
                             rebuildOp with
                                 LastSubjectIdRebuilt = rebuildOp.LastSubjectIdRebuilt
-                                LastUpdatedOn  = now
+                                LastUpdatedOn        = now
                         }
                         ((Some nextRebuildOp), meta.LastIndexRebuildOp)
 
@@ -142,7 +142,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                         Some {
                             rebuildOp with
                                 LastUpdatedOn = now
-                                LastError = Some err
+                                LastError     = Some err
                         }
                     | Ok result ->
                         match result with
@@ -151,9 +151,9 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                         | RebuildTimersSubsBatchResult.CompletedBatch lastRebuiltKey ->
                             Some {
                                 rebuildOp with
-                                    LastUpdatedOn = now
+                                    LastUpdatedOn        = now
                                     LastSubjectIdRebuilt = Some lastRebuiltKey
-                                    LastError = None
+                                    LastError            = None
                             }
 
                 match meta.TimersSubsRebuildOp with
@@ -183,11 +183,11 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                 return {
                     meta with
                         ReEncodeSubjectsOp = Some {
-                            StartedOn = now
-                            LastUpdatedOn = now
+                            StartedOn              = now
+                            LastUpdatedOn          = now
                             LastSubjectIdReEncoded = skipToIdInclusive
-                            LastError = None
-                            BatchSize = batchSize |> Option.defaultValue 10us
+                            LastError              = None
+                            BatchSize              = batchSize |> Option.defaultValue 10us
                         }
                 }
 
@@ -241,11 +241,11 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
                 return {
                     meta with
                         ReEncodeSubjectsHistoryOp = Some {
-                            StartedOn = now
-                            LastUpdatedOn = now
+                            StartedOn                     = now
+                            LastUpdatedOn                 = now
                             LastSubjectIdVersionReEncoded = skipToIdVersionInclusive
-                            LastError = None
-                            BatchSize = batchSize |> Option.defaultValue 20us
+                            LastError                     = None
+                            BatchSize                     = batchSize |> Option.defaultValue 20us
                         }
                 }
 
@@ -345,7 +345,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
 
             do! [
                     env.MetricsReporter.Query ReportSideEffectMetrics lifeCycleName |> Task.Ignore
-                    env.MetricsReporter.Query ReportTimerMetrics lifeCycleName  |> Task.Ignore
+                    env.MetricsReporter.Query ReportTimerMetrics lifeCycleName      |> Task.Ignore
                 ]
                 |> Task.WhenAll
                 |> Task.asUnit
@@ -443,7 +443,7 @@ let private timers (meta: Meta) : list<Timer<MetaAction>> =
             TimerAction = TimerAction.RunAction MetaAction.ReportMetrics
             Schedule =
                 match meta.LastMetricsReportOn with
-                | None -> Schedule.Now
+                | None      -> Schedule.Now
                 | Some last -> Schedule.On (last.Add reportPeriod)
         }
 

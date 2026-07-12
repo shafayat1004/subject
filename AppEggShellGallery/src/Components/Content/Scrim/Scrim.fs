@@ -39,8 +39,8 @@ type private Helpers =
 
                         LC.Scrim(
                             isVisible = isScrimVisible.current,
-                            onPress = (fun _ -> isScrimVisible.update false),
-                            styles = [| Styles.scrim |]
+                            onPress   = (fun _ -> isScrimVisible.update false),
+                            styles    = [| Styles.scrim |]
                         )
                     }
             )
@@ -65,15 +65,15 @@ type Ui.Content with
     static member Scrim () : ReactElement =
         Ui.ComponentContent(
             displayName = "Scrim",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Scrim",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Scrim",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Scrim",
-                    role = "none (overlay backdrop)",
-                    namePattern = "N/A — decorative overlay; pair with modal/dialog for accessible dismissal",
-                    stateNotes = "Blocks pointer events on content below; does not trap focus alone",
+                    componentName  = "LC.Scrim",
+                    role           = "none (overlay backdrop)",
+                    namePattern    = "N/A — decorative overlay; pair with modal/dialog for accessible dismissal",
+                    stateNotes     = "Blocks pointer events on content below; does not trap focus alone",
                     scalesWithFont = false,
-                    contrastNotes = "Semi-transparent scrim provides visual separation; not a color-only signal"
+                    contrastNotes  = "Semi-transparent scrim provides visual separation; not a color-only signal"
                 ),
             samples =
                 element {

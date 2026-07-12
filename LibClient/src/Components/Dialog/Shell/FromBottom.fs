@@ -12,8 +12,8 @@ open LibClient.Components.Dialog.Base
 
 
 type CanClose = LibClient.Components.Dialog.Base.CanClose
-let When      = CanClose.When
-let Never     = CanClose.Never
+let When  = CanClose.When
+let Never = CanClose.Never
 
 type CloseAction = LibClient.Components.Dialog.Base.CloseAction
 let OnEscape      = CloseAction.OnEscape
@@ -37,7 +37,7 @@ module private Styles =
 
         match maybeMinHeight with
         | Some minimumHeight -> minHeight minimumHeight
-        | None -> ()
+        | None               -> ()
     })
 
     let scrollViewChildren = makeViewStyles {
@@ -61,8 +61,8 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
 
         LC.Dialog.Base (
             contentPosition = ContentPosition.Free,
-            canClose = canClose,
-            children = [|
+            canClose        = canClose,
+            children        = [|
                 Rn.View (styles = [|Styles.wrapper|], children = [|
                     // Reversed to make drop shadow work
                     bottomSection
@@ -74,10 +74,10 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
 
                         Rn.ScrollView (
                             ?onLayout = onLayoutOption,
-                            vertical = true,
-                            children = [|
+                            vertical  = true,
+                            children  = [|
                                 Rn.View (
-                                    styles = [| Styles.scrollViewWrapper maybeMinHeight |],
+                                    styles   = [| Styles.scrollViewWrapper maybeMinHeight |],
                                     children = [|
                                         Rn.View (children = [|
                                             Rn.View (styles = [|Styles.scrollViewChildren|], children = elements {
@@ -85,7 +85,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                                 | None -> nothing
                                                 | Some headingText ->
                                                     LC.Heading (
-                                                        styles = [| Styles.heading |],
+                                                        styles   = [| Styles.heading |],
                                                         children = [|
                                                             LC.UiText headingText
                                                         |]

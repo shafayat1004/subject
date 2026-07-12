@@ -28,11 +28,11 @@ let private sidebarVisibilityQueue: LibClient.EventBus.Queue<SidebarVisibilityEv
 
 let setSidebarVisibility (isVisible: bool) (e: ReactEvent.Action) : unit =
     LibClient.UiActionLog.record {
-        Kind = if isVisible then LibClient.UiActionLog.UiActionKind.SidebarOpen else LibClient.UiActionLog.UiActionKind.SidebarClose
-        TestId = Some "eggshell-sidebar-menu"
-        Label = Some (if isVisible then "Open sidebar" else "Close sidebar")
+        Kind          = if isVisible then LibClient.UiActionLog.UiActionKind.SidebarOpen else LibClient.UiActionLog.UiActionKind.SidebarClose
+        TestId        = Some "eggshell-sidebar-menu"
+        Label         = Some (if isVisible then "Open sidebar" else "Close sidebar")
         ComponentName = Some "LC.AppShell.Content"
-        Detail = Map.empty
+        Detail        = Map.empty
     }
     SidebarVisibilityEvent.Set (isVisible, e)
     |> LibClient.ServiceInstances.services().EventBus.Broadcast sidebarVisibilityQueue
@@ -171,18 +171,18 @@ type LibClient.Components.Constructors.LC.AppShell with
     [<Component>]
     static member Content(
             desktopSidebarStyle: DesktopSidebarStyle,
-            sidebar: ReactElement,
-            content: ReactElement,
-            dialogs: ReactElement,
-            onError: (System.Exception * (unit -> unit)) -> ReactElement,
-            ?children: ReactChildrenProp,
-            ?topStatus: ReactElement,
-            ?topNav: ReactElement,
-            ?bottomNav: ReactElement,
-            ?key: string,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+            sidebar:             ReactElement,
+            content:             ReactElement,
+            dialogs:             ReactElement,
+            onError:             (System.Exception * (unit -> unit)) -> ReactElement,
+            ?children:           ReactChildrenProp,
+            ?topStatus:          ReactElement,
+            ?topNav:             ReactElement,
+            ?bottomNav:          ReactElement,
+            ?key:                string,
+            ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
+        key      |> ignore
         children |> ignore
 
         Hooks.useEffect(
@@ -276,10 +276,10 @@ type LibClient.Components.Constructors.LC.AppShell with
                 noElement
             else
                 Rn.View(
-                    styles = styles,
-                    ?accessibilityRole = role,
+                    styles              = styles,
+                    ?accessibilityRole  = role,
                     ?accessibilityLabel = navLabel,
-                    children = [| block |]
+                    children            = [| block |]
                 )
 
         let renderTopNavShadow () =
@@ -287,9 +287,9 @@ type LibClient.Components.Constructors.LC.AppShell with
 
         let renderContentBlock (contentElement: ReactElement) (includeTopNavShadow: bool) =
             Rn.View(
-                testId = "eggshell-app-content",
+                testId            = "eggshell-app-content",
                 accessibilityRole = AccessibilityRole.Main,
-                styles = [| Styles.contentBlock |],
+                styles            = [| Styles.contentBlock |],
                 children =
                     elements {
                         contentElement
@@ -309,14 +309,14 @@ type LibClient.Components.Constructors.LC.AppShell with
 
                             element {
                                 LC.Scrim(
-                                    isVisible = isSidebarScrimVisibleHook.current,
-                                    onPress = setSidebarVisibility false,
+                                    isVisible        = isSidebarScrimVisibleHook.current,
+                                    onPress          = setSidebarVisibility false,
                                     ?onPanHorizontal = (maybeSidebarDraggableHook.current |> Option.map (fun draggable -> draggable.OnPanHorizontal)),
-                                    styles = [| Styles.scrim |]
+                                    styles           = [| Styles.scrim |]
                                 )
                                 LC.Draggable(
                                     draggableRef = refSidebarDraggable,
-                                    onChange = Actions.onSidebarDraggableChange isSidebarScrimVisibleHook,
+                                    onChange     = Actions.onSidebarDraggableChange isSidebarScrimVisibleHook,
                                     // Park the closed drawer fully off-screen (translateX(-width)), not
                                     // at -width+10. The old 10px "peek" was a touch edge-swipe affordance,
                                     // but on web it left the GestureView's on-screen sliver overlaying the
@@ -325,8 +325,8 @@ type LibClient.Components.Constructors.LC.AppShell with
                                     // not scroll the content beneath. Fully hiding makes the closed drawer
                                     // inert; it opens via the hamburger and closes via the scrim.
                                     baseOffset = (-width, 0),
-                                    right = {| ForwardThreshold = 30; Offset = width; BackwardThreshold = 50 |},
-                                    styles = [| Styles.sidebarDraggableStyles width |],
+                                    right      = {| ForwardThreshold = 30; Offset = width; BackwardThreshold = 50 |},
+                                    styles     = [| Styles.sidebarDraggableStyles width |],
                                     children =
                                         elements {
                                             Rn.View(
@@ -380,7 +380,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                             elements {
                                                 if desktopSidebarStyle = Fixed then
                                                     Rn.View(
-                                                        styles = [| Styles.sidebarBlockDesktop |],
+                                                        styles   = [| Styles.sidebarBlockDesktop |],
                                                         children = [| sidebar |]
                                                     )
                                                 renderContentBlock content false
@@ -393,7 +393,7 @@ type LibClient.Components.Constructors.LC.AppShell with
                                             render =
                                                 fun () ->
                                                     Rn.View(
-                                                        styles = [| Styles.sidebarPopupWrapper |],
+                                                        styles   = [| Styles.sidebarPopupWrapper |],
                                                         children = [| sidebar |]
                                                     )
                                         )

@@ -5,7 +5,7 @@ open System
 
 type TraceContext = {
     // as name suggests, user and session are for telemetry/audit only and should NOT be used for authorization.
-    TelemetryUserId: string
+    TelemetryUserId:    string
     TelemetrySessionId: Option<string>
     // parent Id of diagnostics activity for distributed tracing
     ParentId: string
@@ -23,14 +23,14 @@ and GrainTransientSideEffect<'LifeAction when 'LifeAction :> LifeAction> =
 | ConnectorRequestMultiResponse of TraceContext * ResponseType: Type * ConnectorName: string * BuildRequest: obj (* MultiResponseChannel<'Response> -> Request  *) * Action: (obj (* 'Request *) -> 'LifeAction)
 
 and GrainPersistedSideEffect<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError> =
-| RunActionOnSelf               of 'LifeAction * Option<TraceContext>
-| Rpc                           of GrainRpc
-| TriggerTimerActionOnSelf      of TentativeDueAction: 'LifeAction * Option<TraceContext>
+| RunActionOnSelf          of 'LifeAction * Option<TraceContext>
+| Rpc                      of GrainRpc
+| TriggerTimerActionOnSelf of TentativeDueAction: 'LifeAction * Option<TraceContext>
 | HandleSubscriptionResponseOnSelf of TriggerSubscriptionResponse<'LifeAction, 'OpError> * SubscriptionTriggerType * LifeEvent * TraceContext
-| TryDeleteSelf                 of RequiredVersion: uint64 * RequiredNextSideEffectSequenceNumber: uint64 * RetryAttempt: byte
+| TryDeleteSelf            of RequiredVersion: uint64 * RequiredNextSideEffectSequenceNumber: uint64 * RetryAttempt: byte
 
 // TODO: try use responseHandler pattern instead, to distinguish permanent and transient txn errors (ConflictingPrepare), and retry latter until timed out
-| RpcTransactionStep            of GrainRpcTransactionStep
+| RpcTransactionStep of GrainRpcTransactionStep
 
 | RpcTriggerSubscriptionOnGrain of GrainTriggerSubscriptionRpc
 | IngestTimeSeries              of TimeSeriesKey * ``list<'TimeSeriesDataPoint>``: obj * TraceContext
@@ -43,10 +43,10 @@ and GrainRpc = {
 }
 
 and [<RequireQualifiedAccess>] TriggerSubscriptionResponse<'LifeAction, 'OpError when 'OpError :> OpError and 'LifeAction :> LifeAction> =
-| ActOk of 'LifeAction
-| ActError of 'OpError * 'LifeAction
+| ActOk         of 'LifeAction
+| ActError      of 'OpError * 'LifeAction
 | ActNotAllowed of 'LifeAction
-| Exn of ExceptionDetails: string * Option<'LifeAction>
+| Exn           of ExceptionDetails: string * Option<'LifeAction>
 
 and GrainRpcTransactionStep = {
     SubjectReference: SubjectReference
@@ -58,27 +58,27 @@ and GrainRpcTransactionStep = {
 }
 
 and GrainTriggerSubscriptionRpc = {
-    SubjectPKeyReference: SubjectPKeyReference
+    SubjectPKeyReference:    SubjectPKeyReference
     SubscriptionTriggerType: SubscriptionTriggerType
-    LifeEvent: LifeEvent
-    TraceContext: TraceContext
-    Deduplicate: bool
+    LifeEvent:               LifeEvent
+    TraceContext:            TraceContext
+    Deduplicate:             bool
 }
 
 and GrainRpcOperation =
-    | RunActionOnGrain                           of LifeAction * Deduplicate: bool
-    | RunActionOnGrainAndSubscribe               of LifeAction * Deduplicate: bool * Map<SubscriptionName, LifeEvent>
-    | InitializeGrain                            of Constructor * OkIfAlreadyInitialized: bool
-    | InitializeGrainAndSubscribe                of Constructor * OkIfAlreadyInitialized: bool * Map<SubscriptionName, LifeEvent>
-    | SubscribeToGrain                           of Map<SubscriptionName, LifeEvent>
-    | UnsubscribeFromGrain                       of Set<SubscriptionName>
+    | RunActionOnGrain             of LifeAction * Deduplicate: bool
+    | RunActionOnGrainAndSubscribe of LifeAction * Deduplicate: bool * Map<SubscriptionName, LifeEvent>
+    | InitializeGrain              of Constructor * OkIfAlreadyInitialized: bool
+    | InitializeGrainAndSubscribe  of Constructor * OkIfAlreadyInitialized: bool * Map<SubscriptionName, LifeEvent>
+    | SubscribeToGrain             of Map<SubscriptionName, LifeEvent>
+    | UnsubscribeFromGrain         of Set<SubscriptionName>
     // TODO: consider removing ActMaybeConstruct throughout the stack - same can be achieved via MaybeConstruct and Act (although with two grain calls)
     | RunActionMaybeConstructOnGrain             of LifeAction * Constructor * Deduplicate: bool
     | RunActionMaybeConstructAndSubscribeOnGrain of LifeAction * Constructor * Deduplicate: bool * Map<SubscriptionName, LifeEvent>
 
 and GrainRpcTransactionStepOperation =
-    | PrepareActionOnGrain    of LifeAction
-    | PrepareInitializeGrain  of Constructor
+    | PrepareActionOnGrain   of LifeAction
+    | PrepareInitializeGrain of Constructor
     | CommitPreparedOnGrain
     | RollbackPreparedOnGrain
     | CheckPhantomPreparedOnGrain
@@ -98,12 +98,12 @@ type TickState =
     | Fired     of OriginalNextTickOn: DateTimeOffset
 
 type SubjectState<'Subject, 'SubjectId when 'Subject :> Subject<'SubjectId> and 'SubjectId :> SubjectId and 'SubjectId : comparison> = {
-    Subject:           'Subject
-    LastUpdatedOn:     DateTimeOffset
-    TickState:         TickState
+    Subject:       'Subject
+    LastUpdatedOn: DateTimeOffset
+    TickState:     TickState
     // It's assumed that SubscriptionName unambiguously maps to a LifeEvent
     // Consider including LifeEvent explicitly (also will make unsubscription simpler)
-    OurSubscriptions:  Map<SubscriptionName, SubjectReference>
+    OurSubscriptions: Map<SubscriptionName, SubjectReference>
 }
 
 type OthersSubscribing<'LifeEvent when 'LifeEvent :> LifeEvent and 'LifeEvent: comparison>
@@ -117,7 +117,7 @@ type [<RequireQualifiedAccess>] GrainSideEffectResult =
 
 type RecursionLoopControlForTrackingUnboundedRecursions = {
     SourceStartingPoint: string
-    Counter: byte
+    Counter:             byte
 }
 
 let newRecursionControl (format: Printf.StringFormat<'T,RecursionLoopControlForTrackingUnboundedRecursions>) =
@@ -142,19 +142,19 @@ type CodecFriendlyGrainTriggerSubscriptionRpc = {
     SubjectPKeyReference:    SubjectPKeyReference
     SubscriptionTriggerType: SubscriptionTriggerType
     // LifeEvent json serialized once and reused across subscribers to save some CPU as some event payloads are large and repeated serialization for many subscribers adds up
-    LifeEventJson:           string
-    TraceContext:            TraceContext
-    Deduplicate:             bool
+    LifeEventJson: string
+    TraceContext:  TraceContext
+    Deduplicate:   bool
 }
 
 type GrainTriggerSubscriptionRpc with
     member this.AsCodecFriendlyData (cachedLifeEventJson: string) : CodecFriendlyGrainTriggerSubscriptionRpc =
         {
-            SubjectPKeyReference = this.SubjectPKeyReference
+            SubjectPKeyReference    = this.SubjectPKeyReference
             SubscriptionTriggerType = this.SubscriptionTriggerType
-            LifeEventJson = cachedLifeEventJson
-            TraceContext = this.TraceContext
-            Deduplicate = this.Deduplicate
+            LifeEventJson           = cachedLifeEventJson
+            TraceContext            = this.TraceContext
+            Deduplicate             = this.Deduplicate
         }
 
 // Reminder update is meant to be immediately applied to runtime with best-effort, unlike persisted TickState that is
@@ -163,7 +163,7 @@ type GrainTriggerSubscriptionRpc with
 type ReminderUpdate = {
     /// Best guess of what reminder is currently applied at runtime, as we can't look it up easily.
     AssumedCurrent: AssumedCurrentReminder
-    On: Option<DateTimeOffset>
+    On:             Option<DateTimeOffset>
 }
 and [<RequireQualifiedAccess>] AssumedCurrentReminder =
 | NotSet
@@ -174,21 +174,21 @@ and [<RequireQualifiedAccess>] AssumedCurrentReminder =
 // so far it's done only for TimeSeries Ingest but will be retrofitted for other persisted side effects
 [<RequireQualifiedAccess>]
 type CodecFriendlyGrainPersistedSideEffect<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError> =
-| RunActionOnSelf               of 'LifeAction * Option<TraceContext>
-| Rpc                           of GrainRpc
-| TriggerTimerActionOnSelf      of TentativeDueAction: 'LifeAction * Option<TraceContext>
+| RunActionOnSelf          of 'LifeAction * Option<TraceContext>
+| Rpc                      of GrainRpc
+| TriggerTimerActionOnSelf of TentativeDueAction: 'LifeAction * Option<TraceContext>
 | HandleSubscriptionResponseOnSelf of TriggerSubscriptionResponse<'LifeAction, 'OpError> * SubscriptionTriggerType * LifeEvent * TraceContext
-| TryDeleteSelf                 of RequiredVersion: uint64 * RequiredNextSideEffectSequenceNumber: uint64 * RetryAttempt: byte
-| RpcTransactionStep            of GrainRpcTransactionStep
+| TryDeleteSelf            of RequiredVersion: uint64 * RequiredNextSideEffectSequenceNumber: uint64 * RetryAttempt: byte
+| RpcTransactionStep       of GrainRpcTransactionStep
 | RpcTriggerSubscriptionOnGrain of CodecFriendlyGrainTriggerSubscriptionRpc
 // TODO: remove these two when all persistted side effects flushed in all biosphere
-| UpdateTimer                   of DateTimeOffset
-| ClearTimer                    of NextTickOnToClear: DateTimeOffset
+| UpdateTimer of DateTimeOffset
+| ClearTimer  of NextTickOnToClear: DateTimeOffset
 with
     member this.AsGrainPersistedSideEffect (maybeOverrideTraceContextParentId: Option<string>) =
         let maybeOverrideTraceContext (traceContext: TraceContext) =
             match maybeOverrideTraceContextParentId with
-            | None -> traceContext
+            | None                              -> traceContext
             | Some overrideTraceContextParentId -> { traceContext with ParentId = overrideTraceContextParentId }
 
         match this with
@@ -200,31 +200,31 @@ with
         | RpcTransactionStep x ->               GrainPersistedSideEffect.RpcTransactionStep { x with TraceContext = maybeOverrideTraceContext x.TraceContext }, None
         | RpcTriggerSubscriptionOnGrain rpc ->
             {
-                SubjectPKeyReference = rpc.SubjectPKeyReference
+                SubjectPKeyReference    = rpc.SubjectPKeyReference
                 SubscriptionTriggerType = rpc.SubscriptionTriggerType
-                LifeEvent = CodecLib.StjCodecs.ofJsonText rpc.LifeEventJson |> function | Ok x -> x | Error e -> failwithf $"LifeEvent decode error: %A{e}"
-                TraceContext = maybeOverrideTraceContext rpc.TraceContext
-                Deduplicate = rpc.Deduplicate
+                LifeEvent               = CodecLib.StjCodecs.ofJsonText rpc.LifeEventJson |> function | Ok x -> x | Error e -> failwithf $"LifeEvent decode error: %A{e}"
+                TraceContext            = maybeOverrideTraceContext rpc.TraceContext
+                Deduplicate             = rpc.Deduplicate
             }
             |> GrainPersistedSideEffect.RpcTriggerSubscriptionOnGrain,
             None
         | UpdateTimer nextTickOn -> GrainPersistedSideEffect.ObsoleteNoop "UpdateTimer is not a side effect anymore", Some { AssumedCurrent = AssumedCurrentReminder.Unknown; On = Some nextTickOn }
-        | ClearTimer _ -> GrainPersistedSideEffect.ObsoleteNoop "ClearTimer is not a side effect anymore", Some { AssumedCurrent = AssumedCurrentReminder.Unknown; On = None }
+        | ClearTimer _           -> GrainPersistedSideEffect.ObsoleteNoop "ClearTimer is not a side effect anymore", Some { AssumedCurrent = AssumedCurrentReminder.Unknown; On = None }
 
 
 type GrainPersistedSideEffect<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError>
 with
     member this.AsCodecFriendlyDataUnsafeForTriggerSubscriptionOnGrain : Choice<CodecFriendlyGrainPersistedSideEffect<'LifeAction, 'OpError>, TimeSeriesKey * (* ``list<'TimeSeriesDataPoint>``: *) obj * TraceContext> =
         match this with
-        | RunActionOnSelf (x1, x2) ->           Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.RunActionOnSelf(x1, x2)
-        | Rpc x ->                              Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.Rpc x
-        | TriggerTimerActionOnSelf (x1, x2) ->  Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.TriggerTimerActionOnSelf(x1, x2)
+        | RunActionOnSelf (x1, x2)                          -> Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.RunActionOnSelf(x1, x2)
+        | Rpc x                                             -> Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.Rpc x
+        | TriggerTimerActionOnSelf (x1, x2)                 -> Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.TriggerTimerActionOnSelf(x1, x2)
         | HandleSubscriptionResponseOnSelf (x1, x2, x3, x4) -> Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.HandleSubscriptionResponseOnSelf (x1, x2, x3, x4)
-        | TryDeleteSelf (x1, x2, x3) ->         Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.TryDeleteSelf (x1, x2, x3)
-        | RpcTransactionStep x ->               Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.RpcTransactionStep x
-        | RpcTriggerSubscriptionOnGrain _ ->    failwithf "Unexpected case RpcTriggerSubscriptionOnGrain from AsCodecFriendlyDataExceptTriggerSubscriptionOnGrain"
-        | IngestTimeSeries (x1, x2, x3) ->      Choice2Of2 (x1, x2, x3)
-        | ObsoleteNoop _ ->                     failwithf "Unexpected case ObsoleteNoop from AsCodecFriendlyDataExceptTriggerSubscriptionOnGrain"
+        | TryDeleteSelf (x1, x2, x3)                        -> Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.TryDeleteSelf (x1, x2, x3)
+        | RpcTransactionStep x                              -> Choice1Of2 <| CodecFriendlyGrainPersistedSideEffect.RpcTransactionStep x
+        | RpcTriggerSubscriptionOnGrain _                   -> failwithf "Unexpected case RpcTriggerSubscriptionOnGrain from AsCodecFriendlyDataExceptTriggerSubscriptionOnGrain"
+        | IngestTimeSeries (x1, x2, x3)                     -> Choice2Of2 (x1, x2, x3)
+        | ObsoleteNoop _                                    -> failwithf "Unexpected case ObsoleteNoop from AsCodecFriendlyDataExceptTriggerSubscriptionOnGrain"
 
     static member AsCodecFriendlyData (sideEffectIdAndPersistedSideEffects: List<GrainSideEffectId * GrainPersistedSideEffect<'LifeAction, 'OpError>>) : List<GrainSideEffectId * Choice<CodecFriendlyGrainPersistedSideEffect<'LifeAction, 'OpError>, TimeSeriesKey * (* ``list<'TimeSeriesDataPoint>``: *) obj * TraceContext>> =
         sideEffectIdAndPersistedSideEffects
@@ -405,12 +405,12 @@ type GrainRpc with
 
 type GrainRpcTransactionStep with
     static member get_ObjCodec_V1 () = codec {
-        let! subjectReference  = reqWith (SubjectReference.get_Codec ()) "SubjectReference" (fun x -> Some x.SubjectReference)
-        and! transactionId     = reqWith (SubjectTransactionId.get_Codec ()) "TransactionId" (fun x -> Some x.TransactionId)
-        and! batchNo           = reqWith Codecs.uint16 "BatchNo" (fun x -> Some x.BatchNo)
-        and! opNo              = reqWith Codecs.uint16 "OpNo" (fun x -> Some x.OpNo)
-        and! rpcOperation      = reqWith (GrainRpcTransactionStepOperation.get_Codec ()) "RpcOperation" (fun x -> Some x.RpcOperation)
-        and! traceContext      = reqWith (TraceContext.get_Codec ()) "TraceContext" (fun x -> Some x.TraceContext)
+        let! subjectReference = reqWith (SubjectReference.get_Codec ()) "SubjectReference" (fun x -> Some x.SubjectReference)
+        and! transactionId    = reqWith (SubjectTransactionId.get_Codec ()) "TransactionId" (fun x -> Some x.TransactionId)
+        and! batchNo          = reqWith Codecs.uint16 "BatchNo" (fun x -> Some x.BatchNo)
+        and! opNo             = reqWith Codecs.uint16 "OpNo" (fun x -> Some x.OpNo)
+        and! rpcOperation     = reqWith (GrainRpcTransactionStepOperation.get_Codec ()) "RpcOperation" (fun x -> Some x.RpcOperation)
+        and! traceContext     = reqWith (TraceContext.get_Codec ()) "TraceContext" (fun x -> Some x.TraceContext)
         return { SubjectReference = subjectReference; TransactionId = transactionId; BatchNo = batchNo; OpNo = opNo; RpcOperation = rpcOperation; TraceContext = traceContext } }
 
     static member get_Codec () = ofObjCodec (GrainRpcTransactionStep.get_ObjCodec_V1())
@@ -652,7 +652,7 @@ type SubjectState<'Subject, 'SubjectId when 'Subject :> Subject<'SubjectId> and 
         {
             Subject          = data.Subject |> box :?> 'Subject
             LastUpdatedOn    = data.LastUpdatedOn
-            TickState       = data.TickState
+            TickState        = data.TickState
             OurSubscriptions = data.OurSubscriptions
         }
 

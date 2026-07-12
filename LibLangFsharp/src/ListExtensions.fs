@@ -27,7 +27,7 @@ module List =
         source
         |> List.choose (function
             | candidate when candidate = item -> Some replacement
-            | candidate -> Some candidate)
+            | candidate                       -> Some candidate)
 
     let replaceByIndex (index: int) (replacement: 'U) (source: list<'U>) : list<'U> =
         (source |> List.take index)
@@ -38,7 +38,7 @@ module List =
         List.foldBack
             (fun currItem ->
                 function
-                | [] -> [ currItem ]
+                | []       -> [ currItem ]
                 | accItems -> currItem :: separator :: accItems)
             source
             []
@@ -82,4 +82,4 @@ module List =
     let takeOrLess<'T> (size: int) (items: List<'T>) : 'T List =
         match items.Length with
         | x when x <= size -> items
-        | _ -> items |> List.take size
+        | _                -> items |> List.take size

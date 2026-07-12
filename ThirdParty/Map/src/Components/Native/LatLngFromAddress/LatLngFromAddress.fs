@@ -17,15 +17,15 @@ let private subscriptionImplementationValue : AdHocSubscriptionImplementation<As
 
 type private IResponse =
     abstract candidates: obj [] with get, set
-    abstract status: string with get, set
+    abstract status:     string with get, set
 
 type ThirdParty.Map.Components.Constructors.Map.Native with
     [<Component>]
     static member LatLngFromAddress(
-            address: string,
+            address:  string,
             ``with``: AsyncData<LatLng> -> ReactElement,
-            apiKey:  string,
-            ?key:    string
+            apiKey:   string,
+            ?key:     string
         ) : ReactElement =
         ignore key
 
@@ -60,5 +60,5 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
 
         LC.Subscribe(
             subscription = subscriptionImplementationValue.Subscribe,
-            ``with`` = Subscribe.Raw ``with``
+            ``with``     = Subscribe.Raw ``with``
         )

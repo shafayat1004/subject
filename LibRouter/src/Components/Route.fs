@@ -15,10 +15,10 @@ open LibRouter.Components.With.Location
 
 type Scroll = ScrollView.Scroll
 
-let NoScroll                                      = Scroll.NoScroll
-let Horizontal                                    = Scroll.Horizontal
-let Vertical                                      = Scroll.Vertical
-let Both                                          = Scroll.Both
+let NoScroll   = Scroll.NoScroll
+let Horizontal = Scroll.Horizontal
+let Vertical   = Scroll.Vertical
+let Both       = Scroll.Both
 
 type RestoreScroll                                = ScrollView.RestoreScroll
 let No                                            = RestoreScroll.No
@@ -80,7 +80,7 @@ module private Styles =
         flex 1
         match contentWidth with
         | Fixed contentWidth -> maxWidth contentWidth
-        | _ -> ()
+        | _                  -> ()
     })
 
     let scroll_view_footer = makeViewStyles {
@@ -108,7 +108,7 @@ type LR with
             let contentWidth:     ContentWidth     = defaultArg contentWidth Full
             let onNetworkFailure: OnNetworkFailure = defaultArg onNetworkFailure OnNetworkFailure.DefaultVisuals
             let elevateFooter:    bool             = defaultArg elevateFooter false
-            
+
             let createElement (items: List<ReactElement option>) : ReactElement =
                 element {
                     items
@@ -120,7 +120,7 @@ type LR with
                     )
                     |> asFragment
                 }
-            
+
             let topElement, bottomElement =
                 match elevateFooter with
                 | true  ->
@@ -146,16 +146,16 @@ type LR with
                                     match exn with
                                     | AsyncDataException AsyncDataFailure.NetworkFailure ->
                                         match onNetworkFailure with
-                                        | DefaultVisuals -> LC.AppShell.NetworkFailureMessage ()
-                                        | Custom makeVisuals ->  makeVisuals()
-                                        | Reraise -> LC.Text $"raise {exn}"
+                                        | DefaultVisuals     -> LC.AppShell.NetworkFailureMessage ()
+                                        | Custom makeVisuals -> makeVisuals()
+                                        | Reraise            -> LC.Text $"raise {exn}"
                                     | _ ->
                                         LC.Text $"raise {exn}"
                                 ),
                             ``try`` = element {
                                 let url = location.Url
                                 let restoreScroll = restoreScroll |> Option.getOrElse (WhenContentApproximatelyMatchesOriginalHeight url)
-                                Rn.View (styles   = (styles |> Option.getOrElse [| Styles.view elevateFooter |]), children = [|
+                                Rn.View (styles = (styles |> Option.getOrElse [| Styles.view elevateFooter |]), children = [|
                                     topElement
 
                                     match (scroll, footer) with
@@ -221,7 +221,7 @@ type LR with
                                                             else nothing
                                                         })
                                             )
-                                    
+
                                     bottomElement
                                 |])
                             }

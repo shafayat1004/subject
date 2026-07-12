@@ -37,17 +37,17 @@ let private genderItemView =
     PropItemViewFactory.Make (fun (gender: Gender) -> gender.ToString())
 
 type Acc = {
-    Name:          Option<NonemptyString>
-    Age:           LibClient.Components.Input.PositiveInteger.Value
-    Gender:        Option<Gender>
-    WantsSpam:     bool
+    Name:      Option<NonemptyString>
+    Age:       LibClient.Components.Input.PositiveInteger.Value
+    Gender:    Option<Gender>
+    WantsSpam: bool
 } with
     static member Initial : Acc =
         {
-            Name          = None
-            Age           = LibClient.Components.Input.PositiveInteger.empty
-            Gender        = None
-            WantsSpam     = true
+            Name      = None
+            Age       = LibClient.Components.Input.PositiveInteger.empty
+            Gender    = None
+            WantsSpam = true
         }
 
     interface AbstractAcc<Field, Profile> with
@@ -75,34 +75,34 @@ module private FormSample =
     let Render () : ReactElement =
         LC.Form.Base(
             accumulator = Accumulator.ManageInternallyInitializingWith Acc.Initial,
-            submit = submit,
+            submit      = submit,
             content =
                 fun (form: FormHandle<Field, Acc, Profile>) ->
                     element {
                         LC.Input.Text(
-                            label = "Name",
-                            validity = form.FieldValidity Field.Name,
-                            value = form.Acc.Name,
+                            label           = "Name",
+                            validity        = form.FieldValidity Field.Name,
+                            value           = form.Acc.Name,
                             onEnterKeyPress = (ReactEvent.Action.Make >> form.TrySubmitLowLevel),
-                            onChange = (fun value -> form.UpdateAcc (fun acc -> { acc with Name = value }))
+                            onChange        = (fun value -> form.UpdateAcc (fun acc -> { acc with Name = value }))
                         )
                         LC.Input.PositiveInteger(
-                            label = "Age",
-                            validity = form.FieldValidity Field.Age,
-                            value = form.Acc.Age,
+                            label           = "Age",
+                            validity        = form.FieldValidity Field.Age,
+                            value           = form.Acc.Age,
                             onEnterKeyPress = (ReactEvent.Action.Make >> form.TrySubmitLowLevel),
-                            onChange = (fun value -> form.UpdateAcc (fun acc -> { acc with Age = value }))
+                            onChange        = (fun value -> form.UpdateAcc (fun acc -> { acc with Age = value }))
                         )
                         LC.Input.Picker(
-                            label = "Gender",
+                            label    = "Gender",
                             validity = form.FieldValidity Field.Gender,
-                            items = Static (genderItems, genderToFilterString),
+                            items    = Static (genderItems, genderToFilterString),
                             itemView = genderItemView,
-                            value = ExactlyOne (form.Acc.Gender, fun gender -> form.UpdateAcc (fun acc -> { acc with Gender = Some gender }))
+                            value    = ExactlyOne (form.Acc.Gender, fun gender -> form.UpdateAcc (fun acc -> { acc with Gender = Some gender }))
                         )
                         LC.Input.Checkbox(
-                            label = Label.String "Subscribe to email",
-                            value = Some form.Acc.WantsSpam,
+                            label    = Label.String "Subscribe to email",
+                            value    = Some form.Acc.WantsSpam,
                             onChange = (fun value -> form.UpdateAcc (fun acc -> { acc with WantsSpam = value })),
                             validity = form.FieldValidity Field.WantsSpam
                         )
@@ -123,7 +123,7 @@ type Ui.Content with
     static member Forms () : ReactElement =
         Ui.ComponentContent(
             displayName = "Forms",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Form.Base",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Form.Base",
             notes =
                 element {
                     LC.Text "We think of forms as a chunk of UI whose job is to produce a value of type 'T. The main building block for a form is the accumulator (Acc), which holds partially filled data and provides Validate."
@@ -131,17 +131,17 @@ type Ui.Content with
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Form.Base",
-                    role = "none (form container)",
-                    namePattern = "N/A — bound LC.Input.* fields expose their own names",
-                    stateNotes = "Submit button reflects form TrySubmit state; field validity via form.FieldValidity",
+                    componentName  = "LC.Form.Base",
+                    role           = "none (form container)",
+                    namePattern    = "N/A — bound LC.Input.* fields expose their own names",
+                    stateNotes     = "Submit button reflects form TrySubmit state; field validity via form.FieldValidity",
                     scalesWithFont = true
                 ),
             samples =
                 element {
                     Ui.ComponentSample(
                         verticalAlignment = ComponentSample.VerticalAlignment.Top,
-                        visuals = FormSample.Render(),
+                        visuals           = FormSample.Render(),
                         code =
                             ComponentSample.Children(
                                 element {

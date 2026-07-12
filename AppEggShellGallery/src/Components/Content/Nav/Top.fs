@@ -36,9 +36,9 @@ type Ui.Content.Nav with
     [<Component>]
     static member Top () : ReactElement =
         Ui.ComponentContent (
-            displayName = "Nav.Top",
+            displayName  = "Nav.Top",
             isResponsive = true,
-            props = ComponentContent.Manual (element {
+            props        = ComponentContent.Manual (element {
                 Ui.ScrapedComponentProps (heading = "Nav.Top.Base",              fullyQualifiedName = "LibClient.Components.Nav.Top.Base")
                 Ui.ScrapedComponentProps (heading = "Nav.Top.Item",              fullyQualifiedName = "LibClient.Components.Nav.Top.Item")
                 Ui.ScrapedComponentProps (heading = "Nav.Top.Heading",           fullyQualifiedName = "LibClient.Components.Nav.Top.Heading")
@@ -48,22 +48,22 @@ type Ui.Content.Nav with
             }),
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Nav.Top.*",
-                    role = "header bar (Nav.Top.Base); nav items expose button/link roles",
-                    namePattern = "Item label text; headings via Nav.Top.Heading",
-                    stateNotes = "Selected nav items expose selected state; ShowSidebarButton is a button",
+                    componentName  = "LC.Nav.Top.*",
+                    role           = "header bar (Nav.Top.Base); nav items expose button/link roles",
+                    namePattern    = "Item label text; headings via Nav.Top.Heading",
+                    stateNotes     = "Selected nav items expose selected state; ShowSidebarButton is a button",
                     scalesWithFont = true,
-                    contrastNotes = "Nav item text and backgrounds use theme colors meeting WCAG AA"
+                    contrastNotes  = "Nav item text and backgrounds use theme colors meeting WCAG AA"
                 ),
             samples = (element {
                 Ui.ComponentSampleGroup (
                     samples = (element {
                         Ui.ComponentSample (
                             heading = "Basics",
-                            layout = ComponentSample.Layout.CodeBelowSamples,
+                            layout  = ComponentSample.Layout.CodeBelowSamples,
                             visuals = (
                                 LC.With.Context (
-                                    context = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
+                                    context  = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
                                     ``with`` = (fun sampleVisualsScreenSize ->
                                         LC.ForceContext (context = screenSizeContext, value = sampleVisualsScreenSize, children = [|
                                             LC.Nav.Top.Base (
@@ -128,10 +128,10 @@ type Ui.Content.Nav with
 
                         Ui.ComponentSample (
                             heading = "Without Heading",
-                            layout = ComponentSample.Layout.CodeBelowSamples,
+                            layout  = ComponentSample.Layout.CodeBelowSamples,
                             visuals = (
                                 LC.With.Context (
-                                    context = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
+                                    context  = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
                                     ``with`` = (fun sampleVisualsScreenSize ->
                                         LC.ForceContext (context = screenSizeContext, value = sampleVisualsScreenSize, children = [|
                                             LC.Nav.Top.Base (
@@ -196,20 +196,20 @@ type Ui.Content.Nav with
 
                         Ui.ComponentSample (
                             heading = "Style Sample",
-                            layout = ComponentSample.Layout.CodeBelowSamples,
+                            layout  = ComponentSample.Layout.CodeBelowSamples,
                             visuals = (
                                 LC.With.Context (
-                                    context = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
+                                    context  = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
                                     ``with`` = (fun sampleVisualsScreenSize ->
                                         LC.ForceContext (context = screenSizeContext, value = sampleVisualsScreenSize, children = [|
                                             LC.Nav.Top.Base (
                                                 desktop = fun _ -> element {
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.Style.With(label = "Store", badge = Nav.Top.Item.Text "Summer Sale"),               state = Nav.Top.Item.Actionable ignore)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.Style.With(icon  = Icon.Bell, badge = Nav.Top.Item.Count 2),                        state = Nav.Top.Item.Actionable ignore)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.labelOnly "Blog",                                                                   state = Nav.Top.Item.Disabled)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly  Icon.MagnifyingGlass,                                                     state = Nav.Top.Item.Actionable ignore)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.Style.With(label = "Cart", icon = Icon.ShoppingCart, badge = Nav.Top.Item.Count 3), state = Nav.Top.Item.Actionable ignore)
-                                                    LC.Nav.Top.Item (style = Nav.Top.Item.iconOnly Icon.X, state = Nav.Top.Item.Actionable ignore, theme = (fun t -> { t with IconVerticalAdjust = 10 }))
+                                                    LC.Nav.Top.Item (style                = Nav.Top.Item.Style.With(label = "Store", badge = Nav.Top.Item.Text "Summer Sale"),               state = Nav.Top.Item.Actionable ignore)
+                                                    LC.Nav.Top.Item (style                = Nav.Top.Item.Style.With(icon  = Icon.Bell, badge = Nav.Top.Item.Count 2),                        state = Nav.Top.Item.Actionable ignore)
+                                                    LC.Nav.Top.Item (style                = Nav.Top.Item.labelOnly "Blog",                                                                   state = Nav.Top.Item.Disabled)
+                                                    LC.Nav.Top.Item (style                = Nav.Top.Item.iconOnly  Icon.MagnifyingGlass,                                                     state = Nav.Top.Item.Actionable ignore)
+                                                    LC.Nav.Top.Item (style                = Nav.Top.Item.Style.With(label = "Cart", icon = Icon.ShoppingCart, badge = Nav.Top.Item.Count 3), state = Nav.Top.Item.Actionable ignore)
+                                                    LC.Nav.Top.Item (style                = Nav.Top.Item.iconOnly Icon.X, state = Nav.Top.Item.Actionable ignore, theme = (fun t -> { t with IconVerticalAdjust = 10 }))
                                                     LC.Nav.Top.Heading ("Heading", styles = [|Styles.heading|])
                                                 },
                                                 handheld = fun _ -> element {

@@ -114,8 +114,8 @@ module Nav_Top_Heading =
                 match xLegacyStyles with
                 | Some ls ->
                     match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-                    | []  -> [||]
-                    | s   -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" s |]
+                    | [] -> [||]
+                    | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" s |]
                 | None -> [||]
 
             LC.With.ScreenSize (fun screenSize ->

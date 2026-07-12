@@ -23,14 +23,14 @@ open LibLifeCycleHost.Storage.SqlServer
 // loads up
 type SubjectReminderTable
     (
-        config: SqlServerConnectionStrings,
-        ecosystem: Ecosystem,
-        grainReferenceConverter: IGrainReferenceConverter,
+        config:                     SqlServerConnectionStrings,
+        ecosystem:                  Ecosystem,
+        grainReferenceConverter:    IGrainReferenceConverter,
         lifeCycleAdapterCollection: HostedLifeCycleAdapterCollection,
-        logger: ILogger<SubjectReminderTable>,
-        clock: Service<Clock>,
-        ringOptions: IOptions<ConsistentRingOptions>,
-        isDevHost: bool
+        logger:                     ILogger<SubjectReminderTable>,
+        clock:                      Service<Clock>,
+        ringOptions:                IOptions<ConsistentRingOptions>,
+        isDevHost:                  bool
     ) =
 
     let connectionString = config.ForEcosystem ecosystem.Name
@@ -96,7 +96,7 @@ type SubjectReminderTable
                     .GetConstructors(BindingFlags.NonPublic ||| BindingFlags.Instance).[0]
                     .Invoke([|
                         grainClassTypeCode |> box;
-                        typeFullName |> box;
+                        typeFullName       |> box;
                         // "LibLifeCycleHost.SubjectGrain`8" |> box;
                         subjectGrainTypeDef.ContainsGenericParameters |> box |])
             orleansGrainClassDataType

@@ -26,23 +26,25 @@ type RestoreScroll =
     member this.MaybeKey: Option<string> =
         match this with
         | WhenItemKeysMatch key -> Some key
-        | No -> None
+        | No                    -> None
 
 type private ScrollPosition = { Left: int; Top: int }
 
-type private Measurements =
-    { ScrollPosition: ScrollPosition
-      Keys: list<string> }
+type private Measurements = {
+    ScrollPosition: ScrollPosition
+    Keys:           list<string>
+}
 
-type VirtualListItem<'Item> =
-    { Key: string
-      Item: 'Item
-      Height: Option<int>
-      Template: string }
+type VirtualListItem<'Item> = {
+    Key:      string
+    Item:     'Item
+    Height:   Option<int>
+    Template: string
+}
 
 // Internal ref surface kept for callers that need programmatic scroll.
 type IVirtualListViewRef =
-    abstract member scrollToTop (* animate *) : bool * (* top *) int -> unit
+    abstract member scrollToTop (* animate *): bool * (* top *) int -> unit
 
 module private Styles =
     // VirtualListView has no visual styles of its own; the styles prop is passed
@@ -64,20 +66,20 @@ let private storeMeasurements (key: string) (scrollPosition: ScrollPosition) (ke
         scrollPositionStorage.AddOrUpdate(
             key,
             { ScrollPosition = scrollPosition
-              Keys = keys }
+              Keys           = keys }
         )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member VirtualListView<'Item>
         (
-            items: seq<VirtualListItem<'Item>>,
-            render: 'Item -> ReactElement,
-            restoreScroll: RestoreScroll,
+            items:             seq<VirtualListItem<'Item>>,
+            render:            'Item -> ReactElement,
+            restoreScroll:     RestoreScroll,
             ?scrollSideEffect: (int * int -> unit),
-            ?styles: array<ViewStyles>,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?styles:           array<ViewStyles>,
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:              string
         ) : ReactElement =
         key |> ignore
 
@@ -165,7 +167,7 @@ type LibClient.Components.Constructors.LC with
                             box
                                 {| length = heights.[index]
                                    offset = offsets.[index]
-                                   index = index |})
+                                   index  = index |})
                         |> Some
                     else
                         None),
@@ -208,7 +210,7 @@ type LibClient.Components.Constructors.LC with
                     member _.Dispose() =
                         match (restoreScroll.MaybeKey, maybeLastKeysRef.current) with
                         | (Some scrollKey, Some keys) -> storeMeasurements scrollKey lastScrollPositionRef.current keys
-                        | _ -> Noop }),
+                        | _                           -> Noop }),
             [||]
         )
 

@@ -77,7 +77,7 @@ module RulesAdditional =
                     | Color.Rgba (r, g, b, _) -> Color.Rgb (r, g, b)
                     | Color.WhiteAlpha _      -> Color.White
                     | Color.BlackAlpha _      -> Color.Black
-                    | this -> this
+                    | this                    -> this
 
                 shadowColor colorWithoutAlpha
                 elevation (max 3 (blur / 2)) // Approximate elevation based on blur

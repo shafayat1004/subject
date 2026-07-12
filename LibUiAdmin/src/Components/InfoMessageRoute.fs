@@ -14,7 +14,7 @@ type UiAdmin with
             LC.Section.Padded (styles = [|Styles.Section|], children = [|
                 LC.InfoMessage (
                     message = message,
-                    level = InfoMessage.Info
+                    level   = InfoMessage.Info
                 )
             |])
         |],

@@ -45,10 +45,10 @@ let Purchase (contentIds: List<string>) (price: UnsignedDecimal) : unit =
 let AddToCart (contentWithIdAndQuantity: string * int) (price: UnsignedDecimal) : unit =
     let properties =
         {|
-            content_ids  = [| (contentWithIdAndQuantity |> fun (id, _) -> id) |]
-            content      = contentWithIdAndQuantity |> fun (id, quantity) -> [| {| id = id; quantity = quantity |} |]
-            currency     = DefaultCurrency
-            value        = float price.Value
+            content_ids = [| (contentWithIdAndQuantity |> fun (id, _) -> id) |]
+            content     = contentWithIdAndQuantity |> fun (id, quantity) -> [| {| id = id; quantity = quantity |} |]
+            currency    = DefaultCurrency
+            value       = float price.Value
         |}
     trackEvent "AddToCart" properties
 

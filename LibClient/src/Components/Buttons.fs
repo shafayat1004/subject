@@ -55,11 +55,10 @@ type LibClient.Components.Constructors.LC with
 
                     yield
                         match align with
-                        | Align.Left -> Styles.alignLeft
-                        | Align.Right -> Styles.alignRight
+                        | Align.Left   -> Styles.alignLeft
+                        | Align.Right  -> Styles.alignRight
                         | Align.Center -> Styles.alignCenter
 
                     yield! styles
                 |]
         )
-

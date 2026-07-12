@@ -189,7 +189,7 @@ type internal InMemoryCache<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, '
     member private this.AccessControlledId (value: AccessControlled<VersionedData<'Projection>, 'Id>) : 'Id =
         match value with
         | Granted versionedData -> versionedData.Data.SubjectId
-        | Denied  id      -> id
+        | Denied  id            -> id
 
     member this.CacheIndexed (query: IndexQuery<'Index>) (subjectsAD: AsyncData<seq<AccessControlled<VersionedData<'Projection>, 'Id>>>) : unit =
         this.CacheMany subjectsAD

@@ -12,6 +12,6 @@ let renderBase<'Field, 'Acc, 'Acced when 'Field: comparison and 'Acc :> Abstract
     : ReactElement =
     LC.Form.Base(
         accumulator = accumulator,
-        submit = submit,
-        content = content
+        submit      = submit,
+        content     = content
     )

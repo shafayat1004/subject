@@ -8,8 +8,8 @@ open LibLifeCycle.Config
 type [<CLIMutable>] OrleansClusteringConfiguration = {
     MembershipConnectionString: string
     ShouldInitializeForLocal1NodeEnvironment: bool
-    DevHostSiloPort: int
-    DevHostGatewayPort: int
+    DevHostSiloPort:            int
+    DevHostGatewayPort:         int
 }
 with
     interface IValidatable with

@@ -24,7 +24,7 @@ type LibClient.Components.Constructors.LC.Pointer with
 
         let pointerState =
             {
-                IsHovered = isHoveredState.current
+                IsHovered   = isHoveredState.current
                 IsDepressed = isDepressedState.current
                 SetIsHovered =
                     fun value (_: Browser.Types.PointerEvent) ->

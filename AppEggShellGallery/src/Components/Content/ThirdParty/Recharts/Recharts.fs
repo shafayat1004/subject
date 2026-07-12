@@ -31,10 +31,10 @@ module private WebCharts =
             children = [|
                 Recharts.LineChart(
                     children = [| Recharts.Line(dataKey = "Value1") |],
-                    data = (dataSet1 |> Array.map box)
+                    data     = (dataSet1 |> Array.map box)
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -45,25 +45,25 @@ module private WebCharts =
                     children =
                         [|
                             Recharts.CartesianGrid(strokeDashArray = [| 3.; 3. |])
-                            Recharts.XAxis(dataKey = "Name")
+                            Recharts.XAxis(dataKey                 = "Name")
                             Recharts.YAxis()
                             Recharts.Tooltip()
                             Recharts.Legend()
                             Recharts.Line(
                                 ``type`` = Line.Type.Monotone,
-                                dataKey = "Value1",
-                                stroke = Line.InternalString "#8884d8"
+                                dataKey  = "Value1",
+                                stroke   = Line.InternalString "#8884d8"
                             )
                             Recharts.Line(
                                 ``type`` = Line.Type.Monotone,
-                                dataKey = "Value2",
-                                stroke = Line.InternalString "#82ca9d"
+                                dataKey  = "Value2",
+                                stroke   = Line.InternalString "#82ca9d"
                             )
                         |],
                     data = (dataSet1 |> Array.map box)
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -72,10 +72,10 @@ module private WebCharts =
             children = [|
                 Recharts.AreaChart(
                     children = [| Recharts.Area(dataKey = "Value1") |],
-                    data = (dataSet1 |> Array.map box)
+                    data     = (dataSet1 |> Array.map box)
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -86,27 +86,27 @@ module private WebCharts =
                     children =
                         [|
                             Recharts.CartesianGrid(strokeDashArray = [| 3.; 3. |])
-                            Recharts.XAxis(dataKey = "Name")
+                            Recharts.XAxis(dataKey                 = "Name")
                             Recharts.YAxis()
                             Recharts.Tooltip()
                             Recharts.Legend()
                             Recharts.Area(
                                 ``type`` = Area.Type.Monotone,
-                                dataKey = "Value1",
-                                stroke = Area.InternalString "#8884d8",
-                                fill = Area.InternalString "#8884d8"
+                                dataKey  = "Value1",
+                                stroke   = Area.InternalString "#8884d8",
+                                fill     = Area.InternalString "#8884d8"
                             )
                             Recharts.Area(
                                 ``type`` = Area.Type.Monotone,
-                                dataKey = "Value2",
-                                stroke = Area.InternalString "#82ca9d",
-                                fill = Area.InternalString "#82ca9d"
+                                dataKey  = "Value2",
+                                stroke   = Area.InternalString "#82ca9d",
+                                fill     = Area.InternalString "#82ca9d"
                             )
                         |],
                     data = (dataSet1 |> Array.map box)
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -117,29 +117,29 @@ module private WebCharts =
                     children =
                         [|
                             Recharts.CartesianGrid(strokeDashArray = [| 3.; 3. |])
-                            Recharts.XAxis(dataKey = "Name")
+                            Recharts.XAxis(dataKey                 = "Name")
                             Recharts.YAxis()
                             Recharts.Tooltip()
                             Recharts.Legend()
                             Recharts.Area(
                                 ``type`` = Area.Type.StepAfter,
-                                stackId = Area.Number 1,
-                                dataKey = "Value1",
-                                stroke = Area.InternalString "#8884d8",
-                                fill = Area.InternalString "#8884d8"
+                                stackId  = Area.Number 1,
+                                dataKey  = "Value1",
+                                stroke   = Area.InternalString "#8884d8",
+                                fill     = Area.InternalString "#8884d8"
                             )
                             Recharts.Area(
                                 ``type`` = Area.Type.StepAfter,
-                                stackId = Area.Number 1,
-                                dataKey = "Value2",
-                                stroke = Area.InternalString "#82ca9d",
-                                fill = Area.InternalString "#82ca9d"
+                                stackId  = Area.Number 1,
+                                dataKey  = "Value2",
+                                stroke   = Area.InternalString "#82ca9d",
+                                fill     = Area.InternalString "#82ca9d"
                             )
                         |],
                     data = (dataSet1 |> Array.map box)
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -152,12 +152,12 @@ module private WebCharts =
                             Recharts.Pie(
                                 nameKey = "Name",
                                 dataKey = "Value1",
-                                data = (dataSet1 |> Array.map box)
+                                data    = (dataSet1 |> Array.map box)
                             )
                         |]
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -173,12 +173,12 @@ module private WebCharts =
                                      |> Array.map (fun data -> Recharts.Cell(fill = data.Fill))),
                                 nameKey = "Name",
                                 dataKey = "Value1",
-                                data = (dataSet1 |> Array.map box)
+                                data    = (dataSet1 |> Array.map box)
                             )
                         |]
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 
@@ -192,11 +192,11 @@ module private WebCharts =
                                 children =
                                     (dataSet1
                                      |> Array.map (fun data -> Recharts.Cell(fill = data.Fill, stroke = Color.White))),
-                                nameKey = "Name",
-                                dataKey = "Value1",
-                                data = (dataSet1 |> Array.map box),
-                                cx = Pie.Offset.Percentage 50.,
-                                cy = Pie.Offset.Percentage 50.,
+                                nameKey     = "Name",
+                                dataKey     = "Value1",
+                                data        = (dataSet1 |> Array.map box),
+                                cx          = Pie.Offset.Percentage 50.,
+                                cy          = Pie.Offset.Percentage 50.,
                                 innerRadius = Pie.Radius.Number 30,
                                 outerRadius = Pie.Radius.Number 50
                             )
@@ -204,11 +204,11 @@ module private WebCharts =
                                 children =
                                     (dataSet1
                                      |> Array.map (fun data -> Recharts.Cell(fill = data.Fill, stroke = Color.White))),
-                                nameKey = "Name",
-                                dataKey = "Value2",
-                                data = (dataSet1 |> Array.map box),
-                                cx = Pie.Offset.Percentage 50.,
-                                cy = Pie.Offset.Percentage 50.,
+                                nameKey     = "Name",
+                                dataKey     = "Value2",
+                                data        = (dataSet1 |> Array.map box),
+                                cx          = Pie.Offset.Percentage 50.,
+                                cy          = Pie.Offset.Percentage 50.,
                                 innerRadius = Pie.Radius.Number 60,
                                 outerRadius = Pie.Radius.Number 80
                             )
@@ -217,7 +217,7 @@ module private WebCharts =
                         |]
                 )
             |],
-            minWidth = minChartWidth,
+            minWidth  = minChartWidth,
             minHeight = minChartHeight
         )
 #endif
@@ -245,13 +245,13 @@ type Ui.Content.ThirdParty with
                 ),
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Recharts.*",
-                    role = "none (chart visualization)",
-                    namePattern = "Provide textual summary or data table alongside charts",
-                    stateNotes = "Interactive tooltips on hover; keyboard access limited",
+                    componentName  = "Recharts.*",
+                    role           = "none (chart visualization)",
+                    namePattern    = "Provide textual summary or data table alongside charts",
+                    stateNotes     = "Interactive tooltips on hover; keyboard access limited",
                     scalesWithFont = true,
-                    contrastNotes = "Chart colors should meet WCAG AA; pair with labels/legend text",
-                    deferredTags = ["[web-only] accessible chart patterns"]
+                    contrastNotes  = "Chart colors should meet WCAG AA; pair with labels/legend text",
+                    deferredTags   = ["[web-only] accessible chart patterns"]
                 ),
             samples =
                 element {

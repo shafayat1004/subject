@@ -95,8 +95,8 @@ module Types =
         SubmitExecutor:             Executor
         TrySubmit:                  (ReactEvent.Action -> UDAction) * Executor
         // use sparingly; mostly when binding form submission to OnKeyEnterPress
-        TrySubmitLowLevel:          ReactEvent.Action -> unit
-        ShowValidationErrors:       bool -> unit
+        TrySubmitLowLevel:    ReactEvent.Action -> unit
+        ShowValidationErrors: bool -> unit
     } with
         member this.IsSubmitInProgress : bool =
             match this.Executor submitActionKey with
@@ -180,7 +180,7 @@ module Types =
         member _.Bind(x: Result<'T1, ValidationErrors<'Field>>, f: 'T1 -> Result<'T2, ValidationErrors<'Field>>) : Result<'T2, ValidationErrors<'Field>> =
             match x with
             | Error error -> Error error
-            | Ok value -> f value
+            | Ok value    -> f value
 
         member _.Return(value: 'T): Result<'T, ValidationErrors<'Field>> =
             Ok value
@@ -210,7 +210,7 @@ type AbstractAcc<'Field, 'Acced when 'Field: comparison> = Types.AbstractAcc<'Fi
 type FormHandle<'Field, 'Acc, 'Acced when 'Field: comparison and 'Acc :> AbstractAcc<'Field, 'Acced>> = Types.FormHandle<'Field, 'Acc, 'Acced>
 type NoFields = Types.NoFields
 type UnitAcc  = Types.UnitAcc
-let unitAcc   = Types.unitAcc
+let unitAcc = Types.unitAcc
 
 type private Estate<'Acc> = {
     Acc:                        'Acc
@@ -219,8 +219,8 @@ type private Estate<'Acc> = {
 
 let private initialEstate<'Acc> (accumulator: Accumulator<'Acc>) : Estate<'Acc> =
     match accumulator with
-    | ManageInternallyInitializingWith initialAcc              -> { Acc = initialAcc; ShouldShowValidationErrors = false }
-    | ManagedExternally (acc, _, shouldShowValidationErrors)   -> { Acc = acc; ShouldShowValidationErrors = shouldShowValidationErrors }
+    | ManageInternallyInitializingWith initialAcc            -> { Acc = initialAcc; ShouldShowValidationErrors = false }
+    | ManagedExternally (acc, _, shouldShowValidationErrors) -> { Acc = acc; ShouldShowValidationErrors = shouldShowValidationErrors }
 
 let private makeFormHandle
         (executor: MakeExecutor)
@@ -285,17 +285,17 @@ module private Actions =
 type LibClient.Components.Constructors.LC.Form with
     [<Component>]
     static member Base<'Field, 'Acc, 'Acced when 'Field: comparison and 'Acc :> AbstractAcc<'Field, 'Acced>>(
-            accumulator:           Accumulator<'Acc>,
-            submit:                'Acced -> ReactEvent.Action -> UDAction,
-            content:               FormHandle<'Field, 'Acc, 'Acced> -> ReactElement,
-            ?children:             ReactChildrenProp,
+            accumulator:            Accumulator<'Acc>,
+            submit:                 'Acced -> ReactEvent.Action -> UDAction,
+            content:                FormHandle<'Field, 'Acc, 'Acced> -> ReactElement,
+            ?children:              ReactChildrenProp,
             ?initializeAccOnSubmit: bool,
-            ?executor:             MakeExecutor,
-            ?key:                  string,
-            ?xLegacyStyles:        List<Rn.LegacyStyles.RuntimeStyles>
+            ?executor:              MakeExecutor,
+            ?key:                   string,
+            ?xLegacyStyles:         List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        children |> ignore
-        key |> ignore
+        children      |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let initializeAccOnSubmit = defaultArg initializeAccOnSubmit false

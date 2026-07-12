@@ -249,7 +249,7 @@ module ConstructionBuilderExtensions =
                     return Error err
             }
             |> ConstructionResult
-        
+
         member _.Bind(OperationResult res: OperationResult<'Subject1, 'LifeAction, 'OpError, 'LifeEvent>, binder: 'Subject1 -> ConstructionResult<'Subject2, 'LifeAction, 'OpError, 'LifeEvent>) : ConstructionResult<'Subject2, 'LifeAction, 'OpError, 'LifeEvent> =
             backgroundTask {
                 match! res with

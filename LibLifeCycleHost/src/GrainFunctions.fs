@@ -64,11 +64,11 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
         |> Seq.map (
             fun (subscriber, subscriptionName, lifeEvent) ->
                 RpcTriggerSubscriptionOnGrain {
-                    SubjectPKeyReference = subscriber
+                    SubjectPKeyReference    = subscriber
                     SubscriptionTriggerType = SubscriptionTriggerType.Named subscriptionName
-                    LifeEvent = lifeEvent
-                    TraceContext = traceContext
-                    Deduplicate = true // provide overload if we need cheaper at-least-once version of event callback
+                    LifeEvent               = lifeEvent
+                    TraceContext            = traceContext
+                    Deduplicate             = true // provide overload if we need cheaper at-least-once version of event callback
                 }
             )
 
@@ -153,8 +153,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 let combinedSideEffect =
                                     {
                                         SubjectReference = grainRpc.SubjectReference
-                                        RpcOperation = GrainRpcOperation.RunActionOnGrainAndSubscribe (action, deduplicate, subscriptions)
-                                        TraceContext = grainRpc.TraceContext
+                                        RpcOperation     = GrainRpcOperation.RunActionOnGrainAndSubscribe (action, deduplicate, subscriptions)
+                                        TraceContext     = grainRpc.TraceContext
                                     }
                                     |> grainPersistedSideEffectRpc
                                 (candidates.Remove(grainRpc.SubjectReference), (combinedSideEffect::others))
@@ -171,8 +171,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 let combinedSideEffect =
                                     {
                                         SubjectReference = grainRpc.SubjectReference
-                                        RpcOperation = GrainRpcOperation.InitializeGrainAndSubscribe (ctor, okIfAlreadyInitialized, subscriptions)
-                                        TraceContext = grainRpc.TraceContext
+                                        RpcOperation     = GrainRpcOperation.InitializeGrainAndSubscribe (ctor, okIfAlreadyInitialized, subscriptions)
+                                        TraceContext     = grainRpc.TraceContext
                                     }
                                     |> grainPersistedSideEffectRpc
 
@@ -190,8 +190,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 let combinedSideEffect =
                                     {
                                         SubjectReference = grainRpc.SubjectReference
-                                        RpcOperation = GrainRpcOperation.RunActionMaybeConstructAndSubscribeOnGrain (action, ctor, deduplicate, subscriptions)
-                                        TraceContext = grainRpc.TraceContext
+                                        RpcOperation     = GrainRpcOperation.RunActionMaybeConstructAndSubscribeOnGrain (action, ctor, deduplicate, subscriptions)
+                                        TraceContext     = grainRpc.TraceContext
                                     }
                                     |> grainPersistedSideEffectRpc
                                 (candidates.Remove(grainRpc.SubjectReference), (combinedSideEffect::others))
@@ -205,8 +205,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 let combinedSideEffect =
                                     {
                                         SubjectReference = grainRpc.SubjectReference
-                                        RpcOperation = GrainRpcOperation.RunActionOnGrainAndSubscribe(action, deduplicate, subscriptions)
-                                        TraceContext = traceContext
+                                        RpcOperation     = GrainRpcOperation.RunActionOnGrainAndSubscribe(action, deduplicate, subscriptions)
+                                        TraceContext     = traceContext
                                     }
                                     |> grainPersistedSideEffectRpc
                                 (candidates.Remove(grainRpc.SubjectReference), (combinedSideEffect::others))
@@ -215,8 +215,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 let combinedSideEffect =
                                     {
                                         SubjectReference = grainRpc.SubjectReference
-                                        RpcOperation = GrainRpcOperation.InitializeGrainAndSubscribe(ctor, okIfAlreadyInitialized, subscriptions)
-                                        TraceContext = traceContext
+                                        RpcOperation     = GrainRpcOperation.InitializeGrainAndSubscribe(ctor, okIfAlreadyInitialized, subscriptions)
+                                        TraceContext     = traceContext
                                     }
                                     |> grainPersistedSideEffectRpc
 
@@ -226,8 +226,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 let combinedSideEffect =
                                     {
                                         SubjectReference = grainRpc.SubjectReference
-                                        RpcOperation = GrainRpcOperation.RunActionMaybeConstructAndSubscribeOnGrain(action, ctor, deduplicate, subscriptions)
-                                        TraceContext = traceContext
+                                        RpcOperation     = GrainRpcOperation.RunActionMaybeConstructAndSubscribeOnGrain(action, ctor, deduplicate, subscriptions)
+                                        TraceContext     = traceContext
                                     }
                                     |> grainPersistedSideEffectRpc
 
@@ -250,8 +250,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                 let sideEffect =
                     {
                         SubjectReference = subjectReference
-                        RpcOperation = GrainRpcOperation.RunActionOnGrain (action, deduplicate)
-                        TraceContext = traceContext
+                        RpcOperation     = GrainRpcOperation.RunActionOnGrain (action, deduplicate)
+                        TraceContext     = traceContext
                     }
                     |> grainPersistedSideEffectRpc
                 sideEffect::otherSideEffects
@@ -259,8 +259,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                 let sideEffect =
                     {
                         SubjectReference = subjectReference
-                        RpcOperation = GrainRpcOperation.InitializeGrain (ctor, okIfAlreadyInitialize)
-                        TraceContext = traceContext
+                        RpcOperation     = GrainRpcOperation.InitializeGrain (ctor, okIfAlreadyInitialize)
+                        TraceContext     = traceContext
                     }
                     |> grainPersistedSideEffectRpc
                 sideEffect::otherSideEffects
@@ -268,8 +268,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                 let sideEffect =
                     {
                         SubjectReference = subjectReference
-                        RpcOperation = GrainRpcOperation.RunActionMaybeConstructOnGrain (action, ctor, deduplicate)
-                        TraceContext = traceContext
+                        RpcOperation     = GrainRpcOperation.RunActionMaybeConstructOnGrain (action, ctor, deduplicate)
+                        TraceContext     = traceContext
                     }
                     |> grainPersistedSideEffectRpc
                 sideEffect::otherSideEffects
@@ -277,8 +277,8 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                 let sideEffect =
                     {
                         SubjectReference = subjectReference
-                        RpcOperation = GrainRpcOperation.SubscribeToGrain subscriptions
-                        TraceContext = traceContext
+                        RpcOperation     = GrainRpcOperation.SubscribeToGrain subscriptions
+                        TraceContext     = traceContext
                     }
                     |> grainPersistedSideEffectRpc
                 sideEffect::otherSideEffects
@@ -298,7 +298,7 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
 
             let expectedSubjectId, currentTickState, currentSubscriptions, maybeCurrentSubject, sideEffectSeqNumber =
                 match createOrUpdateData with
-                | Choice1Of2 generatedSubjectId -> generatedSubjectId, TickState.NoTick, Map.empty, None, 0UL
+                | Choice1Of2 generatedSubjectId                  -> generatedSubjectId, TickState.NoTick, Map.empty, None, 0UL
                 | Choice2Of2 (currentState, sideEffectSeqNumber) -> currentState.Subject.SubjectId, currentState.TickState, currentState.OurSubscriptions, Some currentState.Subject, sideEffectSeqNumber
 
             if expectedSubjectId <> createdOrUpdatedSubject.SubjectId then
@@ -311,16 +311,17 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                     subjectSubscriptions
                     |> Map.map (
                         fun _ subjectSubscription ->
-                            { SubjectId = subjectSubscription.TargetSubjectId
+                            { SubjectId    = subjectSubscription.TargetSubjectId
                               LifeCycleKey = subjectSubscription.TargetLifeCycleKey }
                             : SubjectReference
                         )
 
-                let updatedState =
-                    { Subject = createdOrUpdatedSubject
-                      LastUpdatedOn = now
-                      TickState = maybeTickStateAndReminderUpdate |> Option.map fst |> Option.defaultValue currentTickState
-                      OurSubscriptions = ourSubscriptions }
+                let updatedState = {
+                    Subject          = createdOrUpdatedSubject
+                    LastUpdatedOn    = now
+                    TickState        = maybeTickStateAndReminderUpdate |> Option.map fst |> Option.defaultValue currentTickState
+                    OurSubscriptions = ourSubscriptions
+                }
 
                 let! grainSideEffects, raisedLifeEvents = mapToGrainSideEffectsAndRaisedLifeEvents traceContext createdOrUpdatedSubject sideEffects othersSubscribing
 
@@ -344,16 +345,16 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
     let rethrowIfTransientInternalCallOrPassIn (callOrigin: CallOrigin) (ex: Exception) : Exception =
         let maybeUnwrappedTransientException : Option<Exception> =
             match ex with
-            | :? OutOfMemoryException as ex -> Some (ex :> Exception)
+            | :? OutOfMemoryException as ex      -> Some (ex :> Exception)
             | :? TransientSubjectException as ex -> Some (ex :> Exception)
-            | _ -> None
+            | _                                  -> None
         match callOrigin, maybeUnwrappedTransientException with
         | CallOrigin.Internal _, Some ex ->
             // re-raise transient exceptions for internal calls so they will be retried
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex).Throw()
             shouldNotReachHereBecause "line above throws"
         | CallOrigin.External _, Some ex -> ex
-        | _, None -> ex
+        | _, None                        -> ex
 
     let processAction
             (now: DateTimeOffset)
@@ -436,7 +437,7 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                                 fun (subscriptionName, subscribeToEvent) ->
                                     match subscribeToEvent with
                                     | :? 'LifeEvent as le -> (le, Map.ofOneItem (subscriptionName, Set.singleton ctorSubs.Subscriber))
-                                    | _ -> failwithf "Invalid LifeEvent type %s provided to LifeCycle %s" (subscribeToEvent.GetType().FullName) lifeCycleAdapter.LifeCycle.Name
+                                    | _                   -> failwithf "Invalid LifeEvent type %s provided to LifeCycle %s" (subscribeToEvent.GetType().FullName) lifeCycleAdapter.LifeCycle.Name
                                 )
                             |> Map.ofSeq)
                         |> Option.defaultValue Map.empty
@@ -460,10 +461,10 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
         (initialValue: 'Subject):
         Task<SubjectState<'Subject,'SubjectId> * Option<ReminderUpdate> * List<BlobAction> * Option<SideEffectGroup<'LifeAction, 'OpError>> * List<IndexAction<'OpError>> * List<'LifeEvent>> =
         let emptySideEffects : TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction> = {
-            Constructors          = []
-            ExternalActions       = []
-            LifeEvents            = []
-            LifeActions           = []
+            Constructors    = []
+            ExternalActions = []
+            LifeEvents      = []
+            LifeActions     = []
         }
         createOrUpdateSubject now traceContext initialValue [] (Choice1Of2 subjectId) Map.empty emptySideEffects
 
@@ -480,7 +481,7 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                 fun (subscriptionName, subscribeToEvent) ->
                     match subscribeToEvent with
                     | :? 'LifeEvent as le -> (subscriptionName, le)
-                    | _ -> failwithf "Invalid LifeEvent type %s provided to LifeCycle %s" (subscribeToEvent.GetType().FullName) lifeCycleAdapter.LifeCycle.Name
+                    | _                   -> failwithf "Invalid LifeEvent type %s provided to LifeCycle %s" (subscribeToEvent.GetType().FullName) lifeCycleAdapter.LifeCycle.Name
                 )
             |> Seq.fold (
                 fun ((othersSubscribing: OthersSubscribing<'LifeEvent>), (newSubscriptions: Map<SubscriptionName, 'LifeEvent>)) (subscriptionName, subscribeToEvent) ->

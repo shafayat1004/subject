@@ -9,9 +9,9 @@ open CodecLib
 #endif
 
 type TodoListItem = {
-    Id: TodoId
-    Title: NonemptyString
-    Done: bool
+    Id:        TodoId
+    Title:     NonemptyString
+    Done:      bool
     CreatedOn: DateTimeOffset
 }
 
@@ -26,9 +26,9 @@ type TodoListItem with
             and! done_ = reqWith Codecs.boolean "Done" (fun x -> Some x.Done)
             and! createdOn = reqWith Codecs.dateTimeOffset "CreatedOn" (fun x -> Some x.CreatedOn)
             return {
-                Id = id
-                Title = title
-                Done = done_
+                Id        = id
+                Title     = title
+                Done      = done_
                 CreatedOn = createdOn
              }
         }

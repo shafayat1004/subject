@@ -32,15 +32,15 @@ type Source =
 
 [<Fable.Core.JS.Pojo>]
 type private MarkdownDivStyleJs(
-    whiteSpace: string,
-    cursor: string,
+    whiteSpace:           string,
+    cursor:               string,
     ``WebkitUserSelect``: string,
-    ``MozUserSelect``: string,
-    ``msUserSelect``: string,
-    userSelect: string,
-    wordWrap: string,
-    maxWidth: string,
-    lineHeight: string
+    ``MozUserSelect``:    string,
+    ``msUserSelect``:     string,
+    userSelect:           string,
+    wordWrap:             string,
+    maxWidth:             string,
+    lineHeight:           string
 ) =
     member val whiteSpace = whiteSpace
     member val cursor = cursor
@@ -228,11 +228,11 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
 type ThirdParty.Showdown.Components.Constructors.Showdown with
     [<Component>]
     static member MarkdownViewer(
-            source:              Source,
-            ?globalLinkHandler:  string,
+            source:               Source,
+            ?globalLinkHandler:   string,
             ?imageUrlTransformer: Source -> string -> string,
-            ?showdownConverter:  obj,
-            ?key:                string
+            ?showdownConverter:   obj,
+            ?key:                 string
         ) : ReactElement =
         ignore key
 
@@ -240,8 +240,8 @@ type ThirdParty.Showdown.Components.Constructors.Showdown with
 
         let initialSourceCode =
             match source with
-            | Url _      -> WillStartFetchingSoonHack
-            | Code code  -> Available code
+            | Url _     -> WillStartFetchingSoonHack
+            | Code code -> Available code
 
         let sourceCodeHook = Hooks.useState initialSourceCode
 

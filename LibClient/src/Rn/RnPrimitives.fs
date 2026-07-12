@@ -21,7 +21,7 @@ type OS =
     | Other
 
 type Platform =
-    | Web of OS
+    | Web    of OS
     | Native of NativePlatform
 
 module RnPrimitives =
@@ -149,11 +149,11 @@ module RnPrimitives =
     let mapImportantForAccessibility (v: LibClient.Accessibility.ImportantForAccessibility option) : obj option =
         v
         |> Option.map (function
-            | LibClient.Accessibility.ImportantForAccessibility.Auto -> box "auto"
-            | LibClient.Accessibility.ImportantForAccessibility.Yes -> box "yes"
-            | LibClient.Accessibility.ImportantForAccessibility.No -> box "no"
+            | LibClient.Accessibility.ImportantForAccessibility.Auto              -> box "auto"
+            | LibClient.Accessibility.ImportantForAccessibility.Yes               -> box "yes"
+            | LibClient.Accessibility.ImportantForAccessibility.No                -> box "no"
             | LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants -> box "no-hide-descendants"
-            | _ -> box "auto")
+            | _                                                                   -> box "auto")
 
     let assignAccessibility
         (props: obj)
@@ -198,23 +198,23 @@ module RnPrimitives =
 
             match readBool "selected" with
             | Some b -> props?``aria-selected`` <- b
-            | None -> ()
+            | None   -> ()
 
             match readBool "checked" with
             | Some b -> props?``aria-checked`` <- b
-            | None -> ()
+            | None   -> ()
 
             match readBool "expanded" with
             | Some b -> props?``aria-expanded`` <- b
-            | None -> ()
+            | None   -> ()
 
             match readBool "disabled" with
             | Some b -> props?``aria-disabled`` <- b
-            | None -> ()
+            | None   -> ()
 
             match readBool "busy" with
             | Some b -> props?``aria-busy`` <- b
-            | None -> ())
+            | None   -> ())
 
         importantForAccessibility
         |> Option.iter (fun v -> props?importantForAccessibility <- v)
@@ -222,9 +222,9 @@ module RnPrimitives =
         accessibilityLiveRegion
         |> Option.iter (fun v -> props?accessibilityLiveRegion <- v)
 
-        accessibilityActions |> Option.iter (fun v -> props?accessibilityActions <- v)
+        accessibilityActions  |> Option.iter (fun v -> props?accessibilityActions <- v)
         onAccessibilityAction |> Option.iter (fun v -> props?onAccessibilityAction <- v)
-        ariaLabelledBy |> Option.iter (fun v -> props?``aria-labelledby`` <- v)
+        ariaLabelledBy        |> Option.iter (fun v -> props?``aria-labelledby`` <- v)
 
         ariaRoleDescription
         |> Option.iter (fun v -> props?``aria-roledescription`` <- v)
@@ -275,7 +275,7 @@ module RnPrimitives =
         | _ ->
             match blockPointerEvents with
             | Some true -> props?pointerEvents <- "box-none"
-            | _ -> ()
+            | _         -> ()
 
     let assignPressableFeedback
         (props: obj)
@@ -306,7 +306,7 @@ module RnPlatform =
         | (_, _, true, _, _) -> OS.Mac
         | (_, _, _, true, _) -> OS.Android
         | (_, _, _, _, true) -> OS.IOS
-        | _ -> OS.Other
+        | _                  -> OS.Other
 
     /// Drop-in replacement for `Rn.Runtime.platform` once the seam is flipped.
     let platform () : Platform =
@@ -315,8 +315,8 @@ module RnPlatform =
 #else
         match RnPrimitives.PlatformModule?OS with
         | "android" -> Native NativePlatform.Android
-        | "ios" -> Native NativePlatform.IOS
-        | other -> failwithf "Unsupported react-native Platform.OS: %s" other
+        | "ios"     -> Native NativePlatform.IOS
+        | other     -> failwithf "Unsupported react-native Platform.OS: %s" other
 #endif
 
     let pixelDensity () : float = RnPrimitives.PixelRatioModule?get() |> float
@@ -327,12 +327,12 @@ module Runtime =
     let ifWeb (f: Document -> unit) : unit =
         match platform with
         | Web _ -> f Browser.Dom.document
-        | _ -> ()
+        | _     -> ()
 
     let isWeb () : bool =
         match platform with
         | Web _ -> true
-        | _ -> false
+        | _     -> false
 
     let isDesktopWeb () : bool =
         match platform with
@@ -344,7 +344,7 @@ module Runtime =
     let isNative () : bool =
         match platform with
         | Native _ -> true
-        | _ -> false
+        | _        -> false
 
 module App =
     let initialize (_debug: bool, _dev: bool) : unit = ()
@@ -353,9 +353,9 @@ module UserInterface =
     let windowLayoutInfo () : Rn.Types.ViewOnLayoutEvent =
         let w = RnPrimitives.DimensionsModule?get("window")
 
-        { x = 0
-          y = 0
-          width = w?width |> int
+        { x      = 0
+          y      = 0
+          width  = w?width |> int
           height = w?height |> int }
 
     let pixelDensity () : float = RnPlatform.pixelDensity ()
@@ -450,9 +450,10 @@ module Popup =
     let private createRoot: obj = import "createRoot" "react-dom/client"
 #endif
 
-    type private PopupEntry =
-        { Container: Browser.Types.HTMLElement
-          Root: obj }
+    type private PopupEntry = {
+        Container: Browser.Types.HTMLElement
+        Root:      obj
+    }
 
     let private entries = System.Collections.Generic.Dictionary<string, PopupEntry>()
 
@@ -508,7 +509,7 @@ module Popup =
         let container = Browser.Dom.document.createElement "div"
         container?style?position <- "fixed"
         container?style?top <- (rect?bottom |> string) + "px"
-        container?style?left <- (rect?left |> string) + "px"
+        container?style?left <- (rect?left  |> string) + "px"
         container?style?zIndex <- "9999"
         Browser.Dom.document.body?appendChild (container) |> ignore
 

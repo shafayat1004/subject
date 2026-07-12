@@ -37,7 +37,7 @@ module AsyncResultCE =
                 let! result = asyncResult
 
                 match result with
-                | Ok x -> return! binder x
+                | Ok x    -> return! binder x
                 | Error x -> return Error x
             }
 

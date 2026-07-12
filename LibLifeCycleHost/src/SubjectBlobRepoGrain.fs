@@ -12,9 +12,9 @@ open Microsoft.Extensions.Logging
 [<StatelessWorker>]
 [<Reentrant>]
 type SubjectBlobRepoGrain (
-    repo: IBlobRepo,
+    repo:      IBlobRepo,
     ecosystem: Ecosystem,
-    logger: Microsoft.Extensions.Logging.ILogger<SubjectBlobRepoGrain>
+    logger:    Microsoft.Extensions.Logging.ILogger<SubjectBlobRepoGrain>
     ) =
 
     inherit Grain()

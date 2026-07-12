@@ -21,11 +21,11 @@ let construction (env: RequestRateCounterEnvironment) (id: RequestRateCounterId)
         match constructor with
         | RequestRateCounterConstructor.New (_, expiry, limit) ->
             return {
-                Id = id
+                Id        = id
                 CreatedOn = now
-                Expiry = expiry
-                Counter = 0u
-                Limit = limit
+                Expiry    = expiry
+                Counter   = 0u
+                Limit     = limit
             }
     }
 
@@ -44,7 +44,7 @@ let transition
 let private timers (requestRateCounter: RequestRateCounter) : list<Timer<RequestRateCounterAction>> =
     [
         { TimerAction = TimerAction.DeleteSelf
-          Schedule = Schedule.On (requestRateCounter.CreatedOn.Add requestRateCounter.Expiry) }
+          Schedule    = Schedule.On (requestRateCounter.CreatedOn.Add requestRateCounter.Expiry) }
     ]
 
 let private shouldSendTelemetry =

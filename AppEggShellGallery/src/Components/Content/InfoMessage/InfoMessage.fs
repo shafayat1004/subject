@@ -10,15 +10,15 @@ type Ui.Content with
     static member InfoMessage() : ReactElement =
         Ui.ComponentContent(
             displayName = "InfoMessage",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.InfoMessage",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.InfoMessage",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.InfoMessage",
-                    role = "text (informational status)",
-                    namePattern = "message prop text",
-                    stateNotes = "Static informational text; no interactive state",
+                    componentName  = "LC.InfoMessage",
+                    role           = "text (informational status)",
+                    namePattern    = "message prop text",
+                    stateNotes     = "Static informational text; no interactive state",
                     scalesWithFont = true,
-                    contrastNotes = "Message text color meets WCAG AA on typical backgrounds"
+                    contrastNotes  = "Message text color meets WCAG AA on typical backgrounds"
                 ),
             samples =
                 element {
@@ -56,7 +56,7 @@ LC.InfoMessage(
                         visuals =
                             LC.InfoMessage(
                                 message = "A horrible error occurred",
-                                level = InfoMessage.Caution
+                                level   = InfoMessage.Caution
                             ),
                         code =
                             ComponentSample.SingleBlock(

@@ -18,6 +18,6 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member FlexFiller() : ReactElement =
         Rn.View(
-            styles = [| Styles.view |],
+            styles   = [| Styles.view |],
             children = [| |]
         )

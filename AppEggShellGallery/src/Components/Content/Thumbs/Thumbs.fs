@@ -14,9 +14,9 @@ type private Helpers =
         let items = [4; 3; 2; 1]
 
         LC.Thumbs(
-            ``for`` = LC.Thumbs.For.Of (items, fun i -> localImage (sprintf "/images/yuumei%i.jpg" i)),
+            ``for``  = LC.Thumbs.For.Of (items, fun i -> localImage (sprintf "/images/yuumei%i.jpg" i)),
             selected = selected.current,
-            onPress = fun i _ _ -> selected.update (selected.current.Toggle i)
+            onPress  = fun i _ _ -> selected.update (selected.current.Toggle i)
         )
 
     [<Component>]
@@ -34,15 +34,15 @@ type Ui.Content with
     static member Thumbs () : ReactElement =
         Ui.ComponentContent(
             displayName = "Thumbs",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Thumbs",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Thumbs",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Thumbs",
-                    role = "none (container for thumbnail images)",
-                    namePattern = "Each LC.Thumb child provides its own label",
-                    stateNotes = "Static gallery of thumbnails",
+                    componentName  = "LC.Thumbs",
+                    role           = "none (container for thumbnail images)",
+                    namePattern    = "Each LC.Thumb child provides its own label",
+                    stateNotes     = "Static gallery of thumbnails",
                     scalesWithFont = false,
-                    contrastNotes = "N/A — image content"
+                    contrastNotes  = "N/A — image content"
                 ),
             samples =
                 element {

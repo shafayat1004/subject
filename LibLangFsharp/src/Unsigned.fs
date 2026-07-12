@@ -79,7 +79,7 @@ type UnsignedFloat =
     static member ofFloatUnsafe(num: float) : UnsignedFloat =
         match UnsignedFloat.ofFloat num with
         | Some v -> v
-        | None -> failwithf "Unsigned value expected, given: %f" num
+        | None   -> failwithf "Unsigned value expected, given: %f" num
 
 [<Struct>]
 type UnsignedDecimal =

@@ -51,7 +51,7 @@ type UiSubjectAdmin.AuditLog with
                 dom.td [] [LC.HeaderCell ("Who")]
                 dom.td [] [LC.HeaderCell ("What")]
                 match additionalHeadersAndFields with
-                | None -> ()
+                | None                        -> ()
                 | Some (additionalHeaders, _) -> additionalHeaders
             ]
 
@@ -71,7 +71,7 @@ type UiSubjectAdmin.AuditLog with
                     LC.Pre (text = entry.OperationStr)
                 ]
                 match additionalHeadersAndFields with
-                | None -> ()
+                | None                       -> ()
                 | Some (_, additionalFields) -> additionalFields entry
             ]
 
@@ -88,5 +88,5 @@ type UiSubjectAdmin.AuditLog with
             ),
             auditSubjectId   = auditSubjectId,
             headersAndFields = (headers, fields),
-            ?filter = filter
+            ?filter          = filter
         )

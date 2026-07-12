@@ -59,9 +59,9 @@ module private Helpers =
 
     let connectionStatus (isConnected: bool) (lastKnownBackendState: LastKnownBackendState) =
         match isConnected, lastKnownBackendState with
-        | false, _ -> ConnectionStatus.NetworkUnavailable
+        | false, _                                                -> ConnectionStatus.NetworkUnavailable
         | true, LastKnownBackendState.Unavailable maybeRetryingAt -> ConnectionStatus.NetworkAvailableButBackendUnreachable maybeRetryingAt
-        | true, LastKnownBackendState.Available -> ConnectionStatus.NetworkAvailableAndBackendReachable
+        | true, LastKnownBackendState.Available                   -> ConnectionStatus.NetworkAvailableAndBackendReachable
 
     let retryingAtDeltaDisplay (now: DateTimeOffset) (retryingAt: DateTimeOffset): string =
         let delta = max TimeSpan.Zero (retryingAt - now)
@@ -79,8 +79,8 @@ type LibClient.Components.Constructors.LC with
     static member AppGlobalStatus(
                 ?bottom: ConnectionStatus -> ReactElement,
                 ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?key: string
+                ?theme:  Theme -> Theme,
+                ?key:    string
             ) : ReactElement =
         key |> ignore
 

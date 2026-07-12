@@ -9,7 +9,7 @@ open System
 open LibClient.Services.LocalStorageService
 
 type iSubscribeOption =
-    abstract userVisibleOnly: bool with get, set
+    abstract userVisibleOnly:      bool with get, set
     abstract applicationServerKey: array<string> with get, set
 
 [<Fable.Core.JS.Pojo>]
@@ -19,7 +19,7 @@ type private SubscribeOptionsJs
     member val applicationServerKey = applicationServerKey
 
 type subscribeOption = {
-    userVisibleOnly: bool
+    userVisibleOnly:      bool
     applicationServerKey: array<byte>
 } with
     member this.toObj: iSubscribeOption =
@@ -33,7 +33,7 @@ type ServiceWorkerRegistration with
     member _.pushManager: iPushManager = jsNative
 
 type WebNotification =
-    abstract permission: string
+    abstract permission:        string
     abstract requestPermission: unit -> JS.Promise<string>
 
 [<Emit("Notification")>]

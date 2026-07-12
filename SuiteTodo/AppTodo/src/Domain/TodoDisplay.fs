@@ -7,23 +7,23 @@ open SuiteTodo.Types
 
 let priorityLabel (priority: TodoPriority) =
     match priority with
-    | TodoPriority.Low -> i18n.t.PriorityLow
+    | TodoPriority.Low    -> i18n.t.PriorityLow
     | TodoPriority.Medium -> i18n.t.PriorityMedium
-    | TodoPriority.High -> i18n.t.PriorityHigh
+    | TodoPriority.High   -> i18n.t.PriorityHigh
 
 let categoryLabel (category: TodoCategory) =
     match category with
-    | TodoCategory.Work -> i18n.t.CategoryWork
+    | TodoCategory.Work     -> i18n.t.CategoryWork
     | TodoCategory.Personal -> i18n.t.CategoryPersonal
     | TodoCategory.Shopping -> i18n.t.CategoryShopping
-    | TodoCategory.Health -> i18n.t.CategoryHealth
-    | TodoCategory.Other -> i18n.t.CategoryOther
+    | TodoCategory.Health   -> i18n.t.CategoryHealth
+    | TodoCategory.Other    -> i18n.t.CategoryOther
 
 let filterLabel (filter: TodoListFilter) =
     match filter with
-    | TodoListFilter.Open -> i18n.t.FilterOpen
-    | TodoListFilter.Done -> i18n.t.FilterDone
-    | TodoListFilter.All -> i18n.t.FilterAll
+    | TodoListFilter.Open     -> i18n.t.FilterOpen
+    | TodoListFilter.Done     -> i18n.t.FilterDone
+    | TodoListFilter.All      -> i18n.t.FilterAll
     | TodoListFilter.Archived -> i18n.t.FilterArchived
 
 let todoItemSlug (todo: Todo) =
@@ -76,6 +76,6 @@ let allPriorities : list<TodoPriority> =
 
 let priorityScore (priority: TodoPriority) =
     match priority with
-    | TodoPriority.High -> 3
+    | TodoPriority.High   -> 3
     | TodoPriority.Medium -> 2
-    | TodoPriority.Low -> 1
+    | TodoPriority.Low    -> 1

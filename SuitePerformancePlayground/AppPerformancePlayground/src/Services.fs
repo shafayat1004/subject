@@ -40,7 +40,7 @@ type SubjectServiceInstances = {
     // one entry per subject, e.g.
     // Shipment:       SubjectService<Shipment,       Shipment,       ShipmentId,       ShipmentIndex,       ShipmentNumericIndex,       ShipmentStringIndex,       ShipmentSearchIndex,       ShipmentConstructor,       ShipmentAction,       ShipmentLifeEvent,       ShipmentOpError>
 
-    Session:        SessionService
+    Session: SessionService
 }
 
 

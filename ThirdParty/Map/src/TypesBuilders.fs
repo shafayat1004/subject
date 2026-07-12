@@ -8,7 +8,7 @@ open Fable.React
 module Size =
     let init (width: float) (height: float) : Size =
         {
-            Width = width
+            Width  = width
             Height = height
         }
 
@@ -22,12 +22,12 @@ module Size =
 module Icon =
     let init (url: string) : Icon =
         {
-            Url = url
-            Anchor = None
+            Url         = url
+            Anchor      = None
             LabelOrigin = None
-            Origin = None
-            ScaledSize = None
-            Size = None
+            Origin      = None
+            ScaledSize  = None
+            Size        = None
         }
 
     let withAnchor (anchor: Point) (icon: Icon) : Icon =
@@ -49,16 +49,16 @@ module Icon =
 module Symbol =
     let init (path: string) : Symbol =
         {
-            Path = path
-            Anchor = None
-            FillColor = None
-            FillOpacity = None
-            LabelOrigin = None
-            Rotation = None
-            Scale = None
-            StrokeColor = None
+            Path          = path
+            Anchor        = None
+            FillColor     = None
+            FillOpacity   = None
+            LabelOrigin   = None
+            Rotation      = None
+            Scale         = None
+            StrokeColor   = None
             StrokeOpacity = None
-            StrokeWeight = None
+            StrokeWeight  = None
         }
 
     let withAnchor (anchor: Point) (symbol: Symbol) : Symbol =
@@ -92,10 +92,10 @@ module Symbol =
 module IconSequence =
     let init (icon: Symbol) : IconSequence =
         {
-            Icon = icon
+            Icon          = icon
             FixedRotation = false
-            Offset = None
-            Repeat = None
+            Offset        = None
+            Repeat        = None
         }
 
     let withFixedRotation (fixedRotation: bool) (iconSequence: IconSequence) : IconSequence =
@@ -111,11 +111,11 @@ module IconSequence =
 module MarkerLabel =
     let init (text: string) : MarkerLabel =
         {
-            Text = text
-            ClassName = None
-            Color = None
+            Text       = text
+            ClassName  = None
+            Color      = None
             FontFamily = None
-            FontSize = None
+            FontSize   = None
             FontWeight = None
         }
 
@@ -138,17 +138,17 @@ module MarkerLabel =
 module Marker =
     let initWithKey (key: string) (position: MarkerPosition) : Marker =
         {
-            Key = key
-            Position = position
-            Draggable = false
-            Label = None
-            Tooltip = None
-            Image = None
-            Opacity = None
-            ZIndex = None
-            Animation = None
+            Key        = key
+            Position   = position
+            Draggable  = false
+            Label      = None
+            Tooltip    = None
+            Image      = None
+            Opacity    = None
+            ZIndex     = None
+            Animation  = None
             InfoWindow = None
-            OnClick = None
+            OnClick    = None
         }
 
     let init (position: MarkerPosition) : Marker =
@@ -185,15 +185,15 @@ module Marker =
 module InfoWindow =
     let init (content: InfoWindowHandle -> ReactElement) : InfoWindow =
         {
-            Content = IgnoredDuringComparison content
-            ShouldFocus = false
-            DisableAutoPan = false
+            Content            = IgnoredDuringComparison content
+            ShouldFocus        = false
+            DisableAutoPan     = false
             GetDisplayLocation = None
-            IsOpen = false
-            MinWidth = None
-            MaxWidth = None
-            PixelOffset = None
-            ZIndex = None
+            IsOpen             = false
+            MinWidth           = None
+            MaxWidth           = None
+            PixelOffset        = None
+            ZIndex             = None
         }
 
     let withShouldFocus (shouldFocus: bool) (infoWindow: InfoWindow) : InfoWindow =
@@ -224,19 +224,19 @@ module InfoWindow =
 module Polyline =
     let initWithKey (key: string) (path: seq<LatLng>) : Polyline =
         {
-            Key = key
-            Path = path |> Array.ofSeq
-            Draggable = false
-            Editable = false
-            Geodesic = false
-            Visible = true
-            Icons = None
-            StrokeColor = None
+            Key           = key
+            Path          = path |> Array.ofSeq
+            Draggable     = false
+            Editable      = false
+            Geodesic      = false
+            Visible       = true
+            Icons         = None
+            StrokeColor   = None
             StrokeOpacity = None
-            StrokeWeight = None
-            ZIndex = None
-            InfoWindow = None
-            OnClick = None
+            StrokeWeight  = None
+            ZIndex        = None
+            InfoWindow    = None
+            OnClick       = None
         }
 
     let init (path: seq<LatLng>) : Polyline =
@@ -282,21 +282,21 @@ module Polyline =
 module Polygon =
     let initWithKey (key: string) (paths: seq<seq<LatLng>>) : Polygon =
         {
-            Key = key
-            Paths = paths |> Array.ofSeq |> Array.map Array.ofSeq
-            Draggable = false
-            Editable = false
-            Geodesic = false
-            Visible = true
-            FillColor = None
-            FillOpacity = None
-            StrokeColor = None
-            StrokeOpacity = None
+            Key            = key
+            Paths          = paths |> Array.ofSeq |> Array.map Array.ofSeq
+            Draggable      = false
+            Editable       = false
+            Geodesic       = false
+            Visible        = true
+            FillColor      = None
+            FillOpacity    = None
+            StrokeColor    = None
+            StrokeOpacity  = None
             StrokePosition = None
-            StrokeWeight = None
-            ZIndex = None
-            InfoWindow = None
-            OnClick = None
+            StrokeWeight   = None
+            ZIndex         = None
+            InfoWindow     = None
+            OnClick        = None
         }
 
     let init (paths: seq<seq<LatLng>>) : Polygon =
@@ -345,21 +345,21 @@ module Polygon =
 module Circle =
     let initWithKey (key: string) (center: LatLng) (radius: float) : Circle =
         {
-            Key = key
-            Center = center
-            Radius = radius
-            Draggable = false
-            Editable = false
-            Visible = true
-            FillColor = None
-            FillOpacity = None
-            StrokeColor = None
-            StrokeOpacity = None
+            Key            = key
+            Center         = center
+            Radius         = radius
+            Draggable      = false
+            Editable       = false
+            Visible        = true
+            FillColor      = None
+            FillOpacity    = None
+            StrokeColor    = None
+            StrokeOpacity  = None
             StrokePosition = None
-            StrokeWeight = None
-            ZIndex = None
-            InfoWindow = None
-            OnClick = None
+            StrokeWeight   = None
+            ZIndex         = None
+            InfoWindow     = None
+            OnClick        = None
         }
 
     let init (center: LatLng) (radius: float) : Circle =
@@ -405,7 +405,7 @@ module Circle =
 module Waypoint =
     let init (place: Place) : Waypoint =
         {
-            Place = place
+            Place      = place
             IsStopover = false
         }
 
@@ -416,8 +416,8 @@ module Waypoint =
 module DirectionsRendererOptions =
     let init () : DirectionsRendererOptions =
         {
-            Draggable = false
-            HideRouteList = false
+            Draggable        = false
+            HideRouteList    = false
             PreserveViewport = false
             PolylineRenderer = None
         }
@@ -441,10 +441,10 @@ module DirectionsRendererOptions =
 module Directions =
     let init (origin: Place) (destination: Place) (travelMode: TravelMode) : Directions =
         {
-            Origin = origin
-            Destination = destination
-            TravelMode = travelMode
-            Waypoints = None
+            Origin          = origin
+            Destination     = destination
+            TravelMode      = travelMode
+            Waypoints       = None
             RendererOptions = None
         }
 

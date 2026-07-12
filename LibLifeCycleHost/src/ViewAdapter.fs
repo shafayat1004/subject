@@ -34,4 +34,4 @@ type ViewAdapterCollection = ViewAdapterCollection of Map<string, IViewAdapter>
             | ViewAdapterCollection dictionary ->
                 match dictionary.TryGetValue name with
                 | true, adapter -> Some adapter
-                | false, _ -> None
+                | false, _      -> None

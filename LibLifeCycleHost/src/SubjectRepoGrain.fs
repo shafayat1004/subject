@@ -20,7 +20,7 @@ type SubjectRepoGrain<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectI
                    and  'SubjectId    :  comparison
                    and  'OpError      :> OpError>
         (
-            repo: ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>,
+            repo:   ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>,
             logger: Microsoft.Extensions.Logging.ILogger<SubjectRepoGrain<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>
         ) =
 

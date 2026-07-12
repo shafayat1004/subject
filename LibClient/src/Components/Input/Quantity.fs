@@ -27,8 +27,8 @@ module LC =
             }
 
             type Theme = {
-                NormalColors: ThemeColors
-                InvalidColors: ThemeColors
+                NormalColors:        ThemeColors
+                InvalidColors:       ThemeColors
                 InvalidMessageColor: Color
             }
 
@@ -101,20 +101,20 @@ module private Styles =
             Actionable =
                 { theme.Actionable with
                     IconColor = themeColors.Icons
-                    IconSize = iconSize
+                    IconSize  = iconSize
                 }
         }
 
 type LibClient.Components.Constructors.LC.Input with
     [<Component>]
     static member Quantity(
-        value: Option<PositiveInteger>,
+        value:    Option<PositiveInteger>,
         validity: InputValidity,
         onChange: OnChange,
-        ?max: PositiveInteger,
-        ?theme: Theme -> Theme,
-        ?styles: array<ViewStyles>,
-        ?key: string
+        ?max:     PositiveInteger,
+        ?theme:   Theme -> Theme,
+        ?styles:  array<ViewStyles>,
+        ?key:     string
     ) : ReactElement =
         key |> ignore
 
@@ -142,7 +142,7 @@ type LibClient.Components.Constructors.LC.Input with
                                                     LC.IconButton(
                                                         label = "Remove",
                                                         theme = Styles.iconButtonTheme theTheme isInvalid true,
-                                                        icon = Icon.GarbageBin,
+                                                        icon  = Icon.GarbageBin,
                                                         state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange None))
                                                     )
                                                 | (None, CannotRemove _) ->
@@ -151,7 +151,7 @@ type LibClient.Components.Constructors.LC.Input with
                                                     LC.IconButton(
                                                         label = "Decrease",
                                                         theme = Styles.iconButtonTheme theTheme isInvalid false,
-                                                        icon = Icon.Minus,
+                                                        icon  = Icon.Minus,
                                                         state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange.Call decremented))
                                                     )
                                             | None ->
@@ -166,7 +166,7 @@ type LibClient.Components.Constructors.LC.Input with
                                             match value with
                                             | Some value ->
                                                 LC.Text(
-                                                    value = (string value.Value),
+                                                    value  = (string value.Value),
                                                     styles = [| Styles.centerTextFor theTheme isInvalid |]
                                                 )
                                             | None ->
@@ -197,7 +197,7 @@ type LibClient.Components.Constructors.LC.Input with
                                                 LC.IconButton(
                                                     label = "Increase",
                                                     theme = Styles.iconButtonTheme theTheme isInvalid false,
-                                                    icon = Icon.Plus,
+                                                    icon  = Icon.Plus,
                                                     state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange.Call incremented))
                                                 )
                                             | None ->

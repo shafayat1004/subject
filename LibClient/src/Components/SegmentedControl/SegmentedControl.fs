@@ -24,9 +24,9 @@ module LC =
         }
 
         type Segment<'T when 'T : equality> = {
-            Label:         string
-            Value:         'T
-            TestIdSuffix:  string option
+            Label:        string
+            Value:        'T
+            TestIdSuffix: string option
         }
 
 open LC.SegmentedControl
@@ -114,14 +114,14 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member SegmentedControl<'T when 'T : equality>(
-            segments:                  array<Segment<'T>>,
-            selected:                  'T,
-            onSelect:                  'T -> unit,
-            ?accessibilityGroupLabel:  string,
-            ?testId:                   string,
-            ?theme:                     Theme -> Theme,
-            ?draggable:                bool,
-            ?key:                      string)
+            segments:                 array<Segment<'T>>,
+            selected:                 'T,
+            onSelect:                 'T -> unit,
+            ?accessibilityGroupLabel: string,
+            ?testId:                  string,
+            ?theme:                   Theme -> Theme,
+            ?draggable:               bool,
+            ?key:                     string)
         : ReactElement =
         key |> ignore
 
@@ -270,7 +270,7 @@ type LibClient.Components.Constructors.LC with
             |> Option.map (fun suffix ->
                 match testId with
                 | Some root -> sprintf "%s-%s" root suffix
-                | None -> A11ySlug.testId "segmented-control" suffix)
+                | None      -> A11ySlug.testId "segmented-control" suffix)
             |> Option.orElse testId
 
         let renderSegment (index: int) (segment: Segment<'T>) =
@@ -279,15 +279,15 @@ type LibClient.Components.Constructors.LC with
             let segmentTestId = segmentTestIdFor segment
 
             Rn.View(
-                styles = [| Styles.segmentCell cellWidth |],
-                accessibilityRole = AccessibilityRole.Radio,
-                accessibilityState = AccessibilityStateRecord.selected isActive,
-                accessibilityLabel = segment.Label,
+                styles                    = [| Styles.segmentCell cellWidth |],
+                accessibilityRole         = AccessibilityRole.Radio,
+                accessibilityState        = AccessibilityStateRecord.selected isActive,
+                accessibilityLabel        = segment.Label,
                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.Yes,
-                ?testId = segmentTestId,
-                children = [|
+                ?testId                   = segmentTestId,
+                children                  = [|
                     LC.UiText(
-                        value = segment.Label,
+                        value  = segment.Label,
                         styles = [| Styles.segmentLabel labelColor |]
                     )
                 |]
@@ -303,15 +303,15 @@ type LibClient.Components.Constructors.LC with
             let segmentTestId = segmentTestIdFor segment
 
             LC.Pressable(
-                onPress = (fun _ -> selectIndex index),
-                label = segment.Label,
-                role = AccessibilityRole.Radio,
-                state = AccessibilityStateRecord.selected isActive,
-                ?testId = segmentTestId,
-                styles = [| Styles.segmentCell cellWidth |],
+                onPress  = (fun _ -> selectIndex index),
+                label    = segment.Label,
+                role     = AccessibilityRole.Radio,
+                state    = AccessibilityStateRecord.selected isActive,
+                ?testId  = segmentTestId,
+                styles   = [| Styles.segmentCell cellWidth |],
                 children = [|
                     LC.UiText(
-                        value = segment.Label,
+                        value  = segment.Label,
                         styles = [| Styles.segmentLabel labelColor |]
                     )
                 |]
@@ -322,20 +322,20 @@ type LibClient.Components.Constructors.LC with
                 let thumbOffset = targetOffset selectedIndex
 
                 Rn.View(
-                    styles = [| Styles.track theTheme |],
+                    styles   = [| Styles.track theTheme |],
                     children = [|
                         if cellWidth > 0 then
                             if reduceMotion || not draggable then
                                 Rn.View(
                                     importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
-                                    styles = [| Styles.thumbStatic theTheme cellWidth thumbOffset |],
-                                    children = [||]
+                                    styles                    = [| Styles.thumbStatic theTheme cellWidth thumbOffset |],
+                                    children                  = [||]
                                 )
                             else
                                 Rn.ReanimatedView(
-                                    styles = [| Styles.thumbStatic theTheme cellWidth 0 |],
+                                    styles        = [| Styles.thumbStatic theTheme cellWidth 0 |],
                                     animatedStyle = animatedThumbStyle,
-                                    children = [||]
+                                    children      = [||]
                                 )
 
                         if draggable && not reduceMotion then
@@ -346,11 +346,11 @@ type LibClient.Components.Constructors.LC with
                                             segments
                                             |> Array.mapi (fun index segment -> renderSegment index segment)
                                     |],
-                                preferredPan = Rn.Components.GestureView.PreferredPanGesture.Horizontal,
+                                preferredPan      = Rn.Components.GestureView.PreferredPanGesture.Horizontal,
                                 panPixelThreshold = float GestureHelpers.activationThreshold,
-                                onPanHorizontal = onPanHorizontal,
-                                onTap = onTap,
-                                styles = [| Styles.segmentsRow innerWidth |]
+                                onPanHorizontal   = onPanHorizontal,
+                                onTap             = onTap,
+                                styles            = [| Styles.segmentsRow innerWidth |]
                             )
                         else
                             Rn.View(
@@ -369,8 +369,8 @@ type LibClient.Components.Constructors.LC with
         match accessibilityGroupLabel with
         | Some groupLabel ->
             LC.RadioGroup(
-                label = groupLabel,
-                ?testId = testId,
+                label    = groupLabel,
+                ?testId  = testId,
                 children = [| control |]
             )
         | None ->

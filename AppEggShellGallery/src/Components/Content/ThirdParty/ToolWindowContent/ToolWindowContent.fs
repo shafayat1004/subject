@@ -16,7 +16,7 @@ type Ui.Content.ThirdParty with
     [<Component>]
     static member ToolWindowContent (handle: InfoWindowHandle) : ReactElement =
         Rn.View(
-            styles = [| Styles.content |],
+            styles   = [| Styles.content |],
             children = [|
                 LC.Heading(level = Heading.Secondary, children = [| LC.UiText "Info Window" |])
                 LC.UiText "This is an example of an info window."

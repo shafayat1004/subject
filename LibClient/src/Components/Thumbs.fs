@@ -45,21 +45,21 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Thumbs<'T when 'T: comparison>(
-            ``for``: For<'T>,
-            ?selected: Set<'T>,
-            ?onPress: 'T -> uint32 -> ReactEvent.Action -> unit,
+            ``for``:       For<'T>,
+            ?selected:     Set<'T>,
+            ?onPress:      'T -> uint32 -> ReactEvent.Action -> unit,
             ?testIdPrefix: string,
-            ?styles: array<ViewStyles>,
-            ?key: string
+            ?styles:       array<ViewStyles>,
+            ?key:          string
         ) : ReactElement =
         key |> ignore
 
         let selected = defaultArg selected Set.empty
 
         LC.ItemList(
-            styles = (styles |> Option.defaultValue [||]),
-            items = ``for``.Items,
-            style = Style.Horizontal,
+            styles    = (styles |> Option.defaultValue [||]),
+            items     = ``for``.Items,
+            style     = Style.Horizontal,
             whenEmpty = (WhenEmpty.Message "No Images"),
             whenNonempty =
                 fun (items: seq<'T>) ->
@@ -83,8 +83,8 @@ type LibClient.Components.Constructors.LC with
                                             Styles.notLastThumb
                                     |],
                                 isSelected = (selected.Contains item),
-                                ?testId = thumbTestId,
-                                ?onPress = (onPress |> Option.map (fun onPress -> onPress item (uint32 index)))
+                                ?testId    = thumbTestId,
+                                ?onPress   = (onPress |> Option.map (fun onPress -> onPress item (uint32 index)))
                             )
                         )
                     }

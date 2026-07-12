@@ -4,8 +4,8 @@ open System.Threading.Tasks
 open LibLifeCycleCore
 
 type TrackedOperationResult<'T> = {
-    IsSuccess: Option<bool>
-    ReturnValue: 'T
+    IsSuccess:          Option<bool>
+    ReturnValue:        'T
     AfterRunProperties: Map<string, string>
 }
 
@@ -43,26 +43,26 @@ type OperationType with
     member this.IconString : string =
         match operationTypeToIcon |> Map.tryFind this with
         | Some icon -> icon
-        | None -> UnionCase.nameOfCase this
+        | None      -> UnionCase.nameOfCase this
 
     static member TryParseIconString (iconString: string) : Option<OperationType> =
         iconToOperationType |> Map.tryFind iconString
 
 
 type TrackedOperationInput = {
-    Partition: GrainPartition
-    Type: OperationType
-    Name: string
-    MaybeParentActivityId: Option<string>
+    Partition:                 GrainPartition
+    Type:                      OperationType
+    Name:                      string
+    MaybeParentActivityId:     Option<string>
     MakeItNewParentActivityId: bool
-    BeforeRunProperties: Map<string, string>
+    BeforeRunProperties:       Map<string, string>
 }
 
 type OperationTracker =
     abstract member TrackOperation<'T> :
         input: TrackedOperationInput -> run: (unit -> Task<TrackedOperationResult<'T>>) -> Task<'T>
     abstract member SendMetric: name : string -> value: float -> unit
-    abstract member Shutdown: unit -> Task
+    abstract member Shutdown:   unit -> Task
 
 /// stub for tests or when telemetry disabled
 type private NoopOperationTracker () = class end

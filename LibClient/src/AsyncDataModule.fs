@@ -1,15 +1,15 @@
 [<AutoOpen>]
 module LibClient.AsyncDataModule
 
-type RequestFailure = 
+type RequestFailure =
 | ClientError of statusCode: int * response: string
 | ServerError of statusCode: int * response: string
 | Unknown     of statusCode: int * response: string
     static member ofStatusCode (statusCode: int, response: string) : RequestFailure =
         match statusCode with
-            | code when (400 <= code && code <= 499)  -> RequestFailure.ClientError (code, response)
-            | code when (500 <= code && code <= 599)  -> RequestFailure.ServerError (code, response)
-            | _ -> RequestFailure.Unknown (statusCode, response)
+            | code when (400 <= code && code <= 499) -> RequestFailure.ClientError (code, response)
+            | code when (500 <= code && code <= 599) -> RequestFailure.ServerError (code, response)
+            | _                                      -> RequestFailure.Unknown (statusCode, response)
 
 type AsyncDataFailure =
 | NetworkFailure
@@ -19,7 +19,7 @@ type AsyncDataFailure =
 with
     member this.DisplayReason =
         match this with
-        | NetworkFailure -> 
+        | NetworkFailure ->
             "Network failure: Unable to reach the server."
         | RequestFailure requestFailure ->
             match requestFailure with
@@ -70,7 +70,7 @@ module AsyncData =
     let treatFetchingSomeAsAvailable (source: AsyncData<'T>) : AsyncData<'T> =
         match source with
         | Fetching (Some oldValue) -> Available oldValue
-        | _ -> source
+        | _                        -> source
 
     let mapIfAvailable<'T, 'U> (mapper: 'T -> Option<'U>) (source: AsyncData<'T>) : AsyncData<'U> =
         match source with
@@ -123,10 +123,10 @@ module AsyncData =
         | (Fetching (Some old1), Available value2)     -> Fetching (Some (old1, value2))
         | (Available value1, Fetching (Some old2))     -> Fetching (Some (value1, old2))
 
-        | (Failed error, _)  | (_, Failed error)  -> Failed error
-        | (Unavailable, _)   | (_, Unavailable)   -> Unavailable
-        | (AccessDenied, _)  | (_, AccessDenied)  -> AccessDenied
-        | (Available t1, Available t2)            -> Available (t1, t2)
+        | (Failed error, _)  | (_, Failed error) -> Failed error
+        | (Unavailable, _)   | (_, Unavailable)  -> Unavailable
+        | (AccessDenied, _)  | (_, AccessDenied) -> AccessDenied
+        | (Available t1, Available t2)           -> Available (t1, t2)
 
     let spread3<'T1, 'T2, 'T3> (asyncT1: AsyncData<'T1>) (asyncT2: AsyncData<'T2>) (asyncT3: AsyncData<'T3>) : AsyncData<'T1 * 'T2 * 'T3> =
         match spread asyncT1 (spread asyncT2 asyncT3) with

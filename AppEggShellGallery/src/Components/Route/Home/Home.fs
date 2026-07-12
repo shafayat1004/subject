@@ -59,14 +59,14 @@ module private Styles =
 
 let private techRow (name: string) (description: string) : ReactElement =
     Rn.View(
-        styles = [| Styles.row |],
+        styles   = [| Styles.row |],
         children = [|
             Rn.View(
-                styles = [| Styles.cellLeft |],
+                styles   = [| Styles.cellLeft |],
                 children = [| LC.Text(name, styles = [| Styles.label |]) |]
             )
             Rn.View(
-                styles = [| Styles.cellRight |],
+                styles   = [| Styles.cellRight |],
                 children = [| LC.Text description |]
             )
         |]
@@ -78,10 +78,10 @@ type Ui.Route with
         element {
             LC.SetPageMetadata(title = "Home")
             LR.Route(
-                scroll = LibRouter.Components.Route.Vertical,
+                scroll   = LibRouter.Components.Route.Vertical,
                 children = [|
                     LC.Section.Padded(
-                        styles = [| Styles.content |],
+                        styles   = [| Styles.content |],
                         children = [|
                             Rn.Image(
                                 source = localImage "/images/logo-sketch.jpg",
@@ -89,14 +89,14 @@ type Ui.Route with
                                 styles = [| Styles.logoImage |]
                             )
                             Rn.View(
-                                styles = [| Styles.subtitle |],
+                                styles   = [| Styles.subtitle |],
                                 children = [|
                                     LC.Text("EggShell is a tech stack for front end apps.", styles = [| Styles.contentText |])
-                                    LC.Text("It combines a number of technologies:", styles = [| Styles.contentText |])
+                                    LC.Text("It combines a number of technologies:", styles        = [| Styles.contentText |])
                                 |]
                             )
                             Rn.View(
-                                styles = [| Styles.table |],
+                                styles   = [| Styles.table |],
                                 children = [|
                                     techRow "F#"      "a functional programming language with a powerful type system"
                                     techRow "React"   "a JS library for building UIs declaratively"

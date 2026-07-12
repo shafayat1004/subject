@@ -34,15 +34,15 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member TwoWayScrollable(
-            both: ReactElement,
+            both:            ReactElement,
             ?horizontalOnly: ReactElement,
-            ?styles: array<ScrollViewStyles>
+            ?styles:         array<ScrollViewStyles>
         ) : ReactElement =
         let horizontalOnly = defaultArg horizontalOnly noElement
 
         Rn.ScrollView(
             horizontal = true,
-            vertical = false,
+            vertical   = false,
             styles =
                 [|
                     Styles.horizontalScrollView
@@ -59,8 +59,8 @@ type LibClient.Components.Constructors.LC with
 
                                 Rn.ScrollView(
                                     horizontal = false,
-                                    vertical = true,
-                                    styles = [| Styles.verticalScrollView |],
+                                    vertical   = true,
+                                    styles     = [| Styles.verticalScrollView |],
                                     children =
                                         elements {
                                             both

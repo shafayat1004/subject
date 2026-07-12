@@ -60,4 +60,3 @@ type Rn.Components.Constructors.Rn with
             __props,
             [||]
         )
-

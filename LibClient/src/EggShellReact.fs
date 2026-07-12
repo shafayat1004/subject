@@ -65,7 +65,7 @@ type PersistentStore private () =
     member _.Get<'V> (key: string) : Option<'V> =
         match store.TryGetValue key with
         | (true, data) -> Some (data :?> 'V)
-        | _ -> None
+        | _            -> None
 
     member _.Remove (key: string) : unit =
         store.Remove key
@@ -194,7 +194,7 @@ type PstatefulComponent<'Props, 'Estate, 'Pstate, 'Actions, 'Self>(fullyQualifie
             let updatedPstate = updater state.pstate state.estate props
 
             match PersistentStore.MaybeInstance with
-            | None -> failwith "Persistent store was never initialized"
+            | None                 -> failwith "Persistent store was never initialized"
             | Some persistentStore -> persistentStore.Put pstoreKey updatedPstate
 
             {state with pstate = updatedPstate}
@@ -416,9 +416,9 @@ let asFragment (els: seq<ReactElement>) : ReactElement =
 
 let fragmentOfList (els: list<ReactElement>) : ReactElement =
     match els with
-    | [] -> noElement
+    | []     -> noElement
     | [head] -> head
-    | _ -> Fable.React.Helpers.fragment [] els
+    | _      -> Fable.React.Helpers.fragment [] els
 
 type Fable.React.IHooks with
     member this.useDisposableFn (dispose: unit -> unit, dependencies: array<obj>) : unit =

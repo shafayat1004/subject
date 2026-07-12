@@ -11,11 +11,12 @@ open LibClient
 open LibClient.Accessibility
 open LibClient.Components
 
-type PaginatedVirtualListItem<'Item> =
-    { Key: string
-      Item: 'Item
-      Height: Option<int>
-      Template: string }
+type PaginatedVirtualListItem<'Item> = {
+    Key:      string
+    Item:     'Item
+    Height:   Option<int>
+    Template: string
+}
 
 type private PaginatedVirtualListItems =
     | CustomListItem of PaginatedVirtualListObject
@@ -29,27 +30,28 @@ type private PaginatedVirtualListItems =
     member this.KeyAndMaybeHeight: string * Option<int> =
         match this with
         | CustomListItem item -> (item.Key, item.Height)
-        | TopContent _ -> ("TopContent", None)
-        | BottomContent _ -> ("BottomContent", None)
-        | Loader height -> ("Loader", Some height)
-        | BottomReached -> ("BottomReached", Some 50)
+        | TopContent _        -> ("TopContent", None)
+        | BottomContent _     -> ("BottomContent", None)
+        | Loader height       -> ("Loader", Some height)
+        | BottomReached       -> ("BottomReached", Some 50)
         | DataFetchingError _ -> ("DataFetchingError", Some 160)
-        | NoItem -> ("NoItem", Some 25)
+        | NoItem              -> ("NoItem", Some 25)
 
     member this.Template: string =
         match this with
         | CustomListItem item -> item.Template
-        | _ -> unionCaseName this
+        | _                   -> unionCaseName this
 
     member this.getKey: string =
         let key, _ = this.KeyAndMaybeHeight
         key
 
-and private PaginatedVirtualListObject =
-    { Key: string
-      Item: obj
-      Height: Option<int>
-      Template: string }
+and private PaginatedVirtualListObject = {
+    Key:      string
+    Item:     obj
+    Height:   Option<int>
+    Template: string
+}
 
 module private Styles =
     let center =
@@ -106,15 +108,15 @@ type private Helpers =
     [<Component>]
     static member _PaginatedVirtualListView
         (
-            dataFetcher: uint64 -> Async<AsyncData<PaginatedVirtualListObject seq>>,
-            renderItem: PaginatedVirtualListObject -> ReactElement,
-            pageSize: uint16,
-            ?topStaticContent: ReactElement,
+            dataFetcher:          uint64 -> Async<AsyncData<PaginatedVirtualListObject seq>>,
+            renderItem:           PaginatedVirtualListObject -> ReactElement,
+            pageSize:             uint16,
+            ?topStaticContent:    ReactElement,
             ?bottomStaticContent: ReactElement,
-            ?whenLoading: ReactElement * (* Height *) int,
-            ?heightThreshold: int,
-            ?styles: array<ViewStyles>,
-            ?key: string
+            ?whenLoading:         ReactElement * (* Height *) int,
+            ?heightThreshold:     int,
+            ?styles:              array<ViewStyles>,
+            ?key:                 string
         ) : ReactElement =
         key |> ignore
 
@@ -214,7 +216,7 @@ type private Helpers =
 
                     match nextItems.current, hasEndReached.current with
                     | None, false -> loadNextPage (nextPage.current) |> startSafely
-                    | _ -> Nothing),
+                    | _           -> Nothing),
             [| allItems.current |]
         )
 
@@ -228,7 +230,7 @@ type private Helpers =
                 | Some(customLoader, _) -> customLoader
             | PaginatedVirtualListItems.BottomReached ->
                 Rn.View(
-                    styles = [| Styles.center |],
+                    styles   = [| Styles.center |],
                     children = [| LC.Text("-x-", styles = [| Styles.bottomReached |]) |]
                 )
             | PaginatedVirtualListItems.NoItem ->
@@ -248,11 +250,11 @@ type private Helpers =
                                        [| LC.Text("Retry", styles = [| Styles.retryButtonText |])
 
                                           LC.Pressable(
-                                              onPress = (fun _ -> retry () |> startSafely),
-                                              label = "Retry",
-                                              testId = A11ySlug.testId "paginated-virtual-list-view" "Retry",
-                                              role = AccessibilityRole.Button,
-                                              overlay = true,
+                                              onPress       = (fun _ -> retry () |> startSafely),
+                                              label         = "Retry",
+                                              testId        = A11ySlug.testId "paginated-virtual-list-view" "Retry",
+                                              role          = AccessibilityRole.Button,
+                                              overlay       = true,
                                               componentName = "LC.PaginatedVirtualListView"
                                           ) |]
                                ) |]
@@ -261,13 +263,13 @@ type private Helpers =
 
         let paginatedVirtualListItems =
             (match bottomStaticContent with
-             | None -> Seq.empty
+             | None         -> Seq.empty
              | Some content -> seq { PaginatedVirtualListItems.TopContent content }
              |> appendItems (
                  (match dataFetching.current with
                   | DataFetchingState.Loading ->
                       match whenLoading with
-                      | None -> seq { PaginatedVirtualListItems.Loader 180 }
+                      | None            -> seq { PaginatedVirtualListItems.Loader 180 }
                       | Some(_, height) -> seq { PaginatedVirtualListItems.Loader height }
                   | DataFetchingState.Completed -> Seq.empty
                   | DataFetchingState.FetchingFailed ->
@@ -278,12 +280,12 @@ type private Helpers =
                           )
                       }
                   | DataFetchingState.EndReached -> seq { PaginatedVirtualListItems.BottomReached }
-                  | DataFetchingState.NoItem -> seq { PaginatedVirtualListItems.NoItem })
+                  | DataFetchingState.NoItem     -> seq { PaginatedVirtualListItems.NoItem })
                  |> appendItems (
                      allItems.current
                      |> appendItems (
                          match topStaticContent with
-                         | None -> Seq.empty
+                         | None         -> Seq.empty
                          | Some content -> seq { PaginatedVirtualListItems.TopContent content }
                      )
                  )
@@ -294,15 +296,15 @@ type private Helpers =
             |> Seq.map (fun item ->
                 let key, height = item.KeyAndMaybeHeight
 
-                { Key = key
-                  Item = item
-                  Height = height
+                { Key      = key
+                  Item     = item
+                  Height   = height
                   Template = item.Template })
 
         element {
             LC.VirtualListView(
-                items = vlvItems,
-                render = render,
+                items         = vlvItems,
+                render        = render,
                 restoreScroll = RestoreScroll.No,
                 scrollSideEffect =
                     (fun (top, _) ->
@@ -320,15 +322,15 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member PaginatedVirtualListView
         (
-            dataFetcher: uint64 -> Async<AsyncData<PaginatedVirtualListItem<'Item> seq>>,
-            renderItem: 'Item -> ReactElement,
-            pageSize: uint16,
-            key: string,
-            ?whenLoading: ReactElement * (*Height*) int,
-            ?topStaticContent: ReactElement,
+            dataFetcher:          uint64 -> Async<AsyncData<PaginatedVirtualListItem<'Item> seq>>,
+            renderItem:           'Item -> ReactElement,
+            pageSize:             uint16,
+            key:                  string,
+            ?whenLoading:         ReactElement * (*Height*) int,
+            ?topStaticContent:    ReactElement,
             ?bottomStaticContent: ReactElement,
-            ?heightThreshold: int,
-            ?styles: array<ViewStyles>
+            ?heightThreshold:     int,
+            ?styles:              array<ViewStyles>
         ) : ReactElement =
 
         element {
@@ -340,20 +342,20 @@ type LibClient.Components.Constructors.LC with
                         |> AsyncData.map (fun data ->
                             data
                             |> Seq.map (fun item ->
-                                { Key = item.Key
+                                { Key      = item.Key
                                   Template = item.Template
-                                  Item = item.Item :> obj
-                                  Height = item.Height }))))
+                                  Item     = item.Item :> obj
+                                  Height   = item.Height }))))
 
             Helpers._PaginatedVirtualListView (
-                dataFetcher = (dataFetcher >> dataMapper),
-                renderItem = (fun item -> renderItem (item.Item :?> 'Item)),
-                pageSize = pageSize,
-                ?topStaticContent = topStaticContent,
+                dataFetcher          = (dataFetcher >> dataMapper),
+                renderItem           = (fun item -> renderItem (item.Item :?> 'Item)),
+                pageSize             = pageSize,
+                ?topStaticContent    = topStaticContent,
                 ?bottomStaticContent = bottomStaticContent,
-                ?whenLoading = whenLoading,
-                ?heightThreshold = heightThreshold,
-                ?styles = styles,
-                key = key
+                ?whenLoading         = whenLoading,
+                ?heightThreshold     = heightThreshold,
+                ?styles              = styles,
+                key                  = key
             )
         }

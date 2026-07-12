@@ -44,14 +44,14 @@ type DocumentStore() =
         let existing = activeDocuments.[file.FullName]
         let startOffset, endOffset = findRange(existing.text, range)
         existing.text.Remove(startOffset, endOffset - startOffset) |> ignore
-        existing.text.Insert(startOffset, text) |> ignore
+        existing.text.Insert(startOffset, text)                    |> ignore
         existing.version <- doc.version
 
     /// Replace the entire contents of an open file
     let replace(doc: VersionedTextDocumentIdentifier, text: string): unit =
         let file = FileInfo(doc.uri.LocalPath)
         let existing = activeDocuments.[file.FullName]
-        existing.text.Clear() |> ignore
+        existing.text.Clear()      |> ignore
         existing.text.Append(text) |> ignore
         existing.version <- doc.version
 
@@ -72,7 +72,7 @@ type DocumentStore() =
             for change in doc.contentChanges do
                 match change.range with
                 | Some range -> patch(doc.textDocument, range, change.text)
-                | None -> replace(doc.textDocument, change.text)
+                | None       -> replace(doc.textDocument, change.text)
 
     member __.GetText(file: FileInfo): string option =
         let found, value = activeDocuments.TryGetValue(file.FullName)

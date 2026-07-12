@@ -13,7 +13,7 @@ type SetBipartition<'V when 'V: comparison> =
 
     static member ofLeftAndRight(left: Set<'V>, right: Set<'V>) =
         match Set.intersect left right |> Set.count = 0 with
-        | true -> Internals(left, right)
+        | true  -> Internals(left, right)
         | false -> failwith "Trying to construct a SetBipartition.ofLeftAndRight from non-disjoint sets"
 
     member private this.Parts: Set<'V> * Set<'V> =

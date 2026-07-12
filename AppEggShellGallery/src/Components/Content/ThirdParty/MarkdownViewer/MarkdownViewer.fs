@@ -12,16 +12,16 @@ type Ui.Content.ThirdParty with
     static member MarkdownViewer () : ReactElement =
         Ui.ComponentContent(
             displayName = "MarkdownViewer",
-            props = ComponentContent.ForFullyQualifiedName "ThirdParty.Showdown.Components.MarkdownViewer",
+            props       = ComponentContent.ForFullyQualifiedName "ThirdParty.Showdown.Components.MarkdownViewer",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "MarkdownViewer",
-                    role = "none (document content)",
-                    namePattern = "Rendered markdown headings and links expose semantic structure",
-                    stateNotes = "Links are keyboard-focusable on web",
+                    componentName  = "MarkdownViewer",
+                    role           = "none (document content)",
+                    namePattern    = "Rendered markdown headings and links expose semantic structure",
+                    stateNotes     = "Links are keyboard-focusable on web",
                     scalesWithFont = true,
-                    contrastNotes = "Markdown text and link colors meet WCAG AA",
-                    deferredTags = ["[web-only] heading landmarks"]
+                    contrastNotes  = "Markdown text and link colors meet WCAG AA",
+                    deferredTags   = ["[web-only] heading landmarks"]
                 ),
             samples =
                 element {

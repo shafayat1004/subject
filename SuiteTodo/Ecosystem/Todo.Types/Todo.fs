@@ -27,15 +27,15 @@ type TodoCategory =
 | Other
 
 type Todo = {
-    Id: TodoId
-    Title: NonemptyString
-    Done: bool
-    ArchivedOn: Option<DateTimeOffset>
+    Id:                TodoId
+    Title:             NonemptyString
+    Done:              bool
+    ArchivedOn:        Option<DateTimeOffset>
     QueuedForDeletion: bool
-    CreatedOn: DateTimeOffset
-    Priority: TodoPriority
-    DueOn: Option<DateTimeOffset>
-    Category: Option<TodoCategory>
+    CreatedOn:         DateTimeOffset
+    Priority:          TodoPriority
+    DueOn:             Option<DateTimeOffset>
+    Category:          Option<TodoCategory>
 }
 with
     interface Subject<TodoId> with
@@ -47,13 +47,13 @@ with
 
 [<RequireQualifiedAccess>]
 type TodoAction =
-| SetTitle of NonemptyString
+| SetTitle    of NonemptyString
 | ToggleDone
 | Archive
 | Delete
 | SetPriority of TodoPriority
 | SetCategory of Option<TodoCategory>
-| SetDueOn of Option<DateTimeOffset>
+| SetDueOn    of Option<DateTimeOffset>
 with interface LifeAction
 
 [<RequireQualifiedAccess>]
@@ -70,7 +70,7 @@ with interface Constructor
 type TodoLifeEvent =
 | Created
 | TitleChanged of NonemptyString
-| DoneToggled of bool
+| DoneToggled  of bool
 | Archived
 with interface LifeEvent
 
@@ -81,13 +81,13 @@ type TodoArchiveStatus =
 
 [<RequireQualifiedAccess>]
 type TodoNumericIndex =
-| CreatedOn of DateTimeOffset
+| CreatedOn  of DateTimeOffset
 | ArchivedOn of DateTimeOffset
 with
     interface SubjectNumericIndex<TodoOpError> with
         member this.Primitive =
             match this with
-            | CreatedOn dt -> IndexedNumber dt.UtcTicks
+            | CreatedOn dt  -> IndexedNumber dt.UtcTicks
             | ArchivedOn dt -> IndexedNumber dt.UtcTicks
 
 [<RequireQualifiedAccess>]
@@ -97,7 +97,7 @@ with
     interface SubjectStringIndex<TodoOpError> with
         member this.Primitive =
             match this with
-            | ArchiveStatus TodoArchiveStatus.Active -> IndexedString "Active"
+            | ArchiveStatus TodoArchiveStatus.Active   -> IndexedString "Active"
             | ArchiveStatus TodoArchiveStatus.Archived -> IndexedString "Archived"
 
 [<RequireQualifiedAccess>]
@@ -164,15 +164,15 @@ type Todo with
             and! dueOn = reqWith (Codecs.option Codecs.dateTimeOffset) "DueOn" (fun x -> Some x.DueOn)
             and! category = reqWith (Codecs.option codecFor<_, TodoCategory>) "Category" (fun x -> Some x.Category)
             return {
-                Id = id
-                Title = title
-                Done = done_
-                ArchivedOn = archivedOn
+                Id                = id
+                Title             = title
+                Done              = done_
+                ArchivedOn        = archivedOn
                 QueuedForDeletion = queuedForDeletion
-                CreatedOn = createdOn
-                Priority = priority
-                DueOn = dueOn
-                Category = category
+                CreatedOn         = createdOn
+                Priority          = priority
+                DueOn             = dueOn
+                Category          = category
              }
         }
 

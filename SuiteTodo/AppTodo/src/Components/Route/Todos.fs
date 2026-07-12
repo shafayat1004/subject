@@ -39,14 +39,14 @@ module private AppearanceStorage =
             return
                 match stored with
                 | Some "dark" -> AppearanceMode.Dark
-                | _ -> AppearanceMode.Light
+                | _           -> AppearanceMode.Light
         }
 
     let save (mode: AppearanceMode) : unit =
         let value =
             match mode with
             | AppearanceMode.Light -> "light"
-            | AppearanceMode.Dark -> "dark"
+            | AppearanceMode.Dark  -> "dark"
         async {
             do! AppTodo.AppServices.services().LocalStorage.Put storageKey value Json.ToString<string>
         }
@@ -86,11 +86,11 @@ type private Helpers =
 
     [<Component>]
     static member FilterTabs(
-            palette: SemanticPalette,
-            tabTheme: TabTheme,
-            current: TodoListFilter,
+            palette:    SemanticPalette,
+            tabTheme:   TabTheme,
+            current:    TodoListFilter,
             isHandheld: bool,
-            onSelect: TodoListFilter -> unit)
+            onSelect:   TodoListFilter -> unit)
         : ReactElement =
         let mkTab (filter: TodoListFilter) (testSuffix: string) =
             let label = filterLabel filter
@@ -103,7 +103,7 @@ type private Helpers =
                             LC.Tab.Selected
                          else
                             LC.Tab.Unselected (fun _ -> onSelect filter)),
-                    theme = (fun _ -> Styles.filterTabTheme tabTheme),
+                    theme  = (fun _ -> Styles.filterTabTheme tabTheme),
                     testId = testId
                 )
 
@@ -121,8 +121,8 @@ type private Helpers =
 
         if isHandheld then
             Rn.View(
-                styles = [| Styles.filterTabsRow palette |],
-                accessibilityRole = AccessibilityRole.TabList,
+                styles             = [| Styles.filterTabsRow palette |],
+                accessibilityRole  = AccessibilityRole.TabList,
                 accessibilityLabel = i18n.t.FilterTabsLabel,
                 children =
                     elements {
@@ -131,29 +131,29 @@ type private Helpers =
             )
         else
             LC.Tabs(
-                label = i18n.t.FilterTabsLabel,
-                theme = (fun _ -> Styles.tabsScrollTheme tabTheme),
+                label    = i18n.t.FilterTabsLabel,
+                theme    = (fun _ -> Styles.tabsScrollTheme tabTheme),
                 children = tabItems
             )
 
     [<Component>]
     static member CategoryPill(
-            bg: Color,
-            border: Color,
-            label: string,
+            bg:         Color,
+            border:     Color,
+            label:      string,
             isSelected: bool,
-            testId: string,
-            onPress: ReactEvent.Action -> unit)
+            testId:     string,
+            onPress:    ReactEvent.Action -> unit)
         : ReactElement =
         Rn.View(
-            styles = [| Styles.categoryPill bg border isSelected |],
+            styles   = [| Styles.categoryPill bg border isSelected |],
             children = [|
                 LC.TextButton(
-                    label = label,
-                    role = AccessibilityRole.Radio,
+                    label              = label,
+                    role               = AccessibilityRole.Radio,
                     accessibilityState = AccessibilityStateRecord.selected isSelected,
-                    state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable onPress),
-                    testId = testId
+                    state              = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable onPress),
+                    testId             = testId
                 )
             |]
         )
@@ -171,62 +171,62 @@ type private Helpers =
             | LibClient.I18n.Language.Bn -> i18n.t.LanguageBn
 
         LC.TextButton(
-            label = label,
-            state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> AppTodo.I18nGlobal.setLanguage nextLanguage)),
+            label  = label,
+            state  = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> AppTodo.I18nGlobal.setLanguage nextLanguage)),
             testId = A11ySlug.testId "todo" "language-toggle"
         )
 
     [<Component>]
     static member ThemeToggle(
-            palette: SemanticPalette,
-            current: AppearanceMode,
+            palette:  SemanticPalette,
+            current:  AppearanceMode,
             onSelect: AppearanceMode -> unit)
         : ReactElement =
         LC.SegmentedControl(
             accessibilityGroupLabel = i18n.t.ThemeGroupLabel,
-            testId = A11ySlug.testId "todo" "theme-toggle",
-            selected = current,
-            onSelect = onSelect,
+            testId                  = A11ySlug.testId "todo" "theme-toggle",
+            selected                = current,
+            onSelect                = onSelect,
             segments =
                 [|
                     {
-                        Label = i18n.t.ThemeLight
-                        Value = AppearanceMode.Light
+                        Label        = i18n.t.ThemeLight
+                        Value        = AppearanceMode.Light
                         TestIdSuffix = Some "light"
                     }
                     {
-                        Label = i18n.t.ThemeDark
-                        Value = AppearanceMode.Dark
+                        Label        = i18n.t.ThemeDark
+                        Value        = AppearanceMode.Dark
                         TestIdSuffix = Some "dark"
                     }
                 |],
             theme =
                 (fun _ ->
                     {
-                        TrackBackground = palette.ThemeTrackBackground
-                        ThumbBackground = palette.ThemeToggleSelected
-                        SelectedLabelColor = Color.White
+                        TrackBackground      = palette.ThemeTrackBackground
+                        ThumbBackground      = palette.ThemeToggleSelected
+                        SelectedLabelColor   = Color.White
                         UnselectedLabelColor = palette.TextSecondary
-                        TrackWidth = 152
-                        TrackPadding = 4
+                        TrackWidth           = 152
+                        TrackPadding         = 4
                     })
         )
 
     [<Component>]
     static member NewCategoryPicker(
-            palette: SemanticPalette,
+            palette:  SemanticPalette,
             selected: Option<TodoCategory>,
             onSelect: Option<TodoCategory> -> unit)
         : ReactElement =
         let pill (noneOrCategory: Option<TodoCategory>) (label: string) (testId: string) (isSelected: bool) (onPress: ReactEvent.Action -> unit) =
             let bg, border, _ = Styles.categoryChipColorsByCategory palette noneOrCategory
             Helpers.CategoryPill(
-                bg = bg,
-                border = border,
-                label = label,
+                bg         = bg,
+                border     = border,
+                label      = label,
                 isSelected = isSelected,
-                testId = testId,
-                onPress = onPress
+                testId     = testId,
+                onPress    = onPress
             )
 
         let pills =
@@ -244,27 +244,27 @@ type private Helpers =
             |]
 
         LC.RadioGroup(
-            label = sprintf "%s. %s" i18n.t.CategoryGroupLabel i18n.t.CategoryScrollHint,
-            testId = A11ySlug.testId "todo" "new-category-group",
+            label    = sprintf "%s. %s" i18n.t.CategoryGroupLabel i18n.t.CategoryScrollHint,
+            testId   = A11ySlug.testId "todo" "new-category-group",
             children = [|
                 LC.ScrollView(
-                    scroll = LibClient.Components.ScrollView.Scroll.Horizontal,
+                    scroll        = LibClient.Components.ScrollView.Scroll.Horizontal,
                     restoreScroll = LibClient.Components.ScrollView.RestoreScroll.No,
                     showsHorizontalScrollIndicatorOnNative = true,
-                    styles = [| Styles.categoryScrollContent |],
-                    children = pills
+                    styles        = [| Styles.categoryScrollContent |],
+                    children      = pills
                 )
             |]
         )
 
     [<Component>]
     static member TodoSwipeShell(
-            todo: Todo,
-            palette: SemanticPalette,
-            isOpen: bool,
+            todo:         Todo,
+            palette:      SemanticPalette,
+            isOpen:       bool,
             onOpenChange: bool -> unit,
-            onDelete: unit -> unit,
-            rowContent: ReactElement)
+            onDelete:     unit -> unit,
+            rowContent:   ReactElement)
         : ReactElement =
         let deleteWidth = SwipeGesture.deleteWidth
         let openThreshold = SwipeGesture.openThreshold
@@ -359,18 +359,18 @@ type private Helpers =
         LC.With.ReducedMotion (fun reduceMotion ->
             if reduceMotion then
                 Rn.View(
-                    styles = [| Styles.swipeReducedMotionRow |],
+                    styles   = [| Styles.swipeReducedMotionRow |],
                     children = [|
                         Rn.View(styles = [| Styles.swipeReducedMotionContent |], children = [| rowContent |])
                         Rn.View(
-                            styles = [| Styles.swipeReducedMotionDelete |],
+                            styles   = [| Styles.swipeReducedMotionDelete |],
                             children = [|
                                 LC.TextButton(
-                                    label = todoActionLabel todo i18n.t.DeleteActionFormat,
+                                    label         = todoActionLabel todo i18n.t.DeleteActionFormat,
                                     numberOfLines = 1,
-                                    styles = [| Styles.swipeDeleteButtonText |],
-                                    state = deleteButtonState,
-                                    testId = todoItemTestId todo "delete"
+                                    styles        = [| Styles.swipeDeleteButtonText |],
+                                    state         = deleteButtonState,
+                                    testId        = todoItemTestId todo "delete"
                                 )
                             |]
                         )
@@ -382,12 +382,12 @@ type private Helpers =
 
                     Rn.View(
                         ?onLayout = onLayoutOption,
-                        styles = [| Styles.swipeRowHost |],
-                        children = [|
+                        styles    = [| Styles.swipeRowHost |],
+                        children  = [|
                             Rn.View(
                                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
-                                styles = [| Styles.swipeGradientOverlay gradientVisible |],
-                                children = [||]
+                                styles                    = [| Styles.swipeGradientOverlay gradientVisible |],
+                                children                  = [||]
                             )
                             Rn.View(
                                 importantForAccessibility =
@@ -395,10 +395,10 @@ type private Helpers =
                                         LibClient.Accessibility.ImportantForAccessibility.Auto
                                      else
                                         LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants),
-                                styles = [| Styles.swipeDeleteSlot |],
+                                styles   = [| Styles.swipeDeleteSlot |],
                                 children = [|
                                     LC.TextButton(
-                                        label = todoActionLabel todo i18n.t.DeleteActionFormat,
+                                        label  = todoActionLabel todo i18n.t.DeleteActionFormat,
                                         styles = [| Styles.swipeDeleteButtonText |],
                                         state =
                                             ButtonHighLevelStateFactory.MakeLowLevel (
@@ -415,16 +415,16 @@ type private Helpers =
                             // translates with the content so a swipe reveals (never covers) the
                             // delete slot behind it, keeping tap-to-delete working.
                             Rn.ReanimatedView(
-                                styles = [| Styles.swipeContentBase palette |],
+                                styles        = [| Styles.swipeContentBase palette |],
                                 animatedStyle = swipeAnimatedStyle,
-                                children = [|
+                                children      = [|
                                     Rn.HorizontalPanArea(
-                                        onStart = onSwipeStart,
-                                        onUpdate = onSwipeUpdate,
-                                        onEnd = onSwipeEnd,
+                                        onStart       = onSwipeStart,
+                                        onUpdate      = onSwipeUpdate,
+                                        onEnd         = onSwipeEnd,
                                         activeOffsetX = float SwipeGesture.activationThreshold,
-                                        failOffsetY = 12.0,
-                                        children = [| rowContent |]
+                                        failOffsetY   = 12.0,
+                                        children      = [| rowContent |]
                                     )
                                 |]
                             )
@@ -434,23 +434,23 @@ type private Helpers =
         )
 
     static member TodoList(
-            listKey: string,
-            listFilter: TodoListFilter,
-            searchTerm: Option<NonemptyString>,
-            palette: SemanticPalette,
-            appearance: AppearanceMode,
-            useCompactUI: bool,
-            swipeOpenId: Option<TodoId>,
+            listKey:        string,
+            listFilter:     TodoListFilter,
+            searchTerm:     Option<NonemptyString>,
+            palette:        SemanticPalette,
+            appearance:     AppearanceMode,
+            useCompactUI:   bool,
+            swipeOpenId:    Option<TodoId>,
             setSwipeOpenId: Option<TodoId> -> unit,
-            makeExecutor: MakeExecutor,
-            onMutated: unit -> unit,
-            editingId: Option<TodoId>,
-            setEditingId: Option<TodoId> -> unit)
+            makeExecutor:   MakeExecutor,
+            onMutated:      unit -> unit,
+            editingId:      Option<TodoId>,
+            setEditingId:   Option<TodoId> -> unit)
         : ReactElement =
         UiSubject.With.Subjects(
-            key = listKey,
-            service = AppTodo.AppServices.services().Todo,
-            by = By.Indexed (queryForFilterAndSearch listFilter searchTerm),
+            key      = listKey,
+            service  = AppTodo.AppServices.services().Todo,
+            by       = By.Indexed (queryForFilterAndSearch listFilter searchTerm),
             useCache = UseCache.IfReasonablyFresh,
             treatFetchingSomeAsAvailable = true,
             whenAvailable =
@@ -477,7 +477,7 @@ type private Helpers =
                             level = InfoMessage.Level.Info,
                             message =
                                 match searchTerm with
-                                | None -> i18n.t.EmptyList
+                                | None   -> i18n.t.EmptyList
                                 | Some _ -> i18n.t.EmptySearch
                         )
                     else
@@ -488,10 +488,10 @@ type private Helpers =
                                     children =
                                         tellReactArrayKeysAreOkay [|
                                             Rn.View(
-                                                accessibilityRole = AccessibilityRole.Status,
+                                                accessibilityRole       = AccessibilityRole.Status,
                                                 accessibilityLiveRegion = AccessibilityLiveRegion.Polite,
-                                                accessibilityLabel = i18n.Format(i18n.t.StatsFormat, openCount, doneCount),
-                                                styles = [| Styles.statsRow |],
+                                                accessibilityLabel      = i18n.Format(i18n.t.StatsFormat, openCount, doneCount),
+                                                styles                  = [| Styles.statsRow |],
                                                 children =
                                                     tellReactArrayKeysAreOkay [|
                                                         Helpers.StatChip(
@@ -507,10 +507,10 @@ type private Helpers =
                                         |]
                                 )
                                 Rn.View(
-                                    accessibilityRole = AccessibilityRole.List,
+                                    accessibilityRole  = AccessibilityRole.List,
                                     accessibilityLabel = i18n.Format(i18n.t.ListCountFormat, List.length todos),
-                                    styles = [| Styles.list |],
-                                    testId = A11ySlug.testId "todo" "list",
+                                    styles             = [| Styles.list |],
+                                    testId             = A11ySlug.testId "todo" "list",
                                     children =
                                         [| castAsElementAckingKeysWarning (
                                             todos
@@ -521,17 +521,17 @@ type private Helpers =
                                                     // keys would reuse a row instance for a different
                                                     // todo on delete, leaving an empty swipe-shell
                                                     // artifact. Keying by id unmounts the deleted row.
-                                                    key = (todo.Id :> SubjectId).IdString,
-                                                    todo = todo,
-                                                    palette = palette,
-                                                    appearance = appearance,
-                                                    useCompactUI = useCompactUI,
-                                                    swipeOpenId = swipeOpenId,
+                                                    key            = (todo.Id :> SubjectId).IdString,
+                                                    todo           = todo,
+                                                    palette        = palette,
+                                                    appearance     = appearance,
+                                                    useCompactUI   = useCompactUI,
+                                                    swipeOpenId    = swipeOpenId,
                                                     setSwipeOpenId = setSwipeOpenId,
-                                                    makeExecutor = makeExecutor,
-                                                    onMutated = onMutated,
-                                                    editingId = editingId,
-                                                    setEditingId = setEditingId
+                                                    makeExecutor   = makeExecutor,
+                                                    onMutated      = onMutated,
+                                                    editingId      = editingId,
+                                                    setEditingId   = setEditingId
                                                 ))
                                             |> List.toArray
                                         ) |]
@@ -541,13 +541,13 @@ type private Helpers =
             whenFetching =
                 (fun _ ->
                     LC.InfoMessage(
-                        level = InfoMessage.Level.Info,
+                        level   = InfoMessage.Level.Info,
                         message = i18n.t.LoadingList
                     )),
             whenFailed =
                 (fun failure ->
                     LC.InfoMessage(
-                        level = InfoMessage.Level.Caution,
+                        level   = InfoMessage.Level.Caution,
                         message = i18n.Format(i18n.t.LoadFailedFormat, failure.DisplayReason)
                     ))
         )
@@ -555,27 +555,27 @@ type private Helpers =
     [<Component>]
     static member StatChip(palette: SemanticPalette, label: string, ?testId: string) : ReactElement =
         Rn.View(
-            ?testId = testId,
+            ?testId                   = testId,
             importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
-            styles = [| Styles.statChip palette |],
-            children = [|
+            styles                    = [| Styles.statChip palette |],
+            children                  = [|
                 LC.Text(styles = [| Styles.statChipText palette |], value = label)
             |]
         )
 
     [<Component>]
     static member TodoRow(
-            todo: Todo,
-            palette: SemanticPalette,
-            appearance: AppearanceMode,
-            useCompactUI: bool,
-            swipeOpenId: Option<TodoId>,
+            todo:           Todo,
+            palette:        SemanticPalette,
+            appearance:     AppearanceMode,
+            useCompactUI:   bool,
+            swipeOpenId:    Option<TodoId>,
             setSwipeOpenId: Option<TodoId> -> unit,
-            makeExecutor: MakeExecutor,
-            onMutated: unit -> unit,
-            editingId: Option<TodoId>,
-            setEditingId: Option<TodoId> -> unit,
-            ?key: string)
+            makeExecutor:   MakeExecutor,
+            onMutated:      unit -> unit,
+            editingId:      Option<TodoId>,
+            setEditingId:   Option<TodoId> -> unit,
+            ?key:           string)
         : ReactElement =
         key |> ignore
         let executor = makeExecutor ("todo-" + (todo.Id :> SubjectId).IdString)
@@ -601,11 +601,11 @@ type private Helpers =
         let metaChip chipBg chipBorder chipText (chipLabel: string) (spokenLabel: string) =
             Rn.View(
                 accessibilityLabel = spokenLabel,
-                styles = [| Styles.metaChip chipBg chipBorder |],
-                children = [|
+                styles             = [| Styles.metaChip chipBg chipBorder |],
+                children           = [|
                     LC.Text(
                         styles = [| Styles.metaChipText chipText |],
-                        value = chipLabel
+                        value  = chipLabel
                     )
                 |]
             )
@@ -667,16 +667,16 @@ type private Helpers =
                     )
                 elif useCompactUI then
                     LC.IconButton(
-                        icon = Icon.Pencil,
-                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (SwipeTapGuard.guard (fun _ -> setEditingId (Some todo.Id)))),
-                        label = todoActionLabel todo i18n.t.EditActionFormat,
+                        icon   = Icon.Pencil,
+                        state  = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (SwipeTapGuard.guard (fun _ -> setEditingId (Some todo.Id)))),
+                        label  = todoActionLabel todo i18n.t.EditActionFormat,
                         testId = todoItemTestId todo "edit",
                         styles = [| Styles.actionIconButton palette |]
                     )
                 else
                     LC.TextButton(
-                        label = todoActionLabel todo i18n.t.EditActionFormat,
-                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
+                        label  = todoActionLabel todo i18n.t.EditActionFormat,
+                        state  = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> setEditingId (Some todo.Id))),
                         testId = todoItemTestId todo "edit"
                     )
                 if not useCompactUI && todo.Done && todo.ArchivedOn.IsNone then
@@ -688,8 +688,8 @@ type private Helpers =
                     )
                 if not useCompactUI && confirmDeleteHook.current then
                     LC.TextButton(
-                        label = i18n.t.Cancel,
-                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> confirmDeleteHook.update false)),
+                        label  = i18n.t.Cancel,
+                        state  = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> confirmDeleteHook.update false)),
                         testId = todoItemTestId todo "delete-cancel"
                     )
                     LC.TextButton(
@@ -706,8 +706,8 @@ type private Helpers =
                     )
                 elif not useCompactUI then
                     LC.TextButton(
-                        label = todoActionLabel todo i18n.t.DeleteActionFormat,
-                        state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> confirmDeleteHook.update true)),
+                        label  = todoActionLabel todo i18n.t.DeleteActionFormat,
+                        state  = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> confirmDeleteHook.update true)),
                         testId = todoItemTestId todo "delete"
                     )
             |]
@@ -715,10 +715,10 @@ type private Helpers =
         let titleContent =
             if isEditing then
                 LC.Input.Text(
-                    value = Some editTitleHook.current,
-                    onChange = (fun v -> editTitleHook.update (v |> Option.defaultValue todo.Title)),
-                    validity = Valid,
-                    placeholder = editTitleLabel todo,
+                    value              = Some editTitleHook.current,
+                    onChange           = (fun v -> editTitleHook.update (v |> Option.defaultValue todo.Title)),
+                    validity           = Valid,
+                    placeholder        = editTitleLabel todo,
                     accessibilityLabel = editTitleLabel todo,
                     onEnterKeyPress =
                         (fun _ ->
@@ -730,7 +730,7 @@ type private Helpers =
             else
                 LC.Text(
                     styles = [| if todo.Done then Styles.titleTextDone palette else Styles.titleTextActive palette |],
-                    value = todo.Title.Value
+                    value  = todo.Title.Value
                 )
 
         let rowSurface =
@@ -739,7 +739,7 @@ type private Helpers =
                 children =
                     tellReactArrayKeysAreOkay [|
                         Rn.View(
-                            styles = [| Styles.todoMetaRow |],
+                            styles   = [| Styles.todoMetaRow |],
                             children = tellReactArrayKeysAreOkay metaChips
                         )
                         Rn.View(
@@ -749,14 +749,14 @@ type private Helpers =
                                     Array.append
                                         [|
                                             LC.Input.Checkbox(
-                                                value = Some todo.Done,
-                                                onChange = SwipeTapGuard.guard (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
-                                                validity = Valid,
+                                                value              = Some todo.Done,
+                                                onChange           = SwipeTapGuard.guard (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
+                                                validity           = Valid,
                                                 accessibilityLabel = toggleCheckboxLabel todo,
-                                                testId = todoItemTestId todo "toggle"
+                                                testId             = todoItemTestId todo "toggle"
                                             )
                                             Rn.View(
-                                                styles = [| Styles.todoContent |],
+                                                styles   = [| Styles.todoContent |],
                                                 children = [| titleContent |]
                                             )
                                         |]
@@ -769,22 +769,22 @@ type private Helpers =
         let rowBody =
             if useCompactUI && not isEditing then
                 Helpers.TodoSwipeShell(
-                    todo = todo,
-                    palette = palette,
-                    isOpen = isSwipeOpen,
+                    todo         = todo,
+                    palette      = palette,
+                    isOpen       = isSwipeOpen,
                     onOpenChange = setSwipeOpen,
-                    onDelete = deleteTodoAction,
-                    rowContent = rowSurface
+                    onDelete     = deleteTodoAction,
+                    rowContent   = rowSurface
                 )
             else
                 rowSurface
 
         Rn.View(
-            testId = todoItemTestId todo "row",
-            accessibilityRole = AccessibilityRole.ListItem,
+            testId             = todoItemTestId todo "row",
+            accessibilityRole  = AccessibilityRole.ListItem,
             accessibilityLabel = rowLabel,
-            styles = [| Styles.todoRowOuter palette appearance |],
-            children = [| rowBody |]
+            styles             = [| Styles.todoRowOuter palette appearance |],
+            children           = [| rowBody |]
         )
 
 type Ui.Route with
@@ -879,45 +879,45 @@ type Ui.Route with
 
                     let cardContent =
                         Rn.View(
-                            styles = [| Styles.cardShell palette usePhoneChrome |],
-                            testId = A11ySlug.testId "todo" "card",
+                            styles   = [| Styles.cardShell palette usePhoneChrome |],
+                            testId   = A11ySlug.testId "todo" "card",
                             children = [|
                                 Rn.View(
-                                    styles = [| Styles.card palette usePhoneChrome |],
+                                    styles   = [| Styles.card palette usePhoneChrome |],
                                     children = [|
                                         LC.Column(
-                                            gap = 20,
+                                            gap      = 20,
                                             children = [|
                                                 Rn.View(
                                                     styles = [| Styles.headerRow |],
                                                     children =
                                                         tellReactArrayKeysAreOkay [|
                                                         LC.Column(
-                                                            gap = 0,
+                                                            gap                = 0,
                                                             crossAxisAlignment = LC.CrossAxisAlignment.Stretch,
-                                                            styles = [| Styles.headerTitleBlock |],
-                                                            children = [|
+                                                            styles             = [| Styles.headerTitleBlock |],
+                                                            children           = [|
                                                                 LC.Heading(
-                                                                    level = Heading.Level.Primary,
+                                                                    level    = Heading.Level.Primary,
                                                                     children = [|
                                                                         LC.Text(
                                                                             styles = [| Styles.headingText palette |],
-                                                                            value = i18n.t.PageTitle
+                                                                            value  = i18n.t.PageTitle
                                                                         )
                                                                     |]
                                                                 )
                                                                 LC.Text(
                                                                     styles = [| Styles.subtitle palette |],
-                                                                    value = i18n.t.PageSubtitle
+                                                                    value  = i18n.t.PageSubtitle
                                                                 )
                                                             |]
                                                         )
                                                         Rn.View(
-                                                            styles = [| Styles.headerActions |],
+                                                            styles   = [| Styles.headerActions |],
                                                             children = [|
                                                                 Helpers.ThemeToggle(
-                                                                    palette = palette,
-                                                                    current = appearanceHook.current,
+                                                                    palette  = palette,
+                                                                    current  = appearanceHook.current,
                                                                     onSelect = setAppearance
                                                                 )
                                                             |]
@@ -926,36 +926,36 @@ type Ui.Route with
                                                 )
 
                                                 Helpers.FilterTabs(
-                                                    palette = palette,
-                                                    tabTheme = tabTheme,
-                                                    current = listFilterHook.current,
+                                                    palette    = palette,
+                                                    tabTheme   = tabTheme,
+                                                    current    = listFilterHook.current,
                                                     isHandheld = useCompactTabs,
-                                                    onSelect = (fun f ->
+                                                    onSelect   = (fun f ->
                                                         listFilterHook.update f
                                                         editingIdHook.update None)
                                                 )
 
                                                 Rn.View(
                                                     accessibilityLabel = i18n.t.ActiveFiltersLabel,
-                                                    styles = [| Styles.subFiltersRow |],
+                                                    styles             = [| Styles.subFiltersRow |],
                                                     children =
                                                         tellReactArrayKeysAreOkay [|
                                                             Rn.View(
-                                                                styles = [| Styles.subFilterPill palette.CategoryGreenSoft |],
+                                                                styles   = [| Styles.subFilterPill palette.CategoryGreenSoft |],
                                                                 children = [|
                                                                     LC.Text(
                                                                         styles = [| Styles.subFilterPillText palette.CategoryGreenText |],
-                                                                        value = i18n.Format(i18n.t.ViewFilterFormat, filterLabel listFilterHook.current)
+                                                                        value  = i18n.Format(i18n.t.ViewFilterFormat, filterLabel listFilterHook.current)
                                                                     )
                                                                 |]
                                                             )
                                                             if usePhoneChrome then
                                                                 Rn.View(
-                                                                    styles = [| Styles.subFilterPill palette.CategoryBlueSoft |],
+                                                                    styles   = [| Styles.subFilterPill palette.CategoryBlueSoft |],
                                                                     children = [|
                                                                         LC.Text(
                                                                             styles = [| Styles.subFilterPillText palette.CategoryBlueText |],
-                                                                            value = i18n.t.DeviceHandheld
+                                                                            value  = i18n.t.DeviceHandheld
                                                                         )
                                                                     |]
                                                                 )
@@ -963,53 +963,53 @@ type Ui.Route with
                                                 )
 
                                                 LC.Group(
-                                                    label = i18n.t.ComposerGroupLabel,
-                                                    testId = A11ySlug.testId "todo" "composer",
+                                                    label    = i18n.t.ComposerGroupLabel,
+                                                    testId   = A11ySlug.testId "todo" "composer",
                                                     children = [|
                                                 Rn.View(
-                                                    styles = [| Styles.composerPanel palette useCompactTabs |],
+                                                    styles   = [| Styles.composerPanel palette useCompactTabs |],
                                                     children = [|
                                                         LC.Column(
-                                                            gap = 12,
-                                                            styles = [| Styles.composerGrid useCompactTabs |],
+                                                            gap      = 12,
+                                                            styles   = [| Styles.composerGrid useCompactTabs |],
                                                             children = [|
                                                                 Rn.View(
-                                                                    styles = [| Styles.fieldStack |],
+                                                                    styles   = [| Styles.fieldStack |],
                                                                     children = [|
                                                                         Helpers.FieldLabel(palette, i18n.t.TitleLabel)
                                                                         LC.Input.Text(
-                                                                            value = titleInput.current,
-                                                                            onChange = titleInput.update,
-                                                                            validity = Valid,
-                                                                            placeholder = i18n.t.TitlePlaceholder,
+                                                                            value              = titleInput.current,
+                                                                            onChange           = titleInput.update,
+                                                                            validity           = Valid,
+                                                                            placeholder        = i18n.t.TitlePlaceholder,
                                                                             accessibilityLabel = i18n.t.TitleLabel,
-                                                                            testId = A11ySlug.testId "todo" "new-title"
+                                                                            testId             = A11ySlug.testId "todo" "new-title"
                                                                         )
                                                                     |]
                                                                 )
                                                                 Rn.View(
-                                                                    styles = [| Styles.fieldStack |],
+                                                                    styles             = [| Styles.fieldStack |],
                                                                     accessibilityLabel = i18n.t.PriorityFieldLabel,
-                                                                    children = [|
+                                                                    children           = [|
                                                                         Helpers.FieldLabel(palette, i18n.t.PriorityFieldLabel)
                                                                         LC.Input.Picker(
-                                                                            items = Static (OrderedSet.ofList allPriorities, priorityLabel),
-                                                                            itemView = PropItemViewFactory.Make priorityLabel,
-                                                                            value = SelectableValue.ExactlyOne (Some priorityHook.current, priorityHook.update),
-                                                                            validity = Valid,
+                                                                            items         = Static (OrderedSet.ofList allPriorities, priorityLabel),
+                                                                            itemView      = PropItemViewFactory.Make priorityLabel,
+                                                                            value         = SelectableValue.ExactlyOne (Some priorityHook.current, priorityHook.update),
+                                                                            validity      = Valid,
                                                                             showSearchBar = false,
-                                                                            testId = A11ySlug.testId "todo" "new-priority"
+                                                                            testId        = A11ySlug.testId "todo" "new-priority"
                                                                         )
                                                                     |]
                                                                 )
                                                                 Helpers.NewCategoryPicker(
-                                                                    palette = palette,
+                                                                    palette  = palette,
                                                                     selected = categoryHook.current,
                                                                     onSelect = categoryHook.update
                                                                 )
                                                                 LC.Button(
-                                                                    label = i18n.t.AddButtonMobile,
-                                                                    state = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                                    label  = i18n.t.AddButtonMobile,
+                                                                    state  = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
                                                                     styles = [| Styles.addButton |],
                                                                     testId = A11ySlug.testId "todo" "add-mobile"
                                                                 )
@@ -1021,29 +1021,29 @@ type Ui.Route with
                                                 )
 
                                                 LC.Group(
-                                                    label = i18n.t.SearchLabel,
-                                                    testId = A11ySlug.testId "todo" "search-group",
+                                                    label    = i18n.t.SearchLabel,
+                                                    testId   = A11ySlug.testId "todo" "search-group",
                                                     children = [|
                                                 Rn.View(
-                                                    styles = [| Styles.searchField |],
+                                                    styles   = [| Styles.searchField |],
                                                     children = [|
                                                         Rn.View(
-                                                            styles = [| Styles.searchInputWrap palette |],
+                                                            styles   = [| Styles.searchInputWrap palette |],
                                                             children = [|
                                                                 LC.Input.Text(
-                                                                    value = searchInput.current,
-                                                                    onChange = searchInput.update,
-                                                                    validity = Valid,
-                                                                    placeholder = i18n.t.SearchPlaceholder,
+                                                                    value              = searchInput.current,
+                                                                    onChange           = searchInput.update,
+                                                                    validity           = Valid,
+                                                                    placeholder        = i18n.t.SearchPlaceholder,
                                                                     accessibilityLabel = i18n.t.SearchLabel,
-                                                                    accessibilityRole = AccessibilityRole.Search,
-                                                                    prefixIcon = Icon.MagnifyingGlass,
+                                                                    accessibilityRole  = AccessibilityRole.Search,
+                                                                    prefixIcon         = Icon.MagnifyingGlass,
                                                                     theme =
                                                                         (fun t ->
                                                                             { t with
-                                                                                BorderRadius = 999
+                                                                                BorderRadius            = 999
                                                                                 EditableBackgroundColor = palette.SearchBackground
-                                                                                TheVerticalPadding = 10
+                                                                                TheVerticalPadding      = 10
                                                                             }),
                                                                     styles = [| Styles.searchInput palette |],
                                                                     testId = A11ySlug.testId "todo" "search"
@@ -1056,25 +1056,25 @@ type Ui.Route with
                                                 )
 
                                                 LC.Group(
-                                                    label = sprintf "%s: %s" i18n.t.ListGroupLabel (filterLabel listFilterHook.current),
-                                                    testId = A11ySlug.testId "todo" "list-group",
+                                                    label    = sprintf "%s: %s" i18n.t.ListGroupLabel (filterLabel listFilterHook.current),
+                                                    testId   = A11ySlug.testId "todo" "list-group",
                                                     children = [|
                                                 Helpers.TodoList(
-                                                    listKey = listKey,
-                                                    listFilter = listFilterHook.current,
-                                                    searchTerm = searchInput.current,
-                                                    palette = palette,
-                                                    appearance = appearanceHook.current,
-                                                    useCompactUI = useCompactTabs,
-                                                    swipeOpenId = swipeOpenIdHook.current,
+                                                    listKey        = listKey,
+                                                    listFilter     = listFilterHook.current,
+                                                    searchTerm     = searchInput.current,
+                                                    palette        = palette,
+                                                    appearance     = appearanceHook.current,
+                                                    useCompactUI   = useCompactTabs,
+                                                    swipeOpenId    = swipeOpenIdHook.current,
                                                     setSwipeOpenId = swipeOpenIdHook.update,
-                                                    makeExecutor = makeExecutor,
+                                                    makeExecutor   = makeExecutor,
                                                     // Row mutations update reactively in place; do
                                                     // NOT re-key the list (that would remount it,
                                                     // losing scroll and flashing a loader). Only
                                                     // add re-keys (via bumpList) so new ids appear.
-                                                    onMutated = (fun () -> ()),
-                                                    editingId = editingIdHook.current,
+                                                    onMutated    = (fun () -> ()),
+                                                    editingId    = editingIdHook.current,
                                                     setEditingId = editingIdHook.update
                                                 )
                                                     |]
@@ -1087,16 +1087,16 @@ type Ui.Route with
                         )
 
                     Rn.View(
-                        styles = [| Styles.page palette usePhoneChrome |],
-                        testId = A11ySlug.testId "todo" "page",
+                        styles   = [| Styles.page palette usePhoneChrome |],
+                        testId   = A11ySlug.testId "todo" "page",
                         children = [|
                             if usePhoneChrome then
                                 Rn.ScrollView(
-                                    styles = [| Styles.pageScroll |],
+                                    styles                       = [| Styles.pageScroll |],
                                     showsVerticalScrollIndicator = true,
-                                    children = [|
+                                    children                     = [|
                                         Rn.View(
-                                            styles = [| Styles.pageScrollContent |],
+                                            styles   = [| Styles.pageScrollContent |],
                                             children = [| cardContent |]
                                         )
                                     |]
@@ -1117,6 +1117,6 @@ type Ui.Route with
             mainContent
         else
             Rn.View(
-                styles = [| Styles.page (SemanticPalette.forMode AppearanceMode.Dark) true |],
+                styles   = [| Styles.page (SemanticPalette.forMode AppearanceMode.Dark) true |],
                 children = [||]
             )

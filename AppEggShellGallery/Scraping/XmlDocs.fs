@@ -5,7 +5,7 @@ open LibDsl.Parsing.XmlParsing
 
 [<RequireQualifiedAccess>]
 type private ParsingError =
-| XmlSyntaxError of string
+| XmlSyntaxError      of string
 | RootNodeMalformed
 | UnexpectedStructure of string
 
@@ -244,7 +244,7 @@ let private generateContentFiles (lossyNameMappings: Map<string, string>) (libra
 
             let maybeSetupCode =
                 match mem.SetupCode with
-                | None -> ""
+                | None           -> ""
                 | Some setupCode -> $"""
                             Ui.Code (language = AppEggShellGallery.Components.Code.Fsharp, heading = "Setup Code", children = [| LC.Text {tripleQuote}
 {setupCode.Value}{tripleQuote}
@@ -342,7 +342,7 @@ let scrapeDocsAndGenerateContentFilesForLibrary (lossyNameMappings: Map<string, 
             let! members =
                 match rawRootNode with
                 | DocsNode.Root members -> Ok members
-                | _ -> Error ParsingError.RootNodeMalformed
+                | _                     -> Error ParsingError.RootNodeMalformed
 
             return members
         }

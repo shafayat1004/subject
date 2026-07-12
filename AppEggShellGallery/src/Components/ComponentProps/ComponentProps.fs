@@ -130,7 +130,7 @@ let private renderScrapeErrors (errors: NonemptyList<ScrapeError>) : ReactElemen
     |> NonemptyList.toList
     |> List.map (fun error ->
         Rn.View(
-            styles = [| Styles.error |],
+            styles   = [| Styles.error |],
             children = [| LC.Text(sprintf "%A" error, styles = [| Styles.errorText |]) |]
         )
     )
@@ -166,7 +166,7 @@ let private renderFieldsTable (fields: List<XmlParam>) : ReactElement =
                                 dom.td [ ClassName "name" ] [| LC.Text field.Name |]
                                 dom.td [ ClassName "type" ] [| LC.Text field.Type |]
                                 dom.td [] [||]
-                                dom.td [ ClassName "value" ] [| LC.Text (field.Default |> Option.getOrElse "") |]
+                                dom.td [ ClassName "value" ] [| LC.Text (field.Default           |> Option.getOrElse "") |]
                                 dom.td [ ClassName "description" ] [| LC.Text (field.Description |> Option.getOrElse "") |]
                             |]
                     )
@@ -178,7 +178,7 @@ let private renderFieldsTable (fields: List<XmlParam>) : ReactElement =
     fields
     |> List.mapi (fun i field ->
         Rn.View(
-            key = string i,
+            key    = string i,
             styles = [| Styles.props |],
             children =
                 [|
@@ -201,7 +201,7 @@ let private renderFieldsContent (fieldsResult: Result<List<XmlParam>, string>) :
         renderFieldsTable fields
     | Error error ->
         Rn.View(
-            styles = [| Styles.error |],
+            styles   = [| Styles.error |],
             children = [| LC.Text(error, styles = [| Styles.errorText |]) |]
         )
 
@@ -214,8 +214,8 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?key:           string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
-        children |> ignore
+        key           |> ignore
+        children      |> ignore
         xLegacyStyles |> ignore
 
         Rn.View(
@@ -229,7 +229,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                             children =
                                 [|
                                     LC.Heading(
-                                        level = Heading.Tertiary,
+                                        level    = Heading.Tertiary,
                                         children = [| LC.Text text |]
                                     )
                                 |]

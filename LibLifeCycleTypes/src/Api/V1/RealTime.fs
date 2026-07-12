@@ -19,17 +19,17 @@ type ClientStreamApi =
     // Can be invoked any number of times for the same stream. Subsequent invocations will return the same underlying stream but can be used to synchronize
     // the version held by the client (MaybeClientVersion) with that held by the web node.
     | ObserveSubject of
-        LifeCycleName: string *
-        SubjectIdStr: string *
+        LifeCycleName:       string *
+        SubjectIdStr:        string *
         MaybeProjectionName: Option<string> *
-        MaybeClientVersion: Option<ComparableVersion>
+        MaybeClientVersion:  Option<ComparableVersion>
     // Added to facilitate biosphere support, basically allowing ecosystem name to be provided.
     | ObserveSubjectV2 of
-        EcosystemName: string *
-        LifeCycleName: string *
-        SubjectIdStr: string *
+        EcosystemName:       string *
+        LifeCycleName:       string *
+        SubjectIdStr:        string *
         MaybeProjectionName: Option<string> *
-        MaybeClientVersion: Option<ComparableVersion>
+        MaybeClientVersion:  Option<ComparableVersion>
 
 [<RequireQualifiedAccess>]
 type ServerStreamApi = SubjectChanged of AccessControlledSubjectChange: string

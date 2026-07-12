@@ -68,14 +68,14 @@ type private ThrowAsyncDataFailure(initialProps: FailureProps) as this =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member AsyncData<'T>(
-            data: LibClient.AsyncDataModule.AsyncData<'T>,
-            whenAvailable: 'T -> ReactElement,
+            data:               LibClient.AsyncDataModule.AsyncData<'T>,
+            whenAvailable:      'T -> ReactElement,
             ?whenUninitialized: unit -> ReactElement,
-            ?whenFetching: Option<'T> -> ReactElement,
-            ?whenFailed: AsyncDataFailure -> ReactElement,
-            ?whenUnavailable: unit -> ReactElement,
-            ?whenAccessDenied: unit -> ReactElement,
-            ?whenElse: unit -> ReactElement
+            ?whenFetching:      Option<'T> -> ReactElement,
+            ?whenFailed:        AsyncDataFailure -> ReactElement,
+            ?whenUnavailable:   unit -> ReactElement,
+            ?whenAccessDenied:  unit -> ReactElement,
+            ?whenElse:          unit -> ReactElement
         ) : ReactElement =
         // It is vitally important that we keep the child stable in terms of its identity in the React tree, so that React does not
         // unnecessarily remount it in response to changes to data. Without this wrapping, a transition from Fetching to Available
@@ -153,4 +153,3 @@ type LibClient.Components.Constructors.LC with
                 | None, Some whenElse ->
                     () |> whenElse |> wrapWithStableKey
         }
-

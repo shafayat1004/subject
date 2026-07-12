@@ -16,7 +16,7 @@ let main args =
 
     let hostConfiguration = {
         ConfigureServices = ignore
-        Configure = ignore
+        Configure         = ignore
     }
 
     startDevelopmentHost hostConfiguration ecosystem (typeof<LibLifeCycleHostBuild.Build>.Assembly) args

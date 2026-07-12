@@ -54,7 +54,7 @@ type LibClient.Components.Constructors.LC.Sidebar with
                 | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
         Rn.View(
-            styles = [| Styles.view; yield! legacyViewStyles |],
+            styles   = [| Styles.view; yield! legacyViewStyles |],
             children = [|
                 LC.UiText(text.ToUpperInvariant(), styles = [| Styles.textFor theTheme theLevel; yield! defaultArg styles [||] |])
             |]

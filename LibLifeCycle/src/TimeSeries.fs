@@ -15,10 +15,10 @@ and FullyTypedTimeSeriesFunction<'Res, 'TimeSeriesDataPoint, 'TimeSeriesId, [<Me
     abstract member Invoke: TimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex, 'AccessPredicateInput, 'Session, 'Role> -> 'Res
 
 and ITimeSeries =
-    abstract member Name: string
-    abstract member Def: ITimeSeriesDef
+    abstract member Name:            string
+    abstract member Def:             ITimeSeriesDef
     abstract member EnableApiAccess: bool
-    abstract member Invoke: FullyTypedTimeSeriesFunction<'Res> -> 'Res
+    abstract member Invoke:          FullyTypedTimeSeriesFunction<'Res> -> 'Res
 
 and ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex
     when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
@@ -26,9 +26,9 @@ and ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure,
     and  'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>
     and  'OpError :> OpError> =
     inherit ITimeSeries
-    abstract member Invoke: FullyTypedTimeSeriesFunction<'Res, 'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex> -> 'Res
+    abstract member Invoke:    FullyTypedTimeSeriesFunction<'Res, 'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex> -> 'Res
     abstract member Transform: TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError>
-    abstract member Indices: ('TimeSeriesDataPoint -> seq<'TimeSeriesIndex>)
+    abstract member Indices:   ('TimeSeriesDataPoint -> seq<'TimeSeriesIndex>)
 
 and TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure, 'OpError
         when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
@@ -37,7 +37,7 @@ and TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOf
     TimeSeriesTransformContext -> 'TimeSeriesDataPoint -> Result<'TimeSeriesDataPoint, 'OpError>
 
 and TimeSeriesTransformContext = {
-    ServerNow: DateTimeOffset
+    ServerNow:  DateTimeOffset
     CallOrigin: CallOrigin
 }
 
@@ -52,8 +52,8 @@ and TimeSeriesApiAccess<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOf
                 and  'TimeSeriesId         :> TimeSeriesId<'TimeSeriesId>
                 and  'AccessPredicateInput :> AccessPredicateInput
                 and  'Role                 :  comparison> = {
-    AccessRules:                List<TimeSeriesAccessRule<'AccessPredicateInput, 'Role>>
-    AccessPredicate:            TimeSeriesAccessPredicate<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'AccessPredicateInput, 'Session>
+    AccessRules:     List<TimeSeriesAccessRule<'AccessPredicateInput, 'Role>>
+    AccessPredicate: TimeSeriesAccessPredicate<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'AccessPredicateInput, 'Session>
 }
 
 // A Subject's Life-Cycle defines some operations that governs its behavior, along with some metadata
@@ -64,12 +64,12 @@ and TimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure, 
                 and  'TimeSeriesIndex      :> TimeSeriesIndex<'TimeSeriesIndex>
                 and  'AccessPredicateInput :> AccessPredicateInput
                 and  'Role                 :  comparison> = internal {
-    Transform:           TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError>
-    Definition:          TimeSeriesDef<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>
-    Indices:             'TimeSeriesDataPoint -> seq<'TimeSeriesIndex>
-    MaybeApiAccess:      Option<TimeSeriesApiAccess<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'AccessPredicateInput, 'Session, 'Role>>
+    Transform:      TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError>
+    Definition:     TimeSeriesDef<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>
+    Indices:        'TimeSeriesDataPoint -> seq<'TimeSeriesIndex>
+    MaybeApiAccess: Option<TimeSeriesApiAccess<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'AccessPredicateInput, 'Session, 'Role>>
     // TODO: don't send telemetry ? ShouldSendTelemetry: ?
-    SessionHandling:     Option<EcosystemSessionHandling<'Session, 'Role>>
+    SessionHandling: Option<EcosystemSessionHandling<'Session, 'Role>>
 }
 with
     member this.Name = this.Definition.Key.LocalTimeSeriesName

@@ -29,9 +29,9 @@ type FakeDelay =
     member this.Wait() =
         let delayMs =
             match this with
-            | FakeDelay.NoDelay -> 0
+            | FakeDelay.NoDelay       -> 0
             | FakeDelay.Fixed delayMs -> delayMs
-            | FakeDelay.Random fn -> fn ()
+            | FakeDelay.Random fn     -> fn ()
 
         async { do! Async.Sleep delayMs }
 
@@ -50,9 +50,9 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
     and 'Event :> LifeEvent
     and 'OpError :> OpError
     and 'Index :> SubjectIndex<'OpError>>(
-        lifeCycleKey: LifeCycleKey,
+        lifeCycleKey:    LifeCycleKey,
         fakeProjections: List<'Projection>,
-        fakeDelay: FakeDelay) as this =
+        fakeDelay:       FakeDelay) as this =
 
     static let mutable eventQueueId = 0
 
@@ -79,7 +79,7 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
                 | Some subscriber ->
                     match projectionsById |> Map.tryFind id with
                     | Some projection -> projection |> Available |> subscriber
-                    | None -> Unavailable |> subscriber
+                    | None            -> Unavailable |> subscriber
                 | None -> ()
             | None -> ()
         }
@@ -88,7 +88,7 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
         let updatedSubscribers =
             match subscriptionsById |> Map.tryFind id with
             | Some subscribers -> subscribers |> Map.add subscriberId subscriber
-            | None -> Map.empty |> Map.add subscriberId subscriber
+            | None             -> Map.empty |> Map.add subscriberId subscriber
 
         subscriptionsById <- subscriptionsById |> Map.remove id |> Map.add id updatedSubscribers
 
@@ -105,7 +105,7 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
     let notifySubscribers (projection: 'Projection) =
         match subscriptionsById |> Map.tryFind (this.ExtractProjectionId projection) with
         | Some subscribers -> subscribers |> Map.iter (fun _ s -> s (Available projection))
-        | None -> ()
+        | None             -> ()
 
     let addOrReplaceProjection (projection: 'Projection) =
         projectionsById <-
@@ -130,14 +130,14 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
         let innerSubscriber id (asyncData: AsyncData<'Projection>) =
             match idIndexes |> Map.tryFind id with
             | Some index -> maybeProjections[index] <- (id, Some asyncData)
-            | None -> ()
+            | None       -> ()
 
             let projections =
                 maybeProjections
                 |> Array.choose (fun (id, maybeAD) ->
                     match maybeAD with
                     | Some ad -> Some(id, ad)
-                    | None -> None
+                    | None    -> None
                 )
 
             if (maybeProjections.Length = projections.Length) then
@@ -161,15 +161,15 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
     member _.FakeProjections = fakeProjections
 
     abstract member ExtractProjectionId: 'Projection -> 'Id
-    abstract member ConstructCore: 'Constructor -> Result<'Projection, ActionOrConstructionError<'OpError>>
-    abstract member GetOneCore: 'Id -> AsyncData<'Projection>
-    abstract member GetAllCore: ResultSetOptions<'SubjectIndex> -> AsyncData<SubjectsWithTotalCount<'Id, 'Projection>>
-    abstract member GetIndexedCore: IndexQuery<'Index> -> AsyncData<SubjectsWithTotalCount<'Id, 'Projection>>
-    abstract member ActCore: 'Projection -> 'Action -> Async<Result<'Projection, ActionOrConstructionError<'OpError>>>
+    abstract member ConstructCore:       'Constructor -> Result<'Projection, ActionOrConstructionError<'OpError>>
+    abstract member GetOneCore:          'Id -> AsyncData<'Projection>
+    abstract member GetAllCore:          ResultSetOptions<'SubjectIndex> -> AsyncData<SubjectsWithTotalCount<'Id, 'Projection>>
+    abstract member GetIndexedCore:      IndexQuery<'Index> -> AsyncData<SubjectsWithTotalCount<'Id, 'Projection>>
+    abstract member ActCore:             'Projection -> 'Action -> Async<Result<'Projection, ActionOrConstructionError<'OpError>>>
     // TODO: should this return JS.Promise<'Event> instead?
-    abstract member WaitCore: 'Event -> Async<ApiActOrConstructAndWaitOnLifeEventResult<'Projection, 'Event>>
-    abstract member GetIndexQueryResults: seq<'Projection> -> UntypedPredicate -> seq<'Projection>
-    abstract member SortProjectionsBy: seq<'Projection> -> string -> OrderDirection -> seq<'Projection>
+    abstract member WaitCore:                       'Event -> Async<ApiActOrConstructAndWaitOnLifeEventResult<'Projection, 'Event>>
+    abstract member GetIndexQueryResults:           seq<'Projection> -> UntypedPredicate -> seq<'Projection>
+    abstract member SortProjectionsBy:              seq<'Projection> -> string -> OrderDirection -> seq<'Projection>
     abstract member ShouldRemoveProjectionAfterAct: 'Action -> 'Projection -> bool
 
     default _.ExtractProjectionId projection = projection.SubjectId
@@ -263,14 +263,14 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
 
         match subscriptionsById |> Map.tryFind id with
         | Some subscribers -> subscribers |> Map.iter (fun _ subscriber -> Unavailable |> subscriber)
-        | None -> ()
+        | None             -> ()
 
     member this.ConstructAndUpdateFakeProjections ctor =
         let result = this.ConstructCore ctor
 
         match result with
         | Ok projection -> addOrReplaceProjection projection
-        | Error _ -> ()
+        | Error _       -> ()
 
         result
 
@@ -378,7 +378,7 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
     member _.SubscribeManyWithCount (ids: OrderedSet<'Id>) (totalCount: uint64) (subscriber: SubscriberManyWithCount<'Projection, 'Id>) =
         if ids.IsEmpty then
             {
-                Subjects = Seq.empty<'Id * AsyncData<'Projection>>
+                Subjects   = Seq.empty<'Id * AsyncData<'Projection>>
                 TotalCount = 0UL
             }
             |> Available
@@ -390,7 +390,7 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
                 ids
                 (fun projections ->
                     {
-                        Subjects = projections |> List.toSeq
+                        Subjects   = projections |> List.toSeq
                         TotalCount = totalCount
                     }
                     |> Available
@@ -650,7 +650,7 @@ type FakeSubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Actio
                             projectionAd
                             |> AsyncData.map (fun projection ->
                                 {
-                                    Subjects = seq { (projection.SubjectId, AsyncData.Available projection) }
+                                    Subjects   = seq { (projection.SubjectId, AsyncData.Available projection) }
                                     TotalCount = 1UL
                                 }
                             )

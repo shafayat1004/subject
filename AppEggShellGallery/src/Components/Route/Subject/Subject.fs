@@ -16,15 +16,15 @@ type Ui.Route with
         element {
             LC.SetPageMetadata(title = "Subject")
             LR.Route(
-                scroll = LibRouter.Components.Route.Vertical,
+                scroll   = LibRouter.Components.Route.Vertical,
                 children = [|
                     LC.Section.Padded(
                         children = [|
                             Showdown.MarkdownViewer(
-                                source = docMarkdownSource markdownUrl,
-                                globalLinkHandler = "globalMarkdownLinkHandler",
+                                source              = docMarkdownSource markdownUrl,
+                                globalLinkHandler   = "globalMarkdownLinkHandler",
                                 imageUrlTransformer = markdownImageUrlTransformer,
-                                showdownConverter = showdownConverterWithSyntaxHighlighting
+                                showdownConverter   = showdownConverterWithSyntaxHighlighting
                             )
                         |]
                     )

@@ -46,7 +46,7 @@ type KeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
         match (shouldBeMember, this.Contains value) with
         | (true, false) -> this.AddOrUpdate value
         | (false, true) -> this.Remove value
-        | _ -> this
+        | _             -> this
 
 
 let private getMap (keyedSet: KeyedSet<'K, 'V>) : Map<'K, 'V> =
@@ -66,7 +66,7 @@ let tryFind<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>>
     : Option<'V> =
     match tryFindKey predicate source with
     | Some key -> source.GetByKey key
-    | None -> None
+    | None     -> None
 
 let tryUpdateValue<'K, 'V, 'Error when 'K: comparison and 'V :> IKeyed<'K>>
     (key: 'K)

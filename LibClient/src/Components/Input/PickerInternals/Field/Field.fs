@@ -18,18 +18,19 @@ module LC =
     module Input =
         module PickerInternals =
             module Field =
-                type Theme =
-                    { BorderLabelColor: Color
-                      BorderLabelFocusColor: Color
-                      BorderLabelInvalidColor: Color
-                      TextColor: Color
-                      InvalidReasonColor: Color
-                      PlaceholderColor: Color
-                      TheVerticalPadding: int
-                      IconSize: int
-                      BackgroundColor: Color
-                      BorderRadius: int
-                      LabelBackgroundColor: Color }
+                type Theme = {
+                    BorderLabelColor:        Color
+                    BorderLabelFocusColor:   Color
+                    BorderLabelInvalidColor: Color
+                    TextColor:               Color
+                    InvalidReasonColor:      Color
+                    PlaceholderColor:        Color
+                    TheVerticalPadding:      int
+                    IconSize:                int
+                    BackgroundColor:         Color
+                    BorderRadius:            int
+                    LabelBackgroundColor:    Color
+                }
 
 type Theme = LC.Input.PickerInternals.Field.Theme
 
@@ -198,11 +199,11 @@ module private Actions =
     let onKeyPress (model: PickerModel<'Item>) (maybeTextInput: Option<ITextInputRef>) (e: KeyboardEvent) : unit =
         match e.key with
         | KeyboardEvent.Key.Backspace -> Backspace
-        | KeyboardEvent.Key.ArrowUp -> ArrowUp
+        | KeyboardEvent.Key.ArrowUp   -> ArrowUp
         | KeyboardEvent.Key.ArrowDown -> ArrowDown
-        | KeyboardEvent.Key.Enter -> Enter
-        | KeyboardEvent.Key.Tab -> Tab
-        | _ -> ResetDeleteState
+        | KeyboardEvent.Key.Enter     -> Enter
+        | KeyboardEvent.Key.Tab       -> Tab
+        | _                           -> ResetDeleteState
         |> model.HandleInputEvent
 
         match e.key with
@@ -242,21 +243,21 @@ module private RenderHelpers =
         let itemLabel (item: 'Item) =
             match itemView with
             | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
-            | PickerItemView.Custom _ -> "item"
+            | PickerItemView.Custom _           -> "item"
 
         match value with
         | AtMostOne(maybeSelectedValue, _) ->
             match maybeSelectedValue with
             | Some item -> renderItem item
-            | None -> noElement
+            | None      -> noElement
         | ExactlyOne(maybeSelectedValue, _) ->
             match maybeSelectedValue with
             | Some item ->
                 match itemView with
                 | PickerItemView.Default toItemInfo ->
                     LC.UiText(
-                        value = (toItemInfo item).Label,
-                        styles = [| Styles.selectedItem theTheme.TextColor |],
+                        value         = (toItemInfo item).Label,
+                        styles        = [| Styles.selectedItem theTheme.TextColor |],
                         numberOfLines = 1,
                         ellipsizeMode = EllipsizeMode.Tail
                     )
@@ -274,7 +275,7 @@ module private RenderHelpers =
                             selectedValues.Count > 1
                             || match value with
                                | Any _ -> true
-                               | _ -> false
+                               | _     -> false
 
                         Rn.View(
                             styles = [| Styles.tag (modelState.DeleteState = DeleteState.Selected item) |],
@@ -284,19 +285,19 @@ module private RenderHelpers =
                                        Rn.View(
                                            children =
                                                [| LC.Icon(
-                                                      icon = Icon.X,
+                                                      icon   = Icon.X,
                                                       styles = [| Styles.icon theTheme.IconSize theTheme.TextColor |]
                                                   )
                                                   LC.Pressable(
                                                       onPress = onUnselect item,
-                                                      label = "Remove",
+                                                      label   = "Remove",
                                                       testId =
                                                           A11ySlug.testId
                                                               (sprintf "%s-unselect" resolvedTestId)
                                                               (itemLabel item),
-                                                      role = AccessibilityRole.Button,
-                                                      overlay = true,
-                                                      styles = [| Styles.pressableOverlay |],
+                                                      role          = AccessibilityRole.Button,
+                                                      overlay       = true,
+                                                      styles        = [| Styles.pressableOverlay |],
                                                       componentName = "LC.Input.PickerInternals.Field.Unselect"
                                                   ) |]
                                        )
@@ -310,16 +311,16 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
     [<Component>]
     static member Field<'Item when 'Item: comparison>
         (
-            model: PickerModel<'Item>,
-            value: SelectableValue<'Item>,
-            validity: InputValidity,
-            itemView: PickerItemView<'Item>,
-            ?label: string,
-            ?placeholder: string,
-            ?testId: string,
-            ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string,
+            model:          PickerModel<'Item>,
+            value:          SelectableValue<'Item>,
+            validity:       InputValidity,
+            itemView:       PickerItemView<'Item>,
+            ?label:         string,
+            ?placeholder:   string,
+            ?testId:        string,
+            ?styles:        array<ViewStyles>,
+            ?theme:         Theme -> Theme,
+            ?key:           string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore
@@ -388,13 +389,13 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
 
                             let len =
                                 match rawObj?value with
-                                | null -> 0
+                                | null        -> 0
                                 | (s: string) -> s.Length
 
                             rawObj?setSelection (0, len) |> ignore
 
                         member _.requestFocus() : unit = rawObj?focus () |> ignore
-                        member _.blur() : unit = rawObj?blur () |> ignore })
+                        member _.blur() : unit = rawObj?blur ()          |> ignore })
 
         let placeholderTextColor = theTheme.PlaceholderColor.ToRnString
 
@@ -410,7 +411,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
             else sprintf "%s, has selection" openLabel
 
         Rn.View(
-            testId = resolvedTestId,
+            testId   = resolvedTestId,
             onLayout = onLayout,
             styles =
                 [| Styles.view label.IsSome
@@ -437,11 +438,11 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                                    )
                                                                    LC.Pressable(
                                                                        onPress = onClear,
-                                                                       label = "Clear selection",
-                                                                       testId = sprintf "%s-clear" resolvedTestId,
-                                                                       role = AccessibilityRole.Button,
+                                                                       label   = "Clear selection",
+                                                                       testId  = sprintf "%s-clear" resolvedTestId,
+                                                                       role    = AccessibilityRole.Button,
                                                                        overlay = true,
-                                                                       styles = [| Styles.pressableOverlay |],
+                                                                       styles  = [| Styles.pressableOverlay |],
                                                                        componentName =
                                                                            "LC.Input.PickerInternals.Field.Clear"
                                                                    ) |]
@@ -452,16 +453,16 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                          Rn.View(
                                              children =
                                                  [| LC.Icon(
-                                                        icon = Icon.ChevronDown,
+                                                        icon   = Icon.ChevronDown,
                                                         styles = [| Styles.icon theTheme.IconSize theTheme.TextColor |]
                                                     )
                                                     LC.Pressable(
-                                                        onPress = Actions.showItemSelector model,
-                                                        label = openLabelWithSelection,
-                                                        testId = sprintf "%s-open" resolvedTestId,
-                                                        role = AccessibilityRole.Button,
-                                                        overlay = true,
-                                                        styles = [| Styles.pressableOverlay |],
+                                                        onPress       = Actions.showItemSelector model,
+                                                        label         = openLabelWithSelection,
+                                                        testId        = sprintf "%s-open" resolvedTestId,
+                                                        role          = AccessibilityRole.Button,
+                                                        overlay       = true,
+                                                        styles        = [| Styles.pressableOverlay |],
                                                         componentName = "LC.Input.PickerInternals.Field.Open"
                                                     ) |]
                                          ) |]
@@ -473,7 +474,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                           let placeholderValue =
                                               match (value.IsEmpty, placeholder) with
                                               | (true, Some value) -> value
-                                              | _ -> ""
+                                              | _                  -> ""
 
                                           let showSelectedOverlay =
                                               Actions.shouldShowSelectedValue modelState isFocused
@@ -490,13 +491,13 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                               styles = [| Styles.fieldValueArea |],
                                               children =
                                                   [| Rn.TextInput(
-                                                         styles = textInputStyles,
-                                                         ``ref`` = bindTextInput,
-                                                         value = (maybeQuery |> NonemptyString.optionToString),
-                                                         placeholder = placeholderValue,
+                                                         styles               = textInputStyles,
+                                                         ``ref``              = bindTextInput,
+                                                         value                = (maybeQuery |> NonemptyString.optionToString),
+                                                         placeholder          = placeholderValue,
                                                          placeholderTextColor = placeholderTextColor,
-                                                         onFocus = (fun _ -> isFocusedHook.update true),
-                                                         onBlur = (fun _ -> isFocusedHook.update false),
+                                                         onFocus              = (fun _ -> isFocusedHook.update true),
+                                                         onBlur               = (fun _ -> isFocusedHook.update false),
                                                          onChangeText =
                                                              (NonemptyString.ofString
                                                               >> fun q ->
@@ -535,7 +536,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                                                        sprintf
                                                                                            "%s-focus"
                                                                                            resolvedTestId,
-                                                                                   role = AccessibilityRole.Button,
+                                                                                   role    = AccessibilityRole.Button,
                                                                                    overlay = true,
                                                                                    styles =
                                                                                        [| Styles.pressableOverlay |],
@@ -563,14 +564,14 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                               styles = [| Styles.fieldValueArea |],
                                               children =
                                                   [| Rn.TextInput(
-                                                         styles = textInputStyles,
+                                                         styles   = textInputStyles,
                                                          editable = false,
                                                          placeholder =
                                                              (match
                                                                  (if modelState.Value.IsEmpty then placeholder else None)
                                                               with
                                                               | Some placeholderValue -> placeholderValue
-                                                              | None -> ""),
+                                                              | None                  -> ""),
                                                          placeholderTextColor = placeholderTextColor
                                                      )
                                                      if showSelectedOverlay then
@@ -595,7 +596,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                                                        sprintf
                                                                                            "%s-open-handheld"
                                                                                            resolvedTestId,
-                                                                                   role = AccessibilityRole.Button,
+                                                                                   role    = AccessibilityRole.Button,
                                                                                    overlay = true,
                                                                                    styles =
                                                                                        [| Styles.pressableOverlay |],
@@ -610,12 +611,12 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                              children =
                                                                  [| LC.Pressable(
                                                                         onPress = Actions.showItemSelector model,
-                                                                        label = openLabel,
+                                                                        label   = openLabel,
                                                                         testId =
                                                                             sprintf "%s-open-handheld" resolvedTestId,
-                                                                        role = AccessibilityRole.Button,
+                                                                        role    = AccessibilityRole.Button,
                                                                         overlay = true,
-                                                                        styles = [| Styles.pressableOverlay |],
+                                                                        styles  = [| Styles.pressableOverlay |],
                                                                         componentName =
                                                                             "LC.Input.PickerInternals.Field.OpenHandheld"
                                                                     ) |]
@@ -637,7 +638,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                            styles = [| Styles.label theTheme.LabelBackgroundColor |],
                            children =
                                [| LC.UiText(
-                                      value = labelText,
+                                      value  = labelText,
                                       styles = [| Styles.labelTextFor theTheme validity.IsInvalid isFocused |]
                                   ) |]
                        )

@@ -25,11 +25,12 @@ type KeyboardDismissMode =
     | Interactive
     | [<CompiledName("on-drag")>] OnDrag
 
-type ScrollIndicatorInsets =
-    { top: int
-      left: int
-      bottom: int
-      right: int }
+type ScrollIndicatorInsets = {
+    top:    int
+    left:   int
+    bottom: int
+    right:  int
+}
 
 // NOTE animation duration is rather stupidly hardcoded to 200 ms in the Rn source
 type IScrollViewRef =
@@ -49,37 +50,37 @@ module private ScrollViewRN =
 type Rn.Components.Constructors.Rn with
     static member ScrollView
         (
-            ?children: ReactChildrenProp,
-            ?vertical: bool,
-            ?horizontal: bool,
-            ?onLayout: ViewOnLayoutEvent -> unit,
-            ?onContentSizeChange: int -> int -> unit,
-            ?onScroll: int * int -> unit,
-            ?onScrollBeginDrag: unit -> unit,
-            ?onScrollEndDrag: unit -> unit,
-            ?onKeyPress: KeyboardEvent -> unit,
-            ?onFocus: FocusEvent -> unit,
-            ?onBlur: FocusEvent -> unit,
+            ?children:                       ReactChildrenProp,
+            ?vertical:                       bool,
+            ?horizontal:                     bool,
+            ?onLayout:                       ViewOnLayoutEvent -> unit,
+            ?onContentSizeChange:            int -> int -> unit,
+            ?onScroll:                       int * int -> unit,
+            ?onScrollBeginDrag:              unit -> unit,
+            ?onScrollEndDrag:                unit -> unit,
+            ?onKeyPress:                     KeyboardEvent -> unit,
+            ?onFocus:                        FocusEvent -> unit,
+            ?onBlur:                         FocusEvent -> unit,
             ?showsHorizontalScrollIndicator: bool,
             // showsVerticalScrollIndicator prop doesn't work for Web Apps. They have an open issue on this
             // (historical scroll workaround; retained for RN parity)
             ?showsVerticalScrollIndicator: bool,
-            ?scrollEnabled: bool,
-            ?keyboardDismissMode: KeyboardDismissMode,
+            ?scrollEnabled:                bool,
+            ?keyboardDismissMode:          KeyboardDismissMode,
             // keyboardShouldPersistTaps prop default value is set to true so that taps work even if the keyboard is visible
             ?keyboardShouldPersistTaps: bool,
-            ?scrollEventThrottle: float,
-            ?bounces: bool,
-            ?pagingEnabled: bool,
-            ?snapToInterval: float,
-            ?scrollsToTop: bool,
-            ?overScrollMode: OverScrollMode,
-            ?scrollIndicatorInsets: ScrollIndicatorInsets,
-            ?tabNavigation: TabNavigation,
-            ?ref: LibClient.JsInterop.JsNullable<IScrollViewRef> -> unit,
-            ?testId: string,
-            ?styles: array<Rn.Styles.FSharpDialect.ScrollViewStyles>,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+            ?scrollEventThrottle:       float,
+            ?bounces:                   bool,
+            ?pagingEnabled:             bool,
+            ?snapToInterval:            float,
+            ?scrollsToTop:              bool,
+            ?overScrollMode:            OverScrollMode,
+            ?scrollIndicatorInsets:     ScrollIndicatorInsets,
+            ?tabNavigation:             TabNavigation,
+            ?ref:                       LibClient.JsInterop.JsNullable<IScrollViewRef> -> unit,
+            ?testId:                    string,
+            ?styles:                    array<Rn.Styles.FSharpDialect.ScrollViewStyles>,
+            ?xLegacyStyles:             List<Rn.LegacyStyles.RuntimeStyles>
         // need to add these when we deal with animations
         // scrollXAnimatedValue:            Rn.Types.AnimatedValue      option // defaultWithAutoWrap Undefined
         // scrollYAnimatedValue:            Rn.Types.AnimatedValue      option // defaultWithAutoWrap Undefined

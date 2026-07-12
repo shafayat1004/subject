@@ -11,12 +11,13 @@ let ``Dispatcher processes jobs only from nominated queues`` () =
         let queueName = NonemptyString.ofStringUnsafe "Queue-A"
         let otherQueueName = NonemptyString.ofStringUnsafe "Queue-B"
 
-        let settings: DispatcherSettings =
-            { Queues = NonemptySet.ofOneItem queueName
-              MaxProcessingJobs = UnsignedInteger.One
-              HotPollIfJobsCountAtOrBelow = UnsignedInteger.Zero
-              HotPollIfTimeSinceLastPollAtLeast = TimeSpan.FromSeconds 10.
-              MaxContinuousPollRetries = 0u }
+        let settings: DispatcherSettings = {
+            Queues                      = NonemptySet.ofOneItem queueName
+            MaxProcessingJobs           = UnsignedInteger.One
+            HotPollIfJobsCountAtOrBelow = UnsignedInteger.Zero
+            HotPollIfTimeSinceLastPollAtLeast = TimeSpan.FromSeconds 10.
+            MaxContinuousPollRetries    = 0u
+        }
 
         use! __ =
             Ecosystem.useConnector jobRunnerConnector (function
@@ -54,12 +55,13 @@ let ``Dispatcher keeps processing jobs until queue is empty`` () =
     simulation {
         let queueName = NonemptyString.ofStringUnsafe "Queue-A"
 
-        let settings: DispatcherSettings =
-            { Queues = NonemptySet.ofOneItem queueName
-              MaxProcessingJobs = UnsignedInteger.One
-              HotPollIfJobsCountAtOrBelow = UnsignedInteger.Zero
-              HotPollIfTimeSinceLastPollAtLeast = TimeSpan.FromSeconds 10.
-              MaxContinuousPollRetries = 0u }
+        let settings: DispatcherSettings = {
+            Queues                      = NonemptySet.ofOneItem queueName
+            MaxProcessingJobs           = UnsignedInteger.One
+            HotPollIfJobsCountAtOrBelow = UnsignedInteger.Zero
+            HotPollIfTimeSinceLastPollAtLeast = TimeSpan.FromSeconds 10.
+            MaxContinuousPollRetries    = 0u
+        }
 
         use! __ =
             Ecosystem.useConnector jobRunnerConnector (function

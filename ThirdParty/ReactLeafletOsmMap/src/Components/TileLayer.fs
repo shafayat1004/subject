@@ -12,7 +12,7 @@ open ThirdParty.ReactLeafletOsmMap.Components
 
 [<Fable.Core.JS.Pojo>]
 type private TileLayerPropsJs
-    ( url: string, attribution: string, ?opacity: float, ?maxNativeZoom: int, ?maxZoom: int,
+    ( url:      string, attribution: string, ?opacity: float, ?maxNativeZoom: int, ?maxZoom: int,
       ?minZoom: int, ?updateWhenIdle: bool, ?updateWhenZooming: bool, ?eventHandlers: obj ) =
     member val url = url
     member val attribution = attribution
@@ -45,13 +45,13 @@ type OsmMap with
             TileLayerPropsJs(
                 url,
                 (attribution |> Option.defaultValue """&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors"""),
-                ?opacity = opacity,
-                ?maxNativeZoom = maxNativeZoom,
-                ?maxZoom = maxZoom,
-                ?minZoom = minZoom,
-                ?updateWhenIdle = updateWhenIdle,
+                ?opacity           = opacity,
+                ?maxNativeZoom     = maxNativeZoom,
+                ?maxZoom           = maxZoom,
+                ?minZoom           = minZoom,
+                ?updateWhenIdle    = updateWhenIdle,
                 ?updateWhenZooming = updateWhenZooming,
-                ?eventHandlers = (eventHandlers |> Option.map LeafletEvent.ToJsObj)
+                ?eventHandlers     = (eventHandlers |> Option.map LeafletEvent.ToJsObj)
             ) |> box
 
         let _ =

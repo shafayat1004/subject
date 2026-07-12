@@ -28,7 +28,7 @@ type RecordEqualityComparison<'T, 'K when 'K: equality and 'K: comparison>(this:
     member _.SetEquals(thatObj: obj) =
         match thatObj with
         | :? 'T as that -> keyFn this = keyFn that
-        | _ -> false
+        | _             -> false
 #endif
 
     member _.SetGetHashCode = hash (keyFn this)
@@ -42,5 +42,5 @@ type RecordEqualityComparison<'T, 'K when 'K: equality and 'K: comparison>(this:
     member _.SetCompareTo(thatObj: obj) =
         match thatObj with
         | :? 'T as that -> compare (keyFn this) (keyFn that)
-        | _ -> invalidArg "thatObj" "cannot compare values of different types"
+        | _             -> invalidArg "thatObj" "cannot compare values of different types"
 #endif

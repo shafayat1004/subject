@@ -13,7 +13,7 @@ module LC =
     module HeaderCell =
         type Theme = {
             FontColor: Color
-            FontSize: int
+            FontSize:  int
         }
 
 open LC.HeaderCell
@@ -46,13 +46,13 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member HeaderCell<'T when 'T: equality>(
-            label: string,
-            ?sort: ( (* field *) 'T * (* currentSort *) ('T * SortDirection) * (* setSort *) ('T * SortDirection -> unit)),
+            label:          string,
+            ?sort:          ( (* field *) 'T * (* currentSort *) ('T * SortDirection) * (* setSort *) ('T * SortDirection -> unit)),
             ?numberOfLines: int,
-            ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?testId: string,
-            ?key: string
+            ?styles:        array<ViewStyles>,
+            ?theme:         Theme -> Theme,
+            ?testId:        string,
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -69,7 +69,7 @@ type LibClient.Components.Constructors.LC with
         let numberOfLines =
             match numberOfLines with
             | Some numberOfLines -> Some numberOfLines
-            | None -> Undefined
+            | None               -> Undefined
 
         Rn.View(
             styles =
@@ -81,7 +81,7 @@ type LibClient.Components.Constructors.LC with
                 elements {
                     LC.UiText(
                         label,
-                        styles = [| Styles.headerCellText theTheme |],
+                        styles         = [| Styles.headerCellText theTheme |],
                         ?numberOfLines = numberOfLines
                     )
 
@@ -95,18 +95,18 @@ type LibClient.Components.Constructors.LC with
                                         let iconCtor =
                                             match currSortDirection with
                                             | SortDirection.Ascending -> Icon.ArrowDown
-                                            | _ -> Icon.ArrowUp
+                                            | _                       -> Icon.ArrowUp
 
                                         iconCtor Color.DevBlue 14
                                     }
                             )
 
                         LC.Pressable(
-                            onPress = maybeSort sortField currSortField currSortDirection setSort,
-                            label = label,
-                            testId = resolvedTestId,
-                            role = AccessibilityRole.Button,
-                            overlay = true,
+                            onPress       = maybeSort sortField currSortField currSortDirection setSort,
+                            label         = label,
+                            testId        = resolvedTestId,
+                            role          = AccessibilityRole.Button,
+                            overlay       = true,
                             componentName = "LC.HeaderCell"
                         )
                     | None ->

@@ -43,7 +43,7 @@ type private SubscribeManyHelperInput<'Id, 'Projection when 'Id : comparison> =
 
 [<RequireQualifiedAccess>]
 type private QueuedMessage =
-| Next of ServerStreamApi
+| Next  of ServerStreamApi
 | Error of Option<exn>
 
 type private OnResumeCallback = unit -> unit
@@ -448,7 +448,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
             |> List.iter (fun queuedMsg ->
                 match queuedMsg with
                 | QueuedMessage.Next value -> pausedObserver.next value
-                | QueuedMessage.Error ex -> pausedObserver.error ex)
+                | QueuedMessage.Error ex   -> pausedObserver.error ex)
 
             messageQueue <- List.empty
 
@@ -493,7 +493,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
 
                                         match maybeStreamCreationResult with
                                         | Some streamCreationResult -> streamCreationResult.ObserverDisposable.Dispose()
-                                        | None -> ()
+                                        | None                      -> ()
 
                                         subscriptionImplementations <- subscriptionImplementations.Remove id
                                         maybeSubscriptionImplementationCreationResult <- Some {
@@ -941,19 +941,19 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
                 subjectsWithCount.Data
                 |> Seq.map this.ConvertAccessControlledToAsyncData
             {
-                Subjects = subjects
+                Subjects   = subjects
                 TotalCount = subjectsWithCount.TotalCount
             }
         )
 
     member this.GetAuditSnapshot (idString: string) (version: uint64) : Async<AsyncData<TemporalSnapshot<'Subject, 'Action, 'Constructor, 'Id>>> = async {
         match! thothEncodedHttpService.Request apiEndpoints.AuditSnapshot (idString, version) () with
-        | Ok subject                  -> return Available subject
-        | Error (Non200Code (404, _)) -> return Unavailable
-        | Error (Non200Code (403, _)) -> return AccessDenied
-        | Error (Non200Code (0,   _)) -> return Failed AsyncDataFailure.NetworkFailure
+        | Ok subject                                  -> return Available subject
+        | Error (Non200Code (404, _))                 -> return Unavailable
+        | Error (Non200Code (403, _))                 -> return AccessDenied
+        | Error (Non200Code (0,   _))                 -> return Failed AsyncDataFailure.NetworkFailure
         | Error (Non200Code (responseCode, response)) -> return Failed (AsyncDataFailure.RequestFailure (RequestFailure.ofStatusCode (responseCode, jsonStringify(response))))
-        | Error error                 -> return Failed (UnknownFailure (error.ToString()))
+        | Error error                                 -> return Failed (UnknownFailure (error.ToString()))
     }
 
     /////////////////////////////////////////

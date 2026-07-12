@@ -28,20 +28,20 @@ type Ui.Content with
                     "LibClient.Components.FloatingActionButton",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.FloatingActionButton",
-                    role = "button",
-                    namePattern = "label prop when set; otherwise derived from icon (IconA11y.labelFromIcon)",
-                    stateNotes = "disabled when MakeDisabled; busy when InProgress",
+                    componentName  = "LC.FloatingActionButton",
+                    role           = "button",
+                    namePattern    = "label prop when set; otherwise derived from icon (IconA11y.labelFromIcon)",
+                    stateNotes     = "disabled when MakeDisabled; busy when InProgress",
                     scalesWithFont = true,
-                    contrastNotes = "Themed icon/background pairs meet WCAG AA"
+                    contrastNotes  = "Themed icon/background pairs meet WCAG AA"
                 ),
             samples =
                 element {
                     Ui.ComponentSample(
                         visuals =
                             LC.FloatingActionButton(
-                                icon = Icon.Home,
-                                state = PropStateFactory.MakeLowLevel (Actionable greet),
+                                icon   = Icon.Home,
+                                state  = PropStateFactory.MakeLowLevel (Actionable greet),
                                 testId = "fab-home"
                             ),
                         code =
@@ -59,9 +59,9 @@ LC.FloatingActionButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.FloatingActionButton(
-                                icon = Icon.Plus,
-                                label = "Add Items",
-                                state = PropStateFactory.MakeLowLevel (Actionable ignore),
+                                icon   = Icon.Plus,
+                                label  = "Add Items",
+                                state  = PropStateFactory.MakeLowLevel (Actionable ignore),
                                 testId = "fab-add-items"
                             ),
                         code =
@@ -80,8 +80,8 @@ LC.FloatingActionButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.FloatingActionButton(
-                                icon = Icon.Home,
-                                state = PropStateFactory.MakeLowLevel InProgress,
+                                icon   = Icon.Home,
+                                state  = PropStateFactory.MakeLowLevel InProgress,
                                 testId = "fab-home-in-progress"
                             ),
                         code =
@@ -99,9 +99,9 @@ LC.FloatingActionButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.FloatingActionButton(
-                                icon = Icon.Plus,
-                                label = "Add Items",
-                                state = PropStateFactory.MakeLowLevel InProgress,
+                                icon   = Icon.Plus,
+                                label  = "Add Items",
+                                state  = PropStateFactory.MakeLowLevel InProgress,
                                 testId = "fab-add-items-in-progress"
                             ),
                         code =
@@ -120,8 +120,8 @@ LC.FloatingActionButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.FloatingActionButton(
-                                icon = Icon.Home,
-                                state = PropStateFactory.MakeDisabled,
+                                icon   = Icon.Home,
+                                state  = PropStateFactory.MakeDisabled,
                                 testId = "fab-home-disabled"
                             ),
                         code =
@@ -141,9 +141,9 @@ LC.FloatingActionButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.FloatingActionButton(
-                                icon = Icon.Report,
-                                state = PropStateFactory.MakeLowLevel (Actionable greet),
-                                theme = Styles.specialTheme,
+                                icon   = Icon.Report,
+                                state  = PropStateFactory.MakeLowLevel (Actionable greet),
+                                theme  = Styles.specialTheme,
                                 testId = "fab-report-themed"
                             ),
                         code =

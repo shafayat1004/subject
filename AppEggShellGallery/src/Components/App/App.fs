@@ -187,7 +187,7 @@ let private appShellContent (pstoreKey: string) (maybeNavigationFrame: Option<Na
 
     LC.AppShell.Content(
         desktopSidebarStyle = AppShell_Content.DesktopSidebarStyle.Fixed,
-        onError = LC.AppShell.TopLevelErrorMessage,
+        onError             = LC.AppShell.TopLevelErrorMessage,
         dialogs =
             Ui.With.Navigation(
                 ``with`` =
@@ -207,7 +207,7 @@ let private appShellContent (pstoreKey: string) (maybeNavigationFrame: Option<Na
                         )
             ),
         sidebar = Ui.Sidebar(maybeRoute = maybeRoute),
-        topNav = Ui.TopNav(maybeRoute = maybeRoute),
+        topNav  = Ui.TopNav(maybeRoute = maybeRoute),
         content = routeContent pstoreKey maybeRoute
     )
 
@@ -248,7 +248,7 @@ type AppEggShellGallery.Components.Constructors.Ui.App with
                                             castAsElementAckingKeysWarning
                                                 [|
                                                     LR.NativeBackButton(nav.GoBack, canGoBack = canGoBack, key = "nativeBack")
-                                                    LR.EdgeSwipeBack(nav.GoBack, canGoBack = canGoBack, key = "edgeSwipeBack")
+                                                    LR.EdgeSwipeBack(nav.GoBack, canGoBack    = canGoBack, key = "edgeSwipeBack")
                                                 |]
                                     )
                             )

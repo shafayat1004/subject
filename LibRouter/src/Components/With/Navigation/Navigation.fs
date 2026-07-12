@@ -244,12 +244,12 @@ type NavigationImplementation<'Route, 'ResultlessDialog, 'ResultfulDialog when '
     member this.Go (navigationFrame: NavigationFrame<'Route, 'ResultlessDialog>) : ReactEvent.Action -> unit =
         fun (e: ReactEvent.Action) ->
             let newLocation = spec.ToLocation navigationFrame
-            
-            let continueNavigate = 
+
+            let continueNavigate =
                 onNavigation
                 |> Option.map (fun onNav -> onNav newLocation)
                 |> Option.defaultValue true
-                
+
             if continueNavigate then
                 // Fable can't match on types of interfaces at runtime, so we can't
                 // downcast to Browser.Types.PointerEvent to inspect these fields.

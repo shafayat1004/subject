@@ -5,7 +5,7 @@ type ResultBuilder() =
     member _.Bind(x: Result<'T1, 'E>, f: 'T1 -> Result<'T2, 'E>) : Result<'T2, 'E> =
         match x with
         | Error error -> Error error
-        | Ok value -> f value
+        | Ok value    -> f value
 
     member _.Return(value: 'T) : Result<'T, 'E> = Ok value
 

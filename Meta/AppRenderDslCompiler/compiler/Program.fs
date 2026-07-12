@@ -22,7 +22,7 @@ let private parseStringPairs (serailized: string) (typeForErrorReporting: string
                 (fun s ->
                     match s.Split("=") with
                     | [|alias; moduleName|] -> Ok (alias, moduleName)
-                    | _ -> Error (sprintf "Something wrong with he %s string: %s" typeForErrorReporting serailized, -1)
+                    | _                     -> Error (sprintf "Something wrong with he %s string: %s" typeForErrorReporting serailized, -1)
                 )
             |> List.ofArray
             |> Result.liftFirst
@@ -39,7 +39,7 @@ let mainReactTemplate (argv: List<string>): Result<string, (string * int)> =
                 resultful {
                     let additionalOpens =
                         match additionalOpensSerialized.Substring(1, additionalOpensSerialized.Length - 2) with
-                        | "" -> Seq.empty
+                        | ""       -> Seq.empty
                         | nonempty -> nonempty.Split(";") |> Seq.ofArray
                     let! componentLibraryAliases = parseStringPairs componentLibraryAliasesSerialized "component library mappings"
                     let! componentAliases        = parseStringPairs componentAliasesSerialized        "component aliases"
@@ -67,7 +67,7 @@ let mainReactTemplateConvert (argv: List<string>): Result<string, (string * int)
                 resultful {
                     let additionalOpens =
                         match additionalOpensSerialized.Substring(1, additionalOpensSerialized.Length - 2) with
-                        | "" -> Seq.empty
+                        | ""       -> Seq.empty
                         | nonempty -> nonempty.Split(";") |> Seq.ofArray
                     let! componentLibraryAliases = parseStringPairs componentLibraryAliasesSerialized "component library mappings"
                     let! componentAliases        = parseStringPairs componentAliasesSerialized        "component aliases"
@@ -91,7 +91,7 @@ let mainRecordsWithDefaults (argv: List<string>): Result<string, (string * int)>
         let! (componentName, componentsAlias, componentLibraryAliasesSerialized) =
             match argv with
             | [componentName; componentsAlias; componentLibraryAliasesSerialized] -> Ok (componentName, componentsAlias, componentLibraryAliasesSerialized)
-            | _ -> Error (usageMessage, -1)
+            | _                                                                   -> Error (usageMessage, -1)
 
         let! componentLibraryAliases = parseStringPairs componentLibraryAliasesSerialized "component library mappings"
         let namespaceToAlias =

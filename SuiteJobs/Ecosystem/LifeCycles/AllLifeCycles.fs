@@ -9,8 +9,8 @@ open SuiteJobs.LifeCycles
 
 type JobsEcosystem = {
     JobRunnerConnector: JobRunnerConnector
-    JobLifeCycle: LifeCycle<Job, JobAction, JobOpError, JobConstructor, JobLifeEvent, JobIndex, JobId, AccessPredicateInput, NoSession, NoRole, JobEnvironment>
-    Ecosystem: Ecosystem
+    JobLifeCycle:       LifeCycle<Job, JobAction, JobOpError, JobConstructor, JobLifeEvent, JobIndex, JobId, AccessPredicateInput, NoSession, NoRole, JobEnvironment>
+    Ecosystem:          Ecosystem
 }
 
 let createJobsEcosystem (runJob: RunJobDelegate) : JobsEcosystem=
@@ -28,6 +28,6 @@ let createJobsEcosystem (runJob: RunJobDelegate) : JobsEcosystem=
         |> EcosystemBuilder.addLifeCycle dispatcherLifeCycle
         |> EcosystemBuilder.build
 
-    { Ecosystem = ecosystem
-      JobLifeCycle = jobLifeCycle
+    { Ecosystem          = ecosystem
+      JobLifeCycle       = jobLifeCycle
       JobRunnerConnector = jobRunnerConnector }

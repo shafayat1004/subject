@@ -74,12 +74,12 @@ module Reanimated =
                 "duration" ==> durationMs
                 match easing with
                 | Some e -> "easing" ==> e
-                | None -> ()
+                | None   -> ()
             ]
             raw?value <- rawWithTiming toValue config
             match onComplete with
             | Some callback -> LibClient.JsInterop.runLater (System.TimeSpan.FromMilliseconds durationMs) callback
-            | None -> ()
+            | None          -> ()
 
         member this.AnimateTiming (toValue: int, ?durationMs: float, ?easing: obj, ?onComplete: unit -> unit): unit =
             this.AnimateTiming(double toValue, ?durationMs = durationMs, ?easing = easing, ?onComplete = onComplete)
@@ -133,13 +133,13 @@ type Rn.Components.Constructors.Rn with
     /// A Reanimated animated view. Merge normal `styles` with an `animatedStyle` produced by one of
     /// the `Reanimated.useAnimated*` hooks. For gesture-driven / imperative animation.
     static member ReanimatedView(
-            ?styles:        array<ViewStyles>,
-            ?animatedStyle: obj,
-            ?children:      array<Fable.React.ReactElement>,
-            ?testId:        string,
+            ?styles:                    array<ViewStyles>,
+            ?animatedStyle:             obj,
+            ?children:                  array<Fable.React.ReactElement>,
+            ?testId:                    string,
             ?importantForAccessibility: LibClient.Accessibility.ImportantForAccessibility,
-            ?onLayout:      obj -> unit,
-            ?key:           string) =
+            ?onLayout:                  obj -> unit,
+            ?key:                       string) =
         let __props = createEmpty
 
         let style: array<obj> =
@@ -147,7 +147,7 @@ type Rn.Components.Constructors.Rn with
                 yield! (styles |> Option.defaultValue [||] |> Array.map box)
                 match animatedStyle with
                 | Some s -> yield s
-                | None -> ()
+                | None   -> ()
             |]
 
         __props?style                     <- style

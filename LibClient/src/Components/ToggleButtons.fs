@@ -42,10 +42,10 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member ToggleButtons<'T when 'T: comparison>(
             buttons: Group<'T> -> ReactElement,
-            value: SelectableValue<'T>,
-            ?label: string,
-            ?key: string,
-            ?styles : array<ViewStyles>
+            value:   SelectableValue<'T>,
+            ?label:  string,
+            ?key:    string,
+            ?styles: array<ViewStyles>
         ) : ReactElement =
         key |> ignore
 
@@ -64,8 +64,8 @@ type LibClient.Components.Constructors.LC with
 
         Rn.View(
             ?accessibilityLabel = label,
-            accessibilityRole = AccessibilityRole.RadioGroup,
-            styles = [|
+            accessibilityRole   = AccessibilityRole.RadioGroup,
+            styles              = [|
                 Styles.view
                 yield! (styles |> Option.defaultValue [||])
             |],

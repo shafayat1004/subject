@@ -45,22 +45,22 @@ type Ui.Content with
                     "LibClient.Components.DateSelector",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.DateSelector",
-                    role = "button per selectable day; LC.IconButton for month navigation",
-                    namePattern = "Day cells use formatted day label; prev/next month use label prop on IconButton",
-                    stateNotes = "selected day exposes Selected; out-of-range days are not pressable",
+                    componentName  = "LC.DateSelector",
+                    role           = "button per selectable day; LC.IconButton for month navigation",
+                    namePattern    = "Day cells use formatted day label; prev/next month use label prop on IconButton",
+                    stateNotes     = "selected day exposes Selected; out-of-range days are not pressable",
                     scalesWithFont = true,
-                    contrastNotes = "Header, weekday, and selected-day colors meet WCAG AA (theme customizable)"
+                    contrastNotes  = "Header, weekday, and selected-day colors meet WCAG AA (theme customizable)"
                 ),
             samples =
                 element {
                     Ui.ComponentSample(
                         visuals =
                             LC.DateSelector(
-                                onChange = onChange "A",
-                                minDate = DateOnly.FromDateTime DateTime.Now,
+                                onChange      = onChange "A",
+                                minDate       = DateOnly.FromDateTime DateTime.Now,
                                 maybeSelected = maybeSelected "A",
-                                testId = "gallery-date-selector-a"
+                                testId        = "gallery-date-selector-a"
                             ),
                         code =
                             ComponentSample.SingleBlock (
@@ -81,10 +81,10 @@ LC.DateSelector(
                     Ui.ComponentSample(
                         visuals =
                             LC.DateSelector(
-                                onChange = onChange "B",
+                                onChange      = onChange "B",
                                 maybeSelected = maybeSelected "B",
-                                theme = Styles.specialTheme,
-                                testId = "gallery-date-selector-b"
+                                theme         = Styles.specialTheme,
+                                testId        = "gallery-date-selector-b"
                             ),
                         code =
                             ComponentSample.Children(
@@ -103,7 +103,7 @@ LC.DateSelector(
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
                     LC.DateSelector(

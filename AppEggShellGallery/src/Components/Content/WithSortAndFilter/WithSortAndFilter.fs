@@ -15,12 +15,12 @@ type Ui.Content with
                     "LibClient.Components.WithSortAndFilter",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.WithSortAndFilter",
-                    role = "none (layout wrapper for sort/filter controls)",
-                    namePattern = "Child sort and filter inputs provide their own labels",
-                    stateNotes = "Wraps grid query UI; state managed by parent",
+                    componentName  = "LC.WithSortAndFilter",
+                    role           = "none (layout wrapper for sort/filter controls)",
+                    namePattern    = "Child sort and filter inputs provide their own labels",
+                    stateNotes     = "Wraps grid query UI; state managed by parent",
                     scalesWithFont = true,
-                    contrastNotes = "Child control colors meet WCAG AA"
+                    contrastNotes  = "Child control colors meet WCAG AA"
                 ),
             samples =
                 element {

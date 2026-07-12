@@ -15,7 +15,7 @@ type TimeSpan with
         let (hours, period) =
             match value.Hours with
             | hours when hours < 12 -> (hours, "AM")
-            | hours -> (hours % 12, "PM")
+            | hours                 -> (hours % 12, "PM")
 
         let twelveAdjustedHours =
             match hours with
@@ -64,37 +64,37 @@ type DayOfTheWeek =
 
     static member ofEnum(source: DayOfWeek) =
         match source with
-        | DayOfWeek.Monday -> Monday
-        | DayOfWeek.Tuesday -> Tuesday
+        | DayOfWeek.Monday    -> Monday
+        | DayOfWeek.Tuesday   -> Tuesday
         | DayOfWeek.Wednesday -> Wednesday
-        | DayOfWeek.Thursday -> Thursday
-        | DayOfWeek.Friday -> Friday
-        | DayOfWeek.Saturday -> Saturday
-        | DayOfWeek.Sunday -> Sunday
-        | _ -> failwith "Invalid day of week"
+        | DayOfWeek.Thursday  -> Thursday
+        | DayOfWeek.Friday    -> Friday
+        | DayOfWeek.Saturday  -> Saturday
+        | DayOfWeek.Sunday    -> Sunday
+        | _                   -> failwith "Invalid day of week"
 
     static member toEnum(source: DayOfTheWeek) =
         match source with
-        | Monday -> DayOfWeek.Monday
-        | Tuesday -> DayOfWeek.Tuesday
+        | Monday    -> DayOfWeek.Monday
+        | Tuesday   -> DayOfWeek.Tuesday
         | Wednesday -> DayOfWeek.Wednesday
-        | Thursday -> DayOfWeek.Thursday
-        | Friday -> DayOfWeek.Friday
-        | Saturday -> DayOfWeek.Saturday
-        | Sunday -> DayOfWeek.Sunday
+        | Thursday  -> DayOfWeek.Thursday
+        | Friday    -> DayOfWeek.Friday
+        | Saturday  -> DayOfWeek.Saturday
+        | Sunday    -> DayOfWeek.Sunday
 
 module DayOfTheWeek =
     let toShortDayString (dayOfTheWeek: DayOfTheWeek) =
         // FIXME this doesn't take into account culture
         // But at this point Fable appears to have issues with culture
         match dayOfTheWeek with
-        | Monday -> "Mon"
-        | Tuesday -> "Tue"
+        | Monday    -> "Mon"
+        | Tuesday   -> "Tue"
         | Wednesday -> "Wed"
-        | Thursday -> "Thu"
-        | Friday -> "Fri"
-        | Saturday -> "Sat"
-        | Sunday -> "Sun"
+        | Thursday  -> "Thu"
+        | Friday    -> "Fri"
+        | Saturday  -> "Sat"
+        | Sunday    -> "Sun"
 
     let tryOfShortDayString (value: string) : DayOfTheWeek option =
         match value with
@@ -105,7 +105,7 @@ module DayOfTheWeek =
         | "Fri" -> Some DayOfTheWeek.Friday
         | "Sat" -> Some DayOfTheWeek.Saturday
         | "Sun" -> Some DayOfTheWeek.Sunday
-        | _ -> None
+        | _     -> None
 
 [<Struct>]
 [<StructuralEquality>]
@@ -114,9 +114,9 @@ type Date =
     private
         {
           // WARNING order of fields is important for correct structural comparison
-          Year_: int
+          Year_:  int
           Month_: int
-          Day_: int }
+          Day_:   int }
 
     member this.Year: int = this.Year_
     member this.Month: int = this.Month_
@@ -130,22 +130,24 @@ module Date =
         if day < 1 || DateTime.DaysInMonth(year, monthOneBased) < day then
             failwith "Invalid day"
 
-        { Year_ = year
+        { Year_  = year
           Month_ = monthOneBased
-          Day_ = day }
+          Day_   = day }
 
-    let ofDateTimeOffset (source: DateTimeOffset) : Date =
-        { Year_ = source.Year
-          Month_ = source.Month
-          Day_ = source.Day }
+    let ofDateTimeOffset (source: DateTimeOffset) : Date = {
+        Year_  = source.Year
+        Month_ = source.Month
+        Day_   = source.Day
+    }
 
     let toDateTimeOffset (offset: TimeSpan) (source: Date) : DateTimeOffset =
         DateTimeOffset(source.Year, source.Month, source.Day, 0, 0, 0, offset)
 
-    let ofDateOnly (source: DateOnly) : Date =
-        { Year_ = source.Year
-          Month_ = source.Month
-          Day_ = source.Day }
+    let ofDateOnly (source: DateOnly) : Date = {
+        Year_  = source.Year
+        Month_ = source.Month
+        Day_   = source.Day
+    }
 
     let toDateOnly (source: Date) : DateOnly =
         DateOnly(source.Year, source.Month, source.Day)
@@ -183,7 +185,7 @@ module Date =
     let toMonthName
         ({ Year_ = _year
            Month_ = month
-           Day_ = _day }: Date)
+           Day_   = _day }: Date)
         : string =
         CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month)
 #endif
@@ -191,14 +193,14 @@ module Date =
     let isLeapYear
         ({ Year_ = year
            Month_ = _month
-           Day_ = _day }: Date)
+           Day_   = _day }: Date)
         : bool =
         if year % 100 = 0 then year % 400 = 0 else year % 4 = 0
 
     let toComparableNumber
         ({ Year_ = year
            Month_ = month
-           Day_ = day }: Date)
+           Day_   = day }: Date)
         : int64 =
         (int64 year) * 10000L + (int64 month) * 100L + (int64 day)
 

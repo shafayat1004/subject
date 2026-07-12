@@ -672,4 +672,3 @@ module RulesBasic =
     [<Emit("['includeFontPadding', $0]")>]
     let helper_includeFontPadding (_value: bool) : RawRnTextStyleRule = jsNative
     let includeFontPadding = fun v -> helper_includeFontPadding v
-

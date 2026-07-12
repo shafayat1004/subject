@@ -6,7 +6,7 @@ open LibClient.ContextMenus.Types
 
 let make (items: List<ContextMenuItem>) (hide: unit -> unit) (openingEvent: ReactEvent.Action) =
     LC.ContextMenuPopup(
-        items = items,
-        hide = hide,
+        items        = items,
+        hide         = hide,
         openingEvent = openingEvent
     )

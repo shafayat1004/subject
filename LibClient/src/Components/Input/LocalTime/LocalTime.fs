@@ -176,15 +176,15 @@ module Input_LocalTimeComponent =
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member LocalTime(
-                value:               Value,
-                validity:            InputValidity,
-                onChange:            Value -> unit,
-                ?label:              string,
+                value:                Value,
+                validity:             InputValidity,
+                onChange:             Value -> unit,
+                ?label:               string,
                 ?testId:              string,
-                ?onEnterKeyPress:    (ReactEvent.Keyboard -> unit),
+                ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
-                ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key:                string
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
+                ?key:                 string
             ) : ReactElement =
             key |> ignore
 
@@ -256,12 +256,12 @@ module Input_LocalTimeComponent =
                                                 [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", lbl)) |]
                                         )
                                         LC.Pressable(
-                                            onPress = (fun _ -> focusHoursInput ()),
-                                            label = lbl,
-                                            testId = sprintf "%s-focus" resolvedTestId,
-                                            role = AccessibilityRole.Button,
-                                            overlay = true,
-                                            styles = [| Styles.pressableOverlay |],
+                                            onPress       = (fun _ -> focusHoursInput ()),
+                                            label         = lbl,
+                                            testId        = sprintf "%s-focus" resolvedTestId,
+                                            role          = AccessibilityRole.Button,
+                                            overlay       = true,
+                                            styles        = [| Styles.pressableOverlay |],
                                             componentName = "LC.Input.LocalTime.Focus"
                                         )
                                     |]
@@ -269,7 +269,7 @@ module Input_LocalTimeComponent =
                          | None -> noElement)
 
                         Rn.View(
-                            styles   = [| Styles.fields |],
+                            styles = [| Styles.fields |],
                             children =
                                 [|
                                     LC.Input.Text(
@@ -313,12 +313,12 @@ module Input_LocalTimeComponent =
                                     )
 
                                     LC.Input.Picker(
-                                        items    = Static (periodItems, periodToFilterString),
-                                        itemView = Default periodItemVisuals,
-                                        value    = ExactlyOne (Some rawPeriodOffset, fun offset -> value.SetPeriod offset |> onChange),
-                                        validity = externalValidityForFields,
+                                        items         = Static (periodItems, periodToFilterString),
+                                        itemView      = Default periodItemVisuals,
+                                        value         = ExactlyOne (Some rawPeriodOffset, fun offset -> value.SetPeriod offset |> onChange),
+                                        validity      = externalValidityForFields,
                                         showSearchBar = false,
-                                        testId   = A11ySlug.testId resolvedTestId "period",
+                                        testId        = A11ySlug.testId resolvedTestId "period",
                                         ?xLegacyStyles =
                                             (let s = Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "picker"
                                              if s.IsEmpty then None else Some s)

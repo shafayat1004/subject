@@ -205,13 +205,13 @@ and getObjectAndPutInAccumulator (path: Path) (theType: Type) (acc: Accumulator)
     | t when t = typeof<Decimal> ->
         updateAccumulatorWithDecodedRawValue acc path (fun acc -> function
            | NumericValue(v) -> acc.UpdateDerivedValue (path, v |> box)
-           | _              -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a valid number")))
+           | _               -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a valid number")))
        )
 
     | t when t = typeof<Boolean> ->
         updateAccumulatorWithDecodedRawValue acc path (fun acc -> function
            | BooleanValue(v) -> acc.UpdateDerivedValue (path, v |> box)
-           | _              -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a boolean value (true/false)")))
+           | _               -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a boolean value (true/false)")))
        )
 
     | t when t = typeof<Unit> ->

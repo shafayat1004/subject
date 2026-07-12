@@ -60,17 +60,17 @@ module LC =
         }
 
         type Theme = {
-            Primary:    StateAppearance
-            Secondary:  StateAppearance
-            PrimaryB:   StateAppearance
-            SecondaryB: StateAppearance
-            Tertiary:   StateAppearance
-            Cautionary: StateAppearance
-            IconSize:           int
-            DesktopLabelFontSize:    int
-            HandheldLabelFontSize:   int
-            DesktopHeight:      int
-            HandheldHeight:     int
+            Primary:               StateAppearance
+            Secondary:             StateAppearance
+            PrimaryB:              StateAppearance
+            SecondaryB:            StateAppearance
+            Tertiary:              StateAppearance
+            Cautionary:            StateAppearance
+            IconSize:              int
+            DesktopLabelFontSize:  int
+            HandheldLabelFontSize: int
+            DesktopHeight:         int
+            HandheldHeight:        int
         }
 
 open LC.Button
@@ -148,9 +148,9 @@ module private Styles =
                     shadow    (Color.BlackAlpha 0.2) 5 (0, 2)
 
                 match stateName with
-                | "Disabled" -> opacity 0.5
+                | "Disabled"   -> opacity 0.5
                 | "Actionable" -> Cursor.Pointer
-                | _ -> Noop
+                | _            -> Noop
 
                 height itemHeight
                 if isDesktop then
@@ -237,21 +237,21 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Button(
-            label: string,
-            state: ButtonHighLevelState,
-            ?children: ReactChildrenProp,
-            ?level: Level,
-            ?icon: Icon,
-            ?badge: Badge,
-            ?styles: array<ViewStyles>,
+            label:                   string,
+            state:                   ButtonHighLevelState,
+            ?children:               ReactChildrenProp,
+            ?level:                  Level,
+            ?icon:                   Icon,
+            ?badge:                  Badge,
+            ?styles:                 array<ViewStyles>,
             ?contentContainerStyles: array<ViewStyles>,
-            ?testId: string,
-            ?key: string,
-            ?theme: Theme -> Theme,
-            ?badgeTheme: LC.Badge.Theme -> LC.Badge.Theme,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+            ?testId:                 string,
+            ?key:                    string,
+            ?theme:                  Theme -> Theme,
+            ?badgeTheme:             LC.Badge.Theme -> LC.Badge.Theme,
+            ?xLegacyStyles:          List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
+        key      |> ignore
         children |> ignore
 
         let level = defaultArg level Primary
@@ -308,10 +308,10 @@ type LibClient.Components.Constructors.LC with
                                         yield! legacyViewStyles
                                         yield! (styles |> Option.defaultValue [||])
                                     |],
-                                ?accessibilityRole = maybeContainerRole,
+                                ?accessibilityRole  = maybeContainerRole,
                                 ?accessibilityLabel = maybeContainerLabel,
                                 ?accessibilityState = maybeContainerState,
-                                ?testId = maybeContainerTestId,
+                                ?testId             = maybeContainerTestId,
                                 children =
                                     elements {
                                         Rn.View(
@@ -329,9 +329,9 @@ type LibClient.Components.Constructors.LC with
                                                             children =
                                                                 elements {
                                                                     LC.Icon(
-                                                                        icon = leftIcon,
+                                                                        icon       = leftIcon,
                                                                         decorative = true,
-                                                                        styles = [| Styles.iconFor theTheme appearance |]
+                                                                        styles     = [| Styles.iconFor theTheme appearance |]
                                                                     )
                                                                 }
                                                         )
@@ -339,10 +339,10 @@ type LibClient.Components.Constructors.LC with
                                                         noElement
 
                                                     LC.UiText(
-                                                        value = label,
+                                                        value         = label,
                                                         numberOfLines = 1,
                                                         ellipsizeMode = EllipsizeMode.Tail,
-                                                        styles = [| Styles.labelTextFor screenSize theTheme appearance |]
+                                                        styles        = [| Styles.labelTextFor screenSize theTheme appearance |]
                                                     )
 
                                                     match icon.RightOption with
@@ -352,9 +352,9 @@ type LibClient.Components.Constructors.LC with
                                                             children =
                                                                 elements {
                                                                     LC.Icon(
-                                                                        icon = rightIcon,
+                                                                        icon       = rightIcon,
                                                                         decorative = true,
-                                                                        styles = [| Styles.iconFor theTheme appearance |]
+                                                                        styles     = [| Styles.iconFor theTheme appearance |]
                                                                     )
                                                                 }
                                                         )
@@ -386,7 +386,7 @@ type LibClient.Components.Constructors.LC with
                                                     elements {
                                                         Rn.ActivityIndicator(
                                                             color = "#aaaaaa",
-                                                            size = Size.Tiny
+                                                            size  = Size.Tiny
                                                         )
                                                     }
                                             )
@@ -396,12 +396,12 @@ type LibClient.Components.Constructors.LC with
                                         match lowLevelState with
                                         | Actionable onPress ->
                                             LC.Pressable(
-                                                onPress = onPress,
-                                                label = label,
-                                                role = AccessibilityRole.Button,
-                                                ?testId = testId,
-                                                overlay = true,
-                                                pointerState = pointerState,
+                                                onPress       = onPress,
+                                                label         = label,
+                                                role          = AccessibilityRole.Button,
+                                                ?testId       = testId,
+                                                overlay       = true,
+                                                pointerState  = pointerState,
                                                 componentName = "LC.Button"
                                             )
                                         | _ ->

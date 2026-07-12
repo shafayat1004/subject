@@ -32,17 +32,17 @@ module private Styles =
         }
 
 type private Props = {
-    OnPress: ReactEvent.Action -> unit
-    A11y: A11yProps
-    Disabled: bool
-    MaybePointerState: LC.Pointer.State.PointerState option
-    MaybeStyles: ViewStyles array option
+    OnPress:            ReactEvent.Action -> unit
+    A11y:               A11yProps
+    Disabled:           bool
+    MaybePointerState:  LC.Pointer.State.PointerState option
+    MaybeStyles:        ViewStyles array option
     MaybeOverlayStyles: ViewStyles array option
-    MaybeChildren: ReactElement array option
-    Overlay: bool
-    RegistryKey: string option
-    ComponentName: string
-    key: string option
+    MaybeChildren:      ReactElement array option
+    Overlay:            bool
+    RegistryKey:        string option
+    ComponentName:      string
+    key:                string option
 }
 
 type private PressableComponent(initialProps: Props) =
@@ -63,9 +63,9 @@ type private PressableComponent(initialProps: Props) =
         [
             yield! (s.Disabled |> Option.map (fun v -> ("disabled", string v)) |> Option.toList)
             yield! (s.Selected |> Option.map (fun v -> ("selected", string v)) |> Option.toList)
-            yield! (s.Checked |> Option.map (fun v -> ("checked", string v)) |> Option.toList)
+            yield! (s.Checked  |> Option.map (fun v -> ("checked", string v)) |> Option.toList)
             yield! (s.Expanded |> Option.map (fun v -> ("expanded", string v)) |> Option.toList)
-            yield! (s.Busy |> Option.map (fun v -> ("busy", string v)) |> Option.toList)
+            yield! (s.Busy     |> Option.map (fun v -> ("busy", string v)) |> Option.toList)
         ]
         |> Map.ofList
 
@@ -88,11 +88,11 @@ type private PressableComponent(initialProps: Props) =
                 Some (Fable.Core.JS.setTimeout (fun () -> pointerState.SetIsDepressed false e) 1500))
         let action = (ReactEvent.Pointer.OfBrowserEvent e).WithSource source |> ReactEvent.Action.Make
         UiActionLog.record {
-            Kind = UiActionLog.UiActionKind.Press
-            TestId = props.A11y.TestId
-            Label = props.A11y.Label
+            Kind          = UiActionLog.UiActionKind.Press
+            TestId        = props.A11y.TestId
+            Label         = props.A11y.Label
             ComponentName = Some props.ComponentName
-            Detail = Map.empty
+            Detail        = Map.empty
         }
         props.OnPress action
 
@@ -139,7 +139,7 @@ type private PressableComponent(initialProps: Props) =
         [|
             if props.Overlay then Styles.overlayButton
             yield! (props.MaybeOverlayStyles |> Option.defaultValue [||])
-            yield! (props.MaybeStyles |> Option.defaultValue [||])
+            yield! (props.MaybeStyles        |> Option.defaultValue [||])
         |]
 
     member private this.RenderButton (styles: ViewStyles array) (children: ReactElement array) =
@@ -215,49 +215,49 @@ type private PressableComponent(initialProps: Props) =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Pressable(
-            onPress: ReactEvent.Action -> unit,
-            ?label: string,
-            ?role: AccessibilityRole,
-            ?state: AccessibilityStateRecord,
-            ?testId: string,
-            ?accessibilityId: string,
+            onPress:                    ReactEvent.Action -> unit,
+            ?label:                     string,
+            ?role:                      AccessibilityRole,
+            ?state:                     AccessibilityStateRecord,
+            ?testId:                    string,
+            ?accessibilityId:           string,
             ?importantForAccessibility: LibClient.Accessibility.ImportantForAccessibility,
-            ?liveRegion: LibClient.Accessibility.AccessibilityLiveRegion,
-            ?tabIndex: int,
-            ?actions: string list,
-            ?disabled: bool,
-            ?pointerState: LC.Pointer.State.PointerState,
-            ?overlay: bool,
-            ?styles: ViewStyles array,
-            ?overlayStyles: ViewStyles array,
-            ?registryKey: string,
-            ?componentName: string,
-            ?children: ReactChildrenProp,
-            ?key: string
+            ?liveRegion:                LibClient.Accessibility.AccessibilityLiveRegion,
+            ?tabIndex:                  int,
+            ?actions:                   string list,
+            ?disabled:                  bool,
+            ?pointerState:              LC.Pointer.State.PointerState,
+            ?overlay:                   bool,
+            ?styles:                    ViewStyles array,
+            ?overlayStyles:             ViewStyles array,
+            ?registryKey:               string,
+            ?componentName:             string,
+            ?children:                  ReactChildrenProp,
+            ?key:                       string
         ) : ReactElement =
         let a11y = {
             A11yProps.defaults with
-                Label = label
-                Role = defaultArg role AccessibilityRole.Button
-                State = defaultArg state AccessibilityStateRecord.empty
-                TestId = testId
-                AccessibilityId = accessibilityId
+                Label                     = label
+                Role                      = defaultArg role AccessibilityRole.Button
+                State                     = defaultArg state AccessibilityStateRecord.empty
+                TestId                    = testId
+                AccessibilityId           = accessibilityId
                 ImportantForAccessibility = importantForAccessibility
-                LiveRegion = liveRegion
-                TabIndex = tabIndex
-                Actions = defaultArg actions []
+                LiveRegion                = liveRegion
+                TabIndex                  = tabIndex
+                Actions                   = defaultArg actions []
         }
         let props = {
-            OnPress = onPress
-            A11y = a11y
-            Disabled = defaultArg disabled false
-            MaybePointerState = pointerState
-            MaybeStyles = styles
+            OnPress            = onPress
+            A11y               = a11y
+            Disabled           = defaultArg disabled false
+            MaybePointerState  = pointerState
+            MaybeStyles        = styles
             MaybeOverlayStyles = overlayStyles
-            MaybeChildren = children
-            Overlay = defaultArg overlay false
-            RegistryKey = registryKey
-            ComponentName = defaultArg componentName "LC.Pressable"
-            key = key
+            MaybeChildren      = children
+            Overlay            = defaultArg overlay false
+            RegistryKey        = registryKey
+            ComponentName      = defaultArg componentName "LC.Pressable"
+            key                = key
         }
         Fable.React.Helpers.ofType<PressableComponent, _, _> props Seq.empty

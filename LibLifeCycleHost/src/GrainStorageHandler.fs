@@ -16,7 +16,7 @@ type RemindersImplementation =
 | TestNotPersistedManuallyTriggered
 
 type IGrainStorageHandler =
-    abstract member RemindersImplementation : RemindersImplementation
+    abstract member RemindersImplementation: RemindersImplementation
 
     abstract member RollbackInitializeSubject
                         :  pKey: string

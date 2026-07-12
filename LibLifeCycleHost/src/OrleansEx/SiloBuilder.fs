@@ -53,11 +53,11 @@ type EcosystemSiloSetup =
 | Proper of
     EcosystemProperSiloSetup *
     MembershipConnectionString: string *
-    AdvertisedIP: IPAddress *
-    SiloPort: int *
-    GatewayPort: int *
-    ListenOnAnyHostAddress: bool *
-    MaybeDashboardPort: Option<int>
+    AdvertisedIP:               IPAddress *
+    SiloPort:                   int *
+    GatewayPort:                int *
+    ListenOnAnyHostAddress:     bool *
+    MaybeDashboardPort:         Option<int>
 | Test
 | TestDataSeeding
 
@@ -67,35 +67,35 @@ type EcosystemSiloClientSetup =
 | TestCluster
 | TestClusterDataSeeding
 // can't use public anonymous payload types because LibLifeCycleHostBuild C# codegen freaks out. Why do we even have these types generated??
-| ApiToHost of EcosystemSiloClientSetupApiToHostPayload
+| ApiToHost        of EcosystemSiloClientSetupApiToHostPayload
 | HostToRemoteHost of EcosystemSiloClientSetupHostToRemoteHostPayload
 
 and EcosystemSiloClientSetupApiToHostPayload =
     {
-       OrleansTlsCertificate: X509Certificate2
-       OrleansHostName: string
+       OrleansTlsCertificate:      X509Certificate2
+       OrleansHostName:            string
        MembershipConnectionString: string
-       HostingEnvironment: Microsoft.Extensions.Hosting.IHostingEnvironment // if no longer required, remove #nowarn at the top of the file
-       OperationTracker: OperationTracker
-       MaybeAppInsightsConfig: Option<AppInsightsConfiguration>
+       HostingEnvironment:         Microsoft.Extensions.Hosting.IHostingEnvironment // if no longer required, remove #nowarn at the top of the file
+       OperationTracker:           OperationTracker
+       MaybeAppInsightsConfig:     Option<AppInsightsConfiguration>
     }
 and EcosystemSiloClientSetupHostToRemoteHostPayload =
     {
-       OrleansTlsCertificate: X509Certificate2
-       OrleansHostName: string
+       OrleansTlsCertificate:      X509Certificate2
+       OrleansHostName:            string
        MembershipConnectionString: string
-       OperationTracker: OperationTracker
-       RemoteEcosystemName: string
+       OperationTracker:           OperationTracker
+       RemoteEcosystemName:        string
     }
 
 [<Extension>]
 type SiloConfigurationExtensions =
     [<Extension>]
     static member ConfigureSiloForEcosystem (
-        siloBuilder: ISiloBuilder,
-        ecosystem: Ecosystem,
+        siloBuilder:   ISiloBuilder,
+        ecosystem:     Ecosystem,
         buildAssembly: Assembly,
-        siloSetup: EcosystemSiloSetup)
+        siloSetup:     EcosystemSiloSetup)
         : unit =
 
         siloBuilder
@@ -251,7 +251,7 @@ type SiloConfigurationExtensions =
         clientBuilder: IClientBuilder,
         hostEcosystem: Ecosystem,
         buildAssembly: Assembly,
-        clientSetup: EcosystemSiloClientSetup)
+        clientSetup:   EcosystemSiloClientSetup)
         : IClientBuilder =
 
         let ecosystemName =

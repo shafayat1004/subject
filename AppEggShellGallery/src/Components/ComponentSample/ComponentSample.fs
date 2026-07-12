@@ -19,7 +19,7 @@ let Fsharp = SyntaxHighlighter.Language.Fsharp
 
 type Code =
 | SingleBlock of SyntaxHighlighter.Language * ReactElement
-| Children of ReactElement
+| Children    of ReactElement
 
 let singleBlock (language: SyntaxHighlighter.Language) (children: ReactElement) : Code =
     SingleBlock (language, children)
@@ -126,7 +126,7 @@ let private renderCodeAndNotes (code: Code) (notes: ReactElement) =
         children =
             [|
                 Rn.View(
-                    styles = [| Styles.code |],
+                    styles   = [| Styles.code |],
                     children = [| renderCode code |]
                 )
                 renderNotes notes
@@ -146,8 +146,8 @@ let private renderVisuals (visuals: ReactElement) =
                     ``with`` =
                         fun (sampleVisualsScreenSize: LibClient.Responsive.ScreenSize) ->
                             LC.ForceContext(
-                                value = sampleVisualsScreenSize,
-                                context = LibClient.Responsive.screenSizeContext,
+                                value    = sampleVisualsScreenSize,
+                                context  = LibClient.Responsive.screenSizeContext,
                                 children = [| visuals |]
                             )
                 )
@@ -157,15 +157,15 @@ let private renderVisuals (visuals: ReactElement) =
 type AppEggShellGallery.Components.Constructors.Ui with
     [<Component>]
     static member ComponentSample(
-            visuals:           ReactElement,
-            code:              Code,
-            ?children:         ReactChildrenProp,
-            ?notes:            ReactElement,
+            visuals:            ReactElement,
+            code:               Code,
+            ?children:          ReactChildrenProp,
+            ?notes:             ReactElement,
             ?verticalAlignment: VerticalAlignment,
-            ?layout:           Layout,
-            ?heading:          string,
-            ?key:              string,
-            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>
+            ?layout:            Layout,
+            ?heading:           string,
+            ?key:               string,
+            ?xLegacyStyles:     List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
 
@@ -215,7 +215,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
                 |> Option.defaultValue noElement
 
                 Rn.View(
-                    testId = "aesg-sample-visuals",
+                    testId   = "aesg-sample-visuals",
                     children = [| visuals |]
                 )
 

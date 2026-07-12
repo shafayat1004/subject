@@ -127,14 +127,14 @@ module private Styles =
 type AppEggShellGallery.Components.Constructors.Ui with
     [<Component>]
     static member Code(
-            language:               SyntaxHighlighter.Language,
-            ?children:              ReactChildrenProp,
+            language:                SyntaxHighlighter.Language,
+            ?children:               ReactChildrenProp,
             ?stripLeadingWhitespace: bool,
-            ?heading:               string,
-            ?key:                   string,
-            ?xLegacyStyles:         List<Rn.LegacyStyles.RuntimeStyles>
+            ?heading:                string,
+            ?key:                    string,
+            ?xLegacyStyles:          List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let childrenArray = children |> Option.defaultValue [||]

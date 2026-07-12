@@ -100,7 +100,7 @@ module private Helpers =
             children =
                 elements {
                     LC.UiText(
-                        value = displayName,
+                        value  = displayName,
                         styles = [| Styles.inlineLabelText |]
                     )
                 }
@@ -136,7 +136,7 @@ module private Helpers =
                         children =
                             elements {
                                 LC.Input.Picker(
-                                    items = Static (indices, fun index -> rangeList.[index].ToString()),
+                                    items    = Static (indices, fun index -> rangeList.[index].ToString()),
                                     itemView = PickerItemView.Default (fun index -> {| Label = rangeList.[index].ToString() |}),
                                     value =
                                         ExactlyOne (
@@ -146,9 +146,9 @@ module private Helpers =
                                                 |> Option.get
                                                 |> fun objValue -> onChangeFromRange path objValue formType
                                         ),
-                                    validity = Valid,
+                                    validity      = Valid,
                                     showSearchBar = false,
-                                    styles = [| Styles.picker |]
+                                    styles        = [| Styles.picker |]
                                 )
                             }
                     )
@@ -183,16 +183,16 @@ module private Helpers =
                         children =
                             elements {
                                 LC.Input.Picker(
-                                    items = Static (caseIndices, fun index -> caseInputForms.[index].DisplayName),
+                                    items    = Static (caseIndices, fun index -> caseInputForms.[index].DisplayName),
                                     itemView = PickerItemView.Default (fun index -> {| Label = caseInputForms.[index].DisplayName |}),
                                     value =
                                         ExactlyOne (
                                             maybeSelectedIndex,
                                             fun index -> onChange path (NumericValue (decimal index))
                                         ),
-                                    validity = Valid,
+                                    validity      = Valid,
                                     showSearchBar = false,
-                                    styles = [| Styles.picker |]
+                                    styles        = [| Styles.picker |]
                                 )
                             }
                     )
@@ -210,7 +210,7 @@ type UIAuto with
             ?xLegacyStyles:           List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:                     string
         ) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let rec render (form: InputForm) (acc: Accumulator) : ReactElement =
@@ -314,12 +314,12 @@ type UIAuto with
                             children =
                                 elements {
                                     LC.UiText(
-                                        value = displayName,
+                                        value  = displayName,
                                         styles = [| Styles.recordLabel |]
                                     )
 
                                     Rn.View(
-                                        styles = [| Styles.indentedFields |],
+                                        styles   = [| Styles.indentedFields |],
                                         children = indentedFieldViews
                                     )
                                 }
@@ -345,7 +345,7 @@ type UIAuto with
                                             |> List.toArray
 
                                         Rn.View(
-                                            styles = [| Styles.indentedFields |],
+                                            styles   = [| Styles.indentedFields |],
                                             children = caseFieldViews
                                         )
                                     | None -> ()
@@ -355,6 +355,6 @@ type UIAuto with
                 noElement
 
         Rn.View(
-            styles = [| Styles.view |],
+            styles   = [| Styles.view |],
             children = [| render form accumulator |]
         )

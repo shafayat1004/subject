@@ -45,7 +45,7 @@ module LC =
             })
 
         type Theme = {
-            Size: int
+            Size:                int
             SelectedBorderColor: Color
         }
         with
@@ -117,7 +117,7 @@ type LibClient.Components.Constructors.LC with
         ) : ReactElement =
         ignore key
 
-        let theTheme = Themes.GetMaybeUpdatedWith theme
+        let theTheme   = Themes.GetMaybeUpdatedWith theme
         let isSelected = defaultArg isSelected false
         let corners    = defaultArg corners    Corners.Sharp
         let thumbTestId =
@@ -156,14 +156,14 @@ type LibClient.Components.Constructors.LC with
                                 | Some onPress ->
                                     LC.Pressable(
                                         onPress = onPress,
-                                        label = "Select thumbnail",
-                                        role = AccessibilityRole.Button,
+                                        label   = "Select thumbnail",
+                                        role    = AccessibilityRole.Button,
                                         state =
                                             { AccessibilityStateRecord.empty with
                                                 Selected = Some isSelected
                                             },
-                                        ?testId = thumbTestId,
-                                        overlay = true,
+                                        ?testId       = thumbTestId,
+                                        overlay       = true,
                                         componentName = "LC.Thumb"
                                     )
                                 | None ->

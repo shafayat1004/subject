@@ -30,18 +30,18 @@ type Ui.Content with
     static member Icon() : ReactElement =
         Ui.ComponentContent(
             displayName = "Icon",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Icon",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Icon",
             notes =
                 LC.Text
                     "By default, setting colors on icons is done directly though a parameter to the SVG, which makes icon colors the only visual aspect of the app outside of the styles system. This component allows us to overcome this limitation, and unify all styling.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Icon",
-                    role = "none (decorative by default)",
-                    namePattern = "Pass ?accessibilityLabel when icon conveys meaning; otherwise hidden from screen readers",
-                    stateNotes = "Static graphic; no interactive state",
+                    componentName  = "LC.Icon",
+                    role           = "none (decorative by default)",
+                    namePattern    = "Pass ?accessibilityLabel when icon conveys meaning; otherwise hidden from screen readers",
+                    stateNotes     = "Static graphic; no interactive state",
                     scalesWithFont = true,
-                    contrastNotes = "Icon color inherits from theme; pair with text when color is meaningful"
+                    contrastNotes  = "Icon color inherits from theme; pair with text when color is meaningful"
                 ),
             samples =
                 element {
@@ -71,7 +71,7 @@ LC.Icon(icon = Icon.Home, styles = [| devPinkLargeStyles |])
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Styles",
+                                        heading  = "Styles",
                                         children =
                                             [| LC.Text """
 let sendOrangeStyles = makeTextStyles {

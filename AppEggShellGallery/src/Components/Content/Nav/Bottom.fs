@@ -14,9 +14,9 @@ type Ui.Content.Nav with
     [<Component>]
     static member Bottom () : ReactElement =
         Ui.ComponentContent (
-            displayName = "Nav.Bottom",
+            displayName  = "Nav.Bottom",
             isResponsive = true,
-            props = ComponentContent.Manual (element {
+            props        = ComponentContent.Manual (element {
                 Ui.ScrapedComponentProps (heading = "Nav.Bottom.Base",   fullyQualifiedName = "LibClient.Components.Nav.Bottom.Base")
                 Ui.ScrapedComponentProps (heading = "Nav.Bottom.Item",   fullyQualifiedName = "LibClient.Components.Nav.Bottom.Item")
                 Ui.ScrapedComponentProps (heading = "Nav.Bottom.Button", fullyQualifiedName = "LibClient.Components.Nav.Bottom.Button")
@@ -24,22 +24,22 @@ type Ui.Content.Nav with
             }),
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Nav.Bottom.*",
-                    role = "tab bar (Nav.Bottom.Base); items expose tab/button roles",
-                    namePattern = "Item label text; icon-only items need accessibilityLabel",
-                    stateNotes = "Selected tab exposes selected state; disabled items are not actionable",
+                    componentName  = "LC.Nav.Bottom.*",
+                    role           = "tab bar (Nav.Bottom.Base); items expose tab/button roles",
+                    namePattern    = "Item label text; icon-only items need accessibilityLabel",
+                    stateNotes     = "Selected tab exposes selected state; disabled items are not actionable",
                     scalesWithFont = true,
-                    contrastNotes = "Tab labels and icons use theme colors meeting WCAG AA"
+                    contrastNotes  = "Tab labels and icons use theme colors meeting WCAG AA"
                 ),
             samples = (element {
                 Ui.ComponentSampleGroup (
                     samples = (element {
                         Ui.ComponentSample (
                             heading = "Basics",
-                            layout = ComponentSample.Layout.CodeBelowSamples,
+                            layout  = ComponentSample.Layout.CodeBelowSamples,
                             visuals = (
                                 LC.With.Context (
-                                    context = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
+                                    context  = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
                                     ``with`` = (fun sampleVisualsScreenSize ->
                                         LC.ForceContext (context = screenSizeContext, value = sampleVisualsScreenSize, children = [|
                                             LC.Nav.Bottom.Base (
@@ -56,7 +56,7 @@ type Ui.Content.Nav with
                                                     LC.Nav.Bottom.Button (
                                                         label = "Cart",
                                                         state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable AppEggShellGallery.Actions.greet),
-                                                        icon = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
+                                                        icon  = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
                                                         badge = Nav.Bottom.Button.Count 3
                                                     )
                                                 },
@@ -73,7 +73,7 @@ type Ui.Content.Nav with
                                                     LC.Nav.Bottom.Button (
                                                         label = "Cart",
                                                         state = Nav.Bottom.Button.PropStateFactory.MakeLowLevel (Nav.Bottom.Button.Actionable AppEggShellGallery.Actions.greet),
-                                                        icon = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
+                                                        icon  = Nav.Bottom.Button.Icon.Left Icon.ShoppingCart,
                                                         badge = Nav.Bottom.Button.Count 3
                                                     )
                                                 }
@@ -128,10 +128,10 @@ type Ui.Content.Nav with
                     heading = "Style Sample",
                     samples = (element {
                         Ui.ComponentSample (
-                            layout = ComponentSample.Layout.CodeBelowSamples,
+                            layout  = ComponentSample.Layout.CodeBelowSamples,
                             visuals = (
                                 LC.With.Context (
-                                    context = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
+                                    context  = AppEggShellGallery.SampleVisualsScreenSize.sampleVisualsScreenSizeContext,
                                     ``with`` = (fun sampleVisualsScreenSize ->
                                         LC.ForceContext (context = screenSizeContext, value = sampleVisualsScreenSize, children = [|
                                             LC.Nav.Bottom.Base (

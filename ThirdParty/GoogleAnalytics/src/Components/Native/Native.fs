@@ -5,7 +5,7 @@ open Fable.Core.JsInterop
 open LibClient
 open ThirdParty.GoogleAnalytics.Types
 
-let Analytics (_screenViewParam: obj): obj  = importDefault "@react-native-firebase/analytics"
+let Analytics (_screenViewParam: obj): obj = importDefault "@react-native-firebase/analytics"
 
 let private setAnalyticsUserForTelemetryUser (user: TelemetryUser) : unit =
     match user with

@@ -64,7 +64,7 @@ module private Styles =
             Actionable =
                 { theme.Actionable with
                     IconColor = theTheme.NavigationButtonColor
-                    IconSize = theTheme.ButtonIconSize
+                    IconSize  = theTheme.ButtonIconSize
                 }
         }
 
@@ -123,16 +123,16 @@ let private slideDuration = TimeSpan.FromMilliseconds(200)
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Carousel(
-            count: PositiveInteger,
-            slide: int -> ReactElement,
-            ?initialIndex: uint32,
-            ?tabIndex: int,
-            ?continuousLoop: bool,
+            count:                 PositiveInteger,
+            slide:                 int -> ReactElement,
+            ?initialIndex:         uint32,
+            ?tabIndex:             int,
+            ?continuousLoop:       bool,
             ?autoScrollAtInterval: TimeSpan,
-            ?requestFocusOnMount: bool,
-            ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?requestFocusOnMount:  bool,
+            ?styles:               array<ViewStyles>,
+            ?theme:                Theme -> Theme,
+            ?key:                  string
         ) : ReactElement =
         key |> ignore
 
@@ -276,10 +276,10 @@ type LibClient.Components.Constructors.LC with
                             Styles.view
                             yield! (styles |> Option.defaultValue [||])
                         |],
-                    tabIndex = tabIndex,
-                    autoFocus = requestFocusOnMount,
+                    tabIndex   = tabIndex,
+                    autoFocus  = requestFocusOnMount,
                     onKeyPress = onKeyPress,
-                    ?onLayout = onLayoutOption,
+                    ?onLayout  = onLayoutOption,
                     children =
                         elements {
                             Rn.GestureView(
@@ -287,9 +287,9 @@ type LibClient.Components.Constructors.LC with
                                 styles          = [| Styles.gestureView |],
                                 children        = [|
                                     Rn.ReanimatedView(
-                                        styles = [| Styles.slideView |],
+                                        styles        = [| Styles.slideView |],
                                         animatedStyle = currentSlideStyle,
-                                        key = $"current_slide",
+                                        key           = $"current_slide",
                                         children =
                                             elements {
                                                 currentIndex |> int |> slide
@@ -299,9 +299,9 @@ type LibClient.Components.Constructors.LC with
                                     match maybeTargetIndex with
                                     | Some targetIndex ->
                                         Rn.ReanimatedView(
-                                            styles = [| Styles.slideView |],
+                                            styles        = [| Styles.slideView |],
                                             animatedStyle = targetSlideStyle,
-                                            key = $"target_slide",
+                                            key           = $"target_slide",
                                             children =
                                                 elements {
                                                     targetIndex |> int |> slide
@@ -351,7 +351,7 @@ type LibClient.Components.Constructors.LC with
                                                     match maybePreviousIndex with
                                                     | Some previousIndex ->
                                                         LC.IconButton(
-                                                            label = "Previous",
+                                                            label  = "Previous",
                                                             styles = iconStyles,
                                                             theme  = Styles.iconButtonTheme theTheme,
                                                             icon   = Icon.ChevronLeft,
@@ -417,7 +417,7 @@ type LibClient.Components.Constructors.LC with
                                                     match maybeNextIndex with
                                                     | Some nextIndex ->
                                                         LC.IconButton(
-                                                            label = "Next",
+                                                            label  = "Next",
                                                             styles = iconStyles,
                                                             theme  = Styles.iconButtonTheme theTheme,
                                                             icon   = Icon.ChevronRight,

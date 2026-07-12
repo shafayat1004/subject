@@ -16,16 +16,16 @@ let AppendToExisting = SelectionMode.AppendToExisting
 type ImagePicker with
     [<Component>]
     static member Base(
-            value:         list<File>,
-            validity:      InputValidity,
-            onChange:      Result<list<File>, string> -> unit,
-            ?maxFileCount: Positive.PositiveInteger,
-            ?maxFileSize:  int<KB>,
-            ?showPreview:  bool,
+            value:          list<File>,
+            validity:       InputValidity,
+            onChange:       Result<list<File>, string> -> unit,
+            ?maxFileCount:  Positive.PositiveInteger,
+            ?maxFileSize:   int<KB>,
+            ?showPreview:   bool,
             ?selectionMode: SelectionMode,
-            ?styles:       array<ViewStyles>,
+            ?styles:        array<ViewStyles>,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:          string
+            ?key:           string
         ) : ReactElement =
         ignore key
         xLegacyStyles |> ignore
@@ -35,25 +35,25 @@ type ImagePicker with
 
         #if EGGSHELL_PLATFORM_IS_WEB
         LC.Input.Image(
-            value = value,
-            validity = validity,
-            onChange = onChange,
+            value         = value,
+            validity      = validity,
+            onChange      = onChange,
             ?maxFileCount = maxFileCount,
-            ?maxFileSize = maxFileSize,
-            showPreview = showPreview,
+            ?maxFileSize  = maxFileSize,
+            showPreview   = showPreview,
             selectionMode = selectionMode,
-            ?styles = styles
+            ?styles       = styles
         )
         #else
         ImagePicker.Native.ImagePicker(
-            value = value,
-            validity = validity,
-            onChange = onChange,
-            ?maxFileCount = maxFileCount,
-            ?maxFileSize = maxFileSize,
-            showPreview = showPreview,
-            selectionMode = selectionMode,
-            ?styles = styles,
+            value          = value,
+            validity       = validity,
+            onChange       = onChange,
+            ?maxFileCount  = maxFileCount,
+            ?maxFileSize   = maxFileSize,
+            showPreview    = showPreview,
+            selectionMode  = selectionMode,
+            ?styles        = styles,
             ?xLegacyStyles = xLegacyStyles
         )
         #endif

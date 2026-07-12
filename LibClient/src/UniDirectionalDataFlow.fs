@@ -67,7 +67,7 @@ with
     member this.IsInProgressNow : bool =
         match this with
         | Executor.InProgress -> true
-        | _ -> false
+        | _                   -> false
 
 type MakeExecutor = UDActionKey -> Executor
 

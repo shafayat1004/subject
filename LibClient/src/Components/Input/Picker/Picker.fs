@@ -48,17 +48,17 @@ type PropItemViewFactory =
 type private PickerHost =
     [<Component>]
     static member Render<'Item when 'Item : comparison>(
-            items: Items<'Item>,
-            itemView: PickerItemView<'Item>,
-            value: SelectableValue<'Item>,
-            validity: InputValidity,
-            screenSize: ScreenSize,
+            items:         Items<'Item>,
+            itemView:      PickerItemView<'Item>,
+            value:         SelectableValue<'Item>,
+            validity:      InputValidity,
+            screenSize:    ScreenSize,
             showSearchBar: bool,
-            label: string option,
-            placeholder: string option,
-            testId: string option,
-            pickerId: string option,
-            styles: ViewStyles array option,
+            label:         string option,
+            placeholder:   string option,
+            testId:        string option,
+            pickerId:      string option,
+            styles:        ViewStyles array option,
             xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option
         ) : ReactElement =
         LibClient.Components.Input.PickerInternals.Base.renderPickerBase(
@@ -79,16 +79,16 @@ type private PickerHost =
 type LibClient.Components.Constructors.LC.Input with
     [<Component>]
     static member Picker<'T when 'T : comparison>(
-            items: Items<'T>,
-            itemView: PickerItemView<'T>,
-            value: SelectableValue<'T>,
-            validity: InputValidity,
+            items:          Items<'T>,
+            itemView:       PickerItemView<'T>,
+            value:          SelectableValue<'T>,
+            validity:       InputValidity,
             ?showSearchBar: bool,
-            ?label: string,
-            ?placeholder: string,
-            ?testId: string,
-            ?styles: array<ViewStyles>,
-            ?key: string,
+            ?label:         string,
+            ?placeholder:   string,
+            ?testId:        string,
+            ?styles:        array<ViewStyles>,
+            ?key:           string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         key |> ignore

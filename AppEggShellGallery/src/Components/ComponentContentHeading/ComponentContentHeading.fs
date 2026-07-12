@@ -36,8 +36,8 @@ type AppEggShellGallery.Components.Constructors.Ui with
             ?key:           string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
-        children |> ignore
+        key           |> ignore
+        children      |> ignore
         xLegacyStyles |> ignore
 
         LC.With.ScreenSize(
@@ -49,8 +49,8 @@ type AppEggShellGallery.Components.Constructors.Ui with
                             [|
                                 LC.LegacyText(
                                     accessibilityRole = AccessibilityRole.Header,
-                                    styles = [| Styles.text screenSize |],
-                                    children = [| Fable.React.Helpers.str displayName |]
+                                    styles            = [| Styles.text screenSize |],
+                                    children          = [| Fable.React.Helpers.str displayName |]
                                 )
 
                                 if isResponsive then

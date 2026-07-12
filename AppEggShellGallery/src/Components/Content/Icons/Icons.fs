@@ -47,9 +47,9 @@ type Ui.Content with
                     AppEggShellGallery.ScrapedData.Icons.iconsList
                     |> List.map (fun (iconName, icon) ->
                         Rn.View(
-                            styles = [| Styles.iconContainer |],
+                            styles   = [| Styles.iconContainer |],
                             children = [|
-                                LC.Icon(icon, styles = [| Styles.icon |])
+                                LC.Icon(icon, styles       = [| Styles.icon |])
                                 LC.UiText(iconName, styles = [| Styles.iconLabel |])
                             |]
                         )

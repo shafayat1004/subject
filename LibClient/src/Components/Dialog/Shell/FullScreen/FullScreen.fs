@@ -85,15 +85,15 @@ module private FullScreenStyles =
 type LibClient.Components.Constructors.LC.Dialog.Shell with
     [<Component>]
     static member FullScreen(
-            ?children: ReactChildrenProp,
-            ?backButton: BackButton,
-            ?scroll: Scroll,
-            ?heading: string,
-            ?headerRight: ReactElement,
+            ?children:      ReactChildrenProp,
+            ?backButton:    BackButton,
+            ?scroll:        Scroll,
+            ?heading:       string,
+            ?headerRight:   ReactElement,
             ?bottomSection: ReactElement,
-            ?theme: Theme -> Theme,
+            ?theme:         Theme -> Theme,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -121,7 +121,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
             children |> Option.defaultValue [||]
 
         LC.Dialog.Base(
-            canClose = CanClose.Never,
+            canClose        = CanClose.Never,
             contentPosition = ContentPosition.Free,
             children =
                 [|
@@ -131,7 +131,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                 FullScreenStyles.wrapper
                                 yield! FullScreenStyles.LegacyBridge.viewStyles xLegacyStyles "wrapper"
                             |],
-                        ?accessibilityRole = dialogRole,
+                        ?accessibilityRole  = dialogRole,
                         ?accessibilityLabel = accessibilityLabel,
                         children =
                             [|
@@ -144,8 +144,8 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                             if scroll <> Scroll.NoScroll then
                                                 Rn.ScrollView(
                                                     horizontal = (scroll = Scroll.Both || scroll = Scroll.Horizontal),
-                                                    vertical = (scroll = Scroll.Both || scroll = Scroll.Vertical),
-                                                    ?onLayout = onLayoutOption,
+                                                    vertical   = (scroll = Scroll.Both || scroll = Scroll.Vertical),
+                                                    ?onLayout  = onLayoutOption,
                                                     children =
                                                         [|
                                                             Rn.View(
@@ -182,7 +182,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                                                 LC.Legacy.TopNav.Filler()
                                                             | Some onPress ->
                                                                 LC.IconButton(
-                                                                    icon = Icon.Back,
+                                                                    icon  = Icon.Back,
                                                                     label = "Back",
                                                                     state =
                                                                         ButtonHighLevelState.LowLevel (
@@ -211,8 +211,8 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                                                 Height = theTheme.TopNavHeight
                                                             }
                                                         ),
-                                                    styles = [| FullScreenStyles.topNavView theTheme |],
-                                                    headingStyles = [| FullScreenStyles.topNavHeading |],
+                                                    styles         = [| FullScreenStyles.topNavView theTheme |],
+                                                    headingStyles  = [| FullScreenStyles.topNavHeading |],
                                                     ?xLegacyStyles = xLegacyStyles
                                                 )
                                         }

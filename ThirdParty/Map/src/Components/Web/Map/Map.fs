@@ -82,9 +82,9 @@ module private ReactIntegration =
     let createRoot (_container: Browser.Types.Element): IReactRoot = jsNative
 
 type private GoogleMaps = {
-    Api: obj
-    Map: obj
-    Div: obj
+    Api:               obj
+    Map:               obj
+    Div:               obj
     DirectionsService: obj
 }
 
@@ -104,7 +104,7 @@ type private WebMapViewRef (map: obj) =
 
 [<RequireQualifiedAccess>]
 type private ListItemDelta<'T> =
-| Added of 'T
+| Added   of 'T
 | Updated of OldValue: 'T * NewValue: 'T
 | Removed of 'T
 
@@ -125,10 +125,10 @@ let inline private listDelta<'T when 'T :> IKeyed> (first: List<'T>) (second: Li
         let maybeSecond = secondMap |> Map.tryFind key
 
         match maybeFirst, maybeSecond with
-        | None, Some newValue -> ListItemDelta.Added newValue
+        | None, Some newValue          -> ListItemDelta.Added newValue
         | Some oldValue, Some newValue -> ListItemDelta.Updated (oldValue, newValue)
-        | Some oldValue, None -> ListItemDelta.Removed oldValue
-        | None, None -> failwith "Unexpected"
+        | Some oldValue, None          -> ListItemDelta.Removed oldValue
+        | None, None                   -> failwith "Unexpected"
     )
 
 let inline private propDelta<'T> (compare: 'T -> 'T -> bool) (maybeOldProps: Option<Props>) (props: Props) (f: Props -> 'T): Option<'T> =
@@ -140,7 +140,7 @@ let inline private propDelta<'T> (compare: 'T -> 'T -> bool) (maybeOldProps: Opt
         let oldValue = f oldProps
 
         match compare oldValue currentValue with
-        | true -> None
+        | true  -> None
         | false -> Some currentValue
 
 let inline private propEqualityDelta<'T when 'T: equality> (maybeOldProps: Option<Props>) (props: Props) (f: Props -> 'T): Option<'T> =
@@ -178,7 +178,7 @@ let inline private propMaybeListDelta<'T when 'T :> IKeyed> (maybeOldProps: Opti
 
 type private JsInfoWindowMountInfo = {
     ReactRoot: IReactRoot
-    Handle: InfoWindowHandle
+    Handle:    InfoWindowHandle
 }
 
 // The below types are something of a "poor man's interop". Fable is capable of stronger, more type safe, interop, but I found it quite finicky to use
@@ -305,7 +305,7 @@ with
                         }
                     let mountInfo = {
                         ReactRoot = reactRoot
-                        Handle = infoWindowHandle
+                        Handle    = infoWindowHandle
                     }
                     this.MaybeMountInfo <- Some mountInfo
                     Some mountInfo
@@ -318,13 +318,13 @@ with
             ()
 
 and [<RequireQualifiedAccess>] private InfoWindowAnchor =
-    | Marker of JsMarker
+    | Marker   of JsMarker
     | Position of LatLng
 
 and private IInfoWindowProvider =
-    abstract Anchor: InfoWindowAnchor
+    abstract Anchor:                      InfoWindowAnchor
     abstract MaybeAssociatedJsInfoWindow: Option<JsInfoWindow> with get, set
-    abstract HasAssociatedJsInfoWindow: bool
+    abstract HasAssociatedJsInfoWindow:   bool
 
 and private JsMarker = | JsMarker of obj
 with
@@ -520,11 +520,11 @@ type WebMapController() =
 
         match marker.ZIndex with
         | Some zIndex -> jsMarker.Value?setZIndex(zIndex)
-        | None -> ()
+        | None        -> ()
 
         match marker.Animation with
         | Some animation -> jsMarker.Value?setAnimation(animation |> MarkerAnimation.toJs)
-        | None -> ()
+        | None           -> ()
 
         match marker.InfoWindow with
         | Some infoWindow ->
@@ -548,7 +548,7 @@ type WebMapController() =
 
         match marker.OnClick with
         | Some onClick -> jsMarker.Value?addListener("click", onClick)
-        | None -> ()
+        | None         -> ()
 
         jsMarker.Value?setOpacity(marker.Opacity)
 
@@ -629,7 +629,7 @@ type WebMapController() =
 
         match shape.OnClick with
         | Some onClick -> jsShape.Value?addListener("click", onClick)
-        | None -> ()
+        | None         -> ()
 
         jsShape
 
@@ -690,7 +690,7 @@ type WebMapController() =
         let directionsRendererOptions =
             {|
                 // We want to render our own markers and polylines to gain full control over them.
-                suppressMarkers = true
+                suppressMarkers   = true
                 suppressPolylines = true
             |}
 
@@ -748,8 +748,8 @@ type WebMapController() =
                 createNew
                     (Fable.Core.JsInterop.import "Loader" "@googlemaps/js-api-loader")
                     {
-                        apiKey    = props.ApiKey
-                        version   = "weekly"
+                        apiKey  = props.ApiKey
+                        version = "weekly"
                         // It might seem like we can selectively choose libraries based on the features used, but this causes issues if multiple maps
                         // appear on one page, with each map using different features.
                         libraries = [| "places"; "drawing" |]
@@ -829,9 +829,9 @@ type WebMapController() =
 
             maybeGoogleMaps <-
                 {
-                    Api = googleMapsApi
-                    Map = map
-                    Div = div
+                    Api               = googleMapsApi
+                    Map               = map
+                    Div               = div
                     DirectionsService = directionsService
                 }
                 |> Some
@@ -1018,8 +1018,8 @@ type WebMapController() =
 type ThirdParty.Map.Components.Constructors.Map.Web with
     [<Component>]
     static member Map(
-            apiKey:            string,
-            position:          MapPosition,
+            apiKey:             string,
+            position:           MapPosition,
             ?onPositionChanged: MapPosition -> unit,
             ?zoom:              int,
             ?markers:           List<Marker>,
@@ -1041,23 +1041,23 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
         xLegacyStyles |> ignore
 
         let props = {
-            ApiKey = apiKey
-            Position = position
+            ApiKey            = apiKey
+            Position          = position
             OnPositionChanged = onPositionChanged
-            Zoom = zoom
-            Markers = markers
-            Shapes = shapes
-            Directions = directions
-            BackgroundColor = backgroundColor
-            ClickableIcons = clickableIcons
-            DisableDefaultUI = disableDefaultUI
-            MinZoom = minZoom
-            MaxZoom = maxZoom
-            FullScreen = fullScreen
-            MapStyles = mapStyles
-            MapTypeId = mapTypeId
-            Ref = defaultArg ref (fun _ -> ())
-            key = None
+            Zoom              = zoom
+            Markers           = markers
+            Shapes            = shapes
+            Directions        = directions
+            BackgroundColor   = backgroundColor
+            ClickableIcons    = clickableIcons
+            DisableDefaultUI  = disableDefaultUI
+            MinZoom           = minZoom
+            MaxZoom           = maxZoom
+            FullScreen        = fullScreen
+            MapStyles         = mapStyles
+            MapTypeId         = mapTypeId
+            Ref               = defaultArg ref (fun _ -> ())
+            key               = None
         }
 
         let controller = Hooks.useStateLazy (fun () -> WebMapController())
@@ -1101,7 +1101,7 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
                                             let isFullScreen =
                                                 match fullScreen with
                                                 | Some f -> f
-                                                | None -> false
+                                                | None   -> false
                                             Fable.React.Standard.div
                                                 [
                                                     Fable.React.Props.Ref bindDivRef
@@ -1122,24 +1122,24 @@ type ThirdParty.Map.Components.Constructors.Map.Web with
 type ThirdParty.Map.Components.Constructors.Map.Web with
     [<Component>]
     static member Map(
-            apiKey: string,
-            position: MapPosition,
-            ?key: string,
+            apiKey:             string,
+            position:           MapPosition,
+            ?key:               string,
             ?onPositionChanged: MapPosition -> unit,
-            ?zoom: int,
-            ?markers: List<Marker>,
-            ?shapes: List<Shape>,
-            ?directions: List<Directions>,
-            ?backgroundColor: string,
-            ?clickableIcons: bool,
-            ?disableDefaultUI: bool,
-            ?minZoom: float,
-            ?maxZoom: float,
-            ?fullScreen: bool,
-            ?mapStyles: List<MapStyle>,
-            ?mapTypeId: MapTypeId,
-            ?ref: IWebMapViewRef -> unit,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+            ?zoom:              int,
+            ?markers:           List<Marker>,
+            ?shapes:            List<Shape>,
+            ?directions:        List<Directions>,
+            ?backgroundColor:   string,
+            ?clickableIcons:    bool,
+            ?disableDefaultUI:  bool,
+            ?minZoom:           float,
+            ?maxZoom:           float,
+            ?fullScreen:        bool,
+            ?mapStyles:         List<MapStyle>,
+            ?mapTypeId:         MapTypeId,
+            ?ref:               IWebMapViewRef -> unit,
+            ?xLegacyStyles:     List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore apiKey
         ignore position

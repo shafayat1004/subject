@@ -47,11 +47,11 @@ type SessionService(backendUrl: string, maybeCookieDomain: Option<NonemptyString
         }
 
         let authenticated = {
-            RevalidatedOn        = DateTimeOffset.Now
-            RevalidationCookies  = []
-            Name                 = who.Name.Value
-            Who                  = who
-            State                = AuthenticatedState.Validated
+            RevalidatedOn       = DateTimeOffset.Now
+            RevalidationCookies = []
+            Name                = who.Name.Value
+            Who                 = who
+            State               = AuthenticatedState.Validated
         }
 
         {

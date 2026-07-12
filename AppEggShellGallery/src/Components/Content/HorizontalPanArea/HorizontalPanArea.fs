@@ -77,9 +77,9 @@ type private Helpers =
                             children =
                                 elements {
                                     Rn.HorizontalPanArea(
-                                        onStart = onStart,
-                                        onUpdate = onUpdate,
-                                        onEnd = onEnd,
+                                        onStart       = onStart,
+                                        onUpdate      = onUpdate,
+                                        onEnd         = onEnd,
                                         activeOffsetX = 12.0,
                                         // Generous vertical tolerance so a quick, slightly
                                         // diagonal drag is not abandoned mid-swipe (the demo
@@ -88,7 +88,7 @@ type private Helpers =
                                         children =
                                             [|
                                                 Rn.View(
-                                                    styles = [| Styles.handle |],
+                                                    styles   = [| Styles.handle |],
                                                     children = elements { LC.Text("Drag me ↔", styles = [| Styles.handleText |]) }
                                                 )
                                             |]
@@ -116,7 +116,7 @@ type Ui.Content with
     [<Component>]
     static member HorizontalPanArea() : ReactElement =
         Ui.ComponentContent(
-            displayName = "HorizontalPanArea",
+            displayName  = "HorizontalPanArea",
             isResponsive = false,
             props =
                 ComponentContent.Manual(
@@ -135,12 +135,12 @@ type Ui.Content with
             notes = LC.Text """Rn.HorizontalPanArea is the framework's horizontal-swipe primitive. On native it uses react-native-gesture-handler's PanGestureHandler with activeOffsetX/failOffsetY, so horizontal-vs-vertical arbitration happens in the native gesture system (a surrounding vertical ScrollView keeps working). On web it uses the GestureView responder path. Drive a Reanimated shared value (Reanimated.useSharedValue) via Rn.ReanimatedView for a follow-the-finger effect that runs on the UI thread; provide a non-gesture alternative (button/rotor action) for any destructive swipe action.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Rn.HorizontalPanArea",
-                    role = "none (gesture container)",
-                    namePattern = "Child content provides the accessible name",
-                    stateNotes = "Swipe is a gesture; pair swipe actions with a visible button or an accessibilityAction so motor / screen-reader users have a non-gesture path (WCAG 2.5.1).",
+                    componentName  = "Rn.HorizontalPanArea",
+                    role           = "none (gesture container)",
+                    namePattern    = "Child content provides the accessible name",
+                    stateNotes     = "Swipe is a gesture; pair swipe actions with a visible button or an accessibilityAction so motor / screen-reader users have a non-gesture path (WCAG 2.5.1).",
                     scalesWithFont = true,
-                    contrastNotes = "Child content contrast unchanged by the gesture wrapper"
+                    contrastNotes  = "Child content contrast unchanged by the gesture wrapper"
                 ),
             samples =
                 element {
@@ -150,7 +150,7 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Follow-the-finger drag (springs back)",
                                     visuals = Helpers.LiveDrag(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let translateX = Reanimated.useSharedValue 0.0
 let animatedStyle = Reanimated.useAnimatedTranslateX translateX
 

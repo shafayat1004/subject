@@ -26,7 +26,7 @@ type PaginatedGridData<'T> = {
     MaybePageCount:      Option<UnsignedInteger>
     Items:               AsyncData<seq<'T>>
     MaybeTotalItemCount: Option<UnsignedInteger>
-    GoToPage:       (* pageSize *) PositiveInteger -> (* pageNumber *) PositiveInteger -> Option<ReactEvent.Action> -> unit
+    GoToPage:            (* pageSize *) PositiveInteger -> (* pageNumber *) PositiveInteger -> Option<ReactEvent.Action> -> unit
 } with
     member this.MakeFetching : PaginatedGridData<'T> =
         { this with Items = this.Items |> AsyncData.makeFetching }
@@ -271,11 +271,11 @@ module NativeGrid =
         | Some h, None ->
             let cells = unwrapFragmentChildren h
             Rn.View (styles = [| Styles.headers; Styles.rowDivider |], children = cells)
-        | None, None   -> noElement
+        | None, None -> noElement
 
     let staticBody (headers: ReactElement) (rows: ReactElement) : ReactElement =
         Rn.View (
-            styles = [| Styles.nativeTableBody |],
+            styles   = [| Styles.nativeTableBody |],
             children = [|
                 if headers <> noElement then headers
                 Rn.View (styles = [| Styles.rows |], children = [| rows |])
@@ -302,8 +302,8 @@ module NativeGrid =
                     let cells = unwrapFragmentChildren rowContent
 
                     Rn.View (
-                        key = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
-                        styles = rowStyles,
+                        key      = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
+                        styles   = rowStyles,
                         children = cells
                     )
                 )
@@ -396,25 +396,25 @@ type UiAdmin with
             |]
 
         Rn.View(
-            key = rowKey,
-            styles = rowStyles,
+            key      = rowKey,
+            styles   = rowStyles,
             children = cells
         )
         #endif
 
     [<Component>]
     static member Grid<'T> (
-            input:                   Input<'T>,
-            ?children:               ReactChildrenProp,
-            ?pageSizeChoices:        List<PositiveInteger>,
+            input:                    Input<'T>,
+            ?children:                ReactChildrenProp,
+            ?pageSizeChoices:         List<PositiveInteger>,
             ?handleVerticalScrolling: bool,
-            ?headers:                ReactElement,
-            ?headersRaw:             ReactElement,
-            ?itemKey:                ('T -> string),
-            ?key:                    string,
-            ?xLegacyStyles:          List<Rn.LegacyStyles.RuntimeStyles>
+            ?headers:                 ReactElement,
+            ?headersRaw:              ReactElement,
+            ?itemKey:                 ('T -> string),
+            ?key:                     string,
+            ?xLegacyStyles:           List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
+        key      |> ignore
         children |> ignore
 
         let pageSizeChoices =
@@ -442,7 +442,7 @@ type UiAdmin with
                 act = goToPageAdapter data.GoToPage data.PageSize,
                 validate =
                     (match data.MaybePageCount with
-                     | None -> id
+                     | None           -> id
                      | Some pageCount -> Option.flatMap (fun v -> if v.Value > pageCount.Value then None else Some v)),
                 initialInputAcc = LC.QuadStateful.Sync (Some data.PageNumber),
                 initial =
@@ -572,39 +572,39 @@ type UiAdmin with
 
                 if isHandheldMode then
                     Rn.View (
-                        styles = [| Styles.paginationHandheld |],
+                        styles   = [| Styles.paginationHandheld |],
                         children = [|
                             Rn.View (
-                                styles = [| Styles.navigation |],
+                                styles   = [| Styles.navigation |],
                                 children = [| quadState |]
                             )
                         |]
                     )
                 else
                     Rn.View (
-                        styles = [| Styles.pagination |],
+                        styles   = [| Styles.pagination |],
                         children = [|
                             Rn.View (
-                                styles = [| Styles.navigation |],
+                                styles   = [| Styles.navigation |],
                                 children = [| quadState |]
                             )
                             Rn.View (
-                                styles = [| Styles.pageInfoContainer |],
+                                styles   = [| Styles.pageInfoContainer |],
                                 children = [|
                                     Rn.View (
-                                        styles = [| Styles.pageSize |],
+                                        styles   = [| Styles.pageSize |],
                                         children = [|
                                             LC.Text (
                                                 value  = "Page Size",
                                                 styles = [| Styles.pageSizeText |]
                                             )
                                             LC.Input.Picker (
-                                                items = LibClient.Components.Input_Picker.Static (pageSizeChoices |> OrderedSet.ofList, fun size -> size.Value.ToString()),
-                                                itemView = LibClient.Components.Input_Picker.Default (fun size -> {| Label = size.Value.ToString() |}),
-                                                value = LibClient.Components.Input_Picker.ExactlyOne (Some data.PageSize, fun size -> data.GoToPage size PositiveInteger.One None),
-                                                validity = InputValidity.Valid,
+                                                items         = LibClient.Components.Input_Picker.Static (pageSizeChoices |> OrderedSet.ofList, fun size -> size.Value.ToString()),
+                                                itemView      = LibClient.Components.Input_Picker.Default (fun size -> {| Label = size.Value.ToString() |}),
+                                                value         = LibClient.Components.Input_Picker.ExactlyOne (Some data.PageSize, fun size -> data.GoToPage size PositiveInteger.One None),
+                                                validity      = InputValidity.Valid,
                                                 showSearchBar = false,
-                                                styles = [| Styles.picker |]
+                                                styles        = [| Styles.picker |]
                                             )
                                         |]
                                     )
@@ -622,10 +622,10 @@ type UiAdmin with
                                     )
                                     LC.Input.PositiveInteger (
                                         validity    = InputValidity.Valid,
-                                        onChange      = jumpToPageState.update,
-                                        value         = jumpToPageState.current,
-                                        placeholder   = "Page no",
-                                        styles        = [| Styles.gotoPageInput |]
+                                        onChange    = jumpToPageState.update,
+                                        value       = jumpToPageState.current,
+                                        placeholder = "Page no",
+                                        styles      = [| Styles.gotoPageInput |]
                                     )
                                     LC.Button (
                                         state  = Button.PropStateFactory.MakeLowLevel (match jumpToPageState.current.Result with | Ok (Some page) -> Button.Actionable (Some >> data.GoToPage data.PageSize page) | _ -> Button.Disabled),
@@ -664,7 +664,7 @@ type UiAdmin with
                         (fun (items: seq<'T>) ->
                             if items |> Seq.isEmpty then
                                 Rn.View (
-                                    styles = [| Styles.emptyMessage |],
+                                    styles   = [| Styles.emptyMessage |],
                                     children = [|
                                         LC.Text (
                                             value  = "No Rows",
@@ -676,13 +676,13 @@ type UiAdmin with
                                 match isHandheldMode, maybeMakeHandheldRow with
                                 | true, Some makeHandheldRows ->
                                     LC.ItemList (
-                                        items        = items,
+                                        items = items,
                                         whenNonempty =
                                             (fun items ->
                                                 items
                                                 |> Seq.mapi (fun index item ->
                                                     Rn.View (
-                                                        key = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
+                                                        key      = (itemKey |> Option.map (fun f -> f item) |> Option.getOrElse (string index)),
                                                         children = [| makeHandheldRows item |]
                                                     )
                                                 )
@@ -760,11 +760,11 @@ type UiAdmin with
         let navRow = renderNavRow false
 
         Rn.View (
-            styles = [| Styles.view; Styles.nativeGridRoot; yield! legacyViewStyles |],
+            styles   = [| Styles.view; Styles.nativeGridRoot; yield! legacyViewStyles |],
             children = [|
                 navRow
                 Rn.View (
-                    styles = [| Styles.nativeTableContainer |],
+                    styles   = [| Styles.nativeTableContainer |],
                     children = [| renderGridBody false |]
                 )
                 navRow

@@ -20,15 +20,15 @@ module internal ReactComponentHelpers =
         | Get(Import({ Path = "react" }, _, _), kind, _, _) as e ->
             match kind with
             | ExprGet(Value(StringConstant "memo", _)) -> Some e
-            | FieldGet i when i.Name = "memo" -> Some e
-            | _ -> None
+            | FieldGet i when i.Name = "memo"          -> Some e
+            | _                                        -> None
         | _ -> None
 
     let injectReactImport body =
         let body =
             match body with
             | Sequential body -> body
-            | _ -> [ body ]
+            | _               -> [ body ]
 
         Sequential [ AstUtils.makeImport "default as React" "react"; yield! body ]
 
@@ -69,8 +69,8 @@ module internal ReactComponentHelpers =
 
             { decl with
                 MemberRef = info
-                Args = []
-                Body = memoArgs }
+                Args      = []
+                Body      = memoArgs }
 
         | _ ->
             { decl with
@@ -96,7 +96,7 @@ type RawReactComponentAttribute(?exportDefault: bool, ?import: string, ?from: st
             let reactComponent =
                 match import, from with
                 | Some importedMember, Some externalModule -> AstUtils.makeImport importedMember externalModule
-                | _ -> callee
+                | _                                        -> callee
 
             if
                 List.length membArgs = info.Args.Length
@@ -133,14 +133,14 @@ type RawReactComponentAttribute(?exportDefault: bool, ?import: string, ?from: st
                             keyBinding <- Some(keyIdent, expr)
                             [ "key", IdentExpr keyIdent; "$key", IdentExpr keyIdent ]
                         | Some name, _ -> [ name, expr ]
-                        | None, _ -> [])
+                        | None, _      -> [])
                     |> AstUtils.objExpr
 
                 let reactEl = AstUtils.createElement reactElType [ reactComponent; propsObj ]
 
                 let expr =
                     match keyBinding with
-                    | None -> reactEl
+                    | None               -> reactEl
                     | Some(ident, value) -> Let(ident, value, reactEl)
 
                 match [| memo, callee |] with
@@ -218,7 +218,7 @@ type RawReactComponentAttribute(?exportDefault: bool, ?import: string, ?from: st
                             | _ -> None
 
                         | Declaration.ActionDeclaration _action -> None
-                        | _ -> None)
+                        | _                                     -> None)
 
                 match definedInThisFile with
                 | Some recordTypeName ->

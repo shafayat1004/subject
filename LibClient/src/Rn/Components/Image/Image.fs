@@ -49,8 +49,8 @@ module private ImageRN =
     // RN source must be {uri} or {uri, headers}; not a bare string
     let makeSource (uri: string) (headers: Headers option) : obj =
         match headers with
-        | None    -> createObj ["uri" ==> uri]
-        | Some h  -> createObj ["uri" ==> uri; "headers" ==> h]
+        | None   -> createObj ["uri" ==> uri]
+        | Some h -> createObj ["uri" ==> uri; "headers" ==> h]
 
     // RN doesn't have 'auto'; closest equivalent is 'center'
     let mapResizeMode (rm: ResizeMode option) : obj option =

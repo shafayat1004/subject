@@ -51,11 +51,11 @@ type private Helpers =
                     LC.Text "See All"
                 }))
                 LC.Pressable (
-                    onPress = handler,
-                    label = "See All",
-                    testId = A11ySlug.testId "item-list" "See All",
-                    role = AccessibilityRole.Button,
-                    overlay = true,
+                    onPress       = handler,
+                    label         = "See All",
+                    testId        = A11ySlug.testId "item-list" "See All",
+                    role          = AccessibilityRole.Button,
+                    overlay       = true,
                     componentName = "LC.ItemList"
                 )
             }))

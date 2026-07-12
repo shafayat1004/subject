@@ -65,21 +65,21 @@ type Ui.Content with
     [<Component>]
     static member AnimatableImage () : ReactElement =
         Ui.ComponentContent (
-            displayName = "AnimatableImage",
+            displayName  = "AnimatableImage",
             isResponsive = false,
-            props = ComponentContent.Manual (
+            props        = ComponentContent.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
                         {
-                            Name = "source"
-                            Type = "string"
-                            Default = None
+                            Name        = "source"
+                            Type        = "string"
+                            Default     = None
                             Description = Some "Image URL"
                         }
                         {
-                            Name = "styles"
-                            Type = "array<AnimatableViewStyles>"
-                            Default = None
+                            Name        = "styles"
+                            Type        = "array<AnimatableViewStyles>"
+                            Default     = None
                             Description = Some "Image styles with animated properties (transform, opacity, etc.) via makeAnimatableViewStyles"
                         }
                     ])
@@ -89,12 +89,12 @@ type Ui.Content with
             notes = LC.Text """Rn.AnimatableImage is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated image styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Rn.AnimatableImage",
-                    role = "image",
-                    namePattern = "?accessibilityLabel when image conveys meaning",
-                    stateNotes = "Animated transforms/opacity; honor reduce-motion where wired",
+                    componentName  = "Rn.AnimatableImage",
+                    role           = "image",
+                    namePattern    = "?accessibilityLabel when image conveys meaning",
+                    stateNotes     = "Animated transforms/opacity; honor reduce-motion where wired",
                     scalesWithFont = false,
-                    contrastNotes = "N/A — image content"
+                    contrastNotes  = "N/A — image content"
                 ),
             samples = (
                 element {
@@ -104,7 +104,7 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Basic",
                                     visuals = Helpers.Basic(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let animatedValue = Hooks.useRef (AnimatedValue.Create 1.0)
 
 Rn.AnimatableImage(

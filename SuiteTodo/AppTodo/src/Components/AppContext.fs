@@ -11,14 +11,14 @@ type AppTodo.Components.Constructors.Ui with
     [<Component>]
     static member AppContext(
             ?children: ReactChildrenProp,
-            ?key: string)
+            ?key:      string)
         : ReactElement =
         ignore key
 
         LR.NavigationRouter(
-            spec = routesSpec(),
+            spec            = routesSpec(),
             navigationState = navigationState,
-            queue = navigationQueue,
+            queue           = navigationQueue,
             child =
                 LC.AppShell.Context(
                     children = defaultArg children [||],

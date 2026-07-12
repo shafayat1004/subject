@@ -10,29 +10,29 @@ open LibClient.Icons
 type private Helpers =
     [<Component>]
     static member Sample(
-        label: string,
-        initialText: string,
-        validity: InputValidity,
-        ?multiline: bool,
-        ?placeholder: string,
-        ?prefix: string,
-        ?suffix: InputSuffix,
+        label:                string,
+        initialText:          string,
+        validity:             InputValidity,
+        ?multiline:           bool,
+        ?placeholder:         string,
+        ?prefix:              string,
+        ?suffix:              InputSuffix,
         ?requestFocusOnMount: bool,
-        ?testId: string,
-        ?prefixIcon: LibClient.Icons.IconConstructor,
-        ?accessibilityRole: AccessibilityRole,
-        ?accessibilityLabel: string
+        ?testId:              string,
+        ?prefixIcon:          LibClient.Icons.IconConstructor,
+        ?accessibilityRole:   AccessibilityRole,
+        ?accessibilityLabel:  string
     ) : ReactElement =
         let value = Hooks.useState (NonemptyString.ofString initialText)
         let resolvedTestId = testId |> Option.defaultValue (A11ySlug.testId "input" label)
 
         LC.Input.Text(
-            label               = label,
-            value               = value.current,
-            validity            = validity,
-            onChange            = value.update,
-            testId              = resolvedTestId,
-            ?multiline          = multiline,
+            label                = label,
+            value                = value.current,
+            validity             = validity,
+            onChange             = value.update,
+            testId               = resolvedTestId,
+            ?multiline           = multiline,
             ?placeholder         = placeholder,
             ?prefix              = prefix,
             ?suffix              = suffix,
@@ -52,12 +52,12 @@ type Ui.Content.Input with
                 LC.Text "This component is a work in progress. If there's a feature that's not already supported, check if Rn.TextInput supports it, and if so, plumb it through. Decorative prefixIcon is hidden from screen readers (importantForAccessibility = No).",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.Text",
-                    role = "text field (default); search when ?accessibilityRole = AccessibilityRole.Search",
-                    namePattern = "Floating label text; override with ?accessibilityLabel",
-                    stateNotes = "Invalid/Missing validity surfaces error text below the field",
+                    componentName  = "LC.Input.Text",
+                    role           = "text field (default); search when ?accessibilityRole = AccessibilityRole.Search",
+                    namePattern    = "Floating label text; override with ?accessibilityLabel",
+                    stateNotes     = "Invalid/Missing validity surfaces error text below the field",
                     scalesWithFont = true,
-                    contrastNotes = "Label, input text, and error colors meet WCAG AA; invalid state adds error icon plus text"
+                    contrastNotes  = "Label, input text, and error colors meet WCAG AA; invalid state adds error icon plus text"
                 ),
             samples     =
                 element {
@@ -141,13 +141,13 @@ LC.Input.Text(
                                 Ui.ComponentSample(
                                     visuals =
                                         Helpers.Sample(
-                                            label               = "Search",
-                                            initialText         = "",
-                                            validity            = Valid,
-                                            placeholder         = "Search todos",
-                                            prefixIcon          = Icon.MagnifyingGlass,
-                                            accessibilityRole   = AccessibilityRole.Search,
-                                            accessibilityLabel  = "Search todos"
+                                            label              = "Search",
+                                            initialText        = "",
+                                            validity           = Valid,
+                                            placeholder        = "Search todos",
+                                            prefixIcon         = Icon.MagnifyingGlass,
+                                            accessibilityRole  = AccessibilityRole.Search,
+                                            accessibilityLabel = "Search todos"
                                         ),
                                     code =
                                         ComponentSample.SingleBlock(

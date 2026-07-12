@@ -60,11 +60,11 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Popup(
-            render:    unit -> ReactElement,
-            connector: Connector,
-            ?id:       string,
+            render:         unit -> ReactElement,
+            connector:      Connector,
+            ?id:            string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:      string
+            ?key:           string
         ) : ReactElement =
         key           |> ignore
         xLegacyStyles |> ignore

@@ -14,11 +14,11 @@ open LibRouter.Components.Constructors
 type LR with
     [<Component>]
     static member EdgeSwipeBack(
-            goBack: unit -> unit,
+            goBack:     unit -> unit,
             ?canGoBack: unit -> bool,
             ?edgeWidth: float,
             ?threshold: float,
-            ?key: string
+            ?key:       string
         ) : ReactElement =
         ignore key
 

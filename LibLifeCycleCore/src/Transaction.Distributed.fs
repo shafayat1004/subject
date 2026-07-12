@@ -19,30 +19,30 @@ type IOuterTxnManager =
 
     /// Indicates whether outer transaction started. Ecosystem transaction can't start
     /// earlier than outer transaction.
-    abstract member InTransaction : bool
+    abstract member InTransaction: bool
 
     /// Outer transaction timeout, used as the timeout for preparing ecosystem transaction
-    abstract member Timeout : TimeSpan
+    abstract member Timeout: TimeSpan
 
     /// Tell outer transaction that ecosystem transaction is about to initiate.
     /// Outer transaction must write-ahead transaction token to some persistent storage,
     /// that will survive in event of transaction crash.
-    abstract member EnlistEcosystemTransaction :           ecosystemName: string -> transactionToken: Guid -> Task
+    abstract member EnlistEcosystemTransaction: ecosystemName: string -> transactionToken: Guid -> Task
 
     /// Notify outer transaction when ecosystem transaction prepared, so outer transaction can continue.
     /// Outer transaction must mark its token as prepared
-    abstract member NotifyEcosystemTransactionPrepared :   ecosystemName: string -> transactionToken: Guid -> Task
+    abstract member NotifyEcosystemTransactionPrepared: ecosystemName: string -> transactionToken: Guid -> Task
 
     /// Notify outer transaction when previously prepared ecosystem transaction continues with more operations.
     /// Outer transaction manager must mark its previously prepared token as not prepared again.
-    abstract member NotifyEcosystemTransactionContinuing : ecosystemName: string -> transactionToken: Guid -> Task
+    abstract member NotifyEcosystemTransactionContinuing: ecosystemName: string -> transactionToken: Guid -> Task
 
     /// Tell outer transaction manager to delete its ecosystem transaction token.
     /// This happens when both inner and outer transaction are 100% completed (successfully or not),
     /// i.e. right after outer transaction completes or fails (most of the time), or later in orphan cleanup job
-    abstract member ForgetEcosystemTransaction :           ecosystemName: string -> transactionToken: Guid -> Task
+    abstract member ForgetEcosystemTransaction: ecosystemName: string -> transactionToken: Guid -> Task
 
-    abstract member SetOuterTxnResetHandler:               handler: (OuterTxnOutcome -> Task) -> unit
+    abstract member SetOuterTxnResetHandler: handler: (OuterTxnOutcome -> Task) -> unit
 
 // Public functions to allow external client deal with orphaned ecosystem transactions
 
@@ -87,10 +87,10 @@ type private LastKnownEcosystemTransaction<'Op when 'Op : comparison> =
 /// ecosystem txn its prepared subjects remain locked until rolled back or committed.
 type OuterTxnEcosystemClient<'Op when 'Op : comparison>
     (
-        grainConnector: GrainConnector,
+        grainConnector:  GrainConnector,
         outerTxnManager: IOuterTxnManager,
         txnLifeCycleDef: SubjectTransactionLifeCycleDef<'Op>,
-        ecosystemName: string
+        ecosystemName:   string
     ) as this =
     let mutable maybeLastKnownEcosystemTxn: Option<LastKnownEcosystemTransaction<'Op>> = None
     do

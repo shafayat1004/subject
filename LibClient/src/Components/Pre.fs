@@ -18,14 +18,14 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Pre(
-            text: string,
+            text:    string,
             ?styles: array<TextStyles>,
-            ?key: string
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 
         LC.Text(
-            value = text,
+            value      = text,
             selectable = true,
             styles =
                 [|

@@ -13,16 +13,16 @@ open Rn.Helpers
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member LiveRegion(
-            ?children: ReactChildrenProp,
+            ?children:   ReactChildrenProp,
             ?liveRegion: AccessibilityLiveRegion,
-            ?testId: string,
-            ?key: string
+            ?testId:     string,
+            ?key:        string
         ) : ReactElement =
         key |> ignore
         Rn.View(
-            ?testId = testId,
+            ?testId                  = testId,
             ?accessibilityLiveRegion = (liveRegion |> Option.map (fun r -> unbox<AccessibilityLiveRegion> (int r))),
-            children = (defaultArg children [||])
+            children                 = (defaultArg children [||])
         )
 
 module LC =

@@ -42,18 +42,18 @@ type LC.With with
     [<Component>]
     static member Executor (executor: Executor, content: Executor -> array<ReactElement>, ?styles: array<ViewStyles>) : ReactElement =
         LC.InProgress (
-            ?styles = styles,
+            ?styles      = styles,
             isInProgress = executor.IsInProgressNow,
-            children = elements {
+            children     = elements {
                 content executor
             }
         )
 
     static member Executor (executor: Executor, content: Executor -> ReactElement, ?styles: array<ViewStyles>) : ReactElement =
         LC.InProgress (
-            ?styles = styles,
+            ?styles      = styles,
             isInProgress = executor.IsInProgressNow,
-            children = elements {
+            children     = elements {
                 content executor
             }
         )

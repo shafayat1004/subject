@@ -67,7 +67,7 @@ type LibClient.Components.Constructors.LC with
         let styleValue =
             match styles with
             | Option.Some style -> [|themeStyles; !!style|]
-            | _ -> !!themeStyles
+            | _                 -> !!themeStyles
 
         let __props = createEmpty
         __props?selectable                <- selectable |> Option.orElse (Some false)

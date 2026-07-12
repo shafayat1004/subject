@@ -310,7 +310,7 @@ type LibClient.Components.Constructors.LC with
                         Styles.crossAxisAlignment theCrossAxisAlignment
                         match gap with
                         | Some value -> Styles.gap value
-                        | None -> ()
+                        | None       -> ()
                     |]
                 ),
             children = tellReactArrayKeysAreOkay children
@@ -381,7 +381,7 @@ type LibClient.Components.Constructors.LC with
                         Styles.crossAxisAlignment theCrossAxisAlignment
                         match gap with
                         | Some value -> Styles.gap value
-                        | None -> ()
+                        | None       -> ()
                     |]
                 ),
             children = tellReactArrayKeysAreOkay children

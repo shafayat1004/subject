@@ -18,11 +18,11 @@ module LC =
     module Dialog =
         module ImageViewer =
             type Theme = {
-                DotColor: Color
-                SelectedDotColor: Color
-                NavigationButtonColor: Color
+                DotColor:                        Color
+                SelectedDotColor:                Color
+                NavigationButtonColor:           Color
                 NavigationButtonBackgroundColor: Color
-                ButtonIconSize: int
+                ButtonIconSize:                  int
             }
 
             type internal Parameters = {
@@ -85,12 +85,12 @@ module private Styles =
 type private Helpers =
     [<Component>]
     static member Carousel(
-            sources: NonemptyList<ImageSource>,
+            sources:      NonemptyList<ImageSource>,
             initialIndex: uint32,
-            resizeMode: ResizeMode,
-            screenSize: ScreenSize,
-            theTheme: Theme,
-            ?size: Image.Size
+            resizeMode:   ResizeMode,
+            screenSize:   ScreenSize,
+            theTheme:     Theme,
+            ?size:        Image.Size
         ) : ReactElement =
         let sourcesList = sources.ToList
         let size = defaultArg size Image.Size.FromStyles
@@ -100,34 +100,34 @@ type private Helpers =
             theme =
                 (fun theme ->
                     { theme with
-                        DotColor = theTheme.DotColor
-                        SelectedDotColor = theTheme.SelectedDotColor
-                        NavigationButtonColor = theTheme.NavigationButtonColor
+                        DotColor                        = theTheme.DotColor
+                        SelectedDotColor                = theTheme.SelectedDotColor
+                        NavigationButtonColor           = theTheme.NavigationButtonColor
                         NavigationButtonBackgroundColor = theTheme.NavigationButtonBackgroundColor
-                        ButtonIconSize = theTheme.ButtonIconSize
+                        ButtonIconSize                  = theTheme.ButtonIconSize
                     }
                 ),
-            count = (sourcesList.Length |> PositiveInteger.ofIntUnsafe),
-            initialIndex = initialIndex,
+            count               = (sourcesList.Length |> PositiveInteger.ofIntUnsafe),
+            initialIndex        = initialIndex,
             requestFocusOnMount = true,
             slide =
                 fun index ->
                     Rn.Image(
-                        styles = [| Styles.image screenSize |],
-                        source = sourcesList[index],
+                        styles     = [| Styles.image screenSize |],
+                        source     = sourcesList[index],
                         resizeMode = resizeMode,
-                        size = size
+                        size       = size
                     )
         )
 
     [<Component>]
     static member ImageViewer(
-            sources: NonemptyList<ImageSource>,
+            sources:      NonemptyList<ImageSource>,
             initialIndex: uint32,
-            resizeMode: ResizeMode,
-            tryCancel: ReactEvent.Action -> unit,
-            ?theme: Theme -> Theme,
-            ?size: Image.Size
+            resizeMode:   ResizeMode,
+            tryCancel:    ReactEvent.Action -> unit,
+            ?theme:       Theme -> Theme,
+            ?size:        Image.Size
         ) : ReactElement =
         let theTheme = Themes.GetMaybeUpdatedWith theme
 
@@ -184,11 +184,11 @@ type private Helpers =
                                             ?size = size
                                         )
                                         LC.IconButton(
-                                            label = "Close",
+                                            label  = "Close",
                                             styles = [| Styles.closeButton |],
-                                            theme = Styles.closeButtonTheme,
-                                            icon = Icon.X,
-                                            state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable tryCancel)
+                                            theme  = Styles.closeButtonTheme,
+                                            icon   = Icon.X,
+                                            state  = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable tryCancel)
                                         )
                                     }
                             )
@@ -198,12 +198,12 @@ type private Helpers =
 
 type LibClient.Components.Constructors.LC.Dialog with
     static member OpenImageViewer(
-            sources: seq<ImageSource>,
-            close: DialogCloseMethod -> ReactEvent.Action -> unit,
+            sources:       seq<ImageSource>,
+            close:         DialogCloseMethod -> ReactEvent.Action -> unit,
             ?initialIndex: uint32,
-            ?resizeMode: ResizeMode,
-            ?theme: Theme -> Theme,
-            ?size: Image.Size
+            ?resizeMode:   ResizeMode,
+            ?theme:        Theme -> Theme,
+            ?size:         Image.Size
         ) : ReactElement =
         let initialIndex = defaultArg initialIndex 0u
         let resizeMode = defaultArg resizeMode ResizeMode.Cover
@@ -211,9 +211,9 @@ type LibClient.Components.Constructors.LC.Dialog with
         doOpen
             "ImageViewer"
             {
-                Sources = sources
+                Sources      = sources
                 InitialIndex = initialIndex
-                ResizeMode = resizeMode
+                ResizeMode   = resizeMode
             }
             (fun dialogProps _ ->
                 let canCancel () = Async.Of true
@@ -224,18 +224,18 @@ type LibClient.Components.Constructors.LC.Dialog with
                 match sources |> NonemptyList.ofSeq with
                 | Some nonemptySources ->
                     Helpers.ImageViewer(
-                        sources = nonemptySources,
+                        sources      = nonemptySources,
                         initialIndex = dialogProps.Parameters.InitialIndex,
-                        resizeMode = dialogProps.Parameters.ResizeMode,
-                        tryCancel = tryCancel,
-                        ?theme = theme,
-                        ?size = size
+                        resizeMode   = dialogProps.Parameters.ResizeMode,
+                        tryCancel    = tryCancel,
+                        ?theme       = theme,
+                        ?size        = size
                     )
                 | None ->
                     noElement
             )
             {
-                OnResult = ignore
+                OnResult      = ignore
                 MaybeOnCancel = None
             }
             close

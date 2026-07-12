@@ -30,15 +30,15 @@ type Ui.Content.Input with
     static member File () : ReactElement =
         Ui.ComponentContent (
             displayName = "Input.File",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.File",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.File",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.File",
-                    role = "button (file picker)",
-                    namePattern = "Floating label text",
-                    stateNotes = "Invalid/Missing validity surfaces error text; selected files listed by name",
+                    componentName  = "LC.Input.File",
+                    role           = "button (file picker)",
+                    namePattern    = "Floating label text",
+                    stateNotes     = "Invalid/Missing validity surfaces error text; selected files listed by name",
                     scalesWithFont = true,
-                    contrastNotes = "Label, button text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, button text, and error colors meet WCAG AA"
                 ),
             samples =
                 element {

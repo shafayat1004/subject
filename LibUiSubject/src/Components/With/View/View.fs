@@ -18,17 +18,17 @@ let private getView
 type LibUiSubject.Components.Constructors.UiSubject.With with
     [<Component>]
     static member View (
-        service: LibUiSubject.Services.ViewService.IViewService<'Input, 'Output, 'OpError>,
-        input: 'Input,
-        whenAvailable: 'Output -> ReactElement,
+        service:            LibUiSubject.Services.ViewService.IViewService<'Input, 'Output, 'OpError>,
+        input:              'Input,
+        whenAvailable:      'Output -> ReactElement,
         ?whenUninitialized: unit -> ReactElement,
-        ?whenFetching: Option<'Output> -> ReactElement,
-        ?whenFailed: AsyncDataFailure -> ReactElement,
-        ?whenUnavailable: unit -> ReactElement,
-        ?whenAccessDenied: unit -> ReactElement,
-        ?whenElse: unit -> ReactElement,
-        ?useCache: UseCache,
-        ?key: string)
+        ?whenFetching:      Option<'Output> -> ReactElement,
+        ?whenFailed:        AsyncDataFailure -> ReactElement,
+        ?whenUnavailable:   unit -> ReactElement,
+        ?whenAccessDenied:  unit -> ReactElement,
+        ?whenElse:          unit -> ReactElement,
+        ?useCache:          UseCache,
+        ?key:               string)
         : ReactElement =
             ignore key
 
@@ -45,23 +45,23 @@ type LibUiSubject.Components.Constructors.UiSubject.With with
             )
 
             LC.AsyncData (
-                data = valueState.current,
-                whenAvailable = whenAvailable,
+                data               = valueState.current,
+                whenAvailable      = whenAvailable,
                 ?whenUninitialized = whenUninitialized,
-                ?whenFetching = whenFetching,
-                ?whenFailed = whenFailed,
-                ?whenUnavailable = whenUnavailable,
-                ?whenAccessDenied = whenAccessDenied,
-                ?whenElse = whenElse
+                ?whenFetching      = whenFetching,
+                ?whenFailed        = whenFailed,
+                ?whenUnavailable   = whenUnavailable,
+                ?whenAccessDenied  = whenAccessDenied,
+                ?whenElse          = whenElse
             )
 
     [<Component>]
     static member View (
-        service: LibUiSubject.Services.ViewService.IViewService<'Input, 'Output, 'OpError>,
-        input: 'Input,
-        content: AsyncData<'Output> -> ReactElement,
+        service:   LibUiSubject.Services.ViewService.IViewService<'Input, 'Output, 'OpError>,
+        input:     'Input,
+        content:   AsyncData<'Output> -> ReactElement,
         ?useCache: UseCache,
-        ?key: string)
+        ?key:      string)
         : ReactElement =
             ignore key
 

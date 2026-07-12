@@ -42,7 +42,7 @@ type SerialDisposable() =
 
         match maybeInnerDisposable with
         | Some innerDisposable -> innerDisposable.Dispose()
-        | None -> ()
+        | None                 -> ()
 
         maybeInnerDisposable <- Some innerDisposable
 
@@ -53,6 +53,6 @@ type SerialDisposable() =
             | false ->
                 match maybeInnerDisposable with
                 | Some disposable -> disposable.Dispose()
-                | None -> ()
+                | None            -> ()
 
                 disposed <- true

@@ -27,7 +27,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
 
     Themes.Set<LC.HeaderCell.Theme> {
         FontColor = Color.Grey "45"
-        FontSize = 18
+        FontSize  = 18
     }
 
     Themes.Set<LC.Badge.Theme> {
@@ -41,7 +41,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         IconColor       = Color.DevRed
         IconSize        = 16
         BadgeMarginLeft = 4
-        Badge = {
+        Badge           = {
             FontSize        = 14
             FontWeight      = Rn.Styles.RulesRestricted.FontWeight.Normal
             FontColor       = Color.White
@@ -51,12 +51,12 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
 
     Themes.Set<LC.Button.Theme>(
         {
-            IconSize         = defaultIconSize
+            IconSize              = defaultIconSize
             DesktopLabelFontSize  = 20
             HandheldLabelFontSize = 14
-            DesktopHeight    = 46
-            HandheldHeight   = 38
-            Primary = {
+            DesktopHeight         = 46
+            HandheldHeight        = 38
+            Primary               = {
                 Actionable = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
                 Disabled   = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
                 InProgress = { TextColor = Color.White; BorderColor = secondary.Main; BackgroundColor = secondary.Main; FontWeight = Rn.Styles.RulesRestricted.FontWeight.Normal }
@@ -99,35 +99,35 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
             Primary = {
                 Actionable = {
                     TextColor = secondary.Main
-                    FontSize = 14
-                    Opacity = 1.0
+                    FontSize  = 14
+                    Opacity   = 1.0
                 }
                 Disabled = {
                     TextColor = neutral.B500
-                    FontSize = 14
-                    Opacity = 0.5
+                    FontSize  = 14
+                    Opacity   = 0.5
                 }
                 InProgress = {
                     TextColor = neutral.B500
-                    FontSize = 14
-                    Opacity = 1.0
+                    FontSize  = 14
+                    Opacity   = 1.0
                 }
             }
             Secondary = {
                 Actionable = {
                     TextColor = secondary.Main
-                    FontSize = 10
-                    Opacity = 1.0
+                    FontSize  = 10
+                    Opacity   = 1.0
                 }
                 Disabled = {
                     TextColor = secondary.Main
-                    FontSize = 10
-                    Opacity = 0.5
+                    FontSize  = 10
+                    Opacity   = 0.5
                 }
                 InProgress = {
                     TextColor = secondary.Main
-                    FontSize = 10
-                    Opacity = 1.0
+                    FontSize  = 10
+                    Opacity   = 1.0
                 }
             }
         }
@@ -137,14 +137,14 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         {
             Selected =
                 {
-                    TextColor = Color.White
-                    BorderColor = secondary.MainPlus1
+                    TextColor       = Color.White
+                    BorderColor     = secondary.MainPlus1
                     BackgroundColor = secondary.Main
                 }
             Unselected =
                 {
-                    TextColor = Color.White
-                    BorderColor = neutral.B400
+                    TextColor       = Color.White
+                    BorderColor     = neutral.B400
                     BackgroundColor = neutral.B300
                 }
         }
@@ -184,20 +184,20 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
     Themes.Set<LC.IconButton.Theme> {
         Actionable =
             {
-                IconColor = secondary.Main
-                IconSize = defaultIconSize
+                IconColor       = secondary.Main
+                IconSize        = defaultIconSize
                 TapTargetMargin = (-10, -10, -10, -10)
             }
         Disabled =
             {
-                IconColor = secondary.Main
-                IconSize = defaultIconSize
+                IconColor       = secondary.Main
+                IconSize        = defaultIconSize
                 TapTargetMargin = (-10, -10, -10, -10)
             }
         InProgress =
             {
-                IconColor = secondary.Main
-                IconSize = defaultIconSize
+                IconColor       = secondary.Main
+                IconSize        = defaultIconSize
                 TapTargetMargin = (-10, -10, -10, -10)
             }
     }
@@ -206,42 +206,42 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         {
             Tags = {
                 Selected = {
-                    TextColor = Color.White
+                    TextColor       = Color.White
                     BackgroundColor = secondary.Main
                 }
                 Unselected = {
-                    TextColor    = secondary.Main
+                    TextColor       = secondary.Main
                     BackgroundColor = secondary.B100
                 }
             }
             Sizes = {
                 Desktop = {
-                    FontSize = 14
+                    FontSize          = 14
                     PaddingHorizontal = 15
-                    PaddingVertical = 6
+                    PaddingVertical   = 6
                 }
                 Handheld = {
-                    FontSize = 12
+                    FontSize          = 12
                     PaddingHorizontal = 10
-                    PaddingVertical = 4
+                    PaddingVertical   = 4
                 }
             }
         }
     )
 
     Themes.Set<LC.Input.DateTypes.Theme> {
-        BorderLabelBlurredColor = Color.Grey "44"
-        BorderLabelFocusedColor = Color.DevGreen
-        BorderLabelInvalidColor = Color.DevRed
-        TextColor = Color.Grey "44"
-        NoneditableTextColor = Color.Grey "22"
-        NoneditableBackgroundColor = Color.Grey "66"
-        InvalidReasonColor = Color.DevRed
-        PlaceholderColor = Color.Grey "aa"
-        TheVerticalPadding = 10
-        CalendarButtonColor = Color.DevGreen
+        BorderLabelBlurredColor       = Color.Grey "44"
+        BorderLabelFocusedColor       = Color.DevGreen
+        BorderLabelInvalidColor       = Color.DevRed
+        TextColor                     = Color.Grey "44"
+        NoneditableTextColor          = Color.Grey "22"
+        NoneditableBackgroundColor    = Color.Grey "66"
+        InvalidReasonColor            = Color.DevRed
+        PlaceholderColor              = Color.Grey "aa"
+        TheVerticalPadding            = 10
+        CalendarButtonColor           = Color.DevGreen
         CalendarButtonBackgroundColor = Color.Transparent
-        CalendarButtonIconSize = 20
+        CalendarButtonIconSize        = 20
     }
 
     Themes.Set<LC.Input.EmailAddressTypes.Theme> {
@@ -271,13 +271,13 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
     Themes.Set<LC.Input.QuantityTypes.Theme> {
         NormalColors = {
             Border = secondary.Main
-            Value = neutral.Main
-            Icons = secondary.Main
+            Value  = neutral.Main
+            Icons  = secondary.Main
         }
         InvalidColors = {
             Border = caution.Main
-            Value = neutral.Main
-            Icons = caution.Main
+            Value  = neutral.Main
+            Icons  = caution.Main
         }
         InvalidMessageColor = caution.Main
     }
@@ -314,7 +314,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
 
     Themes.Set<LC.Legacy.TopNav.IconButtonTypes.Theme> {
         IconColor = Color.White
-        IconSize = 30
+        IconSize  = 30
     }
 
     Themes.Set<LC.Legacy.Sidebar.Item.Theme>(
@@ -340,23 +340,23 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
     )
 
     Themes.Set<LC.Carousel.Theme> {
-        DotColor = Color.White
-        SelectedDotColor = secondary.Main
-        NavigationButtonColor = Color.White
+        DotColor                        = Color.White
+        SelectedDotColor                = secondary.Main
+        NavigationButtonColor           = Color.White
         NavigationButtonBackgroundColor = Color.Transparent
-        ButtonIconSize = defaultIconSize
-        NavigationButtonStyle = None
-        DotContainerStyle = None
-        InactiveDotStyle = None
-        ActiveDotStyle = None
+        ButtonIconSize                  = defaultIconSize
+        NavigationButtonStyle           = None
+        DotContainerStyle               = None
+        InactiveDotStyle                = None
+        ActiveDotStyle                  = None
     }
 
     Themes.Set<LC.Dialog.ImageViewer.Theme> {
-        DotColor = Color.White
-        SelectedDotColor = secondary.Main
-        NavigationButtonColor = Color.White
+        DotColor                        = Color.White
+        SelectedDotColor                = secondary.Main
+        NavigationButtonColor           = Color.White
         NavigationButtonBackgroundColor = Color.Grey "44"
-        ButtonIconSize = 26
+        ButtonIconSize                  = 26
     }
 
     Themes.Set<LC.Dialog.Shell.WhiteRounded.Raw.Theme> {
@@ -477,7 +477,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
 
     Themes.Set<LC.Stars.Theme>(
         {
-            OnColor = secondary.Main
+            OnColor  = secondary.Main
             OffColor = neutral.B300
             IconSize = 20
         }
@@ -485,7 +485,7 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
 
     Themes.Set<LC.Tab.Theme>(
         {
-            SelectedColor = secondary.Main
+            SelectedColor   = secondary.Main
             UnselectedColor = neutral.B500
         }
     )
@@ -513,59 +513,59 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
             LabelFontSize = 16
             BadgeFontSize = 16
             ItemHeight    = 42
-            Actionable = {
+            Actionable    = {
                 Base = {
-                    Label = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = primary.B050; Border = Color.Transparent
+                    Label    = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = primary.B050; Border = Color.Transparent
                     LeftIcon = primary.MainMinus2; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
             }
             Selected = {
                 Base = {
-                    Label = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B700; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
             }
             Disabled = {
                 Base = {
-                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B100; RightIcon = neutral.B100; BadgeBackground = caution.B200; BadgeText = Color.White
                 }
             }
             InProgress = {
                 Base = {
-                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Hovered = {
-                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
                 Depressed = {
-                    Label = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
+                    Label    = neutral.B200; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal; Background = Color.White; Border = Color.Transparent
                     LeftIcon = neutral.B400; RightIcon = neutral.B400; BadgeBackground = caution.Main; BadgeText = Color.White
                 }
             }
@@ -596,96 +596,96 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
     Themes.Set<LC.Nav.Top.Item.Theme>(
         {
             IconVerticalAdjust = 10
-            Desktop = {
-                IconFontSize = 24; LabelFontSize = 16; Height = 72
+            Desktop            = {
+                IconFontSize  = 24; LabelFontSize = 16; Height = 72
                 BadgeFontSize = 14; BadgeTop = -10; BadgeLeft = -10
             }
             Handheld = {
-                IconFontSize = 20; LabelFontSize = 14; Height = 42
+                IconFontSize  = 20; LabelFontSize = 14; Height = 42
                 BadgeFontSize = 12; BadgeTop = -6; BadgeLeft = -10
             }
             Actionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
+                    Label          = primary.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Selected = {
                 Base = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             SelectedActionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Disabled = {
                 Base = {
-                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    Label          = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    Label          = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    Label          = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             InProgress = {
                 Base = {
-                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    Label          = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    Label          = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    Label          = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
@@ -704,96 +704,96 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
     Themes.Set<LC.Nav.Bottom.Item.Theme>(
         {
             IconVerticalAdjust = 10
-            Desktop = {
-                IconFontSize = 24; LabelFontSize = 16; Height = 72
+            Desktop            = {
+                IconFontSize  = 24; LabelFontSize = 16; Height = 72
                 BadgeFontSize = 14; BadgeTop = -10; BadgeLeft = -10
             }
             Handheld = {
-                IconFontSize = 20; LabelFontSize = 14; Height = 42
+                IconFontSize  = 20; LabelFontSize = 14; Height = 42
                 BadgeFontSize = 12; BadgeTop = -6; BadgeLeft = -10
             }
             Actionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
+                    Label          = primary.Main; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.B050; Border = primary.MainMinus2; Icon = primary.Main
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = primary.MainMinus2; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Selected = {
                 Base = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             SelectedActionable = {
                 Base = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
-                    Background = primary.Main; Border = primary.B050; Icon = primary.B050
+                    Label          = primary.B050; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Bold
+                    Background     = primary.Main; Border = primary.B050; Icon = primary.B050
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             Disabled = {
                 Base = {
-                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    Label          = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    Label          = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
+                    Label          = primary.MainMinus2; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = primary.MainMinus2
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }
             InProgress = {
                 Base = {
-                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    Label          = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Hovered = {
-                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    Label          = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
                 Depressed = {
-                    Label = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
-                    Background = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
+                    Label          = Color.Transparent; LabelWeight = Rn.Styles.RulesRestricted.FontWeight.Normal
+                    Background     = primary.Main; Border = Color.Transparent; Icon = Color.Transparent
                     BadgeFontColor = Color.White; BadgeFontWeight = Rn.Styles.RulesRestricted.FontWeight.Bold; BadgeBackgroundColor = Color.DevRed
                 }
             }

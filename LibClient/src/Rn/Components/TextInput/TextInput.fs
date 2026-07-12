@@ -45,7 +45,7 @@ type ClearButtonMode =
 type ITextInputRef =
     abstract member selectAll:    unit -> unit;
     abstract member requestFocus: unit -> unit;
-    abstract member blur: unit -> unit;
+    abstract member blur:         unit -> unit;
 
 module private TextInputRN =
     let unboxStyles (styles: array<Rn.Styles.FSharpDialect.ViewStyles> option) : array<obj> option =
@@ -92,8 +92,8 @@ module private TextInputRN =
 
     let assignWebProps (props: obj) (onPaste: (ClipboardEvent -> unit) option) (tabIndex: int option) : unit =
         #if EGGSHELL_PLATFORM_IS_WEB
-        onPaste   |> Option.iter (fun v -> props?onPaste <- v)
-        tabIndex  |> Option.iter (fun v -> props?tabIndex <- v)
+        onPaste  |> Option.iter (fun v -> props?onPaste <- v)
+        tabIndex |> Option.iter (fun v -> props?tabIndex <- v)
         #endif
         ()
 

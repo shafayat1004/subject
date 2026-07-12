@@ -4,8 +4,8 @@ open LibLifeCycle
 
 let grant =
     {
-        Input =    MatchAny
-        Roles =    MatchAny
+        Input    = MatchAny
+        Roles    = MatchAny
         Decision = Grant
     }
 
@@ -14,8 +14,8 @@ let grantWhen input =
 
 let deny =
     {
-        Input =    MatchAny
-        Roles =    MatchAny
+        Input    = MatchAny
+        Roles    = MatchAny
         Decision = Deny
     }
 

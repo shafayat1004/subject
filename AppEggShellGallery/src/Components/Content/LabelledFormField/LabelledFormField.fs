@@ -18,12 +18,12 @@ type private Helpers =
         let email = Hooks.useState None
 
         LC.LabelledFormField(
-            label = "Email",
+            label  = "Email",
             testId = "gallery-labelled-form-field-email",
             children =
                 elements {
                     LC.Input.Text(
-                        value = email.current,
+                        value    = email.current,
                         onChange = email.update,
                         validity = InputValidity.Valid
                     )
@@ -35,12 +35,12 @@ type private Helpers =
         let email = Hooks.useState (Some (NonemptyString.ofLiteral "not-an-email"))
 
         LC.LabelledFormField(
-            label = "Email",
+            label  = "Email",
             testId = "gallery-labelled-form-field-invalid",
             children =
                 elements {
                     LC.Input.Text(
-                        value = email.current,
+                        value    = email.current,
                         onChange = email.update,
                         validity = InputValidity.Invalid "Please enter a valid email address"
                     )
@@ -52,13 +52,13 @@ type private Helpers =
         let name = Hooks.useState None
 
         LC.LabelledFormField(
-            label = "Full name",
-            theme = Styles.specialTheme,
+            label  = "Full name",
+            theme  = Styles.specialTheme,
             testId = "gallery-labelled-form-field-themed",
             children =
                 elements {
                     LC.Input.Text(
-                        value = name.current,
+                        value    = name.current,
                         onChange = name.update,
                         validity = InputValidity.Valid
                     )
@@ -76,12 +76,12 @@ type Ui.Content with
             notes = LC.Text "LabelledFormField lays out a label beside (desktop) or above (handheld) a form control. Pass theme to customize label width and color.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.LabelledFormField",
-                    role = "none (layout); label view exposes accessibilityLabel",
-                    namePattern = "label prop on field; child input supplies control name and role",
-                    stateNotes = "Invalid state comes from child input validity",
+                    componentName  = "LC.LabelledFormField",
+                    role           = "none (layout); label view exposes accessibilityLabel",
+                    namePattern    = "label prop on field; child input supplies control name and role",
+                    stateNotes     = "Invalid state comes from child input validity",
                     scalesWithFont = true,
-                    contrastNotes = "Themed label color meets WCAG AA on typical backgrounds"
+                    contrastNotes  = "Themed label color meets WCAG AA on typical backgrounds"
                 ),
             samples =
                 element {

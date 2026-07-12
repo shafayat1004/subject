@@ -17,17 +17,17 @@ type Ui.Route with
         element {
             LC.SetPageMetadata(title = "How To")
             LR.Route(
-                scroll = LibRouter.Components.Route.Vertical,
+                scroll   = LibRouter.Components.Route.Vertical,
                 children = [|
                     LC.Section.Padded(
                         children = [|
                             match item with
                             | HowToItem.Markdown url ->
                                 Showdown.MarkdownViewer(
-                                    source = docMarkdownSource url,
-                                    globalLinkHandler = "globalMarkdownLinkHandler",
+                                    source              = docMarkdownSource url,
+                                    globalLinkHandler   = "globalMarkdownLinkHandler",
                                     imageUrlTransformer = markdownImageUrlTransformer,
-                                    showdownConverter = showdownConverterWithSyntaxHighlighting
+                                    showdownConverter   = showdownConverterWithSyntaxHighlighting
                                 )
                         |]
                     )

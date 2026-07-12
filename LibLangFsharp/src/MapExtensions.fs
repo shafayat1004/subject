@@ -9,16 +9,16 @@ type Microsoft.FSharp.Collections.Map<'K, 'V when 'K: comparison> with
     /// Useful for idempotent action retries.
     member this.AddOrIgnoreSameValue(key: 'K, value: 'V) : Result<Microsoft.FSharp.Collections.Map<'K, 'V>, 'V> =
         match this.TryFind key with
-        | None -> Ok <| this.Add(key, value)
+        | None                                                       -> Ok <| this.Add(key, value)
         | Some sameValue when System.Object.Equals(value, sameValue) -> Ok this
-        | Some differentValue -> Error differentValue
+        | Some differentValue                                        -> Error differentValue
 
     member this.NotContainsKey(key: 'K) : bool = this.ContainsKey key |> not
 
     member this.FindOrElse (defaultValue: 'V) (key: 'K) : 'V =
         match this.TryFind key with
         | Some value -> value
-        | None -> defaultValue
+        | None       -> defaultValue
 
     member this.KeySet: Set<'K> = this.Keys |> Set.ofSeq
 
@@ -86,12 +86,12 @@ module Map =
 
     let updateValue (key: 'K) (updater: 'V -> 'V) (source: Map<'K, 'V>) : Map<'K, 'V> =
         match source.TryFind key with
-        | None -> source
+        | None       -> source
         | Some value -> source.Add(key, updater value)
 
     let updateOrCreateValue (key: 'K) (updater: Option<'V> -> 'V) (source: Map<'K, 'V>) : Map<'K, 'V> =
         match source.TryFind key with
-        | None -> source.Add(key, updater None)
+        | None       -> source.Add(key, updater None)
         | Some value -> source.Add(key, updater (Some value))
 
     let updateOrRemoveValue (key: 'K) (updater: 'V -> Option<'V>) (source: Map<'K, 'V>) : Map<'K, 'V> =
@@ -100,7 +100,7 @@ module Map =
         | Some value ->
             match updater value with
             | Some updatedValue -> source.Add(key, updatedValue)
-            | None -> source.Remove key
+            | None              -> source.Remove key
 
     let tryUpdateValue
         (key: 'K)
@@ -112,7 +112,7 @@ module Map =
         | Some value ->
             match updater value with
             | Ok updatedValue -> Ok(source.Add(key, updatedValue))
-            | Error e -> Error e
+            | Error e         -> Error e
 
     let multiPartition (keyer: 'K -> 'V -> 'PartitionKey) (source: Map<'K, 'V>) : Map<'PartitionKey, Map<'K, 'V>> =
         source

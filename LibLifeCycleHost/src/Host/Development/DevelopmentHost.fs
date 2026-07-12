@@ -35,9 +35,9 @@ let private applyDevHostConfigToEcosystem (ecosystem: Ecosystem) (config: IConfi
     | false ->
         ecosystem
     | true ->
-        { Name = ecosystem.Name
-          Def = ecosystem.Def
-          Connectors = ecosystem.Connectors
+        { Name              = ecosystem.Name
+          Def               = ecosystem.Def
+          Connectors        = ecosystem.Connectors
           EnforceRateLimits = ecosystem.EnforceRateLimits
           LifeCycles =
               ecosystem.LifeCycles
@@ -48,8 +48,8 @@ let private applyDevHostConfigToEcosystem (ecosystem: Ecosystem) (config: IConfi
                               { lifeCycle with
                                   MaybeApiAccess =
                                       { AccessRules = [{ Input = MatchAny; Roles = MatchAny; EventTypes = MatchAny; Decision = Grant }]
-                                        AccessPredicate = fun _ _ _ _ -> true
-                                        RateLimitsPredicate = fun _ -> Some [] // no api limits, should be a separate config key?
+                                        AccessPredicate            = fun _ _ _ _ -> true
+                                        RateLimitsPredicate        = fun _ -> Some [] // no api limits, should be a separate config key?
                                         AnonymousCanReadTotalCount = true }
                                       |> Some }
                               :> ILifeCycle })
@@ -92,8 +92,8 @@ let private applyDevHostConfigToEcosystem (ecosystem: Ecosystem) (config: IConfi
                                         { lifeCycle with
                                             MaybeApiAccess =
                                                 { AccessRules = [{ Input = MatchAny; Roles = MatchAny; EventTypes = MatchAny; Decision = Grant }]
-                                                  AccessPredicate = fun _ _ _ _ -> true
-                                                  RateLimitsPredicate = fun _ -> Some [] // no api limits, should be a separate config key?
+                                                  AccessPredicate            = fun _ _ _ _ -> true
+                                                  RateLimitsPredicate        = fun _ -> Some [] // no api limits, should be a separate config key?
                                                   AnonymousCanReadTotalCount = true }
                                                 |> Some }
                                         :> IReferencedLifeCycle })
@@ -266,4 +266,3 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
             printfn "Shutting Down .."
             () // NO-OP
     0
-

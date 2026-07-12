@@ -52,7 +52,7 @@ type LC with
                 if isInProgress then
                     Rn.View (styles = [|Styles.spinnerBlock|], children = [|
                         Rn.ActivityIndicator (
-                            size = ActivityIndicator.Size.Tiny,
+                            size  = ActivityIndicator.Size.Tiny,
                             color = "#CCCCCC"
                         )
                     |])

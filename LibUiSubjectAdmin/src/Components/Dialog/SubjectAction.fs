@@ -108,7 +108,7 @@ type SubjectAction<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'E
                 this.Actions.TryCancel
             ),
             heading = $"{this.props.Parameters.Service.LifeCycleKey.LocalLifeCycleName} Action",
-            body = asFragment [
+            body    = asFragment [
                 LC.Form.Base (
                     accumulator = LibClient.Components.Form_Base.Accumulator.ManageInternallyInitializingWith (Acc.Initial this.props.Parameters.Encoder),
                     submit      = submit this.props.Parameters.Service this.Actions.TryCancel this.props.Parameters.Id,

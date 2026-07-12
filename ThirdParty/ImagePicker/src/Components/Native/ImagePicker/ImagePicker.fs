@@ -56,16 +56,16 @@ module private Styles =
 type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
     [<Component>]
     static member ImagePicker(
-            value:         list<File>,
-            validity:      InputValidity,
-            onChange:      Result<list<File>, string> -> unit,
-            ?maxFileCount: Positive.PositiveInteger,
-            ?maxFileSize:  int<KB>,
-            ?showPreview:  bool,
+            value:          list<File>,
+            validity:       InputValidity,
+            onChange:       Result<list<File>, string> -> unit,
+            ?maxFileCount:  Positive.PositiveInteger,
+            ?maxFileSize:   int<KB>,
+            ?showPreview:   bool,
             ?selectionMode: SelectionMode,
-            ?styles:       array<ViewStyles>,
+            ?styles:        array<ViewStyles>,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:          string
+            ?key:           string
         ) : ReactElement =
         ignore key
         xLegacyStyles |> ignore
@@ -122,7 +122,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
         let selectImage (maybeAssets: Option<list<Asset>>) : unit =
             match maybeAssets with
             | Some assets -> loadFiles assets
-            | None -> ()
+            | None        -> ()
 
         let mergedViewStyles =
             match validity, internalValidityHook.current with
@@ -133,7 +133,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
         let invalidReason =
             match internalValidityHook.current.InvalidReason with
             | Some reason -> Some reason
-            | None -> validity.InvalidReason
+            | None        -> validity.InvalidReason
 
         Rn.View(
             children =
@@ -186,7 +186,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
                                         [|
                                             if value.Length = 1 then
                                                 LC.LegacyText(
-                                                    styles = [| Styles.textCenter |],
+                                                    styles   = [| Styles.textCenter |],
                                                     children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") (sprintf "%i file selected" value.Length) |]
                                                 )
                                             else
@@ -194,7 +194,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
 
                                             if value.Length > 1 then
                                                 LC.LegacyText(
-                                                    styles = [| Styles.textCenter |],
+                                                    styles   = [| Styles.textCenter |],
                                                     children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") (sprintf "%i files selected" value.Length) |]
                                                 )
                                             else
@@ -208,7 +208,7 @@ type ThirdParty.ImagePicker.Components.Constructors.ImagePicker.Native with
                                         children =
                                             [|
                                                 LC.LegacyText(
-                                                    styles = [| Styles.invalidReason |],
+                                                    styles   = [| Styles.invalidReason |],
                                                     children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") reason |]
                                                 )
                                             |]

@@ -12,10 +12,10 @@ open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let sidebar      = makeViewStyles { height 600 }
-    let profile      = makeViewStyles { padding 18 }
-    let name         = makeTextStyles { FontWeight.Bold; fontSize 18; color (colors.Neutral.B600); marginTop 12 }
-    let email        = makeTextStyles { fontSize 14; color (colors.Neutral.B500) }
+    let sidebar = makeViewStyles { height 600 }
+    let profile = makeViewStyles { padding 18 }
+    let name    = makeTextStyles { FontWeight.Bold; fontSize 18; color (colors.Neutral.B600); marginTop 12 }
+    let email   = makeTextStyles { fontSize 14; color (colors.Neutral.B500) }
 
 module SI = LibClient.Components.Sidebar.Item
 
@@ -24,7 +24,7 @@ type Ui.Content with
     static member Sidebar () : ReactElement =
         Ui.ComponentContent (
             displayName = "Sidebar",
-            props = ComponentContent.Manual (element {
+            props       = ComponentContent.Manual (element {
                 Ui.ScrapedComponentProps (heading = "Sidebar.Base",    fullyQualifiedName = "LibClient.Components.Sidebar.Base")
                 Ui.ScrapedComponentProps (heading = "Sidebar.Item",    fullyQualifiedName = "LibClient.Components.Sidebar.Item")
                 Ui.ScrapedComponentProps (heading = "Sidebar.Heading", fullyQualifiedName = "LibClient.Components.Sidebar.Heading")
@@ -32,12 +32,12 @@ type Ui.Content with
             }),
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Sidebar.*",
-                    role = "navigation (Sidebar.Base); items expose button roles",
-                    namePattern = "Sidebar.Item label text; Sidebar.Heading for section headers",
-                    stateNotes = "Selected item exposes selected state; disabled items are not actionable",
+                    componentName  = "LC.Sidebar.*",
+                    role           = "navigation (Sidebar.Base); items expose button roles",
+                    namePattern    = "Sidebar.Item label text; Sidebar.Heading for section headers",
+                    stateNotes     = "Selected item exposes selected state; disabled items are not actionable",
                     scalesWithFont = true,
-                    contrastNotes = "Sidebar text and selection highlight meet WCAG AA"
+                    contrastNotes  = "Sidebar text and selection highlight meet WCAG AA"
                 ),
             samples = (
                 element {
@@ -47,37 +47,37 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     visuals = (
                                         LC.Sidebar.Base(
-                                            styles = [| Styles.sidebar |],
+                                            styles   = [| Styles.sidebar |],
                                             fixedTop = Rn.View(
-                                                styles = [| Styles.profile |],
+                                                styles   = [| Styles.profile |],
                                                 children = [|
-                                                    LC.Avatar(source = localImage "/images/tifa.jpg")
-                                                    LC.UiText("Tifa Lockhart",    styles = [| Styles.name  |])
+                                                    LC.Avatar(source                      = localImage "/images/tifa.jpg")
+                                                    LC.UiText("Tifa Lockhart",    styles  = [| Styles.name  |])
                                                     LC.UiText("tifa@ffvii.world",  styles = [| Styles.email |])
                                                 |]
                                             ),
                                             scrollableMiddle = castAsElement [|
                                                 LC.Sidebar.Heading(text = "With Left Icons")
-                                                LC.Sidebar.Item(label = "Inbox",    leftIcon = Icon.TwoSheets, state = SI.State.Actionable ignore)
-                                                LC.Sidebar.Item(label = "Calendar", leftIcon = Icon.Calendar,  state = SI.State.Actionable ignore)
-                                                LC.Sidebar.Item(label = "Starred",  leftIcon = Icon.Star,      state = SI.State.Actionable ignore)
-                                                LC.Sidebar.Item(label = "Tags",     leftIcon = Icon.Tags,      state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Inbox",    leftIcon = Icon.TwoSheets, state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Calendar", leftIcon = Icon.Calendar,  state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Starred",  leftIcon = Icon.Star,      state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Tags",     leftIcon = Icon.Tags,      state = SI.State.Actionable ignore)
 
                                                 LC.Sidebar.Divider()
                                                 LC.Sidebar.Heading(text = "Without Left Icons")
-                                                LC.Sidebar.Item(label = "Settings & Account", state = SI.State.Actionable ignore)
-                                                LC.Sidebar.Item(label = "Help & Feedback",    state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Settings & Account", state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Help & Feedback",    state = SI.State.Actionable ignore)
 
                                                 LC.Sidebar.Divider()
                                                 LC.Sidebar.Heading(text = "Right Icon/Badge")
-                                                LC.Sidebar.Item(label = "Notifications", right = SI.Right.Badge (PositiveInteger.ofLiteral 3), state = SI.State.Actionable ignore)
-                                                LC.Sidebar.Item(label = "Orders",        right = SI.Right.Icon Icon.Bell,                      state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Notifications", right = SI.Right.Badge (PositiveInteger.ofLiteral 3), state = SI.State.Actionable ignore)
+                                                LC.Sidebar.Item(label   = "Orders",        right = SI.Right.Icon Icon.Bell,                      state = SI.State.Actionable ignore)
 
                                                 LC.Sidebar.Divider()
                                                 LC.Sidebar.Heading(text = "States")
-                                                LC.Sidebar.Item(label = "Disabled",    state = SI.State.Disabled)
-                                                LC.Sidebar.Item(label = "Selected",    state = SI.State.Selected)
-                                                LC.Sidebar.Item(label = "In Progress", state = SI.State.InProgress)
+                                                LC.Sidebar.Item(label   = "Disabled",    state = SI.State.Disabled)
+                                                LC.Sidebar.Item(label   = "Selected",    state = SI.State.Selected)
+                                                LC.Sidebar.Item(label   = "In Progress", state = SI.State.InProgress)
                                             |],
                                             fixedBottom = LC.Sidebar.Item(label = "Log Out", leftIcon = Icon.Power, state = SI.State.Actionable ignore)
                                         )

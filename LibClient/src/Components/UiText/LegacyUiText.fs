@@ -51,7 +51,7 @@ type LibClient.Components.Constructors.LC with
 
         let maybeStyleValueSecondPass =
             match (styles, maybeStyleValueFirstPass) with
-            | (None, None) -> None
+            | (None, None)       -> None
             | (None, Some value) -> Some value
             | (Some value, None) -> Some value
             | (Some a, Some b)   -> Array.append a b |> Some

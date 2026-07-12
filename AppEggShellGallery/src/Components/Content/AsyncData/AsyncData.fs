@@ -25,7 +25,7 @@ type private Demos =
                     )
                     if showFailure.current then
                         LC.AsyncData(
-                            data = Failed (UserReadableFailure "someone sent us the bomb"),
+                            data          = Failed (UserReadableFailure "someone sent us the bomb"),
                             whenAvailable = Demos.WhenAvailableText
                         )
                 },
@@ -40,18 +40,18 @@ type Ui.Content with
     static member AsyncData () : ReactElement =
         Ui.ComponentContent(
             displayName = "AsyncData",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.AsyncData",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.AsyncData",
             notes =
                 LC.Text
                     "An AsyncData component is typically used in conjunction with a component that provides data asynchronously, such as With.Subject or QueryGrid. Such components will typically handle the async life cycle on your behalf, automatically transitioning between different AsyncData<'T> values. For the sake of simplicity, the examples below provide AsyncData<'T> values to the AsyncData component directly.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.AsyncData",
-                    role = "none (async state wrapper)",
-                    namePattern = "Loading/error/empty messages from child render props",
-                    stateNotes = "Transitions between Available, Loading, Failed, and Uninitialized states",
+                    componentName  = "LC.AsyncData",
+                    role           = "none (async state wrapper)",
+                    namePattern    = "Loading/error/empty messages from child render props",
+                    stateNotes     = "Transitions between Available, Loading, Failed, and Uninitialized states",
                     scalesWithFont = true,
-                    contrastNotes = "Status and error message text meet WCAG AA"
+                    contrastNotes  = "Status and error message text meet WCAG AA"
                 ),
             samples =
                 element {
@@ -62,7 +62,7 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Uninitialized,
+                                            data          = Uninitialized,
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -78,7 +78,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Unavailable,
+                                            data          = Unavailable,
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -94,7 +94,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = AccessDenied,
+                                            data          = AccessDenied,
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -110,7 +110,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = WillStartFetchingSoonHack,
+                                            data          = WillStartFetchingSoonHack,
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -126,7 +126,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Fetching None,
+                                            data          = Fetching None,
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -142,7 +142,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Fetching (Some "Jekyll"),
+                                            data          = Fetching (Some "Jekyll"),
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -158,7 +158,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Available "Hyde",
+                                            data          = Available "Hyde",
                                             whenAvailable = Demos.WhenAvailableText
                                         ),
                                     code =
@@ -181,8 +181,8 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Uninitialized,
-                                            whenAvailable = Demos.WhenAvailableText,
+                                            data              = Uninitialized,
+                                            whenAvailable     = Demos.WhenAvailableText,
                                             whenUninitialized = fun () -> LC.Text "A custom uninitialized message."
                                         ),
                                     code =
@@ -199,9 +199,9 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Unavailable,
+                                            data          = Unavailable,
                                             whenAvailable = Demos.WhenAvailableText,
-                                            whenElse = fun () -> LC.Text "An alternative way to customize for all states other than Available."
+                                            whenElse      = fun () -> LC.Text "An alternative way to customize for all states other than Available."
                                         ),
                                     code =
                                         ComponentSample.singleBlock Fsharp (
@@ -217,7 +217,7 @@ LC.AsyncData(
                                 Ui.ComponentSample(
                                     visuals =
                                         LC.AsyncData(
-                                            data = Fetching (Some "Jekyll"),
+                                            data          = Fetching (Some "Jekyll"),
                                             whenAvailable = Demos.WhenAvailableText,
                                             whenFetching =
                                                 (fun maybePrevName ->
@@ -261,9 +261,9 @@ LC.ErrorBoundary(
                                     heading = "With WhenFailed handler",
                                     visuals =
                                         LC.AsyncData(
-                                            data = Failed (UserReadableFailure "someone sent us a bomb"),
+                                            data          = Failed (UserReadableFailure "someone sent us a bomb"),
                                             whenAvailable = Demos.WhenAvailableText,
-                                            whenFailed = fun _ -> LC.Text "Something went wrong - we couldn't retrieve the name."
+                                            whenFailed    = fun _ -> LC.Text "Something went wrong - we couldn't retrieve the name."
                                         ),
                                     code =
                                         ComponentSample.singleBlock Fsharp (

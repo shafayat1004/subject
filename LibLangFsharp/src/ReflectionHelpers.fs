@@ -21,5 +21,5 @@ let private unionPropertyItemRegex =
 
 let unionCaseFieldName (propertyInfo: PropertyInfo) : Option<string> =
     match unionPropertyItemRegex.IsMatch propertyInfo.Name with
-    | true -> None
+    | true  -> None
     | false -> Some propertyInfo.Name

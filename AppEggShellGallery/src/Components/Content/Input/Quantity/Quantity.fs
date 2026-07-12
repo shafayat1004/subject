@@ -37,12 +37,12 @@ type Ui.Content.Input with
             props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Quantity",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.Quantity",
-                    role = "text field (numeric with unit)",
-                    namePattern = "Floating label text; unit suffix visible in field",
-                    stateNotes = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
+                    componentName  = "LC.Input.Quantity",
+                    role           = "text field (numeric with unit)",
+                    namePattern    = "Floating label text; unit suffix visible in field",
+                    stateNotes     = "Internal validation errors take precedence; Invalid/Missing validity surfaces error text",
                     scalesWithFont = true,
-                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, input text, and error colors meet WCAG AA"
                 ),
             samples     =
                 element {

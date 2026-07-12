@@ -54,11 +54,11 @@ type PermissionStatus =
 
 type IPermission =
     abstract request: obj  -> JS.Promise<string>
-    abstract check: string -> JS.Promise<bool>
-    
+    abstract check:   string -> JS.Promise<bool>
+
 type IPlatform =
     abstract Version: int
-    
+
 let androidNotificationPermissionNamespace = "android.permission.POST_NOTIFICATIONS"
 exception PushNotificationPermissionError of string
 
@@ -95,36 +95,36 @@ type PushNotificationService () =
                 popInitialNotification = true
                 requestPermissions     = true
             |}
-            
+
         async {
             // on Android 13 - we need to manually request notification permission
-            // for iOS - the push-notification library internally handle the permission request. 
+            // for iOS - the push-notification library internally handle the permission request.
             match Runtime.platform with
             | Platform.Native NativePlatform.Android ->
                 this.CreateChannel DefaultNotificationChannel
                 return! this.AndroidRequestPermissionAndRegisterPushNotification config
-            | _ -> 
+            | _ ->
                 return! this.IOSRegisterPushNotification config
         } |> AsyncHelpers.startSafely
-        
+
     member private this.ConfigureNotification (config: IConfig) =
         pushNotification?configure(config)
-        
+
     member private this.IOSRegisterPushNotification (config: IConfig) : Async<unit> =
         this.ConfigureNotification config
         |> Async.Of
-        
+
     member private this.AndroidRequestPermissionAndRegisterPushNotification (config: IConfig): Async<unit> =
         async {
             let! hasNotificationPermission = this.HasAndroidNotificationPermission ()
-            
+
             let! shouldConfigureNotification =
                 match hasNotificationPermission with
                 | true  -> Async.Of true
                 | false ->
                     async {
                         let! permission = this.Android13RequestNotificationPermission ()
-        
+
                         match permission with
                         | Granted ->
                             return true
@@ -138,7 +138,7 @@ type PushNotificationService () =
             if shouldConfigureNotification then
                 this.ConfigureNotification config
         }
-        
+
     member private this.HasAndroidNotificationPermission() : Async<bool> =
         if platform.Version >= 33 then // android 13 = platform version 33
             async {
@@ -146,13 +146,13 @@ type PushNotificationService () =
             }
         else
             Async.Of true
-        
+
     member private this.Android13CheckNotificationPermission (): Async<bool> =
         promise {
             return! permissionsAndroid.check androidNotificationPermissionNamespace
         }
         |> Async.AwaitPromise
-         
+
     member private this.Android13RequestNotificationPermission  (): Async<PermissionStatus> =
         promise {
             let! permission = permissionsAndroid.request(androidNotificationPermissionNamespace)

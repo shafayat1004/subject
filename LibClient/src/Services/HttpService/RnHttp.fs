@@ -83,7 +83,7 @@ type WebRequestOptions = {
     // Used instead of calling getHeaders.
     overrideGetHeaders: Headers                       option // defaultWithAutoWrap JsUndefined
     // Overrides all other headers.
-    augmentHeaders:     Headers                       option // defaultWithAutoWrap JsUndefined
+    augmentHeaders: Headers                       option // defaultWithAutoWrap JsUndefined
 
     streamingDownloadProgress: (string -> unit)                                                 option // defaultWithAutoWrap JsUndefined
     onProgress:                (XMLHttpRequestProgressEvent -> unit)                            option // defaultWithAutoWrap JsUndefined

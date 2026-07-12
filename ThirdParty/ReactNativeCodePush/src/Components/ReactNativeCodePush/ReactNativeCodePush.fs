@@ -54,15 +54,15 @@ type SyncStatus =
 with
     member this.toJS(): int =
         match this with
-        | CHECKING_FOR_UPDATE -> 0
+        | CHECKING_FOR_UPDATE  -> 0
         | AWAITING_USER_ACTION -> 1
-        | DOWNLOADING_PACKAGE -> 2
-        | INSTALLING_UPDATE  -> 3
-        | UP_TO_DATE -> 4
-        | UPDATE_IGNORED -> 5
-        | UPDATE_INSTALLED -> 6
-        | SYNC_IN_PROGRESS -> 7
-        | UNKNOWN_ERROR -> -1
+        | DOWNLOADING_PACKAGE  -> 2
+        | INSTALLING_UPDATE    -> 3
+        | UP_TO_DATE           -> 4
+        | UPDATE_IGNORED       -> 5
+        | UPDATE_INSTALLED     -> 6
+        | SYNC_IN_PROGRESS     -> 7
+        | UNKNOWN_ERROR        -> -1
 
     static member fromJS(statusNumber: int): SyncStatus =
         match statusNumber with
@@ -87,13 +87,13 @@ type private SyncOptionsJs ( installMode: int, mandatoryInstallMode: int ) =
     member val mandatoryInstallMode = mandatoryInstallMode
 
 type CodePushOptions = {
-    checkFrequency: Option<CheckFrequency>
+    checkFrequency:       Option<CheckFrequency>
     mandatoryInstallMode: Option<InstallMode>
 }
 with
     member this.toJS() =
         CodePushOptionsJs(
-            ?checkFrequency = (this.checkFrequency |> Option.map (fun x -> x.toJS())),
+            ?checkFrequency       = (this.checkFrequency |> Option.map (fun x -> x.toJS())),
             ?mandatoryInstallMode = (this.mandatoryInstallMode |> Option.map (fun x -> x.toJS()))
         ) |> box
 
@@ -108,7 +108,7 @@ type LocalPackage = {
     label:         string
     packageHash:   int64
 
-    install:       int -> Promise<unit>
+    install: int -> Promise<unit>
 }
 
 type DownloadProgress = {
@@ -127,12 +127,12 @@ type RemotePackage = {
     label:         string
     packageHash:   int64
 
-    downloadUrl:   string
-    download:      (DownloadProgress->Unit) -> Promise<LocalPackage>
+    downloadUrl: string
+    download:    (DownloadProgress->Unit) -> Promise<LocalPackage>
 }
 
 type SyncOptions = {
-    installMode: InstallMode
+    installMode:          InstallMode
     mandatoryInstallMode: InstallMode
 
     //TODO - Add followings when needed

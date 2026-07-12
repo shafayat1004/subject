@@ -4,11 +4,11 @@ open Fable.Core.JsInterop
 open LibClient
 open ThirdParty.GoogleAnalytics.Types
 
-let private initializeApp: obj -> obj  = import "initializeApp" "firebase/app"
-let private getAnalytics:  obj -> obj  = import "getAnalytics" "firebase/analytics"
+let private initializeApp: obj -> obj = import "initializeApp" "firebase/app"
+let private getAnalytics:  obj -> obj = import "getAnalytics" "firebase/analytics"
 
-let private logEvent  (_analytics: obj, _eventName: string, _properties: obj): unit  = import "logEvent" "firebase/analytics"
-let private setUserId (_analytics: obj, _userId: string): unit                       = import "setUserId" "firebase/analytics"
+let private logEvent  (_analytics: obj, _eventName: string, _properties: obj): unit = import "logEvent" "firebase/analytics"
+let private setUserId (_analytics: obj, _userId: string): unit                      = import "setUserId" "firebase/analytics"
 
 let mutable private maybeAnalytics : Option<obj> = None
 

@@ -17,13 +17,13 @@ type Ui.Content with
                 children =
                     elements {
                         LC.Button(
-                            icon = Left Icon.Home,
+                            icon  = Left Icon.Home,
                             label = "Home",
                             state = PropStateFactory.MakeLowLevel (Actionable greet)
                         )
 
                         LC.Button(
-                            icon = Left Icon.Submit,
+                            icon  = Left Icon.Submit,
                             label = "Submit",
                             state = PropStateFactory.MakeLowLevel (Actionable greet)
                         )
@@ -32,13 +32,13 @@ type Ui.Content with
 
         Ui.ComponentContent(
             displayName = "Buttons",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Buttons",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Buttons",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Buttons",
-                    role = "none (layout container)",
-                    namePattern = "N/A — child LC.Button elements supply names",
-                    stateNotes = "N/A — child buttons expose disabled and busy state",
+                    componentName  = "LC.Buttons",
+                    role           = "none (layout container)",
+                    namePattern    = "N/A — child LC.Button elements supply names",
+                    stateNotes     = "N/A — child buttons expose disabled and busy state",
                     scalesWithFont = false
                 ),
             samples =

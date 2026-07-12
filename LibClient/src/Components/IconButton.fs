@@ -18,22 +18,22 @@ module LC =
         let Disabled   = ButtonLowLevelState.Disabled
 
         type StateTheme = {
-            IconColor: Color
-            IconSize: int
+            IconColor:       Color
+            IconSize:        int
             TapTargetMargin: int * int * int * int
         }
 
         type Theme = {
             Actionable: StateTheme
-            Disabled: StateTheme
+            Disabled:   StateTheme
             InProgress: StateTheme
         }
         with
             member this.StateTheme (lowLevelState: ButtonLowLevelState) =
                 match lowLevelState with
                 | Actionable _ -> this.Actionable
-                | InProgress -> this.InProgress
-                | Disabled -> this.Disabled
+                | InProgress   -> this.InProgress
+                | Disabled     -> this.Disabled
 
 open LC.IconButton
 
@@ -109,13 +109,13 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member IconButton(
-            state: ButtonHighLevelState,
-            icon: IconConstructor,
-            ?label: string,
+            state:   ButtonHighLevelState,
+            icon:    IconConstructor,
+            ?label:  string,
             ?testId: string,
             ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?theme:  Theme -> Theme,
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 
@@ -148,15 +148,15 @@ type LibClient.Components.Constructors.LC with
                                 Styles.viewThemeFor theTheme lowLevelState isDepressed
                                 yield! (styles |> Option.defaultValue [||])
                             |],
-                        ?accessibilityRole = maybeContainerRole,
+                        ?accessibilityRole  = maybeContainerRole,
                         ?accessibilityLabel = maybeContainerLabel,
                         ?accessibilityState = maybeContainerState,
-                        ?testId = maybeContainerTestId,
+                        ?testId             = maybeContainerTestId,
                         children =
                             elements {
                                 LC.Icon(
                                     styles = [| Styles.iconThemeFor theTheme lowLevelState |],
-                                    icon = icon
+                                    icon   = icon
                                 )
 
                                 match lowLevelState with
@@ -167,7 +167,7 @@ type LibClient.Components.Constructors.LC with
                                             elements {
                                                 Rn.ActivityIndicator(
                                                     color = "#aaaaaa",
-                                                    size = Size.Tiny
+                                                    size  = Size.Tiny
                                                 )
                                             }
                                     )
@@ -177,13 +177,13 @@ type LibClient.Components.Constructors.LC with
                                 match lowLevelState with
                                 | Actionable onPress ->
                                     LC.Pressable(
-                                        onPress = onPress,
-                                        label = a11yLabel,
-                                        ?testId = testId,
-                                        role = AccessibilityRole.Button,
-                                        overlay = true,
-                                        pointerState = pointerState,
-                                        ?styles = (Some [| Styles.tapCaptureThemeFor theTheme lowLevelState |]),
+                                        onPress       = onPress,
+                                        label         = a11yLabel,
+                                        ?testId       = testId,
+                                        role          = AccessibilityRole.Button,
+                                        overlay       = true,
+                                        pointerState  = pointerState,
+                                        ?styles       = (Some [| Styles.tapCaptureThemeFor theTheme lowLevelState |]),
                                         componentName = "LC.IconButton"
                                     )
                                 | _ ->

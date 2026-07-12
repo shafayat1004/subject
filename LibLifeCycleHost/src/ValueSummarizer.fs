@@ -32,7 +32,7 @@ let redactSummarizer (summarizer: ValueSummarizer) =
     fun value ->
         match (box value) with
         | :? IRedactable as redactable -> redactable.Redact()
-        | (v: obj) -> v
+        | (v: obj)                     -> v
         |> summarizer
 
 ////////////////////////////////////////////////////////////

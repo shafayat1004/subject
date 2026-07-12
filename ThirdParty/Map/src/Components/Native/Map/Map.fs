@@ -53,16 +53,16 @@ module private Styles =
 type ThirdParty.Map.Components.Constructors.Map.Native with
     [<Component>]
     static member Map(
-            apiKey:     string,
-            ?value:     LatLng,
-            ?zoom:      int,
-            ?onChange:  Option<LatLng> -> unit,
-            ?fullScreen: bool,
-            ?markers:   List<Marker>,
-            ?shapes:    List<Shape>,
-            ?ref:       (IRefReactNativeMapView -> unit),
+            apiKey:         string,
+            ?value:         LatLng,
+            ?zoom:          int,
+            ?onChange:      Option<LatLng> -> unit,
+            ?fullScreen:    bool,
+            ?markers:       List<Marker>,
+            ?shapes:        List<Shape>,
+            ?ref:           (IRefReactNativeMapView -> unit),
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:       string
+            ?key:           string
         ) : ReactElement =
         ignore apiKey
         ignore key
@@ -97,15 +97,15 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
                 (fun (onLayoutOption, maybeLayout) ->
                     Rn.View(
                         ?onLayout = onLayoutOption,
-                        styles = viewStyles,
+                        styles    = viewStyles,
                         children =
                             [|
                                 Map.Native.ReactNativeMaps(
-                                    size = (maybeLayout |> Option.map (fun l -> l.Width, l.Height)),
-                                    zoom = zoom,
-                                    value = (match value with Some latlng -> latlng | None -> defaultLatLng),
+                                    size     = (maybeLayout |> Option.map (fun l -> l.Width, l.Height)),
+                                    zoom     = zoom,
+                                    value    = (match value with Some latlng -> latlng | None -> defaultLatLng),
                                     onChange = onChange,
-                                    ref = (defaultArg ref (fun _ -> ())),
+                                    ref      = (defaultArg ref (fun _ -> ())),
                                     children =
                                         [|
                                             yield!
@@ -119,8 +119,8 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
                                                         |> List.map (fun m ->
                                                             Map.Native.Marker(
                                                                 coordinate = getCoordinate m,
-                                                                draggable = false,
-                                                                image = getMarkerImage m
+                                                                draggable  = false,
+                                                                image      = getMarkerImage m
                                                             )
                                                         )
                                                     | _ -> []
@@ -149,7 +149,7 @@ type ThirdParty.Map.Components.Constructors.Map.Native with
                                                 Rn.Image(
                                                     styles = [| Styles.image |],
                                                     source = localImage "/libs/ThirdParty/Map/images/marker.png",
-                                                    size = Image.FromStyles
+                                                    size   = Image.FromStyles
                                                 )
                                             )
                                         | _ -> None

@@ -10,12 +10,12 @@ open LibAutoUi.Types
 type UIAuto with
     [<Component>]
     static member InputFieldDateTime(
-            onChange:         InputValue -> unit,
-            maybeValue:       Option<InputValue>,
-            ?xLegacyStyles:   List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key:             string
+            onChange:       InputValue -> unit,
+            maybeValue:     Option<InputValue>,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let maybeSelectedDate =

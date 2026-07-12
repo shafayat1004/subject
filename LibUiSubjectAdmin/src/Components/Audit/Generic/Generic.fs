@@ -62,7 +62,7 @@ type LibUiSubjectAdmin.Components.Constructors.UiSubjectAdmin.Audit with
                             | RequestError.Non200Code (errorCode, _)     -> AsyncData.Failed (UnknownFailure $"Error {errorCode}")
                         |>
                             match filter with
-                            | None -> identity
+                            | None          -> identity
                             | Some filterFn -> AsyncData.map (Seq.filter filterFn)
 
                     gridDataHook.update (fun estate ->

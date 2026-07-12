@@ -33,8 +33,8 @@ type private Helpers =
     static member AtLeastOneSample() : ReactElement =
         let selectedFruits = Hooks.useState (Some (OrderedSet.ofList [Fruit.Mango]))
         LC.Input.ChoiceList(
-            items = Helpers.FruitItems,
-            value = AtLeastOne (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits.ToOrderedSet)),
+            items    = Helpers.FruitItems,
+            value    = AtLeastOne (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits.ToOrderedSet)),
             validity = Valid
         )
 
@@ -42,8 +42,8 @@ type private Helpers =
     static member AnySample() : ReactElement =
         let selectedFruits = Hooks.useState None
         LC.Input.ChoiceList(
-            items = Helpers.FruitItems,
-            value = Any (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits)),
+            items    = Helpers.FruitItems,
+            value    = Any (selectedFruits.current, fun fruits -> selectedFruits.update (Some fruits)),
             validity = Valid
         )
 
@@ -51,8 +51,8 @@ type private Helpers =
     static member AtMostOneSample() : ReactElement =
         let selectedFruit = Hooks.useState None
         LC.Input.ChoiceList(
-            items = Helpers.FruitItems,
-            value = AtMostOne (selectedFruit.current, selectedFruit.update),
+            items    = Helpers.FruitItems,
+            value    = AtMostOne (selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
 
@@ -60,8 +60,8 @@ type private Helpers =
     static member ExactlyOneSample() : ReactElement =
         let selectedFruit = Hooks.useState (Some Fruit.Mango)
         LC.Input.ChoiceList(
-            items = Helpers.FruitItemsWithChildren,
-            value = ExactlyOne (selectedFruit.current, fun fruit -> selectedFruit.update (Some fruit)),
+            items    = Helpers.FruitItemsWithChildren,
+            value    = ExactlyOne (selectedFruit.current, fun fruit -> selectedFruit.update (Some fruit)),
             validity = Valid
         )
 
@@ -69,8 +69,8 @@ type private Helpers =
     static member InvalidSample() : ReactElement =
         let selectedFruit = Hooks.useState None
         LC.Input.ChoiceList(
-            items = Helpers.FruitItems,
-            value = AtMostOne (selectedFruit.current, selectedFruit.update),
+            items    = Helpers.FruitItems,
+            value    = AtMostOne (selectedFruit.current, selectedFruit.update),
             validity = Invalid "Not a fruit"
         )
 
@@ -79,19 +79,19 @@ type Ui.Content.Input with
     static member ChoiceList() : ReactElement =
         Ui.ComponentContent(
             displayName = "Input.ChoiceList",
-            props = ComponentContent.Manual (element {
+            props       = ComponentContent.Manual (element {
                 Ui.ScrapedComponentProps(heading = "ChoiceList",     fullyQualifiedName = "LibClient.Components.Input.ChoiceList")
                 Ui.ScrapedComponentProps(heading = "ChoiceListItem", fullyQualifiedName = "LibClient.Components.Input.ChoiceListItem")
             }),
             notes = LC.Text "For 'AtMostOne' and 'ExactlyOne', Radio Button is rendered, and for 'AtLeastOne' and 'Any' we render checkboxes.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.ChoiceList / LC.Input.ChoiceListItem",
-                    role = "checkbox or radio per item (mode-dependent)",
-                    namePattern = "Item label or ?accessibilityLabel; selection icons are decorative",
-                    stateNotes = "selected/checked per item via group value; invalid reason shown when validity is Invalid",
+                    componentName  = "LC.Input.ChoiceList / LC.Input.ChoiceListItem",
+                    role           = "checkbox or radio per item (mode-dependent)",
+                    namePattern    = "Item label or ?accessibilityLabel; selection icons are decorative",
+                    stateNotes     = "selected/checked per item via group value; invalid reason shown when validity is Invalid",
                     scalesWithFont = true,
-                    contrastNotes = "Label text and selection icons meet WCAG AA; invalid state adds error text"
+                    contrastNotes  = "Label text and selection icons meet WCAG AA; invalid state adds error text"
                 ),
             samples = (
                 element {
@@ -101,7 +101,7 @@ type Ui.Content.Input with
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.AtLeastOneSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.ChoiceList(
     items = fun group -> element {
         LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
@@ -115,7 +115,7 @@ LC.Input.ChoiceList(
 
                                 Ui.ComponentSample(
                                     visuals = Helpers.AnySample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.ChoiceList(
     items = fun group -> element {
         LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
@@ -129,7 +129,7 @@ LC.Input.ChoiceList(
 
                                 Ui.ComponentSample(
                                     visuals = Helpers.AtMostOneSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.ChoiceList(
     items = fun group -> element {
         LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)
@@ -150,7 +150,7 @@ LC.Input.ChoiceList(
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.ExactlyOneSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.ChoiceList(
     items = fun group -> element {
         LC.Input.ChoiceListItem(group = group, value = Fruit.Mango,  children = [| LC.UiText "Mango" |])
@@ -171,7 +171,7 @@ LC.Input.ChoiceList(
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.InvalidSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.ChoiceList(
     items = fun group -> element {
         LC.Input.ChoiceListItem(group = group, label = Label.String "Mango",  value = Fruit.Mango)

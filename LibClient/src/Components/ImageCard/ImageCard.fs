@@ -139,7 +139,7 @@ type LibClient.Components.Constructors.LC with
                                                 match lbl with
                                                 | Label.Text (text, _) ->
                                                     Rn.View(
-                                                        styles   = [| Styles.labelTextWrapper |],
+                                                        styles = [| Styles.labelTextWrapper |],
                                                         children =
                                                             [|
                                                                 LC.UiText(text, ?styles = labelStyles)
@@ -156,16 +156,16 @@ type LibClient.Components.Constructors.LC with
                                     let a11yLabel =
                                         match label with
                                         | Some (Label.Text (text, _)) -> text
-                                        | Some (Label.Children _) -> "Image"
-                                        | None -> "Open image"
+                                        | Some (Label.Children _)     -> "Image"
+                                        | None                        -> "Open image"
                                     let resolvedTestId =
                                         testId |> Option.orElse (Some (A11ySlug.testId "image-card" a11yLabel))
                                     LC.Pressable(
-                                        onPress = f,
-                                        label = a11yLabel,
-                                        testId = resolvedTestId.Value,
-                                        role = AccessibilityRole.Button,
-                                        overlay = true,
+                                        onPress       = f,
+                                        label         = a11yLabel,
+                                        testId        = resolvedTestId.Value,
+                                        role          = AccessibilityRole.Button,
+                                        overlay       = true,
                                         componentName = "LC.ImageCard"
                                     )
                                 | None -> ()

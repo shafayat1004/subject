@@ -22,26 +22,26 @@ type Ui.Content.Input with
     static member LocalTime() : ReactElement =
         Ui.ComponentContent(
             displayName = "Input.LocalTime",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.LocalTime",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.LocalTime",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.LocalTime",
-                    role = "text field with time picker",
-                    namePattern = "Floating label text",
-                    stateNotes = "Invalid/Missing validity surfaces error text below the field",
+                    componentName  = "LC.Input.LocalTime",
+                    role           = "text field with time picker",
+                    namePattern    = "Floating label text",
+                    stateNotes     = "Invalid/Missing validity surfaces error text below the field",
                     scalesWithFont = true,
-                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, input text, and error colors meet WCAG AA"
                 ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
                         heading = "Basics",
-                        notes = LC.Text "LocalTime input uses 12-hour format: separate hour (1–12) and minute (0–59) fields with an AM/PM picker. A complete time is available in Value.Result only when both fields are filled and valid.",
+                        notes   = LC.Text "LocalTime input uses 12-hour format: separate hour (1–12) and minute (0–59) fields with an AM/PM picker. A complete time is available in Value.Result only when both fields are filled and valid.",
                         samples = (
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.InteractiveSample(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.LocalTime(
     label    = "Start Time",
     value    = value,

@@ -51,22 +51,22 @@ module Input_ImageComponent =
     type Constructors.LC.Input with
         [<Component>]
         static member Image(
-                value:         list<File>,
-                validity:      InputValidity,
-                onChange:      Result<list<File>, string> -> unit,
-                ?children:     ReactChildrenProp,
-                ?showPreview:  bool,
+                value:          list<File>,
+                validity:       InputValidity,
+                onChange:       Result<list<File>, string> -> unit,
+                ?children:      ReactChildrenProp,
+                ?showPreview:   bool,
                 ?selectionMode: SelectionMode,
-                ?maxFileCount: Positive.PositiveInteger,
-                ?maxFileSize:  int<KB>,
-                ?label:        string,
-                ?styles:       array<ViewStyles>,
-                ?testId:       string,
-                ?key:          string,
+                ?maxFileCount:  Positive.PositiveInteger,
+                ?maxFileSize:   int<KB>,
+                ?label:         string,
+                ?styles:        array<ViewStyles>,
+                ?testId:        string,
+                ?key:           string,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
-            key |> ignore
+            key      |> ignore
 
             let showPreview   = defaultArg showPreview true
             let selectionMode = defaultArg selectionMode ReplacedExisting
@@ -121,11 +121,11 @@ module Input_ImageComponent =
                     [|
                         if showPreview then
                             LC.Thumbs(
-                                onPress  = (fun _ index e -> toggleSelectedFilesForRemoval index e),
+                                onPress      = (fun _ index e -> toggleSelectedFilesForRemoval index e),
                                 testIdPrefix = resolvedTestId,
-                                ``for``  = LC.Thumbs.For.Of(value |> List.map (fun file -> file.ToDataUri |> ImageSource.ofUrl)),
-                                selected = selectedFilesHook.current,
-                                styles   = [| Styles.imageThumbs |]
+                                ``for``      = LC.Thumbs.For.Of(value |> List.map (fun file -> file.ToDataUri |> ImageSource.ofUrl)),
+                                selected     = selectedFilesHook.current,
+                                styles       = [| Styles.imageThumbs |]
                             )
                         else
                             noElement
@@ -139,14 +139,14 @@ module Input_ImageComponent =
                             noElement
 
                         LC.Input.File(
-                            onChange        = onChange,
-                            selectionMode   = selectionMode,
-                            acceptedTypes   = ([ LibClient.Components.Input.File.AnyImageFile ] |> Set.ofSeq),
-                            ?maxFileSize    = maxFileSize,
-                            ?maxFileCount   = maxFileCount,
-                            validity        = validity,
-                            value           = value,
-                            ?xLegacyStyles  = fileLegacyStyles
+                            onChange       = onChange,
+                            selectionMode  = selectionMode,
+                            acceptedTypes  = ([ LibClient.Components.Input.File.AnyImageFile ] |> Set.ofSeq),
+                            ?maxFileSize   = maxFileSize,
+                            ?maxFileCount  = maxFileCount,
+                            validity       = validity,
+                            value          = value,
+                            ?xLegacyStyles = fileLegacyStyles
                         )
                     |]
             )

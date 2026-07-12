@@ -84,7 +84,7 @@ type private YAxisPropsJs
       ?width:                   int,
       ?height:                  int,
       ?orientation:             YAxisOrientation,
-      ?``type``:               AxisType,
+      ?``type``:                AxisType,
       ?allowDecimals:           bool,
       ?allowDataOverflow:       bool,
       ?allowDuplicatedCategory: bool,

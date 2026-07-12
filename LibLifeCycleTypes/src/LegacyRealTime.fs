@@ -5,9 +5,10 @@
 open System
 
 type SubjectSnapshot<'Subject, 'SubjectId
-    when 'Subject :> Subject<'SubjectId> and 'SubjectId :> SubjectId and 'SubjectId: comparison> =
-    { Subject: 'Subject
-      UpdatedOn: DateTimeOffset }
+    when 'Subject :> Subject<'SubjectId> and 'SubjectId :> SubjectId and 'SubjectId: comparison> = {
+        Subject:   'Subject
+        UpdatedOn: DateTimeOffset
+    }
 
 [<RequireQualifiedAccess>]
 type SubjectChange<'Subject, 'SubjectId
@@ -20,9 +21,10 @@ type AccessControlledSubjectChange<'Subject, 'SubjectId
     AccessControlled<SubjectChange<'Subject, 'SubjectId>, 'SubjectId>
 
 
-type SubjectProjectionSnapshot<'Projection> =
-    { Projected: 'Projection
-      UpdatedOn: DateTimeOffset }
+type SubjectProjectionSnapshot<'Projection> = {
+    Projected: 'Projection
+    UpdatedOn: DateTimeOffset
+}
 
 [<RequireQualifiedAccess>]
 type SubjectProjectionChange<'Projection> =
@@ -40,9 +42,9 @@ type ServerApi = unit
 type ClientStreamApi =
     | ObserveSubject of LifeCycleName: string * SubjectIdStr: string * SendCurrentValue: bool
     | ObserveSubjectProjection of
-        LifeCycleName: string *
-        ProjectionName: string *
-        SubjectIdStr: string *
+        LifeCycleName:    string *
+        ProjectionName:   string *
+        SubjectIdStr:     string *
         SendCurrentValue: bool
 
 [<RequireQualifiedAccess>]

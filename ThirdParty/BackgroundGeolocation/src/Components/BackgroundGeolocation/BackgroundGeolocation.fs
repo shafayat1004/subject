@@ -191,20 +191,20 @@ type DesiredAccuracy =
 [<Fable.Core.JS.Pojo>]
 type private GeolocationOptionJs(
     backgroundPermissionRationale: obj,
-    debug: bool,
-    desiredAccuracy: DesiredAccuracy,
-    triggerActivities: string,
-    startOnBoot: bool,
-    stopOnTerminate: bool,
-    maxRecordsToPersist: int,
-    heartbeatInterval: int,
-    locationUpdateInterval: int,
+    debug:                         bool,
+    desiredAccuracy:               DesiredAccuracy,
+    triggerActivities:             string,
+    startOnBoot:                   bool,
+    stopOnTerminate:               bool,
+    maxRecordsToPersist:           int,
+    heartbeatInterval:             int,
+    locationUpdateInterval:        int,
     fastestLocationUpdateInterval: int,
-    locationAuthorizationRequest: LocationAuthorizationRequest,
-    enableHeadless: bool,
-    allowIdenticalLocations: bool,
-    distanceFilter: int,
-    stopTimeout: int
+    locationAuthorizationRequest:  LocationAuthorizationRequest,
+    enableHeadless:                bool,
+    allowIdenticalLocations:       bool,
+    distanceFilter:                int,
+    stopTimeout:                   int
 ) =
     member val backgroundPermissionRationale = backgroundPermissionRationale
     member val debug = debug

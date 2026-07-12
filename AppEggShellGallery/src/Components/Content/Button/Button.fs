@@ -115,19 +115,19 @@ type Ui.Content with
     [<Component>]
     static member Button() : ReactElement =
         Ui.ComponentContent(
-            displayName = "Button",
+            displayName  = "Button",
             isResponsive = true,
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Button",
+            props        = ComponentContent.ForFullyQualifiedName "LibClient.Components.Button",
             notes =
                 LC.Text "Every LC.Button component below is wrapped with LC.Buttons to prevent it from expanding to full width. This is not shown in code samples for simplicity.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Button",
-                    role = "button",
-                    namePattern = "Visible label text (label prop); icons are decorative",
-                    stateNotes = "disabled when PropStateFactory.MakeDisabled; busy when InProgress",
+                    componentName  = "LC.Button",
+                    role           = "button",
+                    namePattern    = "Visible label text (label prop); icons are decorative",
+                    stateNotes     = "disabled when PropStateFactory.MakeDisabled; busy when InProgress",
                     scalesWithFont = true,
-                    contrastNotes = "Themed text/background pairs on Primary, Secondary, and Tertiary levels meet WCAG AA"
+                    contrastNotes  = "Themed text/background pairs on Primary, Secondary, and Tertiary levels meet WCAG AA"
                 ),
             samples =
                 element {
@@ -139,7 +139,7 @@ type Ui.Content with
                                     visuals =
                                         Helpers.wrap (
                                             LC.Button(
-                                                icon = Icon.Left Icon.Home,
+                                                icon  = Icon.Left Icon.Home,
                                                 label = "Submit",
                                                 state = PropStateFactory.MakeLowLevel (Actionable Actions.greet)
                                             )
@@ -167,10 +167,10 @@ LC.Button(
                                         Helpers.wrap (
                                             LC.Button(
                                                 badgeTheme = SampleThemes.badgeGreen,
-                                                icon = Icon.Left Icon.ShoppingCart,
-                                                label = "Cart",
-                                                badge = Count 3,
-                                                state = PropStateFactory.MakeLowLevel (Actionable Actions.greet)
+                                                icon       = Icon.Left Icon.ShoppingCart,
+                                                label      = "Cart",
+                                                badge      = Count 3,
+                                                state      = PropStateFactory.MakeLowLevel (Actionable Actions.greet)
                                             )
                                         ),
                                     code =
@@ -224,7 +224,7 @@ LC.Button(
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
 let caution (theme: LC.Button.Theme) =
@@ -246,7 +246,7 @@ let caution (theme: LC.Button.Theme) =
                             Helpers.wrap (
                                 LC.Button(
                                     theme = SampleThemes.small,
-                                    icon = Icon.Right Icon.Home,
+                                    icon  = Icon.Right Icon.Home,
                                     label = "Submit",
                                     state = PropStateFactory.MakeLowLevel (Actionable Actions.greet)
                                 )
@@ -268,7 +268,7 @@ LC.Button(
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
 let small (theme: LC.Button.Theme) =

@@ -35,7 +35,7 @@ with
     member this.MaybeKey : Option<string> =
         match this with
         | WhenContentApproximatelyMatchesOriginalHeight key -> Some key
-        | No -> None
+        | No                                                -> None
 
 // ---------------------------------------------------------------------------
 // Module-level storage — intentionally survives component unmount/remount.
@@ -74,16 +74,16 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member ScrollView (
-            scroll:                                 Scroll,
-            restoreScroll:                          RestoreScroll,
-            children:                               array<ReactElement>,
-            ?onScroll:                              int * int -> unit,
-            ?onLayout:                              Rn.Types.ViewOnLayoutEvent -> unit,
+            scroll:         Scroll,
+            restoreScroll:  RestoreScroll,
+            children:       array<ReactElement>,
+            ?onScroll:      int * int -> unit,
+            ?onLayout:      Rn.Types.ViewOnLayoutEvent -> unit,
             ?showsHorizontalScrollIndicatorOnNative: bool,
-            ?showsVerticalScrollIndicatorOnNative:   bool,
-            ?styles:                                array<ViewStyles>,
-            ?scrollViewRef:                         JsNullable<IScrollViewComponentRef> -> unit,
-            ?key:                                   string
+            ?showsVerticalScrollIndicatorOnNative: bool,
+            ?styles:        array<ViewStyles>,
+            ?scrollViewRef: JsNullable<IScrollViewComponentRef> -> unit,
+            ?key:           string
         ) : ReactElement =
         ignore key
 
@@ -91,9 +91,9 @@ type LibClient.Components.Constructors.LC with
         let showsVert  = defaultArg showsVerticalScrollIndicatorOnNative   true
 
         // Per-instance mutable refs — do not trigger re-renders on change.
-        let lastScrollPositionRef:              IRefHook<ScrollPosition>                               = Hooks.useRef { Left = 0; Top = 0 }
-        let maybeLastContentSizeRef:            IRefHook<Option<Layout>>                               = Hooks.useRef None
-        let restoreWhenMatchRef:                IRefHook<Option<Measurements>>                         = Hooks.useRef None
+        let lastScrollPositionRef:              IRefHook<ScrollPosition>       = Hooks.useRef { Left = 0; Top = 0 }
+        let maybeLastContentSizeRef:            IRefHook<Option<Layout>>       = Hooks.useRef None
+        let restoreWhenMatchRef:                IRefHook<Option<Measurements>> = Hooks.useRef None
         let maybeScrollViewRef:                 IRefHook<Option<Rn.Components.ScrollView.IScrollViewRef>> = Hooks.useRef None
 
         // IScrollViewComponentRef implementation — delegates to the inner scroll view ref.
@@ -156,7 +156,7 @@ type LibClient.Components.Constructors.LC with
             maybeScrollViewRef.current
             |> Option.sideEffect (fun sv ->
                 sv.scrollTo (box {| x = measurements.ScrollPosition.Left
-                                    y = measurements.ScrollPosition.Top
+                                    y        = measurements.ScrollPosition.Top
                                     animated = false |}))
 
         // Returns true if `currentHeight` approximately matches the saved content height (~10%).
@@ -246,16 +246,16 @@ type LibClient.Components.Constructors.LC with
         //   - Restore in play: always use handleScroll (which also calls caller's onScroll).
         let effectiveOnScroll =
             match restoreScroll with
-            | No     -> onScroll
-            | _      -> Some handleScroll
+            | No -> onScroll
+            | _  -> Some handleScroll
 
         Rn.ScrollView (
-            horizontal                   = (scroll = Both || scroll = Horizontal),
-            vertical                     = (scroll = Both || scroll = Vertical),
+            horizontal = (scroll = Both || scroll = Horizontal),
+            vertical   = (scroll = Both || scroll = Vertical),
             showsHorizontalScrollIndicator = showsHoriz,
-            showsVerticalScrollIndicator   = showsVert,
-            ?onScroll                    = effectiveOnScroll,
-            ref                          = stableInnerRefCallback,
+            showsVerticalScrollIndicator = showsVert,
+            ?onScroll  = effectiveOnScroll,
+            ref        = stableInnerRefCallback,
             children =
                 [|
                     // Note: onContentSizeChange on the ScrollView doesn't work as expected

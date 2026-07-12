@@ -51,13 +51,13 @@ type LibClient.Components.Constructors.LC with
 
         let maybeStyleValueSecondPass =
             match (maybeStyleValueFirstPass, styles) with
-            | (None, None) -> None
+            | (None, None)       -> None
             | (None, Some value) -> Some value
             | (Some value, None) -> Some value
             | (Some a, Some b)   -> Array.append a b |> Some
 
         let __props = createEmpty
-        __props?selectable <- selectable |> Option.orElse ((Some true))
+        __props?selectable <- selectable       |> Option.orElse ((Some true))
         __props?numberOfLines <- numberOfLines |> Option.orElse (Undefined)
         __props?allowFontScaling <- allowFontScaling |> Option.orElse (Undefined)
         __props?maxContentSizeMultiplier <- maxContentSizeMultiplier |> Option.orElse (Undefined)
@@ -65,13 +65,13 @@ type LibClient.Components.Constructors.LC with
         __props?textBreakStrategy <- textBreakStrategy |> Option.orElse (Undefined)
         __props?importantForAccessibility <- importantForAccessibility |> Option.orElse (Undefined)
         __props?accessibilityId <- accessibilityId |> Option.orElse (Undefined)
-        accessibilityLabel |> Option.iter (fun v -> __props?accessibilityLabel <- v)
-        accessibilityRole |> Option.bind Rn.RnPrimitives.mapAccessibilityRole |> Option.iter (fun v -> __props?accessibilityRole <- v)
-        __props?autoFocus <- autoFocus |> Option.orElse (Undefined)
-        __props?onPress <- onPress |> Option.orElse (Undefined)
-        __props?id <- id |> Option.orElse (Undefined)
+        accessibilityLabel                     |> Option.iter (fun v -> __props?accessibilityLabel <- v)
+        accessibilityRole                      |> Option.bind Rn.RnPrimitives.mapAccessibilityRole |> Option.iter (fun v -> __props?accessibilityRole <- v)
+        __props?autoFocus <- autoFocus         |> Option.orElse (Undefined)
+        __props?onPress <- onPress             |> Option.orElse (Undefined)
+        __props?id <- id                       |> Option.orElse (Undefined)
         __props?onContextMenu <- onContextMenu |> Option.orElse (Undefined)
-        __props?key <- key |> Option.orElse (JsUndefined)
+        __props?key <- key                     |> Option.orElse (JsUndefined)
         __props?style <- maybeStyleValueSecondPass
 
         Fable.React.ReactBindings.React.createElement(

@@ -59,20 +59,20 @@ let applyInputThemes (palette: SemanticPalette) : unit =
     Themes.Set<LC.IconButton.Theme> {
         Actionable =
             {
-                IconColor = palette.TextSecondary
-                IconSize = 20
+                IconColor       = palette.TextSecondary
+                IconSize        = 20
                 TapTargetMargin = (-10, -10, -10, -10)
             }
         Disabled =
             {
-                IconColor = palette.TextMuted
-                IconSize = 20
+                IconColor       = palette.TextMuted
+                IconSize        = 20
                 TapTargetMargin = (-10, -10, -10, -10)
             }
         InProgress =
             {
-                IconColor = palette.TextSecondary
-                IconSize = 20
+                IconColor       = palette.TextSecondary
+                IconSize        = 20
                 TapTargetMargin = (-10, -10, -10, -10)
             }
     }

@@ -58,21 +58,21 @@ type Ui.Content with
     [<Component>]
     static member AnimatableText () : ReactElement =
         Ui.ComponentContent (
-            displayName = "AnimatableText",
+            displayName  = "AnimatableText",
             isResponsive = false,
-            props = ComponentContent.Manual (
+            props        = ComponentContent.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
                         {
-                            Name = "children"
-                            Type = "array<ReactElement>"
-                            Default = None
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "styles"
-                            Type = "array<AnimatableTextStyles>"
-                            Default = None
+                            Name        = "styles"
+                            Type        = "array<AnimatableTextStyles>"
+                            Default     = None
                             Description = Some "Text styles with animated properties (fontSize, color, etc.) via makeAnimatableTextStyles"
                         }
                     ])
@@ -82,12 +82,12 @@ type Ui.Content with
             notes = LC.Text """Rn.AnimatableText is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated text styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Rn.AnimatableText",
-                    role = "text",
-                    namePattern = "Child text content",
-                    stateNotes = "Animated font size/color; honor reduce-motion via LC.With.ReducedMotion where wired",
+                    componentName  = "Rn.AnimatableText",
+                    role           = "text",
+                    namePattern    = "Child text content",
+                    stateNotes     = "Animated font size/color; honor reduce-motion via LC.With.ReducedMotion where wired",
                     scalesWithFont = true,
-                    contrastNotes = "Animated text colors should meet WCAG AA at rest"
+                    contrastNotes  = "Animated text colors should meet WCAG AA at rest"
                 ),
             samples = (
                 element {
@@ -97,7 +97,7 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Basic",
                                     visuals = Helpers.Basic(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let animatedValue = Hooks.useRef (AnimatedValue.Create 32.0)
 
 Rn.AnimatableText(

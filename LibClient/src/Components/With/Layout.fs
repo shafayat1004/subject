@@ -28,6 +28,6 @@ type LC.With with
         let onLayoutOption =
             match (initialOnly, valueState.current) with
             | (true, Some _) -> None
-            | _ -> Some onLayout
+            | _              -> Some onLayout
 
         ``with`` (onLayoutOption, valueState.current)

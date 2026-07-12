@@ -51,7 +51,7 @@ type PositivePercentage =
     static member ofDecimalUnsafe(num: decimal) : PositivePercentage =
         match PositivePercentage.ofDecimal num with
         | Some v -> v
-        | None -> failwithf "Positive value expected, given: %f" num
+        | None   -> failwithf "Positive value expected, given: %f" num
 
     override i.ToString() : string = string i.Value
 

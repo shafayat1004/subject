@@ -41,17 +41,17 @@ type LibClient.Components.Constructors.LC with
                                         else
                                             Styles.handheldImage
                                     |],
-                                source = localImage "/libs/LibClient/images/google-play.png",
+                                source     = localImage "/libs/LibClient/images/google-play.png",
                                 resizeMode = Image.ResizeMode.Contain,
-                                size = Size.FromStyles
+                                size       = Size.FromStyles
                             )
 
                             LC.Pressable(
-                                onPress = onPress,
-                                label = "Get it on Google Play",
-                                testId = "google-play-store-button",
-                                role = AccessibilityRole.Link,
-                                overlay = true,
+                                onPress       = onPress,
+                                label         = "Get it on Google Play",
+                                testId        = "google-play-store-button",
+                                role          = AccessibilityRole.Link,
+                                overlay       = true,
                                 componentName = "LC.GooglePlayStoreButton"
                             )
                         }

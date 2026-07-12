@@ -74,24 +74,24 @@ type private DialogContent =
     [<Component>]
     static member Render(
             dialogProps: DialogProps<Parameters, unit>,
-            parameters: Parameters
+            parameters:  Parameters
         ) : ReactElement =
         let tryCancel (e: ReactEvent.Action) : unit =
             Dialogs.tryCancel dialogProps (fun () -> Async.Of true) DialogCloseMethod.HistoryBack e
 
         LC.Dialog.Base(
             contentPosition = Free,
-            canClose = When ([ OnEscape; OnBackground ], tryCancel),
+            canClose        = When ([ OnEscape; OnBackground ], tryCancel),
             children =
                 [|
                     Rn.View(
                         onPress = (fun e -> e.stopPropagation(); tryCancel (ReactEvent.Action.OfBrowserEvent e)),
-                        styles = [| Styles.dialogContents |],
+                        styles  = [| Styles.dialogContents |],
                         children =
                             [|
                                 Rn.ScrollView(
                                     vertical = true,
-                                    styles = [| Styles.scrollView |],
+                                    styles   = [| Styles.scrollView |],
                                     children =
                                         [|
                                             castAsElement (
@@ -105,15 +105,15 @@ type private DialogContent =
                                                             children =
                                                                 [|
                                                                     LC.UiText(
-                                                                        value = text,
+                                                                        value  = text,
                                                                         styles = [| Styles.heading |]
                                                                     )
                                                                 |]
                                                         )
                                                     | InternalButton (label, isSelected, onPress) ->
                                                         LC.Button(
-                                                            label = label,
-                                                            level = Primary,
+                                                            label   = label,
+                                                            level   = Primary,
                                                             ?testId = Some (A11ySlug.testId "context-menu-item" label),
                                                             theme =
                                                                 (if isSelected then
@@ -127,10 +127,10 @@ type private DialogContent =
                                                         )
                                                     | ButtonCautionary (label, onPress) ->
                                                         LC.Button(
-                                                            label = label,
-                                                            level = Cautionary,
+                                                            label   = label,
+                                                            level   = Cautionary,
                                                             ?testId = Some (A11ySlug.testId "context-menu-item" label),
-                                                            theme = ButtonThemes.cautionary,
+                                                            theme   = ButtonThemes.cautionary,
                                                             state =
                                                                 Button.PropStateFactory.MakeLowLevel (
                                                                     Button.Actionable (fun e -> (tryCancel e; onPress e))

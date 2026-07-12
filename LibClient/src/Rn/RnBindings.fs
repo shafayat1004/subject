@@ -8,5 +8,5 @@ module Helpers =
         let value: 'T = props?(key)
 
         match isNull value with
-        | true -> None
+        | true  -> None
         | false -> Some value

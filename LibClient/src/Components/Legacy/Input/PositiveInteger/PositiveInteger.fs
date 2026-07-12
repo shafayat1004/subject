@@ -33,16 +33,16 @@ module Legacy_Input_PositiveIntegerComponent =
     type LC.Legacy.Input with
         [<Component>]
         static member PositiveInteger(
-                onChange: Result<Positive.PositiveInteger, InputValidationError> -> unit,
-                ?children: ReactChildrenProp,
-                ?initialValue: Positive.PositiveInteger,
-                ?onKeyPress: Browser.Types.KeyboardEvent -> unit,
-                ?ref: LibClient.JsInterop.JsNullable<InputPositiveIntegerRef> -> unit,
-                ?key: string,
+                onChange:       Result<Positive.PositiveInteger, InputValidationError> -> unit,
+                ?children:      ReactChildrenProp,
+                ?initialValue:  Positive.PositiveInteger,
+                ?onKeyPress:    Browser.Types.KeyboardEvent -> unit,
+                ?ref:           LibClient.JsInterop.JsNullable<InputPositiveIntegerRef> -> unit,
+                ?key:           string,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
-            key |> ignore
+            key      |> ignore
 
             let initialText =
                 initialValue

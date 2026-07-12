@@ -49,7 +49,7 @@ module Legacy_Sidebar_Item =
     let private labelOfValue (value: Value) =
         match value with
         | Value.Primary (label, _, _) -> label
-        | Value.Secondary label         -> label
+        | Value.Secondary label       -> label
 
     let private itemTestId (label: string) (testId: string option) =
         testId |> Option.orElse (Some (A11ySlug.testId "legacy-sidebar-item" label))
@@ -156,7 +156,7 @@ module Legacy_Sidebar_Item =
                 ?theme:     Theme -> Theme,
                 ?key:       string
             ) : ReactElement =
-            key |> ignore
+            key      |> ignore
             children |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -182,14 +182,14 @@ module Legacy_Sidebar_Item =
                                         match maybeLeftIcon with
                                         | Some icon ->
                                             Rn.View(
-                                                styles = [| Styles.iconLeft |],
+                                                styles   = [| Styles.iconLeft |],
                                                 children = elements { icon 22 }
                                             )
                                         | None ->
                                             noElement
 
                                         LC.UiText(
-                                            value = primaryLabel,
+                                            value  = primaryLabel,
                                             styles = [| Styles.textPrimary theTheme isSelected |]
                                         )
 
@@ -200,14 +200,14 @@ module Legacy_Sidebar_Item =
                                                 children =
                                                     elements {
                                                         LC.UiText(
-                                                            value = string count,
+                                                            value  = string count,
                                                             styles = [| Styles.countText theTheme |]
                                                         )
                                                     }
                                             )
                                         | Some (Right.Icon icon) ->
                                             Rn.View(
-                                                styles = [| Styles.iconRight |],
+                                                styles   = [| Styles.iconRight |],
                                                 children = elements { icon 22 }
                                             )
                                         | None ->
@@ -215,19 +215,19 @@ module Legacy_Sidebar_Item =
 
                                     | Value.Secondary secondaryLabel ->
                                         LC.UiText(
-                                            value = secondaryLabel,
+                                            value  = secondaryLabel,
                                             styles = [| Styles.textSecondary theTheme isSelected |]
                                         )
                                 }
                         )
 
                         LC.Pressable(
-                            onPress = onPress,
-                            label = label,
-                            role = AccessibilityRole.MenuItem,
-                            state = a11yState,
-                            testId = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "legacy-sidebar-item" label)),
-                            overlay = true,
+                            onPress       = onPress,
+                            label         = label,
+                            role          = AccessibilityRole.MenuItem,
+                            state         = a11yState,
+                            testId        = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "legacy-sidebar-item" label)),
+                            overlay       = true,
                             componentName = "LC.Legacy.Sidebar.Item"
                         )
                     }

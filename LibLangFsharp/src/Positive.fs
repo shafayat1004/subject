@@ -30,7 +30,7 @@ type PositiveInteger =
     static member (+)(left: PositiveInteger, maybeRight: Option<PositiveInteger>) : PositiveInteger =
         match maybeRight with
         | Some right -> PositiveInteger(left.SignPlus() + right.SignPlus())
-        | None -> left
+        | None       -> left
 
     static member (+)(left: PositiveInteger, right: uint32) : PositiveInteger =
         PositiveInteger(left.SignPlus() + (int right))
@@ -93,7 +93,7 @@ type PositiveFloat =
     static member ofFloatUnsafe(num: float) : PositiveFloat =
         match PositiveFloat.ofFloat num with
         | Some v -> v
-        | None -> failwithf "Positive value expected, given: %f" num
+        | None   -> failwithf "Positive value expected, given: %f" num
 
 [<Struct>] // Using struct here virtually eliminates any added performance cost of wrapping the internal value types
 type PositiveDecimal =

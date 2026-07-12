@@ -41,10 +41,10 @@ type private Helpers =
             children =
                 elements {
                     Rn.AnimatableTextInput(
-                        value = textState.current,
-                        placeholder = "Name",
+                        value        = textState.current,
+                        placeholder  = "Name",
                         onChangeText = textState.update,
-                        styles = [| Styles.basic animatedValue.current |]
+                        styles       = [| Styles.basic animatedValue.current |]
                     )
 
                     LC.Button(
@@ -59,33 +59,33 @@ type Ui.Content with
     [<Component>]
     static member AnimatableTextInput () : ReactElement =
         Ui.ComponentContent (
-            displayName = "AnimatableTextInput",
+            displayName  = "AnimatableTextInput",
             isResponsive = false,
-            props = ComponentContent.Manual (
+            props        = ComponentContent.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
                         {
-                            Name = "value"
-                            Type = "string"
-                            Default = None
+                            Name        = "value"
+                            Type        = "string"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "placeholder"
-                            Type = "string"
-                            Default = None
+                            Name        = "placeholder"
+                            Type        = "string"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "onChangeText"
-                            Type = "string -> unit"
-                            Default = None
+                            Name        = "onChangeText"
+                            Type        = "string -> unit"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "styles"
-                            Type = "array<AnimatableTextInputStyles>"
-                            Default = None
+                            Name        = "styles"
+                            Type        = "array<AnimatableTextInputStyles>"
+                            Default     = None
                             Description = Some "Input styles with animated properties (fontSize, color, etc.) via makeAnimatableTextInputStyles"
                         }
                     ])
@@ -95,12 +95,12 @@ type Ui.Content with
             notes = LC.Text """Rn.AnimatableTextInput is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated input styles.""",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Rn.AnimatableTextInput",
-                    role = "text field",
-                    namePattern = "placeholder or value text; pair with visible label in production",
-                    stateNotes = "Animated input styles; honor reduce-motion where wired",
+                    componentName  = "Rn.AnimatableTextInput",
+                    role           = "text field",
+                    namePattern    = "placeholder or value text; pair with visible label in production",
+                    stateNotes     = "Animated input styles; honor reduce-motion where wired",
                     scalesWithFont = true,
-                    contrastNotes = "Input text and placeholder colors meet WCAG AA"
+                    contrastNotes  = "Input text and placeholder colors meet WCAG AA"
                 ),
             samples = (
                 element {
@@ -110,7 +110,7 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Basic",
                                     visuals = Helpers.Basic(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 let animatedValue = Hooks.useRef (AnimatedValue.Create 32.0)
 let text = Hooks.useState "My name"
 

@@ -25,7 +25,7 @@ module LC =
 
                     let handler (_: Browser.Types.Event) = onChange !!(mql?matches)
 
-                    mql?addEventListener ("change", handler) |> ignore
+                    mql?addEventListener ("change", handler)              |> ignore
                     fun () -> mql?removeEventListener ("change", handler) |> ignore
                 with _ ->
                     fun () -> ()
@@ -37,7 +37,7 @@ module LC =
                     ReduceTransparency = mediaMatches "(prefers-reduced-transparency: reduce)"
                     // (inverted-colors: inverted) — CSS MQ Level 5, Safari 14+/iOS 14+.
                     // (forced-colors: active) is Windows High Contrast only; wrong for iOS.
-                    InvertColors       = mediaMatches "(inverted-colors: inverted)"
+                    InvertColors = mediaMatches "(inverted-colors: inverted)"
                     // ScreenReaderEnabled: no standard web API (intentionally undetectable).
                     // Grayscale: no web media query.
                     // FontScale: iOS "Text Size" only scales native UIFont, not web content.
@@ -70,7 +70,7 @@ module LC =
                             |> Async.TryCatch
 
                         match result with
-                        | Ok v -> onResult v
+                        | Ok v    -> onResult v
                         | Error _ -> onResult false
                     with _ ->
                         onResult false
@@ -86,7 +86,7 @@ module LC =
                             |> Async.TryCatch
 
                         match scale with
-                        | Ok v -> onResult v
+                        | Ok v    -> onResult v
                         | Error _ -> onResult 1.0
                     with _ ->
                         onResult 1.0
@@ -138,7 +138,7 @@ module LC =
                     unsubscribers
 
                 trySubscribeBoolEvent "reduceMotionChanged" (fun v s -> { s with ReduceMotion = v }) bump unsubscribers
-                trySubscribeBoolEvent "boldTextChanged" (fun v s -> { s with BoldText = v }) bump unsubscribers
+                trySubscribeBoolEvent "boldTextChanged" (fun v s -> { s with BoldText         = v }) bump unsubscribers
 
                 trySubscribeBoolEvent
                     "reduceTransparencyChanged"
@@ -147,7 +147,7 @@ module LC =
                     unsubscribers
 
                 trySubscribeBoolEvent "invertColorsChanged" (fun v s -> { s with InvertColors = v }) bump unsubscribers
-                trySubscribeBoolEvent "grayscaleChanged" (fun v s -> { s with Grayscale = v }) bump unsubscribers
+                trySubscribeBoolEvent "grayscaleChanged" (fun v s -> { s with Grayscale       = v }) bump unsubscribers
 
                 tryAsyncBool "isScreenReaderEnabled" (fun v -> bump (fun s -> { s with ScreenReaderEnabled = v }))
 

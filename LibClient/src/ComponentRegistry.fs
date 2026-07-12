@@ -14,12 +14,12 @@ type ComponentRegistry() =
     static member GetRender<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string): array<ReactElement> * 'Props * 'EState * 'PState * 'Actions * Rn.LegacyStyles.RuntimeStyles -> ReactElement =
         match renderDirectory.TryGetValue fullyQualifiedComponentName with
         | (true, renderFunction) -> renderFunction :?> (array<ReactElement> * 'Props * 'EState * 'PState * 'Actions * Rn.LegacyStyles.RuntimeStyles -> ReactElement)
-        | _ -> failwith (sprintf "No render function for %s (did you call registerAllTheThings in Bootstrap.fs?)" fullyQualifiedComponentName)
+        | _                      -> failwith (sprintf "No render function for %s (did you call registerAllTheThings in Bootstrap.fs?)" fullyQualifiedComponentName)
 
     static member GetStyles (fullyQualifiedComponentName: string): Rn.LegacyStyles.RuntimeStyles =
         match stylesDirectory.TryGetValue fullyQualifiedComponentName with
         | (true, styles) -> styles.Value
-        | _ -> failwith (sprintf "No styles registered in the ComponentRegistry for %s (are you passing true for `hasStyles` where in reality you don't have any?)" fullyQualifiedComponentName)
+        | _              -> failwith (sprintf "No styles registered in the ComponentRegistry for %s (are you passing true for `hasStyles` where in reality you don't have any?)" fullyQualifiedComponentName)
 
 type Themes() =
     static let mutable values: Map<string, obj> = Map.empty
@@ -37,8 +37,8 @@ type Themes() =
         let value =
             match values.TryFind typeFullName with
             | Some value -> value :?> 'T
-            | None -> failwith $"Not found the default theme for {typeFullName}"
+            | None       -> failwith $"Not found the default theme for {typeFullName}"
 
         match maybeUpdater with
-        | None -> value
+        | None         -> value
         | Some updater -> updater value

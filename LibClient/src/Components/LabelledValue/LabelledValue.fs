@@ -23,9 +23,9 @@ type LibClient.Components.Constructors.LC with
                 | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
         Rn.View(
-            styles = [| Styles.root; yield! legacyStyles |],
+            styles   = [| Styles.root; yield! legacyStyles |],
             children = [|
                 Rn.View(children = [| LC.Text(label, styles = [| Styles.labelText |]) |])
-                Rn.View(styles = [| Styles.valueView |], children = defaultArg children [||])
+                Rn.View(styles   = [| Styles.valueView |], children = defaultArg children [||])
             |]
         )

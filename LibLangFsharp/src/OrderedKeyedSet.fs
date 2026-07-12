@@ -8,12 +8,13 @@ module OrderedKeyedSet
 *)
 type OrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
     private
-        { Map: Map<'K, 'V>
+        { Map:         Map<'K, 'V>
           OrderedKeys: array<'K> }
 
-    static member empty =
-        { Map = Map.empty<'K, 'V>
-          OrderedKeys = Array.empty }
+    static member empty = {
+        Map         = Map.empty<'K, 'V>
+        OrderedKeys = Array.empty
+    }
 
     member this.ToMap: Map<'K, 'V> = this.Map
 
@@ -24,7 +25,7 @@ type OrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
     member this.RemoveByKey(key: 'K) : OrderedKeyedSet<'K, 'V> =
         let map = this.Map.Remove key
 
-        { Map = map
+        { Map         = map
           OrderedKeys = this.OrderedKeys |> Array.filter ((<>) key) }
 
     member this.Remove(value: 'V) : OrderedKeyedSet<'K, 'V> = this.RemoveByKey value.Key
@@ -56,10 +57,10 @@ type OrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
         let key = value.Key
 
         if this.Map.ContainsKey key then
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = this.OrderedKeys }
         else
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = Array.append [| key |] this.OrderedKeys }
 
     member this.PrependOrUpdate(values: seq<'V>) : OrderedKeyedSet<'K, 'V> =
@@ -69,10 +70,10 @@ type OrderedKeyedSet<'K, 'V when 'K: comparison and 'V :> IKeyed<'K>> =
         let key = value.Key
 
         if this.Map.ContainsKey key then
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = this.OrderedKeys }
         else
-            { Map = this.Map.AddOrUpdate(key, value)
+            { Map         = this.Map.AddOrUpdate(key, value)
               OrderedKeys = [| key |] |> Array.append this.OrderedKeys }
 
     member this.AppendOrUpdate(values: seq<'V>) : OrderedKeyedSet<'K, 'V> =

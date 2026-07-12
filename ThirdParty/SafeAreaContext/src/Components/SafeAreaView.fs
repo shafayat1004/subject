@@ -36,7 +36,7 @@ type SafeAreaContext with
         let __props =
             SafeAreaViewPropsJs(
                 ?style = (styles |> Option.map box),
-                ?key = key
+                ?key   = key
             ) |> box
 
         MakeSafeAreaView

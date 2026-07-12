@@ -7,9 +7,9 @@ open LibClient.JsInterop
 
 type ServiceEvent<'Id, 'Entity> =
 | ModificationStarted of id: 'Id * maybeOldValue: Option<'Entity>
-| Updated of id: 'Id
-| Created of id: 'Id
-| Deleted of id: 'Id
+| Updated             of id: 'Id
+| Created             of id: 'Id
+| Deleted             of id: 'Id
 | AllUpdated
 
 [<AbstractClass>]
@@ -23,7 +23,7 @@ type EntitySubscribableService<'Id, 'Entity>(eventQueueId: string) =
 type EntityService<'Id, 'Entity> (eventQueueId: string) =
     inherit EntitySubscribableService<'Id, 'Entity>(eventQueueId)
 
-    abstract member Update: 'Id * ((* updater *) 'Entity -> 'Entity) -> unit
+    abstract member Update:      'Id * ((* updater *) 'Entity -> 'Entity) -> unit
     abstract member MaybeUpdate: 'Id * ((* updater *) 'Entity -> Option<'Entity>) -> unit
 
     abstract member Gets: seq<'Id> -> Async<seq<'Entity>>
@@ -35,7 +35,7 @@ type EntitySubscriptionService<'Id, 'Entity when 'Id : equality> (eventBus: Even
     member private _.UpdateSubscriberWithLatestEntity (id: 'Id, notifySubscriber: AsyncData<'Entity> -> unit, shouldNotifyFetching: bool) : unit =
         async {
             if shouldNotifyFetching then Fetching None |> notifySubscriber
-            match! entityService.Get id |> Async.TryCatch with
+            match! entityService.Get id                |> Async.TryCatch with
             | Ok entity -> Available entity                                             |> notifySubscriber
             | Error e   -> Failed (UnknownFailure $"An error occurred: {e.ToString()}") |> notifySubscriber
         }
@@ -44,10 +44,10 @@ type EntitySubscriptionService<'Id, 'Entity when 'Id : equality> (eventBus: Even
     member private this.SubscribeToOneProcessEvent (theId: 'Id) (subscription: Subscription<'Entity>) (event: ServiceEvent<'Id, 'Entity>) : unit =
         match event with
         | ModificationStarted(id, maybeOldValue) -> if id = theId then Fetching maybeOldValue |> subscription.Notify
-        | Updated id -> if id = theId then this.UpdateSubscriberWithLatestEntity(theId, subscription.Notify, shouldNotifyFetching = false)
-        | Created id -> if id = theId then this.UpdateSubscriberWithLatestEntity(theId, subscription.Notify, shouldNotifyFetching = false)
-        | Deleted id -> if id = theId then Unavailable |> subscription.Notify
-        | AllUpdated -> this.UpdateSubscriberWithLatestEntity(theId, subscription.Notify, shouldNotifyFetching = false)
+        | Updated id                             -> if id = theId then this.UpdateSubscriberWithLatestEntity(theId, subscription.Notify, shouldNotifyFetching = false)
+        | Created id                             -> if id = theId then this.UpdateSubscriberWithLatestEntity(theId, subscription.Notify, shouldNotifyFetching = false)
+        | Deleted id                             -> if id = theId then Unavailable |> subscription.Notify
+        | AllUpdated                             -> this.UpdateSubscriberWithLatestEntity(theId, subscription.Notify, shouldNotifyFetching = false)
         // We specifically don't want to use conditions within the pattern, as that
         // would necessitate a catch-all clause, which would remove the safety of
         // having union type exhaustiveness check.

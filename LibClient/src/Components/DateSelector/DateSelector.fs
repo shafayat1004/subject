@@ -17,7 +17,7 @@ type DateOnly = System.DateOnly
 module LC =
     module DateSelector =
         type Theme = {
-            HeaderBackgroundColor: Color
+            HeaderBackgroundColor:       Color
             SelectedDateBackgroundColor: Color
         }
 
@@ -49,7 +49,7 @@ module private Helpers =
     let canSelectDate (date: DateOnly) (maybeCanSelectDate: Option<DateOnly -> bool>) : bool =
         match maybeCanSelectDate with
         | Some predicate -> predicate date
-        | None -> true
+        | None           -> true
 
     let buildRows (firstOfMonth: DateOnly) : List<List<DateOnly>> =
         let lastOfMonth    = firstOfMonth.AddMonths(1).AddDays(-1)
@@ -202,14 +202,14 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member DateSelector(
-            onChange: DateOnly -> unit,
-            maybeSelected: Option<DateOnly>,
-            ?minDate: DateOnly,
-            ?maxDate: DateOnly,
+            onChange:       DateOnly -> unit,
+            maybeSelected:  Option<DateOnly>,
+            ?minDate:       DateOnly,
+            ?maxDate:       DateOnly,
             ?canSelectDate: DateOnly -> bool,
-            ?theme: Theme -> Theme,
-            ?testId: string,
-            ?key: string
+            ?theme:         Theme -> Theme,
+            ?testId:        string,
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -270,7 +270,7 @@ type LibClient.Components.Constructors.LC with
                     let isSelected =
                         match maybeSelected with
                         | Some selected -> day = selected
-                        | None -> false
+                        | None          -> false
 
                     let isToday = day = currentDateHook.current
                     let label = Helpers.dayLabel day
@@ -287,14 +287,14 @@ type LibClient.Components.Constructors.LC with
                                 if canSelect then
                                     LC.Pressable(
                                         onPress = (fun _ -> onChange day),
-                                        label = label,
-                                        role = AccessibilityRole.Button,
-                                        testId = Helpers.dayTestId testIdPrefix day,
+                                        label   = label,
+                                        role    = AccessibilityRole.Button,
+                                        testId  = Helpers.dayTestId testIdPrefix day,
                                         state =
                                             { AccessibilityStateRecord.empty with
                                                 Selected = Some isSelected
                                             },
-                                        overlay = true,
+                                        overlay       = true,
                                         componentName = "LC.DateSelector"
                                     )
                             }
@@ -314,7 +314,7 @@ type LibClient.Components.Constructors.LC with
                                 match maybeSelected with
                                 | Some selectedDate ->
                                     LC.Timestamp(
-                                        value = LC.Timestamp.UniDateTime.Of selectedDate,
+                                        value  = LC.Timestamp.UniDateTime.Of selectedDate,
                                         format = "ddd, MMM dd",
                                         offset = DateTimeExtensions.bdTzOffset,
                                         styles = [| Styles.headerText |]
@@ -329,7 +329,7 @@ type LibClient.Components.Constructors.LC with
                         children =
                             elements {
                                 LC.Timestamp(
-                                    value = LC.Timestamp.UniDateTime.Of currentMonthFirstDay,
+                                    value  = LC.Timestamp.UniDateTime.Of currentMonthFirstDay,
                                     format = "MMMM yyyy",
                                     offset = DateTimeExtensions.bdTzOffset,
                                     styles = [| Styles.navigationControlsText |]
@@ -340,10 +340,10 @@ type LibClient.Components.Constructors.LC with
                                     children =
                                         elements {
                                             LC.IconButton(
-                                                label = "Previous month",
+                                                label  = "Previous month",
                                                 testId = sprintf "%s-prev-month" testIdPrefix,
-                                                icon = Icon.ChevronLeft,
-                                                theme = Styles.iconButtonTheme,
+                                                icon   = Icon.ChevronLeft,
+                                                theme  = Styles.iconButtonTheme,
                                                 state =
                                                     ButtonHighLevelState.LowLevel (
                                                         if Helpers.isPreviousMonthOutsideSelectableRange currentMonthFirstDay minDate then
@@ -354,10 +354,10 @@ type LibClient.Components.Constructors.LC with
                                             )
 
                                             LC.IconButton(
-                                                label = "Next month",
+                                                label  = "Next month",
                                                 testId = sprintf "%s-next-month" testIdPrefix,
-                                                icon = Icon.ChevronRight,
-                                                theme = Styles.iconButtonTheme,
+                                                icon   = Icon.ChevronRight,
+                                                theme  = Styles.iconButtonTheme,
                                                 state =
                                                     ButtonHighLevelState.LowLevel (
                                                         if Helpers.isNextMonthOutsideSelectableRange currentMonthFirstDay maxDate then
@@ -372,7 +372,7 @@ type LibClient.Components.Constructors.LC with
                     )
 
                     Rn.View(
-                        styles = [| Styles.weekdayHeadersRow |],
+                        styles   = [| Styles.weekdayHeadersRow |],
                         children = weekdayHeaders
                     )
 
@@ -380,7 +380,7 @@ type LibClient.Components.Constructors.LC with
                         rows
                         |> List.map (fun row ->
                             Rn.View(
-                                styles = [| Styles.row |],
+                                styles   = [| Styles.row |],
                                 children = dayCells row
                             )
                         )

@@ -33,12 +33,12 @@ type private Helpers =
         let value = Hooks.useState (todayValue())
 
         LC.Input.Date(
-            value           = value.current,
-            onChange        = value.update,
-            minDate         = DateOnly.FromDateTime(DateTime.Now).AddMonths(-3),
-            maxDate         = DateOnly.FromDateTime(DateTime.Now).AddMonths(1),
-            canSelectDate   = canSelectDate,
-            validity        = Valid
+            value         = value.current,
+            onChange      = value.update,
+            minDate       = DateOnly.FromDateTime(DateTime.Now).AddMonths(-3),
+            maxDate       = DateOnly.FromDateTime(DateTime.Now).AddMonths(1),
+            canSelectDate = canSelectDate,
+            validity      = Valid
         )
 
 type Ui.Content.Input with
@@ -49,12 +49,12 @@ type Ui.Content.Input with
             props       = ComponentContent.ForFullyQualifiedName "LC.Input.Date",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.Date",
-                    role = "text field with date picker",
-                    namePattern = "Floating label text",
-                    stateNotes = "Invalid/Missing validity surfaces error text below the field",
+                    componentName  = "LC.Input.Date",
+                    role           = "text field with date picker",
+                    namePattern    = "Floating label text",
+                    stateNotes     = "Invalid/Missing validity surfaces error text below the field",
                     scalesWithFont = true,
-                    contrastNotes = "Label, input text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, input text, and error colors meet WCAG AA"
                 ),
             samples     =
                 element {

@@ -3,8 +3,8 @@ module SeqExtensions
 
 [<RequireQualifiedAccess>]
 type ZipOuterResult<'T, 'U> =
-    | BothPresent of 'T * 'U
-    | FirstPresent of 'T
+    | BothPresent   of 'T * 'U
+    | FirstPresent  of 'T
     | SecondPresent of 'U
 
 module Seq = Microsoft.FSharp.Collections.Seq
@@ -33,7 +33,7 @@ module Seq =
 
     let tryMinBy (projection: 'T -> 'U) (source: seq<'T>) : Option<'T> =
         match Seq.isEmpty source with
-        | true -> None
+        | true  -> None
         | false -> Seq.minBy projection source |> Some
 
     let prependToList (existingList: list<'T>) (source: seq<'T>) : list<'T> =
@@ -41,7 +41,7 @@ module Seq =
 
     let tryMaxBy (projection: 'T -> 'U) (source: seq<'T>) : Option<'T> =
         match Seq.isEmpty source with
-        | true -> None
+        | true  -> None
         | false -> Seq.maxBy projection source |> Some
 
     let distinctByWithLimit (projection: 'T -> 'U) (maxCount: int) (source: seq<'T>) : seq<'T> =
@@ -83,7 +83,7 @@ module Seq =
                         ValueSome(struct (minRnd, minRndI)))
             ValueNone
         |> function
-            | ValueNone -> None
+            | ValueNone                -> None
             | ValueSome(struct (_, x)) -> Some x
 
     let takeRandom (count: int) (source: seq<'T>) : seq<'T> =
@@ -121,9 +121,9 @@ module Seq =
             while not (finishedFirst && finishedSecond) do
                 match finishedFirst, finishedSecond with
                 | false, false -> ZipOuterResult.BothPresent(firstEnumerator.Current, secondEnumerator.Current)
-                | false, true -> ZipOuterResult.FirstPresent firstEnumerator.Current
-                | true, false -> ZipOuterResult.SecondPresent secondEnumerator.Current
-                | true, true -> failwith "Unexpected"
+                | false, true  -> ZipOuterResult.FirstPresent firstEnumerator.Current
+                | true, false  -> ZipOuterResult.SecondPresent secondEnumerator.Current
+                | true, true   -> failwith "Unexpected"
 
                 finishedFirst <- not (firstEnumerator.MoveNext())
                 finishedSecond <- not (secondEnumerator.MoveNext())

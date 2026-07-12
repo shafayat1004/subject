@@ -89,6 +89,6 @@ type System.Guid with
 type System.Boolean with
     static member ParseOption(value: string) : Option<System.Boolean> =
         match value with
-        | "true" -> Some true
+        | "true"  -> Some true
         | "false" -> Some false
-        | _ -> None
+        | _       -> None

@@ -50,17 +50,17 @@ type LibClient.Components.Constructors.LC with
                                         else
                                             Styles.handheldImage
                                     |],
-                                source = localImage "/libs/LibClient/images/app-store.png",
+                                source     = localImage "/libs/LibClient/images/app-store.png",
                                 resizeMode = Image.ResizeMode.Contain,
-                                size = Size.FromStyles
+                                size       = Size.FromStyles
                             )
 
                             LC.Pressable(
-                                onPress = onPress,
-                                label = "Download on the App Store",
-                                testId = "apple-app-store-button",
-                                role = AccessibilityRole.Link,
-                                overlay = true,
+                                onPress       = onPress,
+                                label         = "Download on the App Store",
+                                testId        = "apple-app-store-button",
+                                role          = AccessibilityRole.Link,
+                                overlay       = true,
                                 componentName = "LC.AppleAppStoreButton"
                             )
                         }

@@ -8,7 +8,7 @@ open LibLifeCycleCore
 open LibLifeCycleHost
 
 type internal UnprocessedSideEffectsState =
-| Processed of Version: int
+| Processed   of Version: int
 | Unprocessed of Version: int * AllSideEffectsProcessedPromise: TaskCompletionSource<int> * NonemptyMap<GrainSideEffectId, GrainSideEffect<LifeAction, OpError>>
 
 type internal TrackedSideEffectsData = private {
@@ -70,7 +70,7 @@ type internal TestSideEffectTrackerHook (grainPartition: GrainPartition) as this
                         let latestUnprocessed =
                             match data.UnprocessedSideEffects with
                             | Unprocessed (_, _, latestUnprocessed) -> latestUnprocessed
-                            | Processed _ -> unprocessed
+                            | Processed _                           -> unprocessed
 
                         return Error (List.ofSeq latestUnprocessed.Values)
                 }

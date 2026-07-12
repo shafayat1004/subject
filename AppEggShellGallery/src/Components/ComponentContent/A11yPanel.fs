@@ -71,13 +71,13 @@ let private renderFacts (rows: ReactElement array) =
 type AppEggShellGallery.Components.Constructors.Ui with
     [<Component>]
     static member A11yPanel(
-            componentName: string,
-            role: string,
-            namePattern: string,
-            stateNotes: string,
+            componentName:  string,
+            role:           string,
+            namePattern:    string,
+            stateNotes:     string,
             scalesWithFont: bool,
             ?contrastNotes: string,
-            ?deferredTags: string list
+            ?deferredTags:  string list
         ) : ReactElement =
         let fontScaling =
             if scalesWithFont then

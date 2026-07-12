@@ -9,15 +9,15 @@ open LibClient.Components
 type LibClient.Components.Constructors.LC.Async with
     [<Component>]
     static member Resolve<'T>(
-            data: Async<AsyncData<'T>>,
-            whenAvailable: 'T -> ReactElement,
+            data:               Async<AsyncData<'T>>,
+            whenAvailable:      'T -> ReactElement,
             ?whenUninitialized: unit -> ReactElement,
-            ?whenFetching: Option<'T> -> ReactElement,
-            ?whenFailed: AsyncDataFailure -> ReactElement,
-            ?whenUnavailable: unit -> ReactElement,
-            ?whenAccessDenied: unit -> ReactElement,
-            ?whenElse: unit -> ReactElement,
-            ?key: string
+            ?whenFetching:      Option<'T> -> ReactElement,
+            ?whenFailed:        AsyncDataFailure -> ReactElement,
+            ?whenUnavailable:   unit -> ReactElement,
+            ?whenAccessDenied:  unit -> ReactElement,
+            ?whenElse:          unit -> ReactElement,
+            ?key:               string
         ) : ReactElement =
         key |> ignore
 
@@ -35,12 +35,12 @@ type LibClient.Components.Constructors.LC.Async with
         )
 
         LC.AsyncData(
-            data = dataHook.current,
-            whenAvailable = whenAvailable,
+            data               = dataHook.current,
+            whenAvailable      = whenAvailable,
             ?whenUninitialized = whenUninitialized,
-            ?whenFetching = whenFetching,
+            ?whenFetching      = whenFetching,
             ?whenFailed= whenFailed,
-            ?whenUnavailable = whenUnavailable,
+            ?whenUnavailable  = whenUnavailable,
             ?whenAccessDenied = whenAccessDenied,
-            ?whenElse = whenElse
+            ?whenElse         = whenElse
         )

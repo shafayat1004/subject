@@ -61,7 +61,7 @@ module private Helpers =
     let extractColorAndSize (styles: Option<array<TextStyles>>) (legacyStyles: Option<List<RuntimeStyles>>) : Color * int =
         let (maybeColor, maybeFontSize) =
             match extractColorAndSizeFromLegacyStyles legacyStyles with
-            | (None, None) -> extractColorAndSizeFromNewStyles styles
+            | (None, None)   -> extractColorAndSizeFromNewStyles styles
             | atLeastOneSome -> atLeastOneSome
 
         (maybeColor |> Option.getOrElse Color.DevRed, maybeFontSize |> Option.getOrElse 32)
@@ -88,7 +88,7 @@ type LibClient.Components.Constructors.LC with
         if decorative then
             Rn.View(
                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
-                children = [| iconElement |]
+                children                  = [| iconElement |]
             )
         else
             iconElement

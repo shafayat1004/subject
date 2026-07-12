@@ -21,47 +21,47 @@ let private customStyles =
         {
             FeatureType = MapFeatureType.Landscape
             ElementType = MapElementType.All
-            Stylers = [| MapStyler.Color "#d0d3e7" |]
+            Stylers     = [| MapStyler.Color "#d0d3e7" |]
         }
         {
             FeatureType = MapFeatureType.PointsOfInterest
             ElementType = MapElementType.GeometryFill
-            Stylers = [| MapStyler.Color "#c6c9cd" |]
+            Stylers     = [| MapStyler.Color "#c6c9cd" |]
         }
         {
             FeatureType = MapFeatureType.PointsOfInterest
             ElementType = MapElementType.LabelsIcon
-            Stylers = [| MapStyler.Color "#9298a0" |]
+            Stylers     = [| MapStyler.Color "#9298a0" |]
         }
         {
             FeatureType = MapFeatureType.PointsOfInterest
             ElementType = MapElementType.LabelsTextFill
-            Stylers = [| MapStyler.Color "#6c717a" |]
+            Stylers     = [| MapStyler.Color "#6c717a" |]
         }
         {
             FeatureType = MapFeatureType.PointsOfInterestBusiness
             ElementType = MapElementType.GeometryFill
-            Stylers = [| MapStyler.Color "#c6c9cd" |]
+            Stylers     = [| MapStyler.Color "#c6c9cd" |]
         }
         {
             FeatureType = MapFeatureType.Road
             ElementType = MapElementType.All
-            Stylers = [| MapStyler.Color "#fafafa" |]
+            Stylers     = [| MapStyler.Color "#fafafa" |]
         }
         {
             FeatureType = MapFeatureType.Transit
             ElementType = MapElementType.GeometryFill
-            Stylers = [| MapStyler.Color "#9298a0" |]
+            Stylers     = [| MapStyler.Color "#9298a0" |]
         }
         {
             FeatureType = MapFeatureType.Transit
             ElementType = MapElementType.LabelsIcon
-            Stylers = [| MapStyler.Color "#b0b4ba" |]
+            Stylers     = [| MapStyler.Color "#b0b4ba" |]
         }
         {
             FeatureType = MapFeatureType.Water
             ElementType = MapElementType.All
-            Stylers = [| MapStyler.Color "#9cc1f2" |]
+            Stylers     = [| MapStyler.Color "#9cc1f2" |]
         }
     ]
 
@@ -98,16 +98,16 @@ type Ui.Content.ThirdParty with
     static member Map () : ReactElement =
         Ui.ComponentContent(
             displayName = "Map",
-            props = ComponentContent.ForFullyQualifiedName "ThirdParty.Map.Components.Base",
+            props       = ComponentContent.ForFullyQualifiedName "ThirdParty.Map.Components.Base",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "Map",
-                    role = "none (interactive map)",
-                    namePattern = "Map markers and controls need accessibilityLabel; not fully wired",
-                    stateNotes = "Pan/zoom gestures; provide text alternatives for map data",
+                    componentName  = "Map",
+                    role           = "none (interactive map)",
+                    namePattern    = "Map markers and controls need accessibilityLabel; not fully wired",
+                    stateNotes     = "Pan/zoom gestures; provide text alternatives for map data",
                     scalesWithFont = false,
-                    contrastNotes = "Map styling is visual; pair with textual location info",
-                    deferredTags = ["[rnw-blocked] full map a11y"]
+                    contrastNotes  = "Map styling is visual; pair with textual location info",
+                    deferredTags   = ["[rnw-blocked] full map a11y"]
                 ),
             samples =
                 element {
@@ -160,7 +160,7 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                     visuals =
                                         ThirdParty.Map.Components.Constructors.Map.Base(
                                             current().GoogleMapsApiKey,
-                                            styles = [| Styles.map |],
+                                            styles   = [| Styles.map |],
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             markers =
                                                 [
@@ -265,7 +265,7 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                     visuals =
                                         ThirdParty.Map.Components.Constructors.Map.Base(
                                             current().GoogleMapsApiKey,
-                                            styles = [| Styles.map |],
+                                            styles   = [| Styles.map |],
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             shapes =
                                                 [
@@ -299,7 +299,7 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                     visuals =
                                         ThirdParty.Map.Components.Constructors.Map.Base(
                                             current().GoogleMapsApiKey,
-                                            styles = [| Styles.map |],
+                                            styles   = [| Styles.map |],
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             shapes =
                                                 [
@@ -331,7 +331,7 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                     visuals =
                                         ThirdParty.Map.Components.Constructors.Map.Base(
                                             current().GoogleMapsApiKey,
-                                            styles = [| Styles.map |],
+                                            styles   = [| Styles.map |],
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             shapes =
                                                 [
@@ -371,9 +371,9 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                     visuals =
                                         ThirdParty.Map.Components.Constructors.Map.Base(
                                             current().GoogleMapsApiKey,
-                                            styles = [| Styles.map |],
+                                            styles   = [| Styles.map |],
                                             position = MapPosition.LatLng (-27.1687243, 152.9308381),
-                                            markers = [ getMarkerWithInfoWindow () ]
+                                            markers  = [ getMarkerWithInfoWindow () ]
                                         ),
                                     code =
                                         ComponentSample.SingleBlock(
@@ -396,8 +396,8 @@ ThirdParty.Map.Components.Constructors.Map.Base(
                                     visuals =
                                         ThirdParty.Map.Components.Constructors.Map.Base(
                                             current().GoogleMapsApiKey,
-                                            styles = [| Styles.map |],
-                                            position = MapPosition.LatLng (-27.1687243, 152.9308381),
+                                            styles    = [| Styles.map |],
+                                            position  = MapPosition.LatLng (-27.1687243, 152.9308381),
                                             mapStyles = customStyles
                                         ),
                                     code =

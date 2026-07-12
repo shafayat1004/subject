@@ -29,13 +29,13 @@ type Ui.Content with
                     (AppEggShellGallery.ScrapedData.Colors.colorVariantsData
                      |> List.map (fun (colorName, colorVariantFn) ->
                          Rn.View(
-                             styles = [| Styles.colorVariantContainer |],
+                             styles   = [| Styles.colorVariantContainer |],
                              children = [|
                                  Rn.View(
                                      children = [|
                                          LC.Heading(level = Heading.Secondary, children = [| LC.UiText colorName |])
                                          Rn.View(
-                                             styles = [| Styles.variant |],
+                                             styles   = [| Styles.variant |],
                                              children = [| Ui.ColorVariants(value = colorVariantFn) |]
                                          )
                                      |]

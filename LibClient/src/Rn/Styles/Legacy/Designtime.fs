@@ -93,7 +93,7 @@ let rec private processPairs (selectorToStylesPairs: List<Selector * Styles>) : 
 
 and processStyles (styles: Styles) : RuntimeStyles =
     match styles with
-    | Styles.Sheet sheet              -> processPairs sheet
+    | Styles.Sheet sheet         -> processPairs sheet
     | Styles.Rules rnRulesObject -> RuntimeStyles.StaticRules rnRulesObject
 
 let private processIntoRuntimeOptimizedStructure(blocks: List<ISheetBuildingBlock>) : RuntimeStyles =

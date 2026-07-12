@@ -10,9 +10,9 @@ with
             "$"
 
 type ManifestedRecurringJob = {
-    Name: NonemptyString
-    CronExpression: string
-    TimeZoneId: string
+    Name:            NonemptyString
+    CronExpression:  string
+    TimeZoneId:      string
     JobInstanceData: JobConstructorCommonData
 }
 with
@@ -93,9 +93,9 @@ type ManifestedRecurringJob with
             and! timeZoneId = reqWith Codecs.string "TimeZoneId" (fun x -> Some x.TimeZoneId)
             and! jobInstanceData = reqWith codecFor<_, JobConstructorCommonData> "JobInstanceData" (fun x -> Some x.JobInstanceData)
             return {
-                Name = name
-                CronExpression = cronExpression
-                TimeZoneId = timeZoneId
+                Name            = name
+                CronExpression  = cronExpression
+                TimeZoneId      = timeZoneId
                 JobInstanceData = jobInstanceData
              }
         }

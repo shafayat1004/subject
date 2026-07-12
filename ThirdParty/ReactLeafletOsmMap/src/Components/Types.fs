@@ -180,24 +180,24 @@ type ILeafletMouseEvent =
 
 type ILeafletResizeEvent =
     inherit ILeafletMapEvent
-    abstract member newSize:        obj
-    abstract member oldSize:        obj
+    abstract member newSize: obj
+    abstract member oldSize: obj
 
 type ILeafletKeyboardEvent =
     inherit ILeafletMapEvent
-    abstract member originalEvent:  obj
+    abstract member originalEvent: obj
 
 type ILeafletDragEndEvent =
     inherit ILeafletMapEvent
-    abstract member distance:       float
+    abstract member distance: float
 
 type ILeafletTooltipEvent =
     inherit ILeafletMapEvent
-    abstract member tooltip:        obj
+    abstract member tooltip: obj
 
 type ILeafletPopupEvent =
     inherit ILeafletMapEvent
-    abstract member popup:          obj
+    abstract member popup: obj
 
 type LeafletMapEventHandlerFn      = ILeafletMapEvent -> unit
 type LeafletMouseEventHandlerFn    = ILeafletMouseEvent -> unit
@@ -224,29 +224,29 @@ type LeafletEvent =
 | Load             of LeafletMapEventHandlerFn
 | Unload           of LeafletMapEventHandlerFn
 // Mouse Events
-| Click            of LeafletMouseEventHandlerFn
-| DblClick         of LeafletMouseEventHandlerFn
-| MouseDown        of LeafletMouseEventHandlerFn
-| MouseUp          of LeafletMouseEventHandlerFn
-| MouseOver        of LeafletMouseEventHandlerFn
-| MouseOut         of LeafletMouseEventHandlerFn
-| MouseMove        of LeafletMouseEventHandlerFn
-| ContextMenu      of LeafletMouseEventHandlerFn
-| PreClick         of LeafletMouseEventHandlerFn
+| Click       of LeafletMouseEventHandlerFn
+| DblClick    of LeafletMouseEventHandlerFn
+| MouseDown   of LeafletMouseEventHandlerFn
+| MouseUp     of LeafletMouseEventHandlerFn
+| MouseOver   of LeafletMouseEventHandlerFn
+| MouseOut    of LeafletMouseEventHandlerFn
+| MouseMove   of LeafletMouseEventHandlerFn
+| ContextMenu of LeafletMouseEventHandlerFn
+| PreClick    of LeafletMouseEventHandlerFn
 // Resize Events
-| Resize           of LeafletResizeEventHandlerFn
+| Resize of LeafletResizeEventHandlerFn
 // Keyboard Events
-| KeyPress         of LeafletKeyboardEventHandlerFn
-| KeyDown          of LeafletKeyboardEventHandlerFn
-| KeyUp            of LeafletKeyboardEventHandlerFn
+| KeyPress of LeafletKeyboardEventHandlerFn
+| KeyDown  of LeafletKeyboardEventHandlerFn
+| KeyUp    of LeafletKeyboardEventHandlerFn
 // Drag Events
-| DragEnd          of LeafletDragEndEventHandlerFn
+| DragEnd of LeafletDragEndEventHandlerFn
 // Tooltip Events
-| TooltipOpen      of LeafletTooltipEventHandlerFn
-| TooltipClose     of LeafletTooltipEventHandlerFn
+| TooltipOpen  of LeafletTooltipEventHandlerFn
+| TooltipClose of LeafletTooltipEventHandlerFn
 // Popup Events
-| PopupOpen        of LeafletPopupEventHandlerFn
-| PopupClose       of LeafletPopupEventHandlerFn
+| PopupOpen  of LeafletPopupEventHandlerFn
+| PopupClose of LeafletPopupEventHandlerFn
 with
     member private this.ToJs () : (string * obj) =
         match this with
@@ -332,7 +332,7 @@ with
 type LeafletDrawEventFn = obj -> unit
 
 type LeafletDrawEvent =
-| Mounted   of LeafletDrawEventFn
+| Mounted of LeafletDrawEventFn
 | Created of LeafletDrawEventFn
 | Edited  of LeafletDrawEventFn
 | Deleted of LeafletDrawEventFn
@@ -347,8 +347,3 @@ type LeafletDrawEvent =
     static member internal ToJsObj (events: array<LeafletDrawEvent>) : array<string * obj> =
         events
         |> Array.map (fun x -> x.ToJs ())
-
-
-
-
-

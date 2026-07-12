@@ -36,15 +36,15 @@ type Ui.Content with
     static member Pre() : ReactElement =
         Ui.ComponentContent(
             displayName = "Pre",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Pre",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Pre",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Pre",
-                    role = "text (preformatted/code block)",
-                    namePattern = "text prop content read as preformatted text",
-                    stateNotes = "Static text; selectable",
+                    componentName  = "LC.Pre",
+                    role           = "text (preformatted/code block)",
+                    namePattern    = "text prop content read as preformatted text",
+                    stateNotes     = "Static text; selectable",
                     scalesWithFont = true,
-                    contrastNotes = "Preformatted text color meets WCAG AA on background"
+                    contrastNotes  = "Preformatted text color meets WCAG AA on background"
                 ),
             samples =
                 element {

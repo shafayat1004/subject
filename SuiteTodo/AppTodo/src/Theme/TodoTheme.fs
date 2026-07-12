@@ -10,8 +10,8 @@ open SuiteTodo.Types
 
 type TabTheme = {
     BackgroundColor: Color
-    BorderColor: Color
-    SelectedColor: Color
+    BorderColor:     Color
+    SelectedColor:   Color
     UnselectedColor: Color
 }
 
@@ -567,35 +567,35 @@ module Styles =
     let tabsTheme (palette: SemanticPalette) : TabTheme =
         {
             BackgroundColor = palette.CardBackground
-            BorderColor = palette.CardBorder
-            SelectedColor = palette.Accent
+            BorderColor     = palette.CardBorder
+            SelectedColor   = palette.Accent
             UnselectedColor = palette.TextSecondary
         }
 
     let filterTabTheme (tabBase: TabTheme) : LC.Tab.Theme =
         {
-            SelectedColor = tabBase.SelectedColor
+            SelectedColor   = tabBase.SelectedColor
             UnselectedColor = Color.Hex "#666666"
         }
 
     let tabsScrollTheme (tabBase: TabTheme) : Theme =
         {
             BackgroundColor = tabBase.BackgroundColor
-            BorderColor = tabBase.BorderColor
-            BorderWidth = 1
+            BorderColor     = tabBase.BorderColor
+            BorderWidth     = 1
         }
 
     let priorityColor (palette: SemanticPalette) (priority: TodoPriority) =
         match priority with
-        | TodoPriority.High -> palette.PriorityHigh
+        | TodoPriority.High   -> palette.PriorityHigh
         | TodoPriority.Medium -> palette.PriorityMedium
-        | TodoPriority.Low -> palette.PriorityLow
+        | TodoPriority.Low    -> palette.PriorityLow
 
     let priorityChipColors (palette: SemanticPalette) (priority: TodoPriority) =
         match priority with
-        | TodoPriority.High -> palette.PriorityHighSoft, palette.PriorityHigh, palette.PriorityHigh
+        | TodoPriority.High   -> palette.PriorityHighSoft, palette.PriorityHigh, palette.PriorityHigh
         | TodoPriority.Medium -> palette.PriorityMediumSoft, palette.PriorityMedium, palette.PriorityMedium
-        | TodoPriority.Low -> palette.PriorityLowSoft, palette.PriorityLow, palette.PriorityLow
+        | TodoPriority.Low    -> palette.PriorityLowSoft, palette.PriorityLow, palette.PriorityLow
 
     let categoryChipColorsByCategory (palette: SemanticPalette) (category: option<TodoCategory>) =
         match category with

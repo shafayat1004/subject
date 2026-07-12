@@ -23,13 +23,13 @@ open LC.Dialog.Shell.WhiteRounded.Base
 type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
     [<Component>]
     static member Base(
-            canClose: CanClose,
-            ?children: ReactChildrenProp,
-            ?inProgress: bool,
+            canClose:            CanClose,
+            ?children:           ReactChildrenProp,
+            ?inProgress:         bool,
             ?accessibilityLabel: string,
-            ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?theme:              Theme -> Theme,
+            ?xLegacyStyles:      List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:                string
         ) : ReactElement =
         key |> ignore
 
@@ -42,11 +42,11 @@ type LibClient.Components.Constructors.LC.Dialog.Shell.WhiteRounded with
             | None       -> rawDefault
 
         LC.Dialog.Shell.WhiteRounded.Raw(
-            canClose = canClose,
-            inProgress = inProgress,
+            canClose            = canClose,
+            inProgress          = inProgress,
             ?accessibilityLabel = accessibilityLabel,
-            theme = rawTheme,
-            ?xLegacyStyles = xLegacyStyles,
+            theme               = rawTheme,
+            ?xLegacyStyles      = xLegacyStyles,
             children =
                 [|
                     Rn.ScrollView(

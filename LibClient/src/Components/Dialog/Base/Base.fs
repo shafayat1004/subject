@@ -75,13 +75,13 @@ module private Styles =
 type LibClient.Components.Constructors.LC.Dialog with
     [<Component>]
     static member Base(
-            canClose: CanClose,
+            canClose:        CanClose,
             contentPosition: ContentPosition,
-            ?children: ReactChildrenProp,
-            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?children:       ReactChildrenProp,
+            ?xLegacyStyles:  List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:            string
         ) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let onBackgroundPress (e: PointerEvent) : unit =
@@ -105,20 +105,20 @@ type LibClient.Components.Constructors.LC.Dialog with
                 [|
                     Rn.View(
                         onKeyPress = onKeyPress,
-                        onPress = onPress,
-                        styles = [| Styles.dialog |],
+                        onPress    = onPress,
+                        styles     = [| Styles.dialog |],
                         children =
                             [|
                                 match contentPosition with
                                 | Free -> defaultArg children [||] |> castAsElement
                                 | CenterTop ->
                                     Rn.View(
-                                        styles = [| Styles.positionWrapper; Styles.positionCenterTop |],
+                                        styles   = [| Styles.positionWrapper; Styles.positionCenterTop |],
                                         children = defaultArg children [||]
                                     )
                                 | Center ->
                                     Rn.View(
-                                        styles = [| Styles.positionWrapper; Styles.positionCenter |],
+                                        styles   = [| Styles.positionWrapper; Styles.positionCenter |],
                                         children = defaultArg children [||]
                                     )
                             |]

@@ -31,7 +31,7 @@ type LibClient.Components.Constructors.LC.TriStateful with
                 | Mode.Error message ->
                     Rn.View(styles = [| Styles.shield; Styles.error |], children = [|
                         LC.Text(message, styles = [| Styles.message |])
-                        LC.Button(label = "Ok", state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable reset))
+                        LC.Button(label         = "Ok", state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable reset))
                     |])
             |]
         )

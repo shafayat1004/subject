@@ -65,7 +65,7 @@ let improveDecodeError (err: DecodeError) : DecodeError =
             $"Property: '%s{p}' not found. Available properties: '%s{availableProps}'"
         | DecodeError.ParseError(t: Type, ex: Exception, v: string) ->
             $"Error decoding %s{v} from %s{t.FullName}: %s{ex.ToString()}"
-        | DecodeError.Uncategorized(str: string) -> str
+        | DecodeError.Uncategorized(str: string)       -> str
         | DecodeError.Multiple(lst: list<DecodeError>) -> List.map decodeErrorToString lst |> String.concat "\r\n"
     // We don't really care about error case, only text, but keep the DecodeError type for compatibility with nuget packages
     // Uncategorized .ToString() is equals to its payload so it is ideal
@@ -166,7 +166,7 @@ module Codecs =
                     )
                 with
                 | true, t -> Ok t
-                | _ -> Decode.Fail.invalidValue x ""
+                | _       -> Decode.Fail.invalidValue x ""
             | a -> Decode.Fail.strExpected a
 
         let dateTimeOffsetE (x: DateTimeOffset) =
@@ -222,7 +222,7 @@ open FSharpPlus.Data
 let reqDecoderWith (dec: Decoder<'Encoding, 'Value>) (prop: string) : Decoder<_, _> =
     let getFromListWith decoder (m: PropertyList<_>) key =
         match m.[key] with
-        | [] -> Decode.Fail.propertyNotFound key m
+        | []         -> Decode.Fail.propertyNotFound key m
         | value :: _ -> ReaderT.run decoder value
 
     ReaderT(fun (o: PropertyList<'Encoding>) -> getFromListWith dec o prop)
@@ -233,7 +233,7 @@ let reqDecodeWithCodec (codec: Codec<'Encoding, 'Value>) (prop: string) : Decode
 let reqDecoderWithLazy (dec: unit -> Decoder<'Encoding, 'Value>) (prop: string) : Decoder<_, _> =
     let getFromListWith decoder (m: PropertyList<_>) key =
         match m.[key] with
-        | [] -> Decode.Fail.propertyNotFound key m
+        | []         -> Decode.Fail.propertyNotFound key m
         | value :: _ -> ReaderT.run decoder value
 
     ReaderT(fun (o: PropertyList<'Encoding>) -> getFromListWith (dec ()) o prop)
@@ -241,7 +241,7 @@ let reqDecoderWithLazy (dec: unit -> Decoder<'Encoding, 'Value>) (prop: string) 
 let optDecoderWith (dec: Decoder<'Encoding, Option<'Value>>) (prop: string) : Decoder<_, _> =
     let getFromListWith decoder (m: PropertyList<_>) key =
         match m.[key] with
-        | [] -> Decode.Success None
+        | []         -> Decode.Success None
         | value :: _ -> ReaderT.run decoder value
 
     ReaderT(fun (o: PropertyList<'Encoding>) -> getFromListWith dec o prop)
@@ -410,9 +410,10 @@ let inline mergeUnionCases
 [<System.Obsolete("Use mergeUnionCases instead.")>]
 let inline unionCodec x = mergeUnionCases x
 
-let codecOfDecoders decoders =
-    { Decoder = Seq.reduceBack combineDecoders decoders
-      Encoder = Const << (fun _ -> PropertyList [||]) }
+let codecOfDecoders decoders = {
+    Decoder = Seq.reduceBack combineDecoders decoders
+    Encoder = Const << (fun _ -> PropertyList [||])
+}
 
 let withDecoders decoders codec =
     codec

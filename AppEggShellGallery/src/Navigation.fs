@@ -21,18 +21,18 @@ with interface NavigationRoute
 
 and ActualRoute =
 | Home
-| Docs       of MarkdownUrl: string
-| Components of ComponentItem
-| Tools      of MarkdownUrl: string
-| HowTo      of HowToItem
-| Subject    of MarkdownUrl: string
-| Architecture   of MarkdownUrl: string
-| Modernization  of MarkdownUrl: string
-| Runbooks       of MarkdownUrl: string
-| Accessibility  of MarkdownUrl: string
-| KnowledgeBase  of MarkdownUrl: string
-| Design     of DesignItem
-| Legacy     of LegacyItem
+| Docs          of MarkdownUrl: string
+| Components    of ComponentItem
+| Tools         of MarkdownUrl: string
+| HowTo         of HowToItem
+| Subject       of MarkdownUrl: string
+| Architecture  of MarkdownUrl: string
+| Modernization of MarkdownUrl: string
+| Runbooks      of MarkdownUrl: string
+| Accessibility of MarkdownUrl: string
+| KnowledgeBase of MarkdownUrl: string
+| Design        of DesignItem
+| Legacy        of LegacyItem
 | TinyGuid
 
 and HowToItem =
@@ -229,7 +229,7 @@ module ComponentItem =
         | ToggleButtons                   -> "ToggleButtons"
         | SegmentedControl                -> "SegmentedControl"
         | Accessibility_Group             -> "Group / RadioGroup"
-        | Accessibility_LiveRegion          -> "LiveRegion"
+        | Accessibility_LiveRegion        -> "LiveRegion"
         | Accessibility_WithAccessibility -> "With.Accessibility"
         | TwoWayScrollable                -> "TwoWayScrollable"
         | AsyncData                       -> "AsyncData"

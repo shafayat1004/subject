@@ -60,10 +60,10 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member QuadStateful<'InputAcc, 'Input>(
             initialInputAcc: InitialInputAcc<'InputAcc>,
-            act: 'Input -> Async<Result<unit, string>>,
-            validate: 'InputAcc -> Option<'Input>,
-            initial: ((* Edit *) ReactEvent.Action -> unit) -> ReactElement,
-            input: ('InputAcc * ((* SetInput *) 'InputAcc -> unit) * (* MaybeAct *) Option<ReactEvent.Action -> unit> * (* Cancel *) (ReactEvent.Action -> unit)) -> ReactElement
+            act:             'Input -> Async<Result<unit, string>>,
+            validate:        'InputAcc -> Option<'Input>,
+            initial:         ((* Edit *) ReactEvent.Action -> unit) -> ReactElement,
+            input:           ('InputAcc * ((* SetInput *) 'InputAcc -> unit) * (* MaybeAct *) Option<ReactEvent.Action -> unit> * (* Cancel *) (ReactEvent.Action -> unit)) -> ReactElement
         ) : ReactElement =
         let modeHook = Hooks.useState Mode<'InputAcc, 'Input>.Initial
 

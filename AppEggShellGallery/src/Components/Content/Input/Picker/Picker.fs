@@ -76,10 +76,10 @@ type private Helpers =
         let selectedFruit = Hooks.useState None
 
         LC.Input.Picker(
-            label = "Fruit",
-            items = Static(fruits, fruitToFilterString),
+            label    = "Fruit",
+            items    = Static(fruits, fruitToFilterString),
             itemView = fruitItemView,
-            value = AtMostOne(selectedFruit.current, selectedFruit.update),
+            value    = AtMostOne(selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
 
@@ -88,10 +88,10 @@ type private Helpers =
         let selectedFruit = Hooks.useState None
 
         LC.Input.Picker(
-            label = "Fruit",
-            items = Static(fruits, fruitToFilterString),
+            label    = "Fruit",
+            items    = Static(fruits, fruitToFilterString),
             itemView = fruitItemView,
-            value = ExactlyOne(selectedFruit.current, (fun fruit -> selectedFruit.update (Some fruit))),
+            value    = ExactlyOne(selectedFruit.current, (fun fruit -> selectedFruit.update (Some fruit))),
             validity = Valid
         )
 
@@ -107,7 +107,7 @@ type private Helpers =
                  else
                      Static(fruits, fruitToFilterString)),
             itemView = fruitItemView,
-            value = AtLeastOne(selectedFruits.current, (fun fruits -> selectedFruits.update (Some fruits.ToOrderedSet))),
+            value    = AtLeastOne(selectedFruits.current, (fun fruits -> selectedFruits.update (Some fruits.ToOrderedSet))),
             validity = Valid
         )
 
@@ -117,10 +117,10 @@ type private Helpers =
         let validity = defaultArg validity Valid
 
         LC.Input.Picker(
-            label = "Fruit",
-            items = Static(fruits, fruitToFilterString),
+            label    = "Fruit",
+            items    = Static(fruits, fruitToFilterString),
             itemView = fruitItemView,
-            value = Any(selectedFruits.current, (fun fruits -> selectedFruits.update (Some fruits))),
+            value    = Any(selectedFruits.current, (fun fruits -> selectedFruits.update (Some fruits))),
             validity = validity
         )
 
@@ -135,10 +135,10 @@ type private Helpers =
             }
 
         LC.Input.Picker(
-            label = "Fruit",
-            items = Static(fruits, fruitToFilterString),
+            label    = "Fruit",
+            items    = Static(fruits, fruitToFilterString),
             itemView = Custom renderItem,
-            value = AtMostOne(selectedFruit.current, selectedFruit.update),
+            value    = AtMostOne(selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
 
@@ -147,10 +147,10 @@ type private Helpers =
         let selectedFruit = Hooks.useState None
 
         LC.Input.Picker(
-            label = "Fruit",
-            items = Async fetchFruitsAllOnNoQuery,
+            label    = "Fruit",
+            items    = Async fetchFruitsAllOnNoQuery,
             itemView = fruitItemView,
-            value = AtMostOne(selectedFruit.current, selectedFruit.update),
+            value    = AtMostOne(selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
 
@@ -159,10 +159,10 @@ type private Helpers =
         let selectedFruit = Hooks.useState None
 
         LC.Input.Picker(
-            label = "Fruit",
-            items = Async fetchFruitsEmptyOnNoQuery,
+            label    = "Fruit",
+            items    = Async fetchFruitsEmptyOnNoQuery,
             itemView = fruitItemView,
-            value = AtMostOne(selectedFruit.current, selectedFruit.update),
+            value    = AtMostOne(selectedFruit.current, selectedFruit.update),
             validity = Valid
         )
 
@@ -171,10 +171,10 @@ type private Helpers =
         let selectedItems = Hooks.useState None
 
         LC.Input.Picker(
-            label = "Many Choices",
-            items = Static(manyItems, id),
+            label    = "Many Choices",
+            items    = Static(manyItems, id),
             itemView = stringItemView,
-            value = Any(selectedItems.current, (fun items -> selectedItems.update (Some items))),
+            value    = Any(selectedItems.current, (fun items -> selectedItems.update (Some items))),
             validity = Valid
         )
 
@@ -182,13 +182,13 @@ type Ui.Content.Input with
     [<Component>]
     static member Picker() : ReactElement =
         Ui.ComponentContent(
-            displayName = "Input.Picker",
+            displayName  = "Input.Picker",
             isResponsive = true,
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Picker",
+            props        = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Picker",
             notes =
                 element {
                     Ui.Code(
-                        heading = "Relevant setup code",
+                        heading  = "Relevant setup code",
                         language = Code.Fsharp,
                         children =
                             [| LC.Text
@@ -204,12 +204,12 @@ let fruitToFilterString (fruit: Fruit) = fruit.GetName.Value""" |]
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Input.Picker",
-                    role = "button to open selector; items use button role in picker dialog",
-                    namePattern = "Floating label prop; open control labeled with label text or \"Open picker\"",
-                    stateNotes = "selected tags expose Remove buttons; invalid reason below field",
+                    componentName  = "LC.Input.Picker",
+                    role           = "button to open selector; items use button role in picker dialog",
+                    namePattern    = "Floating label prop; open control labeled with label text or \"Open picker\"",
+                    stateNotes     = "selected tags expose Remove buttons; invalid reason below field",
                     scalesWithFont = true,
-                    contrastNotes = "Label, field text, and error colors meet WCAG AA"
+                    contrastNotes  = "Label, field text, and error colors meet WCAG AA"
                 ),
             samples =
                 element {
@@ -321,7 +321,7 @@ LC.Input.Picker(
                         samples =
                             element {
                                 Ui.ComponentSample(
-                                    notes = LC.Text "When the async returns ALL items when no query is entered",
+                                    notes   = LC.Text "When the async returns ALL items when no query is entered",
                                     visuals = Helpers.AsyncAllOnNoQuerySample(),
                                     code =
                                         ComponentSample.Children(
@@ -362,7 +362,7 @@ LC.Input.Picker(
                                 )
 
                                 Ui.ComponentSample(
-                                    notes = LC.Text "When the async returns NO items when no query is entered",
+                                    notes   = LC.Text "When the async returns NO items when no query is entered",
                                     visuals = Helpers.AsyncEmptyOnNoQuerySample(),
                                     code =
                                         ComponentSample.Children(

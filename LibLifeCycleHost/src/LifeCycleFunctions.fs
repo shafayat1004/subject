@@ -42,7 +42,7 @@ let calculateUpdatedTickStateAndReminderUpdate
                                                  subjectLastUpdatedOn + timeSpan, Some traceContext
                     // don't keep trace context for longer-term and fixed-time timers
                     | Schedule.AfterLastTransition timeSpan -> subjectLastUpdatedOn + timeSpan, None
-                    | Schedule.On on          -> on, None
+                    | Schedule.On on                        -> on, None
                     |> fun (on, maybeNextTraceContext) ->
                         let isDeleteSelf = match timer.TimerAction with | TimerAction.DeleteSelf -> true | TimerAction.RunAction _ -> false
                         (on, if isDeleteSelf then 0 else 1), // sort order
@@ -107,9 +107,9 @@ let updateRemoteSubscriptions
             )
         |> Seq.map (
             fun (ref, names) -> {
-                RpcOperation = GrainRpcOperation.UnsubscribeFromGrain (Set.ofSeq names)
+                RpcOperation     = GrainRpcOperation.UnsubscribeFromGrain (Set.ofSeq names)
                 SubjectReference = ref
-                TraceContext = traceContext
+                TraceContext     = traceContext
             }
         )
         |> Seq.toList;
@@ -130,7 +130,7 @@ let updateRemoteSubscriptions
         |> List.groupBy (
             fun (_, subjectSubscription) ->
                 { LifeCycleKey = subjectSubscription.TargetLifeCycleKey
-                  SubjectId = subjectSubscription.TargetSubjectId }
+                  SubjectId    = subjectSubscription.TargetSubjectId }
                 : SubjectReference
             )
         |> Seq.map (
@@ -144,7 +144,7 @@ let updateRemoteSubscriptions
                     {
                         RpcOperation     = GrainRpcOperation.SubscribeToGrain subscriptionNamesToEvents
                         SubjectReference = targetSubjectReference
-                        TraceContext = traceContext
+                        TraceContext     = traceContext
                     }
             )
         |> Seq.toList
@@ -169,7 +169,7 @@ let updateTimersAndSubscriptions
         subscriptions
         |> Map.map (
             fun _ subjectSubscription ->
-                { SubjectId = subjectSubscription.TargetSubjectId
+                { SubjectId    = subjectSubscription.TargetSubjectId
                   LifeCycleKey = subjectSubscription.TargetLifeCycleKey }
                 : SubjectReference
         )
@@ -202,9 +202,9 @@ let updateTimersAndSubscriptions
         None
 
 type internal IndexValue =
-| NumIndexValue of int64
-| StrIndexValue of string
-| SearchIndexValue of string
+| NumIndexValue       of int64
+| StrIndexValue       of string
+| SearchIndexValue    of string
 | GeographyIndexValue of Wkt: string
 
 let internal getIndexEntriesForSubject
@@ -317,7 +317,7 @@ let internal getPromotedIndexEntries
             let flattenIndicesMap (indices: Map<'K, Set<'V>>) = indices |> Map.toList |> List.collect (fun (key, values) -> Set.toList values |> List.map (fun value -> key, value))
 
             List.allPairs // write value for each index into every promoted index table
-                (promotedIndices |> flattenIndicesMap)
+                (promotedIndices     |> flattenIndicesMap)
                 (filteredBaseIndices |> flattenIndicesMap)
             |> Set.ofList
 
@@ -361,19 +361,19 @@ let getIndexActions
         let oldIndices =
             match maybeCurrentSubject with
             | Some subj -> getIndexEntriesForSubject lifeCycle subj
-            | None -> Map.empty
+            | None      -> Map.empty
 
         let indexActionsList = System.Collections.Generic.List<IndexAction<'OpError>>()
 
         let addIndexAction isDelete key (uniqueViolationError: Option<'OpError>) (indexValue: IndexValue) =
             let indexAction =
                 match isDelete, indexValue with
-                | false, StrIndexValue str -> IndexAction.InsertString (key, str, uniqueViolationError)
-                | true,  StrIndexValue str -> IndexAction.DeleteString (key, str, uniqueViolationError.IsSome)
-                | false, NumIndexValue num -> IndexAction.InsertNumeric (key, num, uniqueViolationError)
-                | true,  NumIndexValue num -> IndexAction.DeleteNumeric (key, num, uniqueViolationError.IsSome)
-                | false, SearchIndexValue str -> IndexAction.InsertSearch (key, str)
-                | true,  SearchIndexValue str -> IndexAction.DeleteSearch (key, str)
+                | false, StrIndexValue str       -> IndexAction.InsertString (key, str, uniqueViolationError)
+                | true,  StrIndexValue str       -> IndexAction.DeleteString (key, str, uniqueViolationError.IsSome)
+                | false, NumIndexValue num       -> IndexAction.InsertNumeric (key, num, uniqueViolationError)
+                | true,  NumIndexValue num       -> IndexAction.DeleteNumeric (key, num, uniqueViolationError.IsSome)
+                | false, SearchIndexValue str    -> IndexAction.InsertSearch (key, str)
+                | true,  SearchIndexValue str    -> IndexAction.DeleteSearch (key, str)
                 | false, GeographyIndexValue str -> IndexAction.InsertGeography (key, str)
                 | true,  GeographyIndexValue str -> IndexAction.DeleteGeography (key, str)
             indexActionsList.Add(indexAction)
@@ -411,5 +411,5 @@ let getIndexActions
             )
 
         match indexActionsList |> List.ofSeq with
-        | [] -> [] // optimization: skip promoted calculation if we have no changed base indices
+        | []      -> [] // optimization: skip promoted calculation if we have no changed base indices
         | actions -> actions |> List.append (getPromotedIndexActions oldIndices newIndices)

@@ -22,22 +22,22 @@ type Ui.Content with
     static member IconButton() : ReactElement =
         Ui.ComponentContent(
             displayName = "IconButton",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconButton",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.IconButton",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.IconButton",
-                    role = "button",
-                    namePattern = "?label prop (defaults to \"Icon button\"); icon is decorative",
-                    stateNotes = "disabled when MakeDisabled; busy when InProgress",
+                    componentName  = "LC.IconButton",
+                    role           = "button",
+                    namePattern    = "?label prop (defaults to \"Icon button\"); icon is decorative",
+                    stateNotes     = "disabled when MakeDisabled; busy when InProgress",
                     scalesWithFont = false,
-                    contrastNotes = "Themed icon color meets WCAG AA on typical backgrounds"
+                    contrastNotes  = "Themed icon color meets WCAG AA on typical backgrounds"
                 ),
             samples =
                 element {
                     Ui.ComponentSample(
                         visuals =
                             LC.IconButton(
-                                icon = Icon.Megaphone,
+                                icon  = Icon.Megaphone,
                                 state = PropStateFactory.MakeLowLevel (Actionable Actions.greet)
                             ),
                         code =
@@ -54,7 +54,7 @@ LC.IconButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.IconButton(
-                                icon = Icon.Megaphone,
+                                icon  = Icon.Megaphone,
                                 state = PropStateFactory.MakeLowLevel InProgress
                             ),
                         code =
@@ -71,7 +71,7 @@ LC.IconButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.IconButton(
-                                icon = Icon.Home,
+                                icon  = Icon.Home,
                                 state = PropStateFactory.MakeDisabled
                             ),
                         code =
@@ -90,7 +90,7 @@ LC.IconButton(
                     Ui.ComponentSample(
                         visuals =
                             LC.IconButton(
-                                icon = Icon.Send,
+                                icon  = Icon.Send,
                                 state = PropStateFactory.MakeLowLevel (Actionable Actions.greet),
                                 theme = Styles.specialTheme
                             ),
@@ -110,7 +110,7 @@ LC.IconButton(
 
                                     Ui.Code(
                                         language = ComponentSample.Fsharp,
-                                        heading = "Theme",
+                                        heading  = "Theme",
                                         children =
                                             [| LC.Text """
 let specialTheme (theme: LC.IconButton.Theme) =

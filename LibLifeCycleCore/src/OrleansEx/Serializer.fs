@@ -17,10 +17,10 @@ let inline private summarizerForType (toCodecFriendly: 'T -> 'CodecFriendly) : (
 
 
 type private UntypedSerializer = {
-    To:        obj -> byte[]
-    Fro:       byte[] -> obj
-    Type:      Type
-    TypeId:    byte
+    To:     obj -> byte[]
+    Fro:    byte[] -> obj
+    Type:   Type
+    TypeId: byte
 
     // TODO: can we move it away? it's incidental that we need logging summarizers and custom Orleans serializers for the same types
     //  (in fact we may need more type for summarizers e.g. error types (not just errors inside Result<_, _>)
@@ -43,8 +43,8 @@ with
             |> toJson<'CodecFriendly> |> (fun v -> v.ToString(unindentedOptions))
 #endif
         {
-            To        = fun (t: obj) -> t :?> 'T |> toCodecFriendly |> toJsonText |> gzipCompressUtf8String
-            Fro       = fun (bytes: byte[]) ->
+            To  = fun (t: obj) -> t :?> 'T |> toCodecFriendly |> toJsonText |> gzipCompressUtf8String
+            Fro = fun (bytes: byte[]) ->
                 let jsonText = gzipDecompressToUtf8String bytes
                 match ofJsonText<'CodecFriendly> jsonText with
                 | Ok x ->
@@ -68,8 +68,8 @@ with
             |> CodecLib.Codec.encode codec |> (fun v -> v.ToString(unindentedOptions))
 #endif
         {
-            To        = fun (t: obj) -> t :?> 'T |> toJsonText |> gzipCompressUtf8String
-            Fro       = fun (bytes: byte[]) ->
+            To  = fun (t: obj) -> t :?> 'T |> toJsonText |> gzipCompressUtf8String
+            Fro = fun (bytes: byte[]) ->
                 let jsonText = gzipDecompressToUtf8String bytes
                 let enc = StjEncoding.Parse jsonText
                 match CodecLib.Codec.decode codec enc with
@@ -81,8 +81,8 @@ with
             ToSummary = fun _ ->
                 NotImplementedException (sprintf "Orleans deserializer ForConcreteTypeWithExplicitCodec does not implement ToSummary. Type Id: %d" typeId)
                 |> raise
-            Type      = typeof<'T>
-            TypeId    = typeId
+            Type   = typeof<'T>
+            TypeId = typeId
         }
 
 let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
@@ -436,7 +436,7 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
         UntypedSerializer.ForIsomorphicType  79uy
             // Result<Option<'LifeAction>, GrainTriggerTimerError<'OpError, 'LifeAction>>
             (Result.mapBoth (fun (id: Option<'LifeAction>) -> id |> Option.map (fun action -> action :> LifeAction)) GrainTriggerTimerError<OpError, LifeAction>.CastUnsafe)
-            (Result.mapBoth (fun (id: Option<LifeAction>) -> id |> Option.map (fun action -> action :?> 'LifeAction)) GrainTriggerTimerError<'OpError, 'LifeAction>.CastUnsafe)
+            (Result.mapBoth (fun (id: Option<LifeAction>) -> id  |> Option.map (fun action -> action :?> 'LifeAction)) GrainTriggerTimerError<'OpError, 'LifeAction>.CastUnsafe)
             id<_>
 
         UntypedSerializer.ForIsomorphicType  80uy

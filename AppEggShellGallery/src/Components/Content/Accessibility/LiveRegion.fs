@@ -41,12 +41,12 @@ type Ui.Content.Accessibility with
                 LC.Text "Use LC.LiveRegion.announce for one-off status messages (e.g. after delete). Mount LC.LiveRegion with ?liveRegion for persistent polite/assertive regions.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.LiveRegion",
-                    role = "live region (aria-live polite or assertive)",
-                    namePattern = "Announcement text passed to LC.LiveRegion.announce or child content",
-                    stateNotes = "Polite waits for pause; assertive interrupts immediately",
+                    componentName  = "LC.LiveRegion",
+                    role           = "live region (aria-live polite or assertive)",
+                    namePattern    = "Announcement text passed to LC.LiveRegion.announce or child content",
+                    stateNotes     = "Polite waits for pause; assertive interrupts immediately",
                     scalesWithFont = true,
-                    deferredTags = [ "[rnw-blocked] full live-region parity on web pending RNW migration" ]
+                    deferredTags   = [ "[rnw-blocked] full live-region parity on web pending RNW migration" ]
                 ),
             samples =
                 element {

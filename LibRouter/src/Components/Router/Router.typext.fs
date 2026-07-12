@@ -18,9 +18,9 @@ let defaultFuture : obj =
     #endif
 
 type Props = (* GenerateMakeFunction *) {
-    key: string option // defaultWithAutoWrap LibClient.JsInterop.Undefined
+    key:            string option // defaultWithAutoWrap LibClient.JsInterop.Undefined
     initialEntries: array<string> option // defaultWithAutoWrap LibClient.JsInterop.Undefined
-    future: obj // default LibRouter.Components.Router.defaultFuture
+    future:         obj // default LibRouter.Components.Router.defaultFuture
 }
 
 type Location = {

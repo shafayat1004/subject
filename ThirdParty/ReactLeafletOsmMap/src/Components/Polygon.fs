@@ -14,7 +14,7 @@ open Fable.Core.JsInterop
 [<Fable.Core.JS.Pojo>]
 type private PolygonPropsJs
     ( positions: obj, key: string, ?strock: bool, ?color: string, ?weight: int, ?opacity: float,
-      ?fill: bool, ?fillColor: string, ?fillOpacity: float, ?eventHandlers: obj ) =
+      ?fill:     bool, ?fillColor: string, ?fillOpacity: float, ?eventHandlers: obj ) =
     member val positions = positions
     member val key = key
     member val strock = strock
@@ -48,13 +48,13 @@ type OsmMap with
             PolygonPropsJs(
                 positions.ToJs(),
                 (key |> Option.map (fun x -> x.Value) |> Option.defaultValue (System.Guid.NewGuid().ToString())),
-                ?strock = strock,
-                ?color = color,
-                ?weight = weight,
-                ?opacity = opacity,
-                ?fill = fill,
-                ?fillColor = fillColor,
-                ?fillOpacity = fillOpacity,
+                ?strock        = strock,
+                ?color         = color,
+                ?weight        = weight,
+                ?opacity       = opacity,
+                ?fill          = fill,
+                ?fillColor     = fillColor,
+                ?fillOpacity   = fillOpacity,
                 ?eventHandlers = (eventHandlers |> Option.map LeafletEvent.ToJsObj)
             ) |> box
 

@@ -62,7 +62,7 @@ type Auditor() =
 
     member this.Write(value: string) =
         this.WriteIndentIfLineStart() |> ignore
-        audit.Append(value) |> ignore
+        audit.Append(value)           |> ignore
         isLineStart <- String.IsNullOrEmpty(value)
         this
 
@@ -73,7 +73,7 @@ type Auditor() =
 
     member this.WriteLine(value: string) =
         this.WriteIndentIfLineStart() |> ignore
-        audit.AppendLine(value) |> ignore
+        audit.AppendLine(value)       |> ignore
         isLineStart <- true
         this
 
@@ -120,11 +120,11 @@ module private AuditHelpers =
                 ): Auditor =
             let accessEventType =
                 match accessEvent with
-                | AccessEvent.Read _ -> "Read"
-                | AccessEvent.ReadBlob _ -> "Read blob"
+                | AccessEvent.Read _        -> "Read"
+                | AccessEvent.ReadBlob _    -> "Read blob"
                 | AccessEvent.ReadHistory _ -> "Read history"
-                | AccessEvent.Act _ -> "Act"
-                | AccessEvent.Construct _ -> "Construct"
+                | AccessEvent.Act _         -> "Act"
+                | AccessEvent.Construct _   -> "Construct"
 
             this
                 .WriteLine()
@@ -258,7 +258,7 @@ module private AuditHelpers =
         member this.Audit(accessDecision: AccessDecision): Auditor =
             match accessDecision with
             | Grant -> this.WriteLine("Grant")
-            | Deny -> this.WriteLine("Deny")
+            | Deny  -> this.WriteLine("Deny")
 
         member this.Audit(accessRule: AccessRule<'AccessPredicateInput, 'Role, 'LifeAction, 'Constructor>): Auditor =
             this
@@ -354,7 +354,7 @@ module private Session =
             let! currentSession = sessionGrain.Get { SessionHandle = SessionHandle.NoSession; CallOrigin = CallOrigin.Internal }
             let maybeVersionedSession =
                 match currentSession with
-                | Ok maybeVersionedSubject -> maybeVersionedSubject
+                | Ok maybeVersionedSubject         -> maybeVersionedSubject
                 | Error GrainGetError.AccessDenied -> failwith "Unexpected access denial"
 
             return maybeVersionedSession |> Option.map (fun x -> x.Subject)
@@ -395,14 +395,14 @@ module private Session =
         | Some session ->
             {
                 Session = Some session
-                UserId = sessionHandling.Handler.GetUserId session
-                Roles = sessionHandling.GetRoles externalCallOrigin (Some session)
+                UserId  = sessionHandling.Handler.GetUserId session
+                Roles   = sessionHandling.GetRoles externalCallOrigin (Some session)
             }
         | None ->
             {
                 Session = None
-                UserId = Anonymous
-                Roles = sessionHandling.GetRoles externalCallOrigin None
+                UserId  = Anonymous
+                Roles   = sessionHandling.GetRoles externalCallOrigin None
             }
 
 module Sessions =
@@ -458,10 +458,10 @@ module Sessions =
                         return
                             match transitionError with
                             | GrainTransitionError.SubjectNotInitialized _ -> InternalRevalidateError.SubjectNotInitialized
-                            | GrainTransitionError.TransitionError _ -> InternalRevalidateError.TransitionError
-                            | GrainTransitionError.TransitionNotAllowed -> InternalRevalidateError.TransitionNotAllowed
-                            | GrainTransitionError.LockedInTransaction -> InternalRevalidateError.LockedInTransaction
-                            | GrainTransitionError.AccessDenied -> InternalRevalidateError.AccessDenied
+                            | GrainTransitionError.TransitionError _       -> InternalRevalidateError.TransitionError
+                            | GrainTransitionError.TransitionNotAllowed    -> InternalRevalidateError.TransitionNotAllowed
+                            | GrainTransitionError.LockedInTransaction     -> InternalRevalidateError.LockedInTransaction
+                            | GrainTransitionError.AccessDenied            -> InternalRevalidateError.AccessDenied
                             |> RevalidateError.Internal
                             |> Error
 
@@ -567,13 +567,13 @@ module Subjects =
                 |> Seq.filter (
                     fun accessRule ->
                         match accessRule.Input with
-                        | MatchAny -> true
+                        | MatchAny    -> true
                         | Match input -> apiAccess.AccessPredicate input accessEvent externalCallOrigin maybeSession
                     )
                 |> Seq.tryHead
 
             match firstMatchingAccessRule with
-            | None -> Deny
+            | None            -> Deny
             | Some accessRule -> accessRule.Decision
         | None ->
             maybeAuditor
@@ -635,7 +635,7 @@ module Subjects =
                 | Some apiAccess ->
                     match sessionInfo.UserId with
                     | Authenticated _ -> true
-                    | Anonymous -> apiAccess.AnonymousCanReadTotalCount
+                    | Anonymous       -> apiAccess.AnonymousCanReadTotalCount
 
             let accessControlledList =
                 subjectAccessEvents
@@ -750,7 +750,7 @@ module Subjects =
                 let telemetryUserId =
                     match userId with
                     | Authenticated (userId, _) -> userId
-                    | Anonymous -> ""
+                    | Anonymous                 -> ""
 
                 let telemetrySessionId =
                     match sessionSource with
@@ -774,7 +774,7 @@ module Subjects =
             match accessControlledList with
             | [accessControlled] ->
                 match accessControlled with
-                | Denied _ -> return! unauthorizedContinuation ()
+                | Denied _  -> return! unauthorizedContinuation ()
                 | Granted _ -> return! authorizedContinuation ()
             | _ ->
                 return failwith "unexpected"
@@ -901,13 +901,13 @@ module Views =
                 |> Seq.filter (
                     fun accessRule ->
                         match accessRule.Input with
-                        | MatchAny -> true
+                        | MatchAny             -> true
                         | Match predicateInput -> apiAccess.AccessPredicate predicateInput input callOrigin sessionInfo.Session
                     )
                 |> Seq.tryHead
 
             match firstMatchingAccessRule with
-            | None -> Deny
+            | None            -> Deny
             | Some accessRule -> accessRule.Decision
         | None ->
             Deny
@@ -962,7 +962,7 @@ module Views =
 
 
                         match accessDecision with
-                        | Deny -> return unauthorizedResult
+                        | Deny  -> return unauthorizedResult
                         | Grant -> return! authorizedContinuation ()
                     }
             }
@@ -1016,13 +1016,13 @@ module TimeSeries =
                 |> Seq.filter (
                     fun accessRule ->
                         match accessRule.Input with
-                        | MatchAny -> true
+                        | MatchAny    -> true
                         | Match input -> apiAccess.AccessPredicate input accessEvent externalCallOrigin maybeSession
                     )
                 |> Seq.tryHead
 
             match firstMatchingAccessRule with
-            | None -> Deny
+            | None            -> Deny
             | Some accessRule -> accessRule.Decision
         | None ->
             Deny
@@ -1111,7 +1111,7 @@ module TimeSeries =
                 let telemetryUserId =
                     match userId with
                     | Authenticated (userId, _) -> userId
-                    | Anonymous -> ""
+                    | Anonymous                 -> ""
 
                 let telemetrySessionId =
                     match sessionSource with
@@ -1135,7 +1135,7 @@ module TimeSeries =
             match accessControlledList with
             | [accessControlled] ->
                 match accessControlled with
-                | Denied _ -> return! unauthorizedContinuation ()
+                | Denied _  -> return! unauthorizedContinuation ()
                 | Granted _ -> return! authorizedContinuation ()
             | _ ->
                 return failwith "unexpected"

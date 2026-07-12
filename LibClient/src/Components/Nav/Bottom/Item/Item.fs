@@ -104,12 +104,12 @@ module Nav_Bottom_Item =
     let private onPressForState (state: State) =
         match state with
         | Actionable onPress | SelectedActionable onPress -> Some onPress
-        | _ -> None
+        | _                                               -> None
 
     let private isSelectedState (state: State) =
         match state with
         | Selected | SelectedActionable _ -> true
-        | _ -> false
+        | _                               -> false
 
     let private interactionForState (theme: Theme) (state: State) =
         match state with
@@ -356,16 +356,16 @@ module Nav_Bottom_Item =
     type Constructors.LC.Nav.Bottom with
         [<Component>]
         static member Item(
-                state: State,
-                style: Style,
-                ?testId: string,
-                ?children: ReactChildrenProp,
-                ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
+                state:          State,
+                style:          Style,
+                ?testId:        string,
+                ?children:      ReactChildrenProp,
+                ?styles:        array<ViewStyles>,
+                ?theme:         Theme -> Theme,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key: string
+                ?key:           string
             ) : ReactElement =
-            key |> ignore
+            key      |> ignore
             children |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -405,17 +405,17 @@ module Nav_Bottom_Item =
                                             | Some onPress ->
                                                 LC.Pressable(
                                                     onPress = onPress,
-                                                    label = pressLabelValue,
-                                                    role = AccessibilityRole.Button,
-                                                    testId = itemTestId,
+                                                    label   = pressLabelValue,
+                                                    role    = AccessibilityRole.Button,
+                                                    testId  = itemTestId,
                                                     state =
                                                         { AccessibilityStateRecord.empty with
                                                             Selected = Some (isSelectedState state)
                                                             Disabled = match state with | Disabled -> Some true | _ -> None
-                                                            Busy = match state with | InProgress -> Some true | _ -> None
+                                                            Busy     = match state with | InProgress -> Some true | _ -> None
                                                         },
-                                                    overlay = true,
-                                                    pointerState = pointerState,
+                                                    overlay       = true,
+                                                    pointerState  = pointerState,
                                                     componentName = "LC.Nav.Bottom.Item"
                                                 )
                                             | None ->

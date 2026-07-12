@@ -11,9 +11,9 @@ type private State =
 
 type private Props =
     {
-        Try: ReactElement
+        Try:   ReactElement
         Catch: (System.Exception * (unit -> unit)) -> ReactElement
-        key: Option<string>
+        key:   Option<string>
     }
 
 // Using a class-based component rather than a function-based one because React does not yet have a hook equivalent for componentDidCatch.
@@ -34,19 +34,19 @@ type private ErrorBoundaryComponent(initialProps: Props) as this =
 
     override this.render() =
         match this.state with
-        | State.Trying -> this.props.Try
+        | State.Trying       -> this.props.Try
         | State.Caught error -> this.props.Catch (error, this.Reset)
 
 type LibClient.Components.Constructors.LC with
     static member ErrorBoundary(
                 ``try``: ReactElement,
-                catch: (System.Exception * (unit -> unit)) -> ReactElement,
-                ?key: string
+                catch:   (System.Exception * (unit -> unit)) -> ReactElement,
+                ?key:    string
             ) : ReactElement =
         let props =
             {
-                Try = ``try``
+                Try   = ``try``
                 Catch = catch
-                key = key
+                key   = key
             }
         Fable.React.Helpers.ofType<ErrorBoundaryComponent,_,_> props Seq.empty

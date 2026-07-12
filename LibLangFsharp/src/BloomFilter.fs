@@ -119,7 +119,7 @@ let private makeStringHashFunctions (bitArraySize: uint32) (hashFunctionCount: b
                     |> Seq.map (fun chunk ->
                         let convertableChunk =
                             match 4 - chunk.Length with
-                            | 0 -> chunk
+                            | 0       -> chunk
                             | padding -> Array.zeroCreate padding |> Array.append chunk
 
                         BitConverter.ToUInt32(convertableChunk, 0) |> float)

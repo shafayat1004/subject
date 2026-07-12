@@ -69,7 +69,7 @@ type DoSomething(initialProps) =
                 this.Actions.TryCancel
             ),
             heading = $"Type {this.props.Parameters.Param} in words",
-            body = element {
+            body    = element {
                 LC.Form.Base (
                     accumulator = LibClient.Components.Form_Base.Accumulator.ManageInternallyInitializingWith (Acc.Initial ()),
                     submit      = submit this.ResetForm,

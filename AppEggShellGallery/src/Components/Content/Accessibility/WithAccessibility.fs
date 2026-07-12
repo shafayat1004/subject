@@ -30,10 +30,10 @@ type Ui.Content.Accessibility with
                 LC.Text "LC.With.Accessibility subscribes to OS accessibility settings and re-renders when they change. Toggle settings in your OS (reduce motion, bold text, etc.) to see values update.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.With.Accessibility",
-                    role = "provider (no visible role)",
-                    namePattern = "N/A — exposes AccessibilitySettings to children",
-                    stateNotes = "Reactive flags: ScreenReaderEnabled, ReduceMotion, BoldText, ReduceTransparency, InvertColors, Grayscale, FontScale",
+                    componentName  = "LC.With.Accessibility",
+                    role           = "provider (no visible role)",
+                    namePattern    = "N/A — exposes AccessibilitySettings to children",
+                    stateNotes     = "Reactive flags: ScreenReaderEnabled, ReduceMotion, BoldText, ReduceTransparency, InvertColors, Grayscale, FontScale",
                     scalesWithFont = false,
                     deferredTags =
                         [

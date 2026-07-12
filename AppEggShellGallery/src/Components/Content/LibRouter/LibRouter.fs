@@ -15,7 +15,7 @@ type Ui.Content.LibRouter with
     static member Dialogs () : ReactElement =
         Ui.ComponentContent(
             displayName = "LR.Dialogs",
-            props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.Dialogs",
+            props       = ComponentContent.ForFullyQualifiedName "LibRouter.Components.Dialogs",
             notes =
                 element {
                     LC.Text "Renders the router dialog stack (resultless, resultful, ad-hoc, and system dialogs)."
@@ -23,12 +23,12 @@ type Ui.Content.LibRouter with
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LR.Dialogs",
-                    role = "none (dialog stack renderer)",
-                    namePattern = "Each open dialog provides its own title and content",
-                    stateNotes = "Manages modal dialog stack; focus moves to top dialog",
+                    componentName  = "LR.Dialogs",
+                    role           = "none (dialog stack renderer)",
+                    namePattern    = "Each open dialog provides its own title and content",
+                    stateNotes     = "Manages modal dialog stack; focus moves to top dialog",
                     scalesWithFont = true,
-                    contrastNotes = "Dialog content meets WCAG AA"
+                    contrastNotes  = "Dialog content meets WCAG AA"
                 ),
             samples =
                 element {
@@ -56,7 +56,7 @@ LR.Dialogs(
     static member LogRouteTransitions () : ReactElement =
         Ui.ComponentContent(
             displayName = "LR.LogRouteTransitions",
-            props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.LogRouteTransitions",
+            props       = ComponentContent.ForFullyQualifiedName "LibRouter.Components.LogRouteTransitions",
             notes =
                 element {
                     LC.Text "Invisible helper mounted at the app root. On each URL change it tracks a screen view and calls UiActionLog.setCurrentRoute."
@@ -64,12 +64,12 @@ LR.Dialogs(
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LR.LogRouteTransitions",
-                    role = "none (invisible route tracker)",
-                    namePattern = "N/A — renders nothing",
-                    stateNotes = "Logs route changes for analytics and debugging",
+                    componentName  = "LR.LogRouteTransitions",
+                    role           = "none (invisible route tracker)",
+                    namePattern    = "N/A — renders nothing",
+                    stateNotes     = "Logs route changes for analytics and debugging",
                     scalesWithFont = false,
-                    contrastNotes = "N/A — no visible UI"
+                    contrastNotes  = "N/A — no visible UI"
                 ),
             samples =
                 element {
@@ -91,7 +91,7 @@ LR.LogRouteTransitions()
     static member NativeBackButton () : ReactElement =
         Ui.ComponentContent(
             displayName = "LR.NativeBackButton",
-            props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.NativeBackButton",
+            props       = ComponentContent.ForFullyQualifiedName "LibRouter.Components.NativeBackButton",
             notes =
                 element {
                     LC.Text "React Native only. Registers a hardware back handler that calls the supplied goBack callback."
@@ -99,12 +99,12 @@ LR.LogRouteTransitions()
                 },
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LR.NativeBackButton",
-                    role = "none (hardware back handler)",
-                    namePattern = "N/A — native hardware back button",
-                    stateNotes = "Registers Android back handler; web is no-op",
+                    componentName  = "LR.NativeBackButton",
+                    role           = "none (hardware back handler)",
+                    namePattern    = "N/A — native hardware back button",
+                    stateNotes     = "Registers Android back handler; web is no-op",
                     scalesWithFont = false,
-                    contrastNotes = "N/A — no visible UI"
+                    contrastNotes  = "N/A — no visible UI"
                 ),
             samples =
                 element {
@@ -126,15 +126,15 @@ LR.NativeBackButton(nav.GoBack)
     static member WithLocation () : ReactElement =
         Ui.ComponentContent(
             displayName = "LR.With.Location",
-            props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.With.Location",
+            props       = ComponentContent.ForFullyQualifiedName "LibRouter.Components.With.Location",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LR.With.Location",
-                    role = "none (location provider)",
-                    namePattern = "Child render function displays location data",
-                    stateNotes = "Re-renders when URL location changes",
+                    componentName  = "LR.With.Location",
+                    role           = "none (location provider)",
+                    namePattern    = "Child render function displays location data",
+                    stateNotes     = "Re-renders when URL location changes",
                     scalesWithFont = true,
-                    contrastNotes = "Child content contrast unchanged by wrapper"
+                    contrastNotes  = "Child content contrast unchanged by wrapper"
                 ),
             samples =
                 element {
@@ -172,15 +172,15 @@ LR.With.Location (fun location ->
     static member WithRoute () : ReactElement =
         Ui.ComponentContent(
             displayName = "LR.With.Route",
-            props = ComponentContent.ForFullyQualifiedName "LibRouter.Components.With.Route",
+            props       = ComponentContent.ForFullyQualifiedName "LibRouter.Components.With.Route",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LR.With.Route",
-                    role = "none (route decoder provider)",
-                    namePattern = "Child render function displays decoded route",
-                    stateNotes = "Re-renders when navigation frame changes",
+                    componentName  = "LR.With.Route",
+                    role           = "none (route decoder provider)",
+                    namePattern    = "Child render function displays decoded route",
+                    stateNotes     = "Re-renders when navigation frame changes",
                     scalesWithFont = true,
-                    contrastNotes = "Child content contrast unchanged by wrapper"
+                    contrastNotes  = "Child content contrast unchanged by wrapper"
                 ),
             samples =
                 element {
@@ -195,7 +195,7 @@ LR.With.Location (fun location ->
                                         | None ->
                                             LC.InfoMessage(
                                                 message = "Current location does not decode to a route.",
-                                                level = InfoMessage.Attention
+                                                level   = InfoMessage.Attention
                                             )
                                         | Some frame ->
                                             element {

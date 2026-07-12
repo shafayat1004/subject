@@ -18,12 +18,12 @@ type Ui.Content with
             notes = LC.Text "Draggable wraps content that can be swiped or programmatically moved via a ref. Thresholds and offsets control how far each swipe moves the element.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Draggable",
-                    role = "none (gesture container)",
-                    namePattern = "Child content provides accessible name; expose non-gesture controls for swipe actions",
-                    stateNotes = "Swipe gestures move content; pair with buttons for motor-accessible alternatives",
+                    componentName  = "LC.Draggable",
+                    role           = "none (gesture container)",
+                    namePattern    = "Child content provides accessible name; expose non-gesture controls for swipe actions",
+                    stateNotes     = "Swipe gestures move content; pair with buttons for motor-accessible alternatives",
                     scalesWithFont = true,
-                    contrastNotes = "Child content contrast unchanged by drag wrapper"
+                    contrastNotes  = "Child content contrast unchanged by drag wrapper"
                 ),
             samples =
                 element {
@@ -39,29 +39,29 @@ type Ui.Content with
                                         element {
                                             LC.Draggable(
                                                 draggableRef = bindRef,
-                                                testId = "gallery-draggable",
+                                                testId       = "gallery-draggable",
                                                 left =
                                                     {|
-                                                        ForwardThreshold = 50
-                                                        Offset = 100
+                                                        ForwardThreshold  = 50
+                                                        Offset            = 100
                                                         BackwardThreshold = 20
                                                     |},
                                                 right =
                                                     {|
-                                                        ForwardThreshold = 100
-                                                        Offset = 200
+                                                        ForwardThreshold  = 100
+                                                        Offset            = 200
                                                         BackwardThreshold = 20
                                                     |},
                                                 up =
                                                     {|
-                                                        ForwardThreshold = 20
-                                                        Offset = 100
+                                                        ForwardThreshold  = 20
+                                                        Offset            = 100
                                                         BackwardThreshold = 20
                                                     |},
                                                 down =
                                                     {|
-                                                        ForwardThreshold = 20
-                                                        Offset = 200
+                                                        ForwardThreshold  = 20
+                                                        Offset            = 200
                                                         BackwardThreshold = 20
                                                     |},
                                                 baseOffset = (50, 20),

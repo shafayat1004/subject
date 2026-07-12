@@ -57,10 +57,10 @@ type Rn.Components.Constructors.Rn with
     [<Component>]
     static member HorizontalPanArea
         (
-            onStart:  unit -> unit,
-            onUpdate: float -> unit,
-            onEnd:    float -> unit,
-            children: array<ReactElement>,
+            onStart:        unit -> unit,
+            onUpdate:       float -> unit,
+            onEnd:          float -> unit,
+            children:       array<ReactElement>,
             ?activeOffsetX: float,
             ?failOffsetY:   float
         ) : ReactElement =
@@ -147,10 +147,10 @@ type Rn.Components.Constructors.Rn with
                     onUpdateRef.current tx
 
         Rn.GestureView(
-            preferredPan = Rn.Components.GestureView.PreferredPanGesture.Horizontal,
+            preferredPan      = Rn.Components.GestureView.PreferredPanGesture.Horizontal,
             panPixelThreshold = activeX,
-            onPanHorizontal = onPan,
-            children = children
+            onPanHorizontal   = onPan,
+            children          = children
         )
 #endif
 

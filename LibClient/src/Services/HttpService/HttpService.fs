@@ -37,9 +37,9 @@ type StaticResourceUrlTransformSettings =
 | Transformer of (string -> string)
 
 type HttpService(
-        eventBus: LibClient.EventBus.EventBus,
+        eventBus:                       LibClient.EventBus.EventBus,
         staticResourceUrlTransformSettings: StaticResourceUrlTransformSettings,
-        isBackendUrl: string -> bool,
+        isBackendUrl:                   string -> bool,
         maybeRelativeResourceUrlPrefix: Option<string>) =
     let mutable requestInterceptors:  List<RequestInterceptor>  = []
     let mutable responseInterceptors: List<ResponseInterceptor> = []
@@ -95,7 +95,7 @@ type HttpService(
         let optionsContentType =
             match maybeContentType with
             | Some contentType -> ["contentType" ==> contentType]
-            | None -> []
+            | None             -> []
 
         let options = createObj (optionsPayload @ optionsHeaders @ optionsContentType)
 
@@ -171,4 +171,3 @@ type HttpService(
 
         return response
     }
-

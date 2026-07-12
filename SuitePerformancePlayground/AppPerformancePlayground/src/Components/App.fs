@@ -25,12 +25,12 @@ type Ui.App with
                 [1 .. 100]
                 |> Seq.map (fun i ->
                     Rn.View (
-                        key = $"{i}",
-                        styles = [|Styles.Card|],
+                        key      = $"{i}",
+                        styles   = [|Styles.Card|],
                         children = [|
                             LC.Text (
                                 styles = [|Styles.Text|],
-                                value = "6 CDEF"
+                                value  = "6 CDEF"
                             )
                         |]
                     )
@@ -48,7 +48,7 @@ type Ui.App with
             sidebar             = Ui.Sidebar maybeRoute,
             topNav              = Ui.Nav.Top maybeRoute,
             onError             = LC.AppShell.TopLevelErrorMessage,
-            dialogs = (
+            dialogs             = (
                 LR.Dialogs (
                     nav          = nav,
                     dialogsState = navigationState.DialogsState,

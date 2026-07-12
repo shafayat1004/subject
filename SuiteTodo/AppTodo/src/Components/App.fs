@@ -21,23 +21,23 @@ type Ui.App with
 
             LC.AppShell.Content(
                 desktopSidebarStyle = AppShell_Content.DesktopSidebarStyle.Fixed,
-                sidebar = noElement,
-                topNav = noElement,
+                sidebar             = noElement,
+                topNav              = noElement,
                 dialogs =
                     LR.Dialogs(
-                        nav = nav,
+                        nav          = nav,
                         dialogsState = navigationState.DialogsState,
                         dialogs =
                             (maybeNavigationFrame
                              |> Option.map NavigationFrame.dialogs
                              |> Option.getOrElse []),
                         makeResultless = (fun _ -> noElement),
-                        makeResultful = (fun _ -> noElement)
+                        makeResultful  = (fun _ -> noElement)
                     ),
                 onError = LC.AppShell.TopLevelErrorMessage,
                 content =
                     match maybeNavigationFrame |> Option.map NavigationFrame.route with
-                    | None -> LC.InfoMessage(level = InfoMessage.Level.Attention, message = i18n.t.RouteNotFound)
+                    | None       -> LC.InfoMessage(level = InfoMessage.Level.Attention, message = i18n.t.RouteNotFound)
                     | Some Todos -> Ui.Route.Todos()
             )
         }

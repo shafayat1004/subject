@@ -5,9 +5,9 @@ open System.Text.RegularExpressions
 
 type ValidatedPhoneNumber =
     private
-    | BdMobileNumber of PhoneNumber: string
-    | BdLandlineNumber of PhoneNumber: string
-    | UsPhoneNumber of PhoneNumber: string
+    | BdMobileNumber          of PhoneNumber: string
+    | BdLandlineNumber        of PhoneNumber: string
+    | UsPhoneNumber           of PhoneNumber: string
     | OtherCountryPhoneNumber of PhoneNumber: string
 
     member this.Value =
@@ -42,13 +42,13 @@ type PhoneNumberValidationError =
     member this.ToDisplayString: string =
         match this with
         | PhoneNumberValidationError.EmptyString -> "Cannot be empty"
-        | InvalidSecondDigitForBdMobileNumber -> "Invalid second digit for BD mobile number"
-        | BdMobileNumbersNeedToBe13DigitsLong -> "BD mobile numbers must be at least 13 digits long"
-        | InvalidSecondDigitForBdLandlineNumber -> "Second digit is invalid for BD landline number"
-        | BdLandlineNumbersNeedToBe11DigitsLong -> "BD landline number must contain 11 digits"
-        | UsPhoneNumberRequires11Digits -> "US phone number must contain 11 digits"
-        | InvalidBdPhoneNumber -> "Invalid BD phone number"
-        | NumberTooShort -> "Too short"
+        | InvalidSecondDigitForBdMobileNumber    -> "Invalid second digit for BD mobile number"
+        | BdMobileNumbersNeedToBe13DigitsLong    -> "BD mobile numbers must be at least 13 digits long"
+        | InvalidSecondDigitForBdLandlineNumber  -> "Second digit is invalid for BD landline number"
+        | BdLandlineNumbersNeedToBe11DigitsLong  -> "BD landline number must contain 11 digits"
+        | UsPhoneNumberRequires11Digits          -> "US phone number must contain 11 digits"
+        | InvalidBdPhoneNumber                   -> "Invalid BD phone number"
+        | NumberTooShort                         -> "Too short"
 
 let private nonNumericChar =
 #if FABLE_COMPILER
@@ -67,12 +67,12 @@ type PhoneNumber =
     member this.IsBdMobileNumber: bool =
         match this.Value_ with
         | BdMobileNumber _ -> true
-        | _ -> false
+        | _                -> false
 
     member this.TrimCountryCode: string =
         let Trim (phoneNumber: string) (countryCode: string) =
             match phoneNumber.StartsWith(countryCode) with
-            | true -> phoneNumber.[countryCode.Length ..]
+            | true  -> phoneNumber.[countryCode.Length ..]
             | false -> phoneNumber
 
         match this.Value_ with
@@ -157,7 +157,7 @@ module PhoneNumber =
 
     let ofStringUnsafe (source: string) : PhoneNumber =
         match tryOfString source with
-        | Ok phoneNumber -> phoneNumber
+        | Ok phoneNumber                   -> phoneNumber
         | Error phoneNumberValidationError -> failwith phoneNumberValidationError.ToDisplayString
 
 /// should use qualified PhoneNumber.validatePhoneNumber instead, left here only for compatibility
@@ -192,7 +192,7 @@ type ValidatedPhoneNumber with
                 let! payload =
                     reqWith Codecs.string "BdMobileNumber" (function
                         | (BdMobileNumber x) -> Some x
-                        | _ -> None)
+                        | _                  -> None)
 
                 return (validateOnDecode BdMobileNumber) payload
             }
@@ -201,7 +201,7 @@ type ValidatedPhoneNumber with
                 let! payload =
                     reqWith Codecs.string "BdLandlineNumber" (function
                         | (BdLandlineNumber x) -> Some x
-                        | _ -> None)
+                        | _                    -> None)
 
                 return (validateOnDecode BdLandlineNumber) payload
             }
@@ -210,7 +210,7 @@ type ValidatedPhoneNumber with
                 let! payload =
                     reqWith Codecs.string "UsPhoneNumber" (function
                         | (UsPhoneNumber x) -> Some x
-                        | _ -> None)
+                        | _                 -> None)
 
                 return (validateOnDecode UsPhoneNumber) payload
             }
@@ -219,7 +219,7 @@ type ValidatedPhoneNumber with
                 let! payload =
                     reqWith Codecs.string "OtherCountryPhoneNumber" (function
                         | (OtherCountryPhoneNumber x) -> Some x
-                        | _ -> None)
+                        | _                           -> None)
 
                 return (validateOnDecode OtherCountryPhoneNumber) payload
             }

@@ -25,7 +25,7 @@ type LibRouter.Components.Constructors.LR.Legacy.TopNav with
     [<Component>]
     static member BackButton(
             ?theme: Theme -> Theme,
-            ?key: string) : ReactElement =
+            ?key:   string) : ReactElement =
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -40,6 +40,6 @@ type LibRouter.Components.Constructors.LR.Legacy.TopNav with
 
         LC.Legacy.TopNav.IconButton(
             theme = Styles.iconButtonTheme theTheme,
-            icon = LibClient.Icons.Icon.Back,
+            icon  = LibClient.Icons.Icon.Back,
             state = LC.Legacy.TopNav.IconButtonTypes.State.Actionable goBack
         )

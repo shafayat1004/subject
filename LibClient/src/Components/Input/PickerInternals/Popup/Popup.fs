@@ -16,15 +16,16 @@ module LC =
     module Input =
         module PickerInternals =
             module Popup =
-                type Theme =
-                    { BackgroundColor: Color
-                      BorderColor: Color
-                      ItemTextColor: Color
-                      ItemTextHighlightColor: Color
-                      ItemHighlightBackground: Color
-                      ItemBorderColor: Color
-                      SelectedIconColor: Color
-                      BorderRadius: int }
+                type Theme = {
+                    BackgroundColor:         Color
+                    BorderColor:             Color
+                    ItemTextColor:           Color
+                    ItemTextHighlightColor:  Color
+                    ItemHighlightBackground: Color
+                    ItemBorderColor:         Color
+                    SelectedIconColor:       Color
+                    BorderRadius:            int
+                }
 
 type Theme = LC.Input.PickerInternals.Popup.Theme
 
@@ -55,7 +56,7 @@ module private Styles =
     let scrollViewFor (maybeFieldWidth: Option<int>) (theTheme: LC.Input.PickerInternals.Popup.Theme) =
         match maybeFieldWidth with
         | Some fieldWidth -> scrollView fieldWidth theTheme
-        | None -> scrollView -1 theTheme
+        | None            -> scrollView -1 theTheme
 
     let view (theTheme: LC.Input.PickerInternals.Popup.Theme) =
         makeViewStyles {
@@ -147,12 +148,12 @@ module private Helpers =
         let itemLabel (item: 'Item) : string =
             match itemView with
             | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
-            | PickerItemView.Custom _ -> "item"
+            | PickerItemView.Custom _           -> "item"
 
         match items with
         | [] ->
             Rn.View(
-                styles = [| Styles.noItemsMessage |],
+                styles   = [| Styles.noItemsMessage |],
                 children = [| LC.UiText(value = "No items", styles = [| Styles.noItemsMessageText theTheme |]) |]
             )
         | nonemptyItems ->
@@ -162,9 +163,9 @@ module private Helpers =
                     let isHighlighted = modelState.MaybeHighlightedItemIndex = Some index
 
                     LC.Pressable(
-                        onPress = onSelect index item,
-                        label = itemLabel item,
-                        styles = [| Styles.item theTheme (index = 0) isHighlighted |],
+                        onPress       = onSelect index item,
+                        label         = itemLabel item,
+                        styles        = [| Styles.item theTheme (index = 0) isHighlighted |],
                         componentName = "LC.Input.PickerInternals.Popup.Item",
                         children =
                             [| Rn.View(
@@ -172,7 +173,7 @@ module private Helpers =
                                    children =
                                        [| if modelState.Value.IsSelected item then
                                               LC.Icon(
-                                                  icon = Icon.CheckMark,
+                                                  icon   = Icon.CheckMark,
                                                   styles = [| Styles.itemSelectedIcon theTheme |]
                                               )
                                           else
@@ -184,7 +185,7 @@ module private Helpers =
                                        [| match itemView with
                                           | PickerItemView.Default toItemInfo ->
                                               LC.UiText(
-                                                  value = (toItemInfo item).Label,
+                                                  value  = (toItemInfo item).Label,
                                                   styles = [| Styles.itemLabel theTheme isHighlighted |]
                                               )
                                           | PickerItemView.Custom render -> render item |]
@@ -197,10 +198,10 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
     [<Component>]
     static member Popup<'Item when 'Item: comparison>
         (
-            model: PickerModel<'Item>,
+            model:    PickerModel<'Item>,
             itemView: PickerItemView<'Item>,
-            ?theme: LC.Input.PickerInternals.Popup.Theme -> LC.Input.PickerInternals.Popup.Theme,
-            ?key: string
+            ?theme:   LC.Input.PickerInternals.Popup.Theme -> LC.Input.PickerInternals.Popup.Theme,
+            ?key:     string
         ) : ReactElement =
         key |> ignore
 
@@ -227,13 +228,13 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
 
         Rn.ScrollView(
             vertical = true,
-            styles = [| Styles.scrollViewFor modelState.MaybeFieldWidth theTheme |],
+            styles   = [| Styles.scrollViewFor modelState.MaybeFieldWidth theTheme |],
             children =
                 [| Rn.View(
                        styles = [| Styles.view theTheme |],
                        children =
                            [| LC.AsyncData(
-                                  data = modelState.SelectableItems,
+                                  data          = modelState.SelectableItems,
                                   whenAvailable = renderWhenAvailable,
                                   whenFetching =
                                       fun maybeOldData ->
@@ -243,7 +244,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                   styles = [| Styles.activityIndicatorBlock |],
                                                   children =
                                                       [| Rn.ActivityIndicator(
-                                                             size = ActivityIndicator.Medium,
+                                                             size  = ActivityIndicator.Medium,
                                                              color = "#aaaaaa"
                                                          ) |]
                                               )
@@ -254,7 +255,7 @@ type LibClient.Components.Constructors.LC.Input.PickerInternals with
                                                          styles = [| Styles.activityIndicatorOverlay |],
                                                          children =
                                                              [| Rn.ActivityIndicator(
-                                                                    size = ActivityIndicator.Medium,
+                                                                    size  = ActivityIndicator.Medium,
                                                                     color = "#aaaaaa"
                                                                 ) |]
                                                      ) |]

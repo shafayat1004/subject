@@ -43,8 +43,8 @@ type private Helpers =
                         )
 
                         match tokenState.current with
-                        | None -> LC.Text "Click the button to obtain a token."
-                        | Some(Ok _) -> LC.Text "Token received."
+                        | None                -> LC.Text "Click the button to obtain a token."
+                        | Some(Ok _)          -> LC.Text "Token received."
                         | Some(Error message) -> LC.Text $"Error: {message}"
                     })
         )
@@ -54,19 +54,19 @@ type Ui.Content.ThirdParty with
     static member ReCaptcha () : ReactElement =
         Ui.ComponentContent(
             displayName = "ReCaptcha",
-            props = ComponentContent.ForFullyQualifiedName "ThirdParty.ReCaptcha.Components.With.Base",
+            props       = ComponentContent.ForFullyQualifiedName "ThirdParty.ReCaptcha.Components.With.Base",
             notes =
                 LC.Text
                     "ReCaptcha.With.Base loads reCAPTCHA v3 on web and a WebView bridge on native. Replace the site key with your own for production.",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "ReCaptcha.With.Base",
-                    role = "none (invisible verification provider)",
-                    namePattern = "Trigger button label; reCAPTCHA badge is third-party",
-                    stateNotes = "Invisible v3 challenge; exposes token via callback",
+                    componentName  = "ReCaptcha.With.Base",
+                    role           = "none (invisible verification provider)",
+                    namePattern    = "Trigger button label; reCAPTCHA badge is third-party",
+                    stateNotes     = "Invisible v3 challenge; exposes token via callback",
                     scalesWithFont = true,
-                    contrastNotes = "Third-party reCAPTCHA badge styling not controlled by EggShell",
-                    deferredTags = ["[third-party] reCAPTCHA badge"]
+                    contrastNotes  = "Third-party reCAPTCHA badge styling not controlled by EggShell",
+                    deferredTags   = ["[third-party] reCAPTCHA badge"]
                 ),
             samples =
                 element {

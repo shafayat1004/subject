@@ -13,7 +13,7 @@ module dom = Fable.React.Standard
 
 type PropsConfig =
 | ForFullyQualifiedName of string
-| Manual of ReactElement
+| Manual                of ReactElement
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -87,7 +87,7 @@ let private renderSamplesSection (samples: ReactElement) : ReactElement =
         desktop = (fun _ ->
             Rn.ScrollView(
                 horizontal = true,
-                children = [| renderSamplesTable samples |]
+                children   = [| renderSamplesTable samples |]
             )
         ),
         handheld = (fun _ -> renderSamplesTable samples)
@@ -96,15 +96,15 @@ let private renderSamplesSection (samples: ReactElement) : ReactElement =
 type AppEggShellGallery.Components.Constructors.Ui with
     [<Component>]
     static member ComponentContent(
-            displayName:  string,
-            samples:      ReactElement,
-            ?children:    ReactChildrenProp,
-            ?isResponsive: bool,
-            ?notes:        ReactElement,
-            ?a11y:         ReactElement,
-            ?themeSamples: ReactElement,
-            ?props:        PropsConfig,
-            ?key:          string,
+            displayName:    string,
+            samples:        ReactElement,
+            ?children:      ReactChildrenProp,
+            ?isResponsive:  bool,
+            ?notes:         ReactElement,
+            ?a11y:          ReactElement,
+            ?themeSamples:  ReactElement,
+            ?props:         PropsConfig,
+            ?key:           string,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
         ignore (children, key, xLegacyStyles)
@@ -119,7 +119,7 @@ type AppEggShellGallery.Components.Constructors.Ui with
             children =
                 [|
                     Ui.ComponentContentHeading(
-                        displayName = displayName,
+                        displayName  = displayName,
                         isResponsive = isResponsive
                     )
 

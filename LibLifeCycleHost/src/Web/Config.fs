@@ -6,7 +6,7 @@ open Microsoft.Extensions.Primitives
 
 [<CLIMutable>]
 type HttpCookieConfiguration = {
-    DefaultAppCookieDomain: string
+    DefaultAppCookieDomain:                     string
     HostNameSuffixToAppCookieDomainQueryString: string
 }
 with

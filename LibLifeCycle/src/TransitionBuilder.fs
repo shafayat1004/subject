@@ -305,7 +305,7 @@ module TransitionBuilderExtensions =
                     return Error err
             }
             |> TransitionResult
-        
+
         member _.Bind(OperationResult res: OperationResult<'Subject1, 'LifeAction, 'OpError, 'LifeEvent>, binder: 'Subject1 -> TransitionResult<'Subject2, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor>) : TransitionResult<'Subject2, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor> =
             backgroundTask {
                 match! res with
@@ -362,7 +362,7 @@ module TransitionBuilderExtensions =
                         return (ignoredActions @ (List.flatten blobActions), ignoredSideEffects + sideEffects) |> TransitionIgnored |> Ok
                     | Error error -> return Error error
                 | Error (Choice1Of2 (blobActions, sideEffects)) -> return Ok (TransitionIgnored (blobActions, sideEffects))
-                | Error (Choice2Of2 error) -> return Error error
+                | Error (Choice2Of2 error)                      -> return Error error
             }
             |> TransitionResult
 

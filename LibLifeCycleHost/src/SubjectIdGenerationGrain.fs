@@ -22,7 +22,7 @@ type SubjectIdGenerationGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'Li
                 and  'SubjectId            :> SubjectId
                 and  'SubjectId            :  comparison>
         (lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
-         ctx: IGrainActivationContext, valueSummarizers: ValueSummarizers, serviceProvider: IServiceProvider,
+         ctx:            IGrainActivationContext, valueSummarizers: ValueSummarizers, serviceProvider: IServiceProvider,
          unscopedLogger: Microsoft.Extensions.Logging.ILogger<SubjectIdGenerationGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>) =
 
     inherit Grain()

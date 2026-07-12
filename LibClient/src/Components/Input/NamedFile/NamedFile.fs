@@ -11,7 +11,7 @@ module NamedFile =
 
     type AcceptedType =
     | FileNameExtension of string
-    | MimeType of MimeType
+    | MimeType          of MimeType
     | AnyAudioFile
     | AnyVideoFile
     | AnyImageFile
@@ -30,8 +30,8 @@ module NamedFile =
 
     let constrainMessage (maxFileCount: Option<Positive.PositiveInteger>) (maxFileSize: Option<int<KB>>) (maxTotalFileSize: Option<int<KB>>) =
         [
-            maxFileCount |> Option.map (fun c -> $"Up to {c.Value} files.")
-            maxFileSize |> Option.map (fun s -> $"{kBToMB s} MB per file.")
+            maxFileCount     |> Option.map (fun c -> $"Up to {c.Value} files.")
+            maxFileSize      |> Option.map (fun s -> $"{kBToMB s} MB per file.")
             maxTotalFileSize |> Option.map (fun s -> $"{kBToMB s} MB total.")
         ]
         |> Seq.choose id
@@ -151,29 +151,29 @@ module Input_NamedFileComponent =
         match xLegacyStyles with
         | Some ls ->
             match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-            | [] -> [||]
+            | []     -> [||]
             | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
         | None -> [||]
 
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
         static member NamedFile(
-                value: list<LibLifeCycleNamedFile>,
-                validity: InputValidity,
-                onChange: Result<list<LibLifeCycleNamedFile>, string> -> unit,
-                ?children: ReactChildrenProp,
-                ?acceptedTypes: Set<AcceptedType>,
-                ?selectionMode: SelectionMode,
-                ?maxFileCount: Positive.PositiveInteger,
-                ?maxFileSize: int<KB>,
+                value:             list<LibLifeCycleNamedFile>,
+                validity:          InputValidity,
+                onChange:          Result<list<LibLifeCycleNamedFile>, string> -> unit,
+                ?children:         ReactChildrenProp,
+                ?acceptedTypes:    Set<AcceptedType>,
+                ?selectionMode:    SelectionMode,
+                ?maxFileCount:     Positive.PositiveInteger,
+                ?maxFileSize:      int<KB>,
                 ?maxTotalFileSize: int<KB>,
-                ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?key: string,
-                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+                ?styles:           array<ViewStyles>,
+                ?theme:            Theme -> Theme,
+                ?key:              string,
+                ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
             children |> ignore
-            key |> ignore
+            key      |> ignore
 
             let acceptedTypes = defaultArg acceptedTypes Set.empty
             let selectionMode = defaultArg selectionMode ReplacedExisting
@@ -202,7 +202,7 @@ module Input_NamedFileComponent =
             let onDropZoneInitialize =
                 Hooks.useMemo((fun () -> fun (div: Browser.Types.Element) ->
                     div.addEventListener("dragover", fun (e: Browser.Types.Event) -> e.preventDefault())
-                    div.addEventListener("drop", fun (e: Browser.Types.Event) ->
+                    div.addEventListener("drop", fun (e:     Browser.Types.Event) ->
                         e.preventDefault()
                         let maybeDataTransfer: Option<Browser.Types.DataTransfer> = e?dataTransfer
                         maybeDataTransfer |> Option.sideEffect (fun dt -> Helpers.browserFilesFromDataTransfer dt |> loadFiles))
@@ -240,7 +240,7 @@ module Input_NamedFileComponent =
                                     LC.LegacyText(styles = [| Styles.textCenter |], children = [|
                                         match maxFileCount with
                                         | Some c when c.Value = 1 -> makeTextNode2 (Some "LibClient.Components.LegacyText") "Paste or drag and drop file here"
-                                        | _ -> makeTextNode2 (Some "LibClient.Components.LegacyText") "Paste or drag and drop files here"
+                                        | _                       -> makeTextNode2 (Some "LibClient.Components.LegacyText") "Paste or drag and drop files here"
                                     |])
                                 |])
                                 Rn.View(children = [|

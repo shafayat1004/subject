@@ -116,10 +116,10 @@ type ImagePicker.Native with
                     source = localImage "/libs/ThirdParty/ImagePicker/images/camera.png"
                 )
                 LC.Pressable(
-                    onPress = (fun e -> selectImage ImagePickingSource.Camera e),
-                    label = "Take Photo",
-                    testId = "image-picker-take-photo",
-                    overlay = true,
+                    onPress       = (fun e -> selectImage ImagePickingSource.Camera e),
+                    label         = "Take Photo",
+                    testId        = "image-picker-take-photo",
+                    overlay       = true,
                     componentName = "ImagePicker.Native.ReactNativeImagePicker"
                 )
             |])
@@ -132,10 +132,10 @@ type ImagePicker.Native with
                     source = localImage "/libs/ThirdParty/ImagePicker/images/gallery.png"
                 )
                 LC.Pressable(
-                    onPress = (fun e -> selectImage ImagePickingSource.Gallary e),
-                    label = "Photo Gallery",
-                    testId = "image-picker-gallery",
-                    overlay = true,
+                    onPress       = (fun e -> selectImage ImagePickingSource.Gallary e),
+                    label         = "Photo Gallery",
+                    testId        = "image-picker-gallery",
+                    overlay       = true,
                     componentName = "ImagePicker.Native.ReactNativeImagePicker"
                 )
             |])

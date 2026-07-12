@@ -20,28 +20,28 @@ module LC =
         | Disabled
 
         type TagTheme = {
-            TextColor: Color
+            TextColor:       Color
             BackgroundColor: Color
         }
 
         type TagsTheme = {
-            Selected: TagTheme
+            Selected:   TagTheme
             Unselected: TagTheme
         }
 
         type SizeTheme = {
-            FontSize: int
+            FontSize:          int
             PaddingHorizontal: int
-            PaddingVertical: int
+            PaddingVertical:   int
         }
 
         type SizesTheme = {
-            Desktop: SizeTheme
+            Desktop:  SizeTheme
             Handheld: SizeTheme
         }
 
         type Theme = {
-            Tags: TagsTheme
+            Tags:  TagsTheme
             Sizes: SizesTheme
         }
         with
@@ -53,7 +53,7 @@ module LC =
                         this.Tags.Unselected
                 let sizeTheme =
                     match screenSize with
-                    | ScreenSize.Desktop -> this.Sizes.Desktop
+                    | ScreenSize.Desktop  -> this.Sizes.Desktop
                     | ScreenSize.Handheld -> this.Sizes.Handheld
                 (tagTheme, sizeTheme)
 
@@ -146,19 +146,19 @@ type private State with
     member private this.ToThemeState() =
         match this with
         | State.Actionable _ -> Styles.ThemeState.Actionable
-        | State.Disabled -> Styles.ThemeState.Disabled
-        | _ -> Styles.ThemeState.Other
+        | State.Disabled     -> Styles.ThemeState.Disabled
+        | _                  -> Styles.ThemeState.Other
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tag(
-            text: string,
-            ?state: State,
+            text:        string,
+            ?state:      State,
             ?isSelected: bool,
-            ?testId: string,
-            ?theme: Theme -> Theme,
-            ?styles: array<ViewStyles>,
-            ?key: string
+            ?testId:     string,
+            ?theme:      Theme -> Theme,
+            ?styles:     array<ViewStyles>,
+            ?key:        string
         ) : ReactElement =
         key |> ignore
 
@@ -204,17 +204,17 @@ type LibClient.Components.Constructors.LC with
                                             testId |> Option.orElse (Some (A11ySlug.testId "tag" text))
                                         let pressState =
                                             match isSelected with
-                                            | true -> AccessibilityStateRecord.selected true
+                                            | true  -> AccessibilityStateRecord.selected true
                                             | false -> AccessibilityStateRecord.empty
                                         LC.Pressable(
-                                            key = "tap capture",
-                                            onPress = onPress,
-                                            label = text,
-                                            testId = resolvedTestId.Value,
-                                            role = AccessibilityRole.Button,
-                                            state = pressState,
-                                            overlay = true,
-                                            pointerState = pointerState,
+                                            key           = "tap capture",
+                                            onPress       = onPress,
+                                            label         = text,
+                                            testId        = resolvedTestId.Value,
+                                            role          = AccessibilityRole.Button,
+                                            state         = pressState,
+                                            overlay       = true,
+                                            pointerState  = pointerState,
                                             componentName = "LC.Tag"
                                         )
                                     | State.InProgress ->
@@ -224,7 +224,7 @@ type LibClient.Components.Constructors.LC with
                                                 elements {
                                                     Rn.ActivityIndicator(
                                                         color = "#aaaaaa",
-                                                        size = Size.Tiny
+                                                        size  = Size.Tiny
                                                     )
                                                 }
                                         )

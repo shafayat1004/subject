@@ -65,7 +65,7 @@ type LibClient.Components.Constructors.LC.AppShell with
     [<Component>]
     static member TopLevelErrorMessage
         (error: System.Exception, retry: unit -> unit, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
-        key |> ignore
+        key           |> ignore
         xLegacyStyles |> ignore
 
         let reload _ =
@@ -79,14 +79,14 @@ type LibClient.Components.Constructors.LC.AppShell with
                 [| LC.Icon(icon = Icon.Error, styles = [| Styles.icon screenSize |])
                    LC.Heading(children = [| LC.UiText "Oops!" |], styles = [| Styles.errorHeading |])
                    LC.Heading(
-                       level = Heading.Secondary,
+                       level    = Heading.Secondary,
                        children = [| LC.UiText "Something went wrong" |],
-                       styles = [| Styles.errorTitle |]
+                       styles   = [| Styles.errorTitle |]
                    )
                    LC.Heading(
-                       level = Heading.Tertiary,
+                       level    = Heading.Tertiary,
                        children = [| LC.UiText "Please try again later." |],
-                       styles = [| Styles.errorSubtitle |]
+                       styles   = [| Styles.errorSubtitle |]
                    ) |]
 
         LC.With.ScreenSize(fun screenSize ->
@@ -94,11 +94,11 @@ type LibClient.Components.Constructors.LC.AppShell with
                 let viewStyles =
                     match maybeLayout with
                     | Some layout -> [| Styles.view; Styles.minHeightOverride layout.Height |]
-                    | None -> [| Styles.view |]
+                    | None        -> [| Styles.view |]
 
                 Rn.View(
                     ?onLayout = onLayoutOption,
-                    styles = viewStyles,
+                    styles    = viewStyles,
                     children =
                         [| Rn.ScrollView(
                                vertical = true,
@@ -109,13 +109,13 @@ type LibClient.Components.Constructors.LC.AppShell with
                                               [| match error with
                                                  | AsyncDataException AsyncDataFailure.NetworkFailure ->
                                                      LC.Icon(
-                                                         icon = Icon.NoNetwork,
+                                                         icon   = Icon.NoNetwork,
                                                          styles = [| Styles.icon screenSize |]
                                                      )
 
                                                      LC.Heading(
                                                          children = [| LC.UiText "Internet Problem" |],
-                                                         styles = [| Styles.errorHeading |]
+                                                         styles   = [| Styles.errorHeading |]
                                                      )
 
                                                      LC.Heading(
@@ -135,19 +135,19 @@ type LibClient.Components.Constructors.LC.AppShell with
                                                  | AsyncDataException(AsyncDataFailure.RequestFailure(RequestFailure.ClientError(statusCode,
                                                                                                                                  response))) ->
                                                      LC.Icon(
-                                                         icon = Icon.ServerError,
+                                                         icon   = Icon.ServerError,
                                                          styles = [| Styles.icon screenSize |]
                                                      )
 
                                                      LC.Heading(
                                                          children = [| LC.UiText "Request Failed" |],
-                                                         styles = [| Styles.errorHeading |]
+                                                         styles   = [| Styles.errorHeading |]
                                                      )
 
                                                      LC.Heading(
-                                                         level = Heading.Secondary,
+                                                         level    = Heading.Secondary,
                                                          children = [| LC.UiText "App request failed!" |],
-                                                         styles = [| Styles.errorTitle |]
+                                                         styles   = [| Styles.errorTitle |]
                                                      )
 
                                                      LC.Heading(
@@ -165,13 +165,13 @@ type LibClient.Components.Constructors.LC.AppShell with
                                                  | AsyncDataException(AsyncDataFailure.RequestFailure(RequestFailure.ServerError(statusCode,
                                                                                                                                  response))) ->
                                                      LC.Icon(
-                                                         icon = Icon.ServerError,
+                                                         icon   = Icon.ServerError,
                                                          styles = [| Styles.icon screenSize |]
                                                      )
 
                                                      LC.Heading(
                                                          children = [| LC.UiText "Server Error" |],
-                                                         styles = [| Styles.errorHeading |]
+                                                         styles   = [| Styles.errorHeading |]
                                                      )
 
                                                      LC.Heading(
@@ -196,13 +196,13 @@ type LibClient.Components.Constructors.LC.AppShell with
                                                  | AsyncDataException(AsyncDataFailure.RequestFailure(RequestFailure.Unknown(statusCode,
                                                                                                                              response))) ->
                                                      LC.Icon(
-                                                         icon = Icon.ServerError,
+                                                         icon   = Icon.ServerError,
                                                          styles = [| Styles.icon screenSize |]
                                                      )
 
                                                      LC.Heading(
                                                          children = [| LC.UiText "Unknown Server Error" |],
-                                                         styles = [| Styles.errorHeading |]
+                                                         styles   = [| Styles.errorHeading |]
                                                      )
 
                                                      LC.Heading(
@@ -228,9 +228,9 @@ type LibClient.Components.Constructors.LC.AppShell with
                                                      LC.Icon(icon = Icon.Error, styles = [| Styles.icon screenSize |])
 
                                                      LC.Heading(
-                                                         level = Heading.Secondary,
+                                                         level    = Heading.Secondary,
                                                          children = [| LC.UiText message |],
-                                                         styles = [| Styles.errorTitle |]
+                                                         styles   = [| Styles.errorTitle |]
                                                      )
                                                  | _ -> genericError screenSize
 
@@ -239,8 +239,8 @@ type LibClient.Components.Constructors.LC.AppShell with
                                                          Button.PropStateFactory.MakeLowLevel(
                                                              Button.Actionable reload
                                                          ),
-                                                     level = Button.Level.Secondary,
-                                                     label = "Reload",
+                                                     level  = Button.Level.Secondary,
+                                                     label  = "Reload",
                                                      styles = [| Styles.button |]
                                                  ) |]
                                       ) |]

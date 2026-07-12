@@ -8,7 +8,7 @@ open LibClient.Components
 type LC.With with
     [<Component>]
     static member Context (context: IContext<'T>, ``with``: 'T -> ReactElement, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?xLegacyClassName: string) : ReactElement =
-        xLegacyStyles |> ignore
+        xLegacyStyles    |> ignore
         xLegacyClassName |> ignore
 
         let value = Hooks.useContext context

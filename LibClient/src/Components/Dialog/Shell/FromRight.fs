@@ -12,8 +12,8 @@ open LibClient.Components.Dialog.Base
 
 
 type CanClose = LibClient.Components.Dialog.Base.CanClose
-let When      = CanClose.When
-let Never     = CanClose.Never
+let When  = CanClose.When
+let Never = CanClose.Never
 
 type CloseAction = LibClient.Components.Dialog.Base.CloseAction
 let OnEscape      = CloseAction.OnEscape
@@ -67,8 +67,8 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
 
         LC.Dialog.Base (
             contentPosition = ContentPosition.Free,
-            canClose = canClose,
-            children = [|
+            canClose        = canClose,
+            children        = [|
                 Rn.View (styles = [|Styles.wrapper|], children = [|
                     // Reversed to make drop shadow work
                     bottomSection
@@ -77,7 +77,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                         vertical = true,
                         children = [|
                             Rn.View (
-                                styles = [| Styles.scrollViewWrapper |],
+                                styles   = [| Styles.scrollViewWrapper |],
                                 children = [|
                                     Rn.View (children = [|
                                         Rn.View (styles = [|Styles.scrollViewChildren|], children = elements {
@@ -85,7 +85,7 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                                             | None -> nothing
                                             | Some headingText ->
                                                 LC.Heading (
-                                                    styles = [| Styles.heading |],
+                                                    styles   = [| Styles.heading |],
                                                     children = [|
                                                         LC.UiText headingText
                                                     |]

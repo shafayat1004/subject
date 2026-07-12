@@ -11,15 +11,15 @@ type Ui.Content with
     static member Timestamp() : ReactElement =
         Ui.ComponentContent(
             displayName = "Timestamp",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Timestamp",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Timestamp",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Timestamp",
-                    role = "text (formatted date/time)",
-                    namePattern = "Formatted timestamp text from value prop",
-                    stateNotes = "Static formatted text; no interactive state",
+                    componentName  = "LC.Timestamp",
+                    role           = "text (formatted date/time)",
+                    namePattern    = "Formatted timestamp text from value prop",
+                    stateNotes     = "Static formatted text; no interactive state",
                     scalesWithFont = true,
-                    contrastNotes = "Text color meets WCAG AA on typical backgrounds"
+                    contrastNotes  = "Text color meets WCAG AA on typical backgrounds"
                 ),
             samples =
                 element {
@@ -58,7 +58,7 @@ LC.Timestamp(
                     Ui.ComponentSample(
                         visuals =
                             LC.Timestamp(
-                                value = LC.Timestamp.PropValueFactory.Make("2011-03-15"),
+                                value  = LC.Timestamp.PropValueFactory.Make("2011-03-15"),
                                 format = "dddd, MMMM dd, yyyy"
                             ),
                         code =
@@ -76,7 +76,7 @@ LC.Timestamp(
                     Ui.ComponentSample(
                         visuals =
                             LC.Timestamp(
-                                value = LC.Timestamp.PropValueFactory.Make(DateTimeOffset.Now),
+                                value  = LC.Timestamp.PropValueFactory.Make(DateTimeOffset.Now),
                                 format = "dddd, MMMM dd, yyyy"
                             ),
                         code =

@@ -10,8 +10,8 @@ open LibLifeCycle.LifeCycles.Meta.Types
 
 // similar to TemporalSnapshot but without 'LifeAction / 'Constructor details, to keep All<> definition shorter
 type SubjectHistorySnapshot<'Subject, 'SubjectId when 'Subject :> Subject<'SubjectId> and  'SubjectId :> SubjectId and 'SubjectId : comparison> = {
-    AsOf:      DateTimeOffset
-    Subject:   'Subject
+    AsOf:    DateTimeOffset
+    Subject: 'Subject
 }
 
 // TODO: fix possible ambiguity of All<>, it implicitly assumes that combination of type arguments uniquely identifies target life cycle which is not guaranteed.
@@ -22,19 +22,19 @@ type All<'Subject, 'SubjectId, 'SubjectIndex, 'OpError
           and  'OpError      :> OpError
           and  'SubjectId    :  comparison
           and  'SubjectIndex :> SubjectIndex<'OpError>> =
-| DoesExistById                     of 'SubjectId                            * ResponseChannel<bool>
-| GetById                           of 'SubjectId                            * ResponseChannel<Option<'Subject>>
-| GetByIds                          of Set<'SubjectId>                       * ResponseChannel<List<'Subject>>
-| Any                               of PreparedIndexPredicate<'SubjectIndex> * ResponseChannel<bool>
-| FilterFetchIds                    of IndexQuery<'SubjectIndex>             * ResponseChannel<List<'SubjectId>>
-| FilterFetchSubjects               of IndexQuery<'SubjectIndex>             * ResponseChannel<List<'Subject>>
+| DoesExistById       of 'SubjectId                            * ResponseChannel<bool>
+| GetById             of 'SubjectId                            * ResponseChannel<Option<'Subject>>
+| GetByIds            of Set<'SubjectId>                       * ResponseChannel<List<'Subject>>
+| Any                 of PreparedIndexPredicate<'SubjectIndex> * ResponseChannel<bool>
+| FilterFetchIds      of IndexQuery<'SubjectIndex>             * ResponseChannel<List<'SubjectId>>
+| FilterFetchSubjects of IndexQuery<'SubjectIndex>             * ResponseChannel<List<'Subject>>
 | FilterFetchSubjectsWithTotalCount of IndexQuery<'SubjectIndex>             * ResponseChannel<List<'Subject> * uint64>
-| FilterCountSubjects               of PreparedIndexPredicate<'SubjectIndex> * ResponseChannel<uint64>
-| FilterFetchSubject                of PreparedIndexPredicate<'SubjectIndex> * ResponseChannel<Option<'Subject>>
-| FetchAll                          of ResultSetOptions<'SubjectIndex>       * ResponseChannel<List<'Subject>>
-| CountAll                          of                                         ResponseChannel<uint64>
-| FetchWithHistory                  of 'SubjectId * From: Option<DateTimeOffset> * To: Option<DateTimeOffset> * ResultPage * ResponseChannel<List<SubjectHistorySnapshot<'Subject, 'SubjectId>>>
-| GetByIdCached                     of 'SubjectId * CachedSubjectExpirationPeriod: TimeSpan * ResponseChannel<Option<'Subject>>
+| FilterCountSubjects of PreparedIndexPredicate<'SubjectIndex> * ResponseChannel<uint64>
+| FilterFetchSubject  of PreparedIndexPredicate<'SubjectIndex> * ResponseChannel<Option<'Subject>>
+| FetchAll            of ResultSetOptions<'SubjectIndex>       * ResponseChannel<List<'Subject>>
+| CountAll            of ResponseChannel<uint64>
+| FetchWithHistory    of 'SubjectId * From: Option<DateTimeOffset> * To: Option<DateTimeOffset> * ResultPage * ResponseChannel<List<SubjectHistorySnapshot<'Subject, 'SubjectId>>>
+| GetByIdCached       of 'SubjectId * CachedSubjectExpirationPeriod: TimeSpan * ResponseChannel<Option<'Subject>>
 
 with interface Request
 
@@ -87,7 +87,7 @@ type BlobDataStream = {
 }
 
 type IBlobRepo =
-    abstract member GetBlobData: ecosystemName: string -> subjectRef: LocalSubjectPKeyReference -> blobId: Guid -> Task<Option<BlobData>>
+    abstract member GetBlobData:       ecosystemName: string -> subjectRef: LocalSubjectPKeyReference -> blobId: Guid -> Task<Option<BlobData>>
     abstract member GetBlobDataStream: ecosystemName: string -> subjectRef: LocalSubjectPKeyReference -> blobId: Guid -> readBlobDataStream: (Option<BlobDataStream> -> Task) -> Task
 
 type AllTimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure, 'TimeSeriesIndex
@@ -104,8 +104,8 @@ type AllTimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasu
 | TimeSeriesAggregateValuesBy     of TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> * TimeBucketValueAggregate * ResponseChannel<list<'TimeSeriesIndex * float<'UnitOfMeasure>>>
 | TimeSeriesAggregateDataPoint    of TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> * TimeBucketPointAggregate * ResponseChannel<Option<'TimeSeriesDataPoint>>
 | TimeSeriesAggregateDataPointsBy of TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> * TimeBucketPointAggregate * ResponseChannel<list<'TimeSeriesIndex * 'TimeSeriesDataPoint>>
-| TimeSeriesCountDataPoints          of TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> * ResponseChannel<uint64>
-| TimeSeriesCountDataPointsBy        of TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> * ResponseChannel<list<'TimeSeriesIndex * uint64>>
+| TimeSeriesCountDataPoints       of TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> * ResponseChannel<uint64>
+| TimeSeriesCountDataPointsBy     of TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> * ResponseChannel<list<'TimeSeriesIndex * uint64>>
 with interface Request
 
 
@@ -113,18 +113,18 @@ type ITimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMea
     when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
     and  'TimeSeriesId :> TimeSeriesId<'TimeSeriesId>
     and  'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>> =
-    abstract member Values: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<list<DateTimeOffset * float<'UnitOfMeasure>>>
-    abstract member DataPoints: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<list<'TimeSeriesDataPoint>>
-    abstract member BucketedValues: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketValueAggregate -> Task<list<DateTimeOffset * float<'UnitOfMeasure>>>
-    abstract member BucketedValuesBy: groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketValueAggregate -> Task<list<'TimeSeriesIndex * list<DateTimeOffset * float<'UnitOfMeasure>>>>
-    abstract member BucketedDataPoints: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketPointAggregate -> Task<list<'TimeSeriesDataPoint>>
-    abstract member BucketedDataPointsBy: groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketPointAggregate -> Task<list<'TimeSeriesIndex * list<'TimeSeriesDataPoint>>>
-    abstract member AggregateValue: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketValueAggregate -> Task<Option<float<'UnitOfMeasure>>>
-    abstract member AggregateValuesBy: groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketValueAggregate -> Task<list<'TimeSeriesIndex * float<'UnitOfMeasure>>>
-    abstract member AggregateDataPoint: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketPointAggregate -> Task<Option<'TimeSeriesDataPoint>>
+    abstract member Values:                interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<list<DateTimeOffset * float<'UnitOfMeasure>>>
+    abstract member DataPoints:            interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<list<'TimeSeriesDataPoint>>
+    abstract member BucketedValues:        interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketValueAggregate -> Task<list<DateTimeOffset * float<'UnitOfMeasure>>>
+    abstract member BucketedValuesBy:      groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketValueAggregate -> Task<list<'TimeSeriesIndex * list<DateTimeOffset * float<'UnitOfMeasure>>>>
+    abstract member BucketedDataPoints:    interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketPointAggregate -> Task<list<'TimeSeriesDataPoint>>
+    abstract member BucketedDataPointsBy:  groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> bucket: TimeBucket -> aggregate: TimeBucketPointAggregate -> Task<list<'TimeSeriesIndex * list<'TimeSeriesDataPoint>>>
+    abstract member AggregateValue:        interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketValueAggregate -> Task<Option<float<'UnitOfMeasure>>>
+    abstract member AggregateValuesBy:     groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketValueAggregate -> Task<list<'TimeSeriesIndex * float<'UnitOfMeasure>>>
+    abstract member AggregateDataPoint:    interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketPointAggregate -> Task<Option<'TimeSeriesDataPoint>>
     abstract member AggregateDataPointsBy: groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> aggregate: TimeBucketPointAggregate -> Task<list<'TimeSeriesIndex * 'TimeSeriesDataPoint>>
-    abstract member CountDataPoints: interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<uint64>
-    abstract member CountDataPointsBy: groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<list<'TimeSeriesIndex * uint64>>
+    abstract member CountDataPoints:       interval: TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<uint64>
+    abstract member CountDataPointsBy:     groupInterval: TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex> -> Task<list<'TimeSeriesIndex * uint64>>
 
 
 type IActionContext =
@@ -132,7 +132,7 @@ type IActionContext =
     abstract member GetSessionId: unit -> Option<string>
 
 type ISequence =
-    abstract member GetNext: sequenceName: string -> Task<uint64>
+    abstract member GetNext:     sequenceName: string -> Task<uint64>
     abstract member PeekCurrent: sequenceName: string -> Task<uint64>
 
 type DecryptionFailure = DecryptionFailure
@@ -146,7 +146,7 @@ type Clock =
 with interface Request
 
 type Sequence =
-| GetNext of Name: string * ResponseChannel<uint64>
+| GetNext     of Name: string * ResponseChannel<uint64>
 | PeekCurrent of Name: string * ResponseChannel<uint64>
 with interface Request
 
@@ -159,8 +159,8 @@ type Unique =
 with interface Request
 
 type Cryptographer =
-| Encrypt of Decrypted: string * Purpose: string * ResponseChannel<byte[]>
-| Decrypt of Decrypted: byte[] * Purpose: string * ResponseChannel<Result<string, DecryptionFailure>>
+| Encrypt      of Decrypted: string * Purpose: string * ResponseChannel<byte[]>
+| Decrypt      of Decrypted: byte[] * Purpose: string * ResponseChannel<Result<string, DecryptionFailure>>
 | EncryptBytes of Decrypted: byte[] * Purpose: string * ResponseChannel<byte[]>
 | DecryptBytes of Encrypted: byte[] * Purpose: string * ResponseChannel<Result<byte[], DecryptionFailure>>
 with interface Request
@@ -235,7 +235,7 @@ let internal allSubjectsServiceHandler
     | FilterFetchSubject (predicate, responseChannel) ->
         backgroundTask {
             let resultSetOptions = {
-                UntypedResultSetOptions.Page = { Offset = 0UL; Size = 1us }
+                UntypedResultSetOptions.Page    = { Offset = 0UL; Size = 1us }
                 UntypedResultSetOptions.OrderBy = UntypedOrderBy.FastestOrSingleSearchScoreIfAvailable
             }
             let! res = repoImpl.FilterFetchSubjects (predicate.PrepareQuery resultSetOptions)

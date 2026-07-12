@@ -64,24 +64,24 @@ let private renderMenuItem
         (openingEvent: ReactEvent.Action)
         : ReactElement =
     Rn.View(
-        key = sprintf "item-%i" index,
+        key    = sprintf "item-%i" index,
         styles = [| Styles.button (index = 0) |],
         children =
             [|
                 LC.UiText(
-                    value = label,
+                    value  = label,
                     styles = [| Styles.buttonText isSelected isCautionary |]
                 )
                 LC.Pressable(
                     onPress = (fun _ -> hide(); onPress openingEvent),
-                    label = label,
-                    role = AccessibilityRole.MenuItem,
+                    label   = label,
+                    role    = AccessibilityRole.MenuItem,
                     state =
                         { AccessibilityStateRecord.empty with
                             Selected = Some isSelected
                         },
-                    testId = Styles.itemTestId label,
-                    overlay = true,
+                    testId        = Styles.itemTestId label,
+                    overlay       = true,
                     componentName = "LC.ContextMenu.Popup"
                 )
             |]
@@ -114,7 +114,7 @@ let private renderContextMenuPopup
                 Rn.View(key = sprintf "divider-%i" index)
             | Heading text ->
                 Rn.View(
-                    key = sprintf "heading-%i" index,
+                    key      = sprintf "heading-%i" index,
                     children = [| LC.UiText(text, styles = [||]) |]
                 )
             | InternalButton (label, isSelected, onPress) ->
@@ -126,11 +126,11 @@ let private renderContextMenuPopup
 
     Rn.ScrollView(
         vertical = true,
-        styles = [| Styles.scrollView; yield! legacyScrollViewStyles |],
+        styles   = [| Styles.scrollView; yield! legacyScrollViewStyles |],
         children =
             [|
                 Rn.View(
-                    styles = [| Styles.view |],
+                    styles   = [| Styles.view |],
                     children = itemElements
                 )
             |]
@@ -142,14 +142,13 @@ let makeContextMenuPopup items hide openingEvent =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member ContextMenuPopup(
-            items: List<ContextMenuItem>,
-            hide: unit -> unit,
-            openingEvent: ReactEvent.Action,
-            ?children: ReactChildrenProp,
+            items:          List<ContextMenuItem>,
+            hide:           unit -> unit,
+            openingEvent:   ReactEvent.Action,
+            ?children:      ReactChildrenProp,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?key:           string
         ) : ReactElement =
         children |> ignore
-        key |> ignore
+        key      |> ignore
         renderContextMenuPopup items hide openingEvent xLegacyStyles
-

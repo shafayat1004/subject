@@ -37,7 +37,7 @@ module LC =
 
         type Format =
         | WithThousandSeparator of Decimals: int
-        | Custom of string
+        | Custom                of string
         with
             member this.String : string =
                 match this with

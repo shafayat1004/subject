@@ -14,13 +14,13 @@ open LibClient.Components
 
 [<Fable.Core.JS.Pojo>]
 type private FormatfulTextDivStyleJs(
-    whiteSpace: string,
-    cursor: string,
+    whiteSpace:           string,
+    cursor:               string,
     ``WebkitUserSelect``: string,
-    ``MozUserSelect``: string,
-    ``msUserSelect``: string,
-    userSelect: string,
-    wordWrap: string
+    ``MozUserSelect``:    string,
+    ``msUserSelect``:     string,
+    userSelect:           string,
+    wordWrap:             string
 ) =
     member val whiteSpace = whiteSpace
     member val cursor = cursor
@@ -61,7 +61,7 @@ type private RenderHtmlPropsJs(source: obj, tagsStyles: obj, systemFonts: string
 type FormatfulText with
     [<Component>]
     static member Render (
-        text: FormatfulTextSource,
+        text:    FormatfulTextSource,
         ?styles: array<TextStyles>
     ): ReactElement =
         let markup =

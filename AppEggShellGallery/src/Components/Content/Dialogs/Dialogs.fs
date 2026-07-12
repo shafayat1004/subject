@@ -19,12 +19,12 @@ type Ui.Content with
             displayName = "Dialogs",
             a11y =
                 Ui.A11yPanel(
-                    componentName = "LC.Dialog.* (Alert, Confirm, ImageViewer, …)",
-                    role = "dialog on modal shells",
-                    namePattern = "accessibilityLabel from heading + details on Confirm/Alert; action buttons use visible label",
-                    stateNotes = "Confirm shell cycles InProgress/Error modes; dismiss via history back where allowed",
+                    componentName  = "LC.Dialog.* (Alert, Confirm, ImageViewer, …)",
+                    role           = "dialog on modal shells",
+                    namePattern    = "accessibilityLabel from heading + details on Confirm/Alert; action buttons use visible label",
+                    stateNotes     = "Confirm shell cycles InProgress/Error modes; dismiss via history back where allowed",
                     scalesWithFont = true,
-                    contrastNotes = "Dialog body text and button pairs meet WCAG AA"
+                    contrastNotes  = "Dialog body text and button pairs meet WCAG AA"
                 ),
             samples =
                 element {
@@ -133,7 +133,7 @@ LC.Button(
 
                     Ui.ComponentSample(
                         visuals = LC.Text "TODO add contents about WhiteRounded, WhiteRoundedStandard, FullScreen and other dialogs here",
-                        code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                        code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
                     )
                 }
         )

@@ -154,7 +154,7 @@ jsonSerializerOptions.Converters.Add defaultFsharpJsonConverter
 module FileDataJson =
 
     type FileDataCaptureContext = {
-        HandlerName: string
+        HandlerName:   string
         CapturedDatas: System.Collections.Generic.Dictionary<Guid, byte[]>
     }
 

@@ -45,12 +45,12 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tabs(
-            children: array<ReactElement>,
-            ?label: string,
-            ?styles: array<ScrollViewStyles>,
-            ?theme: Theme -> Theme,
+            children:       array<ReactElement>,
+            ?label:         string,
+            ?styles:        array<ScrollViewStyles>,
+            ?theme:         Theme -> Theme,
             ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -78,10 +78,10 @@ type LibClient.Components.Constructors.LC with
             children =
                 elements {
                     Rn.View(
-                        styles   = [| Styles.view |],
+                        styles              = [| Styles.view |],
                         ?accessibilityLabel = label,
-                        accessibilityRole = AccessibilityRole.TabList,
-                        children = children
+                        accessibilityRole   = AccessibilityRole.TabList,
+                        children            = children
                     )
                 }
         )

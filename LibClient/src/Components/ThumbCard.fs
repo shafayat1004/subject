@@ -51,15 +51,15 @@ type private Helpers =
             ``with`` =
                 fun (onLayoutOption, maybeLayout) ->
                     Rn.View(
-                        styles = [|Styles.thumb thumbPosition|],
+                        styles    = [|Styles.thumb thumbPosition|],
                         ?onLayout = onLayoutOption,
                         children =
                             elements {
                                 Rn.Image(
-                                    styles = [| Styles.image |],
-                                    source = imageSource,
+                                    styles     = [| Styles.image |],
+                                    source     = imageSource,
                                     resizeMode = Rn.Components.Image.ResizeMode.Cover,
-                                    size = (Size.FromParentLayout maybeLayout)
+                                    size       = (Size.FromParentLayout maybeLayout)
                                 )
 
                                 match onPress with
@@ -67,11 +67,11 @@ type private Helpers =
                                     let resolvedTestId =
                                         testId |> Option.orElse (Some (A11ySlug.testId "thumb-card" "Open image"))
                                     LC.Pressable(
-                                        onPress = onPress,
-                                        label = "Open image",
-                                        testId = resolvedTestId.Value,
-                                        role = AccessibilityRole.Button,
-                                        overlay = true,
+                                        onPress       = onPress,
+                                        label         = "Open image",
+                                        testId        = resolvedTestId.Value,
+                                        role          = AccessibilityRole.Button,
+                                        overlay       = true,
                                         componentName = "LC.ThumbCard"
                                     )
                                 | None ->
@@ -101,7 +101,7 @@ type LC with
             children = [|
                 LC.Row (
                     crossAxisAlignment = CrossAxisAlignment.Stretch,
-                    styles = [|Styles.row|],
+                    styles             = [|Styles.row|],
                     children =
                         match thumbPosition with
                         | ThumbPosition.Left ->
@@ -121,4 +121,3 @@ type LC with
             label        = a11yLabel,
             ?testId      = testId
         )
-

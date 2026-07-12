@@ -18,7 +18,7 @@ type AccessPredicateInput =
     inherit Record
 
 type CallScopedEnvDependencies = {
-    CallOrigin: CallOrigin
+    CallOrigin:      CallOrigin
     LocalSubjectRef: Option<LocalSubjectPKeyReference>
 }
 
@@ -53,8 +53,8 @@ type FullyTypedLifeCycleFunction<'Res> =
     abstract member Invoke: LifeCycle<_, _, _, _, _, _, _, _, _, _, _> -> 'Res
 
 and ILifeCycle =
-    abstract member Name: string
-    abstract member Def: LifeCycleDef
+    abstract member Name:   string
+    abstract member Def:    LifeCycleDef
     abstract member Invoke: FullyTypedLifeCycleFunction<'Res> -> 'Res
 
 and [<RequireQualifiedAccess>] RevalidateCompleteResult =
@@ -76,7 +76,7 @@ and EcosystemSessionHandler<'Session> = {
 }
 
 and EcosystemSessionHandling<'Session, 'Role when 'Role : comparison> = {
-    Handler: EcosystemSessionHandler<'Session>
+    Handler:  EcosystemSessionHandler<'Session>
     GetRoles: ExternalCallOrigin -> Option<'Session> -> Set<'Role>
 }
 
@@ -113,11 +113,11 @@ and ILifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Subje
     abstract member Invoke:              FullyTypedLifeCycleFunction<'Res, 'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId> -> 'Res
 
     // TODO: these also can be supplanted with function invocations (Invoke calls)
-    abstract member IsSessionLifeCycle: bool
+    abstract member IsSessionLifeCycle:        bool
     abstract member AutoIgnoreNoOpTransitions: bool
-    abstract member GenerateId: CallOrigin -> IServiceProvider -> 'Constructor -> IdGenerationResult<'SubjectId, 'OpError>
-    abstract member Construct: CallOrigin -> IServiceProvider -> 'SubjectId -> 'Constructor -> ConstructionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent>
-    abstract member Act: CallOrigin -> IServiceProvider -> 'Subject -> 'LifeAction -> TransitionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor>
+    abstract member GenerateId:                CallOrigin -> IServiceProvider -> 'Constructor -> IdGenerationResult<'SubjectId, 'OpError>
+    abstract member Construct:                 CallOrigin -> IServiceProvider -> 'SubjectId -> 'Constructor -> ConstructionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent>
+    abstract member Act:                       CallOrigin -> IServiceProvider -> 'Subject -> 'LifeAction -> TransitionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor>
 
 and IdGeneration<'Constructor, 'OpError, 'SubjectId, 'Env
         when 'OpError              :> OpError
@@ -189,23 +189,23 @@ and LifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Subjec
                 and  'AccessPredicateInput :> AccessPredicateInput
                 and  'Role                 :  comparison
                 and  'Env                  :> Env> = internal {
-    Definition:          LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
-    IdGeneration:        IdGeneration<'Constructor, 'OpError, 'SubjectId, 'Env>
-    Construction:        Construction<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>
+    Definition:                LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
+    IdGeneration:              IdGeneration<'Constructor, 'OpError, 'SubjectId, 'Env>
+    Construction:              Construction<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>
     AutoIgnoreNoOpTransitions: bool
-    Transition:          Transition<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>
-    Subscriptions:       'Subject -> Map<SubscriptionName, Subscription<'LifeAction>>
-    Timers:              'Subject -> list<Timer<'LifeAction>>
-    Indices:             'Subject -> seq<'SubjectIndex>
-    SingletonCtor:       Option<'Constructor>
-    Storage:             LifeCycleStorage
-    MetaData:            LifeCycleMetaData
-    MaybeApiAccess:      Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
-    ResponseHandler:     SideEffectResponse -> seq<SideEffectResponseDecision<'LifeAction>>
-    ShouldSendTelemetry: Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
-    ShouldRecordHistory: Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
-    LifeEventSatisfies:  Option<LifeEventSatisfiesInput<'LifeEvent> -> bool>
-    SessionHandling:     Option<EcosystemSessionHandling<'Session, 'Role>>
+    Transition:                Transition<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>
+    Subscriptions:             'Subject -> Map<SubscriptionName, Subscription<'LifeAction>>
+    Timers:                    'Subject -> list<Timer<'LifeAction>>
+    Indices:                   'Subject -> seq<'SubjectIndex>
+    SingletonCtor:             Option<'Constructor>
+    Storage:                   LifeCycleStorage
+    MetaData:                  LifeCycleMetaData
+    MaybeApiAccess:            Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
+    ResponseHandler:           SideEffectResponse -> seq<SideEffectResponseDecision<'LifeAction>>
+    ShouldSendTelemetry:       Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
+    ShouldRecordHistory:       Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
+    LifeEventSatisfies:        Option<LifeEventSatisfiesInput<'LifeEvent> -> bool>
+    SessionHandling:           Option<EcosystemSessionHandling<'Session, 'Role>>
 }
 with
     member this.Name = this.Definition.Key.LocalLifeCycleName
@@ -265,7 +265,7 @@ and AccessRule<'AccessPredicateInput, 'Role, 'LifeAction, 'Constructor
 }
 
 and LifeCycleMetaData = internal {
-    IndexKeys_:       Set<IndexKey>
+    IndexKeys_: Set<IndexKey>
 }
 with
     member this.IndexKeys = this.IndexKeys_
@@ -281,7 +281,7 @@ and [<RequireQualifiedAccess>] TimerAction<'LifeAction when 'LifeAction :> LifeA
 
 and [<RequireQualifiedAccess>] Schedule =
 | Now
-| On    of DateTimeOffset
+| On                  of DateTimeOffset
 | AfterLastTransition of TimeSpan
 
 and [<RequireQualifiedAccess>] PersistentHistoryExpiration =
@@ -294,10 +294,10 @@ and [<RequireQualifiedAccess>] PersistentHistoryExpiration =
 | AfterSubjectChange of KeepSubjectHistoryForAtLeast: TimeSpan
 
 and [<RequireQualifiedAccess>] PersistentHistoryRetention =
-| Unfiltered of Option<PersistentHistoryExpiration>
+| Unfiltered               of Option<PersistentHistoryExpiration>
 | FilteredByTelemetryRules of Option<PersistentHistoryExpiration>
 | FilteredByHistoryRules   of Option<PersistentHistoryExpiration>
-| NoHistory of Justification: string
+| NoHistory                of Justification: string
 with
     // for backwards compatibility
     static member FullHistory = PersistentHistoryRetention.Unfiltered None
@@ -306,10 +306,10 @@ with
 and [<RequireQualifiedAccess>] StorageType =
 | Persistent of PromotedIndicesConfig * PersistentHistoryRetention
 | Volatile
-| Custom of Key: string
+| Custom     of Key: string
 
 and LifeCycleStorage = {
-    Type: StorageType
+    Type:              StorageType
     MaxDedupCacheSize: uint16
 }
 
@@ -339,7 +339,7 @@ with
             | false, _ -> None
 
 and LifeEventSatisfiesInput<'LifeEvent when 'LifeEvent :> LifeEvent and 'LifeEvent : comparison> = {
-    Raised:  'LifeEvent
+    Raised:     'LifeEvent
     Subscribed: 'LifeEvent
 }
 
@@ -359,7 +359,7 @@ and TransitionOk<'Subject, 'LifeAction, 'LifeEvent, 'Constructor // Don't constr
                       when 'LifeAction :> LifeAction
                       and  'LifeEvent  :> LifeEvent
                       and  'Constructor :> Constructor> =
-| TransitionOk      of 'Subject * List<BlobAction> * TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>
+| TransitionOk of 'Subject * List<BlobAction> * TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>
                     // TransitionIgnored collects side effects & blob actions only to assert that there's none
 | TransitionIgnored of List<BlobAction> * TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>
 
@@ -388,7 +388,7 @@ and ConstructionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent // Don't cons
                         ConstructionResult of Task<Result<'Subject * List<BlobAction> * ConstructionSideEffects<'LifeEvent, 'LifeAction>, ConstructionBuilderError<'OpError>>>
 
 and OperationBuilderError<'OpError when 'OpError :> OpError> =
-| LifeCycleOperationError of 'OpError
+| LifeCycleOperationError     of 'OpError
 | LifeCycleOperationException of Exception
 
 and OperationResult<'Res, 'LifeAction, 'OpError, 'LifeEvent
@@ -506,7 +506,7 @@ with
             LifeEvents      = sideEffect1.LifeEvents      @ sideEffect2.LifeEvents
             LifeActions     = sideEffect1.LifeActions     @ sideEffect2.LifeActions
         }
-    
+
     static member (+) (sideEffect1: InfallibleOperationSideEffects<'LifeEvent, 'LifeAction>, sideEffect2: OperationSideEffects<'LifeEvent, 'LifeAction>)
         : OperationSideEffects<'LifeEvent, 'LifeAction>=
         {
@@ -514,7 +514,7 @@ with
             LifeEvents      = sideEffect1.LifeEvents      @ sideEffect2.LifeEvents
             LifeActions     = sideEffect1.LifeActions     @ sideEffect2.LifeActions
         }
-    
+
     static member (+) (sideEffect1: InfallibleOperationSideEffects<'LifeEvent, 'LifeAction>, sideEffect2: TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>)
         : TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>=
         {
@@ -549,7 +549,7 @@ and [<RequireQualifiedAccess>] LifeCycleOp<'LifeAction, 'Constructor, 'SubjectId
 and [<RequireQualifiedAccess>] LifeCycleTxnOp<'LifeAction, 'Constructor, 'SubjectId
                                                when 'LifeAction :> LifeAction
                                                and  'SubjectId  :> SubjectId> =
-| PrepareAct        of 'SubjectId * 'LifeAction * SubjectTransactionId
+| PrepareAct of 'SubjectId * 'LifeAction * SubjectTransactionId
 // transactional construction needs a pre-generated Id so transaction coordinator
 // can locate it for commit or rollback. It means burden of Id generation is on client, unfortunately.
 | PrepareInitialize of 'SubjectId * 'Constructor * SubjectTransactionId
@@ -574,8 +574,8 @@ and Subscription<'LifeAction> =
 | ForSubjectMap   of SubjectSubscription * MapLifeEventToActionToRaise: (LifeEvent -> Option<'LifeAction>)
 
 and SubjectSubscription = {
-    TargetLifeCycleKey: LifeCycleKey
-    TargetSubjectId: SubjectId
+    TargetLifeCycleKey:  LifeCycleKey
+    TargetSubjectId:     SubjectId
     SubscribedLifeEvent: LifeEvent
 }
 
@@ -631,7 +631,7 @@ and IngestTimeSeriesDataPointsOperation<'TimeSeriesDataPoint, 'TimeSeriesId, [<M
     when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
     and  'TimeSeriesId        :> TimeSeriesId<'TimeSeriesId>> = private {
     TimeSeriesKey_: TimeSeriesKey
-    Points_: list<'TimeSeriesDataPoint>
+    Points_:        list<'TimeSeriesDataPoint>
 }
 with
     member this.TimeSeriesKey = this.TimeSeriesKey_
@@ -893,8 +893,8 @@ type LifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Subje
         member this.OnResponse (response: SideEffectResponse) =
             this.Definition.OnResponse response
 
-let noLifeEvents    = []
-let noBlobActions   = []
+let noLifeEvents  = []
+let noBlobActions = []
 
 let private nextOnSuccess = NextOnSideEffectSuccess_ ()
 

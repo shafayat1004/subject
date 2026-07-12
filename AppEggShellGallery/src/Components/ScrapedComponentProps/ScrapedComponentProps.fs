@@ -34,15 +34,15 @@ type AppEggShellGallery.Components.Constructors.Ui with
     static member ScrapedComponentProps(
             fullyQualifiedName: string,
             ?children:          ReactChildrenProp,
-            ?heading:          string,
-            ?key:              string,
-            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>
+            ?heading:           string,
+            ?key:               string,
+            ?xLegacyStyles:     List<Rn.LegacyStyles.RuntimeStyles>
         ) : ReactElement =
-        key |> ignore
-        children |> ignore
+        key           |> ignore
+        children      |> ignore
         xLegacyStyles |> ignore
 
         Ui.ComponentProps(
-            data = getScrapedPropsData fullyQualifiedName,
+            data     = getScrapedPropsData fullyQualifiedName,
             ?heading = heading
         )

@@ -10,12 +10,12 @@ type JobFailedReason =
 
 [<RequireQualifiedAccess>]
 type JobParent =
-| Job of JobId * AwaitingForJobStatus
+| Job   of JobId * AwaitingForJobStatus
 | Batch of BatchId * AwaitingForBatchStatus
 
 type FinishedJobRun = {
     FinishedOn: DateTimeOffset
-    StartedBy: DispatcherId
+    StartedBy:  DispatcherId
     /// For how long job stayed Enqueued
     Latency: TimeSpan
     /// Total duration as measured in Job Runner connector
@@ -26,21 +26,21 @@ type FinishedJobRun = {
 }
 
 type UnfinishedJobRun = {
-    StartedBy: DispatcherId
-    StartedOn: DateTimeOffset
-    Latency: TimeSpan
+    StartedBy:       DispatcherId
+    StartedOn:       DateTimeOffset
+    Latency:         TimeSpan
     LastHeartbeatOn: Option<DateTimeOffset>
 }
 
 [<RequireQualifiedAccess>]
 type JobState =
-| Scheduled of EnqueueOn: DateTimeOffset
-| Awaiting of JobParent
-| Enqueued of OrderInQueue: int64 * EnqueuedOn: DateTimeOffset
+| Scheduled  of EnqueueOn: DateTimeOffset
+| Awaiting   of JobParent
+| Enqueued   of OrderInQueue: int64 * EnqueuedOn: DateTimeOffset
 | Processing of Ticket: Guid * UnfinishedJobRun
-| Succeeded of FinishedJobRun
-| Failed of JobFailedReason * FinishedJobRun
-| Deleted of DeletedOn: DateTimeOffset
+| Succeeded  of FinishedJobRun
+| Failed     of JobFailedReason * FinishedJobRun
+| Deleted    of DeletedOn: DateTimeOffset
 
 
 [<RequireQualifiedAccess>]
@@ -50,9 +50,9 @@ type JobAutoRetryDelayPolicy =
 | Hangfire
 
 type JobAutoRetriesPolicy = {
-    MaxAutoRetries: byte
+    MaxAutoRetries:   byte
     DeleteIfExceeded: bool
-    DelayPolicy: JobAutoRetryDelayPolicy
+    DelayPolicy:      JobAutoRetryDelayPolicy
 }
 
 type JobFailurePolicy = {
@@ -65,26 +65,26 @@ with
         |> Option.defaultValue true
 
 type JobRetry = {
-    Attempt: byte
+    Attempt:            byte
     LastFailureMessage: string
 }
 
 [<RequireQualifiedAccess>]
 type JobScope =
-| Batch of BatchId
+| Batch     of BatchId
 | Recurring of RecurringJobId
 | Other
 
 type JobBody = {
-    Scope: JobScope
+    Scope:  JobScope
     Parent: Option<JobParent>
 
-    Payload: JobPayload
-    QueueName: NonemptyString
+    Payload:        JobPayload
+    QueueName:      NonemptyString
     QueueSortOrder: uint16
-    FailurePolicy: JobFailurePolicy
+    FailurePolicy:  JobFailurePolicy
     // captured on client side, to know how long it took it to relay the job to the backend
-    SentOn: DateTimeOffset
+    SentOn:              DateTimeOffset
     PlaceholderFilledOn: Option<DateTimeOffset>
     // to correlate with client telemetry that posted this job
     CorrelationId: Option<string>
@@ -94,7 +94,7 @@ type JobBody = {
 }
 
 type JobBodyPlaceholder = {
-    PlacedBy: PlacedBy
+    PlacedBy:          PlacedBy
     DeleteRequestedOn: Option<DateTimeOffset>
 }
 
@@ -105,9 +105,9 @@ type JobBodyVariant =
 | Placeholder of JobBodyPlaceholder
 
 type Job = {
-    Id: JobId
+    Id:        JobId
     CreatedOn: DateTimeOffset
-    Body: JobBodyVariant
+    Body:      JobBodyVariant
 }
 with
     interface Subject<JobId> with
@@ -135,46 +135,46 @@ with
                 JobStatus.Unfinished
 
 type JobConstructorCommonData = {
-    Payload: JobPayload
-    DisplayName: NonemptyString
-    QueueName: NonemptyString
+    Payload:        JobPayload
+    DisplayName:    NonemptyString
+    QueueName:      NonemptyString
     QueueSortOrder: uint16
-    FailurePolicy: JobFailurePolicy
-    SentOn: DateTimeOffset
-    CorrelationId: Option<string>
+    FailurePolicy:  JobFailurePolicy
+    SentOn:         DateTimeOffset
+    CorrelationId:  Option<string>
 }
 
 type JobProcessingResult = {
     TotalDuration: TimeSpan
-    PureDuration: Option<TimeSpan>
-    Result: Result<unit, (* retryForFree *) bool * JobFailedReason>
+    PureDuration:  Option<TimeSpan>
+    Result:        Result<unit, (* retryForFree *) bool * JobFailedReason>
 }
 
 [<RequireQualifiedAccess>]
 type ProperJobConstructor =
-| Enqueued of JobConstructorCommonData * JobScope
+| Enqueued  of JobConstructorCommonData * JobScope
 | Scheduled of JobConstructorCommonData * ScheduledOn: DateTimeOffset
-| Awaiting of JobConstructorCommonData * JobScope * JobParent
+| Awaiting  of JobConstructorCommonData * JobScope * JobParent
 // in marginal case job can be created as Deleted e.g. when it's creator Batch was cancelled while it was a placeholder and then was filled
 | Deleted of JobConstructorCommonData * JobScope
 
 [<RequireQualifiedAccess>]
 type JobSubscriber =
-| Job of JobId
+| Job   of JobId
 | Batch of BatchId
 
 [<RequireQualifiedAccess>]
 type JobAction =
-| Schedule of On: DateTimeOffset
+| Schedule             of On: DateTimeOffset
 | Enqueue
-| Start of DequeuedBy: DispatcherId
-| OnHeartbeat of Ticket: Guid
+| Start                of DequeuedBy: DispatcherId
+| OnHeartbeat          of Ticket: Guid
 | OnProcessingComplete of Ticket: Guid * JobProcessingResult
-| OnParentJobUpdate of JobStatus
-| OnParentBatchUpdate of BatchStatus
+| OnParentJobUpdate    of JobStatus
+| OnParentBatchUpdate  of BatchStatus
 | Delete
-| FillPlaceholder of ProperJobConstructor
-| OnNewSubscriber of JobSubscriber // to repeat JobStatus event on Subscribe, should be called if subscriber does not create this Job
+| FillPlaceholder      of ProperJobConstructor
+| OnNewSubscriber      of JobSubscriber // to repeat JobStatus event on Subscribe, should be called if subscriber does not create this Job
 | DeleteAwaitingJobsBackwards // useful to delete stuck job chains with AnyFinishedState continuations (starting from last job in the chain)
 with interface LifeAction
 
@@ -187,7 +187,7 @@ with interface OpError
 [<RequireQualifiedAccess>]
 type JobConstructor =
 | NewPlaceholder of JobId * PlacedBy // in case if child job created before parent job, it will create a placeholder
-| NewProper of JobId * ProperJobConstructor
+| NewProper      of JobId * ProperJobConstructor
 with interface Constructor
 
 [<RequireQualifiedAccess>]
@@ -211,38 +211,38 @@ type IndexJobState =
 
 [<RequireQualifiedAccess>]
 type JobNumericIndex =
-| State of IndexJobState
+| State                 of IndexJobState
 | Retry
-| SentOn of DateTimeOffset
-| PlaceholderFilledOn of DateTimeOffset
-| CreatedOn of DateTimeOffset
-| ScheduledOn of DateTimeOffset
-| EnqueuedOn of DateTimeOffset
-| ProcessingFrom of DateTimeOffset
-| HeartbeatOn of DateTimeOffset
-| FailedOn of DateTimeOffset
-| SucceededOn of DateTimeOffset
+| SentOn                of DateTimeOffset
+| PlaceholderFilledOn   of DateTimeOffset
+| CreatedOn             of DateTimeOffset
+| ScheduledOn           of DateTimeOffset
+| EnqueuedOn            of DateTimeOffset
+| ProcessingFrom        of DateTimeOffset
+| HeartbeatOn           of DateTimeOffset
+| FailedOn              of DateTimeOffset
+| SucceededOn           of DateTimeOffset
 | SucceededRetryAttempt of byte
-| TotalDuration of TimeSpan
-| PureDuration of TimeSpan
-| Latency of TimeSpan
-| DeletedOn of DateTimeOffset
-| Placeholder of CreatedOn: DateTimeOffset
+| TotalDuration         of TimeSpan
+| PureDuration          of TimeSpan
+| Latency               of TimeSpan
+| DeletedOn             of DateTimeOffset
+| Placeholder           of CreatedOn: DateTimeOffset
 with
     interface SubjectNumericIndex<JobOpError> with
         member this.Primitive =
             match this with
             | State state ->
                 match state with
-                | IndexJobState.Scheduled -> 1L
-                | IndexJobState.AwaitingJob -> 2L
+                | IndexJobState.Scheduled     -> 1L
+                | IndexJobState.AwaitingJob   -> 2L
                 | IndexJobState.AwaitingBatch -> 3L
-                | IndexJobState.Enqueued -> 4L
-                | IndexJobState.Processing -> 5L
-                | IndexJobState.Succeeded -> 6L
-                | IndexJobState.Failed -> 7L
-                | IndexJobState.Deleted -> 8L
-                | IndexJobState.Placeholder -> 9L
+                | IndexJobState.Enqueued      -> 4L
+                | IndexJobState.Processing    -> 5L
+                | IndexJobState.Succeeded     -> 6L
+                | IndexJobState.Failed        -> 7L
+                | IndexJobState.Deleted       -> 8L
+                | IndexJobState.Placeholder   -> 9L
                 |> IndexedNumber
             | Retry -> IndexedNumber 1L
             | Placeholder dt
@@ -266,19 +266,19 @@ with
 
 [<RequireQualifiedAccess>]
 type JobStringIndex =
-| EnqueuedTo of QueueName: NonemptyString
+| EnqueuedTo  of QueueName: NonemptyString
 | DequeueSort of string
-| StartedBy of DispatcherId
+| StartedBy   of DispatcherId
 /// batch that has created and owns this job, do not confuse with ParentBatch index
-| Batch of BatchId
+| Batch     of BatchId
 | ParentJob of JobId
 /// Batch that this job is or was awaiting, do not confuse with Batch index
-| ParentBatch of BatchId
-| Recurring of RecurringJobId
-| Type of string
-| Method of string
-| Args of string
-| Queue of NonemptyString // written for all states, unlike EnqueuedTo
+| ParentBatch   of BatchId
+| Recurring     of RecurringJobId
+| Type          of string
+| Method        of string
+| Args          of string
+| Queue         of NonemptyString // written for all states, unlike EnqueuedTo
 | CorrelationId of string
 with
     interface SubjectStringIndex<JobOpError> with
@@ -364,11 +364,11 @@ type FinishedJobRun with
             and! maybeFinishedOn = optWith Codecs.dateTimeOffset "FinishedOn" (fun x -> Some x.FinishedOn)
             and! maybeStartedBy = optWith codecFor<_, DispatcherId> "StartedBy" (fun x -> Some x.StartedBy)
             return {
-                FinishedOn = maybeFinishedOn |> Option.defaultWith (fun () -> DateTimeOffset(2025, 2, 11, 0, 0, 0, TimeSpan.Zero))
-                StartedBy = maybeStartedBy |> Option.defaultWith (fun () -> DispatcherId (NonemptyString.ofLiteral "Dispatcher-0"))
+                FinishedOn    = maybeFinishedOn |> Option.defaultWith (fun () -> DateTimeOffset(2025, 2, 11, 0, 0, 0, TimeSpan.Zero))
+                StartedBy     = maybeStartedBy |> Option.defaultWith (fun () -> DispatcherId (NonemptyString.ofLiteral "Dispatcher-0"))
                 TotalDuration = total
-                PureDuration = pure'
-                Latency = maybeLatency |> Option.defaultValue TimeSpan.Zero
+                PureDuration  = pure'
+                Latency       = maybeLatency |> Option.defaultValue TimeSpan.Zero
              }
         }
     static member get_Codec () = ofObjCodec (FinishedJobRun.get_ObjCodec_V1 ())
@@ -383,9 +383,9 @@ type UnfinishedJobRun with
             and! startedOn = reqWith Codecs.dateTimeOffset "StartedOn" (fun x -> Some x.StartedOn)
             and! lastHeartbeatOn = optWith Codecs.dateTimeOffset "LastHeartbeatOn" (fun x -> x.LastHeartbeatOn)
             return {
-                StartedBy = startedBy
-                StartedOn = startedOn
-                Latency = latency
+                StartedBy       = startedBy
+                StartedOn       = startedOn
+                Latency         = latency
                 LastHeartbeatOn = lastHeartbeatOn
              }
         }
@@ -504,9 +504,9 @@ type JobAutoRetriesPolicy with
             and! deleteIfExceeded = reqWith Codecs.boolean "DeleteIfExceeded" (fun x -> Some x.DeleteIfExceeded)
             and! maybeDelayPolicy = optWith codecFor<_, JobAutoRetryDelayPolicy> "DP" (fun x -> Some x.DelayPolicy)
             return {
-                MaxAutoRetries = maxAutoRetries
+                MaxAutoRetries   = maxAutoRetries
                 DeleteIfExceeded = deleteIfExceeded
-                DelayPolicy = maybeDelayPolicy |> Option.defaultValue JobAutoRetryDelayPolicy.Hangfire
+                DelayPolicy      = maybeDelayPolicy |> Option.defaultValue JobAutoRetryDelayPolicy.Hangfire
              }
         }
     static member get_Codec () = ofObjCodec (JobAutoRetriesPolicy.get_ObjCodec_V1 ())
@@ -531,7 +531,7 @@ type JobRetry with
             and! attempt = reqWith Codecs.byte "Attempt" (fun x -> Some x.Attempt)
             and! lastFailureMessage = reqWith Codecs.string "LastFailureMessage" (fun x -> Some x.LastFailureMessage)
             return {
-                Attempt = attempt
+                Attempt            = attempt
                 LastFailureMessage = lastFailureMessage
              }
         }
@@ -579,17 +579,17 @@ type JobBody with
             and! correlationId = optWith Codecs.string "CorrelationId" (fun x -> x.CorrelationId)
             and! placeholderFilledOn = optWith Codecs.dateTimeOffset "PlaceholderFilledOn" (fun x -> x.PlaceholderFilledOn)
             return {
-                Scope = scope
-                Parent = parent
-                Payload = payload
-                QueueName = queueName
-                QueueSortOrder = queueSortOrder
-                FailurePolicy = failurePolicy
-                SentOn = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
+                Scope               = scope
+                Parent              = parent
+                Payload             = payload
+                QueueName           = queueName
+                QueueSortOrder      = queueSortOrder
+                FailurePolicy       = failurePolicy
+                SentOn              = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
                 PlaceholderFilledOn = placeholderFilledOn
-                CorrelationId = correlationId
-                Retry = retry
-                State = state
+                CorrelationId       = correlationId
+                Retry               = retry
+                State               = state
              }
         }
     static member get_Codec () = ofObjCodec (JobBody.get_ObjCodec_V1 ())
@@ -602,7 +602,7 @@ type JobBodyPlaceholder with
             and! placedBy = reqWith codecFor<_, PlacedBy> "PlacedBy" (fun x -> Some x.PlacedBy)
             and! deleteRequestedOn = reqWith (Codecs.option Codecs.dateTimeOffset) "DeleteRequestedOn" (fun x -> Some x.DeleteRequestedOn)
             return {
-                PlacedBy = placedBy
+                PlacedBy          = placedBy
                 DeleteRequestedOn = deleteRequestedOn
              }
         }
@@ -638,9 +638,9 @@ type Job with
             and! createdOn = reqWith Codecs.dateTimeOffset "CreatedOn" (fun x -> Some x.CreatedOn)
             and! body = reqWith codecFor<_, JobBodyVariant> "Body" (fun x -> Some x.Body)
             return {
-                Id = id
+                Id        = id
                 CreatedOn = createdOn
-                Body = body
+                Body      = body
              }
         }
 
@@ -662,13 +662,13 @@ type JobConstructorCommonData with
             and! maybeSentOn = optWith Codecs.dateTimeOffset "SentOn" (fun x -> Some x.SentOn)
             and! correlationId = optWith Codecs.string "CorrelationId" (fun x -> x.CorrelationId)
             return {
-                Payload = payload
-                DisplayName = displayName
-                QueueName = queueName
+                Payload        = payload
+                DisplayName    = displayName
+                QueueName      = queueName
                 QueueSortOrder = queueSortOrder
-                FailurePolicy = failurePolicy
-                SentOn = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
-                CorrelationId = correlationId
+                FailurePolicy  = failurePolicy
+                SentOn         = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
+                CorrelationId  = correlationId
              }
         }
     static member get_Codec () = ofObjCodec (JobConstructorCommonData.get_ObjCodec_V1 ())

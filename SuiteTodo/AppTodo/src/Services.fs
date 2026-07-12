@@ -106,7 +106,7 @@ let initialize (config: Config) : unit =
             staticResourceUrlTransformSettings,
             (fun url ->
                 match config.BackendUrl with
-                | None -> false
+                | None            -> false
                 | Some backendUrl -> url.StartsWith backendUrl),
             config.MaybeInBundleResourceUrlHashedDirectoryPrefix
         )

@@ -13,10 +13,10 @@ let withRequestProcessor
         (ConnectorName connectorName)
         : Connector<'Request, 'Env> =
     {
-        RequestProcessor = messageProcessor
-        Name = connectorName
+        RequestProcessor    = messageProcessor
+        Name                = connectorName
         ShouldSendTelemetry = true
-        Interceptors = []
+        Interceptors        = []
     }
 
 let withDisabledTelemetry (connector: Connector<'Request, 'Env>) =

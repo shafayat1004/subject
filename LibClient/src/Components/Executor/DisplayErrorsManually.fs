@@ -105,7 +105,7 @@ module private Helpers =
 type LibClient.Components.Constructors.LC.Executor with
     [<Component>]
     static member DisplayErrorsManually(
-            content: (MakeExecutor * ExecutorErrorsLazy) -> ReactElement,
+            content:                     (MakeExecutor * ExecutorErrorsLazy) -> ReactElement,
             ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
             ?shouldBeActionableWhenDisplayingErrors: bool
         ) : ReactElement =
@@ -148,7 +148,7 @@ type LibClient.Components.Constructors.LC.Executor with
                             children =
                                 elements {
                                     Rn.ActivityIndicator(
-                                        size = Size.Medium,
+                                        size  = Size.Medium,
                                         color = "#cccccc"
                                     )
                                 }

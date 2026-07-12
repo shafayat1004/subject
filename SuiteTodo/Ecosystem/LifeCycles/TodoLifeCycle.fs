@@ -14,7 +14,7 @@ let ArchiveDelayMinutes = 5
 let archiveDelay = TimeSpan.FromMinutes (float ArchiveDelayMinutes)
 
 type TodoEnvironment = {
-    Clock: Service<Clock>
+    Clock:  Service<Clock>
     Unique: Service<Unique>
     Logger: ILogger<TodoEnvironment>
 } with interface Env
@@ -82,15 +82,15 @@ let private construction (env: TodoEnvironment) (id: TodoId) (ctor: TodoConstruc
                     (id :> SubjectId).IdString,
                     title.Value)
                 return {
-                    Id = id
-                    Title = title
-                    Done = false
-                    ArchivedOn = None
+                    Id                = id
+                    Title             = title
+                    Done              = false
+                    ArchivedOn        = None
                     QueuedForDeletion = false
-                    CreatedOn = now
-                    Priority = priority
-                    DueOn = dueOn
-                    Category = category
+                    CreatedOn         = now
+                    Priority          = priority
+                    DueOn             = dueOn
+                    Category          = category
                 }
     }
 
@@ -116,7 +116,7 @@ let private timers (todo: Todo) : list<Timer<TodoAction>> =
             { TimerAction = TimerAction.DeleteSelf; Schedule = Schedule.Now }
         elif todo.Done && todo.ArchivedOn.IsNone then
             { TimerAction = TimerAction.RunAction TodoAction.Archive
-              Schedule = Schedule.AfterLastTransition archiveDelay }
+              Schedule    = Schedule.AfterLastTransition archiveDelay }
     ]
 
 let private shouldSendTelemetry =
@@ -128,11 +128,11 @@ let private shouldSendTelemetry =
 
 let private lifeEventSatisfies (input: LifeEventSatisfiesInput<TodoLifeEvent>) =
     match input.Subscribed, input.Raised with
-    | TodoLifeEvent.Created, TodoLifeEvent.Created -> true
+    | TodoLifeEvent.Created, TodoLifeEvent.Created               -> true
     | TodoLifeEvent.TitleChanged _, TodoLifeEvent.TitleChanged _ -> true
-    | TodoLifeEvent.DoneToggled _, TodoLifeEvent.DoneToggled _ -> true
-    | TodoLifeEvent.Archived, TodoLifeEvent.Archived -> true
-    | _ -> false
+    | TodoLifeEvent.DoneToggled _, TodoLifeEvent.DoneToggled _   -> true
+    | TodoLifeEvent.Archived, TodoLifeEvent.Archived             -> true
+    | _                                                          -> false
 
 let todoLifeCycle =
     newTodoLifeCycle todoDef.LifeCycles.todo

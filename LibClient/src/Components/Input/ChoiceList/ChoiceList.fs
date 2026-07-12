@@ -41,16 +41,16 @@ module ChoiceList_fs =
     type Constructors.LC.Input with
         [<Component>]
         static member ChoiceList<'T when 'T: comparison>(
-                items: Group<'T> -> ReactElement,
-                value: SelectableValue<'T>,
-                validity: InputValidity,
-                ?children: ReactChildrenProp,
-                ?styles: array<ViewStyles>,
-                ?key: string,
+                items:          Group<'T> -> ReactElement,
+                value:          SelectableValue<'T>,
+                validity:       InputValidity,
+                ?children:      ReactChildrenProp,
+                ?styles:        array<ViewStyles>,
+                ?key:           string,
                 ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
             ) : ReactElement =
-            key |> ignore
-            children |> ignore
+            key           |> ignore
+            children      |> ignore
             xLegacyStyles |> ignore
 
             let getGroupState () =

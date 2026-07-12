@@ -28,7 +28,7 @@ type private VersionedSubject<'Subject, 'SubjectId
 with
     member this.ToApi() =
         {
-            Data = this.Subject
+            Data    = this.Subject
             Version = (this.AsOf.Ticks, this.Version)
         }
 
@@ -257,7 +257,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                 // Set an AsyncLocal before the deserialization
                 FileDataJson.capturedFileDatas.Value <-
                     {
-                        FileDataJson.FileDataCaptureContext.HandlerName = transferBlobHandler.Name
+                        FileDataJson.FileDataCaptureContext.HandlerName   = transferBlobHandler.Name
                         FileDataJson.FileDataCaptureContext.CapturedDatas = System.Collections.Generic.Dictionary<Guid, byte[]>()
                     } |> Some
 
@@ -329,10 +329,10 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
             | Some projectionWithLifeEventEncoder ->
                 (projectionWithLifeEventEncoder, (Projection projectionName)) |> Ok
 
-    let actionDecoder                   = generateAutoDecoder<'LifeAction>
-    let idDecoder                       = generateAutoDecoder<'SubjectId>
-    let constructorDecoder              = generateAutoDecoder<'Constructor>
-    let manyIdsDecoder                  = generateAutoDecoder<NonemptySet<'SubjectId>>
+    let actionDecoder      = generateAutoDecoder<'LifeAction>
+    let idDecoder          = generateAutoDecoder<'SubjectId>
+    let constructorDecoder = generateAutoDecoder<'Constructor>
+    let manyIdsDecoder     = generateAutoDecoder<NonemptySet<'SubjectId>>
 
     let getMaybeConstructDecoder        = generateAutoDecoder<GetMaybeConstruct<'SubjectId, 'Constructor>>
     let actMaybeConstructDecoder        = generateAutoDecoder<ActMaybeConstruct<'LifeAction, 'Constructor>>
@@ -340,9 +340,9 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let actMaybeConstructAndWaitDecoder = generateAutoDecoder<ActMaybeConstructAndWaitOnLifeEvent<'LifeAction, 'Constructor, 'LifeEvent>>
     let constructAndWaitDecoder         = generateAutoDecoder<ConstructAndWaitOnLifeEvent<'Constructor, 'LifeEvent>>
 
-    let indexQueryDecoder               = generateAutoDecoder<IndexQuery<'SubjectIndex>>
-    let indexPredicateDecoder           = generateAutoDecoder<PreparedIndexPredicate<'SubjectIndex>>
-    let resultSetOptionsDecoder         = generateAutoDecoder<ResultSetOptions<'SubjectIndex>>
+    let indexQueryDecoder       = generateAutoDecoder<IndexQuery<'SubjectIndex>>
+    let indexPredicateDecoder   = generateAutoDecoder<PreparedIndexPredicate<'SubjectIndex>>
+    let resultSetOptionsDecoder = generateAutoDecoder<ResultSetOptions<'SubjectIndex>>
 
     let respondMaybeConstructionError maybeConstructionError (httpContext: HttpContext) =
         match maybeConstructionError with
@@ -708,12 +708,12 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
 
     let sessionBlobHandlerGet (idStr: string, blobGuidStr: string) : HttpHandler =
         fun _ httpContext ->
-            let blobRepo  = httpContext.RequestServices.GetRequiredService<IBlobRepo>()
+            let blobRepo = httpContext.RequestServices.GetRequiredService<IBlobRepo>()
             task {
                 do! Session.Http.clearSessionIfRequired hostEcosystemGrainFactory grainPartition cryptographer ecosystem lifeCycleDef httpContext idStr getSessionHandleFromSession
 
                 // TODO: add TryFromTinyUuid, requires Convert.TryFromBase64String (requires .net5 )
-                let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
                 match! subjectRepo.GetByIdStr idStr with
                 | Some subj ->
                     let sessionSource, latestSessionHandle = getSessionSourceAndSessionHandleFromSessionSubject subj.Subject
@@ -1169,7 +1169,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
             task {
                 match versionedDataEncoder maybeProjectionName with
                 | Ok (encoder, projection) ->
-                    let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                    let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
 
                     match! subjectRepo.GetByIdStr idStr with
                     | Some versionedSubject ->
@@ -1265,7 +1265,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let getManyHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledVersionedDataListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1294,7 +1294,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let indexQueryHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledVersionedDataListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1323,7 +1323,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let indexQueryWithTotalCountHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledVersionedDataListWithTotalCountEncoder maybeProjectionName with
                 | Ok (encoder, subjectProjection) ->
@@ -1341,7 +1341,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                             |> List.map (AccessControlled.map (fun versionedSubject -> versionedSubject.ToApi()))
                         let result =
                             {
-                                Data = accessControlledVersionedData
+                                Data       = accessControlledVersionedData
                                 TotalCount = accessControlledTotalCount
                             }
 
@@ -1356,7 +1356,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
 
     let indexCountHandler: HttpHandler =
         fun _ httpContext ->
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match! readJsonBodyAndValidate httpContext indexPredicateDecoder id with
                 | Ok indexPredicate ->
@@ -1378,7 +1378,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                     |> Option.bind (
                         fun offset ->
                             match UInt64.TryParse offset with
-                            | true, v -> Some v
+                            | true, v  -> Some v
                             | false, _ -> None)
                     |> Option.defaultValue 0UL
 
@@ -1387,7 +1387,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                     |> Option.bind (
                         fun offset ->
                             match UInt16.TryParse offset with
-                            | true, v -> Some v
+                            | true, v  -> Some v
                             | false, _ -> None)
                     |> Option.defaultValue 10us
 
@@ -1420,11 +1420,11 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                 AsOf = auditTrailData.AsOf
                 OperationStr =
                     match auditTrailData.Operation with
-                    | Ok (SubjectAuditOperation.Act act) -> sprintf "%A" act
+                    | Ok (SubjectAuditOperation.Act act)        -> sprintf "%A" act
                     | Ok (SubjectAuditOperation.Construct ctor) -> sprintf "Create %A" ctor
-                    | Error str -> sprintf "Error %s" str
+                    | Error str                                 -> sprintf "Error %s" str
                 Version = auditTrailData.Version
-                By = auditTrailData.By
+                By      = auditTrailData.By
             })
             auditTrailEncoder
 
@@ -1460,7 +1460,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let allHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledVersionedDataListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1488,7 +1488,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
 
     let totalCountHandler: HttpHandler =
         fun _ httpContext ->
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 let! (totalCount: uint64) = subjectRepo.CountAllSubjects ()
                 let! _, accessControlledTotalCount =
@@ -1503,7 +1503,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let allWithTotalCountHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledVersionedDataListWithTotalCountEncoder maybeProjectionName with
                 | Ok (encoder, subjectProjection) ->
@@ -1521,7 +1521,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                             |> List.map (AccessControlled.map (fun versionedSubject -> versionedSubject.ToApi()))
                         let result =
                             {
-                                Data = accessControlledVersionedData
+                                Data       = accessControlledVersionedData
                                 TotalCount = accessControlledTotalCount
                             }
 
@@ -1537,7 +1537,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
     let allHandlerGet: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledVersionedDataListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1560,10 +1560,10 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
 
     let blobHandlerGet (idStr: string, blobGuidStr: string) : HttpHandler =
         fun _ httpContext ->
-            let blobRepo  = httpContext.RequestServices.GetRequiredService<IBlobRepo>()
+            let blobRepo = httpContext.RequestServices.GetRequiredService<IBlobRepo>()
             task {
                 // TODO: add TryFromTinyUuid, requires Convert.TryFromBase64String (requires .net5 )
-                let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
 
                 match! subjectRepo.GetByIdStr idStr with
                 | Some subj ->
@@ -1623,7 +1623,7 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
         fun _ httpContext ->
             task {
                 // authorize if has access to Meta
-                let metaRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<Meta, MetaAction, MetaConstructor, MetaId, MetaIndex, MetaOpError>>()
+                let metaRepo    = httpContext.RequestServices.GetRequiredService<ISubjectRepo<Meta, MetaAction, MetaConstructor, MetaId, MetaIndex, MetaOpError>>()
                 let metaAdapter = httpContext.RequestServices.GetRequiredService<HostedLifeCycleAdapter<Meta, MetaAction, MetaOpError, MetaConstructor, MetaLifeEvent, MetaId>>()
 
                 match! metaRepo.GetByIdStr lifeCycleDef.Key.LocalLifeCycleName with
@@ -1642,8 +1642,8 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
                                         HttpStatusCode.Forbidden
                                         (fun () ->
                                             task {
-                                                let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
-                                                let! failures = subjectRepo.GetSideEffectPermanentFailures scope
+                                                let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                                                let! failures   = subjectRepo.GetSideEffectPermanentFailures scope
                                                 return! respondJson sideEffectPermanentFailuresListEncoder failures httpContext
                                             })
                                         None
@@ -1695,8 +1695,8 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
 
                             if isNativeEcosystem then
                                 routef "/debug/failures/seqNum/%s/%s"    (fun (subjId, seqNum) ->       nonSessionInitHandler >=> permanentFailuresHandlerGet ((subjId, UInt64.Parse seqNum) |> UpdatePermanentFailuresScope.SeqNum))
-                                routef "/debug/failures/nextSeqBatch/%i" (fun batchSize ->              nonSessionInitHandler >=> permanentFailuresHandlerGet (batchSize |> uint8 |> UpdatePermanentFailuresScope.NextSeqBatch))
-                                routef "/debug/failures/subject/%s"      (fun subjId ->                 nonSessionInitHandler >=> permanentFailuresHandlerGet (subjId |> UpdatePermanentFailuresScope.Subject))
+                                routef "/debug/failures/nextSeqBatch/%i" (fun batchSize ->              nonSessionInitHandler >=> permanentFailuresHandlerGet (batchSize                     |> uint8 |> UpdatePermanentFailuresScope.NextSeqBatch))
+                                routef "/debug/failures/subject/%s"      (fun subjId ->                 nonSessionInitHandler >=> permanentFailuresHandlerGet (subjId                        |> UpdatePermanentFailuresScope.Subject))
                                 routef "/debug/failures/single/%s/%s"    (fun (subjId, sideEffectId) -> nonSessionInitHandler >=> permanentFailuresHandlerGet ((subjId, Guid.Parse sideEffectId) |> UpdatePermanentFailuresScope.Single))
 
                             routef "/audit/%s" (fun subjId ->               nonSessionInitHandler >=> auditTrailHandler subjId)
