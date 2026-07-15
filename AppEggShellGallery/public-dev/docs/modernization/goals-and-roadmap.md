@@ -104,7 +104,7 @@ codified in `docs/fsharp/styling.md`; targeted memoization applied to `Sidebar.I
 
 ---
 
-## Platform & backend (later, Goals F through H)
+## Platform & backend (later, Goals F through K)
 
 Explicitly later than the active initiative. Goal F is the baseline that unblocks the rest.
 
@@ -170,6 +170,40 @@ Architecture that unlocks it is now enabled.
 **Status:** Done. Primitive layer migrated to react-native-web; `@chaldal/reactxp` removed; React 19 /
 RN 0.86 / RNW 0.21.2 / RNGH 3 / Reanimated 4 / New Architecture all in place. AppTodo verified on
 Android and iOS. Remaining: gallery and PerformancePlayground native passes, plus scaffolding polish.
+
+### J. Backend interoperability: standalone service + .NET client SDK
+
+Make the standalone backend consumable by .NET clients other than the built-in F#/Fable UI. The backend
+already exposes a JSON-over-HTTP request/response API plus a SignalR subscription hub and has no code
+dependency on the frontend, so this is packaging, not a re-architecture. See
+[Backend Interoperability](./modernization/backend-interop.md).
+
+- **Carve `LibClient.Core`** (transport + codecs, .NET-portable) out of the Fable/RN UI and package it
+  as a NuGet client SDK, so any .NET frontend (Blazor, MAUI, WPF, a console daemon, another service)
+  gets fully-typed, no-DTO access to views, actions, and subscriptions. Also advances the long-standing
+  "move Subject-related components out of `LibClient`" item below.
+- **Publish a JS SDK** from the existing Fable-compiled shared types + codecs as the first non-UI
+  consumer.
+
+**Status:** Not started.
+
+### K. Polyglot API contract: OpenAPI + generated clients
+
+Publish a machine-readable API contract so clients in any language can consume the backend without
+hand-porting the codec conventions. This is the polyglot path (Dart, Kotlin, Swift, TypeScript, Python,
+and so on) and is the source of truth for generated SDKs. See
+[Backend Interoperability](./modernization/backend-interop.md).
+
+- **Emit an OpenAPI / JSON-Schema contract** by wiring the existing `LibCodecValidation` /
+  `EvolutionCheckerLib.fs` type walker, which already extracts each type into a `JsonNode` schema for the
+  evolution gate, to output a schema document. This also yields free API documentation.
+- **Generate typed clients per language** from that contract rather than hand-writing SDKs, so they
+  regenerate as the server evolves.
+- If the raw codec encoding makes generated models awkward (for example `__v1` tags leaking into
+  generated types), add a standardized-JSON projection at the HTTP edge only (or a `/v2` edge); never
+  change the at-rest storage codec (it is guarded by the codec-evolution gate).
+
+**Status:** Not started.
 
 ### Security hardening
 

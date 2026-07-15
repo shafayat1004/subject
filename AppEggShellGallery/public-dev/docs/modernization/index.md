@@ -21,7 +21,7 @@ Native and web builds are **green** on the current branch.
 
 ---
 
-## Goals status (Goals A through I + Security)
+## Goals status (Goals A through K + Security)
 
 See [Goals & Roadmap](./modernization/goals-and-roadmap.md) for full detail on each goal.
 
@@ -36,6 +36,8 @@ See [Goals & Roadmap](./modernization/goals-and-roadmap.md) for full detail on e
 | **G** | PostgreSQL (PG-only) + Orleans 3.7 to 10.x upgrade | Not started. One coordinated workstream; target Orleans **10.2.1**, Npgsql **10.0.3**, **PG 18**. **PostgreSQL-only end-state** (no live apps → no permanent dual-DB; SQL Server is a throwaway diff oracle). **Spike-driven** execution; Phase 0 decisions revised this session. Full plan in [SQL Server to Postgres](./modernization/sql-server-to-postgres.md); phase correspondence in [Phased Plan](./modernization/phased-plan.md) Phase 3 / later (P6 cut-over removed — fresh seed only). |
 | **H** | ReactXP to react-native-web seam swap | **Done + modernized.** Primitives on RN/RNW, `@chaldal/reactxp` removed, and the ReactXP *name*/seam retired (now `Rn`). Upgraded to React 19 / RN 0.86 / RNW 0.21.2 with the **New Architecture (Fabric)** enabled and verified on **Android + iOS** (AppTodo: POCO F1 + iPhone 16 simulator). Remaining: bring gallery + PerformancePlayground onto the RN 0.86 native config; adopt Reanimated 4 in components. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md). |
 | **I** | Frontend render hygiene (key warnings + style leaks) | In progress. Key-warning fix applied at `AppShell/Context/Context.fs`; style-leak rule codified; targeted memoization applied to several components. |
+| **J** | Backend interop: standalone service + .NET client SDK | Not started. Backend is already a standalone HTTP+JSON + SignalR service with no frontend dependency. Plan: carve a `LibClient.Core` .NET NuGet SDK (transport + codecs) and publish a JS SDK. See [Backend Interoperability](./modernization/backend-interop.md). |
+| **K** | Polyglot API contract: OpenAPI + generated clients | Not started. Emit an OpenAPI / JSON-Schema contract from the existing `LibCodecValidation` type walker, then generate typed clients per language (Dart, Kotlin, Swift, TS, Python) instead of hand-writing SDKs. See [Backend Interoperability](./modernization/backend-interop.md). |
 | **Security** | Auth/SQL/crypto hardening | Not started. See [Security Review](./modernization/security-review.md) for the candidate findings table. |
 
 ---
@@ -62,11 +64,12 @@ See [Phased Plan](./modernization/phased-plan.md) for full per-phase detail.
 - [Accessibility Plan](./accessibility/index.md) — the full accessibility initiative that runs alongside this modernization.
 - [Runbooks: Migration Execution](./runbooks/migration-execution.md) — the executor manual for doing the mechanical migration work.
 - [CLI reference](./tools/cli.md) — `eggshell` commands.
-- [Goals & Roadmap](./modernization/goals-and-roadmap.md) — Goals A through H + security, short-term vs long-term framing.
+- [Goals & Roadmap](./modernization/goals-and-roadmap.md) — Goals A through K + security, short-term vs long-term framing.
 - [Phased Plan](./modernization/phased-plan.md) — Phases 0 through 6, one clean table.
 - [RN 0.86 Upgrade: Done and Remaining](./modernization/rn86-upgrade-status.md) — detailed done-vs-remaining tracker for the ReactXP-retirement + React 19 / RN 0.86 / Fabric upgrade.
 - [ReactXP to RNW](./modernization/reactxp-to-rnw.md) — the strategy and research narrative for the seam swap.
 - [Render DSL Retirement](./modernization/render-dsl-retirement.md) — Goal A detail + Goals C/D + a11y/automation bar.
 - [Build Performance](./modernization/build-performance.md) — Goal E: bottlenecks and ranked levers.
+- [Backend Interoperability](./modernization/backend-interop.md) — Goals J and K: standalone backend, .NET NuGet client SDK (J), OpenAPI polyglot contract (K), and consumer tiers.
 - [Scaffolding](./modernization/scaffolding.md) — Goal B: why `eggshell create-app` is broken and the fix plan.
 - [Security Review](./modernization/security-review.md) — candidate security findings with severities.

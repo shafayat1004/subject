@@ -21,6 +21,8 @@ F#, and the domain types are shared between them:
 
 ## Documentation map
 
+* [Evaluating EggShell](./evaluating-eggshell.md) — strengths, tradeoffs, performance characteristics,
+  and when the framework is (and is not) the right choice.
 * [Architecture](./architecture/index.md) — how the framework works: lifecycles, Orleans, shared types
   and codecs, the test harness, the frontend, the toolchain.
 * [Modernization & Current Status](./modernization/index.md) — the authoritative status dashboard, goals,

@@ -7,6 +7,7 @@ Orientation for machine readers:
 - Cross-links inside pages are root-relative (`./section/page.md`), resolved against the docs root, not the current file's directory.
 - Current toolchain: Fable 5.4.0, .NET 10 SDK (10.0.301), Fable.React 10.0.0-alpha.1. The frontend primitive layer has been migrated off `@chaldal/reactxp` to react-native-web (stabilizing). Orleans is 3.7.2 and storage is SQL Server (both pending upgrade).
 - Start at [Architecture Overview](architecture/index.md) for the system model and [Modernization & Current Status](modernization/index.md) for where the project stands.
+- For the framework's strengths, tradeoffs, performance characteristics, and fit (when to use it and when not), see [Evaluating EggShell](evaluating-eggshell.md).
 - **Before changing code or docs, read [Keeping Code and Docs in Sync](maintaining-docs.md)** — the single map of which docs to read/update for any change, and how to keep the docs consistent.
 
 ## Architecture (framework reference)
@@ -20,14 +21,15 @@ Orientation for machine readers:
 - [Key File Map](architecture/file-map.md): where each concern lives in the source tree.
 
 ## Modernization & Current Status
-- [Current Status](modernization/index.md): the authoritative status dashboard (toolchain, Goals A-I, Phases 0-6).
-- [Goals & Roadmap](modernization/goals-and-roadmap.md): Goals A-H plus security, short-term vs long-term.
+- [Current Status](modernization/index.md): the authoritative status dashboard (toolchain, Goals A-K, Phases 0-6).
+- [Goals & Roadmap](modernization/goals-and-roadmap.md): Goals A-K plus security, short-term vs long-term.
 - [Phased Plan](modernization/phased-plan.md): Phases 0-6 with per-phase status.
 - [RN 0.86 Upgrade: Done and Remaining](modernization/rn86-upgrade-status.md): detailed done-vs-remaining tracker for the ReactXP-retirement + React 19 / RN 0.86 / Fabric upgrade (remaining: gallery native ThirdParty, Reanimated adoption, PerformancePlayground, create-app, ship).
 - [ReactXP to react-native-web](modernization/reactxp-to-rnw.md): the frontend migration rationale, fork audit, and RN/RNW ecosystem.
 - [Render DSL Retirement](modernization/render-dsl-retirement.md): Goal A status, verbosity/structure, a11y and automation bar.
 - [Build Performance](modernization/build-performance.md): frontend build bottlenecks and levers.
 - [SQL Server to Postgres](modernization/sql-server-to-postgres.md): plan for the PostgreSQL (PG-only end-state) + Orleans 3.7 to 10.x storage migration (current storage layer, feature-by-feature port table, Durable Jobs evaluation, PG 18 native features, spike-driven execution). Goal G.
+- [Backend Interoperability](modernization/backend-interop.md): Goals J and K. Standalone backend (Y-shaped dependency), consumer tiers (Fable UI, .NET NuGet SDK = Goal J, OpenAPI-generated polyglot clients = Goal K), contract-vs-encoding, and easy wins.
 - [Scaffolding](modernization/scaffolding.md): why `eggshell create-app` is broken and the fix plan.
 - [Security Review](modernization/security-review.md): candidate auth/SQL/crypto findings (leads to verify).
 

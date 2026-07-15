@@ -27,6 +27,12 @@ genuinely strong safety net given that subjects are persisted as JSON.
 ./validate-codec.sh --suite Logistics --fromcodec releases/logistics --tocodec master
 ```
 
+> **Consuming the wire from non-EggShell clients.** The codec conventions here (the `__v1` union marker,
+> `Option`/`NonemptyList` encodings, ISO-8601 datetimes) are the wire contract. For how other clients
+> (a .NET NuGet SDK, an OpenAPI-generated client) can consume the standalone backend, and how the
+> codec-shape extractor seeds an OpenAPI contract, see
+> [Backend Interoperability](./modernization/backend-interop.md).
+
 ## Request path and subscriptions
 
 - **Request/response:** client `HttpService` (`LibClient/src/Services/HttpService/HttpService.fs`) encodes

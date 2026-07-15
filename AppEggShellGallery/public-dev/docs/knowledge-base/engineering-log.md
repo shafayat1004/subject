@@ -4,6 +4,43 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 27 -- framework positioning + backend interop docs)
+
+**Context:** a discussion pass on the Goal G (Postgres + Orleans) migration expanded into broader
+questions: the F# DU serialization risk, migration downsides vs staying on SQL Server, expected
+performance gains, whether the framework is "special" vs conventional .NET stacks, and whether the
+backend can be consumed standalone (nugetized for .NET, or via generated clients for non-.NET). No code
+changed; the durable output is two new docs.
+
+**Learnings captured (were previously only tribal knowledge):**
+
+- **Dependency direction is a clean Y, verified.** `LibLifeCycleHost.fsproj` references no `LibClient`/
+  `LibUi*`/`App*`. Frontend depends on the shared type projects only. The monorepo is co-located, not
+  code-coupled; the backend builds and runs with the frontend deleted. This is the foundation for any
+  standalone-consumer story.
+- **`LibCodecValidation`/`EvolutionCheckerLib.fs` already walks every type into a `JsonNode` schema** for
+  the codec-evolution gate. That is most of an OpenAPI / JSON-Schema emitter; it is the natural seed for
+  a published API contract.
+- **Wire encoding vs at-rest storage share the codec family.** Standardizing the public JSON must be an
+  edge-only projection (or a `/v2` edge); never change the storage codec (guarded by the evolution gate).
+- **The Orleans 3.7.2 -> 10.2.1 jump crosses the 7.0 rewrite**, which is where the real perf gains live
+  (new source-generated wire serializer, net10 runtime). The Postgres swap itself is licensing/community
+  driven and is ~parity by design (JSON serializer kept, MemoryPack deferred).
+
+**Docs added/updated:**
+
+- New [Evaluating EggShell](./evaluating-eggshell.md): strengths, tradeoffs, performance
+  characteristics, when-to-use / when-not. Linked from the frontpage and `llms.txt`.
+- New [Backend Interoperability](./modernization/backend-interop.md) covering the three consumer tiers
+  (Fable UI / .NET NuGet SDK carve-out / OpenAPI-generated clients) and the contract-first approach. Split
+  into two committed goals at the user's request: **Goal J** (standalone service + .NET client SDK via a
+  `LibClient.Core` carve-out) and **Goal K** (polyglot API contract: OpenAPI/JSON-Schema emitted from the
+  `LibCodecValidation` type walker, plus generated per-language clients). Added Goals J and K to
+  `modernization/index.md` + `goals-and-roadmap.md` (A-I -> A-K); pointer added from
+  `architecture/shared-types-codecs.md`; `llms.txt` updated.
+
+**Distilled:** not durable troubleshooting; positioning/plan content lives in the two new docs.
+
 ## 2026-07-15 (session 26 -- gallery web console errors cleared: React key, h1 nesting, BackHandler, shadow)
 
 **Context:** the AppEggShellGallery web app logged 5 console errors + 1 deprecation warning on every page
