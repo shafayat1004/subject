@@ -30,6 +30,7 @@ let private compItemIcon (label: string) (item: ComponentItem) (itemState: Compo
 let docsItems (itemState: string -> SI.State) : ReactElement =
     castAsElement [|
         LC.Sidebar.Item(label = "EggShell Introduction", state = itemState "index.md")
+        LC.Sidebar.Item(label = "Evaluating EggShell",   state = itemState "evaluating-eggshell.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Item(label = "Getting Started", state = itemState "basics/getting-started.md")
         LC.Sidebar.Item(label = "Dev Experience",  state = itemState "basics/dev-experience.md")

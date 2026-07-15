@@ -4,6 +4,32 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 28 -- fix: sidebar never highlights a doc page missing from SidebarContent.fs)
+
+**Bug report:** on iOS (and presumably Android), navigating from the docs page to "Evaluating EggShell"
+via an in-markdown hyperlink left the sidebar showing the previous page as active.
+
+**Root cause:** `Ui.Sidebar` computes each item's active/selected state by comparing the live current
+route (via `LR.With.CurrentRoute` / `useLocation()`) against a hardcoded URL string in
+`AppEggShellGallery/src/Components/Sidebar/SidebarContent.fs`'s per-section item lists (e.g.
+`docsItems`). `evaluating-eggshell.md` was added in session 27 (linked from `index.md` and `llms.txt`)
+but never added to `docsItems`. With no matching entry, no sidebar row can ever be `Selected` for that
+page -- on any platform, and regardless of whether navigation came from a sidebar click or a markdown
+hyperlink. Traced and ruled out: the markdown-link handler (`App.fs: handleMarkdownLink`) and the
+sidebar's own item `onPress` both call the identical `nav.Go` / `navigate.Push` primitive; there is no
+separate/duplicate navigation path or missing state update between the two.
+
+**Fix:** added the missing `LC.Sidebar.Item(label = "Evaluating EggShell", state = itemState
+"evaluating-eggshell.md")` entry to `docsItems` in `SidebarContent.fs`, right after the intro item (it's
+a peer of `index.md` in the docs map).
+
+**Generalizable gotcha (added to troubleshooting):** any new top-level doc page must be added to the
+matching `*Items` list in `SidebarContent.fs`, or the sidebar can silently and permanently fail to
+highlight it as active -- this is easy to miss because the page itself renders and navigates fine; only
+the highlight is broken.
+
+---
+
 ## 2026-07-15 (session 27 -- framework positioning + backend interop docs)
 
 **Context:** a discussion pass on the Goal G (Postgres + Orleans) migration expanded into broader
