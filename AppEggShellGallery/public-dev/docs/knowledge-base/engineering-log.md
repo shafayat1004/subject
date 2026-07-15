@@ -4,6 +4,24 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 25 -- Orleans/PG upgrade research verified; serializer + F# interop risk added)
+
+Adversarially-verified research (2026 primary sources) corroborated the Goal G target set in
+[SQL Server to Postgres](./modernization/sql-server-to-postgres.md): Orleans **10.2.1** (preview 10.2.2-rc.1;
+multi-targets net8+net10), Npgsql **10.0.3**, PostgreSQL **18** (GA 2025-09), .NET **10** LTS. Orleans 3.x is
+unsupported; documented path is 3.x to 7.0 to 8.0 to 9.0 to 10.0. Orleans ADO.NET providers support PostgreSQL
+first-class (invariant `Npgsql`) for Main/Persistence/Reminders and the grain directory.
+
+Gap found and closed: the plan's "keep JSON (`UseJsonFormat`)" decision governs only grain *storage*
+serialization; it did not address the Orleans 7+ *wire* serializer (`[GenerateSerializer]`/`[Id]`, mandatory, up
+to 170% higher throughput), which is where **F# records/DUs are the known risk**. F# DU serialization was broken
+in early Orleans 7.x (issue #8255) and fixed via PR #9095 in `Microsoft.Orleans.Serialization.FSharp`. Added to
+the plan: a serializer-distinction note; a "stock AdoNet persistence not adopted for subject state" note (its
+Version/ETag is a signed 32-bit int, incompatible with the rowversion/xmin 2-phase-commit ETag); spike **S15**
+(F# type round-trip across real grains, gates the Orleans jump, slotted right after the S10 package bump); and a
+risk entry. Also weak evidence favored EF Core migrations for greenfield, but the plan keeps **DbUp** (SQL-first,
+matches the existing embedded-`.sql` mechanism; no EF Core in the repo).
+
 ## 2026-07-15 (session 24 -- Goal G plan re-evaluated: PG-only, Orleans 10.2, PG 18, spike-driven)
 
 Re-evaluated the [SQL Server to Postgres](./modernization/sql-server-to-postgres.md) plan against "update to
