@@ -4,6 +4,36 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 29 -- add: `./doctor` preflight script, fix stale version docs)
+
+**Motivation:** the repo had no single script to verify a fresh clone has the right dependencies
+before `./initialize`; failures partway through the 15-subdirectory install chain would be cryptic.
+Investigating this also surfaced that `eggshell doctor` (a CLI subcommand) is impossible on a truly
+fresh clone: `Meta/AppEggshellCli/dist` and all `node_modules` are gitignored and don't exist until
+`./initialize` has already run once, so no `eggshell`-CLI command can gate entry to `./initialize`.
+
+**What shipped:** a standalone `./doctor` (repo root, executable, `#!/usr/bin/env bash`, no monorepo
+deps) that checks Node (>=22.11.0), the .NET SDK (`dotnet --version` resolved against this repo's
+`global.json`, currently pinned 10.0.301), and `DOTNET_ROOT`, hard-failing (exit 1) with platform-aware
+fix instructions (nvm / nvm-windows for Node; Microsoft's official `dotnet-install.sh`/`.ps1` for the
+SDK) if any are missing. Android SDK/`adb` and Xcode/CocoaPods are checked too but only `WARN` (never
+fail), since native tooling is optional. `./initialize` now runs `./doctor` as its first step and
+aborts immediately on failure instead of failing partway through.
+
+**Also fixed while touching version requirements (repo previously disagreed with itself):**
+`SuiteTodo/AppTodo/package.json` requires Node `>=22.11.0` with `engineStrict: true` (npm install hard
+fails below it), but the README said "18.19+", `AppEggShellGallery/package.json` said `>=18.19.0`, and
+`getting-started.md` said ".NET SDK 7.0+" (stale -- `global.json` pins 10.0.301). Bumped
+`AppEggShellGallery/package.json` engines.node to `>=22.11.0` and corrected both docs so the doctor
+script's own checks match what's written everywhere else.
+
+**Verification:** ran `./doctor` clean on this machine (all OK); verified the FAIL path by unsetting
+`DOTNET_ROOT` in a subshell (correct message + exit 1); unit-tested the `version_ge` comparison
+function against edge cases (equal, patch/minor/major above and below); ran
+`.claude/skills/docs-sync/scripts/check-doc-links.mjs` (PASS, no broken links from the doc edits).
+
+---
+
 ## 2026-07-15 (session 28 -- fix: sidebar never highlights a doc page missing from SidebarContent.fs)
 
 **Bug report:** on iOS (and presumably Android), navigating from the docs page to "Evaluating EggShell"

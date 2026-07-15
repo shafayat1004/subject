@@ -1,3 +1,4 @@
+./doctor                                                                               && \
 dotnet tool restore                                                                    && \
 pushd Meta/AppRenderDslCompiler && ./initialize && popd                                && \
 pushd LibLangTypeScript && ./initialize && ./build && popd                             && \

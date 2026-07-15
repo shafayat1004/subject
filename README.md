@@ -57,10 +57,14 @@ once for the UI, and then keep the three in sync by hand. EggShell collapses tha
 | Requirement | Version | Notes |
 |---|---|---|
 | .NET SDK | **10.0.301** | pinned in [`global.json`](global.json) |
-| Node.js | 18.19+ (LTS) | for Metro, webpack, and the audit toolkit |
+| Node.js | 22.11+ (LTS) | for Metro, webpack, and the audit toolkit |
 | `DOTNET_ROOT` | set in your shell | e.g. `export DOTNET_ROOT="$HOME/.dotnet"` |
 | Android tooling | optional | Android SDK + `adb` + an emulator, for native Android |
 | Xcode + CocoaPods | optional (macOS) | for native iOS |
+
+Run `./doctor` to check all of the above (Node, .NET SDK, `DOTNET_ROOT`, optional native tooling)
+before proceeding; `./initialize` runs it automatically and aborts with fix instructions if a
+required check fails.
 
 ### One-time setup
 

@@ -12,8 +12,9 @@ The tooling runs most smoothly on macOS and Linux. Windows users should use **Gi
    * Turn on **Developer Mode** in Windows settings, and/or
    * `git config --global core.symlinks true`
 
-2. Install Node.js LTS ( [nvm-windows](https://github.com/coreybutler/nvm-windows) is fine)
-3. Install [.NET SDK 7.0+](https://dotnet.microsoft.com/download) (matches `net7.0` in project files)
+2. Install Node.js 22.11+ ( [nvm-windows](https://github.com/coreybutler/nvm-windows) is fine)
+3. Install the .NET SDK pinned in `global.json` (currently **10.0.301**) via
+   [Microsoft's dotnet-install script](https://dotnet.microsoft.com/download/dotnet)
 4. For native apps: see [Native getting started](./native/getting-started.md)
 5. Clone this repository
 
@@ -23,8 +24,12 @@ Run the steps below from **Git Bash**, not PowerShell.
 
 After cloning, install:
 
-* .NET SDK **7.0** or newer (repo projects target `net7.0`)
-* Node.js LTS
+* The .NET SDK pinned in `global.json` (currently **10.0.301**)
+* Node.js **22.11+**
+
+Run `./doctor` from the repo root to check both (plus `DOTNET_ROOT` and optional native tooling)
+before proceeding; `./initialize` (below) runs it automatically and aborts with fix instructions if
+a required check fails.
 
 Add the **repository root** to your `PATH` so the `eggshell` CLI is available:
 

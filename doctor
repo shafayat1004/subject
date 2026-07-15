@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# Preflight environment check, run standalone (./doctor) or automatically by ./initialize.
+# Checks required tooling (Node, .NET SDK, DOTNET_ROOT) and warns on optional native tooling
+# (Android SDK, Xcode/CocoaPods). Prints OK/FAIL/WARN lines; exits 1 if any required check fails.
+set -uo pipefail
+
+REQUIRED_NODE="22.11.0"
+PINNED_DOTNET="10.0.301" # from global.json
+
+FAIL=0
+
+case "$(uname -s 2>/dev/null || echo unknown)" in
+  Darwin)              PLATFORM="macos" ;;
+  Linux)                PLATFORM="linux" ;;
+  MINGW*|MSYS*|CYGWIN*) PLATFORM="windows" ;;
+  *)                    PLATFORM="unknown" ;;
+esac
+echo "Detected platform: $PLATFORM"
+echo
+
+# returns 0 (true) if $1 >= $2, for dotted version strings like "22.11.0"
+version_ge() {
+  local a b i x y
+  IFS=. read -r -a a <<< "$1"
+  IFS=. read -r -a b <<< "$2"
+  for i in 0 1 2; do
+    x="${a[i]:-0}"
+    y="${b[i]:-0}"
+    if ((10#$x > 10#$y)); then return 0; fi
+    if ((10#$x < 10#$y)); then return 1; fi
+  done
+  return 0
+}
+
+node_fix_message() {
+  echo "  Install via nvm (recommended over a system package manager, lets you pin per-shell):"
+  case "$PLATFORM" in
+    windows)
+      echo "    nvm-windows: https://github.com/coreybutler/nvm-windows"
+      echo "    then: nvm install $REQUIRED_NODE && nvm use $REQUIRED_NODE"
+      echo "    (or run this repo under WSL2 and use the macOS/Linux nvm instructions there)"
+      ;;
+    *)
+      echo "    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash"
+      echo "    (see https://github.com/nvm-sh/nvm#install--update-script for the latest install command)"
+      echo "    then: nvm install $REQUIRED_NODE && nvm use $REQUIRED_NODE"
+      ;;
+  esac
+}
+
+dotnet_fix_message() {
+  echo "  Install the pinned SDK via Microsoft's official install script (does not touch other .NET installs):"
+  case "$PLATFORM" in
+    windows)
+      echo "    Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1"
+      echo "    ./dotnet-install.ps1 -Version $PINNED_DOTNET -InstallDir \"\$env:USERPROFILE\\.dotnet\""
+      ;;
+    *)
+      echo "    curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh"
+      echo "    bash dotnet-install.sh --version $PINNED_DOTNET --install-dir \"\$HOME/.dotnet\""
+      ;;
+  esac
+}
+
+dotnet_root_fix_message() {
+  case "$PLATFORM" in
+    windows)
+      echo "  Set it (adjust if you installed elsewhere), e.g. in Git Bash:"
+      echo "    export DOTNET_ROOT=\"\$USERPROFILE/.dotnet\""
+      ;;
+    *)
+      echo "  Set it, e.g. add to your shell profile:"
+      echo "    export DOTNET_ROOT=\"\$HOME/.dotnet\""
+      ;;
+  esac
+}
+
+# --- Node ---
+if command -v node >/dev/null 2>&1; then
+  NODE_VERSION="$(node --version | sed 's/^v//')"
+  if version_ge "$NODE_VERSION" "$REQUIRED_NODE"; then
+    echo "OK: node $NODE_VERSION (>= $REQUIRED_NODE)"
+  else
+    echo "FAIL: node $NODE_VERSION found, but >= $REQUIRED_NODE is required."
+    node_fix_message
+    FAIL=1
+  fi
+else
+  echo "FAIL: node not found on PATH."
+  node_fix_message
+  FAIL=1
+fi
+echo
+
+# --- .NET SDK (resolved against this repo's global.json, from the repo root) ---
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if command -v dotnet >/dev/null 2>&1; then
+  if DOTNET_VERSION="$(cd "$REPO_ROOT" && dotnet --version 2>&1)"; then
+    echo "OK: dotnet SDK $DOTNET_VERSION resolves against global.json (pinned $PINNED_DOTNET)"
+  else
+    echo "FAIL: dotnet found, but no SDK matching global.json's pinned $PINNED_DOTNET is installed."
+    echo "  dotnet said: $DOTNET_VERSION"
+    dotnet_fix_message
+    FAIL=1
+  fi
+else
+  echo "FAIL: dotnet not found on PATH."
+  dotnet_fix_message
+  FAIL=1
+fi
+echo
+
+# --- DOTNET_ROOT ---
+if [ -z "${DOTNET_ROOT:-}" ]; then
+  echo "FAIL: DOTNET_ROOT is not set (eggshell/dotnet tools misbehave silently without it)."
+  dotnet_root_fix_message
+  FAIL=1
+elif [ ! -x "$DOTNET_ROOT/dotnet" ] && [ ! -x "$DOTNET_ROOT/dotnet.exe" ]; then
+  echo "FAIL: DOTNET_ROOT=\"$DOTNET_ROOT\" does not contain a dotnet executable."
+  dotnet_root_fix_message
+  FAIL=1
+else
+  echo "OK: DOTNET_ROOT=\"$DOTNET_ROOT\""
+fi
+echo
+
+# --- Optional: Android tooling (any platform) ---
+if command -v adb >/dev/null 2>&1 && { [ -n "${ANDROID_HOME:-}" ] || [ -n "${ANDROID_SDK_ROOT:-}" ]; }; then
+  echo "OK: Android SDK + adb found (optional, only needed for native Android)"
+else
+  echo "WARN: Android SDK / adb not found. Optional, only needed for native Android (see runbooks/android.md)."
+fi
+echo
+
+# --- Optional: iOS tooling (macOS only) ---
+if [ "$PLATFORM" = "macos" ]; then
+  if command -v xcodebuild >/dev/null 2>&1 && command -v pod >/dev/null 2>&1; then
+    echo "OK: Xcode + CocoaPods found (optional, only needed for native iOS)"
+  else
+    echo "WARN: Xcode and/or CocoaPods not found. Optional, only needed for native iOS (see runbooks/ios.md)."
+  fi
+  echo
+fi
+
+if [ "$FAIL" -eq 0 ]; then
+  echo "All required checks passed."
+else
+  echo "One or more required checks failed. Fix the FAIL items above, then re-run ./doctor."
+fi
+exit "$FAIL"
