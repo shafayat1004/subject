@@ -50,6 +50,13 @@ Reanimated 4 + Moti are not yet added. See `modernization/phased-plan.md` +
    I initially got wrong / missed and then corrected (a build quirk, a convention, a wrong assumption, a
    gotcha in the toolchain), append a dated entry at the top. This is the running memory of the effort.
    When a learning distills to a durable symptom→fix, also add it to `runbooks/troubleshooting.md`.
+   **MANDATORY: also write it to codemem** by invoking the **`codemem-update` skill** (claude-mem's
+   background auto-capture is **retired**, so nothing lands in codemem unless the skill runs it). Run
+   the skill at the end of any session that fixed a bug, made a decision, or learned a gotcha, and
+   whenever you add an engineering-log entry; run its search step before nontrivial work. Pass raw
+   `context` + a `prompt`; the skill hands them to the harness's cheapest background model (whatever
+   the current platform exposes — not a hardcoded model) that summarizes *and* writes, so no
+   expensive-model tokens are spent on the entry.
 2. **Thorough + efficient code.** Match surrounding conventions (naming, file layout, comment density).
    Prefer the idiomatic existing pattern over inventing a new one.
 3. **Reuse, don't duplicate.** Factor shared logic into one place. If I'm about to copy-paste, stop and
@@ -156,8 +163,8 @@ non-trivial F# edit. Hard rules (rule number in parens):
 
 Procedure skills live in `.claude/skills/` and wrap the runbooks (rule 11): `fable-rebuild-verify`,
 `debug-android`, `debug-ios`, `debug-web`, `style-leak-audit`, `a11y-check`, `docs-sync`,
-`gallery-page-add`, `release-build`, `verify-feature`, `screenshot-describe`. Prefer invoking the
-matching skill over improvising commands.
+`gallery-page-add`, `release-build`, `verify-feature`, `screenshot-describe`, `codemem-update`. Prefer
+invoking the matching skill over improvising commands.
 
 ## Build & validate
 

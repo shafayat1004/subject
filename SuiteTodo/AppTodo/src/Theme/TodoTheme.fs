@@ -575,7 +575,7 @@ module Styles =
     let filterTabTheme (tabBase: TabTheme) : LC.Tab.Theme =
         {
             SelectedColor   = tabBase.SelectedColor
-            UnselectedColor = Color.Hex "#666666"
+            UnselectedColor = Color.Grey "66"
         }
 
     let tabsScrollTheme (tabBase: TabTheme) : Theme =

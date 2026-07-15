@@ -45,6 +45,27 @@ observe. To drive the UI (dismiss a LogBox, navigate its "Log 1 of 2" pager, tap
 
 See runbooks/ios.md#interact.
 
+## Interaction debugging (when a tap "does nothing")
+
+Hard-won technique for "control does nothing on tap" on native:
+
+- **Presence in the a11y tree != receives touch.** Appium finding the element (count=1, real box) does
+  NOT mean `onPress` fires — the accessibility tree and the touch-responder tree are separate. Prove the
+  press actually fires; don't infer it from the element existing.
+- **Bisect input-delivery vs handler-logic with a programmatic trigger.** Temporarily fire the handler's
+  code path directly (e.g. a mount `useEffect` calling the same action), bypassing the gesture. If it
+  now works → the bug is touch delivery (hit-testing, `opacity < 0.01`, overlapping view, gesture
+  responder). If it still fails → the handler/downstream is broken. This one move usually halves the
+  search space instantly.
+- **Prefer coordinate taps over element `.click()` for RN.** WDA `el.click()` is unreliable on small or
+  near-transparent overlays; a W3C `performActions` pointer tap at the element-box center is closer to a
+  real finger and more reliable.
+- **Byte-identical page-source across a burst = nothing fired.** After a tap, sample source/screenshots
+  every ~150ms for ~2s. Unchanged source across the burst is definitive "the press did nothing"; it also
+  catches open-then-instantly-dismiss flashes a single late screenshot would miss.
+- **Post-Fabric, "it worked before" is not evidence.** Re-verify interaction primitives on iOS after any
+  Paper->Fabric change; if the app was launch-crashing, iOS interaction was never exercised at all.
+
 ## Gotchas (from the runbook and engineering log)
 
 - Always open the `.xcworkspace`, never the `.xcodeproj` (pods).

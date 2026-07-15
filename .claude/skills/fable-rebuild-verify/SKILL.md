@@ -37,6 +37,23 @@ with cache reset: `npx react-native start --port 8081 --reset-cache`. Re-run Tie
 2. `rg "error FS"` over the build output is clean.
 3. `rebuild-verify.sh` prints PASS (emitted JS newer than every edited .fs).
 
+## Silent-wedge gotchas (learned the hard way)
+
+- **A frozen emit timestamp is a false green.** "grep finds my value in the bundle" is NOT proof the
+  edit compiled — the value may be from an old compile. The only proof is
+  `stat -f %m <emitted.js>` >= `stat -f %m <source.fs>`. If you keep editing and the emit mtime never
+  advances, the watch is **silently wedged** (fs-events stopped) — go straight to Tier 3, don't keep
+  editing and re-checking `grep`.
+- **`touch` does not force a recompile.** Fable's up-to-date check is content-hash based, so bumping
+  mtime alone is a no-op. To force one file: make a real content change (even a comment), or Tier 3.
+  (This also means Tier 1's `touch`-and-poll can FAIL-timeout on a wedged watch even though the source
+  is fine — the failure is the watch, not your edit.)
+- **An external formatter/editor save can desync the watch.** Batch-reformatting files out of band can
+  leave some recompiled and some not; verify each edited file's emit mtime individually.
+- **Script path caveat:** `rebuild-verify.sh` assumes `<projdir>/.build/<platform>/commonjs`; in apps
+  where the build dir sits at the app root (e.g. `SuiteTodo/AppTodo/.build/native/`), pass the app dir
+  or verify the emit mtime by hand instead of trusting a "build output dir missing" FAIL.
+
 ## Doc refs
 
 - runbooks/build-rebuild.md (targeted recompile, confirm-rebuild, restart rules)

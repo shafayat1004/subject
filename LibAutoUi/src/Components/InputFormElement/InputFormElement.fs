@@ -23,8 +23,8 @@ type PrimitiveInputComponents = Map<InputType, PrimitiveInputFieldProps -> seq<R
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let private labelColor = Color.Hex "#999999"
-    let private inputBorderColor = Color.Hex "#cccccc"
+    let private labelColor = Color.Grey "99"
+    let private inputBorderColor = Color.Grey "cc"
 
     let view =
         makeViewStyles {

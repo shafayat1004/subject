@@ -14,7 +14,7 @@ open Rn.Styles
 module private Styles =
     let textInput =
         makeViewStyles {
-            border 1 (Color.Hex "#cccccc")
+            border 1 (Color.Grey "cc")
         }
 
 type UIAuto with

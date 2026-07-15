@@ -78,7 +78,7 @@ type SemanticPalette = {
 module SemanticPalette =
     let light =
         {
-            CanvasBackground      = Color.Hex "#e5e5e5"
+            CanvasBackground      = Color.Grey "e5"
             PageBackground        = Color.Hex "#fdf9f6"
             CardBackground        = Color.White
             CardBorder            = Color.Hex "#ede4dc"
