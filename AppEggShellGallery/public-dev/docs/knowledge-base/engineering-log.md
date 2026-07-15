@@ -4,6 +4,144 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 21 -- iOS picker/inputs unclickable: Fabric drops opacity < 0.01 overlays from hit-testing)
+
+**Root-caused and fixed** the AppTodo iOS bug "the Priority picker does not open / shows no options"
+(user-confirmed with a real tap, not just the harness). The picker Field makes its whole surface
+tappable with an **invisible overlay `LC.Pressable`** (`overlay=true`, empty children, styled
+`pressableOverlay = opacity 0.`). On the New Architecture (Fabric) iOS that Pressable **never receives
+touches**, so `onPress` never fires and the options dialog never opens.
+
+**Evidence (systematic-debugging, instrument each boundary):**
+- Appium hierarchy: with `opacity 0.` the overlay Pressable was **absent from the tree entirely**;
+  normal visible pressables (category chips = `LC.TextButton`, the `Add todo` button) were present and
+  tappable. So the invisible-overlay variant specifically was broken.
+- Isolation: tapping a category chip changed state; tapping the picker field did nothing.
+- Programmatic vs tap: a temporary mount-effect firing `model.HandleInputEvent ShowList` **opened the
+  dialog perfectly** (Low/Medium/High, dimmed backdrop). So the dialog + AdHoc navigation path work on
+  native -- the only failure was the tap not reaching `onPress`. (Ruled out an open-then-dismiss race:
+  a 10-frame burst capture after a tap showed byte-identical source, no flash.)
+- console.log is **not reliable** for this: RN 0.86 + Hermes routes JS `console.log` to
+  react-native-devtools, not the Metro terminal or `simctl log` (one stray hit aside). Screenshot /
+  Appium page-source diffs were the reliable signal.
+
+**Root cause (confirmed against RN source + maintainer):** react-native
+[#50465](https://github.com/facebook/react-native/issues/50465). Fabric's
+`RCTViewComponentView.betterHitTest` treats any view with **`alpha < 0.01` as non-interactive** (matches
+native UIKit -- a fully/near-transparent view is not hit-tested). This is a **breaking change vs the old
+architecture** (Paper hit-tested opacity-0 views). The maintainer confirms the element only becomes
+responsive at **alpha >= ~0.02** (`0.01` sits exactly on the boundary and is still dead; `0.015`/`0.01001`
+also work). Our whole UI just moved to Fabric, so every invisible-overlay pressable went dead on iOS at
+once. Web/Android unaffected.
+
+**Fix:** change the invisible-overlay opacity from `0.` to **`0.02`** (visually identical for an empty,
+background-less overlay; above the hit-test threshold). Framework-wide -- all five `pressableOverlay`
+styles: `PickerInternals/Field/Field.fs`, `PickerInternals/Dialog/Dialog.fs` (option rows),
+`Input/Text/Text.fs`, `Input/Duration/Duration.fs`, `Input/LocalTime/LocalTime.fs`. (Left
+`Field.fs` `hiddenTextInput` at `opacity 0` -- it is a 1x1 off-screen web-keyboard-capture input, not a
+tap target.) JS-only change (Fable + Metro reload, no native rebuild). Bonus a11y win: at `0.02` the
+overlay is now in the accessibility tree too, so screen readers can reach the control (at `0.` it was
+invisible to them as well).
+
+**Verified** end-to-end on iPhone 17 Pro Max (iOS 26.5) via Appium coordinate taps: tap Priority ->
+dialog opens; tap "High" -> dialog closes and the field shows "High". Distilled to
+[Troubleshooting -> RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade).
+
+**Guidance:** never hide an interactive overlay with `opacity 0` on Fabric. Use `opacity 0.02` (or make
+the visible content itself the Pressable). Any new invisible-tap-target must clear the `>= 0.02` alpha
+floor.
+
+---
+
+## 2026-07-15 (session 21 -- iOS RCTEventEmitter.receiveEvent red box = missing AppDelegate dependencyProvider)
+
+**Root-caused and fixed** the AppTodo iOS launch red box: *"Failed to call into JavaScript module
+method RCTEventEmitter.receiveEvent(). Module has not been registered as callable. Registered callable
+JavaScript modules (n = 7): AppRegistry, HMRClient, GlobalPerformanceLogger, RCTDeviceEventEmitter,
+RCTLog, RCTNativeAppEventEmitter, Systrace."* Reproduced on clean terminate+relaunch, iOS 26.5 and
+18.2 alike (not iOS-version-specific). It first surfaced right after the `pod install` that fixed the
+earlier *"Unimplemented component: `<RNCSafeAreaProvider>`"* -- same underlying cause, next symptom
+along.
+
+**Evidence (systematic-debugging, no guessing):**
+- `com.facebook.react.log:javascript` channel had exactly **one** error (the `receiveEvent` one) --
+  so the LogBox "Log 1 of 2" pager was NOT hiding a different root; the receiveEvent error *is* the root.
+- Log ordering: `Running "RnApp" … "fabric":true` fires, *then* the crash -- app enters the Fabric
+  render, then a native view emits a **legacy Paper** view-event. `receiveEvent` is the legacy
+  view-event delivery path; bridgeless registers only `RCTDeviceEventEmitter` (module events), never
+  `RCTEventEmitter` (view events). The one event that fires synchronously at mount is
+  `SafeAreaProvider.onInsetsChange`.
+- Pods were fine: `RCT_NEW_ARCH_ENABLED=1`, `react-native-safe-area-context/fabric 5.8.0` built,
+  and `build/generated/ios/ReactCodegen/RCTThirdPartyComponentsProvider.mm` maps
+  `RNCSafeAreaProvider -> RNCSafeAreaProviderComponentView`. So the Fabric component **exists** --
+  it just was never registered.
+- `ios/AppTodo/AppDelegate.mm` never set `self.dependencyProvider`. That property (RN 0.77+) is what
+  instantiates `RCTAppDependencyProvider`, which feeds `thirdPartyFabricComponents` into the Fabric
+  component registry (and TurboModules). Missing -> `RNCSafeAreaProvider` has no descriptor -> renders
+  through the **legacy interop** path -> `onInsetsChange` dispatches via legacy
+  `RCTEventEmitter.receiveEvent` -> not callable in bridgeless -> red box.
+
+**Confirmed against upstream:** react-native-safe-area-context issues
+[#661](https://github.com/AppAndFlow/react-native-safe-area-context/issues/661) and
+[#664](https://github.com/AppAndFlow/react-native-safe-area-context/issues/664) -- many independent
+reports (RN 0.77-0.82) with the identical signature; the repeatedly-confirmed fix is
+`self.dependencyProvider = [RCTAppDependencyProvider new]` per the
+[0.77 release notes](https://reactnative.dev/blog/2025/01/21/version-0.77#rctappdependencyprovider).
+The RN upgrade-helper diff omits this line for the ObjC/`.mm` AppDelegate, which is why our 0.76->0.86
+native upgrade dropped it. **Android was unaffected** -- its `MainApplication` `PackageList` path
+already wires third-party components.
+
+**Fix** (`SuiteTodo/AppTodo/ios/AppTodo/AppDelegate.mm`): add
+`#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>` and, in
+`didFinishLaunchingWithOptions` before `[super …]`, `self.dependencyProvider = [RCTAppDependencyProvider new];`.
+Rebuilt native + relaunched: no `receiveEvent` line, app renders fully with safe-area insets applied
+(only benign warnings remain -- key-prop + `Color.Grey` lint). Distilled to
+[Troubleshooting -> RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade).
+
+**Applied to the gallery too:** `AppEggShellGallery/ios/AppEggshellGallery/AppDelegate.mm` had the same
+omission and the `ReactAppDependencyProvider` pod is already generated for it, so it got the identical
+one-line fix.
+
+**Scaffold gap (goal B):** `eggshell create-app` does **not** generate an iOS project at all --
+`Meta/LibScaffolding/templates/app/` ships `android/` + shared JS but **no `ios/`**, and the
+`initialize` script never runs an iOS generator. So there is no scaffold AppDelegate to patch today;
+when iOS scaffolding is added for goal B, the AppDelegate template must set
+`self.dependencyProvider = [RCTAppDependencyProvider new]` from the start.
+
+---
+
+## 2026-07-15 (session 20 -- iOS raw CLI cannot tap; interaction is Appium/idb/axe)
+
+Debugging the AppTodo iOS red box, hit a hard wall: **`xcrun simctl` has no UI-interaction and no
+view-hierarchy dump.** There is no built-in iOS equivalent of `adb shell input tap/swipe/text` or
+`uiautomator dump`. `simctl` only does screenshot, log, launch/terminate, `openurl`, `push`, and
+appearance/location/status-bar overrides. Verified against Apple docs + NSHipster (Jul 2026). So a
+raw-CLI iOS loop can *observe* but not *drive* — it cannot dismiss a LogBox red box or step its
+"Log 1 of 2 / 2 of 2" pager, which is exactly what blocked reading the root JS error.
+
+Interaction paths, in preference order:
+- **Appium + `xcuitest` (Tier 2 audit toolkit)** — already installed in `SuiteTodo/AppTodo`
+  (`appium`, `appium-xcuitest-driver`), WebDriverAgent already built in DerivedData. No new dep.
+  `npm run observe -- snapshot -p ios` returns screenshot + accessibility hierarchy + logs (reads
+  full LogBox text), `... add-todo`/tap by `testId`.
+- **`idb`** (Meta, adb-analog): `idb ui tap/swipe/text/key/describe-all`. Not installed;
+  `brew install idb-companion` + `pip3 install fb-idb`, needs full Xcode. Actively maintained but
+  historically breaks on new Xcode releases.
+- **`axe`** (`cameroncooke/axe`, newer, simulator-only): `axe tap/type/describe-ui/screenshot`.
+  `brew tap cameroncooke/axe && brew install axe`.
+
+Docs updated: `runbooks/ios.md` (new #interact section + gotcha row + JS-channel log predicate),
+`runbooks/index.md` (Tier-1 asymmetry callout — was wrongly implying simctl can tap), and the
+`debug-ios` skill (Interact section). Also useful: JS red-box errors surface on the
+`com.facebook.react.log:javascript` log subsystem, filterable with
+`log show --predicate 'eventMessage CONTAINS[c] "javascript"'`.
+
+Note: switching from iPhone 16 (iOS 18.2) to iPhone 17 Pro Max (iOS 26.5) did **not** change the
+`RCTEventEmitter.receiveEvent ... not registered as callable` red box — so that bug is not
+iOS-version-specific (investigation ongoing).
+
+---
+
 ## 2026-07-12 (session 19 -- whole-repo eggshell-fmt sweep + v1.6.3 brace fix)
 
 Ran `eggshell-fmt` across the entire repo (749 `.fs` files reformatted) and validated. Three

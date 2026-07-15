@@ -1,6 +1,7 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 @implementation AppDelegate
 
@@ -10,6 +11,11 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
+  // New Architecture: registers autolinked third-party Fabric components
+  // (e.g. RNCSafeAreaProvider) and TurboModules. Without this the provider
+  // falls back to the legacy interop path and crashes on its first native
+  // event (RCTEventEmitter.receiveEvent not registered as callable).
+  self.dependencyProvider = [RCTAppDependencyProvider new];
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }

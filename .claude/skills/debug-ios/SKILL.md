@@ -27,12 +27,33 @@ open, Metro reachable on :8081.
 `scripts/ios-observe.sh screenshot [out.png]`, `... log [minutes]`,
 `... launch <bundleid>`, `... terminate <bundleid>`, `... openurl <url>` (deep links).
 
+JS red-box / uncaught errors: `xcrun simctl spawn booted log show --last 3m --predicate
+'eventMessage CONTAINS[c] "javascript"' | grep -v SecTrust`.
+
+## Interact (tap / type / read hierarchy)
+
+`simctl` and `ios-observe.sh` **cannot tap, swipe, type, or dump the view hierarchy** — no
+`adb input`/`uiautomator dump` equivalent exists in the built-in iOS CLI. Raw tier can only
+observe. To drive the UI (dismiss a LogBox, navigate its "Log 1 of 2" pager, tap a button):
+
+- **Preferred:** Tier 2 Appium/xcuitest, already installed (WDA already built). From the app dir:
+  `npm run observe -- doctor`, then `npm run observe -- snapshot -p ios` (screenshot + hierarchy +
+  logs; captures full LogBox text) or `... add-todo "..." -p ios`.
+- **Raw-CLI alternatives (not installed):** `idb` (`brew install idb-companion` + `pip3 install
+  fb-idb`; `idb ui tap/swipe/text/describe-all`) or `axe` (`brew tap cameroncooke/axe && brew
+  install axe`; `axe tap/type/describe-ui`, simulator-only).
+
+See runbooks/ios.md#interact.
+
 ## Gotchas (from the runbook and engineering log)
 
 - Always open the `.xcworkspace`, never the `.xcodeproj` (pods).
 - Pod trouble: verify `platform :ios, '15.5'` in the Podfile; npm peer conflicts may need
   `--legacy-peer-deps`.
-- JS `console.log` shows in the Metro terminal and in `log show` output; F# `Log.Info` does not.
+- JS `console.log` is **unreliable on RN 0.86 + Hermes**: it is routed to react-native-devtools, not
+  the Metro terminal and not `simctl log show` (you may see the odd stray hit, do not depend on it).
+  For a reliable runtime signal, diff Appium page-source / screenshots, or open react-native-devtools.
+  F# `Log.Info` does not surface either.
 
 ## Patch not showing?
 

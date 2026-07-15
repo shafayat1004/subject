@@ -36,9 +36,10 @@ Before reaching for any observation command, pick the lightest tier that answers
 No server setup. Instant. Answers "did my change render?" and "is there a runtime error?"
 
 - Drive the device with `adb` (Android) or `xcrun simctl` (iOS).
-- Grab a screenshot as a PNG, read logs from `logcat`/`simctl log`, tap with pixel coordinates.
+- Grab a screenshot as a PNG, read logs from `logcat`/`simctl log`, and (Android only) tap with pixel coordinates.
+- **Asymmetry — iOS has no raw tap.** `adb` injects input (`adb shell input tap/swipe/text/keyevent`) and dumps the hierarchy (`uiautomator dump`). `xcrun simctl` has **no** tap/swipe/type or hierarchy dump; it can only screenshot, log, launch/terminate, `openurl`, `push`, and set appearance/location/status-bar. To tap or read the view tree on iOS you must go to Tier 2 (Appium/xcuitest) or install a raw-CLI helper (`idb` or `axe`). See [iOS: interacting with the simulator](./runbooks/ios.md#interact).
 - **Pros:** zero startup, immediate, sees runtime red-box errors, trivial to script.
-- **Cons:** taps are pixel coordinates (brittle when layout changes), no element lookup by `testId`, no structured layout data.
+- **Cons:** Android taps are pixel coordinates (brittle when layout changes); iOS has no raw tap at all; no element lookup by `testId`, no structured layout data.
 
 ### Tier 2: `audit/` toolkit (Appium for native, Playwright for web)
 

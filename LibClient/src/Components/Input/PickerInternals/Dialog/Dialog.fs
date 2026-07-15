@@ -16,13 +16,12 @@ open LibClient.Responsive
 open Rn.Components
 open Rn.Styles
 
-type Parameters<'Item when 'Item : comparison> = {
-    Placeholder:   string option
-    Model:         PickerModel<'Item>
-    ItemView:      PickerItemView<'Item>
-    HideDeferred:  Deferred<unit>
-    ShowSearchBar: bool
-}
+type Parameters<'Item when 'Item: comparison> =
+    { Placeholder: string option
+      Model: PickerModel<'Item>
+      ItemView: PickerItemView<'Item>
+      HideDeferred: Deferred<unit>
+      ShowSearchBar: bool }
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -36,15 +35,16 @@ module private Styles =
             backgroundColor fieldTheme.BackgroundColor
 
             match screenSize with
-            | ScreenSize.Desktop  -> height 46
+            | ScreenSize.Desktop -> height 46
             | ScreenSize.Handheld -> height 40
         }
 
     let textInputFont (fieldTheme: LC.Input.PickerInternals.Field.Theme) (screenSize: ScreenSize) =
         makeTextStyles {
             color fieldTheme.TextColor
+
             match screenSize with
-            | ScreenSize.Desktop  -> fontSize 20
+            | ScreenSize.Desktop -> fontSize 20
             | ScreenSize.Handheld -> fontSize 16
         }
 
@@ -75,10 +75,7 @@ module private Styles =
             color fieldTheme.BorderLabelFocusColor
         }
 
-    let itemBody =
-        makeViewStyles {
-            flex 1
-        }
+    let itemBody = makeViewStyles { flex 1 }
 
     let itemLabel (fieldTheme: LC.Input.PickerInternals.Field.Theme) =
         makeTextStyles {
@@ -86,10 +83,9 @@ module private Styles =
             fontSize 16
         }
 
-    let pressableOverlay =
-        makeViewStyles {
-            opacity 0.
-        }
+    // 0.02, not 0: Fabric iOS treats alpha < ~0.01 as non-interactive, so an opacity-0
+    // (or 0.01) overlay Pressable never receives taps (react-native #50465).
+    let pressableOverlay = makeViewStyles { opacity 0.02 }
 
     let activityIndicatorBlock =
         makeViewStyles {
@@ -110,7 +106,7 @@ module private Styles =
         }
 
 module private Helpers =
-    let renderItems<'Item when 'Item : comparison>
+    let renderItems<'Item when 'Item: comparison>
         (fieldTheme: LC.Input.PickerInternals.Field.Theme)
         (modelState: PickerState<'Item>)
         (itemView: PickerItemView<'Item>)
@@ -120,11 +116,11 @@ module private Helpers =
         let itemLabel (item: 'Item) =
             match itemView with
             | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
-            | PickerItemView.Custom _           -> "Select item"
+            | PickerItemView.Custom _ -> "Select item"
 
         LC.ItemList(
-            style  = ItemList.Raw,
-            items  = items,
+            style = ItemList.Raw,
+            items = items,
             styles = [| Styles.itemList |],
             whenNonempty =
                 fun items ->
@@ -134,86 +130,84 @@ module private Helpers =
                             Rn.View(
                                 styles = [| Styles.item fieldTheme |],
                                 children =
-                                    [|
-                                        Rn.View(
-                                            styles = [| Styles.itemSelectedness |],
-                                            children =
-                                                [|
-                                                    if modelState.Value.IsSelected item then
-                                                        LC.Icon(
-                                                            icon   = Icon.CheckMark,
-                                                            styles = [| Styles.itemSelectedIcon fieldTheme |]
-                                                        )
-                                                    else
-                                                        noElement
-                                                |]
-                                        )
-                                        Rn.View(
-                                            styles = [| Styles.itemBody |],
-                                            children =
-                                                [|
-                                                    match itemView with
-                                                    | PickerItemView.Default toItemInfo ->
-                                                        LC.UiText(
-                                                            value  = (toItemInfo item).Label,
-                                                            styles = [| Styles.itemLabel fieldTheme |]
-                                                        )
-                                                    | PickerItemView.Custom render ->
-                                                        render item
-                                                |]
-                                        )
-                                        LC.Pressable(
-                                            onPress       = onToggle index item,
-                                            label         = itemLabel item,
-                                            testId        = A11ySlug.testId "picker-item" (itemLabel item),
-                                            role          = AccessibilityRole.Button,
-                                            overlay       = true,
-                                            styles        = [| Styles.pressableOverlay |],
-                                            componentName = "LC.Input.PickerInternals.Dialog.Toggle"
-                                        )
-                                    |]
-                            )
-                        )
+                                    [| Rn.View(
+                                           styles = [| Styles.itemSelectedness |],
+                                           children =
+                                               [| if modelState.Value.IsSelected item then
+                                                      LC.Icon(
+                                                          icon = Icon.CheckMark,
+                                                          styles = [| Styles.itemSelectedIcon fieldTheme |]
+                                                      )
+                                                  else
+                                                      noElement |]
+                                       )
+                                       Rn.View(
+                                           styles = [| Styles.itemBody |],
+                                           children =
+                                               [| match itemView with
+                                                  | PickerItemView.Default toItemInfo ->
+                                                      LC.UiText(
+                                                          value = (toItemInfo item).Label,
+                                                          styles = [| Styles.itemLabel fieldTheme |]
+                                                      )
+                                                  | PickerItemView.Custom render -> render item |]
+                                       )
+                                       LC.Pressable(
+                                           onPress = onToggle index item,
+                                           label = itemLabel item,
+                                           testId = A11ySlug.testId "picker-item" (itemLabel item),
+                                           role = AccessibilityRole.Button,
+                                           overlay = true,
+                                           styles = [| Styles.pressableOverlay |],
+                                           componentName = "LC.Input.PickerInternals.Dialog.Toggle"
+                                       ) |]
+                            ))
                         |> Array.ofSeq
                     )
         )
 
-type private DialogContent<'Item when 'Item : comparison> =
+type private DialogContent<'Item when 'Item: comparison> =
     [<Component>]
-    static member Render(
-            dialogProps: DialogProps<Parameters<'Item>, unit>,
-            parameters:  Parameters<'Item>
-        ) : ReactElement =
+    static member Render
+        (dialogProps: DialogProps<Parameters<'Item>, unit>, parameters: Parameters<'Item>)
+        : ReactElement =
         let modelStateHook = Hooks.useState (parameters.Model.GetState())
 
-        Hooks.useEffectDisposable(
+        Hooks.useEffectDisposable (
             (fun () ->
                 let subscription =
-                    parameters.Model.SubscribeOnStateUpdate (fun update ->
-                        modelStateHook.update update.Next
-                    )
+                    parameters.Model.SubscribeOnStateUpdate(fun update -> modelStateHook.update update.Next)
+
                 { new System.IDisposable with
-                    member _.Dispose() = subscription.Off() }
-            ),
+                    member _.Dispose() = subscription.Off() }),
             [| box parameters.Model |]
         )
 
         let modelState = modelStateHook.current
-        let fieldTheme = Themes.GetMaybeUpdatedWith Option<LC.Input.PickerInternals.Field.Theme -> LC.Input.PickerInternals.Field.Theme>.None
+
+        let fieldTheme =
+            Themes.GetMaybeUpdatedWith
+                Option<LC.Input.PickerInternals.Field.Theme -> LC.Input.PickerInternals.Field.Theme>.None
+
         let closeOnceRef = Hooks.useRef false
 
         let closeDialog () =
             if not closeOnceRef.current then
                 closeOnceRef.current <- true
-                Dialogs.tryCancel dialogProps (fun () -> Async.Of true) DialogCloseMethod.HistoryForward ReactEvent.Action.NonUserOriginatingAction
 
-        Hooks.useEffect(
+                Dialogs.tryCancel
+                    dialogProps
+                    (fun () -> Async.Of true)
+                    DialogCloseMethod.HistoryForward
+                    ReactEvent.Action.NonUserOriginatingAction
+
+        Hooks.useEffect (
             (fun () ->
                 async {
                     do! parameters.HideDeferred.Value
                     closeDialog ()
-                } |> startSafely
-            ),
+                }
+                |> startSafely),
             [| box parameters.HideDeferred |]
         )
 
@@ -223,10 +217,10 @@ type private DialogContent<'Item when 'Item : comparison> =
 
         let onToggle (index: int) (item: 'Item) (e: ReactEvent.Action) : unit =
             e |> ignore
-            parameters.Model.HandleInputEvent (Toggle (index, item))
+            parameters.Model.HandleInputEvent(Toggle(index, item))
 
         let onQueryChange (value: Option<NonemptyString>) : unit =
-            parameters.Model.HandleInputEvent (QueryChange value)
+            parameters.Model.HandleInputEvent(QueryChange value)
 
         let renderWhenAvailable (items: List<'Item>) : ReactElement =
             Helpers.renderItems fieldTheme modelState parameters.ItemView onToggle (List.toSeq items)
@@ -237,88 +231,83 @@ type private DialogContent<'Item when 'Item : comparison> =
                     let position =
                         match screenSize with
                         | ScreenSize.Handheld -> Raw.DialogPosition.Center
-                        | ScreenSize.Desktop  -> Raw.DialogPosition.Center
+                        | ScreenSize.Desktop -> Raw.DialogPosition.Center
 
                     LC.Dialog.Shell.WhiteRounded.Raw(
                         position = position,
-                        canClose = When ([ OnEscape; OnBackground; OnCloseButton ], dismissDialog),
+                        canClose = When([ OnEscape; OnBackground; OnCloseButton ], dismissDialog),
                         children =
-                            [|
-                                if parameters.ShowSearchBar then
-                                    LC.With.Ref(
-                                        onInitialize = (fun (input: ITextInputRef) -> input.requestFocus()),
-                                        ``with`` =
-                                            (fun (bindInput, _) ->
-                                                Rn.View(
-                                                    onPress = (fun e -> e.stopPropagation()),
-                                                    children =
-                                                        [|
-                                                            Rn.TextInput(
-                                                                ``ref``              = bindInput,
-                                                                styles               = [| Styles.textInput fieldTheme screenSize |],
-                                                                value                = (modelState.MaybeQuery |> NonemptyString.optionToString),
-                                                                onChangeText         = (NonemptyString.ofString >> onQueryChange),
-                                                                ?placeholder         = parameters.Placeholder,
-                                                                placeholderTextColor = fieldTheme.PlaceholderColor.ToRnString
-                                                            )
-                                                        |]
-                                                ))
-                                    )
-                                else
-                                    noElement
+                            [| if parameters.ShowSearchBar then
+                                   LC.With.Ref(
+                                       onInitialize = (fun (input: ITextInputRef) -> input.requestFocus ()),
+                                       ``with`` =
+                                           (fun (bindInput, _) ->
+                                               Rn.View(
+                                                   onPress = (fun e -> e.stopPropagation ()),
+                                                   children =
+                                                       [| Rn.TextInput(
+                                                              ``ref`` = bindInput,
+                                                              styles = [| Styles.textInput fieldTheme screenSize |],
+                                                              value =
+                                                                  (modelState.MaybeQuery
+                                                                   |> NonemptyString.optionToString),
+                                                              onChangeText = (NonemptyString.ofString >> onQueryChange),
+                                                              ?placeholder = parameters.Placeholder,
+                                                              placeholderTextColor =
+                                                                  fieldTheme.PlaceholderColor.ToRnString
+                                                          ) |]
+                                               ))
+                                   )
+                               else
+                                   noElement
 
-                                Rn.ScrollView(
-                                    vertical = true,
-                                    children =
-                                        [|
-                                            LC.AsyncData(
-                                                data          = modelState.SelectableItems,
-                                                whenAvailable = renderWhenAvailable,
-                                                whenFetching =
-                                                    fun maybeOldData ->
-                                                        match maybeOldData with
-                                                        | None ->
-                                                            Rn.View(
-                                                                styles = [| Styles.activityIndicatorBlock |],
-                                                                children =
-                                                                    [|
-                                                                        Rn.ActivityIndicator(
-                                                                            size  = ActivityIndicator.Medium,
-                                                                            color = "#aaaaaa"
-                                                                        )
-                                                                    |]
-                                                            )
-                                                        | Some oldData ->
-                                                            castAsElement [|
-                                                                renderWhenAvailable oldData
-                                                                Rn.View(
-                                                                    styles = [| Styles.activityIndicatorOverlay |],
-                                                                    children =
-                                                                        [|
-                                                                            Rn.ActivityIndicator(
-                                                                                size  = ActivityIndicator.Medium,
+                               Rn.ScrollView(
+                                   vertical = true,
+                                   children =
+                                       [| LC.AsyncData(
+                                              data = modelState.SelectableItems,
+                                              whenAvailable = renderWhenAvailable,
+                                              whenFetching =
+                                                  fun maybeOldData ->
+                                                      match maybeOldData with
+                                                      | None ->
+                                                          Rn.View(
+                                                              styles = [| Styles.activityIndicatorBlock |],
+                                                              children =
+                                                                  [| Rn.ActivityIndicator(
+                                                                         size = ActivityIndicator.Medium,
+                                                                         color = "#aaaaaa"
+                                                                     ) |]
+                                                          )
+                                                      | Some oldData ->
+                                                          castAsElement
+                                                              [| renderWhenAvailable oldData
+                                                                 Rn.View(
+                                                                     styles = [| Styles.activityIndicatorOverlay |],
+                                                                     children =
+                                                                         [| Rn.ActivityIndicator(
+                                                                                size = ActivityIndicator.Medium,
                                                                                 color = "#aaaaaa"
-                                                                            )
-                                                                        |]
-                                                                )
-                                                            |]
-                                            )
-                                        |]
-                                )
+                                                                            ) |]
+                                                                 ) |]
+                                          ) |]
+                               )
 
-                                if modelState.Value.CanSelectMultiple then
-                                    LC.Buttons(
-                                        children =
-                                            elements {
-                                                LC.Button(
-                                                    label = "Done",
-                                                    state = Button.PropStateFactory.MakeLowLevel (Button.Actionable dismissDialog)
-                                                )
-                                            }
-                                    )
-                                else
-                                    noElement
-                            |]
+                               if modelState.Value.CanSelectMultiple then
+                                   LC.Buttons(
+                                       children =
+                                           elements {
+                                               LC.Button(
+                                                   label = "Done",
+                                                   state =
+                                                       Button.PropStateFactory.MakeLowLevel(
+                                                           Button.Actionable dismissDialog
+                                                       )
+                                               )
+                                           }
+                                   )
+                               else
+                                   noElement |]
                     )
         )
 
@@ -333,18 +322,12 @@ let Open
 
     doOpen<Parameters<'Item>, unit>
         "PickerInternals.Dialog"
-        {
-            Placeholder   = placeholder
-            Model         = model
-            ItemView      = itemView
-            HideDeferred  = hideDeferred
-            ShowSearchBar = showSearchBar
-        }
-        (fun dialogProps _ ->
-            DialogContent.Render(dialogProps, dialogProps.Parameters)
-        )
-        {
-            OnResult      = ignore
-            MaybeOnCancel = None
-        }
+        { Placeholder = placeholder
+          Model = model
+          ItemView = itemView
+          HideDeferred = hideDeferred
+          ShowSearchBar = showSearchBar }
+        (fun dialogProps _ -> DialogContent.Render(dialogProps, dialogProps.Parameters))
+        { OnResult = ignore
+          MaybeOnCancel = None }
         close

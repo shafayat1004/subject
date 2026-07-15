@@ -70,6 +70,61 @@ Read runtime logs:
 xcrun simctl spawn booted log show --last 2m --style compact | tail -300
 ```
 
+JS-channel red-box / uncaught errors are also on the `com.facebook.react.log:javascript` subsystem:
+
+```bash
+xcrun simctl spawn booted log show --last 3m \
+  --predicate 'eventMessage CONTAINS[c] "javascript"' | grep -v SecTrust
+```
+
+---
+
+## Interacting with the simulator (tap / swipe / type / hierarchy) {#interact}
+
+**`xcrun simctl` cannot tap, swipe, type text, or dump the view hierarchy.** This is the one
+big asymmetry with Android: there is no iOS equivalent of `adb shell input tap` or
+`uiautomator dump` in the built-in CLI. `simctl` only does screenshot, log, launch/terminate,
+`openurl` (deep links), `push`, and appearance/location/status-bar overrides. So a raw-CLI iOS
+loop can *observe* (screenshot + logs) but cannot *drive* the UI — e.g. it cannot dismiss a LogBox
+red box or navigate its "Log 1 of 2 / 2 of 2" pager, or tap a button by id.
+
+To actually drive iOS, pick one:
+
+1. **Tier 2 audit toolkit (preferred — already installed).** Appium + `xcuitest` driver, tap by
+   `testId`/accessibility id, structured JSON output. WebDriverAgent is already built for this repo.
+   No new dependency. See [Audit toolkit](./runbooks/audit-toolkit.md).
+   ```bash
+   cd SuiteTodo/AppTodo
+   npm run observe -- doctor                 # checks Appium :4723 + simulator
+   npm run observe -- snapshot -p ios        # screenshot + hierarchy + logs (reads LogBox text too)
+   npm run observe -- add-todo "Buy milk" -p ios
+   ```
+
+2. **`idb` (raw-CLI, adb-analog).** Meta's iOS Development Bridge — the closest thing to `adb`:
+   `idb ui tap <x> <y>`, `idb ui swipe`, `idb ui text`, `idb ui key`, `idb ui describe-all`
+   (JSON accessibility tree). Not installed by default; needs a full Xcode install:
+   ```bash
+   brew install idb-companion
+   pip3 install fb-idb
+   idb ui describe-all      # dump on-screen elements + bounds
+   idb ui tap 200 120       # tap a point
+   ```
+   Actively maintained but has a history of breaking on new Xcode releases — verify after Xcode
+   upgrades.
+
+3. **`axe` (raw-CLI, newer, simulator-only).** Lightweight Swift CLI over Apple's HID +
+   accessibility APIs: `axe tap`, `axe type`, `axe describe-ui`, `axe screenshot`. Simulators only
+   (no physical devices).
+   ```bash
+   brew tap cameroncooke/axe && brew install axe
+   axe describe-ui          # accessibility hierarchy
+   axe tap -x 200 -y 120
+   ```
+
+**Rule of thumb:** raw `simctl` (Tier 1) to observe a red box or eyeball a render; Appium
+(`npm run observe`, Tier 2) to tap, read the full LogBox text, or gate a fix. Reach for `idb`/`axe`
+only when you want adb-style raw tapping without standing up an Appium server.
+
 ---
 
 ## iOS-specific gotchas {#gotchas}
@@ -81,5 +136,6 @@ xcrun simctl spawn booted log show --last 2m --style compact | tail -300
 | `run-ios` finds zero eligible destinations | Xcode simulator runtime version mismatch | Download the correct runtime via Xcode Components or `xcodebuild -downloadPlatform iOS`. |
 | Build fails with `.xcodeproj` not found | Used the wrong project file | Open `.xcworkspace`, not `.xcodeproj`. |
 | `pod install` fails with version conflicts | ThirdParty React Native libs with conflicting peer ranges | Use `--legacy-peer-deps` when needed and verify Podfile platform target (`platform :ios, '15.5'` for CodePush 9.x). |
+| Can't dismiss a LogBox red box / can't tap a button from the CLI | `simctl` has no tap/swipe/type | Use Tier 2 Appium (`npm run observe -- snapshot -p ios` reads the LogBox text; tap by id), or install `idb`/`axe`. See [Interacting with the simulator](#interact). |
 
 For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).

@@ -7,128 +7,132 @@ open LibClient
 module Duration =
 
     type Field =
-    | Days
-    | Hours
-    | Minutes
+        | Days
+        | Hours
+        | Minutes
 
-    let private parseField (field: Field) (value: Option<NonemptyString>) : Result<Option<UnsignedInteger>, Field * string> =
+    let private parseField
+        (field: Field)
+        (value: Option<NonemptyString>)
+        : Result<Option<UnsignedInteger>, Field * string> =
         match value with
         | None -> Ok None
-        | Some (NonemptyString nonemptyRaw) ->
+        | Some(NonemptyString nonemptyRaw) ->
             match System.Int32.ParseOption nonemptyRaw with
-            | None -> Error (field, "Allowed numeric characters only")
+            | None -> Error(field, "Allowed numeric characters only")
             | Some value ->
                 match Unsigned.UnsignedInteger.ofInt value with
-                | None                 -> Error (field, "Allowed only positive numbers")
+                | None -> Error(field, "Allowed only positive numbers")
                 | Some unsignedDecimal -> unsignedDecimal |> Some |> Ok
 
-    let private validateDays (days: UnsignedInteger) : Result<UnsignedInteger, Field * string> =
-        Ok days
+    let private validateDays (days: UnsignedInteger) : Result<UnsignedInteger, Field * string> = Ok days
 
     let private validateHours (hours: UnsignedInteger) : Result<UnsignedInteger, Field * string> =
         if hours.Value < 24 then
             Ok hours
         else
-            Error (Hours, "Hours should be between 0 and 23")
+            Error(Hours, "Hours should be between 0 and 23")
 
     let private validateMinutes (minutes: UnsignedInteger) : Result<UnsignedInteger, Field * string> =
         if minutes.Value < 60 then
             Ok minutes
         else
-            Error (Minutes, "Minutes should be between 0 and 59")
+            Error(Minutes, "Minutes should be between 0 and 59")
 
-    let private computeResult (rawDays: Option<NonemptyString>, rawHours: Option<NonemptyString>, rawMinutes: Option<NonemptyString>) : Result<Option<TimeSpan>, Field * string> = resultful {
-        let! maybeDays    = parseField Days    rawDays
-        let! maybeHours   = parseField Hours   rawHours
-        let! maybeMinutes = parseField Minutes rawMinutes
+    let private computeResult
+        (rawDays: Option<NonemptyString>, rawHours: Option<NonemptyString>, rawMinutes: Option<NonemptyString>)
+        : Result<Option<TimeSpan>, Field * string> =
+        resultful {
+            let! maybeDays = parseField Days rawDays
+            let! maybeHours = parseField Hours rawHours
+            let! maybeMinutes = parseField Minutes rawMinutes
 
-        match (maybeDays, maybeHours, maybeMinutes) with
-        | (Some days, Some hours, Some minutes) ->
-            let! validDays    = validateDays    days
-            let! validHours   = validateHours   hours
-            let! validMinutes = validateMinutes minutes
+            match (maybeDays, maybeHours, maybeMinutes) with
+            | (Some days, Some hours, Some minutes) ->
+                let! validDays = validateDays days
+                let! validHours = validateHours hours
+                let! validMinutes = validateMinutes minutes
 
-            return
-                (TimeSpan.FromDays (float validDays.Value)) + (TimeSpan.FromHours (float validHours.Value)) + (TimeSpan.FromMinutes (float validMinutes.Value))
-                |> Some
+                return
+                    (TimeSpan.FromDays(float validDays.Value))
+                    + (TimeSpan.FromHours(float validHours.Value))
+                    + (TimeSpan.FromMinutes(float validMinutes.Value))
+                    |> Some
 
-        | (None, Some hours, Some minutes) ->
-            let! validHours   = validateHours   hours
-            let! validMinutes = validateMinutes minutes
+            | (None, Some hours, Some minutes) ->
+                let! validHours = validateHours hours
+                let! validMinutes = validateMinutes minutes
 
-            return
-                (TimeSpan.FromHours (float validHours.Value)) + (TimeSpan.FromMinutes (float validMinutes.Value))
-                |> Some
+                return
+                    (TimeSpan.FromHours(float validHours.Value))
+                    + (TimeSpan.FromMinutes(float validMinutes.Value))
+                    |> Some
 
-        | (None, Some hours, None) ->
-            let! _validHours = validateHours hours
-            return None
+            | (None, Some hours, None) ->
+                let! _validHours = validateHours hours
+                return None
 
-        | (None, None, Some minutes) ->
-            let! _validMinutes = validateMinutes minutes
-            return None
+            | (None, None, Some minutes) ->
+                let! _validMinutes = validateMinutes minutes
+                return None
 
-        | _ -> return None
-    }
+            | _ -> return None
+        }
 
-    type Value = {
-        Raw:                      Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>
-        InternalValidationResult: Option<Field * string>
-        Result:                   Option<TimeSpan>
-    } with
-        member this.InternalFieldValidity (field: Field) : InputValidity =
+    type Value =
+        { Raw: Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>
+          InternalValidationResult: Option<Field * string>
+          Result: Option<TimeSpan> }
+
+        member this.InternalFieldValidity(field: Field) : InputValidity =
             match this.InternalValidationResult with
-            | Some (errField, _message) when errField = field -> Missing
-            | _                                               -> Valid
+            | Some(errField, _message) when errField = field -> Missing
+            | _ -> Valid
 
-        member this.InternalValidity : InputValidity =
+        member this.InternalValidity: InputValidity =
             match this.InternalValidationResult with
-            | Some (_, message) -> Invalid message
-            | _                 -> Valid
+            | Some(_, message) -> Invalid message
+            | _ -> Valid
 
-        static member FromRaw (raw: Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>) : Value =
+        static member FromRaw(raw: Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>) : Value =
             let result = computeResult raw
-            {
-                Raw                      = raw
-                InternalValidationResult = result |> Result.invert |> Result.toOption
-                Result                   = result |> Result.toOption |> Option.getOrElse None
-            }
 
-        member this.SetDays (value: Option<NonemptyString>) : Value =
+            { Raw = raw
+              InternalValidationResult = result |> Result.invert |> Result.toOption
+              Result = result |> Result.toOption |> Option.getOrElse None }
+
+        member this.SetDays(value: Option<NonemptyString>) : Value =
             let (_, hours, minutes) = this.Raw
-            Value.FromRaw (value, hours, minutes)
+            Value.FromRaw(value, hours, minutes)
 
-        member this.SetHours (value: Option<NonemptyString>) : Value =
+        member this.SetHours(value: Option<NonemptyString>) : Value =
             let (days, _, minutes) = this.Raw
-            Value.FromRaw (days, value, minutes)
+            Value.FromRaw(days, value, minutes)
 
-        member this.SetMinutes (value: Option<NonemptyString>) : Value =
+        member this.SetMinutes(value: Option<NonemptyString>) : Value =
             let (days, hours, _) = this.Raw
-            Value.FromRaw (days, hours, value)
+            Value.FromRaw(days, hours, value)
 
-        override this.ToString () : string =
+        override this.ToString() : string =
             let (maybeDays, hours, minutes) = this.Raw
-            let hours                       = hours   |> Option.mapOrElse "00" (fun h -> h.Value)
-            let minutes                     = minutes |> Option.mapOrElse "00" (fun m -> m.Value)
+            let hours = hours |> Option.mapOrElse "00" (fun h -> h.Value)
+            let minutes = minutes |> Option.mapOrElse "00" (fun m -> m.Value)
 
             match maybeDays with
-            | Some days ->
-                sprintf "%s:%s:%s" days.Value hours minutes
-            | None ->
-                sprintf "%s:%s" hours minutes
+            | Some days -> sprintf "%s:%s:%s" days.Value hours minutes
+            | None -> sprintf "%s:%s" hours minutes
 
     let wrap (value: TimeSpan) : Value =
-        Value.FromRaw (
-            value.Days.ToString()        |> NonemptyString.ofString,
-            value.Hours.ToString()       |> NonemptyString.ofString,
+        Value.FromRaw(
+            value.Days.ToString() |> NonemptyString.ofString,
+            value.Hours.ToString() |> NonemptyString.ofString,
             sprintf "%02i" value.Minutes |> NonemptyString.ofString
         )
 
-    let empty : Value = {
-        Raw                      = (None, None, None)
-        InternalValidationResult = None
-        Result                   = None
-    }
+    let empty: Value =
+        { Raw = (None, None, None)
+          InternalValidationResult = None
+          Result = None }
 
 
 // Component extension
@@ -156,56 +160,56 @@ module Input_DurationComponent =
                 paddingVertical 4
             }
 
-        let field =
-            makeViewStyles {
-                width 44
-            }
+        let field = makeViewStyles { width 44 }
 
-        let pressableOverlay =
-            makeViewStyles {
-                opacity 0.
-            }
+        // 0.02, not 0: Fabric iOS treats alpha < ~0.01 as non-interactive, so an opacity-0
+        // (or 0.01) overlay Pressable never receives taps (react-native #50465).
+        let pressableOverlay = makeViewStyles { opacity 0.02 }
 
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
-        static member Duration(
-                value:                Value,
-                validity:             InputValidity,
-                onChange:             Value -> unit,
-                ?label:               string,
-                ?testId:              string,
-                ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
+        static member Duration
+            (
+                value: Value,
+                validity: InputValidity,
+                onChange: Value -> unit,
+                ?label: string,
+                ?testId: string,
+                ?onEnterKeyPress: (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
-                ?shouldDisplayDays:   bool,
-                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key:                 string
+                ?shouldDisplayDays: bool,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+                ?key: string
             ) : ReactElement =
             key |> ignore
 
             let requestFocusOnMount = defaultArg requestFocusOnMount false
-            let shouldDisplayDays   = defaultArg shouldDisplayDays false
+            let shouldDisplayDays = defaultArg shouldDisplayDays false
 
-            let isFocusedHook   = Hooks.useState false
-            let maybeDaysInput  = Hooks.useRef<Option<ITextRef>> None
+            let isFocusedHook = Hooks.useState false
+            let maybeDaysInput = Hooks.useRef<Option<ITextRef>> None
             let maybeHoursInput = Hooks.useRef<Option<ITextRef>> None
 
-            let legacyViewStyles : array<ViewStyles> =
+            let legacyViewStyles: array<ViewStyles> =
                 match xLegacyStyles with
                 | Some ls ->
                     match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-                    | []     -> [||]
-                    | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
+                    | [] -> [||]
+                    | styles ->
+                        [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles>
+                               "Rn.Components.View"
+                               styles |]
                 | None -> [||]
 
-            let legacyLabelStyles : List<Rn.LegacyStyles.RuntimeStyles> =
+            let legacyLabelStyles: List<Rn.LegacyStyles.RuntimeStyles> =
                 match xLegacyStyles with
                 | Some ls -> ls
-                | None    -> []
+                | None -> []
 
-            let fieldXLegacyStyles : List<Rn.LegacyStyles.RuntimeStyles> option =
+            let fieldXLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option =
                 match Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field" with
                 | [] -> None
-                | s  -> Some s
+                | s -> Some s
 
             let refDaysInput (nullableInstance: LibClient.JsInterop.JsNullable<ITextRef>) : unit =
                 maybeDaysInput.current <- nullableInstance.ToOption
@@ -213,26 +217,22 @@ module Input_DurationComponent =
             let refHoursInput (nullableInstance: LibClient.JsInterop.JsNullable<ITextRef>) : unit =
                 maybeHoursInput.current <- nullableInstance.ToOption
 
-            let onFocus (_e: Browser.Types.FocusEvent) : unit =
-                isFocusedHook.update true
+            let onFocus (_e: Browser.Types.FocusEvent) : unit = isFocusedHook.update true
 
-            let onBlur (_e: Browser.Types.FocusEvent) : unit =
-                isFocusedHook.update false
+            let onBlur (_e: Browser.Types.FocusEvent) : unit = isFocusedHook.update false
 
             let focusHoursInput () : unit =
-                maybeHoursInput.current |> Option.sideEffect (fun input ->
-                    input.RequestFocus()
-                )
+                maybeHoursInput.current |> Option.sideEffect (fun input -> input.RequestFocus())
 
             let externalValidityForFields =
                 match validity with
                 | Valid -> Valid
-                | _     -> Missing
+                | _ -> Missing
 
             let (rawDays, rawHours, rawMinutes) = value.Raw
 
             let isLabelInvalid = (value.InternalValidity.Or validity).IsInvalid
-            let isFocused      = isFocusedHook.current
+            let isFocused = isFocusedHook.current
 
             let resolvedTestId =
                 testId
@@ -243,120 +243,118 @@ module Input_DurationComponent =
                 testId = resolvedTestId,
                 styles = [| yield! legacyViewStyles |],
                 children =
-                    [|
-                        (match label with
-                         | Some lbl ->
+                    [| (match label with
+                        | Some lbl ->
                             Rn.View(
                                 children =
-                                    [|
-                                        LC.LegacyText(
-                                            xLegacyStyles =
-                                                Rn.LegacyStyles.Runtime.findApplicableStyles
-                                                    legacyLabelStyles
-                                                    ("label"
-                                                     + (if isLabelInvalid then " invalid" else "")
-                                                     + (if isFocused      then " focused" else "")),
-                                            children =
-                                                [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", lbl)) |]
-                                        )
-                                        LC.Pressable(
-                                            onPress       = (fun _ -> focusHoursInput ()),
-                                            label         = lbl,
-                                            testId        = sprintf "%s-focus" resolvedTestId,
-                                            role          = AccessibilityRole.Button,
-                                            overlay       = true,
-                                            styles        = [| Styles.pressableOverlay |],
-                                            componentName = "LC.Input.Duration.Focus"
-                                        )
-                                    |]
+                                    [| LC.LegacyText(
+                                           xLegacyStyles =
+                                               Rn.LegacyStyles.Runtime.findApplicableStyles
+                                                   legacyLabelStyles
+                                                   ("label"
+                                                    + (if isLabelInvalid then " invalid" else "")
+                                                    + (if isFocused then " focused" else "")),
+                                           children =
+                                               [| makeTextNode2
+                                                      (Some "LibClient.Components.LegacyText")
+                                                      (System.String.Format("{0}", lbl)) |]
+                                       )
+                                       LC.Pressable(
+                                           onPress = (fun _ -> focusHoursInput ()),
+                                           label = lbl,
+                                           testId = sprintf "%s-focus" resolvedTestId,
+                                           role = AccessibilityRole.Button,
+                                           overlay = true,
+                                           styles = [| Styles.pressableOverlay |],
+                                           componentName = "LC.Input.Duration.Focus"
+                                       ) |]
                             )
-                         | None -> noElement)
+                        | None -> noElement)
 
-                        Rn.View(
-                            styles = [| Styles.fields |],
-                            children =
-                                [|
-                                    (if shouldDisplayDays then
-                                        LC.Input.Text(
-                                            value            = rawDays,
-                                            onChange         = (value.SetDays >> onChange),
-                                            validity         = ((value.InternalFieldValidity Days).Or externalValidityForFields),
-                                            maxLength        = 3,
-                                            placeholder      = "00",
-                                            testId           = A11ySlug.testId resolvedTestId "days",
-                                            onFocus          = onFocus,
-                                            onBlur           = onBlur,
-                                            ref              = refDaysInput,
-                                            styles           = [| Styles.field |],
-                                            ?onEnterKeyPress = onEnterKeyPress,
-                                            ?xLegacyStyles   = fieldXLegacyStyles
-                                        )
-                                     else noElement)
+                       Rn.View(
+                           styles = [| Styles.fields |],
+                           children =
+                               [| (if shouldDisplayDays then
+                                       LC.Input.Text(
+                                           value = rawDays,
+                                           onChange = (value.SetDays >> onChange),
+                                           validity = ((value.InternalFieldValidity Days).Or externalValidityForFields),
+                                           maxLength = 3,
+                                           placeholder = "00",
+                                           testId = A11ySlug.testId resolvedTestId "days",
+                                           onFocus = onFocus,
+                                           onBlur = onBlur,
+                                           ref = refDaysInput,
+                                           styles = [| Styles.field |],
+                                           ?onEnterKeyPress = onEnterKeyPress,
+                                           ?xLegacyStyles = fieldXLegacyStyles
+                                       )
+                                   else
+                                       noElement)
 
-                                    (if shouldDisplayDays then
-                                        LC.LegacyText(
-                                            children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "days" |]
-                                        )
-                                     else noElement)
+                                  (if shouldDisplayDays then
+                                       LC.LegacyText(
+                                           children =
+                                               [| makeTextNode2 (Some "LibClient.Components.LegacyText") "days" |]
+                                       )
+                                   else
+                                       noElement)
 
-                                    LC.Input.Text(
-                                        value               = rawHours,
-                                        onChange            = (value.SetHours >> onChange),
-                                        validity            = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
-                                        maxLength           = 2,
-                                        placeholder         = "00",
-                                        testId              = A11ySlug.testId resolvedTestId "hours",
-                                        requestFocusOnMount = requestFocusOnMount,
-                                        onFocus             = onFocus,
-                                        onBlur              = onBlur,
-                                        ref                 = refHoursInput,
-                                        styles              = [| Styles.field |],
-                                        ?onEnterKeyPress    = onEnterKeyPress,
-                                        ?xLegacyStyles      = fieldXLegacyStyles
-                                    )
+                                  LC.Input.Text(
+                                      value = rawHours,
+                                      onChange = (value.SetHours >> onChange),
+                                      validity = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
+                                      maxLength = 2,
+                                      placeholder = "00",
+                                      testId = A11ySlug.testId resolvedTestId "hours",
+                                      requestFocusOnMount = requestFocusOnMount,
+                                      onFocus = onFocus,
+                                      onBlur = onBlur,
+                                      ref = refHoursInput,
+                                      styles = [| Styles.field |],
+                                      ?onEnterKeyPress = onEnterKeyPress,
+                                      ?xLegacyStyles = fieldXLegacyStyles
+                                  )
 
-                                    LC.LegacyText(
-                                        children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "hrs" |]
-                                    )
+                                  LC.LegacyText(
+                                      children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "hrs" |]
+                                  )
 
-                                    LC.Input.Text(
-                                        value            = rawMinutes,
-                                        onChange         = (value.SetMinutes >> onChange),
-                                        validity         = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
-                                        maxLength        = 2,
-                                        placeholder      = "00",
-                                        testId           = A11ySlug.testId resolvedTestId "minutes",
-                                        onFocus          = onFocus,
-                                        onBlur           = onBlur,
-                                        styles           = [| Styles.field |],
-                                        ?onEnterKeyPress = onEnterKeyPress,
-                                        ?xLegacyStyles   = fieldXLegacyStyles
-                                    )
+                                  LC.Input.Text(
+                                      value = rawMinutes,
+                                      onChange = (value.SetMinutes >> onChange),
+                                      validity = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
+                                      maxLength = 2,
+                                      placeholder = "00",
+                                      testId = A11ySlug.testId resolvedTestId "minutes",
+                                      onFocus = onFocus,
+                                      onBlur = onBlur,
+                                      styles = [| Styles.field |],
+                                      ?onEnterKeyPress = onEnterKeyPress,
+                                      ?xLegacyStyles = fieldXLegacyStyles
+                                  )
 
-                                    LC.LegacyText(
-                                        xLegacyStyles =
-                                            Rn.LegacyStyles.Runtime.findApplicableStyles
-                                                legacyLabelStyles "colon",
-                                        children =
-                                            [| makeTextNode2 (Some "LibClient.Components.LegacyText") "mins" |]
-                                    )
-                                |]
-                        )
+                                  LC.LegacyText(
+                                      xLegacyStyles =
+                                          Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "colon",
+                                      children = [| makeTextNode2 (Some "LibClient.Components.LegacyText") "mins" |]
+                                  ) |]
+                       )
 
-                        (match (value.InternalValidity.Or validity).InvalidReason with
-                         | Some reason ->
+                       (match (value.InternalValidity.Or validity).InvalidReason with
+                        | Some reason ->
                             Rn.View(
                                 children =
-                                    [|
-                                        LC.LegacyText(
-                                            xLegacyStyles =
-                                                Rn.LegacyStyles.Runtime.findApplicableStyles
-                                                    legacyLabelStyles "invalid-reason",
-                                            children =
-                                                [| makeTextNode2 (Some "LibClient.Components.LegacyText") (System.String.Format("{0}", reason)) |]
-                                        )
-                                    |]
+                                    [| LC.LegacyText(
+                                           xLegacyStyles =
+                                               Rn.LegacyStyles.Runtime.findApplicableStyles
+                                                   legacyLabelStyles
+                                                   "invalid-reason",
+                                           children =
+                                               [| makeTextNode2
+                                                      (Some "LibClient.Components.LegacyText")
+                                                      (System.String.Format("{0}", reason)) |]
+                                       ) |]
                             )
-                         | None -> noElement)
-                    |]
+                        | None -> noElement) |]
             )
