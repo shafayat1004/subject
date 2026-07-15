@@ -96,11 +96,36 @@ and no regression in the dev/DBA experience.** Concretely:
 - The DBA experience stays ergonomic: a single PostgreSQL database (no cross-DB), idiomatic `lower_snake_case`
   identifiers (no quoting friction in `psql`/`pg_dump`/editors), inspectable JSON payloads (not opaque binary),
   and standard PG tooling (`pg_stat_statements`, `pg_stat_io`, `EXPLAIN ANALYZE`).
-- The dev experience stays frictionless: `docker compose up` gives a working local silo (localhost clustering +
-  PG 18 container); no K8s requirement for the inner loop.
+- The dev experience stays frictionless and matches or beats today: a developer runs the app and database
+  locally with no K8s cluster. `docker compose up` gives a working local silo (`UseLocalhostClustering` + a
+  local PG 18 container); the deterministic simulation and unit tests use the in-memory `Test`/`Volatile`
+  handlers and need no database at all. K8s is a production deployment detail (decision 4), never a local-dev
+  requirement.
 
 This bar is why some decisions are "adopt if the spike proves parity" rather than "adopt unconditionally" — the
 spikes exist to prove no regression before a deletion.
+
+### Platform portability (ARM and x86)
+
+A concrete win of dropping SQL Server: the entire target stack runs **natively on both arm64 (Apple Silicon,
+including M-series) and x86-64**, with no emulation.
+
+- **SQL Server is the ARM problem being removed.** SQL Server has no native arm64 build for macOS; it runs only
+  under x86 emulation on Apple Silicon, and its Full-Text Search component does not work in that configuration.
+  FTS is a hard dependency here (the `_SearchIndex` catalog), so full-fidelity local development on an M-series
+  Mac is effectively impossible today.
+- **PostgreSQL closes the gap.** PostgreSQL 18 and the official `postgres` and `postgis/postgis` Docker images are
+  multi-arch with native arm64 (Apple Silicon, AWS Graviton) and amd64 builds. PostgreSQL full-text search
+  (`tsvector`/`tsquery`) is **in-core**, not a separate installable component, so there is no FTS-on-ARM gap at
+  all; PostGIS 3.5 ships in the official arm64 image.
+- **The rest of the stack is architecture-neutral.** .NET 10 is arm64-native (macOS-arm64, linux-arm64); Orleans
+  and Npgsql are pure managed code with no native dependencies. The same build runs on an M-series Mac dev
+  machine and an x86 CI/prod host.
+- **Verified in [S1](#tier-1--foundation-de-risk-the-core-combination)** on the actual arm64 dev machine: confirm
+  the `postgis/postgis:18-3.5` image pulls the native arm64 variant (not emulated amd64) and that FTS + PostGIS
+  queries run. The official PostGIS arm64 manifest is relatively recent (the image was amd64-only historically),
+  so this is the one architecture item S1 checks on-device; `imresamu/postgis` is the documented fallback if a
+  specific tag lags.
 
 ## Current storage layer
 
@@ -307,7 +332,11 @@ The 13 TVPs split three ways (decided per TVP by [S2](#tier-2--core-storage-the-
 - **`unnest(array)`** — default for the row-list TVPs that stay relational (`IndexingList_V3`,
   `RebuildIndexList_V4`, `PromotedIndexingList`, `SubscriptionNameAndLifeEventList`, `SubscriptionNameList`,
   `TimeSeriesPointsList`). Cast array params to resolve type ambiguity.
-- **Binary `COPY`** — only for the highest-volume write paths if `unnest` underperforms (measure in S2 / S13).
+- **Binary `COPY`** — only for the highest-volume *insert-only* write paths if `unnest` underperforms (measure
+  in S2 / S13). Note the PostgreSQL COPY protocol supports inserts only, not upserts, so the many upsert-shaped
+  index/side-effect paths cannot use COPY directly; they use `unnest(array)` + `INSERT ... ON CONFLICT` (the
+  composite-array-and-unnest bulk-upsert pattern benchmarks around 20s for 1M rows vs ~81s for single-row
+  inserts). COPY-then-merge-from-staging is an option only if a specific path proves hot enough to justify it.
 - **JSONB + `jsonb_to_recordset`** — candidate for the *list-type* TVPs that are really opaque payloads
   (`SideEffectList_V2`, `BlobActionList_V2`, `CallDedupList_V2`, `IdList`, `GuidList`,
   `ReEncodeSubjectsList`, `ReEncodeSubscriptionsList`). JSONB = fewer tables, fewer joins, simpler schema, and
@@ -337,6 +366,21 @@ The `ROWVERSION` ETag maps to either:
   `Microsoft.Orleans.Reminders.AdoNet` (10.2.1). Provider package: `Npgsql`. Set `Invariant = "Npgsql"` and the
   `ConnectionString`; for grain persistence set `UseJsonFormat = true` (debuggable, DBA-inspectable — see the
   [no-regression bar](#the-no-regression-bar)).
+- **Two serializers, kept distinct (do not conflate).** `UseJsonFormat = true` governs only grain *storage*
+  serialization in the stock AdoNet provider (its default `IGrainStorageSerializer` is `Newtonsoft.Json`, and it
+  is pluggable). It does **not** govern the *cluster/wire* serializer that Orleans 7+ made mandatory: the
+  version-tolerant `[GenerateSerializer]`/`[Id]` model (up to 170% higher end-to-end throughput than the pre-7
+  serializer, per the migration guide). Grain-call arguments and returns, and any `[Immutable]` types, cross the
+  wire through that serializer, so every F# type on a grain interface must round-trip through it (the F#
+  interop risk, closed by [S15](#tier-1--foundation-de-risk-the-core-combination)). EggShell's subject *state* is
+  serialized by the custom storage handler (its own codec), not by `UseJsonFormat`, so the storage-serializer
+  decision and the wire-serializer work are independent.
+- **Stock AdoNet grain persistence is not adopted for subject state.** Orleans' AdoNet persistence stores an
+  opaque blob per grain and expects its Version/ETag to be a *signed 32-bit integer*, and it offers no secondary
+  indexes, no full-text, no geospatial query, and no 2-phase commit. EggShell's custom `IGrainStorageHandler`
+  provides all of those and uses a `ROWVERSION`/`xmin` ETag that does not fit a 32-bit `Version`, so the custom
+  handler stays. Stock AdoNet persistence is used only where a plain blob-per-grain suffices (if anywhere); the
+  stock reminder table is a separate evaluation ([S5](#tier-3--feature-ports)).
 - **Setup scripts** live in the `dotnet/orleans` repo and are applied **Main first**, then per feature:
   `PostgreSQL-Main.sql`, then ~~`PostgreSQL-Clustering.sql`~~ (skipped — K8s), `PostgreSQL-Persistence.sql`,
   `PostgreSQL-Reminders.sql`. Every silo must reach the database before start. They are applied via the
@@ -347,7 +391,11 @@ The `ROWVERSION` ETag maps to either:
   piggyback design), or (b) switch to the standard `Microsoft.Orleans.Reminders.AdoNet` PostgreSQL reminder
   table and drop the custom implementation. Option (b) is cleaner and aligns with the upstream schema, but
   changes reminder semantics — [S5](#tier-3--feature-ports) evaluates against the "biosphere communication and
-  reminders" dependency the `.fsproj` comments flag.
+  reminders" dependency the `.fsproj` comments flag. Concrete contract to match if the custom table is kept: the
+  stock `OrleansRemindersTable` keys on `(ServiceId, GrainId, ReminderName)`, carries an explicit integer
+  `Version` incremented on upsert (`ON CONFLICT DO UPDATE ... RETURNING`, not `xmin`), and serves
+  `IReminderTable`'s range reads by partitioning on `GrainHash` (the `ReadRangeRows1Key`/`ReadRangeRows2Key`
+  queries). Any custom Postgres reminder table must replicate that `GrainHash`-range-read contract.
 - **Cut-over:** because grain identity and the persistence schema change at Orleans 7+, this is a fresh-cluster,
   re-seed exercise, not an in-place system-table migration. The Orleans control-plane tables are created fresh
   from the upstream scripts.
@@ -379,6 +427,12 @@ machinery and are adopted *during* the port, not after.
 - **Membership provider.** Decision 4 settled this: **`Orleans.Clustering.Kubernetes` 10.0.1** for prod (K8s
   pod-label liveness, via the `IMembershipManager` abstraction Orleans 10 added), `UseLocalhostClustering` for
   dev/CI. The upstream clustering script is skipped. Validated in [S14](#tier-5--validation--perf-acceptance).
+- **Runtime placement, directory, and failure detection (free wins from the jump).** Orleans 9.x/10 default to
+  a strong-consistency grain directory, `ResourceOptimizedPlacement` as the default placement (9.2+), and
+  memory-based activation shedding; failure detection dropped from ~10 minutes (3.x) to ~90 seconds. Orleans 8.2+
+  added experimental Activation Repartitioning (automatic grain rebalancing). Most of these come simply by
+  upgrading and directly serve the reliability + performance goal; `ResourceOptimizedPlacement` and
+  repartitioning are worth an explicit review for the lifecycle workload during S1/S14.
 - **Rolling-upgrade compatibility.** 10.2.0 hardened distributed grain-directory compatibility for rolling
   upgrades. Not directly relevant (we are fresh-cluster, not rolling), but it means the target line is stable.
 
@@ -411,9 +465,10 @@ maps to the original phase arc (P0–P6) for continuity. **Every refactor commit
 state is committed (lesson from the old `dev/mir.shafayat/postgres` branch: duplicate members left in
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
-Recommended order: **S0 → S10 → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
-S0+S10+S1 first (~4 days) prove the foundation before the big storage work. S6 is gated after S4. S14 (K8s
-membership) is last — it depends on the silo being otherwise complete, and the localhost path (S1) already
+Recommended order: **S0 → S10 → S15 → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
+S0+S10+S15+S1 first (~5 days) prove the foundation before the big storage work. S15 runs right after the package
+bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S6 is
+gated after S4. S14 (K8s membership) is last — it depends on the silo being otherwise complete, and the localhost path (S1) already
 covers dev/CI.
 
 ### Tier 0 — prerequisites (unblock all)
@@ -436,12 +491,24 @@ covers dev/CI.
   Apply upstream `PostgreSQL-Main` + `-Persistence` + `-Reminders` (skip `-Clustering` — K8s handles membership,
   decision 4) to `postgis/postgis:18-3.5`. Run a trivial silo: `UseLocalhostClustering` + ADO.NET persistence
   (`UseJsonFormat`) + reminders, invariant `Npgsql`, on net10 + Orleans 10.2.1. Confirm: silo boots, grain state
-  survives restart, reminder fires. **Proves:** the Orleans + Npgsql + PG18 + net10 combo works before touching
-  real storage. (This is the original Phase-0 spike, with versions bumped and clustering de-scoped to S14.)
+  survives restart, reminder fires. Run on the **arm64 dev machine** and confirm the `postgis/postgis:18-3.5`
+  image is the native arm64 variant (not emulated amd64) with FTS + PostGIS queries working. **Proves:** the
+  Orleans + Npgsql + PG18 + net10 combo works before touching real storage, on both arm64 and x86. (This is the
+  original Phase-0 spike, with versions bumped and clustering de-scoped to S14.)
 - **S9 · Schema-migration tooling.** *(~0.5d, maps to P2 tooling.)*
   Prototype **DbUp** (`dbup-postgresql`) journal vs porting the F# `ApplyScriptIfNewOrChanged` hash-tracked
   `Upgrades_Auto` mechanism to PG. Pick DbUp (versioned, idempotent, journal table) unless the spike shows a
   blocker. **Proves:** the tooling decision.
+- **S15 · Orleans 10 wire serializer x F# records/DUs.** *(~1d, maps to P0 spike; gates the Orleans jump.)*
+  Define a representative F# grain interface whose arguments and returns mirror real subject shapes (`Action` /
+  `LifeEvent` / `Constructor` discriminated unions with nullary, single-field, and multi-field cases; records;
+  `Option`; nested collections). Add `Microsoft.Orleans.Serialization.FSharp`; annotate per the
+  `[GenerateSerializer]`/`[Id]` model (or confirm the F# package's automatic handling). Call the grain across two
+  real silos and assert exact round-trip of every shape. **Proves:** F# type interop with the Orleans 7+
+  serializer, the single highest-risk part of the Orleans jump. F# DU serialization was broken in early Orleans
+  7.x (issue #8255) and fixed via PR #9095 in `Microsoft.Orleans.Serialization.FSharp`; this spike confirms it
+  holds on 10.2.1 for the repo's actual shapes. Pass/fail: every representative F# type round-trips across a real
+  grain call; a failure escalates before any storage work begins.
 
 ### Tier 2 — core storage (the hard part)
 
@@ -599,6 +666,11 @@ covers dev/CI.
   confirms the actual search features used (`SqlServerSubjectRepo.fs`) are all expressible in `tsquery` — this
   is the feature-parity check against the no-regression bar. Note PG 18 changed FTS collation handling — reindex
   FTS indexes after any `pg_upgrade`.
+- **F# type serialization under the Orleans 10 wire serializer.** Orleans 7+ mandates the
+  `[GenerateSerializer]`/`[Id]` serializer for all cross-grain types. F# DU serialization was broken in early
+  Orleans 7.x (issue #8255) and fixed via PR #9095 in `Microsoft.Orleans.Serialization.FSharp`; confirm it holds
+  on 10.2.1 for the repo's actual DU/record shapes. Closed by [S15](#tier-1--foundation-de-risk-the-core-combination).
+  This is separate from the storage `UseJsonFormat` decision and is the highest-risk item in the Orleans jump.
 - **Npgsql sync-API deprecation.** Any synchronous DB access must be async by Npgsql 10. Audit the ported
   handlers (S4) — the current SQL Server code may use sync APIs that have no async Npgsql equivalent without
   rewriting the call sites.
@@ -620,16 +692,25 @@ Upstream (confirmed 2026-07-15):
 - Orleans ADO.NET configuration and invariants: https://learn.microsoft.com/en-us/dotnet/orleans/host/configuration-guide/adonet-configuration
 - Orleans migration guidance: https://learn.microsoft.com/en-us/dotnet/orleans/migration-guide
 - Orleans 7.0 breaking changes (identity/wire): https://www.infoq.com/news/2022/12/orleans-dotnet-7/ , https://github.com/dotnet/orleans/discussions/8425
+- Orleans serializer (`[GenerateSerializer]`/`[Id]`, version tolerance): https://learn.microsoft.com/en-us/dotnet/orleans/host/configuration-guide/serialization
+- F# DU serialization issue (broken in 7.x, fixed via PR #9095): https://github.com/dotnet/orleans/issues/8255
+- `Microsoft.Orleans.Serialization.FSharp`: https://www.nuget.org/packages/Microsoft.Orleans.Serialization.FSharp
+- Orleans ADO.NET grain persistence (`IGrainStorageSerializer`, default Newtonsoft.Json, signed-32-bit Version/ETag): https://learn.microsoft.com/en-us/dotnet/orleans/grains/grain-persistence/relational-storage
+- Orleans grain persistence overview (opaque ETag, `InconsistentStateException` optimistic concurrency): https://learn.microsoft.com/en-us/dotnet/orleans/grains/grain-persistence/
 - Orleans PostgreSQL setup scripts (`dotnet/orleans` main): `src/AdoNet/Shared/PostgreSQL-Main.sql` and the per-feature `PostgreSQL-{Persistence,Reminders}.sql` (skip `PostgreSQL-Clustering.sql` — membership is K8s, decision 4)
 - `Microsoft.Orleans.Persistence.AdoNet` (10.2.1): https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet
 - `Orleans.Clustering.Kubernetes` (10.0.1, Orleans 10-compatible, net8+net10, depends on `KubernetesClient` 18.0.5): https://www.nuget.org/packages/Orleans.Clustering.Kubernetes
 - Npgsql 10.0.3: https://www.nuget.org/packages/Npgsql (targets net8/9/10; 10.x deprecates sync APIs)
 - Npgsql release notes: https://github.com/npgsql/npgsql/releases
-- Npgsql COPY / `NpgsqlBinaryImporter`: https://www.npgsql.org/doc/copy.html
+- Orleans 9.x/10 runtime features (grain directory, `ResourceOptimizedPlacement`, activation shedding/repartitioning, 90s failure detection): https://learn.microsoft.com/en-us/dotnet/orleans/migration-guide
+- Orleans PostgreSQL reminders schema (`OrleansRemindersTable`, integer `Version`, `GrainHash` range reads): https://github.com/dotnet/orleans/blob/main/src/AdoNet/Orleans.Reminders.AdoNet/PostgreSQL-Reminders.sql
+- Npgsql COPY / `NpgsqlBinaryImporter` (insert-only): https://www.npgsql.org/doc/copy.html
+- Composite-array + `unnest` + `ON CONFLICT` bulk upsert (perf): https://www.bytefish.de/blog/bulk_updates_postgres.html
 - `Npgsql.OpenTelemetry`: https://www.nuget.org/packages/Npgsql.OpenTelemetry
 - PostgreSQL 18 release notes (AIO, temporal constraints, `uuidv7()`, `OLD`/`NEW` `RETURNING`, virtual generated columns, data checksums default-on, parallel GIN, per-backend I/O/WAL stats): https://www.postgresql.org/docs/18/release-18.html
 - PostgreSQL full-text search: https://www.postgresql.org/docs/current/textsearch.html
 - PostGIS `ST_Distance` / `ST_DWithin`: https://postgis.net/docs/ST_Distance.html , https://postgis.net/docs/ST_DWithin.html
+- PostGIS Docker image arm64 (Apple Silicon) support: https://hub.docker.com/r/postgis/postgis (fallback: https://hub.docker.com/r/imresamu/postgis)
 - Npgsql concurrency (`xmin`): https://www.npgsql.org/efcore/modeling/concurrency.html
 - `Npgsql.PostgresErrorCodes`: https://github.com/npgsql/npgsql/blob/main/src/Npgsql/PostgresErrorCodes.cs
 - `timestamptz` mapping pitfalls: https://www.roji.org/postgresql-dotnet-timestamp-mapping
