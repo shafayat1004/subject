@@ -42,6 +42,10 @@ Per lifecycle the schema generates: main table, `_History`, `_Index`, `_Subscrip
 
 ## Adding PostgreSQL — the concrete seams
 
+> The full migration plan (current storage layer, a feature-by-feature SQL Server to PostgreSQL port
+> table, Orleans-on-Postgres specifics, and a phased execution plan) lives in
+> [SQL Server to Postgres](./modernization/sql-server-to-postgres.md). The list below is the summary.
+
 This is feasible but non-trivial. The abstraction (`IGrainStorageHandler`) is already clean; the work is
 dialect + provider + Orleans clustering. Exact touch points:
 

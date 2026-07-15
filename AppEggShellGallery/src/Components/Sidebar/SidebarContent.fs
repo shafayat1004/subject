@@ -128,6 +128,7 @@ let modernizationItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label   = "Rn → RNW",       state = itemState "modernization/reactxp-to-rnw.md")
         LC.Sidebar.Item(label   = "Render DSL Retirement", state = itemState "modernization/render-dsl-retirement.md")
         LC.Sidebar.Item(label   = "Build Performance",   state = itemState "modernization/build-performance.md")
+        LC.Sidebar.Item(label   = "SQL Server → Postgres", state = itemState "modernization/sql-server-to-postgres.md")
         LC.Sidebar.Item(label   = "Scaffolding",         state = itemState "modernization/scaffolding.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Item(label = "Security Review", state = itemState "modernization/security-review.md")

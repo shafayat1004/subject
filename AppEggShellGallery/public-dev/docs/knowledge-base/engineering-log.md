@@ -4,6 +4,31 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 23 -- SQL Server to PostgreSQL migration plan added)
+
+Added [modernization/sql-server-to-postgres.md](./modernization/sql-server-to-postgres.md) for the Goal G
+storage migration; wired into the sidebar (`SidebarContent.fs` Workstreams), `llms.txt`, and cross-linked
+from Goal G, `modernization/index.md`, and `architecture/backend-hosting-persistence.md`.
+
+Non-obvious facts established while inventorying the storage layer:
+- The backend is **not** stored-proc-centric. Persistence is dynamic SQL generated in F# and run via
+  `sp_executesql`; there are no `CREATE PROCEDURE`, no temporal tables, and no `SqlDbType.Xml` columns. So
+  no PL/pgSQL proc rewrite; the F# SQL builders must emit PG dialect instead.
+- The abstraction seam is at the handler level (`IGrainStorageHandler`, `ISubjectRepo`, ...); there is
+  **no** `IDbConnectionProvider`/`IDbSetup` seam, so connection creation, the ADO.NET invariant, the
+  reminder table, the Data Protection store, and the Orleans setup are all directly SQL-coupled. Closing
+  that gap is Phase 1.
+- Biggest porting blocker is **TVPs** (13 UDT table types in `CreateTypes.sql`, ~32 call sites) to
+  `unnest`/COPY/JSONB. Then ROWVERSION concurrency, full-text catalog, GEOGRAPHY (PostGIS).
+- Orleans 3.7.2 to current (10.x) is non-rolling (wire protocol + grain-identity change at 7.0); the DB
+  swap touches the same membership/reminder/clustering seams, so the storage rewrite is done **once**
+  against the target Orleans version. The custom `SubjectReminderTable` and the `Npgsql` invariant in
+  `SiloBuilder.fs` are the awkward Orleans-side items.
+
+**Docs convention reinforced:** gallery docs are as-is technical documentation. They must not carry
+meta-status about the document itself or narration of how/why it was produced (see
+[maintaining-docs.md](./maintaining-docs.md) "Voice and content").
+
 ## 2026-07-15 (session 22 -- Fantomas retired; eggshell-fmt is now the sole F# formatter)
 
 **Decision + migration:** removed Fantomas from the repo entirely and made `eggshell-fmt`

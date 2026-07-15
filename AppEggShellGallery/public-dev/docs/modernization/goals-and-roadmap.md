@@ -133,8 +133,10 @@ Order: decide .NET LTS + Orleans target, then abstract the connection factory an
 then port DDL / stored-procs + membership tables, then Postgres storage handlers, then run the full
 simulation suite in `TestDataSeeding` mode against Postgres.
 
-**Status:** Not started. See [Architecture: Hosting & Persistence](./architecture/backend-hosting-persistence.md)
-for the concrete seam map.
+**Status:** Not started. The full plan (current storage layer, feature port table, phased execution) is
+in [SQL Server to Postgres](./modernization/sql-server-to-postgres.md); see
+[Architecture: Hosting & Persistence](./architecture/backend-hosting-persistence.md) for the concrete
+seam map.
 
 ### H. ReactXP to react-native-web seam swap
 

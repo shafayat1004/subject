@@ -51,6 +51,29 @@ same change**.
 Agent-facing rules that point here: `CLAUDE.md` (rules 1, 10, 11), `.cursor/rules/runbooks-first.mdc`,
 `.cursor/rules/accessibility-default.mdc`.
 
+## Voice and content
+
+Gallery docs are **as-is technical documentation**: they describe the system, a design, or a plan as it
+stands, in the present tense, for a reader who was not in the room. They are not a work journal, a
+changelog, or a record of how a page came to exist.
+
+- **No meta-status about the document.** Never write about the doc itself ("this page is planning only",
+  "no code has been changed as part of writing this", "this is a draft", "written so it can be picked up
+  later"). A doc simply exists; that it exists is not content. Factual status about the *subject* is fine
+  and encouraged (a workstream row that reads "Status: not started", a component marked "web-only").
+- **No process narration.** Do not describe how or why the doc was produced, that you were asked to write
+  it, what prompt or session produced it, what you searched, or what inputs you "grounded" it in. State
+  the facts and recommendations directly; cite sources with links, not with an authorship story.
+- **No transient or private references.** Do not point at scratch investigations, local-only repos or
+  branches, chat context, or another team's internal paths. A doc must stand on its own for any reader.
+  Durable cross-links to other docs and public upstream URLs are the way to reference things.
+- **Present-tense, declarative.** "The backend persists through Orleans." not "I found that the backend
+  persists through Orleans." Recommendations are stated as the approach ("the explicit version column is
+  preferred"), not as a personal note.
+
+The append-only [engineering log](./knowledge-base/engineering-log.md) is the one place process and
+"how we learned X" belongs; keep it out of the technical pages.
+
 ## Keeping the docs internally consistent
 
 When you edit docs (not just code), check these invariants:
