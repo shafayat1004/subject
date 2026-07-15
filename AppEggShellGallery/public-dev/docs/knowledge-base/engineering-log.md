@@ -4,6 +4,66 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 26 -- gallery web console errors cleared: React key, h1 nesting, BackHandler, shadow)
+
+**Context:** the AppEggShellGallery web app logged 5 console errors + 1 deprecation warning on every page
+load: React key warnings from `Executor.DisplayErrorsManually`, `LR.With.Route`, and `Ui.Route.Docs`;
+`<h1> cannot be a child of <h1>` from `Nav.Top.Base`; `BackHandler is not supported on web` from
+`LR.NativeBackButton`; and `"shadow*" style props are deprecated. Use "boxShadow".`
+
+**Learning/gotcha + fixes:**
+
+- **React key warning from a `[<Component>]`/`memo'd FC returning a bare array.** `castAsElementAckingKeysWarning`
+  was `!!(React.Children.toArray els)` -- a bare (keyed) array returned from a function component. React 19
+  STILL warns "Each child in a list should have a unique key prop" for a bare array returned from an FC even
+  when `Children.toArray` has assigned `.$N` keys; the warning blames the FC. The `element { ... }` CE
+  (`ElementBuilder.Run`) and `asFragment`/`fragmentOfList` already wrapped in `Fable.React.Helpers.fragment []
+  (toArray ...)`, which is why `Ui.Route.Docs` (uses `element {}`) stopped warning once the CE was made
+  key-safe, but `Executor.DisplayErrorsManually` (its `Some showTopLevelSpinnerForKeys` branch returns
+  `castAsElementAckingKeysWarning [| pageContent; spinner |]`) and `LR.With.Route` (gallery `App.Root`'s
+  `with` callback returned `castAsElementAckingKeysWarning [| ... |]`) DID warn. (Note:
+  `LC.AppShell.Content` wraps all content in `LC.Executor.AlertErrors` with
+  `ShowTopLevelSpinnerForKeys.All`, so `DisplayErrorsManually`'s `Some` branch runs app-wide -- that's why
+  the warning fired on every page, not just the Executor content page.) Fix: `castAsElementAckingKeysWarning`
+  now wraps in a Fragment (`fragment [] (tellReactArrayKeysAreOkay elements)`), matching the CE -- the
+  framework "bake into the primitive" fix so all callers benefit. Also moved `ReactChildren`/
+  `tellReactArrayKeysAreOkay`/`ReactChildrenProp` above the CEs so `ElementBuilder.Run` / `asFragment` /
+  `fragmentOfList` can reference them (F# `let` forward-reference constraint).
+- **`<h1>` nested in `<h1>`.** `Nav.Top.Base` set `accessibilityRole = Header` on the bar container; RN's
+  `Header` role maps to ARIA `heading` -> RNW renders `<h1>`. The bar's title (`LC.Nav.Top.Heading`) is also
+  an `<h1>`, so the bar contained a nested `<h1>` -> hydration/DOM-nesting error. Fix: removed
+  `accessibilityRole = Header` (and the redundant `accessibilityLabel = "Top navigation"`) from the
+  container -- the nav *landmark* (`role=navigation` + label) is already provided by the wrapping
+  `Ui.TopNav`/AppShell `<nav>`, and the title remains the single heading. `Nav.Top.Base` no longer opens
+  `LibClient.Accessibility`.
+- **`BackHandler is not supported on web`.** `LR.NativeBackButton` called
+  `BackHandler.addEventListener("hardwareBackPress", ...)` unconditionally; react-native-web's BackHandler
+  is a stub that logs a console error on every `addEventListener`. Fix: guard the effect body (and cleanup)
+  with `if not (Rn.Runtime.isWeb ()) then ...` (runtime guard, matching the sibling `LR.EdgeSwipeBack`);
+  the `useEffectDisposableFn` hook still runs unconditionally (Rules of Hooks). iOS unaffected (BackHandler
+  never fires there).
+- **`shadow*` style props deprecated.** The `shadow` helper (New + Legacy `RulesAdditional`) emitted
+  `shadowColor`/`shadowOffset`/`shadowOpacity`/`shadowRadius`; react-native-web deprecates these in favour of
+  `boxShadow`. Fix: added a `boxShadow` rule (New + Legacy `RulesBasic`) and, on web
+  (`#if EGGSHELL_PLATFORM_IS_WEB`), `shadow` emits a single CSS box-shadow string
+  (`sprintf "%dpx %dpx %dpx %s" offsetX offsetY blur color.ToCssString`); native keeps the shadow* quartet +
+  Android elevation. Verified the TopNav shadow still renders:
+  `getComputedStyle([data-testid=eggshell-nav-top]).boxShadow == "rgba(0, 0, 0, 0.2) 0px 2px 3px 0px"`.
+
+**Verification:** fresh gallery web bundle. IMPORTANT dev-loop gotcha: the gallery's `dev-web` watch only
+recompiles the gallery's own `.fs` files; LibClient/LibRouter are precompiled into
+`LibStandard/.build/web/fable` and a LibClient/LibRouter edit does NOT reach the bundle on its own -- a
+full `dev-web` restart (kill stale :8082 webpack + restart) is required. (Confused myself for ~10min
+editing `EggShellReact.fs` and seeing no console change until I restarted dev-web.) Playwright console
+capture on `/` and `/modernization/fsql-server-to-postgres.md`: all 5 errors + the shadow warning gone.
+Remaining warnings (deferred): React Router `v7_relativeSplatPath` future flag (opt-in changes splat-route
+resolution -- needs a full doc-link regression pass before enabling) and "Failed to parse route out of
+.../<file>.md" (pre-existing; the `.md` extension confuses the route parser; unrelated to this work).
+
+**Distilled:** added to runbooks/troubleshooting.md -- React key warnings (FC-returns-bare-array), Accessibility
+(h1-in-h1 from `Header` role on a container), RNW binding quirks (BackHandler web stub), Styling (shadow* ->
+boxShadow). Also noted the dev-web/LibStandard restart gotcha in runbooks/build-rebuild.md.
+
 ## 2026-07-15 (session 25 -- Orleans/PG upgrade research verified; serializer + F# interop risk added)
 
 Adversarially-verified research (2026 primary sources) corroborated the Goal G target set in

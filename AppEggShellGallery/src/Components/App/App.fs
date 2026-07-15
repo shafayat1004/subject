@@ -227,7 +227,7 @@ type AppEggShellGallery.Components.Constructors.Ui.App with
             spec = routesSpec(),
             ``with`` =
                 fun maybeNavigationFrame ->
-                    castAsElement
+                    castAsElementAckingKeysWarning
                         [|
                             LR.LogRouteTransitions()
                             Ui.With.Navigation(

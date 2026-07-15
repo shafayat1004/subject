@@ -62,6 +62,10 @@ module RulesAdditional =
     let shadow (color: Color) (blur: int) (offsetXY: int * int) : RuleFunctionReturnedStyleRules =
         let (offsetX, offsetY) = offsetXY
 
+        #if EGGSHELL_PLATFORM_IS_WEB
+        // react-native-web deprecates the shadow* quartet; emit a single boxShadow string.
+        boxShadow (sprintf "%dpx %dpx %dpx %s" offsetX offsetY blur color.ToCssString)
+        #else
         RuleFunctionReturnedStyleRules.Many [|
             shadowColor  color
             shadowRadius blur
@@ -69,6 +73,7 @@ module RulesAdditional =
             shadowOpacity 1
             elevation (max 3 (blur /2)) // Approximate elevation based on blur
         |]
+        #endif
 
     let centerContentVH : RuleFunctionReturnedStyleRules =
         RuleFunctionReturnedStyleRules.Many [|

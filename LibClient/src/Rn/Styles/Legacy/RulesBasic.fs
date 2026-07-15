@@ -372,6 +372,11 @@ module RulesBasic =
     let helper_elevation (_value: int) : RawRnStyleRule = jsNative
     let elevation = fun v -> RuleFunctionReturnedStyleRules.One (helper_elevation v, StyleRuleType.View)
 
+    // box-shadow (web standard; preferred over the deprecated shadow* quartet on web).
+    [<Emit("['boxShadow', $0]")>]
+    let helper_boxShadow (_value: string) : RawRnStyleRule = jsNative
+    let boxShadow = fun v -> RuleFunctionReturnedStyleRules.One (helper_boxShadow v, StyleRuleType.View)
+
     // Miscellaneous
     [<StringEnum>]
     type WordBreak =

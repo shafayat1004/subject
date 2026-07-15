@@ -53,6 +53,18 @@ with cache reset: `npx react-native start --port 8081 --reset-cache`. Re-run Tie
 - **Script path caveat:** `rebuild-verify.sh` assumes `<projdir>/.build/<platform>/commonjs`; in apps
   where the build dir sits at the app root (e.g. `SuiteTodo/AppTodo/.build/native/`), pass the app dir
   or verify the emit mtime by hand instead of trusting a "build output dir missing" FAIL.
+- **Gallery `dev-web` watch does NOT recompile LibClient/LibRouter.** The gallery's Fable watch only
+  recompiles the gallery's OWN `.fs` files; `LibClient`/`LibRouter`/`LibLangFsharp` are precompiled
+  into the shared `LibStandard/.build/web/fable/` tree (the gallery's JS imports them from
+  `../../../../../../LibStandard/.build/web/fable/...`), and that tree is only rebuilt on a FULL
+  `dev-web` start, not on incremental lib edits. Symptom: you edit `LibClient/src/EggShellReact.fs`,
+  the gallery reloads, but the change has no runtime effect; `stat` shows the
+  `LibStandard/.build/web/fable/.../EggShellReact.js` mtime is OLDER than your `.fs` edit. Fix: kill
+  the stale `:8082` webpack + children (`pkill -9 -f "eggshell dev-web"; pkill -9 -f fable;
+  pkill -9 -f webpack`) and restart `cd AppEggShellGallery && ../eggshell dev-web`. A surviving old
+  webpack makes the new start hit `EADDRINUSE :8082` and silently serve the STALE bundle — use the
+  broad `pkill -9 -f webpack`. When verifying, check `LibStandard/.build/web/fable/...` freshness,
+  NOT just `AppEggShellGallery/.build/web/fable/...` (the latter only holds the gallery's own files).
 
 ## Doc refs
 

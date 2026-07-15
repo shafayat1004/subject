@@ -67,6 +67,7 @@ These situations require a full restart, not just a `touch`:
 | `metro.config.js` changed | Restart Metro with `--reset-cache`. |
 | LibClient vendor patch applied or updated | Restart Metro with `--reset-cache`. |
 | Watch output "looks stale" and a cache wipe did not fix it | Restart `dev-native` + Metro (`--reset-cache`). |
+| Edited a LibClient/LibRouter/LibLangFsharp `.fs` while the gallery's `dev-web` is running, and the change has NO effect on the bundle | The gallery's `dev-web` watch only recompiles the gallery's OWN `.fs` files. LibClient/LibRouter/LibLangFsharp are precompiled into the shared `LibStandard/.build/web/fable/` tree (the gallery's JS imports `LibClient`/`LibRouter` from there), and that tree is only rebuilt on a FULL `dev-web` start, not on incremental lib edits. | Kill the stale `:8082` webpack (and any `fable`/`webpack` children) and restart `cd AppEggShellGallery && ../eggshell dev-web`. Confirm the output file under `LibStandard/.build/web/fable/...` is newer than your edited `.fs` before trusting the bundle. |
 
 ---
 

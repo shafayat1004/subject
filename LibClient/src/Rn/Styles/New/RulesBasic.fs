@@ -443,6 +443,13 @@ module RulesBasic =
     let helper_elevation (_value: int) : RawRnViewStyleRule = jsNative
     let elevation = fun v -> helper_elevation v
 
+    // box-shadow (web standard; react-native-web recommends this over the deprecated
+    // shadowColor/shadowOffset/shadowOpacity/shadowRadius quartet). Emits a CSS box-shadow
+    // string; see RulesAdditional.shadow which builds "Xpx Ypx blurPx color".
+    [<Emit("['boxShadow', $0]")>]
+    let helper_boxShadow (_value: string) : RawRnViewStyleRule = jsNative
+    let boxShadow = fun v -> helper_boxShadow v
+
     // Miscellaneous
     [<StringEnum>]
     type WordBreak =

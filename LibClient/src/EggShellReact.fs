@@ -296,6 +296,23 @@ let unpackIfFragment<'T> (el: ReactElement) : 'T =
 
 type CEAccumulator = seq<ReactElement>
 
+// React.Children.toArray flattens nested arrays and assigns stable positional keys
+// (`.$0`, `.$1`, ...). Defined here, before the element/elements CEs, so the CEs and the
+// fragment helpers can bake key-safety into the primitive instead of forcing every call
+// site to remember castAsElementAckingKeysWarning. Without this, a multi-yield
+// `element { a; b }` returns a Fragment with unkeyed children and React logs
+// "Each child in a list should have a unique key prop". The children yielded by these
+// CEs are positional/stable per render, so toArray's `.$N` keys are the right tool here
+// (this is the static-array case, NOT a dynamic mapped list -- those still need stable
+// id keys at the call site, see runbooks/troubleshooting.md).
+[<Import("Children", "react")>]
+let ReactChildren: obj = jsNative
+
+let tellReactArrayKeysAreOkay (els: array<ReactElement>) : array<ReactElement> =
+    ReactChildren?toArray els
+
+type ReactChildrenProp = array<ReactElement>
+
 type ElementsBuilder() =
     member _.Zero () : CEAccumulator =
         Seq.empty
@@ -404,7 +421,9 @@ type ElementBuilder() =
 
     member _.Run (f: unit -> CEAccumulator) : ReactElement =
         let elements = Array.ofSeq (f())
-        Fable.React.Helpers.fragment [] elements
+        // Key the fragment's children so multi-yield `element { a; b }` expressions
+        // don't log React key warnings (positional/stable children -- static-array case).
+        Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay elements)
 
 let element = ElementBuilder()
 
@@ -412,13 +431,13 @@ let asFragment (els: seq<ReactElement>) : ReactElement =
     match Seq.length els with
     | 0 -> noElement
     | 1 -> Seq.head els
-    | _ -> Fable.React.Helpers.fragment [] els
+    | _ -> Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay (Array.ofSeq els))
 
 let fragmentOfList (els: list<ReactElement>) : ReactElement =
     match els with
     | []     -> noElement
     | [head] -> head
-    | _      -> Fable.React.Helpers.fragment [] els
+    | _      -> Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay (Array.ofList els))
 
 type Fable.React.IHooks with
     member this.useDisposableFn (dispose: unit -> unit, dependencies: array<obj>) : unit =
@@ -436,14 +455,6 @@ type Fable.React.IHooks with
             dependencies
         )
 
-[<Import("Children", "react")>]
-let ReactChildren: obj = jsNative
-
-let tellReactArrayKeysAreOkay (els: array<ReactElement>) : array<ReactElement> =
-    ReactChildren?toArray els
-
-type ReactChildrenProp = array<ReactElement>
-
 // because react doesn't differentiate between single and multiple elements,
 // but in F# we have no way of orchestrating the same setup without casts
 let castAsElement (elements: array<ReactElement>) : ReactElement =
@@ -453,4 +464,11 @@ let castAsElements (element: ReactElement) : array<ReactElement> =
     !!element
 
 let castAsElementAckingKeysWarning (elements: array<ReactElement>) : ReactElement =
-    !!(tellReactArrayKeysAreOkay elements)
+    // Wrap in a Fragment rather than a bare `!!`-cast array. Returning a bare (even
+    // Children.toArray-keyed) array from a [<Component>]/memo'd function component trips
+    // React 19's "Each child in a list should have a unique key prop" warning, because the
+    // array is reconciled as the FC's own output. A Fragment is a single element whose
+    // children are the keyed array, which reconciles cleanly. Same shape as ElementBuilder.Run
+    // / asFragment / fragmentOfList. (This is the static-array case; dynamic mapped lists still
+    // need stable id keys at the call site -- see runbooks/troubleshooting.md.)
+    Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay elements)

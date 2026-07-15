@@ -15,6 +15,16 @@ argument-hint: "[preflight [port]]"
 `scripts/web-preflight.sh [port]` checks the server responds and warns if source `.fs` files are
 newer than `.build/web/fable` output (stale bundle: invoke fable-rebuild-verify).
 
+**Lib edits need a full `dev-web` restart (not just a watch tick).** The gallery's `dev-web` Fable
+watch only recompiles the gallery's OWN `.fs` files; `LibClient`/`LibRouter`/`LibLangFsharp` are
+precompiled into the shared `LibStandard/.build/web/fable/` tree (the gallery's JS imports them
+from there), and that tree is only rebuilt on a FULL `dev-web` start. If you edit a lib `.fs`
+while `dev-web` is running and the change has no effect, kill the stale `:8082` webpack
+(`pkill -9 -f "eggshell dev-web"; pkill -9 -f fable; pkill -9 -f webpack`) and restart
+`cd AppEggShellGallery && ../eggshell dev-web`. A surviving old webpack makes the new start hit
+`EADDRINUSE :8082` and silently serve the STALE bundle — use the broad `pkill -9 -f webpack`.
+See fable-rebuild-verify skill + runbooks/build-rebuild.md #mandatory-restart.
+
 ## No backend needed — fake service (READ THIS before "app won't load")
 
 AppTodo runs on **fake in-memory todos** by default: `BackendUrl` is commented out in
@@ -65,6 +75,53 @@ the app dir so `import { chromium } from 'playwright'` resolves):
 
 Playwright observe captures page errors. For manual checks, load the page and read the browser
 console; React key warnings and StyleLeakDetector output land there.
+
+### Quick console capture (preferred over eyeballing)
+
+`scripts/console-check.mjs` loads one or more URLs headless, captures every console error +
+warning (deduplicated), prints them, and exits non-zero if any ERRORS remain. Run it from the app
+dir so `playwright` resolves:
+
+```bash
+cd AppEggShellGallery
+node ../../.claude/skills/debug-web/scripts/console-check.mjs                      # defaults: / + a docs deep-link
+node ../../.claude/skills/debug-web/scripts/console-check.mjs --port 9080           # AppTodo default port
+node ../../.claude/skills/debug-web/scripts/console-check.mjs --filter "key prop|boxShadow"  # narrow
+node ../../.claude/skills/debug-web/scripts/console-check.mjs --full                # include React component stacks
+node ../../.claude/skills/debug-web/scripts/console-check.mjs http://localhost:8082/components  # custom URLs
+```
+
+Use it to **prove a fix cleared an error** (run before + after the fix on a fresh bundle) or to
+**triage which errors remain** without leaving the terminal.
+
+### Console-error triage procedure (React key / DOM-nesting / deprecated-API warnings)
+
+1. Read the mangled Fable component name in the warning (e.g.
+   `LibClient_Components_Constructors_LCModule_Executor__Executor_DisplayErrorsManually_Static_162D5454`).
+   Strip the `Lib..._` prefix + `_Static_<HASH>` suffix → `LCModule.Executor.DisplayErrorsManually`
+   → `LC.Executor.DisplayErrorsManually` → grep the F# source for `DisplayErrorsManually`.
+2. Determine whether the warning is **one call site's bug** or a **primitive's bug**. If multiple
+   unrelated components warn the same way (e.g. key warnings from `Executor.DisplayErrorsManually`,
+   `LR.With.Route`, `Ui.Route.Docs`), the shared primitive is wrong — fix the primitive
+   (`castAsElementAckingKeysWarning`, `element { }` CE, `asFragment`) so all callers benefit
+   (rule 3: reuse, don't duplicate). If only one call site warns, fix it locally.
+3. Rebuild + verify with `console-check.mjs` on a **fresh bundle** (see fable-rebuild-verify;
+   gallery lib edits need a full `dev-web` restart, not just a watch tick).
+
+### Verify a CSS / style fix rendered (don't eyeball — measure)
+
+A `getComputedStyle` probe via Playwright proves a style change reached the DOM (e.g. after
+switching `shadow*` → `boxShadow`, confirm `getComputedStyle(el).boxShadow` is non-empty):
+
+```js
+await page.evaluate(() => {
+  const el = document.querySelector('[data-testid="eggshell-nav-top"]');
+  return el ? { tag: el.tagName, boxShadow: getComputedStyle(el).boxShadow } : { found: false };
+});
+```
+
+Run such probes from the app dir (`import { chromium } from 'playwright'` resolves there). See
+"Diagnosing layout bugs" above for the `getBoundingClientRect` / `scrollWidth` measurement pattern.
 
 ## Routing
 

@@ -15,7 +15,6 @@ namespace LibClient.Components
 open Fable.React
 
 open LibClient
-open LibClient.Accessibility
 open LibClient.Responsive
 
 open Rn.Components
@@ -103,10 +102,13 @@ module Nav_Top_Base =
                                 yield! legacyViewStyles
                                 yield! defaultArg styles [||]
                             |],
-                        testId             = testId,
-                        accessibilityRole  = AccessibilityRole.Header,
-                        accessibilityLabel = "Top navigation",
-                        children           = [| content |]
+                        testId = testId,
+                        // The bar container is a plain box; the nav *landmark* (role=navigation)
+                        // and its accessible name ("Top navigation") are provided by the wrapping
+                        // Ui.TopNav/AppShell <nav>. The title inside (LC.Nav.Top.Heading) is the
+                        // heading. Giving the container role=Header mapped to <h1> on web and
+                        // produced <h1> nested inside the <h1> title -> hydration/DOM-nesting error.
+                        children = [| content |]
                     )
 
             LC.Responsive(

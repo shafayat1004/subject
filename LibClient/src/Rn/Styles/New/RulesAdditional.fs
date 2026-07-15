@@ -63,13 +63,18 @@ module RulesAdditional =
     let shadow (color: Color) (blur: int) (offsetXY: int * int) : array<RawRnViewStyleRule> =
         let (offsetX, offsetY) = offsetXY
 
+        #if EGGSHELL_PLATFORM_IS_WEB
+        // react-native-web deprecates shadowColor/shadowOffset/shadowOpacity/shadowRadius in
+        // favour of a single boxShadow. Emit one CSS box-shadow string ("Xpx Ypx blurPx color").
+        // The color already carries its own alpha (e.g. BlackAlpha 0.2), so shadowOpacity is folded in.
+        [| boxShadow (sprintf "%dpx %dpx %dpx %s" offsetX offsetY blur color.ToCssString) |]
+        #else
         [|
             shadowColor  color
             shadowRadius blur
             shadowOffset { width = offsetX; height = offsetY }
             shadowOpacity 1
 
-            #if !EGGSHELL_PLATFORM_IS_WEB
             // TODO: Do this inside Rn
             if Rn.Runtime.platform = Native NativePlatform.Android then
                 let colorWithoutAlpha =
@@ -81,5 +86,5 @@ module RulesAdditional =
 
                 shadowColor colorWithoutAlpha
                 elevation (max 3 (blur / 2)) // Approximate elevation based on blur
-            #endif
         |]
+        #endif

@@ -57,6 +57,15 @@ Reanimated 4 + Moti are not yet added. See `modernization/phased-plan.md` +
    `context` + a `prompt`; the skill hands them to the harness's cheapest background model (whatever
    the current platform exposes — not a hardcoded model) that summarizes *and* writes, so no
    expensive-model tokens are spent on the entry.
+   **Post-session skill review (mandatory).** At the end of any debugging, feature-implementation, or
+   code-understanding session, evaluate whether a project skill (`.claude/skills/*/SKILL.md` or its
+   `scripts/`) should be updated — not just the docs (docs-sync handles docs). A repeatable procedure, a
+   reusable script, or a gotcha that will recur belongs in the matching skill so the next session starts
+   with it in context instead of rediscovering it. Concrete triggers: you wrote a throwaway script that
+   would be useful next time → promote it to `scripts/`; you followed a multi-step triage/verification
+   procedure that isn't written anywhere → add it to the SKILL.md; you hit a dev-loop/build gotcha that
+   the skill doesn't mention → add it to the skill's gotchas section (and the runbook). If nothing is
+   generalizable, say so and skip — do not pad skills with one-off details.
 2. **Thorough + efficient code.** Match surrounding conventions (naming, file layout, comment density).
    Prefer the idiomatic existing pattern over inventing a new one.
 3. **Reuse, don't duplicate.** Factor shared logic into one place. If I'm about to copy-paste, stop and
