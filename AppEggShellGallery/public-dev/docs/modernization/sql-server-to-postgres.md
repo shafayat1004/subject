@@ -462,7 +462,7 @@ semantics are understood first.
 The work is organized as **spikes that test the full upgrade end-to-end**, tiered so the foundation is proven
 before the expensive storage work begins. Each spike is time-boxed, produces green evidence + a decision, and
 maps to the original phase arc (P0–P6) for continuity. **Every refactor commit stays green** — no half-stabilized
-state is committed (lesson from the old `dev/mir.shafayat/postgres` branch: duplicate members left in
+state is committed (lesson from an earlier Postgres spike branch: duplicate members left in
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
 Recommended order: **S0 → S10 → S15 → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**

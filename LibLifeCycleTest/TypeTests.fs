@@ -24,7 +24,7 @@ let ``Email addresses without an AT symbol in the middle are rejected`` () =
 
 [<Fact>]
 let ``Email addresses are sanitized if they contain leading or trailing whitespaces or capital letters`` () =
-    match EmailAddress.tryOfString "    AZIZULHAKIMEMRIDUL246@GMAIL.COM    " with
-    | Ok validEmail when validEmail.Value = "azizulhakimemridul246@gmail.com" -> true
-    | _                                                                       -> false
+    match EmailAddress.tryOfString "    TEST.USER246@EXAMPLE.COM    " with
+    | Ok validEmail when validEmail.Value = "test.user246@example.com" -> true
+    | _                                                                -> false
     |> Assert.True

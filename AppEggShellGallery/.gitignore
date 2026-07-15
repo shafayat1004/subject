@@ -53,3 +53,6 @@ console-errors-*.txt
 # Ignore copied assets
 public-dev/images/
 public-dev/libs/
+
+# Machine-specific Xcode env override (keep the .xcode.env template, ignore local)
+ios/.xcode.env.local
