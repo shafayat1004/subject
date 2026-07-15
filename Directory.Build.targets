@@ -1,9 +1,9 @@
 <Project>
   <!--
-    EggShell formatting check (Fantomas).
+    EggShell formatting check (eggshell-fmt is the sole formatter).
     Runs after every build for projects where EggShellFmtSeverity != 'none'.
-    Requires: dotnet tool restore  (installs Fantomas from .config/dotnet-tools.json)
-    Manual fix: dotnet tool run fantomas "<ProjectDir>"
+    Requires: Meta/EggShellFmt/install.sh  (packs + installs eggshell-fmt into .config/dotnet-tools.json)
+    Manual fix: run eggshell-fmt on "<ProjectDir>" (see Meta/EggShellFmt/README.md)
     Per-project override (in .fsproj PropertyGroup):
       EggShellFmtSeverity=none     silence entirely
       EggShellFmtSeverity=error    block build
@@ -11,16 +11,16 @@
   <Target Name="EggShellFmtCheck"
           AfterTargets="Build"
           Condition="'$(EggShellFmtSeverity)' != 'none' AND '$(EggShellFmtSeverity)' != 'ignore' AND '$(Language)' == 'F#'">
-    <Exec Command="dotnet tool run fantomas --check &quot;$(MSBuildProjectDirectory)&quot;"
+    <Exec Command="dotnet tool run eggshell-fmt -- --check &quot;$(MSBuildProjectDirectory)&quot;"
           ContinueOnError="true"
           IgnoreStandardErrorWarningFormat="true"
           StandardOutputImportance="low"
           StandardErrorImportance="low">
       <Output TaskParameter="ExitCode" PropertyName="_EggShellFmtExitCode" />
     </Exec>
-    <Warning Text="[EggShellFmt] $(MSBuildProjectName): formatting violations. Fix: dotnet tool run fantomas &quot;$(MSBuildProjectDirectory)&quot; — set &lt;EggShellFmtSeverity&gt;none&lt;/EggShellFmtSeverity&gt; in .fsproj to silence."
+    <Warning Text="[EggShellFmt] $(MSBuildProjectName): formatting violations. Fix: dotnet tool run eggshell-fmt -- &quot;$(MSBuildProjectDirectory)&quot; — set &lt;EggShellFmtSeverity&gt;none&lt;/EggShellFmtSeverity&gt; in .fsproj to silence."
              Condition="'$(_EggShellFmtExitCode)' != '0' AND '$(EggShellFmtSeverity)' == 'warning'" />
-    <Error   Text="[EggShellFmt] $(MSBuildProjectName): formatting violations. Fix: dotnet tool run fantomas &quot;$(MSBuildProjectDirectory)&quot;"
+    <Error   Text="[EggShellFmt] $(MSBuildProjectName): formatting violations. Fix: dotnet tool run eggshell-fmt -- &quot;$(MSBuildProjectDirectory)&quot;"
              Condition="'$(_EggShellFmtExitCode)' != '0' AND '$(EggShellFmtSeverity)' == 'error'" />
   </Target>
 

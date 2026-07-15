@@ -169,7 +169,7 @@ live dashboard.
 
 - Project conventions and working rules live in [`CLAUDE.md`](CLAUDE.md) (F# formatting, framework
   vs app boundaries, docs-in-the-same-commit, accessibility bar).
-- After editing F#, run `dotnet tool run fantomas <file.fs>`. Build framework libraries via
+- After editing F#, run `dotnet tool run eggshell-fmt -- <file.fs>` (the sole formatter). Build framework libraries via
   `./eggshell build-lib` / `eggshell dev-web` / `eggshell dev-native`; **never** run `dotnet fable`
   directly (it emits stray `.fs.js` beside sources).
 - When you change code or docs, follow

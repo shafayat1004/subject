@@ -1,12 +1,12 @@
 ---
 name: fsharp-format
-description: Use when writing or editing any F# file in this repo (Lib*, LibUi*, LibRouter, LibAutoUi, LibLifeCycleUi, ThirdParty, Meta/*, Suite*, App*) and it must match the EggShell F# style, or when asked to reformat/clean up/align F# code. Covers the column alignment (: of -> =) in records, DUs, match arms, and let/CE binding groups that Fantomas cannot do.
+description: Use when writing or editing any F# file in this repo (Lib*, LibUi*, LibRouter, LibAutoUi, LibLifeCycleUi, ThirdParty, Meta/*, Suite*, App*) and it must match the EggShell F# style, or when asked to reformat/clean up/align F# code. eggshell-fmt is the sole formatter; it covers whitespace normalization plus the column alignment (: of -> =) in records, DUs, match arms, and let/CE binding groups.
 ---
 
 # fsharp-format
 
-Reformat F# to the EggShell house style. The alignment rules Fantomas cannot do are handled by a
-repo-local dotnet tool, **`eggshell-fmt`** (source: `Meta/EggShellFmt/`, F#, no external deps).
+Reformat F# to the EggShell house style with **`eggshell-fmt`** -- the repo's **sole** formatter
+(source: `Meta/EggShellFmt/`, F#, no external deps). Fantomas has been retired.
 
 Canonical spec: `AppEggShellGallery/public-dev/docs/fsharp/formatting.md`.
 
@@ -75,12 +75,12 @@ Only records introduced by a line ending in `=`. Skips `{ x with`, object expres
 records, blocks touching a multi-line string, and **record TYPES that have members** (a
 `static member`/`member`/`interface` follows -- those must keep the indented-brace form, or the col-0
 `}` ends the `type` block and orphans the member: `FS0010`). Nested records handled. General bracket
-placement / line reflow is still not done (that's Fantomas).
+placement / line reflow is out of scope (keep those canonical by hand).
 
 ## Ignore files
 
 `.eggshellfmtignore` (gitignore-style: globs, `#` comments, `!` negation, trailing `/` for dirs) in the
-working dir excludes files/globs. The tool also reads `.fantomasignore`. `--no-ignore` bypasses both.
+working dir excludes files/globs. `--no-ignore` bypasses it.
 
 First use on a machine (or after a version bump): `./Meta/EggShellFmt/install.sh` once. It packs the
 tool into the git-ignored local feed and registers it in `.config/dotnet-tools.json` (like
@@ -90,7 +90,7 @@ The tool is **idempotent** (run twice = no change) and **safe** (masks strings/c
 scanning, never edits inside them; leaves lines inside multi-line strings/block comments untouched).
 Run it after editing F#, before declaring the work done.
 
-## What it enforces (the rules Fantomas skips)
+## What it enforces
 
 | Rule | Construct | Action | Default |
 |---|---|---|---|
@@ -114,16 +114,13 @@ structural and always applied.
 **Grouping:** a group is a contiguous run of lines at the same indent, broken by a blank line, a
 differently-shaped line, or a string/comment. Insert a blank line to split an over-eager group.
 
-## What it does NOT do (use Fantomas for these)
+## What it does NOT do (keep these canonical by hand)
 
-Alignment pass only. It does not reflow long lines, break signatures, place brackets, or fix operator
-spacing inside expressions. Fantomas does those:
-
-```bash
-dotnet tool run fantomas <file.fs>     # spacing/indent/brackets/line-breaks (~60% of the spec)
-```
-Both are idempotent so order does not matter; Fantomas is optional (the tool never calls it). Do NOT
-run Fantomas in `--check`/strict mode on aligned files: it flags the manual alignment as wrong.
+Whitespace normalization + alignment only. It does not reflow long lines, break signatures, place
+brackets, or fix operator spacing inside expressions. There is no second formatter (Fantomas is
+retired), so write those correct as you go: keep lines within the ~120-char soft limit, break
+signatures sensibly, and match the surrounding spacing/bracket style. The `formatting.md` spec is the
+reference for the shapes the tool cannot enforce.
 
 ## Known limitations (safe fallbacks, never corruption)
 

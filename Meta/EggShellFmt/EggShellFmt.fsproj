@@ -10,9 +10,9 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>eggshell-fmt</ToolCommandName>
     <PackageId>EggShellFmt</PackageId>
-    <Version>1.6.3</Version>
+    <Version>1.6.4</Version>
     <PackageOutputPath>$(MSBuildThisFileDirectory)nupkg</PackageOutputPath>
-    <Description>EggShell F# column-alignment formatter (the alignment rules Fantomas cannot do).</Description>
+    <Description>EggShell F# formatter -- the sole formatter: whitespace normalization plus column alignment.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- This tool is internal; keep it out of the repo-wide formatting check. -->

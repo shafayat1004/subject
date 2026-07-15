@@ -10,5 +10,5 @@
 #load "./TypeScript.fsx"
 #load "./EggShellCli.fsx"
 #load "./Git.fsx"
-#load "./Fantomas.fsx"
+#load "./EggShellFmt.fsx"
 #endif

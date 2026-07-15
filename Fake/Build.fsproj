@@ -39,7 +39,7 @@
     <Compile Include="TypeScript.fsx" />
     <Compile Include="EggShellCli.fsx" />
     <Compile Include="Git.fsx" />
-    <Compile Include="Fantomas.fsx" />
+    <Compile Include="EggShellFmt.fsx" />
     <Compile Include="Includes.fsx" />
     <Compile Include="build-Fake.fsx" />
     <Compile Include="DownloadAzureArtefact.fsx" />

@@ -1,7 +1,7 @@
 // EggShellFmt -- EggShell F# column-alignment formatter (dotnet tool: eggshell-fmt).
 //
 // Applies the hand-maintained alignment rules from
-// AppEggShellGallery/public-dev/docs/fsharp/formatting.md that Fantomas cannot do:
+// AppEggShellGallery/public-dev/docs/fsharp/formatting.md. It is the sole formatter:
 //
 //   2a  record TYPE fields    -> align the type after `:`   (Name: Type)
 //   2b  DU cases              -> align the `of` keyword     (| Case of ...)
@@ -25,11 +25,10 @@
 // while the remaining members align. This follows the spec's "align ... when it
 // significantly aids readability". The tolerance grows with the level.
 //
-// IGNORE FILE: a gitignore-style `.eggshellfmtignore` (and `.fantomasignore`, if
-// present) in the working directory excludes files/globs from formatting.
+// IGNORE FILE: a gitignore-style `.eggshellfmtignore` in the working directory
+// excludes files/globs from formatting.
 //
-// Fantomas complements this tool (spacing/indent/brackets/line-breaks); this tool
-// never calls Fantomas. Reliability: every structural scan runs on a MASKED copy
+// Reliability: every structural scan runs on a MASKED copy
 // of the line where string/char literals and comments are blanked to spaces, so
 // markers are never matched inside them; edits apply at the same indices (mask is
 // length-preserving). Lines inside a multi-line string/block comment are left
@@ -497,7 +496,7 @@ let formatSource (cfg: Config) (src0: string) : string =
 
     (String.Join("\n", real)).TrimEnd('\n') + "\n"
 
-// -------- ignore file (.eggshellfmtignore / .fantomasignore) --------
+// -------- ignore file (.eggshellfmtignore) --------
 
 /// Translate one gitignore-style pattern to (isNegation, anchoredRegex).
 let compilePattern (pat0: string) : (bool * Regex) option =
@@ -529,7 +528,7 @@ let compilePattern (pat0: string) : (bool * Regex) option =
         Some(neg, Regex(full, RegexOptions.Compiled))
 
 let loadIgnore (dir: string) : (bool * Regex) list =
-    [ ".eggshellfmtignore"; ".fantomasignore" ]
+    [ ".eggshellfmtignore" ]
     |> List.collect (fun name ->
         let p = Path.Combine(dir, name)
         if File.Exists p then

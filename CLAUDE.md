@@ -148,12 +148,13 @@ Reanimated 4 + Moti are not yet added. See `modernization/phased-plan.md` +
 Canonical reference: `AppEggShellGallery/public-dev/docs/fsharp/formatting.md`. Read it before any
 non-trivial F# edit. Hard rules (rule number in parens):
 - 4-space indent, never tabs (1). Soft line limit ~120 chars (3).
-- Column alignment is hand-maintained, NOT enforced by Fantomas. Match surrounding code exactly:
-  record-field `:` (2a), DU `of` (2b), short match-arm `->` (2c), let-binding `=` groups (2d),
-  record-construction `=` (7).
+- Column alignment is applied by `eggshell-fmt` (the sole formatter; Fantomas is retired). Match
+  surrounding code exactly: record-field `:` (2a), DU `of` (2b), short match-arm `->` (2c),
+  let-binding `=` groups (2d), record-construction `=` (7).
 - `match x with` on one line (5). DU cases one per line, labeled fields `Name: Type` (8).
-- After editing F#, run `dotnet tool run fantomas <file.fs>` (pinned; `dotnet tool restore` once
-  per machine). Fantomas will NOT restore alignment, so re-check 2a-2d by eye afterwards.
+- After editing F#, run `dotnet tool run eggshell-fmt -- <file.fs>` (pinned; install once per machine
+  via `Meta/EggShellFmt/install.sh`). It normalizes whitespace and column alignment but does not
+  reflow long lines or fix operator spacing inside expressions, so keep those canonical by hand.
 - **NEVER run `dotnet fable` directly.** It emits `.fs.js` beside the source files. Build only via
   `./eggshell build-lib` / `eggshell dev-web` / `eggshell dev-native`; output belongs under
   `.build/<platform>/`. If stray `.fs.js` files appear beside `.fs` sources, run

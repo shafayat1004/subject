@@ -1,8 +1,9 @@
 # EggShellFmt
 
-`eggshell-fmt` -- the EggShell F# column-alignment formatter. A repo-local dotnet tool that applies
-the hand-maintained alignment rules from `AppEggShellGallery/public-dev/docs/fsharp/formatting.md`
-that Fantomas cannot do.
+`eggshell-fmt` -- the EggShell F# formatter, and the **sole** formatter for this repo (Fantomas has
+been retired). A repo-local dotnet tool that applies the hand-maintained rules from
+`AppEggShellGallery/public-dev/docs/fsharp/formatting.md`: safe whitespace normalization plus the
+column alignment no off-the-shelf formatter does.
 
 ## Install (one-time per machine, or after a version bump)
 
@@ -53,8 +54,7 @@ already aligned it (a binding has more than one space before its `=`). `aggressi
 ## Ignore files
 
 A gitignore-style **`.eggshellfmtignore`** in the working directory excludes files/globs (one glob per
-line, `#` comments, `!` negation, trailing `/` for directories). The tool also reads **`.fantomasignore`**
-if present, so vendored/build exclusions are shared. `--no-ignore` bypasses both for a run.
+line, `#` comments, `!` negation, trailing `/` for directories). `--no-ignore` bypasses it for a run.
 
 ## What it enforces
 
@@ -101,8 +101,9 @@ fields means the type must keep the indented-brace form (`{ ... }` under `type X
 offside rule and orphans the member (`FS0010`). Nested records are handled (run to a fixed point).
 
 It does **not** reflow long lines, break signatures, do general bracket placement, or fix operator
-spacing inside expressions. For those run Fantomas (`dotnet tool run fantomas <file.fs>`); both are
-idempotent and this tool never calls Fantomas.
+spacing inside expressions -- those stay a hand/editor concern (keep lines short and spacing canonical
+as you write). The tool is idempotent and deliberately conservative: it never rewrites expression
+interiors, so a clean file is left byte-for-byte.
 
 ### Known limitations (safe fallbacks, never corruption)
 

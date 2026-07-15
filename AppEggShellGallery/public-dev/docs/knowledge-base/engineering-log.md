@@ -4,6 +4,42 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-15 (session 22 -- Fantomas retired; eggshell-fmt is now the sole F# formatter)
+
+**Decision + migration:** removed Fantomas from the repo entirely and made `eggshell-fmt`
+(`Meta/EggShellFmt/`) the sole F# formatter. Rationale: we already hand-maintained the alignment
+Fantomas could not do, ran a two-tool workflow, and did not run Fantomas as a gate anyway; one tool is
+simpler. `eggshell-fmt` keeps safe whitespace normalization (tabs to 4 spaces, trailing-ws strip,
+CRLF to LF, final newline) plus all column alignment.
+
+**Trade-off (documented, not solved):** `eggshell-fmt` does **not** reflow long lines, break
+signatures, place brackets generally, or fix operator spacing inside expressions -- Fantomas used to.
+Those are now a by-hand + PR-review + `.editorconfig`-as-you-type concern. Docs updated to say so.
+
+**What changed:**
+- `.config/dotnet-tools.json`: dropped the `fantomas` tool entry; bumped `eggshellfmt` to `1.6.4`.
+- `Directory.Build.targets` `EggShellFmtCheck`: now runs `dotnet tool run eggshell-fmt -- --check`.
+- `Fake/Fantomas.fsx` -> `Fake/EggShellFmt.fsx` (module `EggShellFmt`, `checkFormatting` shells
+  `dotnet tool run eggshell-fmt -- --check .`); updated `Fake/Build.fsproj` + `Fake/Includes.fsx`.
+- `.fantomasignore` deleted; its unique excludes (SignalR vendored dirs) moved into `.eggshellfmtignore`.
+  `Meta/EggShellFmt/Program.fs` `loadIgnore` no longer reads `.fantomasignore`.
+- Prose swept: root `README.md`, `CLAUDE.md`, `fsharp/formatting.md` (section 16 rewritten -- 16b is
+  now EggShellFmt, old 16b Fantomas + 16c Rider-uses-Fantomas removed), the `fsharp-format` skill, and
+  `Meta/EggShellFmt/README.md` + `EggShellFmt.fsproj` Description.
+- Regenerated `AppEggShellGallery/src/DocsContent.generated.js` (docs bundle).
+
+**Gotcha (hit + fixed):** XML comments cannot contain `--`. Writing the eggshell-fmt `--` arg
+separator inside the `Directory.Build.targets` comment produced `MSB4024: An XML comment cannot
+contain '--'`, which failed *every* build importing the targets. Reworded the comment to avoid the
+double dash (the `--` in the `<Exec>`/`<Warning>` text is fine -- only comments are constrained).
+
+**Verified:** `dotnet tool restore` resolves eggshell-fmt 1.6.4; `eggshell-fmt --check` runs clean on
+edited files; `install.sh` packs + installs (which imports Directory.Build.targets, proving it's valid
+XML). The `Fake` aggregate build fails only on suites absent from this checkout (pre-existing,
+unrelated).
+
+---
+
 ## 2026-07-15 (session 21 -- iOS picker/inputs unclickable: Fabric drops opacity < 0.01 overlays from hit-testing)
 
 **Root-caused and fixed** the AppTodo iOS bug "the Priority picker does not open / shows no options"

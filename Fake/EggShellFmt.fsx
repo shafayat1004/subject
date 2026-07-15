@@ -4,13 +4,13 @@
 
 namespace Egg.Shell.Fake
 
-module Fantomas =
+module EggShellFmt =
 
     open Fake.Core
     open Fake.IO
 
-    let private executeFantomas workingDirectory (maybeAdditionalParams: list<string>) =
-        let args = "fantomas" :: maybeAdditionalParams
+    let private executeEggShellFmt workingDirectory (maybeAdditionalParams: list<string>) =
+        let args = "tool" :: "run" :: "eggshell-fmt" :: "--" :: maybeAdditionalParams
 
         CreateProcess.fromRawCommand "dotnet" args
         |> CreateProcess.ensureExitCode
@@ -18,5 +18,5 @@ module Fantomas =
         |> Proc.run
 
     let checkFormatting workingDirectory: unit =
-        executeFantomas workingDirectory [ "--check"; "--recurse"; "." ]
+        executeEggShellFmt workingDirectory [ "--check"; "." ]
         |> ignore
