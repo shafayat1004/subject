@@ -12,7 +12,7 @@ module DevEnv =
             System.Environment.GetEnvironmentVariable "DevEnv.Enabled"
             |> System.Boolean.TryParse
         with
-        | false, _ -> false
+        | false, _      -> false
         | true, enabled -> enabled
 
     let applyDevEnvConfigToEcosystem (ecosystem: Ecosystem) (config: IConfiguration) =
@@ -29,9 +29,9 @@ module DevEnv =
         | true, false ->
             ecosystem
         | true, true ->
-            { Name = ecosystem.Name
-              Def = ecosystem.Def
-              Connectors = ecosystem.Connectors
+            { Name              = ecosystem.Name
+              Def               = ecosystem.Def
+              Connectors        = ecosystem.Connectors
               EnforceRateLimits = ecosystem.EnforceRateLimits
               LifeCycles =
                   ecosystem.LifeCycles
@@ -42,8 +42,8 @@ module DevEnv =
                                   { lifeCycle with
                                       MaybeApiAccess =
                                           { AccessRules = [{ Input = MatchAny; Roles = MatchAny; EventTypes = MatchAny; Decision = Grant }]
-                                            AccessPredicate = fun _ _ _ _ -> true
-                                            RateLimitsPredicate = fun _ -> Some [] // no api limits, should be a separate config key?
+                                            AccessPredicate            = fun _ _ _ _ -> true
+                                            RateLimitsPredicate        = fun _ -> Some [] // no api limits, should be a separate config key?
                                             AnonymousCanReadTotalCount = true }
                                           |> Some }
                                   :> ILifeCycle })
@@ -86,8 +86,8 @@ module DevEnv =
                                             { lifeCycle with
                                                 MaybeApiAccess =
                                                     { AccessRules = [{ Input = MatchAny; Roles = MatchAny; EventTypes = MatchAny; Decision = Grant }]
-                                                      AccessPredicate = fun _ _ _ _ -> true
-                                                      RateLimitsPredicate = fun _ -> Some [] // no api limits, should be a separate config key?
+                                                      AccessPredicate            = fun _ _ _ _ -> true
+                                                      RateLimitsPredicate        = fun _ -> Some [] // no api limits, should be a separate config key?
                                                       AnonymousCanReadTotalCount = true }
                                                     |> Some }
                                             :> IReferencedLifeCycle })

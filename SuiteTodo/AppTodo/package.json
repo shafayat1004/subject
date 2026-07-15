@@ -1,0 +1,54 @@
+{
+  "name": "AppTodo",
+  "private": true,
+  "scripts": {
+    "audit:web": "node audit/audit-todo-web.mjs http://127.0.0.1:9080",
+    "observe": "node audit/todo-observe.mjs",
+    "observe:snapshot": "node audit/todo-observe.mjs snapshot",
+    "observe:layout-check": "node audit/todo-observe.mjs workflow layout-check",
+    "observe:open": "node audit/todo-observe.mjs open",
+    "observe:doctor": "node audit/todo-observe.mjs doctor",
+    "observe:setup-devices": "node audit/todo-observe.mjs setup-devices --list",
+    "observe:android": "node audit/todo-observe.mjs snapshot --platform android",
+    "observe:ios": "node audit/todo-observe.mjs snapshot --platform ios",
+    "observe:verify-native": "node audit/todo-observe.mjs workflow verify-native",
+    "observe:verify-ui2-web": "node audit/workflows/verify-ui2-web.mjs --headless",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "appium": "appium",
+    "appium:setup": "appium driver install uiautomator2@2.45.1 && appium driver install xcuitest@7.28.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/plugin-transform-named-capturing-groups-regex": "^7.25.9",
+    "@babel/runtime": "^7.26.0",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-android": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.86.0",
+    "@react-native/metro-config": "0.86.0",
+    "appium": "^2.17.1",
+    "appium-uiautomator2-driver": "^2.45.1",
+    "appium-xcuitest-driver": "^7.28.3",
+    "playwright": "^1.61.1",
+    "webdriverio": "^9.4.5",
+    "yargs": "^17.7.2"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-native-picker/picker": "2.11.4",
+    "react": "file:../../LibClient/node_modules/react",
+    "react-native": "0.86.0",
+    "react-native-gesture-handler": "3.0.2",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "5.8.0",
+    "react-native-worklets": "0.10.2",
+    "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
+  },
+  "engines": {
+    "node": ">=22.11.0"
+  },
+  "engineStrict": true
+}

@@ -4,11 +4,12 @@ module LibClient.Components.Tabs
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions (flex, Overflow, FlexDirection,
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions (flex, Overflow, FlexDirection,
 // backgroundColor, ...) shadow the new-dialect ones and break the make*Styles computation expressions.
 // Reference legacy types/helpers fully-qualified instead (see the xLegacyStyles bridge below).
 
@@ -23,13 +24,16 @@ type Theme = {
 
 [<RequireQualifiedAccess>]
 module private Styles =
-    let scrollView (theme: Theme) =
-        makeScrollViewStyles {
-            Overflow.Visible
-            flex 0
-            backgroundColor theme.BackgroundColor
-            borderBottom    theme.BorderWidth theme.BorderColor
-        }
+    let scrollView =
+        ScrollViewStyles.Memoize(
+            fun (bgColor: Color) (edgeColor: Color) (bottomBorderWidth: int) ->
+                makeScrollViewStyles {
+                    Overflow.Visible
+                    flex 0
+                    backgroundColor bgColor
+                    borderBottom bottomBorderWidth edgeColor
+                }
+        )
 
     let view =
         makeViewStyles {
@@ -41,11 +45,12 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tabs(
-            children: array<ReactElement>,
-            ?styles: array<ScrollViewStyles>,
-            ?theme: Theme -> Theme,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
-            ?key: string
+            children:       array<ReactElement>,
+            ?label:         string,
+            ?styles:        array<ScrollViewStyles>,
+            ?theme:         Theme -> Theme,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
         key |> ignore
 
@@ -53,28 +58,30 @@ type LibClient.Components.Constructors.LC with
 
         // Bridge legacy class-based styles (passed by not-yet-converted render-DSL callers via the
         // parent's `class=` attribute) into the modern styles array. Safe to delete once every caller
-        // passes `styles` directly. See LEARNINGS.md (render-DSL -> F# conversion recipe).
+        // passes `styles` directly. See the gallery docs modernization/render-dsl-retirement.md (conversion recipe).
         let legacyScrollViewStyles : array<ScrollViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ScrollViewStyles> "ReactXP.Components.ScrollView" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ScrollViewStyles> "Rn.Components.ScrollView" styles |]
             | None -> [||]
 
-        RX.ScrollView(
+        Rn.ScrollView(
             horizontal = true,
             styles =
                 [|
-                    Styles.scrollView theTheme
+                    Styles.scrollView theTheme.BackgroundColor theTheme.BorderColor theTheme.BorderWidth
                     yield! legacyScrollViewStyles
                     yield! (styles |> Option.defaultValue [||])
                 |],
             children =
                 elements {
-                    RX.View(
-                        styles   = [| Styles.view |],
-                        children = children
+                    Rn.View(
+                        styles              = [| Styles.view |],
+                        ?accessibilityLabel = label,
+                        accessibilityRole   = AccessibilityRole.TabList,
+                        children            = children
                     )
                 }
         )

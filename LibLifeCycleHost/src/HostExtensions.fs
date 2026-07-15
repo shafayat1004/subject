@@ -87,11 +87,11 @@ type private BiosphereBlobRepo (grainProvider: IBiosphereGrainProvider, grainPar
         }
 
 type private RouterBlobRepo (
-    biosphereGrainProvider: IBiosphereGrainProvider,
+    biosphereGrainProvider:      IBiosphereGrainProvider,
     hostedLifeCyclesStorageType: Map<LifeCycleKey, StorageType>,
-    sqlBlobRepo: SqlServerSubjectBlobRepo,
-    volatileBlobRepo: VolatileSubjectBlobRepo,
-    biosphereBlobRepo: BiosphereBlobRepo) =
+    sqlBlobRepo:                 SqlServerSubjectBlobRepo,
+    volatileBlobRepo:            VolatileSubjectBlobRepo,
+    biosphereBlobRepo:           BiosphereBlobRepo) =
     member private _.SelectBlobRepo (lcKey: LifeCycleKey) : IBlobRepo =
         if biosphereGrainProvider.IsHostedLifeCycle lcKey then
             match hostedLifeCyclesStorageType.TryFind lcKey with
@@ -126,8 +126,8 @@ type private BiosphereSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor,
                    and  'SubjectId            :> SubjectId
                    and  'SubjectId            : comparison>
     (
-        lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>,
-        grainProvider: IBiosphereGrainProvider,
+        lifeCycleDef:   LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>,
+        grainProvider:  IBiosphereGrainProvider,
         grainPartition: GrainPartition
     ) =
     let ecosystemName = lifeCycleDef.Key.EcosystemName
@@ -402,7 +402,7 @@ let private registerLifeCycle
         | StorageType.Custom key, EcosystemStorageSetup.TestDataSeeding ->
             let subjectRepos = serviceProvider.GetRequiredService<CustomStorageHandlers>()
             match subjectRepos.GetSubjectRepo<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>> key serviceProvider with
-            | None -> failwithf "Subject repo not found: %s" key
+            | None   -> failwithf "Subject repo not found: %s" key
             | Some s -> s
 
         | StorageType.Custom _, EcosystemStorageSetup.Test ->
@@ -445,7 +445,7 @@ let private registerLifeCycle
         | StorageType.Custom key, EcosystemStorageSetup.TestDataSeeding -> // assume subject with custom storage doesn't have reminders
             let storageHandlers = serviceProvider.GetRequiredService<CustomStorageHandlers>()
             match storageHandlers.GetCustomStorage<IGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'SubjectId, 'OpError>> key serviceProvider with
-            | None -> failwithf "Storage handler not found: %s" key
+            | None   -> failwithf "Storage handler not found: %s" key
             | Some s -> s
 
         | StorageType.Custom _, EcosystemStorageSetup.Test ->
@@ -658,10 +658,10 @@ type private TransientSideEffectFailureHook () =
 
 
 type SqlServerSetupStartupTask(
-    lifeCycleAdapterCollection: HostedLifeCycleAdapterCollection,
+    lifeCycleAdapterCollection:  HostedLifeCycleAdapterCollection,
     timeSeriesAdapterCollection: TimeSeriesAdapterCollection,
-    sqlServerConnections: SqlServerConnectionStrings,
-    logger: ILogger<SqlServerSetupStartupTask>) =
+    sqlServerConnections:        SqlServerConnectionStrings,
+    logger:                      ILogger<SqlServerSetupStartupTask>) =
 
     interface IStartupTask with
         member _.Execute(_cancellationToken: CancellationToken): Task =

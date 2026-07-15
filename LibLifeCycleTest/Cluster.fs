@@ -16,11 +16,11 @@ type InitializationState =
 | Initialized
 
 type TestPartition = {
-    EcosystemDef:            EcosystemDef
-    GrainPartition:          GrainPartition
-    CapturedInteractions:    ConcurrentDictionary<SubjectId, Subject>
+    EcosystemDef:         EcosystemDef
+    GrainPartition:       GrainPartition
+    CapturedInteractions: ConcurrentDictionary<SubjectId, Subject>
     mutable InitState:       InitializationState
-    NamedValues:             ConcurrentDictionary<string, obj>
+    NamedValues: ConcurrentDictionary<string, obj>
     mutable ConfigOverrides: Map<string, string>
     mutable UserId:          string
     mutable StasisWaitFor:   TimeSpan
@@ -39,14 +39,14 @@ type IClusterScope =
 type ICluster =
     inherit IAsyncDisposable
 
-    abstract member Init: logOutput: (string -> unit) -> Task<unit>
-    abstract member NewScope: TestPartition -> IClusterScope
+    abstract member Init:             logOutput: (string -> unit) -> Task<unit>
+    abstract member NewScope:         TestPartition -> IClusterScope
     abstract member OperationTracker: OperationTracker
     abstract member ShouldExecutePartitionInitializer: bool
 
 type LogicalCluster = internal {
-    Root:          ICluster
-    Partition:     TestPartition
+    Root:      ICluster
+    Partition: TestPartition
 } with
     member this.NewScope() =
         this.Root.NewScope this.Partition

@@ -11,7 +11,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module ContextMenu_PopupTypeExtensions =
     type LibClient.Components.Constructors.LC.ContextMenu with
-        static member Popup(items: List<ContextMenuItem>, hide: unit -> unit, openingEvent: ReactEvent.Action, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Popup(items: List<ContextMenuItem>, hide: unit -> unit, openingEvent: ReactEvent.Action, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Items = items

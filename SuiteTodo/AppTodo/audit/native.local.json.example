@@ -1,0 +1,9 @@
+{
+  "androidPackage": "com.eggshell.apptodo",
+  "androidActivity": "com.eggshell.apptodo.MainActivity",
+  "iosBundleId": "com.eggshell.apptodo",
+  "defaultAndroidAvd": "Medium_Phone_API_35",
+  "defaultIosSimulator": "iPhone 17 Pro Max",
+  "defaultAndroidUdid": null,
+  "deviceOrientation": "portrait"
+}

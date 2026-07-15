@@ -7,7 +7,7 @@ namespace LibClient.Components.Nav.Top
 
 open LibClient
 open LibClient.Responsive
-open ReactXP.LegacyStyles
+open Rn.LegacyStyles
 
 module HeadingStyles =
     type Sizes = {|
@@ -68,10 +68,10 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Responsive
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones and
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions shadow the new-dialect ones and
 // break the make*Styles computation expressions.
 
 [<AutoOpen>]
@@ -79,10 +79,15 @@ module Nav_Top_Heading =
 
     [<RequireQualifiedAccess>]
     module private Styles =
+        // White color and 24px Desktop / 16px Handheld match HeadingStyles.styles defaults
+        // and DefaultComponentsTheme.Nav.Top.HeadingStyles.Theme.All. The legacy makeCustomize
+        // system registered these values but the pure-F# component doesn't read them.
         let view =
             makeTextStyles {
                 flex 1
                 FontWeight.Normal
+                color Color.White
+                fontSize 24
             }
 
         let viewHandheld =
@@ -90,6 +95,7 @@ module Nav_Top_Heading =
                 AlignSelf.Center
                 AlignItems.Center
                 TextAlign.Center
+                fontSize 16
             }
 
     type LibClient.Components.Constructors.LC.Nav.Top with
@@ -97,7 +103,7 @@ module Nav_Top_Heading =
         static member Heading(
                 text:           string,
                 ?styles:        array<TextStyles>,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
             key |> ignore
@@ -107,9 +113,9 @@ module Nav_Top_Heading =
             let legacyTextStyles : array<TextStyles> =
                 match xLegacyStyles with
                 | Some ls ->
-                    match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-                    | []  -> [||]
-                    | s   -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<TextStyles> "ReactXP.Components.Text" s |]
+                    match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                    | [] -> [||]
+                    | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<TextStyles> "Rn.Components.Text" s |]
                 | None -> [||]
 
             LC.With.ScreenSize (fun screenSize ->

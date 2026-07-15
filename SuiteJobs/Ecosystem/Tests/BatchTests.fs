@@ -36,10 +36,10 @@ let ``Create awaiting parallel batch``
         let! now = Ecosystem.now
         let! batch =
             BatchConstructor.NewProper (batchId,
-                { Description = None
+                { Description     = None
                   JobsToConstruct = batchJobsToConstruct
-                  Parent = BatchParent.Batch (awaitForBatchId, overrideAwaitForStatus |> Option.defaultValue AwaitingForBatchStatus.OnlySucceeded) |> Some
-                  SentOn = now })
+                  Parent          = BatchParent.Batch (awaitForBatchId, overrideAwaitForStatus |> Option.defaultValue AwaitingForBatchStatus.OnlySucceeded) |> Some
+                  SentOn          = now })
 
             |> Ecosystem.construct batchLifeCycle
             |> Ecosystem.thenAssertOk
@@ -55,9 +55,10 @@ let ``Create simple sequential batch of two jobs`` (awaitingForJobStatus: Awaiti
         let! jobData1 = genTypicalJobConstructorCommonData
         let! childJobId = genJobId
         let! jobData2 = genTypicalJobConstructorCommonData
-        let sequentialParams =
-            { AwaitingForJobStatus = awaitingForJobStatus
-              NumberOfThreads = PositiveInteger.One }
+        let sequentialParams = {
+            AwaitingForJobStatus = awaitingForJobStatus
+            NumberOfThreads      = PositiveInteger.One
+        }
         let batchJobsToConstruct = BatchJobsToConstruct.Sequential ([parentJobId, jobData1; childJobId, jobData2], sequentialParams)
 
         let! now = Ecosystem.now
@@ -156,8 +157,8 @@ let ``All batch jobs started, one failed then deleted, others successful, batch 
             //
             match j.Status with
             | JobStatus.Finished true -> j.Id <> unluckyJobId
-            | JobStatus.Unfinished -> j.Id = unluckyJobId
-            | _ -> false) then
+            | JobStatus.Unfinished    -> j.Id = unluckyJobId
+            | _                       -> false) then
             ()
         else
             failwith "Some jobs in the batch have unexpected status"
@@ -194,7 +195,7 @@ let ``Batch cancelled before jobs started, ends in unsuccessfully Finished statu
             |> Ecosystem.thenAssertEventually batchLifeCycle (fun b ->
                 match b.ProperBody.ActivationStatus, b.Status with
                 | BatchActivationStatus.Activated _, BatchStatus.Finished (* succeeded *) false -> true
-                | _ -> false)
+                | _                                                                             -> false)
             |> Ecosystem.thenIgnore
     }
 
@@ -209,7 +210,7 @@ let ``Batch cancelled after it finished successfully, remains in successfully Fi
             |> Ecosystem.thenAssertEventually batchLifeCycle (fun b ->
                 match b.ProperBody.ActivationStatus, b.Status with
                 | BatchActivationStatus.Activated _, BatchStatus.Finished (* succeeded *) true -> true
-                | _ -> false)
+                | _                                                                            -> false)
             |> Ecosystem.thenIgnore
     }
 

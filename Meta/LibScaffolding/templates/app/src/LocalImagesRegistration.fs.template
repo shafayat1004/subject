@@ -16,13 +16,6 @@ let localImage (filename: string) : ImageSource =
         #else
             ImageSource.restricted_ofNativeImport (importDefault "${entryDir}/../public-dev/images/image-not-found.png")
         #endif
-
-    | "/images/loader.gif" ->
-        #if EGGSHELL_PLATFORM_IS_WEB
-            ImageSource.restricted_ofWebRelativePath filename
-        #else
-            ImageSource.restricted_ofNativeImport (importDefault "${entryDir}/../public-dev/images/loader.gif")
-        #endif
     | _ ->
             Log.Error (sprintf "Image '%s' not found, at least not by the eggshell glob pattern. Maybe restart eggshell to see if that fixes the problem?" filename)
 

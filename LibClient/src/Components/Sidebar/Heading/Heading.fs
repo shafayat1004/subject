@@ -3,8 +3,8 @@ module LibClient.Components.Sidebar_Heading
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 type Level =
 | Primary
@@ -23,34 +23,39 @@ module LC =
 open LC.Sidebar.Heading
 
 module private Styles =
-    let view = makeViewStyles { marginHorizontal 18; marginVertical 18 }
+    // Headings sit close to the items they label (more space above, less below), so a
+    // heading visually groups with the section beneath it rather than floating between rows.
+    let view = makeViewStyles { marginHorizontal 18; marginTop 22; marginBottom 6 }
 
     let text =
         TextStyles.Memoize(
-            fun (theme: Theme) (level: Level) ->
-                let (textColor, fontSz) =
-                    match level with
-                    | Primary   -> (theme.PrimaryTextColor,   theme.PrimaryFontSize)
-                    | Secondary -> (theme.SecondaryTextColor, theme.SecondaryFontSize)
-                makeTextStyles { color textColor; fontSize fontSz }
+            fun (textColor: Color) (labelFontSize: int) ->
+                // Uppercase + semibold + letter-spacing gives a section label a distinct
+                // "heading" texture that reads apart from the normal-case, heavier item rows.
+                makeTextStyles { color textColor; fontSize labelFontSize; FontWeight.W600; letterSpacing 1 }
         )
+
+    let textFor (theme: Theme) (level: Level) =
+        match level with
+        | Primary   -> text theme.PrimaryTextColor theme.PrimaryFontSize
+        | Secondary -> text theme.SecondaryTextColor theme.SecondaryFontSize
 
 type LibClient.Components.Constructors.LC.Sidebar with
     [<Component>]
-    static member Heading(text: string, ?level: Level, ?styles: array<TextStyles>, ?theme: Theme -> Theme, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
+    static member Heading(text: string, ?level: Level, ?styles: array<TextStyles>, ?theme: Theme -> Theme, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
         key |> ignore
         let theLevel = defaultArg level Level.Primary
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
-                | s  -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" s |]
+                | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
-        RX.View(
-            styles = [| Styles.view; yield! legacyViewStyles |],
+        Rn.View(
+            styles   = [| Styles.view; yield! legacyViewStyles |],
             children = [|
-                LC.UiText(text, styles = [| Styles.text theTheme theLevel; yield! defaultArg styles [||] |])
+                LC.UiText(text.ToUpperInvariant(), styles = [| Styles.textFor theTheme theLevel; yield! defaultArg styles [||] |])
             |]
         )

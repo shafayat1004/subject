@@ -37,11 +37,11 @@ with
 
 /// Information required to rehydrate and run the job
 type JobPayload = {
-    Type: string
-    Method: string
+    Type:           string
+    Method:         string
     ParameterTypes: string
-    Arguments: string
-    CustomContext: string
+    Arguments:      string
+    CustomContext:  string
 }
 
 [<RequireQualifiedAccess>]
@@ -66,7 +66,7 @@ type AwaitingForBatchStatus =
 
 [<RequireQualifiedAccess>]
 type PlacedBy = // who created a Placeholder job or batch
-| Job of JobId
+| Job   of JobId
 | Batch of BatchId
 | Client
 
@@ -169,11 +169,11 @@ type JobPayload with
             and! arguments = reqWith Codecs.string "Arguments" (fun x -> Some x.Arguments)
             and! customContext = reqWith Codecs.string "CustomContext" (fun x -> Some x.CustomContext)
             return {
-                Type = ``type``
-                Method = method
+                Type           = ``type``
+                Method         = method
                 ParameterTypes = parameterTypes
-                Arguments = arguments
-                CustomContext = customContext
+                Arguments      = arguments
+                CustomContext  = customContext
              }
         }
     static member get_Codec () = ofObjCodec (JobPayload.get_ObjCodec_V1 ())

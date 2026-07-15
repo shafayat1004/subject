@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Native_MarkerTypeExtensions =
     type ThirdParty.Map.Components.Constructors.Map.Native with
-        static member Marker(coordinate: LatLng, draggable: bool, image: ImageSource, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Marker(coordinate: LatLng, draggable: bool, image: ImageSource, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Coordinate = coordinate

@@ -54,7 +54,7 @@ type private RequestTelemetryProcessor(next: ITelemetryProcessor) =
     static let shouldSendLifeCycleTelemetry (req: RequestTelemetry) =
         // send telemetry for all not OK responses
         req.Success.HasValue = false ||
-        req.Success.Value = false ||
+        req.Success.Value    = false ||
         req.Properties.ContainsKey "RateLimitExceededForKeys" ||
         // and for OK responses unless requested to skip
         not (req.Properties.ContainsKey "SkipTelemetryOnSuccess")
@@ -121,7 +121,7 @@ type private DependencyTelemetryProcessor(next: ITelemetryProcessor) =
 [<AbstractClass>]
 type AppInsightsOperationTrackerBase (telemetryClient: TelemetryClient) =
     abstract RootParentActivityId: partition: GrainPartition -> Option<string>
-    abstract OnActivityStarted: partition: GrainPartition -> activityId: string -> telemetry: DependencyTelemetry -> unit
+    abstract OnActivityStarted:    partition: GrainPartition -> activityId: string -> telemetry: DependencyTelemetry -> unit
 
     interface OperationTracker with
         member this.TrackOperation (input: TrackedOperationInput) (run: unit -> Task<TrackedOperationResult<'T>>) : Task<'T> =
@@ -161,7 +161,7 @@ type AppInsightsOperationTrackerBase (telemetryClient: TelemetryClient) =
                             this.OnActivityStarted input.Partition activity.Id op.Telemetry
 
                             let! result = run ()
-                            result.AfterRunProperties |> Seq.iter op.Telemetry.Properties.Add
+                            result.AfterRunProperties                |> Seq.iter op.Telemetry.Properties.Add
                             op.Telemetry.Success <- result.IsSuccess |> Option.toNullable
                             return result.ReturnValue
                         with
@@ -207,7 +207,7 @@ let private getIpChain
     let xffHeaderName, appendRemoteIp =
         match chainType with
         | ProcessedIpChain -> "X-Forwarded-For", true
-        | RawIpChain -> "X-Egg-Original-IP-Chain", false
+        | RawIpChain       -> "X-Egg-Original-IP-Chain", false
 
     request.Headers
         .GetCommaSeparatedValues(xffHeaderName)
@@ -276,9 +276,9 @@ let addTelemetryEx<'OperationTracker when 'OperationTracker :> AppInsightsOperat
                                 let maybeQueryVersion = getMaybeStringValue httpContext.Request.Query["AppVersion"]
 
                                 match maybeHeaderVersion, maybeQueryVersion with
-                                | Some headerVersion, _ -> Some headerVersion
+                                | Some headerVersion, _   -> Some headerVersion
                                 | None, Some queryVersion -> Some queryVersion
-                                | None, None -> None
+                                | None, None              -> None
                                 |> Option.iter (fun appVersion -> telemetry.Context.Component.Version <- appVersion)
 
                                 [
@@ -387,8 +387,8 @@ let addTelemetryEx<'OperationTracker when 'OperationTracker :> AppInsightsOperat
         |> Seq.filter (fun m -> m.Name = nameof(ApplicationInsightsExtensions.AddApplicationInsightsTelemetryProcessor) && m.IsGenericMethod)
         |> Seq.head
         |> fun genericMethod ->
-            genericMethod.MakeGenericMethod([| typeof<SlowSqlDependencies> |]).Invoke(null, [| serviceCollection |]) |> ignore
-            genericMethod.MakeGenericMethod([| typeof<RequestTelemetryProcessor> |]).Invoke(null, [| serviceCollection |]) |> ignore
+            genericMethod.MakeGenericMethod([| typeof<SlowSqlDependencies> |]).Invoke(null, [| serviceCollection |])          |> ignore
+            genericMethod.MakeGenericMethod([| typeof<RequestTelemetryProcessor> |]).Invoke(null, [| serviceCollection |])    |> ignore
             genericMethod.MakeGenericMethod([| typeof<DependencyTelemetryProcessor> |]).Invoke(null, [| serviceCollection |]) |> ignore
 
 let addTelemetry (instrumentationKey: string) (roleName: string) (serviceCollection: IServiceCollection) (developerMode: bool) (isWorkerService: bool) : unit =

@@ -1,0 +1,23 @@
+---
+description: UI tasks — decide framework vs app first; prefer extending LibClient when reusable
+alwaysApply: true
+---
+
+# Framework-first UI decisions
+
+Before implementing any UI task that touches a component (toggle, picker, dialog, input, list row, etc.):
+
+1. **Decide where the fix belongs.** Ask: *Will other apps need this behavior/layout/a11y?* *Is the bug in a primitive (Pressable, Dialog, Picker, layout) or only in app theming?*
+2. **Prefer LibClient / LibRouter when reusable.** While few external consumers exist, we can extend framework components freely. Add or improve a primitive (`LC.SegmentedControl`, picker dialog close path, dialog centering) instead of one-off app glue when the pattern is generic.
+3. **App layer is for app-specific only:** palette tokens, copy/i18n, domain types, layout composition, and theme overrides via `Themes.Set` / `ComponentsTheme`. Do not duplicate gesture/animation/dialog lifecycle logic in `Suite*` / `App*` if it belongs in `LibClient`.
+4. **Gallery:** new or materially changed `LibClient` components get a pure-F# gallery page in `AppEggShellGallery` (see `CLAUDE.md` rule 10).
+5. **Validate framework edits in the running app.** LibClient/LibRouter changes may not appear until Fable recompiles those files into the app bundle — see `build-validation.mdc` § Framework dependency rebuild.
+
+## Quick rubric
+
+| Situation | Where to change |
+|-----------|-----------------|
+| Sliding segmented control, swipe thresholds, dialog dismiss | `LibClient` component |
+| Dark palette, row shadows, todo-specific chips | App theme (`Colors.fs`, `TodoTheme.fs`) |
+| Picker opens two overlays / wrong close semantics | `LibClient` picker + `LibRouter` navigation |
+| Single screen spacing in one app route | App styles, unless the primitive lacks a sizing API |

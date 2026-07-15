@@ -4,9 +4,10 @@ module LibClient.Components.ToggleButtons
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module ToggleButtons =
@@ -41,9 +42,10 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member ToggleButtons<'T when 'T: comparison>(
             buttons: Group<'T> -> ReactElement,
-            value: SelectableValue<'T>,
-            ?key: string,
-            ?styles : array<ViewStyles>
+            value:   SelectableValue<'T>,
+            ?label:  string,
+            ?key:    string,
+            ?styles: array<ViewStyles>
         ) : ReactElement =
         key |> ignore
 
@@ -60,8 +62,10 @@ type LibClient.Components.Constructors.LC with
             [| value |]
         )
 
-        RX.View(
-            styles = [|
+        Rn.View(
+            ?accessibilityLabel = label,
+            accessibilityRole   = AccessibilityRole.RadioGroup,
+            styles              = [|
                 Styles.view
                 yield! (styles |> Option.defaultValue [||])
             |],

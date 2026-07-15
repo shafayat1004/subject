@@ -1,4 +1,4 @@
-// NOTE there's a lot more available in the ReactXP PopupOptions which we are
+// NOTE there's a lot more available in the Rn PopupOptions which we are
 // not exposing here. We can add this functionality when needed.
 [<AutoOpen>]
 module LibClient.Components.Popup
@@ -60,11 +60,11 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Popup(
-            render:    unit -> ReactElement,
-            connector: Connector,
-            ?id:       string,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
-            ?key:      string
+            render:         unit -> ReactElement,
+            connector:      Connector,
+            ?id:            string,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:           string
         ) : ReactElement =
         key           |> ignore
         xLegacyStyles |> ignore
@@ -79,19 +79,19 @@ type LibClient.Components.Constructors.LC with
                 connector.SetCallbacks
                     {
                         Show = (fun (anchor: ReactElement) ->
-                            let options = createObj [
-                                "getAnchor"   ==> fun () -> anchor
-                                "renderPopup" ==> fun (_anchorPosition: obj, _anchorOffset: int, _popupWidth: int, _popupHeight: int) ->
-                                    render ()
-                                "onDismiss"   ==> fun () -> connector.CallOnDismissCallbacks ()
-                            ]
-                            ReactXP.Helpers.ReactXPRaw?Popup?show(options, popupId)
+                            let options =
+                                Rn.Popup.popupShowOptions
+                                    (fun () -> anchor :> obj)
+                                    (fun (_anchorPosition: obj) (_anchorOffset: int) (_popupWidth: int) (_popupHeight: int) ->
+                                        render ())
+                                    (fun () -> connector.CallOnDismissCallbacks ())
+                            Rn.Popup.show(options, popupId)
                         )
                         Hide = (fun () ->
-                            ReactXP.Helpers.ReactXPRaw?Popup?dismiss(popupId)
+                            Rn.Popup.dismiss(popupId)
                         )
                         IsShown = (fun () ->
-                            ReactXP.Helpers.ReactXPRaw?Popup?isDisplayed(popupId)
+                            Rn.Popup.isDisplayed(popupId)
                         )
                     }
 

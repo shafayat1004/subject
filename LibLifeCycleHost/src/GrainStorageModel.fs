@@ -58,13 +58,13 @@ with
     member this.VersionedSubject: VersionedSubject<'Subject, 'SubjectId> =
         {
             Subject = this.CurrentSubjectState.Subject
-            AsOf = this.CurrentSubjectState.LastUpdatedOn
+            AsOf    = this.CurrentSubjectState.LastUpdatedOn
             Version = this.Version
         }
 
 and SideEffectGroup<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError> = {
-    SequenceNumber: GrainSideEffectSequenceNumber
-    SideEffects: NonemptyMap<GrainSideEffectId, GrainSideEffect<'LifeAction, 'OpError>>
+    SequenceNumber:        GrainSideEffectSequenceNumber
+    SideEffects:           NonemptyMap<GrainSideEffectId, GrainSideEffect<'LifeAction, 'OpError>>
     RehydratedFromStorage: bool
 }
 with
@@ -74,7 +74,7 @@ with
 and GrainSideEffectSequenceNumber = uint64
 
 and UpdatePermanentFailuresResult<'LifeAction when 'LifeAction :> LifeAction> = {
-    Last: LastUpdatePermanentFailuresResult
+    Last:                 LastUpdatePermanentFailuresResult
     SideEffectIdsToRetry: Map<string, NonemptySet<GrainSideEffectId>> // failed side effects by subjectIdStr
 }
 
@@ -89,7 +89,7 @@ and SubjectWriteData<'Subject, 'SubjectId, 'LifeAction, 'LifeEvent, 'OpError
                       and  'OpError     :> OpError> = {
     UpdatedSubjectState: SubjectState<'Subject, 'SubjectId>
     TraceContext:        TraceContext
-    ReminderUpdate:   Option<ReminderUpdate>
+    ReminderUpdate:      Option<ReminderUpdate>
     NextSideEffectSeq:   GrainSideEffectSequenceNumber
     SideEffectGroup:     Option<SideEffectGroup<'LifeAction, 'OpError>>
     BlobActions:         List<BlobAction>
@@ -170,8 +170,8 @@ with
                         None
                     | IndexAction.PromotedInsertNumeric (promotedKey, promotedValue, baseKey, baseValue) -> Some (Choice1Of2 (promotedKey, promotedValue), Choice1Of2 (baseKey, baseValue))
                     | IndexAction.PromotedDeleteNumeric (promotedKey, promotedValue, baseKey, baseValue) -> Some (Choice2Of2 (promotedKey, promotedValue), Choice1Of2 (baseKey, baseValue))
-                    | IndexAction.PromotedInsertString (promotedKey, promotedValue, baseKey, baseValue) -> Some (Choice1Of2 (promotedKey, promotedValue), Choice2Of2 (baseKey, baseValue))
-                    | IndexAction.PromotedDeleteString (promotedKey, promotedValue, baseKey, baseValue) -> Some (Choice2Of2 (promotedKey, promotedValue), Choice2Of2 (baseKey, baseValue)))
+                    | IndexAction.PromotedInsertString (promotedKey, promotedValue, baseKey, baseValue)  -> Some (Choice1Of2 (promotedKey, promotedValue), Choice2Of2 (baseKey, baseValue))
+                    | IndexAction.PromotedDeleteString (promotedKey, promotedValue, baseKey, baseValue)  -> Some (Choice2Of2 (promotedKey, promotedValue), Choice2Of2 (baseKey, baseValue)))
                 |> List.groupBy fst
                 |> List.map (fun (insertOrDelete, baseValues) ->
                     let baseValues = baseValues |> List.map snd
@@ -232,9 +232,9 @@ and PreparedSubjectWriteData<'Subject, 'SubjectId, 'LifeAction, 'LifeEvent, 'OpE
                       and  'LifeEvent   :> LifeEvent
                       and  'LifeEvent   : comparison
                       and  'OpError     :> OpError> = {
-    UpdatedSubjectState:  SubjectState<'Subject, 'SubjectId>
-    TraceContext:         TraceContext
-    ReminderUpdate:    Option<ReminderUpdate>
+    UpdatedSubjectState: SubjectState<'Subject, 'SubjectId>
+    TraceContext:        TraceContext
+    ReminderUpdate:      Option<ReminderUpdate>
     // transactions don't support transient side effects, as we can't guarantee that they will commit.
     // Also they can't be serialized
     PersistedSideEffects: List<CodecFriendlyGrainPersistedSideEffect<'LifeAction, 'OpError>>
@@ -242,7 +242,7 @@ and PreparedSubjectWriteData<'Subject, 'SubjectId, 'LifeAction, 'LifeEvent, 'OpE
     IndexActions:         List<PreparedIndexAction>
     // capture raised life events to resolve trigger subscription side effects upon commit
     // Caution: it goes against idea of precalculating everything on prepare, is this OK?
-    RaisedLifeEvents:     List<'LifeEvent>
+    RaisedLifeEvents: List<'LifeEvent>
 
     // TODO: consider explicitly assigning an initial version number and passing through to SQL.
 }
@@ -272,12 +272,12 @@ with
                 | PreparedIndexAction.PromotedInsert (promotedKey, promotedValue, numericKeyValues, stringKeyValues) ->
                     [
                         yield! numericKeyValues |> Seq.map (fun (baseKey, baseValue) -> IndexAction.PromotedInsertNumeric (promotedKey, promotedValue, baseKey, baseValue))
-                        yield! stringKeyValues |> Seq.map (fun (baseKey, baseValue) -> IndexAction.PromotedInsertString (promotedKey, promotedValue, baseKey, baseValue))
+                        yield! stringKeyValues  |> Seq.map (fun (baseKey, baseValue) -> IndexAction.PromotedInsertString (promotedKey, promotedValue, baseKey, baseValue))
                     ]
                 | PreparedIndexAction.PromotedDelete (promotedKey, promotedValue, numericKeyValues, stringKeyValues) ->
                     [
                         yield! numericKeyValues |> Seq.map (fun (baseKey, baseValue) -> IndexAction.PromotedDeleteNumeric (promotedKey, promotedValue, baseKey, baseValue))
-                        yield! stringKeyValues |> Seq.map (fun (baseKey, baseValue) -> IndexAction.PromotedDeleteString (promotedKey, promotedValue, baseKey, baseValue))
+                        yield! stringKeyValues  |> Seq.map (fun (baseKey, baseValue) -> IndexAction.PromotedDeleteString (promotedKey, promotedValue, baseKey, baseValue))
                     ])
 
         let overrideTraceContext = { this.TraceContext with ParentId = overrideTraceContextParentId }
@@ -370,7 +370,7 @@ and [<RequireQualifiedAccess>] UniqueIndexToReleaseOnRollback =
     | String  of Key: string * Value: string
 
 and SubscriptionsToAdd<'LifeEvent when 'LifeEvent :> LifeEvent and 'LifeEvent : comparison> = {
-    Subscriber: SubjectPKeyReference
+    Subscriber:       SubjectPKeyReference
     NewSubscriptions: Map<SubscriptionName, 'LifeEvent>
 }
 
@@ -486,14 +486,14 @@ with
         }
 
 type UpsertDedupData = {
-    DedupInfo: SideEffectDedupInfo
-    IsInsert: bool
+    DedupInfo:                SideEffectDedupInfo
+    IsInsert:                 bool
     EvictedDedupInfoToDelete: Option<SideEffectDedupInfo * DateTimeOffset>
 }
 
 type UpdateSubjectSuccessResult = {
-    NewETag: string
-    NewVersion: uint64
+    NewETag:             string
+    NewVersion:          uint64
     SkipHistoryOnNextOp: bool
 }
 
@@ -512,8 +512,8 @@ type ReadStateResult<'Subject, 'Constructor, 'LifeAction, 'LifeEvent, 'OpError, 
 }
 
 type InitializeSubjectSuccessResult = {
-    ETag: string
-    Version: uint64
+    ETag:                string
+    Version:             uint64
     SkipHistoryOnNextOp: bool
 }
 
@@ -615,13 +615,13 @@ type PreparedSubjectWriteData<'Subject, 'SubjectId, 'LifeAction, 'LifeEvent, 'Op
                 |> Option.orElseWith (fun () -> maybeOperationBy |> Option.map (fun operationBy -> { TelemetryUserId = operationBy; TelemetrySessionId = None; ParentId = ""; }))
                 |> Option.defaultValue emptyTraceContext
             return
-                { UpdatedSubjectState = updatedSubjectState
-                  TraceContext = traceContext
-                  ReminderUpdate = reminderUpdate
+                { UpdatedSubjectState  = updatedSubjectState
+                  TraceContext         = traceContext
+                  ReminderUpdate       = reminderUpdate
                   PersistedSideEffects = persistedSideEffects
-                  BlobActions = blobActions
-                  IndexActions = indexActions
-                  RaisedLifeEvents = maybeRaisedEvents |> Option.defaultValue [] }
+                  BlobActions          = blobActions
+                  IndexActions         = indexActions
+                  RaisedLifeEvents     = maybeRaisedEvents |> Option.defaultValue [] }
         }
 
     static member CastUnsafe (data: PreparedSubjectWriteData<#Subject<'SubjectId>, 'SubjectId, #LifeAction, #LifeEvent, #OpError>) : PreparedSubjectWriteData<'Subject, 'SubjectId, 'LifeAction, 'LifeEvent, 'OpError> =

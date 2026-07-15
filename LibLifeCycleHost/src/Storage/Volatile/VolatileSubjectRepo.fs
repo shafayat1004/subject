@@ -41,7 +41,7 @@ type VolatileSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEve
                 let! current = grain.Get { SessionHandle = SessionHandle.NoSession; CallOrigin = CallOrigin.Internal }
                 let maybeVersionedSubject =
                     match current with
-                    | Ok maybeSubject -> maybeSubject
+                    | Ok maybeSubject                  -> maybeSubject
                     | Error GrainGetError.AccessDenied -> failwith "Unexpected access denial"
                 return maybeVersionedSubject
             }

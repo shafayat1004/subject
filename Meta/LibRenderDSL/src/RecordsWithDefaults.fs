@@ -25,7 +25,7 @@ let unwrapOption (wrappedType: string): Result<string, string> =
         match (theMatch.Groups.Item(2).Value.Trim(), theMatch.Groups.Item(3).Value.Trim()) with
         | (t, "") -> Ok t
         | ("", t) -> Ok t
-        | _ -> failwith (sprintf "We must have screwed up the optionTypeRegex, input was: %s" wrappedType)
+        | _       -> failwith (sprintf "We must have screwed up the optionTypeRegex, input was: %s" wrappedType)
 
 let parseField (line: string) : Result<Option<TaggedRecordField>, string> =
     let theMatch = taggedTypeFieldRegex.Match line
@@ -36,9 +36,9 @@ let parseField (line: string) : Result<Option<TaggedRecordField>, string> =
         | false -> Error (sprintf "Record field line malformed: %s" line)
 
     | true ->
-        let name     = theMatch.Groups.Item(1).Value
-        let theType  = theMatch.Groups.Item(2).Value.Trim()
-        let autoWrap = theMatch.Groups.Item(4).Value = "defaultWithAutoWrap"
+        let name              = theMatch.Groups.Item(1).Value
+        let theType           = theMatch.Groups.Item(2).Value.Trim()
+        let autoWrap          = theMatch.Groups.Item(4).Value = "defaultWithAutoWrap"
         let maybeDefaultValue = theMatch.Groups.Item(5).Value.Trim()
         match maybeDefaultValue with
         | "" -> Ok (Some (Regular(name, theType)))

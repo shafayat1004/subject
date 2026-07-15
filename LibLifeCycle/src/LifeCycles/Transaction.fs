@@ -62,9 +62,9 @@ let construction
                 TransactionId = transactionId
                 StartedOn     = now
                 // extremely generous default timeout because commit and rollback can come from external clients
-                Timeout       = timeout |> Option.defaultValue (TimeSpan.FromMinutes 20.)
-                NextNo        = (2us, uint16 (runningOperations.Count.Value + 1))
-                State         = SubjectTransactionState.Running (runningOperations, None)
+                Timeout = timeout |> Option.defaultValue (TimeSpan.FromMinutes 20.)
+                NextNo  = (2us, uint16 (runningOperations.Count.Value + 1))
+                State   = SubjectTransactionState.Running (runningOperations, None)
             }
 
             // start the operations in transaction
@@ -228,7 +228,7 @@ let transition<'Op when 'Op : comparison>
                     return
                         { subjectTransaction with
                             NextNo = (nextBatchNo + 1us, nextOpNo + (uint16 extraOps.Count.Value) + 1us)
-                            State = SubjectTransactionState.Running (statuses, None) }
+                            State  = SubjectTransactionState.Running (statuses, None) }
 
                 // ... or be a subset of prepared ops (idempotent retry)
                 elif sameOps.Count = extraOps.Count.Value then
@@ -402,9 +402,9 @@ let idGeneration (_env: SubjectTransactionEnvironment) ctor : IdGenerationResult
 
 let private lifeEventSatisfies (input: LifeEventSatisfiesInput<SubjectTransactionLifeEvent>) =
     match input.Subscribed, input.Raised with
-    | SubjectTransactionLifeEvent.OnFinalized _, SubjectTransactionLifeEvent.OnFinalized _ -> true
+    | SubjectTransactionLifeEvent.OnFinalized _, SubjectTransactionLifeEvent.OnFinalized _               -> true
     | SubjectTransactionLifeEvent.OnPreparedOrFailed _, SubjectTransactionLifeEvent.OnPreparedOrFailed _ -> true
-    | _ -> false
+    | _                                                                                                  -> false
 
 let timers<'Op when 'Op : comparison> (subjectTransaction: SubjectTransaction<'Op>) : List<Timer<SubjectTransactionAction<'Op>>> =
     [

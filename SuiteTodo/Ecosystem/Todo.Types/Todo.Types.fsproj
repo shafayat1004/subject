@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Configurations>Debug;Release;Fable Debug;Fable Release</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Fable Debug' Or '$(Configuration)'=='Fable Release'">
+    <DefineConstants>FABLE_COMPILER</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyName>Todo.Types</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Egg.Todo.Types</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Todo ecosystem types</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\LibLangFsharp\src\LibLangFsharp.fsproj" />
+    <ProjectReference Include="..\..\..\LibLifeCycleTypes\src\LibLifeCycleTypes.fsproj" />
+  </ItemGroup>
+  <ItemGroup Label="Subject">
+    <Compile Include="Todo.fs" />
+    <Compile Include="TodoListView.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EcosystemDef.fs" />
+  </ItemGroup>
+</Project>

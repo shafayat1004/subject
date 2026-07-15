@@ -104,11 +104,11 @@ and ParsedParts (partTypes: List<PartType>, groups: GroupCollection, query: stri
                 | Integer ->
                     match System.Int32.ParseOption rawValue with
                     | Some value -> value :> obj
-                    | None -> failwith (sprintf "We're supposed to be guaranteed an integer here given how parsing works below, so must be an implementation error: %s" rawValue)
+                    | None       -> failwith (sprintf "We're supposed to be guaranteed an integer here given how parsing works below, so must be an implementation error: %s" rawValue)
                 | Guid ->
                     match System.Guid.ParseOption rawValue with
                     | Some value -> value :> obj
-                    | None -> failwith (sprintf "Parsing group %i, raw value was %s. Failed to parse Guid." i rawValue)
+                    | None       -> failwith (sprintf "Parsing group %i, raw value was %s. Failed to parse Guid." i rawValue)
                 | Json | String ->
                     (LibClient.JsInterop.decodeURIComponent rawValue) :> obj
                 | JsonBase64 ->
@@ -190,21 +190,21 @@ type DialogsState<'ResultfulDialog>() =
         unencodableDialogs.TryFind token
         |> Option.bind (function
             | UnencodableDialog.Resultful value -> Some value
-            | _ -> None
+            | _                                 -> None
         )
 
     member _.TryGetSystem (OpenDialogToken token: OpenDialogToken) : Option<SystemDialog> =
         unencodableDialogs.TryFind token
         |> Option.bind (function
             | UnencodableDialog.System value -> Some value
-            | _ -> None
+            | _                              -> None
         )
 
     member _.TryGetAdHoc (OpenDialogToken token: OpenDialogToken) : Option<(DialogCloseMethod -> ReactEvent.Action -> unit) -> ReactElement> =
         unencodableDialogs.TryFind token
         |> Option.bind (function
             | UnencodableDialog.AdHoc value -> Some value
-            | _ -> None
+            | _                             -> None
         )
 
     member _.RemoveStateFor (OpenDialogToken token: OpenDialogToken) : unit =
@@ -246,7 +246,7 @@ let private buildRegexAndPartTypes (pattern: string) : Regex * List<PartType> =
                 | "{json64}"         -> (JsonBase64,     urlEncodedFragmentHackRegexSrc)
                 | "{string}"         -> (String,         urlEncodedFragmentHackRegexSrc)
                 | "{nonemptystring}" -> (NonemptyString, nonemptyUrlEncodedFragmentHackRegexSrc)
-                | _ -> failwith (sprintf "Unknown URL parameter capture — %s" theMatch.Value)
+                | _                  -> failwith (sprintf "Unknown URL parameter capture — %s" theMatch.Value)
 
             helper
                 (parameterRegex.Replace(accRegexSource, partTypeRegexSource, 1))
@@ -345,7 +345,7 @@ let (* private but called from inline *) makeConversionsHelper<'Route, 'Resultle
 
         let path =
             match maybeMatch with
-            | None -> failwith (sprintf "No match url making function for target %O" target)
+            | None               -> failwith (sprintf "No match url making function for target %O" target)
             | Some (spec, parts) -> spec.PartsToUrl parts
 
         {

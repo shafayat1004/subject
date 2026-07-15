@@ -47,7 +47,7 @@ with
         | BlobAction.Delete blobId ->
             match blobsById.TryRemove (blobIdToKey blobId) with
             | true, (_, revision) when blobId.Revision = revision -> ()
-            | _ -> failwith "Blob not found or changed concurrently, can't delete."
+            | _                                                   -> failwith "Blob not found or changed concurrently, can't delete."
 
     member this.GetBlobData (key: Guid * LocalSubjectPKeyReference) : Option<BlobData> =
         match blobsById.TryGetValue key with
@@ -79,10 +79,10 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                                   and  'LifeEvent    : comparison
                                   and  'SubjectId    :> SubjectId
                                   and  'SubjectId    : comparison> (
-                                      logger: Microsoft.Extensions.Logging.ILogger<TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'SubjectId, 'OpError>>,
-                                      blobStorage: TestBlobStorage,
+                                      logger:             Microsoft.Extensions.Logging.ILogger<TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'SubjectId, 'OpError>>,
+                                      blobStorage:        TestBlobStorage,
                                       timeSeriesAdapters: TimeSeriesAdapterCollection,
-                                      grainPartition: GrainPartition) =
+                                      grainPartition:     GrainPartition) =
 
     let (GrainPartition partitionGuid) = grainPartition
 
@@ -92,7 +92,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
             partitionGuid,
             fun _ ->
                 {
-                    LockObj = obj()
+                    LockObj         = obj()
                     SubjectsByIdStr = Map.empty
                     UniqueIndicesByIndexKeyThenIdStr = Map.empty
                 })
@@ -197,12 +197,12 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
         let maybeTxnData, dedupInfo =
             match payload with
             | Choice1Of2 dedupInfo -> None, dedupInfo
-            | Choice2Of2 txnData -> Some txnData, None
+            | Choice2Of2 txnData   -> Some txnData, None
 
         let dedupCache =
             match dedupInfo with
             | Some d -> Map.ofOneItem (d.Caller, (d.Id, insertData.DataToInsert.UpdatedSubjectState.LastUpdatedOn))
-            | None -> Map.empty
+            | None   -> Map.empty
 
         // Double check that all data can serialize correctly, it's not used in Test storage but checks that Sql storage will work too
         // check very same parameters that serialized in SqlServerGrainStorageHandler
@@ -212,7 +212,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
             |> Option.defaultValue []
             |> List.choose (fun (sideEffectId, sideEffect) ->
                 match sideEffect with
-                | GrainSideEffect.Transient _ -> None
+                | GrainSideEffect.Transient _                   -> None
                 | GrainSideEffect.Persisted persistedSideEffect -> Some (sideEffectId, persistedSideEffect))
             |> GrainPersistedSideEffect.AsCodecFriendlyData
             |> List.iter (fun (_sideEffectId, codecFriendlyPersistedSideEffect) ->
@@ -299,8 +299,8 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                     | Ok uniqueIndices ->
                         db.SubjectsByIdStr <- db.SubjectsByIdStr.AddOrUpdate (pKey, SubjectStateContainer.Committed updatedStateContainer)
                         db.UniqueIndicesByIndexKeyThenIdStr <- uniqueIndices
-                        { ETag = updatedStateContainer.ETag
-                          Version = updatedStateContainer.Version
+                        { ETag                = updatedStateContainer.ETag
+                          Version             = updatedStateContainer.Version
                           SkipHistoryOnNextOp = updatedStateContainer.SkipHistoryOnNextOp }
                         |> Ok
                     | Error err ->
@@ -332,7 +332,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                 |> Option.defaultValue []
                 |> List.choose (fun (sideEffectId, sideEffect) ->
                     match sideEffect with
-                    | GrainSideEffect.Transient _ -> None
+                    | GrainSideEffect.Transient _                   -> None
                     | GrainSideEffect.Persisted persistedSideEffect -> Some (sideEffectId, persistedSideEffect))
                 |> GrainPersistedSideEffect.AsCodecFriendlyData
                 |> List.iter (fun (_sideEffectId, codecFriendlyPersistedSideEffect) ->
@@ -395,17 +395,18 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                             else
                                 Orleans.Storage.InconsistentStateException("ETag doesn't match") |> raise
                     |> fun current ->
-                        let successResult: UpdateSubjectSuccessResult =
-                            { NewETag = Guid.NewGuid().ToString()
-                              NewVersion = updateData.CurrentVersion + 1UL
-                              SkipHistoryOnNextOp = false }
+                        let successResult: UpdateSubjectSuccessResult = {
+                            NewETag             = Guid.NewGuid().ToString()
+                            NewVersion          = updateData.CurrentVersion + 1UL
+                            SkipHistoryOnNextOp = false
+                        }
 
                         let newDedupCache =
                             match dedupData with
                             | None -> current.SideEffectDedupCache
                             | Some d ->
                                 match d.EvictedDedupInfoToDelete with
-                                | None -> current.SideEffectDedupCache
+                                | None              -> current.SideEffectDedupCache
                                 | Some (evicted, _) -> current.SideEffectDedupCache.Remove evicted.Caller
                                 |> fun cache ->
                                     cache.Add (d.DedupInfo.Caller, (d.DedupInfo.Id, updateData.DataToUpdate.UpdatedSubjectState.LastUpdatedOn))
@@ -415,14 +416,15 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                             |> Option.map (addToOthersSubscribing current.CurrentOthersSubscribing)
                             |> Option.defaultValue current.CurrentOthersSubscribing
 
-                        let updatedCurrentStateContainer =
-                            { CurrentSubjectState = updateData.DataToUpdate.UpdatedSubjectState
-                              CurrentOthersSubscribing = updatedOthersSubscribing
-                              ETag = successResult.NewETag
-                              Version = successResult.NewVersion
-                              SkipHistoryOnNextOp = successResult.SkipHistoryOnNextOp
-                              SideEffectDedupCache = newDedupCache
-                              NextSideEffectSeqNum = updateData.DataToUpdate.NextSideEffectSeq }
+                        let updatedCurrentStateContainer = {
+                            CurrentSubjectState      = updateData.DataToUpdate.UpdatedSubjectState
+                            CurrentOthersSubscribing = updatedOthersSubscribing
+                            ETag                     = successResult.NewETag
+                            Version                  = successResult.NewVersion
+                            SkipHistoryOnNextOp      = successResult.SkipHistoryOnNextOp
+                            SideEffectDedupCache     = newDedupCache
+                            NextSideEffectSeqNum     = updateData.DataToUpdate.NextSideEffectSeq
+                        }
 
                         match tryApplyIndexActions db pKey updateData.DataToUpdate.IndexActions with
                         | Ok uniqueIndices ->
@@ -606,8 +608,8 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                 match! this.UpdateOrCommitPreparedUpdateSubject pKey updateData (Choice2Of2 subjectTransactionId) with
                 | Ok res ->
                     return
-                        { NewETag = res.NewETag
-                          NewVersion = res.NewVersion
+                        { NewETag             = res.NewETag
+                          NewVersion          = res.NewVersion
                           SkipHistoryOnNextOp = res.SkipHistoryOnNextOp }
                 | Error err ->
                     return failwithf "Domain error is unexpected while committing subject: %A, %A" pKey err
@@ -691,7 +693,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                                     | None -> current.SideEffectDedupCache
                                     | Some d ->
                                         match d.EvictedDedupInfoToDelete with
-                                        | None -> current.SideEffectDedupCache
+                                        | None              -> current.SideEffectDedupCache
                                         | Some (evicted, _) -> current.SideEffectDedupCache.Remove evicted.Caller
                                         |> fun cache ->
                                             cache.Add (d.DedupInfo.Caller, (d.DedupInfo.Id, now))
@@ -701,7 +703,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                     |> fun (current, newDedupCache) ->
                             let updatedCurrentStateContainer =
                                 { current with
-                                    ETag = newETag
+                                    ETag                 = newETag
                                     SideEffectDedupCache = newDedupCache
                                     NextSideEffectSeqNum = nextSideEffectSeqNum }
                             db.SubjectsByIdStr <- db.SubjectsByIdStr.AddOrUpdate (pKey, SubjectStateContainer.Committed updatedCurrentStateContainer)
@@ -731,8 +733,8 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                     |> fun current ->
                             let updatedCurrentStateContainer =
                                 { current with
-                                    CurrentSubjectState = { current.CurrentSubjectState with TickState = tickState }
-                                    ETag = newETag
+                                    CurrentSubjectState  = { current.CurrentSubjectState with TickState = tickState }
+                                    ETag                 = newETag
                                     NextSideEffectSeqNum = nextSideEffectSeqNum }
                             db.SubjectsByIdStr <- db.SubjectsByIdStr.AddOrUpdate (pKey, SubjectStateContainer.Committed updatedCurrentStateContainer)
                             newETag)
@@ -773,7 +775,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
 
                                 let updatedCurrentState =
                                     { currentState with
-                                        ETag = newETag
+                                        ETag                     = newETag
                                         CurrentOthersSubscribing = updatedOthersSubscribing }
 
                                 match currentStateContainer with
@@ -825,7 +827,7 @@ type TestGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'S
                                 let updatedCurrentState =
                                     { currentState with
                                         CurrentOthersSubscribing = updatedOthersSubscribing
-                                        ETag = newETag }
+                                        ETag                     = newETag }
 
                                 match currentStateContainer with
                                 | SubjectStateContainer.PreparedInitialize _ ->

@@ -10,7 +10,7 @@ open Microsoft.Extensions.DependencyInjection
 
 [<RequireQualifiedAccess>]
 type SimulationExecutionResult =
-| Failed of exn
+| Failed    of exn
 | Succeeded of FinishedSimulatedOn: DateTimeOffset
 
 let executeSimulation (simulation: Simulation) =
@@ -23,19 +23,19 @@ let executeSimulation (simulation: Simulation) =
             let partitionId = defaultGrainPartition
             let! res =
               rootOperationTracker.TrackOperation
-                { Partition = partitionId
-                  Type = OperationType.TestSimulation
-                  Name = simulation.SimulationName
-                  MaybeParentActivityId = None
+                { Partition                 = partitionId
+                  Type                      = OperationType.TestSimulation
+                  Name                      = simulation.SimulationName
+                  MaybeParentActivityId     = None
                   MakeItNewParentActivityId = true
-                  BeforeRunProperties = [
+                  BeforeRunProperties       = [
                     "Module", simulation.ModuleName
                     "Simulation", simulation.SimulationName
                     "DataSeeding", "true"
                   ] |> Map.ofList }
                 (fun () ->
                     backgroundTask {
-                        let testPartition   = {
+                        let testPartition = {
                             EcosystemDef         = TestCluster.getEcosystemDefUnderTest()
                             GrainPartition       = partitionId
                             CapturedInteractions = System.Collections.Concurrent.ConcurrentDictionary<SubjectId, Subject>()

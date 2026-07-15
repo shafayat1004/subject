@@ -7,6 +7,7 @@ open LibClient
 open LibClient.Components
 open LibClient.Services.DateService
 open LibUiSubjectAdmin.Components
+open LibUiSubjectAdmin.Components.Audit.Generic
 open LibClient.Services.HttpService.ThothEncodedHttpService
 
 module dom = Fable.React.Standard
@@ -50,7 +51,7 @@ type UiSubjectAdmin.AuditLog with
                 dom.td [] [LC.HeaderCell ("Who")]
                 dom.td [] [LC.HeaderCell ("What")]
                 match additionalHeadersAndFields with
-                | None -> ()
+                | None                        -> ()
                 | Some (additionalHeaders, _) -> additionalHeaders
             ]
 
@@ -70,7 +71,7 @@ type UiSubjectAdmin.AuditLog with
                     LC.Pre (text = entry.OperationStr)
                 ]
                 match additionalHeadersAndFields with
-                | None -> ()
+                | None                       -> ()
                 | Some (_, additionalFields) -> additionalFields entry
             ]
 
@@ -87,5 +88,5 @@ type UiSubjectAdmin.AuditLog with
             ),
             auditSubjectId   = auditSubjectId,
             headersAndFields = (headers, fields),
-            ?filter = filter
+            ?filter          = filter
         )

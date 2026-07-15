@@ -3,17 +3,17 @@ module LibClient.Components.Dialog_Shell_FromRight
 
 open Fable.React
 
-open ReactXP.LegacyStyles.RulesRestricted
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.LegacyStyles.RulesRestricted
+open Rn.Styles
+open Rn.Components
 
 open LibClient
 open LibClient.Components.Dialog.Base
 
 
 type CanClose = LibClient.Components.Dialog.Base.CanClose
-let When      = CanClose.When
-let Never     = CanClose.Never
+let When  = CanClose.When
+let Never = CanClose.Never
 
 type CloseAction = LibClient.Components.Dialog.Base.CloseAction
 let OnEscape      = CloseAction.OnEscape
@@ -67,25 +67,25 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
 
         LC.Dialog.Base (
             contentPosition = ContentPosition.Free,
-            canClose = canClose,
-            children = [|
-                RX.View (styles = [|Styles.wrapper|], children = [|
+            canClose        = canClose,
+            children        = [|
+                Rn.View (styles = [|Styles.wrapper|], children = [|
                     // Reversed to make drop shadow work
                     bottomSection
 
-                    RX.ScrollView (
+                    Rn.ScrollView (
                         vertical = true,
                         children = [|
-                            RX.View (
-                                styles = [| Styles.scrollViewWrapper |],
+                            Rn.View (
+                                styles   = [| Styles.scrollViewWrapper |],
                                 children = [|
-                                    RX.View (children = [|
-                                        RX.View (styles = [|Styles.scrollViewChildren|], children = elements {
+                                    Rn.View (children = [|
+                                        Rn.View (styles = [|Styles.scrollViewChildren|], children = elements {
                                             match heading with
                                             | None -> nothing
                                             | Some headingText ->
                                                 LC.Heading (
-                                                    styles = [| Styles.heading |],
+                                                    styles   = [| Styles.heading |],
                                                     children = [|
                                                         LC.UiText headingText
                                                     |]

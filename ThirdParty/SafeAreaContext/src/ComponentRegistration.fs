@@ -3,4 +3,3 @@ module ThirdParty.SafeAreaContext.ComponentRegistration
 
 let registerAllTheThings () : unit =
     ()
-

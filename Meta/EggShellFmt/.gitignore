@@ -1,0 +1,2 @@
+# Locally-built tool package (produced by install.sh); keep the folder, ignore the package.
+nupkg/*.nupkg

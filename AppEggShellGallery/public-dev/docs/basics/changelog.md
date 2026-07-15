@@ -1,9 +1,13 @@
-# Change Log
+## 2026-06-28
+
+- Gallery docs: roadmap notes only for partial/open items; factual fixes (Fable 4, .NET 7, CLI)
+- Styling guidance updated in component/styling docs
+- AppEggShellGallery Content showcase pages converted to pure F#
 
 ## 2023-12-31
 - Updated minimum NodeJS version to `18.19.0`
 - Updated react-native to `73.0.1`
-- Using latest ReactXP 2.2.0
+- Using latest ReactXP 2.2.0 (historical; `@chaldal/reactxp` has since been removed and replaced by the react-native-web seam)
 
 ## 2023-02-14
 

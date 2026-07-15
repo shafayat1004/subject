@@ -26,9 +26,9 @@ module private Helpers =
                     let emptyAccessRules = List.empty<AccessRule<'AccessPredicateInput, 'Role, 'LifeAction, 'Constructor>>
 
                     {
-                        AccessRules = (grantAll |> toRoles rootRoles) :: emptyAccessRules
-                        AccessPredicate = (fun _ _ _ _ -> true)
-                        RateLimitsPredicate = fun _ -> None
+                        AccessRules                = (grantAll |> toRoles rootRoles) :: emptyAccessRules
+                        AccessPredicate            = (fun _ _ _ _ -> true)
+                        RateLimitsPredicate        = fun _ -> None
                         AnonymousCanReadTotalCount = false
                     }
 
@@ -86,7 +86,7 @@ module private Helpers =
                 | None ->
                     let emptyAccessRules = List.empty<TimeSeriesAccessRule<'AccessPredicateInput, 'Role>>
                     {
-                        AccessRules = (grantAll |> toRoles rootRoles) :: emptyAccessRules
+                        AccessRules     = (grantAll |> toRoles rootRoles) :: emptyAccessRules
                         AccessPredicate = (fun _ _ _ _ -> true)
                     }
 
@@ -134,7 +134,7 @@ module private Helpers =
 type internal SessionHandlingWithRootRoles<'Session, 'Role
         when 'Role : comparison> =
     {
-        Handling: EcosystemSessionHandling<'Session, 'Role>
+        Handling:  EcosystemSessionHandling<'Session, 'Role>
         RootRoles: Set<'Role>
     }
 
@@ -142,8 +142,8 @@ type internal SessionInfo<'Session, 'Role
         when 'Role : comparison> =
     {
         MaybeSessionHandlingWithRootRoles: Option<SessionHandlingWithRootRoles<'Session, 'Role>>
-        MaybeSessionLifeCycle: Option<Option<EcosystemSessionHandling<'Session, 'Role>> -> ILifeCycle>
-        MetaLifeCycle: Option<EcosystemSessionHandling<'Session, 'Role>> -> MetaLifeCycle<'Session, 'Role>
+        MaybeSessionLifeCycle:             Option<Option<EcosystemSessionHandling<'Session, 'Role>> -> ILifeCycle>
+        MetaLifeCycle:                     Option<EcosystemSessionHandling<'Session, 'Role>> -> MetaLifeCycle<'Session, 'Role>
     }
 
 type EcosystemBuilder<'Session, 'SessionLifeAction, 'SessionLifeEvent, 'Role
@@ -151,8 +151,8 @@ type EcosystemBuilder<'Session, 'SessionLifeAction, 'SessionLifeEvent, 'Role
         and 'SessionLifeEvent :> LifeEvent
         and  'Role : comparison> =
     internal {
-        Def:                    EcosystemDef
-        SessionInfo:            Option<SessionInfo<'Session, 'Role>>
+        Def:         EcosystemDef
+        SessionInfo: Option<SessionInfo<'Session, 'Role>>
         // All life cycles and views (including referenced ones) need to know the specifics of session handling,
         // but we can't know that is finalized until the ecosystem is built via EcosystemBuilder.build. Since we
         // don't have strong types for life cycles and views at that point, we can't assign the session handling
@@ -177,28 +177,28 @@ with
             SessionInfo =
                 match this.SessionInfo |> box with
                 | :? (Option<SessionInfo<'NewSession, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                           -> None
             LifeCycles =
                 match this.LifeCycles |> box with
                 | :? (Map<LifeCycleKey, Option<EcosystemSessionHandling<'NewSession, 'NewRole>> -> ILifeCycle>) as existing -> existing
-                | _ -> Map.empty
+                | _                                                                             -> Map.empty
             Views =
                 match this.Views |> box with
                 | :? (Map<string, Option<EcosystemSessionHandling<'NewSession, 'NewRole>> -> IView>) as existing -> existing
-                | _ -> Map.empty
+                | _                                                                       -> Map.empty
             TimeSeries =
                 match this.TimeSeries |> box with
                 | :? (Map<TimeSeriesKey, Option<EcosystemSessionHandling<'NewSession, 'NewRole>> -> ITimeSeries>) as existing -> existing
-                | _ -> Map.empty
+                | _                                                                              -> Map.empty
             ReferencedEcosystems =
                 match this.ReferencedEcosystems |> box with
                 | :? (Map<string, Option<EcosystemSessionHandling<'NewSession, 'NewRole>> -> ReferencedEcosystem>) as existing -> existing
-                | _ -> Map.empty
+                | _                                                                       -> Map.empty
 
-            Def = this.Def
-            Connectors = this.Connectors
+            Def                    = this.Def
+            Connectors             = this.Connectors
             SingletonConstructions = this.SingletonConstructions
-            EnforceRateLimits = this.EnforceRateLimits
+            EnforceRateLimits      = this.EnforceRateLimits
         }
 
     member internal this.ToEcosystem(): Ecosystem =
@@ -337,15 +337,15 @@ module EcosystemBuilder =
             (def: EcosystemDef)
             : EcosystemBuilder<NoSession, NoSessionAction, NoSessionLifeEvent, NoRole> =
         {
-            Def = def
-            SessionInfo = None
-            LifeCycles = Map.empty
-            Views = Map.empty
-            TimeSeries = Map.empty
-            Connectors = Map.empty
+            Def                    = def
+            SessionInfo            = None
+            LifeCycles             = Map.empty
+            Views                  = Map.empty
+            TimeSeries             = Map.empty
+            Connectors             = Map.empty
             SingletonConstructions = List.empty
-            ReferencedEcosystems = Map.empty
-            EnforceRateLimits = false
+            ReferencedEcosystems   = Map.empty
+            EnforceRateLimits      = false
         }
 
     let withNoSessionHandler
@@ -358,8 +358,8 @@ module EcosystemBuilder =
                 Some
                     {
                         MaybeSessionHandlingWithRootRoles = None
-                        MaybeSessionLifeCycle = None
-                        MetaLifeCycle = (fun sessionHandling -> { metaLifeCycle with SessionHandling = sessionHandling })
+                        MaybeSessionLifeCycle             = None
+                        MetaLifeCycle                     = (fun sessionHandling -> { metaLifeCycle with SessionHandling = sessionHandling })
                     }
         }
 
@@ -390,15 +390,15 @@ module EcosystemBuilder =
                                         {
                                             Handler =
                                                 {
-                                                    LifeCycle        = { sessionLifeCycle with SessionHandling = None }
-                                                    GetIdStr         = idStr
-                                                    GetUserId        = userId
+                                                    LifeCycle = { sessionLifeCycle with SessionHandling = None }
+                                                    GetIdStr  = idStr
+                                                    GetUserId = userId
                                                     MaybeRevalidator =
                                                         maybeRevalidator
                                                         |> Option.map (fun typedRevalidator ->
-                                                            { RevalidateAction = typedRevalidator.RevalidateAction
-                                                              GetRevalidateOn = typedRevalidator.GetRevalidateOn
-                                                              RevalidateCompleteEvent = typedRevalidator.RevalidateCompleteEvent
+                                                            { RevalidateAction            = typedRevalidator.RevalidateAction
+                                                              GetRevalidateOn             = typedRevalidator.GetRevalidateOn
+                                                              RevalidateCompleteEvent     = typedRevalidator.RevalidateCompleteEvent
                                                               GetRevalidateCompleteResult = fun (lifeEvent: LifeEvent) -> typedRevalidator.GetRevalidateCompleteResult (lifeEvent :?> 'LifeEvent) })
                                                 }
                                             GetRoles = roles
@@ -406,7 +406,7 @@ module EcosystemBuilder =
                                     RootRoles = rootRoles
                                 }
                         MaybeSessionLifeCycle = Some (fun sessionHandling -> { sessionLifeCycle with SessionHandling = sessionHandling })
-                        MetaLifeCycle = (fun sessionHandling -> { metaLifeCycle with SessionHandling = sessionHandling })
+                        MetaLifeCycle         = (fun sessionHandling -> { metaLifeCycle with SessionHandling = sessionHandling })
                     }
         }
 

@@ -12,14 +12,14 @@ open SuiteJobs.Types
 
 type PollService(
     configuration: IConfiguration,
-    allJobs: Service<All<Job, JobId, JobIndex, JobOpError>>) =
-    let sectionName  = "Storage.SqlServer"
-    let parameter    = "ConnectionString"
+    allJobs:       Service<All<Job, JobId, JobIndex, JobOpError>>) =
+    let sectionName   = "Storage.SqlServer"
+    let parameter     = "ConnectionString"
     let configSection = configuration.GetSection sectionName
     let maybeConnectionString =
         match configSection.Exists () with
         | false -> None
-        | true -> configSection[parameter] |> Option.ofObj
+        | true  -> configSection[parameter] |> Option.ofObj
 
     let pollFasterAndLessRacyViaRawSqlBecauseYouCan (connectionString: string) (spotsLeft: int) (queues: NonemptySet<NonemptyString>) : Task<List<JobId>> =
         backgroundTask {
@@ -82,7 +82,7 @@ type PollService(
         |> IndexPredicate.orList
         |> JobIndex.PrepareQuery
                {
-                   Page = { Size = uint16 spotsLeft; Offset = 0UL }
+                   Page    = { Size = uint16 spotsLeft; Offset = 0UL }
                    OrderBy = OrderBy.StringIndexEntry (UnionCase.ofCase JobStringIndex.DequeueSort, OrderDirection.Ascending)
                }
        |> allJobs.Query FilterFetchIds

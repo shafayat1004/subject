@@ -18,7 +18,7 @@ module OrleansRequestContext =
         let telemetryUserId =
             match RequestContext.Get(telemetryUserIdKey) with
             | :? string as userId -> userId
-            | _ -> ""
+            | _                   -> ""
         let telemetrySessionId =
             match RequestContext.Get(telemetrySessionIdKey) with
             | :? string as sessionId ->

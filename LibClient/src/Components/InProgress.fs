@@ -2,8 +2,8 @@
 module LibClient.Components.InProgress
 
 open Fable.React
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient
 
 module private Styles =
@@ -41,7 +41,7 @@ type LC with
 
     [<Component>]
     static member InProgress (isInProgress: bool, children: array<ReactElement>, ?styles: array<ViewStyles>) : ReactElement =
-        RX.View (
+        Rn.View (
             styles =
                 (Array.append
                     (defaultArg styles [||])
@@ -50,9 +50,9 @@ type LC with
             children = elements {
                 children
                 if isInProgress then
-                    RX.View (styles = [|Styles.spinnerBlock|], children = [|
-                        RX.ActivityIndicator (
-                            size = ActivityIndicator.Size.Tiny,
+                    Rn.View (styles = [|Styles.spinnerBlock|], children = [|
+                        Rn.ActivityIndicator (
+                            size  = ActivityIndicator.Size.Tiny,
                             color = "#CCCCCC"
                         )
                     |])

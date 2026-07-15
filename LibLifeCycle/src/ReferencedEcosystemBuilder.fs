@@ -41,9 +41,9 @@ with
             )
 
         {
-            Def = this.Def
+            Def        = this.Def
             LifeCycles = this.LifeCycles @ implicitlyReferencedLifeCycles
-            Views = this.Views
+            Views      = this.Views
         }
 
 [<RequireQualifiedAccess>]
@@ -52,9 +52,9 @@ module ReferencedEcosystemBuilder =
             (def: EcosystemDef)
             : ReferencedEcosystemBuilder =
         {
-            Def = def
+            Def        = def
             LifeCycles = List.empty
-            Views = List.empty
+            Views      = List.empty
         }
 
     let addLifeCycle

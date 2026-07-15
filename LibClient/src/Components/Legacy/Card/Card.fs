@@ -19,9 +19,10 @@ namespace LibClient.Components
 
 open Fable.React
 open LibClient
+open LibClient.Accessibility
 open LibClient.Components.Legacy
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Legacy_Card =
@@ -29,6 +30,7 @@ module Legacy_Card =
     [<RequireQualifiedAccess>]
     module private Styles =
         let shadowed = makeViewStyles {
+            Position.Relative
             margin          8
             padding         8
             backgroundColor Color.White
@@ -40,21 +42,22 @@ module Legacy_Card =
 
         let flat =
             ViewStyles.Memoize(
-                fun (theme: Card.Theme) ->
+                fun (flatBorderColor: Color) ->
                     makeViewStyles {
+                        Position.Relative
                         margin          8
                         padding         8
                         backgroundColor Color.White
                         borderWidth     1
                         borderRadius    6
-                        borderColor     theme.FlatBorderColor
+                        borderColor     flatBorderColor
                     }
             )
 
         let view (style: Card.Style) (theme: Card.Theme) =
             match style with
             | Card.Shadowed -> shadowed
-            | Card.Flat     -> flat theme
+            | Card.Flat     -> flat theme.FlatBorderColor
 
     type LibClient.Components.Constructors.LC.Legacy with
         [<Component>]
@@ -63,20 +66,33 @@ module Legacy_Card =
                 ?style:         Card.Style,
                 ?theme:         Card.Theme -> Card.Theme,
                 ?onPress:       (ReactEvent.Action -> unit),
+                ?label:         string,
+                ?testId:        string,
                 ?styles:        array<ViewStyles>,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
             key           |> ignore
             xLegacyStyles |> ignore
-            let theStyle  = defaultArg style Card.Shadowed
-            let theTheme  = Themes.GetMaybeUpdatedWith theme
-            RX.View(
-                styles = [| Styles.view theStyle theTheme; yield! defaultArg styles [||] |],
+            let theStyle = defaultArg style Card.Shadowed
+            let theTheme = Themes.GetMaybeUpdatedWith theme
+            Rn.View(
+                styles   = [| Styles.view theStyle theTheme; yield! defaultArg styles [||] |],
                 children = [|
                     yield! children
                     match onPress with
-                    | Some f -> LC.TapCapture(onPress = f)
-                    | None   -> ()
+                    | Some f ->
+                        let a11yLabel = defaultArg label "Open"
+                        let resolvedTestId =
+                            testId |> Option.orElse (Some (A11ySlug.testId "legacy-card" a11yLabel))
+                        LC.Pressable(
+                            onPress       = f,
+                            label         = a11yLabel,
+                            testId        = resolvedTestId.Value,
+                            role          = AccessibilityRole.Button,
+                            overlay       = true,
+                            componentName = "LC.Legacy.Card"
+                        )
+                    | None -> ()
                 |]
             )

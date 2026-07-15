@@ -30,7 +30,7 @@ type SimulationTestCase(diagnosticMessageSink:IMessageSink, defaultMethodDisplay
         |> Int32.TryParse
         |> function
            | true, v -> v
-           | _ -> 2
+           | _       -> 2
         |> fun parallelism -> new SemaphoreSlim(parallelism)
 
     member private this.ProcessResult (test: XunitTest) (messageBus: IMessageBus) (cancellationTokenSource: CancellationTokenSource)  (testResultMsg: #TestResultMessage) =
@@ -54,7 +54,7 @@ type SimulationTestCase(diagnosticMessageSink:IMessageSink, defaultMethodDisplay
             | Some obj ->
                 match box obj with
                 | :? IDisposable as d -> d.Dispose()
-                | _ -> ()
+                | _                   -> ()
 
         let testExec() : Task<RunSummary> =
             backgroundTask {
@@ -99,10 +99,10 @@ type SimulationTestCase(diagnosticMessageSink:IMessageSink, defaultMethodDisplay
                                         do! testRunnerCluster.Init(outputHelper.WriteLine)
                                         let rootOperationTracker = testRunnerCluster.OperationTracker
                                         do! rootOperationTracker.TrackOperation
-                                                { Partition = partitionId
-                                                  Type = OperationType.TestSimulation
-                                                  Name = if testMethod <> null then testMethod.Method.Name else "NULL_METHOD"
-                                                  MaybeParentActivityId = None
+                                                { Partition                 = partitionId
+                                                  Type                      = OperationType.TestSimulation
+                                                  Name                      = if testMethod <> null then testMethod.Method.Name else "NULL_METHOD"
+                                                  MaybeParentActivityId     = None
                                                   MakeItNewParentActivityId = true
                                                   BeforeRunProperties =
                                                     if testMethod <> null then

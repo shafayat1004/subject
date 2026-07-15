@@ -12,8 +12,10 @@ open LibLifeCycleTypes.Api.V1
 open LibUiSubject.Services.SubjectService
 open Fable.Core.Reflection
 
-// need this because even though it's auto-opened, Fable.SignalR.Subject clobbers our Subject
-open LibLifeCycleTypes_SubjectTypes
+// Under Fable, lifecycle Subject lives in auto-opened LibLifeCycleTypes_SubjectTypes (see SubjectTypes.fs).
+#if !FABLE_COMPILER
+open LibLifeCycleTypes.SubjectTypes
+#endif
 
 [<AutoOpen>]
 module private Helpers =
@@ -41,7 +43,7 @@ type private SubscribeManyHelperInput<'Id, 'Projection when 'Id : comparison> =
 
 [<RequireQualifiedAccess>]
 type private QueuedMessage =
-| Next of ServerStreamApi
+| Next  of ServerStreamApi
 | Error of Option<exn>
 
 type private OnResumeCallback = unit -> unit
@@ -128,6 +130,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
                       and  'Event        :> LifeEvent
                       and  'OpError      :> OpError
                       and  'Index        :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                      and  'Index        : (new: unit -> 'Index)
                       and  'NumericIndex :> SubjectNumericIndex<'OpError>
                       and  'StringIndex  :> SubjectStringIndex<'OpError>
                       and  'SearchIndex  :> SubjectSearchIndex
@@ -445,7 +448,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
             |> List.iter (fun queuedMsg ->
                 match queuedMsg with
                 | QueuedMessage.Next value -> pausedObserver.next value
-                | QueuedMessage.Error ex -> pausedObserver.error ex)
+                | QueuedMessage.Error ex   -> pausedObserver.error ex)
 
             messageQueue <- List.empty
 
@@ -490,7 +493,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
 
                                         match maybeStreamCreationResult with
                                         | Some streamCreationResult -> streamCreationResult.ObserverDisposable.Dispose()
-                                        | None -> ()
+                                        | None                      -> ()
 
                                         subscriptionImplementations <- subscriptionImplementations.Remove id
                                         maybeSubscriptionImplementationCreationResult <- Some {
@@ -938,19 +941,19 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
                 subjectsWithCount.Data
                 |> Seq.map this.ConvertAccessControlledToAsyncData
             {
-                Subjects = subjects
+                Subjects   = subjects
                 TotalCount = subjectsWithCount.TotalCount
             }
         )
 
     member this.GetAuditSnapshot (idString: string) (version: uint64) : Async<AsyncData<TemporalSnapshot<'Subject, 'Action, 'Constructor, 'Id>>> = async {
         match! thothEncodedHttpService.Request apiEndpoints.AuditSnapshot (idString, version) () with
-        | Ok subject                  -> return Available subject
-        | Error (Non200Code (404, _)) -> return Unavailable
-        | Error (Non200Code (403, _)) -> return AccessDenied
-        | Error (Non200Code (0,   _)) -> return Failed AsyncDataFailure.NetworkFailure
+        | Ok subject                                  -> return Available subject
+        | Error (Non200Code (404, _))                 -> return Unavailable
+        | Error (Non200Code (403, _))                 -> return AccessDenied
+        | Error (Non200Code (0,   _))                 -> return Failed AsyncDataFailure.NetworkFailure
         | Error (Non200Code (responseCode, response)) -> return Failed (AsyncDataFailure.RequestFailure (RequestFailure.ofStatusCode (responseCode, jsonStringify(response))))
-        | Error error                 -> return Failed (UnknownFailure (error.ToString()))
+        | Error error                                 -> return Failed (UnknownFailure (error.ToString()))
     }
 
     /////////////////////////////////////////
@@ -1158,7 +1161,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
     member private this.ProcessActionLikeResponse<'T, 'U>
         (response: Result<'T, RequestError>)
         (transform: 'T -> 'U)
-        (onDecodingError: string -> LibClient.Services.HttpService.ReactXPHttp.WebResponse -> Result<'U, ActionOrConstructionError<'OpError>>)
+        (onDecodingError: string -> LibClient.Services.HttpService.RnHttp.WebResponse -> Result<'U, ActionOrConstructionError<'OpError>>)
         (onOtherRequestError: RequestError -> Result<'U, ActionOrConstructionError<'OpError>>)
         : Result<'U, ActionOrConstructionError<'OpError>> =
 
@@ -1248,6 +1251,7 @@ type SubjectService private () =
                 and 'Event: comparison
                 and 'OpError :> OpError
                 and 'Index :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                and 'Index : (new: unit -> 'Index)
                 and 'NumericIndex :> SubjectNumericIndex<'OpError>
                 and 'StringIndex :> SubjectStringIndex<'OpError>
                 and 'SearchIndex :> SubjectSearchIndex
@@ -1288,6 +1292,7 @@ type SubjectService private () =
                 and 'Event: comparison
                 and 'OpError :> OpError
                 and 'Index :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                and 'Index : (new: unit -> 'Index)
                 and 'NumericIndex :> SubjectNumericIndex<'OpError>
                 and 'StringIndex :> SubjectStringIndex<'OpError>
                 and 'SearchIndex :> SubjectSearchIndex

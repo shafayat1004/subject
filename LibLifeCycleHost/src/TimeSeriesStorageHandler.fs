@@ -7,7 +7,7 @@ type TimeSeriesDataPointToSave<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 
                                 when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
                                 and  'TimeSeriesId :> TimeSeriesId<'TimeSeriesId>
                                 and  'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>> = {
-    Point: 'TimeSeriesDataPoint
+    Point:   'TimeSeriesDataPoint
     Indices: list<'TimeSeriesIndex>
 }
 
@@ -15,7 +15,7 @@ type TimeSeriesDataToSave<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'Unit
                            when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
                            and  'TimeSeriesId :> TimeSeriesId<'TimeSeriesId>
                            and  'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>> = {
-    Points: NonemptyList<TimeSeriesDataPointToSave<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'TimeSeriesIndex>>
+    Points:    NonemptyList<TimeSeriesDataPointToSave<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'TimeSeriesIndex>>
     CreatedBy: string
 }
 

@@ -59,9 +59,9 @@ let makeProductionApnsClient (config: IosApnsConfiguration) : ApnsClient =
     let certificate = new X509Certificate2(config.CertificatePrivateKey, config.CertificatePassword.Value)
     ApnsClient.CreateUsingCert(certificate)
 
-// Make client using APNS token 
+// Make client using APNS token
 let makeSandboxApnsClientUsingJwt (jwtOptions: ApnsJwtOptions) (httpClient: HttpClient) : ApnsClient =
     ApnsClient.CreateUsingJwt(httpClient, jwtOptions).UseSandbox()
-    
+
 let makeProductionApnsClientUsingJwt (jwtOptions: ApnsJwtOptions) (httpClient: HttpClient) : ApnsClient =
-    ApnsClient.CreateUsingJwt(httpClient, jwtOptions)    
+    ApnsClient.CreateUsingJwt(httpClient, jwtOptions)

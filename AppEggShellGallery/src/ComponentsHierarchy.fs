@@ -4,6 +4,8 @@ module AppEggShellGallery.Components.Constructors
 type Ui = class end
 
 module Ui =
+    type App = class end
+
     type Route = class end
 
     type With = class end
@@ -20,6 +22,8 @@ module Ui =
         type Nav = class end
         type With = class end
         type Executor = class end
+        type LibRouter = class end
+        type Accessibility = class end
 
     module XmlDocsContent =
         type LC = class end

@@ -1,7 +1,7 @@
 namespace LibClient.Components
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 open Fable.React
 open LibClient.Components.Input.Checkbox
 open Fable.Core.JsInterop
@@ -12,7 +12,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Input_CheckboxTypeExtensions =
     type LibClient.Components.Constructors.LC.Input with
-        static member Checkbox(onChange: bool -> unit, value: Option<bool>, validity: InputValidity, ?children: ReactChildrenProp, ?label: Label, ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Checkbox(onChange: bool -> unit, value: Option<bool>, validity: InputValidity, ?children: ReactChildrenProp, ?label: Label, ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     OnChange = onChange

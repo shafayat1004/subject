@@ -14,7 +14,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module LineTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member Line(?children: ReactChildrenProp, ?``type``: Type, ?dataKey: string, ?legendType: LegendType, ?name: string, ?stroke: Color, ?strokeWidth: int, ?isAnimationActive: bool, ?animationEasing: AnimationEasing, ?onAnimationStart: (unit -> unit), ?onAnimationEnd: (unit -> unit), ?onClick: (unit -> unit), ?onMouseDown: (unit -> unit), ?onMouseUp: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseOver: (unit -> unit), ?onMouseOut: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Line(?children: ReactChildrenProp, ?``type``: Type, ?dataKey: string, ?legendType: LegendType, ?name: string, ?stroke: Color, ?strokeWidth: int, ?isAnimationActive: bool, ?animationEasing: AnimationEasing, ?onAnimationStart: (unit -> unit), ?onAnimationEnd: (unit -> unit), ?onClick: (unit -> unit), ?onMouseDown: (unit -> unit), ?onMouseUp: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseOver: (unit -> unit), ?onMouseOut: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Type = ``type`` |> Option.orElse (Some Type.Linear)

@@ -1,8 +1,8 @@
 namespace LibClient.Components
 
 open LibClient
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components.Input.ParsedText
 open Fable.Core.JsInterop
 
@@ -12,7 +12,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Input_ParsedTextTypeExtensions =
     type LibClient.Components.Constructors.LC.Input with
-        static member ParsedText(parse: Option<NonemptyString> -> Result<Option<'T>, string>, value: Value<'T>, validity: InputValidity, requestFocusOnMount: bool, onChange: Value<'T> -> unit, ?children: ReactChildrenProp, ?editable: bool, ?keyboardType: KeyboardType, ?returnKeyType: ReturnKeyType, ?shouldShowValidationErrors: bool, ?label: string, ?placeholder: string, ?prefix: string, ?suffix: InputSuffix, ?tabIndex: int, ?onKeyPress: (Browser.Types.KeyboardEvent -> unit), ?onEnterKeyPress: (ReactEvent.Keyboard                -> unit), ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member ParsedText(parse: Option<NonemptyString> -> Result<Option<'T>, string>, value: Value<'T>, validity: InputValidity, requestFocusOnMount: bool, onChange: Value<'T> -> unit, ?children: ReactChildrenProp, ?editable: bool, ?keyboardType: KeyboardType, ?returnKeyType: ReturnKeyType, ?shouldShowValidationErrors: bool, ?label: string, ?placeholder: string, ?prefix: string, ?suffix: InputSuffix, ?tabIndex: int, ?onKeyPress: (Browser.Types.KeyboardEvent -> unit), ?onEnterKeyPress: (ReactEvent.Keyboard                -> unit), ?styles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Parse = parse

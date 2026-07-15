@@ -9,8 +9,8 @@ module LibClient.Components.AppShell_Context
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -23,12 +23,19 @@ module private Styles =
 type LibClient.Components.Constructors.LC.AppShell with
     [<Component>]
     static member Context(
-            children:      array<ReactElement>,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
-            ?key:           string
+            children:                    array<ReactElement>,
+            ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
+            ?xLegacyStyles:              List<Rn.LegacyStyles.RuntimeStyles>,
+            ?key:                        string
         ) : ReactElement =
         key           |> ignore
         xLegacyStyles |> ignore
+
+        // Default preserves the historical behavior (a top-level spinner for every in-progress
+        // executor key). Apps whose actions update in place can pass `Some Set.empty` to suppress
+        // the global spinner (e.g. a todo list where a full-screen spinner per toggle is noise).
+        let showTopLevelSpinnerForKeys =
+            defaultArg showTopLevelSpinnerForKeys LC.Executor.ShowTopLevelSpinnerForKeys.All
 
         let dataHook = Hooks.useState (Map.empty : Map<string, LibClient.Components.With.GlobalDataFlowControl.Context.DataFlowPolicyValue>)
 
@@ -40,10 +47,13 @@ type LibClient.Components.Constructors.LC.AppShell with
             Data   = dataHook.current
         }
 
+        // Fable.React `contextProvider` renders its children collection without injecting
+        // keys, so passing a bare array triggers a dev-only "unique key" warning. Route the
+        // children through tellReactArrayKeysAreOkay (React.Children.toArray assigns keys).
         LibClient.Components.With.GlobalDataFlowControl.Context.globalDataFlowControlContextProvider
             globalDataFlowControl
-            [|
-                RX.View(
+            (tellReactArrayKeysAreOkay [|
+                Rn.View(
                     styles   = [| Styles.view |],
                     children = [|
                         LC.Executor.AlertErrors(
@@ -52,10 +62,10 @@ type LibClient.Components.Constructors.LC.AppShell with
                                     setGlobalExecutor makeExecutor
                                     globalExecutorContextProvider
                                         makeExecutor
-                                        [| castAsElement children |]
+                                        (tellReactArrayKeysAreOkay [| castAsElement children |])
                                 ),
-                            showTopLevelSpinnerForKeys = LC.Executor.ShowTopLevelSpinnerForKeys.All
+                            showTopLevelSpinnerForKeys = showTopLevelSpinnerForKeys
                         )
                     |]
                 )
-            |]
+            |])

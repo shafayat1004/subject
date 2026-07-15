@@ -23,18 +23,19 @@ let genTypicalJobConstructorCommonDataWithSentOn sentOn =
 
     return
       {
-          Payload =
-              { Type = "NotDone"
-                Method = "NotDone"
-                Arguments = "[]"
-                ParameterTypes = "[]"
-                CustomContext = "" }
-          DisplayName = displayName
-          QueueName = queueName
+          Payload = {
+              Type           = "NotDone"
+              Method         = "NotDone"
+              Arguments      = "[]"
+              ParameterTypes = "[]"
+              CustomContext  = ""
+          }
+          DisplayName    = displayName
+          QueueName      = queueName
           QueueSortOrder = 100us
-          FailurePolicy = { MaybeAutoRetries = None }
-          SentOn = sentOn
-          CorrelationId = None
+          FailurePolicy  = { MaybeAutoRetries = None }
+          SentOn         = sentOn
+          CorrelationId  = None
       }
   }
 

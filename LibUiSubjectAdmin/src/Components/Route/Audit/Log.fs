@@ -3,7 +3,7 @@ module LibUiSubjectAdmin.Components.Route_Audit_Log
 
 open Fable.React
 open LibClient
-open ReactXP.Components
+open Rn.Components
 open LibClient.Components
 open LibRouter.Components
 open LibUiSubjectAdmin.Components

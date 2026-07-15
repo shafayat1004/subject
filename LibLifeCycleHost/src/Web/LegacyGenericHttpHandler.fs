@@ -42,7 +42,7 @@ let private getActOrConstructAndWaitOnLifeEventResultProjectionEncoder<'Subject,
     let typedProjection = fun subj -> projection.Projection subj :?> 'Projection
     let projectionEncoder = generateAutoEncoder<ApiActOrConstructAndWaitOnLifeEventResult<'Projection, 'LifeEvent>>
     (function
-    | ApiActOrConstructAndWaitOnLifeEventResult.WaitOnLifeEventTimedOut subject -> (typedProjection subject) |> ApiActOrConstructAndWaitOnLifeEventResult.WaitOnLifeEventTimedOut
+    | ApiActOrConstructAndWaitOnLifeEventResult.WaitOnLifeEventTimedOut subject        -> (typedProjection subject) |> ApiActOrConstructAndWaitOnLifeEventResult.WaitOnLifeEventTimedOut
     | ApiActOrConstructAndWaitOnLifeEventResult.LifeEventTriggered(subject, lifeEvent) -> ((typedProjection subject), lifeEvent) |> ApiActOrConstructAndWaitOnLifeEventResult.LifeEventTriggered)
     >> projectionEncoder
 
@@ -219,10 +219,10 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
             | Some projectionWithLifeEventEncoder ->
                 (projectionWithLifeEventEncoder, (Projection projectionName)) |> Ok
 
-    let actionDecoder                   = generateAutoDecoder<'LifeAction>
-    let idDecoder                       = generateAutoDecoder<'SubjectId>
-    let constructorDecoder              = generateAutoDecoder<'Constructor>
-    let manyIdsDecoder                  = generateAutoDecoder<NonemptySet<'SubjectId>>
+    let actionDecoder      = generateAutoDecoder<'LifeAction>
+    let idDecoder          = generateAutoDecoder<'SubjectId>
+    let constructorDecoder = generateAutoDecoder<'Constructor>
+    let manyIdsDecoder     = generateAutoDecoder<NonemptySet<'SubjectId>>
 
     let getMaybeConstructDecoder        = generateAutoDecoder<GetMaybeConstruct<'SubjectId, 'Constructor>>
     let actMaybeConstructDecoder        = generateAutoDecoder<ActMaybeConstruct<'LifeAction, 'Constructor>>
@@ -230,9 +230,9 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let actMaybeConstructAndWaitDecoder = generateAutoDecoder<ActMaybeConstructAndWaitOnLifeEvent<'LifeAction, 'Constructor, 'LifeEvent>>
     let constructAndWaitDecoder         = generateAutoDecoder<ConstructAndWaitOnLifeEvent<'Constructor, 'LifeEvent>>
 
-    let indexQueryDecoder               = generateAutoDecoder<IndexQuery<'SubjectIndex>>
-    let indexPredicateDecoder           = generateAutoDecoder<PreparedIndexPredicate<'SubjectIndex>>
-    let resultSetOptionsDecoder         = generateAutoDecoder<ResultSetOptions<'SubjectIndex>>
+    let indexQueryDecoder       = generateAutoDecoder<IndexQuery<'SubjectIndex>>
+    let indexPredicateDecoder   = generateAutoDecoder<PreparedIndexPredicate<'SubjectIndex>>
+    let resultSetOptionsDecoder = generateAutoDecoder<ResultSetOptions<'SubjectIndex>>
 
     let respondMaybeConstructionError maybeConstructionError (httpContext: HttpContext) =
         match maybeConstructionError with
@@ -873,7 +873,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
             task {
                 match subjectEncoder maybeProjectionName with
                 | Ok (encoder, projection) ->
-                    let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                    let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
 
                     match! subjectRepo.GetByIdStr idStr with
                     | Some subj ->
@@ -957,7 +957,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let getManyHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledSubjectListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -977,7 +977,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let indexQueryHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledSubjectListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -998,7 +998,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let indexQueryWithTotalCountHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledSubjectListWithTotalCountEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1019,7 +1019,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
 
     let indexCountHandler: HttpHandler =
         fun _ httpContext ->
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match! readJsonBodyAndValidate httpContext indexPredicateDecoder id with
                 | Ok indexPredicate ->
@@ -1041,7 +1041,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
                     |> Option.bind (
                         fun offset ->
                             match UInt64.TryParse offset with
-                            | true, v -> Some v
+                            | true, v  -> Some v
                             | false, _ -> None)
                     |> Option.defaultValue 0UL
 
@@ -1050,7 +1050,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
                     |> Option.bind (
                         fun offset ->
                             match UInt16.TryParse offset with
-                            | true, v -> Some v
+                            | true, v  -> Some v
                             | false, _ -> None)
                     |> Option.defaultValue 10us
 
@@ -1083,11 +1083,11 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
                 AsOf = auditTrailData.AsOf
                 OperationStr =
                     match auditTrailData.Operation with
-                    | Ok (SubjectAuditOperation.Act act) -> sprintf "%A" act
+                    | Ok (SubjectAuditOperation.Act act)        -> sprintf "%A" act
                     | Ok (SubjectAuditOperation.Construct ctor) -> sprintf "Create %A" ctor
-                    | Error str -> sprintf "Error %s" str
+                    | Error str                                 -> sprintf "Error %s" str
                 Version = auditTrailData.Version
-                By = auditTrailData.By
+                By      = auditTrailData.By
             })
             auditTrailEncoder
 
@@ -1123,7 +1123,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let allHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledSubjectListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1144,7 +1144,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let allWithTotalCountHandler: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledSubjectListWithTotalCountEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1166,7 +1166,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
     let allHandlerGet: HttpHandler =
         fun _ httpContext ->
             let maybeProjectionName = tryGetProjectionName httpContext
-            let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+            let subjectRepo         = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
             task {
                 match accessControlledSubjectListEncoder maybeProjectionName with
                 | Ok (encoder, accessEvent) ->
@@ -1180,10 +1180,10 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
 
     let blobHandlerGet (idStr: string, blobGuidStr: string) : HttpHandler =
         fun _ httpContext ->
-            let blobRepo  = httpContext.RequestServices.GetRequiredService<IBlobRepo>()
+            let blobRepo = httpContext.RequestServices.GetRequiredService<IBlobRepo>()
             task {
                 // TODO: add TryFromTinyUuid, requires Convert.TryFromBase64String (requires .net5 )
-                let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
 
                 match! subjectRepo.GetByIdStr idStr with
                 | Some subj ->
@@ -1228,7 +1228,7 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
         fun _ httpContext ->
             task {
                 // authorize if has access to Meta
-                let metaRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<Meta, MetaAction, MetaConstructor, MetaId, MetaIndex, MetaOpError>>()
+                let metaRepo    = httpContext.RequestServices.GetRequiredService<ISubjectRepo<Meta, MetaAction, MetaConstructor, MetaId, MetaIndex, MetaOpError>>()
                 let metaAdapter = httpContext.RequestServices.GetRequiredService<HostedLifeCycleAdapter<Meta, MetaAction, MetaOpError, MetaConstructor, MetaLifeEvent, MetaId>>()
 
                 match! metaRepo.GetByIdStr lifeCycleDef.Key.LocalLifeCycleName with
@@ -1247,8 +1247,8 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
                                         HttpStatusCode.Forbidden
                                         (fun () ->
                                             task {
-                                                let subjectRepo  = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
-                                                let! failures = subjectRepo.GetSideEffectPermanentFailures scope
+                                                let subjectRepo = httpContext.RequestServices.GetRequiredService<ISubjectRepo<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>()
+                                                let! failures   = subjectRepo.GetSideEffectPermanentFailures scope
                                                 return! respondJson sideEffectPermanentFailuresListEncoder failures httpContext
                                             })
                                         None
@@ -1293,8 +1293,8 @@ let getLegacyGenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constru
                             routef "/debug/get/%s"                   (fun subjId ->                 nonSessionInitHandler >=> getByIdStrHandler subjId)
                             routef "/debug/getFromGrain/%s"          (fun subjId ->                 nonSessionInitHandler >=> getFromGrainByIdStrHandler subjId)
                             routef "/debug/failures/seqNum/%s/%s"    (fun (subjId, seqNum) ->       nonSessionInitHandler >=> permanentFailuresHandlerGet ((subjId, UInt64.Parse seqNum) |> UpdatePermanentFailuresScope.SeqNum))
-                            routef "/debug/failures/nextSeqBatch/%i" (fun batchSize ->              nonSessionInitHandler >=> permanentFailuresHandlerGet (batchSize |> uint8 |> UpdatePermanentFailuresScope.NextSeqBatch))
-                            routef "/debug/failures/subject/%s"      (fun subjId ->                 nonSessionInitHandler >=> permanentFailuresHandlerGet (subjId |> UpdatePermanentFailuresScope.Subject))
+                            routef "/debug/failures/nextSeqBatch/%i" (fun batchSize ->              nonSessionInitHandler >=> permanentFailuresHandlerGet (batchSize                     |> uint8 |> UpdatePermanentFailuresScope.NextSeqBatch))
+                            routef "/debug/failures/subject/%s"      (fun subjId ->                 nonSessionInitHandler >=> permanentFailuresHandlerGet (subjId                        |> UpdatePermanentFailuresScope.Subject))
                             routef "/debug/failures/single/%s/%s"    (fun (subjId, sideEffectId) -> nonSessionInitHandler >=> permanentFailuresHandlerGet ((subjId, Guid.Parse sideEffectId) |> UpdatePermanentFailuresScope.Single))
 
                             routef "/audit/%s" (fun subjId ->               nonSessionInitHandler >=> auditTrailHandler subjId)

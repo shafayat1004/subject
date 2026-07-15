@@ -1,19 +1,23 @@
 # StyleDSL Background
 
+> **Legacy section.** The render DSL is retired in product code. The StylesDSL and `.styles.fs`
+> pattern described here is the old authoring path. New components use `makeViewStyles` /
+> `makeTextStyles` directly in pure-F# `[<Component>]` files. See [Styling](./fsharp/styling.md).
+
 RenderDSL was originally intended for normal React, styled through CSS. When ReactXP support was
 added, it became apparent that styling in that universe is done very differently, in a crappy
 ad hoc, imperative fashion (as necessitated by ReactNative), with no cascading behaviour and
 no pattern for tweaking styles of other components. We needed a way to make this whole mess usable,
 so as a result RenderDSL was extended to do some extra magic to make the use of styles smooth.
 
-In all, the styling system consists of the following parts:
+In all, the styling system consisted of the following parts:
 
-* ReactXP styles — the imperative, `style` prop based system that we need to integrate with.
+* RN/RNW styles (react-native-web / React Native via the `Rn.*` wrappers; formerly ReactXP) — the imperative, `style` prop based system that we integrate with.
 * StylesDSL — the set of style building functions, operators, and types, that allow us to
   define style sheets and themes in a readable, digestable, concise manner
 * RenderDSL styles runtime — the runtime library that takes the style sheets, examines the
   class and rt-class attributes, and plumbs the matching style rules and style sheets through
-  the component tree all the way down to the base ReactXP components' `style` prop.
+  the component tree all the way down to the base `Rn.*` components' `style` prop.
 
 ## Implicit props for `class` and `style`
 
@@ -26,9 +30,9 @@ What this does under the hood is pull the corresponding values from the style sh
 other style sheets that were dynamically passed to the current component, filters them based on the classes
 applied on the element via `class` and `rt-class`, and the resulting list of styles is passed
 into the `style` prop of the component. The `style` prop itself is never declared explicitly
-(partly because crappy F# records don't support inheritance), nor is the `class` prop. For ReactXP
-base components, the value of the `style` prop is further transformed to make it match the ReactXP
-specification.
+(partly because crappy F# records don't support inheritance), nor is the `class` prop. For `Rn.*`
+base components, the value of the `style` prop is further transformed to match
+the underlying RN style specification.
 
 # The public parts of the `.styles.fs` file
 
@@ -40,7 +44,7 @@ TODO also optionally a Theme
 ## Styling components internally
 
 This is the base case for the styling system. The `.render` file lays the component out in terms of,
-base ReactXP building blocks, and its `.styles.fs` file defines how they are styled. E.g.
+base `RX.*` building blocks, and its `.styles.fs` file defines how they are styled. E.g.
 
 ```xml
 <div class='view'>
@@ -73,15 +77,15 @@ let styles = compile [
 ]
 ```
 
-The `div` elements above are actually `RX.View` elements, which is a standard alias we use across all our
+The `div` elements above are actually `Rn.View` elements, which is a standard alias we use across all our
 libraries and apps. You can see component aliases in the `eggshell.json` file, in each library/app, look
 at the `componentAliases` key.
 
 In this example, everything is pretty straight-forward. We associated some simple style rules with each class,
 and at runtime, the system pulls those style values out of the sheet, and passes them into the `style` prop of
-the corresponding `RX.View` components. The only interesting bit happening here is the distinction between
-simple rules like `padding 12`, which map one-to-one to a ReactXP style rule, and the `border 1 (Color.Grey "99")`
-rule, which maps to two ReactXP rules, `borderWidth 1` and `borderColor "#999999"`. The underlying style building
+the corresponding `Rn.View` components. The only interesting bit happening here is the distinction between
+simple rules like `padding 12`, which map one-to-one to an RN style rule, and the `border 1 (Color.Grey "99")`
+rule, which maps to two RN rules, `borderWidth 1` and `borderColor "#999999"`. The underlying style building
 blocks system is what allows for this syntactic convenience. See `RulesAdditional.fs` for other functions that
 generate multiple rules.
 
@@ -338,10 +342,10 @@ passed styles will not be applied. In principle the author can add the `TopLevel
 
 ## Styling DOM elements with plain old CSS
 
-For the majority of our UI work, we'll be using ReactXP, as it targets both web and mobile from a single code base.
-ReactXP's layout is flexbox based, and there are things that are difficult to do with flexbox. Table-like layouts are
+For the majority of our UI work, we use the `Rn.*` wrappers over react-native-web / React Native, which target both web and mobile from a single code base (formerly the ReactXP-backed seam).
+The layout is flexbox based, and there are things that are difficult to do with flexbox. Table-like layouts are
 one key example of this. So instead of jumping through flaming hoops in order to make table layouts with flexbox,
-we may choose to fall back on standard DOM elements, instead of ReactXP components, for building UIs that we know will
+we may choose to fall back on standard DOM elements, instead of `Rn.*` components, for building UIs that we know will
 only be used in a web browser.
 
 Such UIs need to be styled, and our default styling system will not work for them. Instead, we need a way to style them
@@ -395,7 +399,7 @@ TODO
 
 Style rules can be provided directly from the `.render` file, though the syntax is a bit rough.
 
-First, add `rt-open='ReactXP.Styles'` to get access to the style functions.
+First, add `rt-open='Rn.Styles'` to get access to the style functions.
 
 Now you can simply add an `rt-style` attribute to the desired component, e.g.
 

@@ -21,8 +21,8 @@ let construction (env: StartupEnvironment) (id: StartupId) (_constructor: Startu
     construction {
         let! now = env.Clock.Query Now
         return {
-            Id = id
-            CreatedOn = now
+            Id            = id
+            CreatedOn     = now
             LastStartupOn = now
         }
     }
@@ -53,7 +53,7 @@ let transition
 let private timers (startup: Startup) : list<Timer<StartupAction>> =
     [
         { TimerAction = TimerAction.DeleteSelf
-          Schedule = Schedule.On (startup.LastStartupOn.AddDays 7.) }
+          Schedule    = Schedule.On (startup.LastStartupOn.AddDays 7.) }
     ]
 
 type StartupLifeCycle<'Session, 'Role when 'Role : comparison> =

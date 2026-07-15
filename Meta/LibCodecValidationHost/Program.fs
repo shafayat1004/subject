@@ -127,4 +127,3 @@ let main argv =
         failwith "Round trip serialization failed"
 
     0
-

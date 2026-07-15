@@ -17,8 +17,8 @@ type Position with
 type Range with
     static member Beginning : Range =
         {
-            start    = Position.Beginning
-            ``end``  = Position.Beginning
+            start   = Position.Beginning
+            ``end`` = Position.Beginning
         }
 
 type Server(client: ILanguageClient) =

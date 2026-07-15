@@ -21,8 +21,8 @@ module DayOfTheWeek =
 
         member this.OnPress (day: DayOfTheWeek) (_e: ReactEvent.Action) : unit =
             match this with
-            | MaybeOne (Some selectedDay, onChange) when selectedDay = day -> onChange None
-            | MaybeOne (_, onChange)                                       -> onChange (Some day)
+            | MaybeOne (Some selectedDay, onChange) when selectedDay = day  -> onChange None
+            | MaybeOne (_, onChange)                                        -> onChange (Some day)
             | One      (Some selectedDay, _onChange) when selectedDay = day -> Noop
             | One      (_, onChange)                                        -> onChange day
             | Set      (days, onChange)                                     -> onChange (days.Toggle day)
@@ -43,33 +43,31 @@ namespace LibClient.Components
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open LibClient.Accessibility
+open Rn.Components
+open Rn.Styles
 
-// NOTE: do NOT `open ReactXP.LegacyStyles` here. Its rule functions shadow the new-dialect ones
-// and break make*Styles computation expressions. See LEARNINGS.md.
+// NOTE: do NOT `open Rn.LegacyStyles` here. Its rule functions shadow the new-dialect ones
+// and break make*Styles computation expressions. See the gallery docs runbooks/troubleshooting.md.
 
 open LibClient.Components.Input.DayOfTheWeek
 
-// The Theme type is nested under `module LC = module Input = module DayOfTheWeek` so that
-// DefaultComponentsTheme.fs can reference it as `LC.Input.DayOfTheWeek.Theme` (matching the
-// pattern used by LC.Input.DateTypes.Theme, LC.Input.EmailAddressTypes.Theme etc.)
-module LC =
-    module Input =
-        module DayOfTheWeek =
-            type Theme = {
-                UnselectedTextColor:       Color
-                UnselectedBackgroundColor: Color
-                SelectedTextColor:         Color
-                SelectedBackgroundColor:   Color
-                LabelColor:                Color
-                InvalidColor:              Color
-            }
-
-open LC.Input.DayOfTheWeek
-
 [<AutoOpen>]
 module Input_DayOfTheWeek =
+
+    module LC =
+        module Input =
+            module DayOfTheWeek =
+                type Theme = {
+                    UnselectedTextColor:       Color
+                    UnselectedBackgroundColor: Color
+                    SelectedTextColor:         Color
+                    SelectedBackgroundColor:   Color
+                    LabelColor:                Color
+                    InvalidColor:              Color
+                }
+
+    open LC.Input.DayOfTheWeek
 
     [<RequireQualifiedAccess>]
     module private Styles =
@@ -99,15 +97,19 @@ module Input_DayOfTheWeek =
                 borderRadius (size / 2)
             }
 
-        let daySelected (theme: Theme) =
-            makeViewStyles {
-                backgroundColor theme.SelectedBackgroundColor
-            }
+        let daySelected =
+            ViewStyles.Memoize (fun (selectedBackgroundColor: Color) ->
+                makeViewStyles {
+                    backgroundColor selectedBackgroundColor
+                }
+            )
 
-        let dayUnselected (theme: Theme) =
-            makeViewStyles {
-                backgroundColor theme.UnselectedBackgroundColor
-            }
+        let dayUnselected =
+            ViewStyles.Memoize (fun (unselectedBackgroundColor: Color) ->
+                makeViewStyles {
+                    backgroundColor unselectedBackgroundColor
+                }
+            )
 
         let dayLabel =
             makeTextStyles {
@@ -115,31 +117,41 @@ module Input_DayOfTheWeek =
                 fontSize 16
             }
 
-        let dayLabelSelected (theme: Theme) =
-            makeTextStyles {
-                color theme.SelectedTextColor
-            }
+        let dayLabelSelected =
+            TextStyles.Memoize (fun (selectedTextColor: Color) ->
+                makeTextStyles {
+                    color selectedTextColor
+                }
+            )
 
-        let dayLabelUnselected (theme: Theme) =
-            makeTextStyles {
-                color theme.UnselectedTextColor
-            }
+        let dayLabelUnselected =
+            TextStyles.Memoize (fun (unselectedTextColor: Color) ->
+                makeTextStyles {
+                    color unselectedTextColor
+                }
+            )
 
-        let labelText (theme: Theme) =
-            makeTextStyles {
-                color theme.LabelColor
-            }
+        let labelText =
+            TextStyles.Memoize (fun (labelColor: Color) ->
+                makeTextStyles {
+                    color labelColor
+                }
+            )
 
-        let labelTextInvalid (theme: Theme) =
-            makeTextStyles {
-                color theme.InvalidColor
-            }
+        let labelTextInvalid =
+            TextStyles.Memoize (fun (invalidColor: Color) ->
+                makeTextStyles {
+                    color invalidColor
+                }
+            )
 
-        let invalidReasonText (theme: Theme) =
-            makeTextStyles {
-                fontSize 12
-                color theme.InvalidColor
-            }
+        let invalidReasonText =
+            TextStyles.Memoize (fun (invalidColor: Color) ->
+                makeTextStyles {
+                    fontSize 12
+                    color invalidColor
+                }
+            )
 
     type LibClient.Components.Constructors.LC.Input with
         [<Component>]
@@ -147,43 +159,43 @@ module Input_DayOfTheWeek =
                 mode:           LibClient.Components.Input.DayOfTheWeek.Mode,
                 validity:       InputValidity,
                 ?label:         string,
-                ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:           string
             ) : ReactElement =
-            key |> ignore
+            key           |> ignore
             xLegacyStyles |> ignore
 
             let theTheme = Themes.GetMaybeUpdatedWith (None : Option<Theme -> Theme>)
 
-            RX.View(
+            Rn.View(
                 children =
                     [|
                         // Label row: show label text if provided, or "Required" if Missing + no label
                         match label with
                         | Some lbl ->
-                            RX.View(
-                                styles   = [| Styles.label |],
+                            Rn.View(
+                                styles = [| Styles.label |],
                                 children =
                                     [|
                                         LC.Text(
                                             lbl,
                                             styles =
                                                 [|
-                                                    if validity.IsInvalid then Styles.labelTextInvalid theTheme
-                                                    else                       Styles.labelText theTheme
+                                                    if validity.IsInvalid then Styles.labelTextInvalid theTheme.InvalidColor
+                                                    else                       Styles.labelText theTheme.LabelColor
                                                 |]
                                         )
                                     |]
                             )
                         | None ->
                             if validity = Missing then
-                                RX.View(
-                                    styles   = [| Styles.label |],
+                                Rn.View(
+                                    styles = [| Styles.label |],
                                     children =
                                         [|
                                             LC.Text(
                                                 "Required",
-                                                styles = [| Styles.labelTextInvalid theTheme |]
+                                                styles = [| Styles.labelTextInvalid theTheme.InvalidColor |]
                                             )
                                         |]
                                 )
@@ -191,22 +203,23 @@ module Input_DayOfTheWeek =
                                 noElement
 
                         // Horizontal scroll of day buttons
-                        RX.ScrollView(
+                        Rn.ScrollView(
                             horizontal = true,
                             children =
                                 [|
-                                    RX.View(
-                                        styles   = [| Styles.days |],
+                                    Rn.View(
+                                        styles = [| Styles.days |],
                                         children =
                                             [|
                                                 for day in LibClient.Components.Input.DayOfTheWeek.days do
                                                     let isSelected = mode.IsSelected day
-                                                    RX.View(
+                                                    let dayLabel = day.ToString()
+                                                    Rn.View(
                                                         styles =
                                                             [|
                                                                 Styles.day
-                                                                if isSelected then Styles.daySelected theTheme
-                                                                else               Styles.dayUnselected theTheme
+                                                                if isSelected then Styles.daySelected theTheme.SelectedBackgroundColor
+                                                                else               Styles.dayUnselected theTheme.UnselectedBackgroundColor
                                                             |],
                                                         children =
                                                             [|
@@ -215,11 +228,19 @@ module Input_DayOfTheWeek =
                                                                     styles =
                                                                         [|
                                                                             Styles.dayLabel
-                                                                            if isSelected then Styles.dayLabelSelected theTheme
-                                                                            else               Styles.dayLabelUnselected theTheme
+                                                                            if isSelected then Styles.dayLabelSelected theTheme.SelectedTextColor
+                                                                            else               Styles.dayLabelUnselected theTheme.UnselectedTextColor
                                                                         |]
                                                                 )
-                                                                LC.TapCapture(onPress = mode.OnPress day)
+                                                                LC.Pressable(
+                                                                    onPress       = mode.OnPress day,
+                                                                    label         = dayLabel,
+                                                                    testId        = A11ySlug.testId "day-of-week" dayLabel,
+                                                                    role          = AccessibilityRole.Button,
+                                                                    state         = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                                                                    overlay       = true,
+                                                                    componentName = "LC.Input.DayOfTheWeek"
+                                                                )
                                                             |]
                                                     )
                                             |]
@@ -230,10 +251,10 @@ module Input_DayOfTheWeek =
                         // Invalid reason below the days
                         match validity.InvalidReason with
                         | Some reason ->
-                            RX.View(
+                            Rn.View(
                                 children =
                                     [|
-                                        LC.Text(reason, styles = [| Styles.invalidReasonText theTheme |])
+                                        LC.Text(reason, styles = [| Styles.invalidReasonText theTheme.InvalidColor |])
                                     |]
                             )
                         | None -> noElement

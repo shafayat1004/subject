@@ -5,7 +5,7 @@ type LR = class end
 
 module LR =
     type Nav   = class end
-    type Route = class end 
+    type Route = class end
     type With  = class end
 
     module Nav =
@@ -13,4 +13,3 @@ module LR =
 
     module Legacy =
         type TopNav = class end
-

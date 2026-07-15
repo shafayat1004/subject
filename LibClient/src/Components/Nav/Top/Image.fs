@@ -3,8 +3,8 @@ module LibClient.Components.Nav_Top_Image
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -17,18 +17,18 @@ module private Styles =
 type LibClient.Components.Constructors.LC.Nav.Top with
     [<Component>]
     static member Image(
-            source: LibClient.Services.ImageService.ImageSource,
+            source:  LibClient.Services.ImageService.ImageSource,
             ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?key:    string) : ReactElement =
         key |> ignore
 
-        RX.Image(
+        Rn.Image(
             styles =
                 [|
                     Styles.image
                     yield! (styles |> Option.defaultValue [||])
                 |],
-            source = source,
-            size = FromStyles,
+            source     = source,
+            size       = FromStyles,
             resizeMode = Cover
         )

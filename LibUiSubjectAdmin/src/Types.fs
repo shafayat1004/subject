@@ -6,11 +6,11 @@ open LibClient.Services.Subscription
 open LibUiSubject
 open LibUiAdmin
 
-type LibUiAdmin.Components.Legacy.QueryGrid.Order with
+type LibUiAdmin.Components.QueryGrid.Order with
     member this.ToSubjectOrderDirection : OrderDirection =
         match this with
-        | LibUiAdmin.Components.Legacy.QueryGrid.Order.Ascending  -> OrderDirection.Ascending
-        | LibUiAdmin.Components.Legacy.QueryGrid.Order.Descending -> OrderDirection.Descending
+        | LibUiAdmin.Components.QueryGrid.Order.Ascending  -> OrderDirection.Ascending
+        | LibUiAdmin.Components.QueryGrid.Order.Descending -> OrderDirection.Descending
 
 module QueryGrid =
     type SubjectQuery<'Id, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError
@@ -68,7 +68,7 @@ let makeSubscriptionAdapter<'Query, 'Id, 'T, 'Predicate, 'OrderBy, 'NumericIndex
     (rawPaginatedSubjectQuery: QueryGrid.PaginatedSubjectQuery<'Id, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>)
     (pageSize: PositiveInteger)
     (pageNumber: PositiveInteger)
-    (_order: LibUiAdmin.Components.Legacy.QueryGrid.Order)
+    (_order: LibUiAdmin.Components.QueryGrid.Order)
     : (AsyncData<'T> -> unit) -> SubscribeResult =
     // TODO don't ignore order?
     { rawPaginatedSubjectQuery with
@@ -80,7 +80,6 @@ let makeSubscriptionAdapter<'Query, 'Id, 'T, 'Predicate, 'OrderBy, 'NumericIndex
     }
     |> realMakeSubscription
 
-open LibUiAdmin.Components.Legacy.QueryGrid
 open LibUiSubject.Services.SubjectService
 
 let makeIndexQuerySubscriptionAdapterWithCount (query: IndexQuery<'Index>) (service: ISubjectService<'Subject, 'Projection, 'Id, 'Index, 'Constructor, 'Action, 'Event, 'OpError>) =

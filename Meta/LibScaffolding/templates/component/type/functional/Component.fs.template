@@ -1,0 +1,25 @@
+[<AutoOpen>]
+module <%= projectName %>.Components.<%= componentName %>
+
+open Fable.React
+open LibClient
+open Rn.Components
+open Rn.Styles
+
+[<RequireQualifiedAccess>]
+module private Styles =
+    let container =
+        makeViewStyles {
+            FlexDirection.Column
+        }
+
+type LibClient.Components.Constructors.LC with
+    [<Component>]
+    static member <%= componentNameLeaf %>(
+            ?key: string
+        ) : ReactElement =
+        key |> ignore
+        Rn.View(
+            styles = [| Styles.container |],
+            children = [||]
+        )

@@ -22,16 +22,26 @@ type Ui.Content.Input with
     static member Duration () : ReactElement =
         Ui.ComponentContent (
             displayName = "Input.Duration",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Duration",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Input.Duration",
+            a11y =
+                Ui.A11yPanel(
+                    componentName  = "LC.Input.Duration",
+                    role           = "text field (duration)",
+                    namePattern    = "Floating label text",
+                    stateNotes     = "Invalid/Missing validity surfaces error text below the field",
+                    scalesWithFont = true,
+                    contrastNotes  = "Label, input text, and error colors meet WCAG AA"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
-                        heading = "Modes",
+                        heading = "Basics",
+                        notes   = LC.Text "Duration input uses separate numeric fields for hours and minutes. Hours must be between 0 and 23; minutes between 0 and 59. Pass shouldDisplayDays to add an optional days field. A complete duration is available in Value.Result only when all required fields are filled and valid.",
                         samples = (
                             element {
                                 Ui.ComponentSample(
                                     visuals = Helpers.Sample(validity = Valid),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Input.Duration(
     label    = "Duration",
     value    = value,

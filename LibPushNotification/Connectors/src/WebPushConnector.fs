@@ -10,7 +10,7 @@ open WebPush
 open LibLifeCycle.Config
 
 type PushEncryptionKeys  = {
-    auth: string
+    auth:   string
     p256dh: string
 }
 
@@ -30,9 +30,9 @@ with
     interface IValidatable with
         member this.Validate(): unit =
             if String.IsNullOrWhiteSpace(this.Subject) then
-                ConfigurationValidationException("PushNotification.Web.[Subject] not specified", this.Subject)       |> raise
+                ConfigurationValidationException("PushNotification.Web.[Subject] not specified", this.Subject) |> raise
             elif String.IsNullOrWhiteSpace(this.PublicKey) then
-                ConfigurationValidationException("PushNotification.Web.[PublicKey] not specified", this.PublicKey)   |> raise
+                ConfigurationValidationException("PushNotification.Web.[PublicKey] not specified", this.PublicKey) |> raise
             elif String.IsNullOrWhiteSpace(this.PrivateKey) then
                 ConfigurationValidationException("PushNotification.Web.[PrivateKey] not specified", this.PrivateKey) |> raise
 

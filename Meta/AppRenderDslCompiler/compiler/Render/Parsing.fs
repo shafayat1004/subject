@@ -153,12 +153,12 @@ let parseAttributes (isRootNode: bool) (elementName: string) (attributes: seq<Xm
 
             | "rt-let" ->
                 match parseLetBindings currAttribute.Value with
-                | Error error -> errors <- error :: errors
+                | Error error    -> errors <- error :: errors
                 | Ok letBindings -> specialAttributes <- { specialAttributes with MaybeLet = Some { Bindings = letBindings } }
 
             | "rt-class" ->
                 match parseClassConditionals currAttribute.Value with
-                | Error error -> errors <- error :: errors
+                | Error error          -> errors <- error :: errors
                 | Ok classConditionals -> specialAttributes <- { specialAttributes with MaybeClass = Some { ClassConditionals = classConditionals } }
 
             | "rt-map" | "rt-mapi" | "rt-mapo" ->
@@ -170,7 +170,7 @@ let parseAttributes (isRootNode: bool) (elementName: string) (attributes: seq<Xm
                         | "rt-map"  -> Map (SingleLineExpression parts.Collection, SingleLineExpression parts.Curr, WithIndex = false)
                         | "rt-mapi" -> Map (SingleLineExpression parts.Collection, SingleLineExpression parts.Curr, WithIndex = true)
                         | "rt-mapo" -> MapOfOption (SingleLineExpression parts.Collection, parts.Curr)
-                        | _ -> failwith "Should never happen, we already narrowed the scope of this value down above"
+                        | _         -> failwith "Should never happen, we already narrowed the scope of this value down above"
                     specialAttributes <- { specialAttributes with MaybeMap = Some map }
 
             | "rt-prop-children" ->
@@ -230,7 +230,7 @@ let parseAttributes (isRootNode: bool) (elementName: string) (attributes: seq<Xm
     if specialAttributes.RtFsharp then
         match attributesAcc |> List.findMap (fun (AttributeName name, SingleLineExpression value) -> if name.Value = "class" then Some value.Value else None) with
         | Some classValue -> errors <- (UnexpectedStructure $"Element {elementName} has rt-fs set to true, but also has a class attribute set to {classValue}") :: errors
-        | None -> ()
+        | None            -> ()
 
     match errors.IsEmpty with
     | true  -> Ok (attributesAcc, specialAttributes)
@@ -239,23 +239,23 @@ let parseAttributes (isRootNode: bool) (elementName: string) (attributes: seq<Xm
 let private componentNameRegex = System.Text.RegularExpressions.Regex("[a-zA-Z]+")
 
 // Whether something is childless or childless is dictated by the parameters its make function in Fable.React.Standard takes
-let domNodeNamesChildless = Set.ofList ["br"; "col"; "embed"; "hr"; "img"; "input"; "keygen"; "link"; "menuitem"; "meta"; "param"; "source"; "track"; "wbr";"circle";"ellipse";"line";"polygon";"polyline";"rect";"text";"tspan";"textPath"]
-let private domNodeNamesChildful  = Set.ofList ["div"; "span"; "i"; "b"; "strong"; "a"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "ul"; "li"; "p"; "button"; "select"; "option"; "table"; "thead"; "tbody"; "tr"; "th"; "td";"svg";"g";"path";"sup"]
-let private domNodeNames = Set.union domNodeNamesChildful domNodeNamesChildless
+let domNodeNamesChildless        = Set.ofList ["br"; "col"; "embed"; "hr"; "img"; "input"; "keygen"; "link"; "menuitem"; "meta"; "param"; "source"; "track"; "wbr";"circle";"ellipse";"line";"polygon";"polyline";"rect";"text";"tspan";"textPath"]
+let private domNodeNamesChildful = Set.ofList ["div"; "span"; "i"; "b"; "strong"; "a"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "ul"; "li"; "p"; "button"; "select"; "option"; "table"; "thead"; "tbody"; "tr"; "th"; "td";"svg";"g";"path";"sup"]
+let private domNodeNames         = Set.union domNodeNamesChildful domNodeNamesChildless
 
 let private nameSpaceAndNameForComponent (thisLibraryAlias: string) (componentLibraryAliases: Map<string, string>) (rawComponentName: string) : Result<string * string * string, ParsingError> =
     let (maybeLibraryAlias, name) =
         match rawComponentName.Split(".", 2) with
-        | [| unqualifiedName |] -> ("default", unqualifiedName)
+        | [| unqualifiedName |]         -> ("default", unqualifiedName)
         | [| maybeLibraryAlias; name |] -> (maybeLibraryAlias, name)
-        | _ -> failwith "String.Split was asked for at most 2 items, but we got something else."
+        | _                             -> failwith "String.Split was asked for at most 2 items, but we got something else."
 
     match componentLibraryAliases.TryFind maybeLibraryAlias with
     | Some fullNamespace -> Ok (fullNamespace, name, maybeLibraryAlias)
     | None ->
         match componentLibraryAliases.TryFind "default" with
         | Some defaultNamespace -> Ok (defaultNamespace, rawComponentName, thisLibraryAlias)
-        | None -> Error (ParsingError.MissingDefaultLibraryMapping)
+        | None                  -> Error (ParsingError.MissingDefaultLibraryMapping)
 
 let private withoutComments (nodes: List<ReactTemplateNode>): List<ReactTemplateNode> =
     nodes

@@ -36,11 +36,11 @@ type ComponentProps = string
 let private defaultLibraryPrefix = "default"
 
 type Session = {
-    RootPath:                 string
-    ComponentLibraryAliases:  Map<LibraryAbbreviation, Namespace>
-    ComponentLibraryPaths:    Map<Namespace, string>
-    ComponentAliases:         Map<string, string>
-    CachedComponentProps:     Map<ComponentName, ComponentProps>
+    RootPath:                string
+    ComponentLibraryAliases: Map<LibraryAbbreviation, Namespace>
+    ComponentLibraryPaths:   Map<Namespace, string>
+    ComponentAliases:        Map<string, string>
+    CachedComponentProps:    Map<ComponentName, ComponentProps>
 } with
     member this.GetComponentName (rawComponentTag: string) : Result<ComponentName, string> = resultful {
         let aliasResolvedComponentTag = this.ComponentAliases.TryFind rawComponentTag |> Option.getOrElse rawComponentTag
@@ -54,7 +54,7 @@ type Session = {
         match (maybeLibraryPrefixPart, this.ComponentLibraryAliases.TryFind (maybeLibraryPrefixPart |> Option.getOrElse defaultLibraryPrefix)) with
         | (None,   Some libraryNamespace) -> return LocalComponentName (libraryNamespace, namePart)
         | (Some _, Some libraryNamespace) -> return LibraryComponentName (libraryNamespace, namePart)
-        | _ -> return! Error (sprintf "Mapping for %O library not found when trying to GetComponentName for %s" maybeLibraryPrefixPart rawComponentTag)
+        | _                               -> return! Error (sprintf "Mapping for %O library not found when trying to GetComponentName for %s" maybeLibraryPrefixPart rawComponentTag)
     }
 
     member private this.FindBasePath (componentName: ComponentName) : Option<string> =

@@ -8,7 +8,7 @@ open LibLifeCycle.LifeCycleAccessBuilder
 open type AccessTo<RecurringJobAction, RecurringJobConstructor>
 
 type RecurringJobEnvironment = {
-    Clock: Service<Clock>
+    Clock:  Service<Clock>
     Unique: Service<Unique>
 } with interface Env
 
@@ -62,20 +62,20 @@ let private transition (env: RecurringJobEnvironment) (recurringJob: RecurringJo
 
         | RecurringJobState.Scheduled (_, maybeLastExecution), RecurringJobAction.Update (cronExpression, timeZoneId, jobInstanceData) ->
             if recurringJob.CronExpression = cronExpression &&
-               recurringJob.TimeZoneId = timeZoneId &&
+               recurringJob.TimeZoneId      = timeZoneId &&
                recurringJob.JobInstanceData = jobInstanceData &&
-               recurringJob.HardDelete = false then
+               recurringJob.HardDelete      = false then
                 return Transition.Ignore
             else
                 let! now = env.Clock.Query Now
                 let! dueOn = nextDueBdt cronExpression timeZoneId now
                 return
                     { recurringJob with
-                        CronExpression = cronExpression
-                        TimeZoneId = timeZoneId
+                        CronExpression  = cronExpression
+                        TimeZoneId      = timeZoneId
                         JobInstanceData = jobInstanceData
-                        HardDelete = false
-                        State = RecurringJobState.Scheduled (dueOn, maybeLastExecution) }
+                        HardDelete      = false
+                        State           = RecurringJobState.Scheduled (dueOn, maybeLastExecution) }
 
         | RecurringJobState.Scheduled _, RecurringJobAction.HardDelete ->
             return { recurringJob with HardDelete = true }
@@ -95,19 +95,19 @@ let private transition (env: RecurringJobEnvironment) (recurringJob: RecurringJo
 
         | RecurringJobState.Fired (_, execution), RecurringJobAction.Update (cronExpression, timeZoneId, jobInstanceData) ->
             if recurringJob.CronExpression = cronExpression &&
-               recurringJob.TimeZoneId = timeZoneId &&
+               recurringJob.TimeZoneId      = timeZoneId &&
                recurringJob.JobInstanceData = jobInstanceData &&
-               recurringJob.HardDelete = false then
+               recurringJob.HardDelete      = false then
                 return Transition.Ignore
             else
                 let! nextDueOn = nextDueBdt cronExpression timeZoneId execution.FiredOn
                 return
                     { recurringJob with
-                        CronExpression = cronExpression
-                        TimeZoneId = timeZoneId
+                        CronExpression  = cronExpression
+                        TimeZoneId      = timeZoneId
                         JobInstanceData = jobInstanceData
-                        HardDelete = false
-                        State = RecurringJobState.Fired (nextDueOn, execution) }
+                        HardDelete      = false
+                        State           = RecurringJobState.Fired (nextDueOn, execution) }
 
         | RecurringJobState.Fired _, RecurringJobAction.HardDelete ->
             return { recurringJob with HardDelete = true }
@@ -120,14 +120,14 @@ let private construction (env: RecurringJobEnvironment) (id: RecurringJobId) (ct
             let! now = env.Clock.Query Now
             let! dueOn = nextDueBdt cronExpression timeZoneId now
             return {
-                Id = id
-                Name = name
-                CreatedOn = now
-                CronExpression = cronExpression
-                TimeZoneId = timeZoneId
+                Id              = id
+                Name            = name
+                CreatedOn       = now
+                CronExpression  = cronExpression
+                TimeZoneId      = timeZoneId
                 JobInstanceData = jobInstanceData
-                State = RecurringJobState.Scheduled (dueOn, None)
-                HardDelete = false
+                State           = RecurringJobState.Scheduled (dueOn, None)
+                HardDelete      = false
             }
     }
 
@@ -190,7 +190,7 @@ let private shouldSendTelemetry =
         | RecurringJobAction.OnJobStatusChanged status ->
             match status with
             | JobStatus.Finished false | JobStatus.Unfinished -> true
-            | JobStatus.Finished true -> false
+            | JobStatus.Finished true                         -> false
     | ShouldSendTelemetryFor.LifeEvent _ -> false
 
 let recurringJobLifeCycle =

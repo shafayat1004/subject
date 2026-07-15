@@ -5,8 +5,8 @@ open Fable.Core.JsInterop
 open LibClient
 open AppEggShellGallery.Components
 
-open ReactXP.Components
-open ReactXP.Helpers
+open Rn.Components
+open Rn.Helpers
 open LibClient.Components
 
 LibClient.Initialize.initialize (AppEggShellGallery.LocalImages.localImage)
@@ -22,7 +22,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
     let element =
         match configRes with
         | Ok config ->
-            ReactXP.Styles.Config.setIsDevMode config.InitializeReactXPInDevMode
+            Rn.Styles.Config.setIsDevMode config.InitializeRnInDevMode
 
             AppServices.initialize config
             AppEggShellGallery.Config.initialize config
@@ -39,7 +39,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
                     match maybeTelemetrySink with
                     | Some telemetrySink -> telemetrySink
-                    | None -> ()
+                    | None               -> ()
                 }
 
             setLogLevel LogLevel.Info
@@ -50,12 +50,21 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
             let pstore = InitializePersistentStore initialPstoreData
             pstore |> ignore
 
-            let element = App.Make { PstoreKey = "app" } [||]
+            let element = Ui.App.Root()
 
-            ReactXPRaw?App?initialize ((* DEBUG *) config.InitializeReactXPInDebugMode, (* DEV *) config.InitializeReactXPInDevMode)
-            ReactXPRaw?UserInterface?setContextWrapper (fun rootView ->
+            Rn.App.initialize ((* DEBUG *) config.InitializeRnInDebugMode, (* DEV *) config.InitializeRnInDevMode)
+            // NB: no app-wide Rn.GestureHandlerRootView here. The gallery drives its
+            // drawer/scrim/draggable through the JS-responder path (Rn.GestureView); an
+            // app-wide RNGH root took over native touch arbitration and made the sidebar
+            // close on a vertical scroll. RNGH is scoped to the one page that needs it
+            // (the HorizontalPanArea demo wraps itself in Rn.GestureHandlerRootView).
+            Rn.UserInterface.setContextWrapper (fun rootView ->
                 Ui.AppContext (children = [|rootView|])
             )
+
+            #if DEBUG
+            LibClient.UiActionLog.installGlobalHook Browser.Dom.window "AppEggShellGallery"
+            #endif
 
             #if EGGSHELL_PLATFORM_IS_WEB
             let consoleTestBindings =
@@ -71,7 +80,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
         | Error reason ->
             Log.Error ("App initialization failed because config construction failed: " + reason)
-            ReactXPRaw?App?initialize((* DEBUG *) false, (* DEV *) false);
+            Rn.App.initialize((* DEBUG *) false, (* DEV *) false);
 
             LibClient.Components.Constructors.LC.AppShell.TopLevelErrorMessage(
                 error = exn reason,
@@ -80,7 +89,7 @@ let init(configRes: Result<AppEggShellGallery.Config, string>) =
 
     async {
         do! LibClient.ServiceInstances.services().Image.WhenInitialized ()
-        ReactXPRaw?UserInterface?setMainView element
+        Rn.UserInterface.setMainView element
     } |> startSafely
 
 open Fable.Core

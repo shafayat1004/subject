@@ -5,7 +5,7 @@ open System
 open Fable.React
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 module LC =
     module Timestamp =
@@ -25,13 +25,13 @@ type PropValueFactory = LC.Timestamp.PropValueFactory
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Timestamp(
-            value: UniDateTime,
-            ?format: string,
-            ?offset: TimeSpan,
-            ?selectable: bool,
+            value:          UniDateTime,
+            ?format:        string,
+            ?offset:        TimeSpan,
+            ?selectable:    bool,
             ?numberOfLines: int,
-            ?styles: array<TextStyles>,
-            ?key: string) : ReactElement =
+            ?styles:        array<TextStyles>,
+            ?key:           string) : ReactElement =
         key |> ignore
 
         let format = defaultArg format "yyyy-MM-dd HH:mm:ss"
@@ -42,12 +42,12 @@ type LibClient.Components.Constructors.LC with
         if selectable then
             LC.Text(
                 formattedValue,
-                ?styles = styles,
+                ?styles        = styles,
                 ?numberOfLines = numberOfLines
             )
         else
             LC.UiText(
                 formattedValue,
-                ?styles = styles,
+                ?styles        = styles,
                 ?numberOfLines = numberOfLines
             )

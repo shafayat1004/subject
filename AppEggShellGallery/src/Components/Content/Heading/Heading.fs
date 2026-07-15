@@ -4,7 +4,7 @@ module AppEggShellGallery.Components.Content_Heading
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Styles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -15,17 +15,27 @@ type Ui.Content with
     static member Heading () : ReactElement =
         Ui.ComponentContent (
             displayName = "Heading",
-            props = ComponentContent.ForFullyQualifiedName "LibClient.Components.Heading",
-            notes = LC.Text "Heading is a very common component and you should not arbitrarily apply style to it. Use themed styles.",
+            props       = ComponentContent.ForFullyQualifiedName "LibClient.Components.Heading",
+            notes       = LC.Text "Heading is a very common component and you should not arbitrarily apply style to it. Use themed styles.",
+            a11y =
+                Ui.A11yPanel(
+                    componentName  = "LC.Heading",
+                    role           = "header (AccessibilityRole.Header)",
+                    namePattern    = "Text content of children (typically LC.Text)",
+                    stateNotes     = "Static text; no interactive state",
+                    scalesWithFont = true,
+                    contrastNotes  = "Themed heading colors meet WCAG AA on typical page backgrounds"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
+                        heading = "Levels",
                         samples = (
                             element {
                                 Ui.ComponentSample(
                                     visuals = LC.Heading(
                                         children = [| LC.Text "I am default heading" |],
-                                        styles = [| Styles.margin |]
+                                        styles   = [| Styles.margin |]
                                     ),
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Heading(
@@ -37,8 +47,8 @@ LC.Heading(
                                 Ui.ComponentSample(
                                     visuals = LC.Heading(
                                         children = [| LC.Text "I am Primary heading" |],
-                                        level = Heading.Primary,
-                                        styles = [| Styles.margin |]
+                                        level    = Heading.Primary,
+                                        styles   = [| Styles.margin |]
                                     ),
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Heading(
@@ -51,8 +61,8 @@ LC.Heading(
                                 Ui.ComponentSample(
                                     visuals = LC.Heading(
                                         children = [| LC.Text "I am Secondary heading" |],
-                                        level = Heading.Secondary,
-                                        styles = [| Styles.margin |]
+                                        level    = Heading.Secondary,
+                                        styles   = [| Styles.margin |]
                                     ),
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Heading(
@@ -65,8 +75,8 @@ LC.Heading(
                                 Ui.ComponentSample(
                                     visuals = LC.Heading(
                                         children = [| LC.Text "I am Tertiary heading" |],
-                                        level = Heading.Tertiary,
-                                        styles = [| Styles.margin |]
+                                        level    = Heading.Tertiary,
+                                        styles   = [| Styles.margin |]
                                     ),
                                     code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
 LC.Heading(

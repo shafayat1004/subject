@@ -1,6 +1,13 @@
+// Must be the very first import: sets up the gesture-handler native module before
+// anything renders (required on Android, no-op on web). Without it PanGestureHandler
+// silently no-ops (RW8 defect 4 -- the HorizontalPanArea "Drag me" slider did not drag).
+import 'react-native-gesture-handler';
+// Must be imported before any code touches `crypto` (native has no global crypto otherwise:
+// "ReferenceError: Property 'crypto' doesn't exist"). Polyfills crypto.getRandomValues.
+import 'react-native-get-random-values';
 import { LogBox } from 'react-native';
 
-// ReactXP + React 18 emit legacy contextTypes warnings on every View/Text/Button
+// react-native-web app entry (Fable output bootstraps below).
 // mount, each with a deep component stack (~15 logcat lines per warning).
 const ignoredNativeWarningPatterns = [
   /legacy childContextTypes API/,
@@ -11,7 +18,10 @@ const ignoredNativeWarningPatterns = [
   /componentWillReceiveProps has been renamed/,
   /AsyncStorage has been extracted from react-native/,
   /`new NativeEventEmitter\(\)` was called with a non-null argument/,
-  /Require cycle: node_modules\\react-native\\Libraries\\Network\\fetch.js/,
+  /Support for defaultProps will be removed/,
+  /TRenderEngineProvider/,
+  /MemoizedTNodeRenderer/,
+  /TNodeChildrenRenderer/,
   /^\s+in /,
 ];
 
@@ -44,7 +54,24 @@ LogBox.ignoreLogs([
   'AsyncStorage has been extracted from react-native',
   '`new NativeEventEmitter()` was called with a non-null argument',
   'Require cycle: node_modules\\react-native\\Libraries\\Network\\fetch.js',
+  'Support for defaultProps will be removed',
+  'TRenderEngineProvider',
+  'MemoizedTNodeRenderer',
+  'TNodeChildrenRenderer',
 ]);
+
+if (__DEV__) {
+  const errorUtils = global.ErrorUtils;
+  if (errorUtils && typeof errorUtils.getGlobalHandler === 'function') {
+    const defaultGlobalHandler = errorUtils.getGlobalHandler();
+    errorUtils.setGlobalHandler((error, isFatal) => {
+      if (error && error.stack) {
+        originalConsoleError('[EggShell uncaught]', error.message, '\n', error.stack);
+      }
+      defaultGlobalHandler(error, isFatal);
+    });
+  }
+}
 
 // This file is required by the react native metro bundler as
 // starting point of the application.

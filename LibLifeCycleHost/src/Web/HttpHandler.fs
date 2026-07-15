@@ -164,7 +164,7 @@ open Microsoft.Extensions.Logging
 
 type HttpExceptionHandlingMiddleware
         (
-            next: RequestDelegate,
+            next:          RequestDelegate,
             loggerFactory: ILoggerFactory
         ) =
 
@@ -183,17 +183,17 @@ type HttpExceptionHandlingMiddleware
 
 type HttpEndpointsMiddleware
         (
-            next: RequestDelegate,
-            clock: Service<Clock>,
-            cryptographer: ApiSessionCryptographer,
-            ecosystem: Ecosystem,
-            lifeCycleAdapterCollection: HostedLifeCycleAdapterCollection,
-            viewAdapterCollection: ViewAdapterCollection,
+            next:                        RequestDelegate,
+            clock:                       Service<Clock>,
+            cryptographer:               ApiSessionCryptographer,
+            ecosystem:                   Ecosystem,
+            lifeCycleAdapterCollection:  HostedLifeCycleAdapterCollection,
+            viewAdapterCollection:       ViewAdapterCollection,
             timeSeriesAdapterCollection: TimeSeriesAdapterCollection,
             // TODO: expose TimeSeries via api
             _timeSeriesAdapterCollection: TimeSeriesAdapterCollection,
-            hostEcosystemGrainFactory: IGrainFactory,
-            biosphereGrainProvider: IBiosphereGrainProvider
+            hostEcosystemGrainFactory:    IGrainFactory,
+            biosphereGrainProvider:       IBiosphereGrainProvider
         ) =
 
     let noneTask = Task.FromResult None

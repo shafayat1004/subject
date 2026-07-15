@@ -81,4 +81,4 @@ module AdHoc =
         fun e ->
             match goImplementation with
             | Some goImplementation -> goImplementation closeToDialog e
-            | None -> failwith "LibClient.AdHocDialogs go implementation was not provided"
+            | None                  -> failwith "LibClient.AdHocDialogs go implementation was not provided"

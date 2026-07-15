@@ -4,10 +4,11 @@ module LibClient.Components.ToggleButton
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module ToggleButton =
@@ -29,13 +30,13 @@ module LC =
         | Last
 
         type ColorTheme = {
-            TextColor: Color
-            BorderColor: Color
+            TextColor:       Color
+            BorderColor:     Color
             BackgroundColor: Color
         }
 
         type Theme = {
-            Selected: ColorTheme
+            Selected:   ColorTheme
             Unselected: ColorTheme
         }
         with
@@ -51,18 +52,20 @@ open LC.ToggleButton
 module private Styles =
     let viewTheme =
         ViewStyles.Memoize(
-            fun (theme: Theme) (isSelected: bool) ->
-                let colorTheme = theme.ColorTheme isSelected
-
+            fun (outlineColor: Color) (fillColor: Color) ->
                 makeViewStyles {
                     paddingHV 12 4
                     borderWidth 1
                     marginLeft -1
                     Cursor.Pointer
-                    borderColor colorTheme.BorderColor
-                    backgroundColor colorTheme.BackgroundColor
+                    borderColor outlineColor
+                    backgroundColor fillColor
                 }
         )
+
+    let viewThemeFor (theme: Theme) (isSelected: bool) =
+        let colorTheme = theme.ColorTheme isSelected
+        viewTheme colorTheme.BorderColor colorTheme.BackgroundColor
 
     let firstView =
         makeViewStyles {
@@ -91,6 +94,11 @@ module private Styles =
     let iconTheme =
         fun (_theme: Theme) (_isSelected: bool) -> whiteIcon
 
+    let relative =
+        makeViewStyles {
+            Position.Relative
+        }
+
     let leftIcon =
         makeViewStyles {
             marginHorizontal 2
@@ -109,14 +117,14 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member ToggleButton<'T>(
-            style: Style,
-            value: 'T,
-            group: ToggleButtons.Group<'T>,
+            style:     Style,
+            value:     'T,
+            group:     ToggleButtons.Group<'T>,
             ?position: Position,
-            ?pointerState: LC.Pointer.State.PointerState,
-            ?theme: Theme -> Theme,
-            ?styles : array<ViewStyles>,
-            ?key: string
+            ?testId:   string,
+            ?theme:    Theme -> Theme,
+            ?styles:   array<ViewStyles>,
+            ?key:      string
         ) : ReactElement =
         key |> ignore
 
@@ -126,25 +134,33 @@ type LibClient.Components.Constructors.LC with
         let isSelected = group.IsSelected value
         let (maybeLabel, maybeIcon) = style.Parts
 
-        RX.View(
+        let a11yLabel =
+            maybeLabel
+            |> Option.orElse (maybeIcon |> Option.map (fun _ -> sprintf "%A" value))
+            |> Option.defaultValue "Toggle option"
+
+        let defaultTestId = A11ySlug.testId "toggle-button" a11yLabel
+
+        Rn.View(
             styles =
                 [|
-                    Styles.viewTheme theTheme isSelected
+                    Styles.viewThemeFor theTheme isSelected
+                    Styles.relative
 
                     match position with
                     | Position.First -> Styles.firstView
-                    | Position.Last -> Styles.lastView
+                    | Position.Last  -> Styles.lastView
                     | Position.Inner -> Noop
 
                     yield! (styles |> Option.defaultValue [||])
                 |],
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.labelBlock |],
                         children =
                             elements {
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.leftIcon |],
                                     children =
                                         elements {
@@ -152,7 +168,7 @@ type LibClient.Components.Constructors.LC with
                                             | Some icon ->
                                                 LC.Icon(
                                                     styles = [| Styles.iconTheme theTheme isSelected |],
-                                                    icon = icon
+                                                    icon   = icon
                                                 )
                                             | None ->
                                                 noElement
@@ -162,7 +178,7 @@ type LibClient.Components.Constructors.LC with
                                 match maybeLabel with
                                 | Some label ->
                                     LC.UiText(
-                                        value = label,
+                                        value  = label,
                                         styles = [| Styles.labelTheme theTheme isSelected |]
                                     )
                                 | None ->
@@ -170,9 +186,14 @@ type LibClient.Components.Constructors.LC with
                             }
                     )
 
-                    LC.TapCapture(
-                        onPress = group.Toggle value,
-                        ?pointerState = pointerState
+                    LC.Pressable(
+                        onPress       = group.Toggle value,
+                        label         = a11yLabel,
+                        role          = AccessibilityRole.Radio,
+                        state         = { AccessibilityStateRecord.empty with Selected = Some isSelected },
+                        testId        = (testId |> Option.defaultValue defaultTestId),
+                        overlay       = true,
+                        componentName = "LC.ToggleButton"
                     )
                 }
         )

@@ -1,3 +1,9 @@
+.cursor/
+.claude/*
+!.claude/skills/
+# impeccable is an installed third-party skill, not part of this repo
+.claude/skills/impeccable/
+
 # OS-specific metadata
 .DS_Store
 
@@ -54,8 +60,18 @@ UpgradeLog.htm
 
 .fake
 
+# Stray Fable output from running `dotnet fable` without -o on build-*.fsx / Fake scripts (not lib/app builds)
+Fake/**/*.fs.js
+LibAutoUi/**/*.fs.js
+LibClient/**/*.fs.js
+**/**/*.fs.js
+**/build-*.fs.js
+
 # codec validation workspace
 CodecValidationWorkSpace/
 charts/**/*.tgz
 Chart.lock
 .metals/metals.lock.db
+
+# Android native CMake build output
+**/.cxx/

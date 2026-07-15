@@ -1,6 +1,12 @@
 module LibRouter.Components.Link
 
+open Fable.Core
 open Fable.Core.JsInterop
+
+[<Fable.Core.JS.Pojo>]
+type private LinkPropsJs ( ``to``: string, children: obj ) =
+    member val ``to`` = ``to``
+    member val children = children
 
 type Props = (* GenerateMakeFunction *) {
     To:  string
@@ -13,8 +19,5 @@ let Make =
     LibClient.ThirdParty.wrapComponentTransformingProps<Props>
         Link
         (fun (props: Props) ->
-            createObj [
-                "to"       ==> props.To
-                "children" ==> props?children
-            ]
+            LinkPropsJs(props.To, props?children) |> box
         )

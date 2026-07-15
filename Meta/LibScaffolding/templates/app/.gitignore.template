@@ -1,8 +1,61 @@
-# Android build tool for react-native
-android/.gradle
+# =============================================================================
+# EggShell app — generated, local, or machine-specific (regenerate via tooling)
+# =============================================================================
 
-# contains secrets like API keys and the like, only template included in the repo
+# --- Android (React Native) ---
+android/.gradle/
+android/local.properties
+android/.cxx/
+android/.idea/
+android/**/*.iml
+android/**/*.hprof
+android/app/build/
+android/build/
+
+# Standard RN debug keystore (./initialize creates if missing)
+android/app/debug.keystore
+
+# Release / upload signing (never commit)
+android/app/my-upload-key
+android/app/my-upload-key.keystore
+*.keystore
+
+# --- iOS (React Native) ---
+ios/Pods/
+ios/build/
+ios/DerivedData/
+ios/.xcode.env.local
+ios/**/*.xcuserstate
+ios/**/xcuserdata/
+
+# Podfile.lock is committed for reproducible CocoaPods installs.
+
+# --- Fable / Metro native output ---
+.build/
+**/*.fs.js
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# --- Local observe / native overrides ---
+audit/native.local.json
+
+# --- Local secrets (template *.template is committed; real file is not) ---
 configSourceOverrides.native.js
 
-# CocoaPods
-/ios/Pods/
+# --- public-dev/images is symlinked to ../images by ./initialize ---
+public-dev/images/
+
+# --- Dev observability runs (audit/out/.gitignore keeps the folder) ---
+audit/out/*
+!audit/out/.gitignore
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+
+# --- Legacy BUCK ---
+buck-out/
+.buckd/

@@ -16,7 +16,7 @@ open LibLifeCycleTest
 
 type private CallerInfo = {
     Context: string
-    Line: int
+    Line:    int
 }
 
 [<RequireQualifiedAccess>]
@@ -134,7 +134,7 @@ module Ecosystem =
             let adapters = scope.ServiceProvider.GetRequiredService<HostedOrReferencedLifeCycleAdapterRegistry> ()
             match adapters.GetLifeCycleBiosphereAdapterByKey lifeCycleDef.Key with
             | Some adapter -> adapter
-            | None -> failwithf "LC Adapter not found for: %A" lifeCycleDef.Key
+            | None         -> failwithf "LC Adapter not found for: %A" lifeCycleDef.Key
 
         let private biosphereGrainConnector
             (scope: IClusterScope)
@@ -462,7 +462,7 @@ module Ecosystem =
                         use scope = cluster.NewScope()
                         let! grainConnector = biosphereGrainConnector scope lifeCycleDef cluster
                         match! grainConnector.GetPreparedSubjectFromGrain lifeCycleDef subjectId.IdString transactionId with
-                        | Ok prepared -> return prepared
+                        | Ok prepared                      -> return prepared
                         | Error GrainGetError.AccessDenied -> return failwith "Unexpected access denial"
                     }
 
@@ -675,12 +675,12 @@ module Ecosystem =
             let operationTracker = scope.ServiceProvider.GetRequiredService<OperationTracker>()
             let virtualTimeBefore = simulatedNowNoIncrement grainPartition
             do! operationTracker.TrackOperation
-                    { Partition = grainPartition
-                      Type = OperationType.TestTimeForward
-                      Name = "SetNewTime"
-                      MaybeParentActivityId = None
+                    { Partition                 = grainPartition
+                      Type                      = OperationType.TestTimeForward
+                      Name                      = "SetNewTime"
+                      MaybeParentActivityId     = None
                       MakeItNewParentActivityId = true
-                      BeforeRunProperties = Map.ofOneItem ("SimulatedTimeBefore", virtualTimeBefore.ToString("yyyy-MM-dd HH:mm:ss.fffff")) }
+                      BeforeRunProperties       = Map.ofOneItem ("SimulatedTimeBefore", virtualTimeBefore.ToString("yyyy-MM-dd HH:mm:ss.fffff")) }
                     (fun () ->
                         backgroundTask {
                             do! LibLifeCycleTest.ClockSimulation.setNewTimeAndTriggerReminders logger grainPartition newTime lifeCycleAdapterCollection (scope.DefaultGrainFactory())
@@ -1165,7 +1165,7 @@ with
                     | None ->
                         return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Eventually-Predicate Assertion Failed, last observed value: %A{lastObservedValue}"
                 }
-                
+
     static member private assertEventuallyWithCaller
             (callerInfo: CallerInfo)
             lifeCycle
@@ -1186,7 +1186,7 @@ with
                 let! subject = subjectTask cluster
                 return! Ecosystem.assertEventuallyWithCaller callerInfo lifeCycle eventuallyPredicate subject cluster
             }
-        
+
     static member private assertEventuallyWithinWithCaller
             (callerInfo: CallerInfo)
             (waitFor: TimeSpan)
@@ -1438,21 +1438,21 @@ with
                     return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Wait on Life Event timed out"
             }
 
-    
 
-    
+
+
     static member asyncAssertEventuallyWithin (waitFor, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.asyncAssertEventuallyWithinWithCaller { Context = context.Value; Line = line.Value } waitFor
-    
+
     static member assertEventually (lifeCycle, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.assertEventuallyWithCaller { Context = context.Value; Line = line.Value } lifeCycle
-            
+
     static member thenAssertEventually (lifeCycle, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.thenAssertEventuallyWithCaller { Context = context.Value; Line = line.Value } lifeCycle
 
     static member assertEventuallyWithin (waitFor, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.assertEventuallyWithinWithCaller { Context = context.Value; Line = line.Value } waitFor
-                
+
     static member asyncAssertEventually (lifeCycle, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.asyncAssertEventuallyWithCaller { Context = context.Value; Line = line.Value } lifeCycle
 

@@ -2,8 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <LangVersion>7.0</LangVersion>
-    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
+    <!-- x64 on Windows (Fabric/SQL tooling); AnyCPU on macOS/Linux so DevelopmentHost loads on Apple Silicon -->
+    <PlatformTarget Condition="$([MSBuild]::IsOsPlatform('Windows'))">x64</PlatformTarget>
+    <PlatformTarget Condition="!$([MSBuild]::IsOsPlatform('Windows'))">AnyCPU</PlatformTarget>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
@@ -17,8 +19,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <!-- TODO: currently using an internally hosted custom build. -->
-    <PackageReference Include="Fable.SignalR.AspNetCore" Version="0.14.0" />
+    <ProjectReference Include="../../../eggshell-signalr/src/LibSignalRServer/LibSignalRServer.fsproj" />
     <PackageReference Include="NSwag.AspNetCore" Version="13.10.8" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" />
@@ -33,11 +34,6 @@
     <PackageReference Include="Giraffe.TokenRouter" Version="3.0.0-alpha-1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.3" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
-    <PackageReference Include="Microsoft.ServiceFabric" Version="9.1.1390" />
-    <PackageReference Include="Microsoft.ServiceFabric.Data" Version="6.1.1390" />
-    <PackageReference Include="Microsoft.ServiceFabric.Services" Version="6.1.1390" />
-    <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="6.1.1390" />
-    <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Configuration" Version="6.1.1390" />
     <PackageReference Include="OrleansDashboard" Version="3.1.0" />
     <PackageReference Include="FSharp.SystemTextJson" Version="0.17.4" />
     <PackageReference Include="Seq.Extensions.Logging" Version="6.1.0" />
@@ -177,12 +173,6 @@
     <Compile Include="Web\HttpHandler.fs" />
     <Compile Include="Web\RealTimeHandler.fs" />
     <Compile Include="Host\HostConfiguration.fs" />
-    <Content Include="Host\Fabric\Config\Settings.xml" />
-    <Compile Include="Host\Fabric\Api\Health.fs" />
-    <Compile Include="Host\Fabric\Api\Startup.fs" />
-    <Compile Include="Host\Fabric\Api\Api.fs" />
-    <Compile Include="Host\Fabric\SubjectHost\OrleansCommunicationListener.fs" />
-    <Compile Include="Host\Fabric\SubjectHost\SubjectHost.fs" />
     <Compile Include="Host\K8S\DevEnv.fs" />
     <Compile Include="Host\K8S\SubjectHost\SubjectHost.fs" />
     <Compile Include="Host\K8S\Api\Startup.fs" />

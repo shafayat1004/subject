@@ -11,7 +11,7 @@ let inline jsonStringify<'T> (data: 'T) : string =
 let inline jsonStringifyWithIndent<'T> (indent: int) (data: 'T) : string =
     Thoth.Json.Encode.Auto.toString(indent, data)
 
-let TopLevelBlockClass = ReactXP.LegacyStyles.Runtime.TopLevelBlockClass
+let TopLevelBlockClass = Rn.LegacyStyles.Runtime.TopLevelBlockClass
 
 let pluralize (count: uint32) (singularString: string) (pluralString: string) : string =
     let pluralizedString =

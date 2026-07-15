@@ -17,23 +17,23 @@ type LifeCycleBuilder<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                 and  'Role                 :  comparison
                 and  'Env                  :> Env> =
     internal {
-        Def:                 LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
-        IdGeneration:        Option<IdGeneration<'Constructor, 'OpError, 'SubjectId, 'Env>>
-        Construction:        Option<Construction<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>>
-        Transition:          Option<Transition<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>>
-        AutoIgnoreNoOpTransitions : bool
-        Subscriptions:       'Subject -> Map<SubscriptionName, Subscription<'LifeAction>>
-        Timers:              'Subject -> list<Timer<'LifeAction>>
-        Indices:             'Subject -> seq<'SubjectIndex>
-        SingletonCtor:       Option<'Constructor>
-        Storage:             LifeCycleStorage
-        MetaData:            LifeCycleMetaData
-        MaybeApiAccess:      Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
-        ResponseHandler:     SideEffectResponse -> seq<SideEffectResponseDecision<'LifeAction>>
-        ShouldSendTelemetry: Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
-        ShouldRecordHistory: Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
-        LifeEventSatisfies:  Option<LifeEventSatisfiesInput<'LifeEvent> -> bool>
-        SessionHandling:     Option<EcosystemSessionHandling<'Session, 'Role>>
+        Def:                       LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
+        IdGeneration:              Option<IdGeneration<'Constructor, 'OpError, 'SubjectId, 'Env>>
+        Construction:              Option<Construction<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>>
+        Transition:                Option<Transition<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'Env>>
+        AutoIgnoreNoOpTransitions: bool
+        Subscriptions:             'Subject -> Map<SubscriptionName, Subscription<'LifeAction>>
+        Timers:                    'Subject -> list<Timer<'LifeAction>>
+        Indices:                   'Subject -> seq<'SubjectIndex>
+        SingletonCtor:             Option<'Constructor>
+        Storage:                   LifeCycleStorage
+        MetaData:                  LifeCycleMetaData
+        MaybeApiAccess:            Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
+        ResponseHandler:           SideEffectResponse -> seq<SideEffectResponseDecision<'LifeAction>>
+        ShouldSendTelemetry:       Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
+        ShouldRecordHistory:       Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
+        LifeEventSatisfies:        Option<LifeEventSatisfiesInput<'LifeEvent> -> bool>
+        SessionHandling:           Option<EcosystemSessionHandling<'Session, 'Role>>
     }
 with
     member internal this.AssumeTypes<'NewAccessPredicateInput, 'NewRole, 'NewEnv
@@ -47,36 +47,36 @@ with
             MaybeApiAccess =
                 match this.MaybeApiAccess |> box with
                 | :? (Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'NewAccessPredicateInput, 'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                                                                                          -> None
             SessionHandling =
                 match this.SessionHandling |> box with
                 | :? (Option<EcosystemSessionHandling<'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                     -> None
             IdGeneration =
                 match this.IdGeneration |> box with
                 | :? (Option<IdGeneration<'Constructor, 'OpError, 'SubjectId, 'NewEnv>>) as existing -> existing
-                | _ -> None
+                | _                                                                                  -> None
             Construction =
                 match this.Construction |> box with
                 | :? (Option<Construction<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'NewEnv>>) as existing -> existing
-                | _ -> None
+                | _                                                                                                                     -> None
             Transition =
                 match this.Transition |> box with
                 | :? (Option<Transition<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId, 'NewEnv>>) as existing -> existing
-                | _ -> None
+                | _                                                                                                                   -> None
 
-            Def = this.Def
-            Subscriptions = this.Subscriptions
-            Timers = this.Timers
-            Indices = this.Indices
-            SingletonCtor = this.SingletonCtor
+            Def                       = this.Def
+            Subscriptions             = this.Subscriptions
+            Timers                    = this.Timers
+            Indices                   = this.Indices
+            SingletonCtor             = this.SingletonCtor
             AutoIgnoreNoOpTransitions = this.AutoIgnoreNoOpTransitions
-            Storage = this.Storage
-            MetaData = this.MetaData
-            ResponseHandler = this.ResponseHandler
-            ShouldSendTelemetry = this.ShouldSendTelemetry
-            ShouldRecordHistory = this.ShouldRecordHistory
-            LifeEventSatisfies = this.LifeEventSatisfies
+            Storage                   = this.Storage
+            MetaData                  = this.MetaData
+            ResponseHandler           = this.ResponseHandler
+            ShouldSendTelemetry       = this.ShouldSendTelemetry
+            ShouldRecordHistory       = this.ShouldRecordHistory
+            LifeEventSatisfies        = this.LifeEventSatisfies
         }
 
     member internal this.ToLifeCycle(): LifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role, 'Env> =
@@ -113,26 +113,26 @@ with
                             ctorTask)
                     |> ConstructionResult)
                 AutoIgnoreNoOpTransitions = this.AutoIgnoreNoOpTransitions
-                Transition = (fun (env: 'Env) subj action ->
+                Transition                = (fun (env: 'Env) subj action ->
                     Task.startOnThreadPool(
                         fun () ->
                             let (TransitionResult transitionTask) = transition env subj action
                             transitionTask)
                     |> TransitionResult)
 
-                Definition = this.Def
-                Subscriptions = this.Subscriptions
-                Timers = this.Timers
-                Indices = this.Indices
-                SingletonCtor = this.SingletonCtor
-                Storage = this.Storage
-                MetaData = this.MetaData
-                MaybeApiAccess = this.MaybeApiAccess
-                ResponseHandler = this.ResponseHandler
+                Definition          = this.Def
+                Subscriptions       = this.Subscriptions
+                Timers              = this.Timers
+                Indices             = this.Indices
+                SingletonCtor       = this.SingletonCtor
+                Storage             = this.Storage
+                MetaData            = this.MetaData
+                MaybeApiAccess      = this.MaybeApiAccess
+                ResponseHandler     = this.ResponseHandler
                 ShouldSendTelemetry = this.ShouldSendTelemetry
                 ShouldRecordHistory = this.ShouldRecordHistory
-                LifeEventSatisfies = this.LifeEventSatisfies
-                SessionHandling = this.SessionHandling
+                LifeEventSatisfies  = this.LifeEventSatisfies
+                SessionHandling     = this.SessionHandling
             }
         | None, _, _ ->
             failwith $"Must provide ID generation logic via LifeCycleBuilder.withIdGeneration when building life cycle {this.Def.Key.LocalLifeCycleName}"
@@ -159,20 +159,20 @@ module LifeCycleBuilder =
 
         {
             // These are required when building.
-            Def          = def
-            IdGeneration        = None
-            Construction        = None
-            Transition          = None
+            Def                       = def
+            IdGeneration              = None
+            Construction              = None
+            Transition                = None
             AutoIgnoreNoOpTransitions = true
 
             // The below have reasonable defaults.
-            Subscriptions       = fun _ -> Map.empty
-            Timers              = fun _ -> []
-            SingletonCtor       = None
-            Indices             = noIndices
+            Subscriptions = fun _ -> Map.empty
+            Timers        = fun _ -> []
+            SingletonCtor = None
+            Indices       = noIndices
             Storage             =
                 {
-                    Type = StorageType.Persistent (PromotedIndicesConfig.Empty, PersistentHistoryRetention.FullHistory)
+                    Type              = StorageType.Persistent (PromotedIndicesConfig.Empty, PersistentHistoryRetention.FullHistory)
                     MaxDedupCacheSize = 10us
                 }
             MetaData            = { IndexKeys_ = Set.empty }
@@ -249,9 +249,9 @@ module LifeCycleBuilder =
         { builder.AssumeTypes<AccessPredicateInput, 'Role, 'Env>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
-                    AccessPredicate = (fun _ _ _ _ -> true)
-                    RateLimitsPredicate = rateLimits
+                    AccessRules                = accessRules
+                    AccessPredicate            = (fun _ _ _ _ -> true)
+                    RateLimitsPredicate        = rateLimits
                     AnonymousCanReadTotalCount = false
                 }
         }
@@ -271,9 +271,9 @@ module LifeCycleBuilder =
         { builder.AssumeTypes<'AccessPredicateInput, 'Role, 'Env>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
-                    AccessPredicate = accessPredicate
-                    RateLimitsPredicate = rateLimits
+                    AccessRules                = accessRules
+                    AccessPredicate            = accessPredicate
+                    RateLimitsPredicate        = rateLimits
                     AnonymousCanReadTotalCount = false
             }
         }
@@ -305,8 +305,8 @@ module LifeCycleBuilder =
         // Need to expand this out instead of using the record { ... with } syntax as the index type is different
         // (and hence the record type itself will change)
         { builder with
-            Indices             = indices
-            MetaData            = { IndexKeys_ = 'SubjectIndex.IndexKeys } }
+            Indices  = indices
+            MetaData = { IndexKeys_ = 'SubjectIndex.IndexKeys } }
 
     let withLifeEventSatisfies
             (lifeEventSatisfies: LifeEventSatisfiesInput<'LifeEvent> -> bool)

@@ -23,8 +23,8 @@ type SqlServerTimeSeriesStorageHandler<'TimeSeriesDataPoint, 'TimeSeriesId, [<Me
                                         and  'OpError :> OpError>
     (
         timeSeries: ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>,
-        config: SqlServerConnectionStrings,
-        logger: Microsoft.Extensions.Logging.ILogger<SqlServerTimeSeriesStorageHandler<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>>
+        config:     SqlServerConnectionStrings,
+        logger:     Microsoft.Extensions.Logging.ILogger<SqlServerTimeSeriesStorageHandler<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>>
     ) =
 
     let ecosystemName = timeSeries.Def.TimeSeriesKey.EcosystemName

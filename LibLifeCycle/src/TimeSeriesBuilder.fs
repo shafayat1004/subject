@@ -13,10 +13,10 @@ type TimeSeriesBuilder<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfM
         and  'AccessPredicateInput :> AccessPredicateInput
         and  'Role                 :  comparison> =
     internal {
-        Def: TimeSeriesDef<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>
+        Def:            TimeSeriesDef<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>
         MaybeApiAccess: Option<TimeSeriesApiAccess<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'AccessPredicateInput, 'Session, 'Role>>
-        Transform: TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError>
-        Indices: 'TimeSeriesDataPoint -> seq<'TimeSeriesIndex>
+        Transform:      TimeSeriesTransform<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError>
+        Indices:        'TimeSeriesDataPoint -> seq<'TimeSeriesIndex>
     }
 with
     member internal this.AssumeTypes<'NewAccessPredicateInput, 'NewRole
@@ -29,18 +29,18 @@ with
             MaybeApiAccess =
                 match this.MaybeApiAccess |> box with
                 | :? (Option<TimeSeriesApiAccess<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'NewAccessPredicateInput, 'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                                                                                               -> None
             Transform = this.Transform
-            Indices = this.Indices
-            Def = this.Def
+            Indices   = this.Indices
+            Def       = this.Def
         }
 
     member internal this.ToTimeSeries(): TimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex, 'AccessPredicateInput, 'Session, 'Role> =
         {
-            Definition  = this.Def
-            Transform = this.Transform
-            Indices = this.Indices
-            MaybeApiAccess = this.MaybeApiAccess
+            Definition      = this.Def
+            Transform       = this.Transform
+            Indices         = this.Indices
+            MaybeApiAccess  = this.MaybeApiAccess
             SessionHandling = None
         }
 
@@ -54,10 +54,10 @@ module TimeSeriesBuilder =
             (def: TimeSeriesDef<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>)
             : TimeSeriesBuilder<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex, AccessPredicateInput, 'Session, 'Role> =
         {
-            Def = def
+            Def            = def
             MaybeApiAccess = None
-            Transform = fun _ ts -> Ok ts
-            Indices = fun _ -> Seq.empty
+            Transform      = fun _ ts -> Ok ts
+            Indices        = fun _ -> Seq.empty
         }
 
     let withoutApiAccess
@@ -74,7 +74,7 @@ module TimeSeriesBuilder =
         { builder.AssumeTypes<AccessPredicateInput, 'Role>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
+                    AccessRules     = accessRules
                     AccessPredicate = (fun _ _ _ _ -> true)
                 }
         }
@@ -87,7 +87,7 @@ module TimeSeriesBuilder =
         { builder.AssumeTypes<'AccessPredicateInput, 'Role>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
+                    AccessRules     = accessRules
                     AccessPredicate = accessPredicate
             }
         }
@@ -103,7 +103,7 @@ module TimeSeriesBuilder =
             (builder: TimeSeriesBuilder<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex, 'AccessPredicateInput, 'Session, 'Role>)
             : TimeSeriesBuilder<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex, 'AccessPredicateInput, 'Session, 'Role> =
         { builder.AssumeTypes<'AccessPredicateInput, 'Role>() with
-            Transform =  transform }
+            Transform = transform }
 
     let withIndices
             (indices: 'TimeSeriesDataPoint -> seq<'TimeSeriesIndex>)

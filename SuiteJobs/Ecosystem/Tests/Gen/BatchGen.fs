@@ -19,4 +19,3 @@ let genParallelBatchJobsToConstruct = simulation {
     let! jobIds = Gen.listOfLength count genJobId
     return BatchJobsToConstruct.Parallel (List.zip jobIds jobsData)
 }
-

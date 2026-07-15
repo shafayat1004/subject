@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.NetworkState
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module AppGlobalStatus =
@@ -59,9 +59,9 @@ module private Helpers =
 
     let connectionStatus (isConnected: bool) (lastKnownBackendState: LastKnownBackendState) =
         match isConnected, lastKnownBackendState with
-        | false, _ -> ConnectionStatus.NetworkUnavailable
+        | false, _                                                -> ConnectionStatus.NetworkUnavailable
         | true, LastKnownBackendState.Unavailable maybeRetryingAt -> ConnectionStatus.NetworkAvailableButBackendUnreachable maybeRetryingAt
-        | true, LastKnownBackendState.Available -> ConnectionStatus.NetworkAvailableAndBackendReachable
+        | true, LastKnownBackendState.Available                   -> ConnectionStatus.NetworkAvailableAndBackendReachable
 
     let retryingAtDeltaDisplay (now: DateTimeOffset) (retryingAt: DateTimeOffset): string =
         let delta = max TimeSpan.Zero (retryingAt - now)
@@ -79,8 +79,8 @@ type LibClient.Components.Constructors.LC with
     static member AppGlobalStatus(
                 ?bottom: ConnectionStatus -> ReactElement,
                 ?styles: array<ViewStyles>,
-                ?theme: Theme -> Theme,
-                ?key: string
+                ?theme:  Theme -> Theme,
+                ?key:    string
             ) : ReactElement =
         key |> ignore
 
@@ -90,9 +90,9 @@ type LibClient.Components.Constructors.LC with
         Hooks.useEffectDisposable(
             (fun () ->
                 async {
-                    let! isConnected = ReactXP.NetInfo.isConnected ()
+                    let! isConnected = Rn.NetInfo.isConnected ()
                     isConnectedHook.update isConnected
-                    ReactXP.NetInfo.onIsConnectedChange isConnectedHook.update
+                    Rn.NetInfo.onIsConnectedChange isConnectedHook.update
                 } |> startSafely
 
                 let onResult =
@@ -126,7 +126,7 @@ type LibClient.Components.Constructors.LC with
         match connectionStatus with
         | ConnectionStatus.NetworkUnavailable
         | ConnectionStatus.NetworkAvailableButBackendUnreachable _ ->
-            RX.View(
+            Rn.View(
                 styles =
                     [|
                         Styles.view theTheme
@@ -134,7 +134,7 @@ type LibClient.Components.Constructors.LC with
                     |],
                 children =
                     elements {
-                        RX.View(
+                        Rn.View(
                             styles = [| Styles.bubble |],
                             children =
                                 elements {

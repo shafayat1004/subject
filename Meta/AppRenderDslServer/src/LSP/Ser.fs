@@ -16,7 +16,7 @@ let private replaceChars =
         | "\n" -> "\\n"
         | "\r" -> "\\r"
         | "\"" -> "\\\""
-        | v -> v)
+        | v    -> v)
 let private escapeStr(text: string) =
     let escaped = escapeChars.Replace(text, replaceChars)
     sprintf "\"%s\"" escaped
@@ -65,7 +65,7 @@ type MakeHelpers =
         Map.ofSeq(castItems)
     static member MakeOption<'T> (item: obj option): 'T option =
         match item with
-        | None -> None
+        | None    -> None
         | Some(i) -> Some(i :?> 'T)
 
 let private makeList(t: Type, items: obj seq) =

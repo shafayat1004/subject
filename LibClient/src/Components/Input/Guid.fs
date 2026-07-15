@@ -4,7 +4,7 @@ module LibClient.Components.Input_Guid
 open System
 open Fable.React
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 module private Helpers =
     let parseGuid (maybeNonemptyString: Option<NonemptyString>) : Result<Option<Guid>, string> =
@@ -12,7 +12,7 @@ module private Helpers =
         |> Option.mapOrElse (Ok None)
             (fun maybeGuidString ->
                 match maybeGuidString.Value |> Guid.ParseOption with
-                | None -> Error "Invalid Guid"
+                | None      -> Error "Invalid Guid"
                 | Some guid -> Ok (Some guid)
             )
 

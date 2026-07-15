@@ -9,13 +9,13 @@
 		"componentLibraryAliases": [
 			["default", "PushNotificationClient.Components"],
 			["LC",      "LibClient.Components"],
-			["RX",      "ReactXP.Components"]
+			["Rn",      "Rn.Components"]
 		],
 		"componentLibraryPaths": [
-			["ReactXP.Components", "../LibClient/src/ReactXP/Components"]
+			["Rn.Components", "../LibClient/src/Rn/Components"]
 		],
 		"componentAliases": [
-			["div",  "RX.View"],
+			["div",  "Rn.View"],
 			["text", "LC.LegacyText"]
 		]
 	}

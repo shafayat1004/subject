@@ -3,7 +3,7 @@
 open LibLifeCycle
 
 type Ecosystem = {
-    Name:                 string
+    Name: string
     // indexed by key instead of local name for co-hosting referenced LC implementations in tests
     LifeCycles:           Map<LifeCycleKey, ILifeCycle>
     Views:                Map<string, IView>
@@ -15,7 +15,7 @@ type Ecosystem = {
 }
 with
     member this.LifeCycleDefs = this.LifeCycles |> Map.values |> Seq.map (fun lc -> lc.Def) |> List.ofSeq
-    member this.ViewDefs = this.Views |> Map.values |> Seq.map (fun v -> v.Def) |> List.ofSeq
+    member this.ViewDefs = this.Views           |> Map.values |> Seq.map (fun v -> v.Def) |> List.ofSeq
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Ecosystem =

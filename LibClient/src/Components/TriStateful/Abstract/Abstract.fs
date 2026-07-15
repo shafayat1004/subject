@@ -2,7 +2,7 @@
 // action. The class form used GetInitialEstate + SetEstate in Actions; the modern form uses
 // `Hooks.useState` (see QuadStateful.fs, the 4-state sibling, as the reference template).
 // Public types are nested under `module LC = module TriStateful = module Abstract` so [<AutoOpen>]
-// doesn't leak the `Mode` type name (see LEARNINGS.md). External path: `LC.TriStateful.Abstract.Mode`.
+// doesn't leak the `Mode` type name (see the gallery docs runbooks/troubleshooting.md). External path: `LC.TriStateful.Abstract.Mode`.
 [<AutoOpen>]
 module LibClient.Components.TriStateful_Abstract
 

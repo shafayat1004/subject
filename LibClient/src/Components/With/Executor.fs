@@ -2,7 +2,7 @@
 module LibClient.Components.With_Executor
 
 open Fable.React
-open ReactXP.Styles
+open Rn.Styles
 open LibClient
 open LibClient.Components
 open LibClient.UniDirectionalDataFlow
@@ -18,7 +18,7 @@ type LC.With with
     /// <code>
     ///     LC.Executor.AlertErrors (fun makeExecutor -> element {
     ///         LC.With.Executor (makeExecutor "test", fun executor -> [|
-    ///             RX.View (
+    ///             Rn.View (
     ///                 onPress = (fun _ -> executor.MaybeExecute action),
     ///                 children = [|
     ///                     LC.InfoMessage "Press Here"
@@ -42,18 +42,18 @@ type LC.With with
     [<Component>]
     static member Executor (executor: Executor, content: Executor -> array<ReactElement>, ?styles: array<ViewStyles>) : ReactElement =
         LC.InProgress (
-            ?styles = styles,
+            ?styles      = styles,
             isInProgress = executor.IsInProgressNow,
-            children = elements {
+            children     = elements {
                 content executor
             }
         )
 
     static member Executor (executor: Executor, content: Executor -> ReactElement, ?styles: array<ViewStyles>) : ReactElement =
         LC.InProgress (
-            ?styles = styles,
+            ?styles      = styles,
             isInProgress = executor.IsInProgressNow,
-            children = elements {
+            children     = elements {
                 content executor
             }
         )

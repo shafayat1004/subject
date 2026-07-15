@@ -18,11 +18,11 @@ open LibPushNotification.Connectors.AndroidFcmConnector
 
 
 type PushNotificationEnvironment = {
-    Clock:            Service<Clock>
-    HttpClient:       HttpClient
-    Logger:           ILogger<PushNotificationEnvironment>
-    Config:           IConfiguration
-    ServiceProvider:  IServiceProvider
+    Clock:           Service<Clock>
+    HttpClient:      HttpClient
+    Logger:          ILogger<PushNotificationEnvironment>
+    Config:          IConfiguration
+    ServiceProvider: IServiceProvider
 } with interface Env
 
 type PushNotificationRequest =

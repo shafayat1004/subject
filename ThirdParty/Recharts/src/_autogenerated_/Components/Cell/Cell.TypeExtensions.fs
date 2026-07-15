@@ -12,7 +12,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module CellTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member Cell(?children: ReactChildrenProp, ?fill: Color, ?stroke: Color, ?strokeWidth: int, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Cell(?children: ReactChildrenProp, ?fill: Color, ?stroke: Color, ?strokeWidth: int, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Fill = fill |> Option.orElse (JsUndefined)

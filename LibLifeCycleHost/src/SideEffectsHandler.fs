@@ -29,8 +29,8 @@ let private performExternalActionOnGrain<'LifeAction, 'Constructor, 'SubjectId, 
                                 LifeCycleKey = externalAction.LifeCycleKey
                                 SubjectId    = subjectId
                             }
-                            RpcOperation  = GrainRpcOperation.InitializeGrain (ctor, okIfAlreadyInitialized)
-                            TraceContext  = traceContext
+                            RpcOperation = GrainRpcOperation.InitializeGrain (ctor, okIfAlreadyInitialized)
+                            TraceContext = traceContext
                         } |> GrainPersistedSideEffect.Rpc
 
                 | Error _ ->
@@ -53,8 +53,8 @@ let private performExternalActionOnGrain<'LifeAction, 'Constructor, 'SubjectId, 
             return
                 {
                     SubjectReference = subjectReference id
-                    RpcOperation  = GrainRpcOperation.RunActionOnGrain (action, options.Deduplicate)
-                    TraceContext = if options.ResetTraceContext then emptyTraceContext else traceContext
+                    RpcOperation     = GrainRpcOperation.RunActionOnGrain (action, options.Deduplicate)
+                    TraceContext     = if options.ResetTraceContext then emptyTraceContext else traceContext
                 } |> GrainPersistedSideEffect.Rpc
 
         | LifeCycleOp.Construct ctor ->
@@ -67,8 +67,8 @@ let private performExternalActionOnGrain<'LifeAction, 'Constructor, 'SubjectId, 
             return
                 {
                     SubjectReference = subjectReference id
-                    RpcOperation  = GrainRpcOperation.RunActionMaybeConstructOnGrain (action, ctor, options.Deduplicate)
-                    TraceContext  = if options.ResetTraceContext then emptyTraceContext else traceContext
+                    RpcOperation     = GrainRpcOperation.RunActionMaybeConstructOnGrain (action, ctor, options.Deduplicate)
+                    TraceContext     = if options.ResetTraceContext then emptyTraceContext else traceContext
                 } |> GrainPersistedSideEffect.Rpc
     }
 
@@ -90,7 +90,7 @@ let private performExternalSubjectTransactionOperationOnGrain<'LifeAction, 'Cons
             {
                 SubjectReference = {
                     LifeCycleKey = externalAction.LifeCycleKey
-                    SubjectId     = id
+                    SubjectId    = id
                 }
                 TransactionId = transactionId
                 BatchNo       = batchNo

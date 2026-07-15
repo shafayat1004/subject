@@ -61,7 +61,7 @@ module SubjectsWithTotalCount =
 
     let map (fn: 'Subject -> 'U) (source: SubjectsWithTotalCount<'Id, 'Subject>): SubjectsWithTotalCount<'Id, 'U> =
         {
-            Subjects = source.Subjects |> Subjects.map fn
+            Subjects   = source.Subjects |> Subjects.map fn
             TotalCount = source.TotalCount
         }
 

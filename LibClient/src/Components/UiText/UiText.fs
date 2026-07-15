@@ -4,11 +4,11 @@ module LibClient.Components.UiText
 open LibClient
 open Fable.Core.JsInterop
 open Browser.Types
-open ReactXP.Styles
+open Rn.Styles
 
-type EllipsizeMode = ReactXP.Components.UiText.EllipsizeMode
-type TextBreakStrategy = ReactXP.Components.UiText.TextBreakStrategy
-type ImportantForAccessibility = ReactXP.Components.UiText.ImportantForAccessibility
+type EllipsizeMode             = Rn.Components.Text.EllipsizeMode
+type TextBreakStrategy         = Rn.Components.Text.TextBreakStrategy
+type ImportantForAccessibility = Rn.Components.Text.ImportantForAccessibility
 
 let Head   = EllipsizeMode.Head
 let Middle = EllipsizeMode.Middle
@@ -67,7 +67,7 @@ type LibClient.Components.Constructors.LC with
         let styleValue =
             match styles with
             | Option.Some style -> [|themeStyles; !!style|]
-            | _ -> !!themeStyles
+            | _                 -> !!themeStyles
 
         let __props = createEmpty
         __props?selectable                <- selectable |> Option.orElse (Some false)
@@ -86,7 +86,7 @@ type LibClient.Components.Constructors.LC with
         __props?style                     <- styleValue
 
         Fable.React.ReactBindings.React.createElement(
-            ReactXP.Helpers.ReactXPRaw?Text,
+            Rn.RnPrimitives.Text,
             __props,
             ThirdParty.fixPotentiallySingleChild (tellReactArrayKeysAreOkay children)
         )

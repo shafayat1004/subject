@@ -5,8 +5,8 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -34,15 +34,15 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member TwoWayScrollable(
-            both: ReactElement,
+            both:            ReactElement,
             ?horizontalOnly: ReactElement,
-            ?styles: array<ScrollViewStyles>
+            ?styles:         array<ScrollViewStyles>
         ) : ReactElement =
         let horizontalOnly = defaultArg horizontalOnly noElement
 
-        RX.ScrollView(
+        Rn.ScrollView(
             horizontal = true,
-            vertical = false,
+            vertical   = false,
             styles =
                 [|
                     Styles.horizontalScrollView
@@ -51,16 +51,16 @@ type LibClient.Components.Constructors.LC with
                 |],
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.horizontalScrollViewContent |],
                         children =
                             elements {
                                 horizontalOnly
 
-                                RX.ScrollView(
+                                Rn.ScrollView(
                                     horizontal = false,
-                                    vertical = true,
-                                    styles = [| Styles.verticalScrollView |],
+                                    vertical   = true,
+                                    styles     = [| Styles.verticalScrollView |],
                                     children =
                                         elements {
                                             both

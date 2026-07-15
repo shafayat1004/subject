@@ -16,15 +16,15 @@ open Orleans
 // Helps to use a life cycle from a non-generic context when both LifeCycleDef and LifeCycle (impl) are available
 type IHostedLifeCycleAdapter =
     inherit IHostedOrReferencedLifeCycleAdapter
-    abstract member LifeCycle:               ILifeCycle
-    abstract member LifeCycleName:           string
-    abstract member Storage:                 StorageType
-    abstract member SubjectGrainType:        Type
+    abstract member LifeCycle:                  ILifeCycle
+    abstract member LifeCycleName:              string
+    abstract member Storage:                    StorageType
+    abstract member SubjectGrainType:           Type
     abstract member TestingOnlyTriggerReminder: hostEcosystemGrainFactory: IGrainFactory -> grainPartition: GrainPartition -> subjectId: SubjectId -> Task
-    abstract member GetGrainStorageHandler:  serviceProvider: IServiceProvider -> IGrainStorageHandler
-    abstract member RebuildTimersSubsBatch:  serviceProvider: IServiceProvider -> grainPartition: GrainPartition -> batchCursor: Option<string> -> batchSize: uint16 -> parallelism: uint16 -> repairGrainIdHash: bool -> Task<RebuildTimersSubsBatchResult>
-    abstract member UpdatePermanentFailures: serviceProvider: IServiceProvider -> hostEcosystemGrainFactory: IGrainFactory -> grainPartition: GrainPartition -> scope: UpdatePermanentFailuresScope -> filters: Set<UpdatePermanentFailuresFilter> -> operation: UpdatePermanentFailuresOperation -> Task<Result<LastUpdatePermanentFailuresResult, PermanentFailuresUpdateError>>
-    abstract member ForceAwake:              hostEcosystemGrainFactory: IGrainFactory -> grainPartition: GrainPartition -> subjectIdStr: string -> Task
+    abstract member GetGrainStorageHandler:     serviceProvider: IServiceProvider -> IGrainStorageHandler
+    abstract member RebuildTimersSubsBatch:     serviceProvider: IServiceProvider -> grainPartition: GrainPartition -> batchCursor: Option<string> -> batchSize: uint16 -> parallelism: uint16 -> repairGrainIdHash: bool -> Task<RebuildTimersSubsBatchResult>
+    abstract member UpdatePermanentFailures:    serviceProvider: IServiceProvider -> hostEcosystemGrainFactory: IGrainFactory -> grainPartition: GrainPartition -> scope: UpdatePermanentFailuresScope -> filters: Set<UpdatePermanentFailuresFilter> -> operation: UpdatePermanentFailuresOperation -> Task<Result<LastUpdatePermanentFailuresResult, PermanentFailuresUpdateError>>
+    abstract member ForceAwake:                 hostEcosystemGrainFactory: IGrainFactory -> grainPartition: GrainPartition -> subjectIdStr: string -> Task
 
 type IHostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId
                        when 'Subject              :> Subject<'SubjectId>
@@ -66,8 +66,8 @@ type HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'Life
     member private this.IsMetaOfMeta (subjectIdStr: string) =
         // TODO: try to get rid of IsMetaOfMeta hack, either set AllowCallChainReentrancy to true, or move to side effects
         typeof<'SubjectId> = typeof<MetaId> &&
-        lifeCycle.Name = MetaLifeCycleName &&
-        subjectIdStr = MetaLifeCycleName
+        lifeCycle.Name     = MetaLifeCycleName &&
+        subjectIdStr       = MetaLifeCycleName
 
     member this.LifeCycle = lifeCycle
 
@@ -123,7 +123,7 @@ type HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'Life
             backgroundTask {
                 let (IdGenerationResult idGenTask) = this.LifeCycle.GenerateId callOrigin grainScopedServiceProvider typedCtor
                 match! idGenTask with
-                | Ok id -> return id :> SubjectId |> Ok
+                | Ok id     -> return id :> SubjectId |> Ok
                 | Error err -> return err :> OpError |> Error
             }
 
@@ -262,7 +262,7 @@ type HostedOrReferencedLifeCycleAdapterRegistry = HostedOrReferencedLifeCycleAda
             | HostedOrReferencedLifeCycleAdapterRegistry dictionary ->
                 match dictionary.TryGetValue key with
                 | true, adapter -> Some adapter
-                | false, _ -> None
+                | false, _      -> None
 
 type HostedLifeCycleAdapterCollection = HostedLifeCycleAdapterCollection of HostEcosystemName: string * Map<LifeCycleKey, IHostedLifeCycleAdapter>
     with
@@ -280,7 +280,7 @@ type HostedLifeCycleAdapterCollection = HostedLifeCycleAdapterCollection of Host
             | HostedLifeCycleAdapterCollection (_, dictionary) ->
                 match dictionary.TryGetValue key with
                 | true, adapter -> Some adapter
-                | false, _ -> None
+                | false, _      -> None
 
         member this.GetLifeCycleAdapterByLocalName name =
             let hostEcosystemName =

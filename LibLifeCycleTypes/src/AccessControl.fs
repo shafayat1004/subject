@@ -16,7 +16,7 @@ type AccessUserId = // a bit weird type name to avoid name collisions with UserI
 
 type AccessControlled<'T, 'Id> =
 | Granted of 'T
-| Denied of 'Id
+| Denied  of 'Id
 
 [<RequireQualifiedAccess>]
 module AccessControlled =

@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Native_ReactNativeMapsTypeExtensions =
     type ThirdParty.Map.Components.Constructors.Map.Native with
-        static member ReactNativeMaps(size: Option<(* width *) int * (* height *) int>, zoom: Option<int>, value: LatLng, onChange: Option<LatLng> -> unit, ref: IRefReactNativeMapView -> unit, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member ReactNativeMaps(size: Option<(* width *) int * (* height *) int>, zoom: Option<int>, value: LatLng, onChange: Option<LatLng> -> unit, ref: IRefReactNativeMapView -> unit, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Size = size

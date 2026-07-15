@@ -11,25 +11,25 @@ open System.Threading
 open System.Text
 
 [<Literal>]
-let PartitionScopeKey         = "Partition"
+let PartitionScopeKey = "Partition"
 
 [<Literal>]
-let IdStrScopeKey             = "Id"
+let IdStrScopeKey = "Id"
 
 [<Literal>]
-let LifeCycleNameScopeKey     = "LifeCycle"
+let LifeCycleNameScopeKey = "LifeCycle"
 
 [<Literal>]
-let ConnectorNameScopeKey     = "Connector"
+let ConnectorNameScopeKey = "Connector"
 
 [<Literal>]
-let RepoNameScopeKey          = "Repo"
+let RepoNameScopeKey = "Repo"
 
 [<Literal>]
 let ObserverSubjectIdScopeKey = "ObserverSubjectId"
 
 [<Literal>]
-let HubConnectionIdScopeKey   = "HubConnectionId"
+let HubConnectionIdScopeKey = "HubConnectionId"
 
 let private defaultGrainPartitionIdStr =
     let (GrainPartition grainPartitionGuid) = defaultGrainPartition
@@ -103,7 +103,7 @@ type IFsLogger =
     abstract member ErrorExn: exn -> Printf.StringFormat<'T, unit> -> 'T
 
     // P Short for Param -- this is a way to use "%a" format specifier, to provide named params to ILogger for structured logging
-    abstract member P:   string -> unit -> obj -> string
+    abstract member P: string -> unit -> obj -> string
 
     // scope of the logger. Is it leaky abstraction? Still helps to inject values into telemetry
     abstract member Scope: LoggerScopeDictionary
@@ -189,8 +189,8 @@ type private ScopedLogger = {
 let newGrainScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (lifeCycleName: string) (GrainPartition grainPartition) (idStr: string) : IFsLogger =
     {
         Logger = logger
-        Values  = AsyncLocal<ResizeArray<obj>>()
-        Scope = seq {
+        Values = AsyncLocal<ResizeArray<obj>>()
+        Scope  = seq {
             (PartitionScopeKey,     (grainPartition.ToString()))
             (LifeCycleNameScopeKey, lifeCycleName)
             (IdStrScopeKey,         idStr)
@@ -201,8 +201,8 @@ let newGrainScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (life
 let newConnectorScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (connectorName: string) (GrainPartition grainPartition) : IFsLogger =
     {
         Logger = logger
-        Values  = AsyncLocal<ResizeArray<obj>>()
-        Scope = seq {
+        Values = AsyncLocal<ResizeArray<obj>>()
+        Scope  = seq {
             (PartitionScopeKey,     (grainPartition.ToString()))
             (ConnectorNameScopeKey, connectorName)
         } |> readOnlyDict |> LoggerScopeDictionary
@@ -212,8 +212,8 @@ let newConnectorScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (
 let newRepoScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (subjectName: string) (GrainPartition grainPartition) : IFsLogger =
     {
         Logger = logger
-        Values  = AsyncLocal<ResizeArray<obj>>()
-        Scope = seq {
+        Values = AsyncLocal<ResizeArray<obj>>()
+        Scope  = seq {
             (PartitionScopeKey, (grainPartition.ToString()))
             (RepoNameScopeKey,  subjectName)
         } |> readOnlyDict |> LoggerScopeDictionary
@@ -223,8 +223,8 @@ let newRepoScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (subje
 let newPartitionScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (GrainPartition grainPartition) : IFsLogger =
     {
         Logger = logger
-        Values  = AsyncLocal<ResizeArray<obj>>()
-        Scope = seq {
+        Values = AsyncLocal<ResizeArray<obj>>()
+        Scope  = seq {
             (PartitionScopeKey, (grainPartition.ToString()))
         } |> readOnlyDict |> LoggerScopeDictionary
         ValueSummarizers = summarizers
@@ -233,8 +233,8 @@ let newPartitionScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (
 let newRealTimeScopedLogger (summarizers: ValueSummarizers) (logger: ILogger) (lifeCycleName: string) (hubConnectionId: string) : IFsLogger =
     {
         Logger = logger
-        Values  = AsyncLocal<ResizeArray<obj>>()
-        Scope = seq {
+        Values = AsyncLocal<ResizeArray<obj>>()
+        Scope  = seq {
             (LifeCycleNameScopeKey, lifeCycleName)
             (HubConnectionIdScopeKey, hubConnectionId)
         } |> readOnlyDict |> LoggerScopeDictionary

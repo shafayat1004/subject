@@ -4,36 +4,36 @@ module SuiteJobs.Types.Dispatcher
 open System
 
 type DispatcherSettings = {
-    Queues: NonemptySet<NonemptyString>
-    MaxProcessingJobs: UnsignedInteger // can be set to zero, to disable the dispatcher
+    Queues:                      NonemptySet<NonemptyString>
+    MaxProcessingJobs:           UnsignedInteger // can be set to zero, to disable the dispatcher
     HotPollIfJobsCountAtOrBelow: UnsignedInteger // On job processed, enqueue next Poll if remaining jobs count is at or below (useful for faster jobs)
     HotPollIfTimeSinceLastPollAtLeast: TimeSpan // enqueue next Poll if after specified delay if there are empty spots (useful for slow running jobs)
-    MaxContinuousPollRetries: uint32 // how many times to retry Poll after concurrency error before ceding to timer
+    MaxContinuousPollRetries:    uint32 // how many times to retry Poll after concurrency error before ceding to timer
 }
 
 // We need two modes of polling: timer and side effect,
 // because immediately due timers still have much higher latency than enqueued action.
 [<RequireQualifiedAccess>]
 type PollTrigger =
-| Hot of SideEffectRequestedOn: DateTimeOffset
-| Cold of TimerScheduledOn: DateTimeOffset
+| Hot        of SideEffectRequestedOn: DateTimeOffset
+| Cold       of TimerScheduledOn: DateTimeOffset
 | HotButSlow of TimerIfNoJobsProcessedUntil: DateTimeOffset
 
 type DispatcherPollInfo = {
     // streak is a number of consecutive fruitful polls, whether by timer or by side effect
-    StreakCount: uint32
+    StreakCount:      uint32
     ScheduledTrigger: Option<PollTrigger>
-    LastPolledOn: DateTimeOffset
-    LastJobAddedOn: DateTimeOffset
+    LastPolledOn:     DateTimeOffset
+    LastJobAddedOn:   DateTimeOffset
 }
 
 type Dispatcher = {
-    Name: NonemptyString
-    CreatedOn: DateTimeOffset
-    Settings: DispatcherSettings
+    Name:           NonemptyString
+    CreatedOn:      DateTimeOffset
+    Settings:       DispatcherSettings
     ProcessingJobs: Set<JobId>
-    PollInfo: DispatcherPollInfo
-    HardDelete: bool
+    PollInfo:       DispatcherPollInfo
+    HardDelete:     bool
 }
 with
     interface Subject<DispatcherId> with
@@ -47,17 +47,17 @@ with
 
 [<RequireQualifiedAccess>]
 type DispatcherAction =
-| Poll of Retry: uint32 * PollTrigger
+| Poll                  of Retry: uint32 * PollTrigger
 | OnProcessingCompleted of JobId
-| OnJobCannotBeStarted of JobId
-| ChangeSettings of DispatcherSettings
+| OnJobCannotBeStarted  of JobId
+| ChangeSettings        of DispatcherSettings
 | HardDelete
 with interface LifeAction
 
 [<RequireQualifiedAccess>]
 type DispatcherOpError =
 | JobAlreadyReserved of JobId
-| InvalidSettings of Why: string
+| InvalidSettings    of Why: string
 with interface OpError
 
 [<RequireQualifiedAccess>]
@@ -72,12 +72,12 @@ type DispatcherNumericIndex = NoNumericIndex<DispatcherOpError>
 [<RequireQualifiedAccess>]
 type DispatcherStringIndex =
 | Queue of NonemptyString
-| Job of JobId
+| Job   of JobId
 with
     interface SubjectStringIndex<DispatcherOpError> with
         member this.Primitive =
             match this with
-            | Queue name -> IndexedString name.Value
+            | Queue name                    -> IndexedString name.Value
             | Job (JobId jobIdStr as jobId) -> UniqueIndexedString (jobIdStr, DispatcherOpError.JobAlreadyReserved jobId)
 
 type DispatcherSearchIndex = NoSearchIndex
@@ -108,11 +108,11 @@ type DispatcherSettings with
             and! maybeHotPollIfTimeSinceLastPollAtLeast = optWith Codecs.timeSpan "PollTimeThreshold" (fun x -> Some x.HotPollIfTimeSinceLastPollAtLeast)
             and! maxContinuousPollRetries = reqWith Codecs.uint32 "MaxContinuousRetries" (fun x -> Some x.MaxContinuousPollRetries)
             return {
-                Queues = queues
-                MaxProcessingJobs = maxProcessingJobs
-                HotPollIfJobsCountAtOrBelow =  hotPollIfJobsCountAtOrBelow
+                Queues                      = queues
+                MaxProcessingJobs           = maxProcessingJobs
+                HotPollIfJobsCountAtOrBelow = hotPollIfJobsCountAtOrBelow
                 HotPollIfTimeSinceLastPollAtLeast = maybeHotPollIfTimeSinceLastPollAtLeast |> Option.defaultValue (TimeSpan.FromSeconds 10.)
-                MaxContinuousPollRetries = maxContinuousPollRetries
+                MaxContinuousPollRetries    = maxContinuousPollRetries
              }
         }
     static member get_Codec () = ofObjCodec (DispatcherSettings.get_ObjCodec_V1 ())
@@ -152,10 +152,10 @@ type DispatcherPollInfo with
             and! lastPolledOn = reqWith Codecs.dateTimeOffset "LastPolledOn" (fun x -> Some x.LastPolledOn)
             and! lastJobAddedOn = reqWith Codecs.dateTimeOffset "LastJobAddedOn" (fun x -> Some x.LastJobAddedOn)
             return {
-                StreakCount = streakCount
+                StreakCount      = streakCount
                 ScheduledTrigger = scheduledTrigger
-                LastPolledOn = lastPolledOn
-                LastJobAddedOn = lastJobAddedOn
+                LastPolledOn     = lastPolledOn
+                LastJobAddedOn   = lastJobAddedOn
              }
         }
     static member get_Codec () = ofObjCodec (DispatcherPollInfo.get_ObjCodec_V1 ())
@@ -174,12 +174,12 @@ type Dispatcher with
             and! pollInfo = reqWith codecFor<_, DispatcherPollInfo> "PollInfo" (fun x -> Some x.PollInfo)
             and! maybeHardDelete = optWith Codecs.boolean "HardDelete" (fun x -> Some x.HardDelete)
             return {
-                Name = name
-                CreatedOn = createdOn
-                Settings = settings
+                Name           = name
+                CreatedOn      = createdOn
+                Settings       = settings
                 ProcessingJobs = processingJobs
-                PollInfo = pollInfo
-                HardDelete = maybeHardDelete |> Option.defaultValue false
+                PollInfo       = pollInfo
+                HardDelete     = maybeHardDelete |> Option.defaultValue false
              }
         }
 

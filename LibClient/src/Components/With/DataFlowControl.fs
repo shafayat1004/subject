@@ -3,8 +3,8 @@ module LibClient.Components.With_DataFlowControl
 
 open LibLangFsharp
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient
 open LibClient.Components
 
@@ -77,16 +77,16 @@ type LibClient.Components.Constructors.LC.With with
 
             match dataFlowPolicy, latestReceivedData.current = latestPropagatedData.current with
             | (PropagateWhenConfirmed (message, buttonLabel), false) ->
-                RX.View(
+                Rn.View(
                     styles = [| Styles.confirmBlock |],
                     children =
                         elements {
-                            RX.View(
+                            Rn.View(
                                 styles = [| Styles.confirmCard |],
                                 children =
                                     elements {
                                         LC.Text(
-                                            value = message,
+                                            value  = message,
                                             styles = [| Styles.confirmMessage |]
                                         )
                                         LC.TextButton(

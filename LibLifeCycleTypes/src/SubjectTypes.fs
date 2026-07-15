@@ -79,16 +79,16 @@ type IndexedPrimitiveNumber<'OpError when 'OpError :> OpError> =
 with
     member this.Value =
         match this with
-        | IndexedNumber i -> i
+        | IndexedNumber i            -> i
         | UniqueIndexedNumber (i, _) -> i
 
 type IndexedPrimitiveString<'OpError when 'OpError :> OpError> =
-| IndexedString        of string
-| UniqueIndexedString  of string * ErrorToRaiseOnDuplicate: 'OpError
+| IndexedString       of string
+| UniqueIndexedString of string * ErrorToRaiseOnDuplicate: 'OpError
 with
     member this.Value =
         match this with
-        | IndexedString i -> i
+        | IndexedString i            -> i
         | UniqueIndexedString (i, _) -> i
 
 type IndexedPrimitiveSearchableText =
@@ -198,9 +198,9 @@ type VersionedSubject<'Subject, 'SubjectId
         when 'Subject   :> Subject<'SubjectId>
         and  'SubjectId :> SubjectId
         and 'SubjectId : comparison> = {
-    Subject:   'Subject
-    AsOf:      DateTimeOffset
-    Version:   uint64
+    Subject: 'Subject
+    AsOf:    DateTimeOffset
+    Version: uint64
 }
 
 [<RequireQualifiedAccess>]
@@ -305,7 +305,7 @@ with
         | WaitOnLifeEventTimedOut versionedSubject -> versionedSubject
 
 type ListWithTotalCount<'T> = {
-    Data: list<'T>
+    Data:       list<'T>
     TotalCount: uint64
 }
 
@@ -326,7 +326,7 @@ with
 
 type LocalSubjectPKeyReference = {
     LifeCycleName: string
-    SubjectIdStr : string
+    SubjectIdStr:  string
 }
 
 type LifeCycleKey =
@@ -395,13 +395,13 @@ type BlobId = {
 #else
 type BlobId = internal {
 #endif
-    Id_:       Guid
+    Id_: Guid
     // revision incremented with every append to blob
     Revision_: UInt32
     // owner is the subject that created the blob, only this subject can delete or append to it
     // it helps to think of blob as just a regular subject property, only large & with manual lifetime management
     // TODO: implement blob garbage collector to avoid manual memory management. Reflection or codecs based
-    Owner_:    LocalSubjectPKeyReference
+    Owner_: LocalSubjectPKeyReference
 }
 with
     member this.Id       = this.Id_
@@ -427,7 +427,7 @@ module
     // This is used when callers provide a union case value directly, either a union case that has no fields or a union case that
     // has fields that have already been "filled in" by the caller.
     type UnionCaseWithValue = {
-        Type: Type
+        Type:  Type
         Value: obj
     }
 
@@ -446,7 +446,7 @@ module
     [<NoComparison>]
 #endif
     type UnionCaseWithDefaultValue = {
-        Type: Type
+        Type:         Type
         DefaultValue: obj
     }
 #if !FABLE_COMPILER
@@ -455,7 +455,7 @@ module
         override this.Equals(other) =
             match other with
             | :? UnionCaseWithDefaultValue as typedOther -> this.Type.Equals(typedOther.Type)
-            | _ -> false
+            | _                                          -> false
 #endif
 
 
@@ -534,7 +534,7 @@ type UnionCase<'T when 'T :> Union> =
     static member        ofCase (unionCase : 'T) : UnionCase<'T> =
 #endif
         let unionCaseWithValue: UnionCase.UnionCaseWithValue = {
-            Type = typeof<'T>
+            Type  = typeof<'T>
             Value = unionCase
         }
         UnionCase_ (UnionCase.getTagAndNameMemoized unionCaseWithValue)
@@ -547,7 +547,7 @@ type UnionCase<'T when 'T :> Union> =
         let defaultFieldValue = UnionCase.getDefaultMemoized typeof<'TupleOrSingleValue> |> uncheckedUnbox
         let unionCaseValue = unionCase defaultFieldValue
         let unionCaseWithDefaultValue: UnionCase.UnionCaseWithDefaultValue = {
-            Type = unionCaseValue.GetType()
+            Type         = unionCaseValue.GetType()
             DefaultValue = unionCaseValue
         }
         let tagAndName = UnionCase.getTagAndNameForDefaultValueMemoized unionCaseWithDefaultValue
@@ -580,25 +580,25 @@ type IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchInd
 | LessThanOrEqualToNumeric    of 'SubjectNumericIndex
 
 // String operators
-| EqualToString               of 'SubjectStringIndex
-| GreaterThanString           of 'SubjectStringIndex
-| GreaterThanOrEqualToString  of 'SubjectStringIndex
-| LessThanString              of 'SubjectStringIndex
-| LessThanOrEqualToString     of 'SubjectStringIndex
-| StartsWith                  of UnionCase<'SubjectStringIndex> * StartsWith: string
+| EqualToString              of 'SubjectStringIndex
+| GreaterThanString          of 'SubjectStringIndex
+| GreaterThanOrEqualToString of 'SubjectStringIndex
+| LessThanString             of 'SubjectStringIndex
+| LessThanOrEqualToString    of 'SubjectStringIndex
+| StartsWith                 of UnionCase<'SubjectStringIndex> * StartsWith: string
 
 // Full text search
-| Matches                     of UnionCase<'SubjectSearchIndex> * Keywords: string
-| MatchesExact                of UnionCase<'SubjectSearchIndex> * Keywords: string
-| MatchesPrefix               of UnionCase<'SubjectSearchIndex> * StartsWith: string
+| Matches       of UnionCase<'SubjectSearchIndex> * Keywords: string
+| MatchesExact  of UnionCase<'SubjectSearchIndex> * Keywords: string
+| MatchesPrefix of UnionCase<'SubjectSearchIndex> * StartsWith: string
 
 // Geography
-| IntersectsGeography         of UnionCase<'SubjectGeographyIndex> * IntersectsWhat: GeographyIndexValue
+| IntersectsGeography of UnionCase<'SubjectGeographyIndex> * IntersectsWhat: GeographyIndexValue
 
 // Logical operators
-| And                         of IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError> * IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError>
-| Or                          of IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError> * IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError>
-| Diff                        of IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError> * IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError>
+| And  of IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError> * IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError>
+| Or   of IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError> * IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError>
+| Diff of IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError> * IndexPredicate<'SubjectNumericIndex, 'SubjectStringIndex, 'SubjectSearchIndex, 'SubjectGeographyIndex, 'OpError>
 
 module IndexPredicate =
     let andList (indices: NonemptyList<IndexPredicate<_, _, _, _, _>>) =
@@ -617,25 +617,25 @@ type UntypedPredicate =
 | LessThanOrEqualToNumeric    of Key: string * Value: int64
 
 // String operators
-| EqualToString               of Key: string * Value: string
-| GreaterThanString           of Key: string * Value: string
-| GreaterThanOrEqualToString  of Key: string * Value: string
-| LessThanString              of Key: string * Value: string
-| LessThanOrEqualToString     of Key: string * Value: string
-| StartsWith                  of Key: string * StartsWith: string
+| EqualToString              of Key: string * Value: string
+| GreaterThanString          of Key: string * Value: string
+| GreaterThanOrEqualToString of Key: string * Value: string
+| LessThanString             of Key: string * Value: string
+| LessThanOrEqualToString    of Key: string * Value: string
+| StartsWith                 of Key: string * StartsWith: string
 
 // Full text
-| Matches                     of Key: string * Keywords: string
-| MatchesExact                of Key: string * Keywords: string
-| MatchesPrefix               of Key: string * StartsWith: string
+| Matches       of Key: string * Keywords: string
+| MatchesExact  of Key: string * Keywords: string
+| MatchesPrefix of Key: string * StartsWith: string
 
 // Geography
-| IntersectsGeography         of Key: string * GeographyIndexValue
+| IntersectsGeography of Key: string * GeographyIndexValue
 
 // Logical operators
-| And                         of UntypedPredicate * UntypedPredicate
-| Or                          of UntypedPredicate * UntypedPredicate
-| Diff                        of UntypedPredicate * UntypedPredicate
+| And  of UntypedPredicate * UntypedPredicate
+| Or   of UntypedPredicate * UntypedPredicate
+| Diff of UntypedPredicate * UntypedPredicate
 
 type ResultPage = {
     Size:   uint16
@@ -688,7 +688,7 @@ module ResultSetOptions =
 [<RequireQualifiedAccess>]
 type UntypedOrderBy =
 | FastestOrSingleSearchScoreIfAvailable
-| SubjectId  of OrderDirection
+| SubjectId         of OrderDirection
 | Random
 | NumericIndexEntry of Key: string * OrderDirection
 | StringIndexEntry  of Key: string * OrderDirection
@@ -715,6 +715,11 @@ with
         }
         ResultSetOptions_ options
 
+    // Used by LibUiSubject Throttling to erase 'SubjectIndex for Fable endpoint binding (see Fable #3607).
+    member this.EraseIndexArgumentToAvoidStackOverflow : ResultSetOptions<unit> =
+        match this with
+        | ResultSetOptions_ x -> ResultSetOptions_ x
+
 type IndexQuery<'SubjectIndex> =
 #if !FABLE_COMPILER
     private
@@ -726,6 +731,11 @@ with
 
     member this.ResultSetOptions =
         let (IndexQuery (_, resultSetOptions)) = this in resultSetOptions
+
+    // Used by LibUiSubject Throttling to erase 'SubjectIndex for Fable endpoint binding (see Fable #3607).
+    member this.EraseIndexArgumentToAvoidStackOverflow : IndexQuery<unit> =
+        match this with
+        | IndexQuery (x1, x2) -> IndexQuery (x1, x2)
 
 type PreparedIndexPredicate<'SubjectIndex> =
 #if !FABLE_COMPILER
@@ -739,6 +749,11 @@ with
     member this.PrepareQuery options =
         let (PreparedIndexPredicate predicate) = this
         IndexQuery(predicate, options)
+
+    // Used by LibUiSubject Throttling to erase 'SubjectIndex for Fable endpoint binding (see Fable #3607).
+    member this.EraseIndexArgumentToAvoidStackOverflow : PreparedIndexPredicate<unit> =
+        match this with
+        | PreparedIndexPredicate x -> PreparedIndexPredicate x
 
 #if FABLE_COMPILER
 let rec (* want private but need for inline *) toUntypedPredicate (caseNameNumeric) (caseNameString) typedPredicate =
@@ -769,16 +784,16 @@ let rec private toUntypedPredicate caseNameNumeric caseNameString typedPredicate
                                            -> failwith "Search text can't be empty or whitespace"
     | MatchesPrefix(_, startsWith) when String.IsNullOrWhiteSpace startsWith
                                            -> failwith "Search text can't be empty or whitespace"
-    | Matches(case, keywords)              -> UntypedPredicate.Matches(case.CaseName, keywords)
-    | MatchesExact(case, keywords)         -> UntypedPredicate.MatchesExact(case.CaseName, keywords)
-    | MatchesPrefix(case, startsWith)      -> UntypedPredicate.MatchesPrefix(case.CaseName, startsWith)
+    | Matches(case, keywords)         -> UntypedPredicate.Matches(case.CaseName, keywords)
+    | MatchesExact(case, keywords)    -> UntypedPredicate.MatchesExact(case.CaseName, keywords)
+    | MatchesPrefix(case, startsWith) -> UntypedPredicate.MatchesPrefix(case.CaseName, startsWith)
 
     | IntersectsGeography (case, geoValue) -> UntypedPredicate.IntersectsGeography (case.CaseName, geoValue)
 
     // Logical operators
-    | And  (one, two)                      -> UntypedPredicate.And  (toUntypedPredicate caseNameNumeric caseNameString one, toUntypedPredicate caseNameNumeric caseNameString two)
-    | Or   (one, two)                      -> UntypedPredicate.Or   (toUntypedPredicate caseNameNumeric caseNameString one, toUntypedPredicate caseNameNumeric caseNameString two)
-    | Diff (one, two)                      -> UntypedPredicate.Diff (toUntypedPredicate caseNameNumeric caseNameString one, toUntypedPredicate caseNameNumeric caseNameString two)
+    | And  (one, two) -> UntypedPredicate.And  (toUntypedPredicate caseNameNumeric caseNameString one, toUntypedPredicate caseNameNumeric caseNameString two)
+    | Or   (one, two) -> UntypedPredicate.Or   (toUntypedPredicate caseNameNumeric caseNameString one, toUntypedPredicate caseNameNumeric caseNameString two)
+    | Diff (one, two) -> UntypedPredicate.Diff (toUntypedPredicate caseNameNumeric caseNameString one, toUntypedPredicate caseNameNumeric caseNameString two)
 
 #if FABLE_COMPILER
 let rec (* want private but need for inline *) toUntypedResultSetOptions (resultSetOptions: ResultSetOptions<_, _, _>) =
@@ -786,7 +801,7 @@ let rec (* want private but need for inline *) toUntypedResultSetOptions (result
 let rec private toUntypedResultSetOptions (resultSetOptions: ResultSetOptions<_, _, _>) =
 #endif
     {
-        UntypedResultSetOptions.Page    = resultSetOptions.Page
+        UntypedResultSetOptions.Page = resultSetOptions.Page
         UntypedResultSetOptions.OrderBy =
             match resultSetOptions.OrderBy with
             | OrderBy.FastestOrSingleSearchScoreIfAvailable -> UntypedOrderBy.FastestOrSingleSearchScoreIfAvailable
@@ -969,9 +984,9 @@ type TimeSeriesId<'TimeSeriesId when 'TimeSeriesId :> TimeSeriesId<'TimeSeriesId
 type TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOfMeasure
     when 'TimeSeriesDataPoint :> TimeSeriesDataPoint<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure>
     and 'TimeSeriesId :> TimeSeriesId<'TimeSeriesId>> =
-    abstract member Id: 'TimeSeriesId
+    abstract member Id:        'TimeSeriesId
     abstract member TimeIndex: DateTimeOffset
-    abstract member Value: float<'UnitOfMeasure>
+    abstract member Value:     float<'UnitOfMeasure>
 #if !FABLE_COMPILER
     static abstract member Codec<'Encoding when 'Encoding :> CodecLib.IEncoding and 'Encoding : (new: unit -> 'Encoding)> : unit -> CodecLib.Codec<'Encoding, 'TimeSeriesDataPoint>
 #endif
@@ -991,8 +1006,8 @@ type TimePart =
 | Millisecond
 
 type TimeBucket = {
-    Part: TimePart
-    Width: PositiveInteger
+    Part:   TimePart
+    Width:  PositiveInteger
     Origin: Option<DateTimeOffset>
 }
 
@@ -1013,11 +1028,11 @@ type TimeBucketPointAggregate =
 type TimeSeriesInterval<'TimeSeriesId, 'TimeSeriesIndex
     when 'TimeSeriesId :> TimeSeriesId<'TimeSeriesId>
     and 'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>> = {
-    Id: 'TimeSeriesId
+    Id:    'TimeSeriesId
     Index: Option<'TimeSeriesIndex>
     // why no Option<TimeIntervalEndpoint> for open range? to discourage wide ranges, if client really needs to it can specify extreme start/end time
     Start: TimeIntervalEndpoint
-    End: TimeIntervalEndpoint
+    End:   TimeIntervalEndpoint
 }
 
 type TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex
@@ -1025,8 +1040,8 @@ type TimeSeriesGroupInterval<'TimeSeriesId, 'TimeSeriesIndex
     and 'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>> = {
     Id: 'TimeSeriesId
     // why no Option<TimeIntervalEndpoint> for open range? to discourage wide ranges, if client really needs to it can specify extreme start/end time
-    Start: TimeIntervalEndpoint
-    End: TimeIntervalEndpoint
+    Start:   TimeIntervalEndpoint
+    End:     TimeIntervalEndpoint
     GroupBy: UnionCase<'TimeSeriesIndex>
 }
 
@@ -1095,9 +1110,9 @@ with
 
     static member CastUnsafe (versionedSubject: VersionedSubject<#Subject<'SubjectId>, 'SubjectId>) : VersionedSubject<'Subject, 'SubjectId> =
         {
-            Subject   = versionedSubject.Subject |> box :?> 'Subject
-            AsOf      = versionedSubject.AsOf
-            Version   = versionedSubject.Version
+            Subject = versionedSubject.Subject |> box :?> 'Subject
+            AsOf    = versionedSubject.AsOf
+            Version = versionedSubject.Version
         }
 
 type TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId
@@ -1171,7 +1186,7 @@ type SubjectPKeyReference with
 
     static member get_ObjCodec_V2 () = codec {
         let! lifeCycleKey = reqWith codecFor<_, LifeCycleKey> "LifeCycleKey" (fun x -> Some x.LifeCycleKey)
-        and! subjectIdStr  = reqWith Codecs.string "SubjectIdStr" (fun x -> Some x.SubjectIdStr)
+        and! subjectIdStr = reqWith Codecs.string "SubjectIdStr" (fun x -> Some x.SubjectIdStr)
         return { LifeCycleKey = lifeCycleKey; SubjectIdStr = subjectIdStr } }
 
     static member get_Codec () =
@@ -1187,7 +1202,7 @@ type SubjectReference with
 
     static member get_ObjCodec_V2 () = codec {
         let! lifeCycleKey = reqWith codecFor<_, LifeCycleKey> "LifeCycleKey" (fun x -> Some x.LifeCycleKey)
-        and! subjectIdStr  = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, SubjectId> "SubjectId" (fun x -> Some x.SubjectId)
+        and! subjectIdStr = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, SubjectId> "SubjectId" (fun x -> Some x.SubjectId)
         return { LifeCycleKey = lifeCycleKey; SubjectId = subjectIdStr } }
 
     static member get_Codec () =
@@ -1213,9 +1228,9 @@ with
         and! revision = reqWith Codecs.uint32 "Revision" (fun x -> Some x.Revision_)
         and! owner    = reqWith (LocalSubjectPKeyReference.get_Codec ()) "Owner" (fun x -> Some x.Owner_)
         return
-            { Id_ = id
-              Revision_   = revision
-              Owner_      = owner } }
+            { Id_       = id
+              Revision_ = revision
+              Owner_    = owner } }
 
 type BlobData
 with
@@ -1223,7 +1238,7 @@ with
         let! data     = reqWith Codecs.base64Bytes "Data" (fun x -> Some x.Data)
         and! mimeType = optWith codecFor<_, MimeType> "MimeType" (fun x -> x.MimeType)
         return
-            { Data = data
+            { Data     = data
               MimeType = mimeType } }
 
 type OrderDirection
@@ -1538,4 +1553,3 @@ type ConstructAndWaitOnLifeEvent<'Constructor, 'LifeEvent
     member this.AsUntyped = { Constructor = this.Constructor :> Constructor; LifeEvent = this.LifeEvent :> LifeEvent }
 
 #endif
-

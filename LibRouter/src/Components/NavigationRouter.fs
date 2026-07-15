@@ -52,7 +52,7 @@ and LR with
     ) : ReactElement = element {
         LR.Router(
             ?initialEntries = initialEntries,
-            children = [|
+            children        = [|
                 Helpers.Internals (spec, navigationState, queue, child, ?onNavigation = onNavigation)
             |]
         )

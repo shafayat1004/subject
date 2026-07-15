@@ -11,8 +11,8 @@ module AppEggShellGallery.Components.ScrapedXmlDocsBasedContents_LC
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 
 module private Module_LibClient_Disposables_SerialDisposable =
@@ -21,9 +21,9 @@ module private Module_LibClient_Disposables_SerialDisposable =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "T:LibClient.Disposables.SerialDisposable",
-            
-            notes       = LC.Text """A disposable with an inner, replaceable disposable, with automatic disposal of any predecessor.""",
-            samples     = element {
+
+            notes   = LC.Text """A disposable with an inner, replaceable disposable, with automatic disposal of any predecessor.""",
+            samples = element {
                 LC.Text "No examples"
             }
         )
@@ -35,9 +35,51 @@ module private Module_LibClient_Disposables_CompositeDisposable =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "T:LibClient.Disposables.CompositeDisposable",
-            
-            notes       = LC.Text """Many disposables under the guise of one.""",
-            samples     = element {
+
+            notes   = LC.Text """Many disposables under the guise of one.""",
+            samples = element {
+                LC.Text "No examples"
+            }
+        )
+
+
+module private Module_LibClient_Accessibility_AccessibilityRole =
+
+    [<Component>]
+    let content () : ReactElement =
+        Ui.ComponentContent (
+            displayName = "T:LibClient.Accessibility.AccessibilityRole",
+
+            notes   = LC.Text """Matches Rn Types.AccessibilityRole (priority-ordered enum values).""",
+            samples = element {
+                LC.Text "No examples"
+            }
+        )
+
+
+module private Module_LibClient_Accessibility =
+
+    [<Component>]
+    let content () : ReactElement =
+        Ui.ComponentContent (
+            displayName = "T:LibClient.Accessibility",
+
+            notes   = LC.Text """Cross-platform accessibility types aligned with react-native CommonAccessibilityProps.""",
+            samples = element {
+                LC.Text "No examples"
+            }
+        )
+
+
+module private Module_LibClient_UiActionLog =
+
+    [<Component>]
+    let content () : ReactElement =
+        Ui.ComponentContent (
+            displayName = "T:LibClient.UiActionLog",
+
+            notes   = LC.Text """Dev-only structured UI action log and interactive registry for automation/AI snapshots.""",
+            samples = element {
                 LC.Text "No examples"
             }
         )
@@ -49,29 +91,29 @@ module private Module_Fragment =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "Fragment",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "children"
-                            Type = "array<ReactElement>"
-                            Default = None
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "key"
-                            Type = "string"
-                            Default = Some "None"
+                            Name        = "key"
+                            Type        = "string"
+                            Default     = Some "None"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """Wrap children in a fragment, optionally specifying a key""",
-            samples     = element {
+            notes   = LC.Text """Wrap children in a fragment, optionally specifying a key""",
+            samples = element {
                 LC.Text "No examples"
             }
         )
@@ -83,42 +125,42 @@ module private Module_Column =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "Column",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "children"
-                            Type = "array<ReactElement>"
-                            Default = None
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "crossAxisAlignment"
-                            Type = "CrossAxisAlignment"
-                            Default = Some "CrossAxisAlignment.Stretch"
+                            Name        = "crossAxisAlignment"
+                            Type        = "CrossAxisAlignment"
+                            Default     = Some "CrossAxisAlignment.Stretch"
                             Description = Some "Alignment of children along the horizontal axis"
                         }
                         {
-                            Name = "gap"
-                            Type = "int"
-                            Default = Some "0"
+                            Name        = "gap"
+                            Type        = "int"
+                            Default     = Some "0"
                             Description = Some "Vertical gap between children"
                         }
                         {
-                            Name = "styles"
-                            Type = "array<ViewStyles>"
-                            Default = Some "[||]"
+                            Name        = "styles"
+                            Type        = "array<ViewStyles>"
+                            Default     = Some "[||]"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """Lay out the children in a column, optionally configuring the gap beteween children, and the horizontal alignment""",
-            samples     = element {
-                
+            notes   = LC.Text """Lay out the children in a column, optionally configuring the gap beteween children, and the horizontal alignment""",
+            samples = element {
+
                 Ui.ComponentSample (
                     heading = """Basics""",
                     visuals = (element {
@@ -128,7 +170,7 @@ module private Module_Column =
          LC.Text "Apple"
          LC.Text "Mango"
      |]
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -150,14 +192,14 @@ module private Module_Column =
                     visuals = (element {
 
      LC.Column (
-         gap = 30,
+         gap      = 30,
          children = [|
              LC.Text "Banana"
              LC.Text "Apple"
              LC.Text "Mango"
          |]
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -183,7 +225,7 @@ module private Module_Column =
 
      LC.Column (
          crossAxisAlignment = LC.CrossAxisAlignment.Center,
-         children = [|
+         children           = [|
              LC.Text "Banana"
              LC.Text "Green\nApple"
              LC.Text "Mango"
@@ -191,13 +233,13 @@ module private Module_Column =
      )
      LC.Column (
          crossAxisAlignment = LC.CrossAxisAlignment.FlexEnd,
-         children = [|
+         children           = [|
              LC.Text "Banana"
              LC.Text "Green\nApple"
              LC.Text "Mango"
          |]
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -235,42 +277,42 @@ module private Module_Row =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "Row",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "children"
-                            Type = "array<ReactElement>"
-                            Default = None
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "crossAxisAlignment"
-                            Type = "CrossAxisAlignment"
-                            Default = Some "CrossAxisAlignment.Stretch"
+                            Name        = "crossAxisAlignment"
+                            Type        = "CrossAxisAlignment"
+                            Default     = Some "CrossAxisAlignment.Stretch"
                             Description = Some "Alignment of children along the vertical axis"
                         }
                         {
-                            Name = "gap"
-                            Type = "int"
-                            Default = Some "0"
+                            Name        = "gap"
+                            Type        = "int"
+                            Default     = Some "0"
                             Description = Some "Vertical gap between children"
                         }
                         {
-                            Name = "styles"
-                            Type = "array<ViewStyles>"
-                            Default = Some "[||]"
+                            Name        = "styles"
+                            Type        = "array<ViewStyles>"
+                            Default     = Some "[||]"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """Lay out the children in a row, optionally configuring the gap between children, and the vertical alignment.""",
-            samples     = element {
-                
+            notes   = LC.Text """Lay out the children in a row, optionally configuring the gap between children, and the vertical alignment.""",
+            samples = element {
+
                 Ui.ComponentSample (
                     heading = """Basics""",
                     visuals = (element {
@@ -280,7 +322,7 @@ module private Module_Row =
          LC.Text "Apple"
          LC.Text "Mango"
      |]
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -302,7 +344,7 @@ module private Module_Row =
                     visuals = (element {
 
      LC.Row (
-         gap = 10,
+         gap      = 10,
          children = [|
              LC.Text "Banana"
              LC.Text "Apple"
@@ -310,14 +352,14 @@ module private Module_Row =
          |]
      )
      LC.Row (
-         gap = 30,
+         gap      = 30,
          children = [|
              LC.Text "Banana"
              LC.Text "Apple"
              LC.Text "Mango"
          |]
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -351,7 +393,7 @@ module private Module_Row =
 
      LC.Row (
          crossAxisAlignment = LC.CrossAxisAlignment.Center,
-         children = [|
+         children           = [|
              LC.Text "Banana"
              LC.Text "Green\nApple"
              LC.Text "Mango"
@@ -359,13 +401,13 @@ module private Module_Row =
      )
      LC.Row (
          crossAxisAlignment = LC.CrossAxisAlignment.FlexStart,
-         children = [|
+         children           = [|
              LC.Text "Banana"
              LC.Text "Green\nApple"
              LC.Text "Mango"
          |]
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -409,55 +451,55 @@ module private Module_Sized =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "Sized",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "child"
-                            Type = "ReactElement"
-                            Default = None
+                            Name        = "child"
+                            Type        = "ReactElement"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "width"
-                            Type = "int"
-                            Default = Some "None"
+                            Name        = "width"
+                            Type        = "int"
+                            Default     = Some "None"
                             Description = None
                         }
                         {
-                            Name = "height"
-                            Type = "int"
-                            Default = Some "None"
+                            Name        = "height"
+                            Type        = "int"
+                            Default     = Some "None"
                             Description = None
                         }
                         {
-                            Name = "styles"
-                            Type = "array<ViewStyles>"
-                            Default = Some "[||]"
+                            Name        = "styles"
+                            Type        = "array<ViewStyles>"
+                            Default     = Some "[||]"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """Wrap the child in a fixed size box""",
-            samples     = element {
-                
+            notes   = LC.Text """Wrap the child in a fixed size box""",
+            samples = element {
+
                 Ui.ComponentSample (
                     heading = """Basics""",
                     visuals = (element {
 
      LC.Sized (
-         width = 100,
+         width  = 100,
          height = 100,
-         child = RX.View (
-             styles = [|Styles.greyExpandingBox|],
+         child  = Rn.View (
+             styles   = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -466,7 +508,7 @@ module private Module_Sized =
      LC.Sized (
          width = 100,
          height = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -492,12 +534,12 @@ module private Module_Sized =
 
      LC.Sized (
          width = 100,
-         child = RX.View (
-             styles = [|Styles.greyExpandingBox|],
+         child = Rn.View (
+             styles   = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -505,7 +547,7 @@ module private Module_Sized =
 
      LC.Sized (
          width = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -531,12 +573,12 @@ module private Module_Sized =
 
      LC.Sized (
          height = 100,
-         child = RX.View (
-             styles = [|Styles.greyExpandingBox|],
+         child  = Rn.View (
+             styles   = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -544,7 +586,7 @@ module private Module_Sized =
 
      LC.Sized (
          height = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text "the box"|]
          )
@@ -582,60 +624,60 @@ module private Module_Constrained =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "Constrained",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "child"
-                            Type = "ReactElement"
-                            Default = None
+                            Name        = "child"
+                            Type        = "ReactElement"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "maxWidth"
-                            Type = "int"
-                            Default = Some "None"
+                            Name        = "maxWidth"
+                            Type        = "int"
+                            Default     = Some "None"
                             Description = None
                         }
                         {
-                            Name = "minWidth"
-                            Type = "int"
-                            Default = Some "None"
+                            Name        = "minWidth"
+                            Type        = "int"
+                            Default     = Some "None"
                             Description = None
                         }
                         {
-                            Name = "maxHeight"
-                            Type = "int"
-                            Default = Some "None"
+                            Name        = "maxHeight"
+                            Type        = "int"
+                            Default     = Some "None"
                             Description = None
                         }
                         {
-                            Name = "minHeight"
-                            Type = "int"
-                            Default = Some "None"
+                            Name        = "minHeight"
+                            Type        = "int"
+                            Default     = Some "None"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """Wrap the child in a constrained box""",
-            samples     = element {
-                
+            notes   = LC.Text """Wrap the child in a constrained box""",
+            samples = element {
+
                 Ui.ComponentSample (
                     heading = """maxWidth""",
                     visuals = (element {
 
      LC.Constrained (
          maxWidth = 200,
-         child = RX.View (
-             styles = [|Styles.greyExpandingBox|],
+         child    = Rn.View (
+             styles   = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -643,7 +685,7 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxWidth = 200,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
@@ -671,12 +713,12 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxHeight = 100,
-         child = RX.View (
-             styles = [|Styles.greyExpandingBox|],
+         child     = Rn.View (
+             styles   = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -684,7 +726,7 @@ module private Module_Constrained =
 
      LC.Constrained (
          maxHeight = 100,
-         child = RX.View (
+         child = Rn.View (
              styles = [|Styles.greyExpandingBox|],
              children = [|LC.Text lipsum|]
          )
@@ -714,13 +756,13 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minWidth = 150,
-             child = RX.View (
-                 styles = [|Styles.greyExpandingBox|],
+             child    = Rn.View (
+                 styles   = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -730,7 +772,7 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minWidth = 150,
-             child = RX.View (
+             child = Rn.View (
                  styles = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
@@ -761,13 +803,13 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minHeight = 150,
-             child = RX.View (
-                 styles = [|Styles.greyExpandingBox|],
+             child     = Rn.View (
+                 styles   = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
          )
      )
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -777,7 +819,7 @@ module private Module_Constrained =
      LC.Shrink (
          LC.Constrained (
              minHeight = 150,
-             child = RX.View (
+             child = Rn.View (
                  styles = [|Styles.greyExpandingBox|],
                  children = [|LC.Text "Little text"|]
              )
@@ -810,36 +852,36 @@ module private Module_InProgress =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "InProgress",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "isInProgress"
-                            Type = "bool"
-                            Default = None
+                            Name        = "isInProgress"
+                            Type        = "bool"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "children"
-                            Type = "array<ReactElement>"
-                            Default = None
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "styles"
-                            Type = "array<ViewStyles>"
-                            Default = Some "[||]"
+                            Name        = "styles"
+                            Type        = "array<ViewStyles>"
+                            Default     = Some "[||]"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """Superimpose a spinner and a scrim on top of children when in progress. TODO: theme for scrim colour, spinner colour and size.""",
-            samples     = element {
-                
+            notes   = LC.Text """Superimpose a spinner and a scrim on top of children when in progress. TODO: theme for scrim colour, spinner colour and size.""",
+            samples = element {
+
                 Ui.ComponentSample (
                     heading = """Basics""",
                     visuals = (element {
@@ -852,7 +894,7 @@ module private Module_InProgress =
              LC.InfoMessage "Some content here"
          |])
      |])
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -887,52 +929,52 @@ module private Module_With_Executor =
     let content () : ReactElement =
         Ui.ComponentContent (
             displayName = "With.Executor",
-            
+
             props = AppEggShellGallery.Components.ComponentContent.PropsConfig.Manual (
                 Ui.ComponentProps (data = {
                     Fields = (Choice2Of2 [
 
                         {
-                            Name = "executor"
-                            Type = "LibClient.UniDirectionalDataFlow.Executor"
-                            Default = None
+                            Name        = "executor"
+                            Type        = "LibClient.UniDirectionalDataFlow.Executor"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "content"
-                            Type = "LibClient.UniDirectionalDataFlow.Executor -> array<ReactElement>"
-                            Default = None
+                            Name        = "content"
+                            Type        = "LibClient.UniDirectionalDataFlow.Executor -> array<ReactElement>"
+                            Default     = None
                             Description = None
                         }
                         {
-                            Name = "styles"
-                            Type = "array<ViewStyles>"
-                            Default = Some "[||]"
+                            Name        = "styles"
+                            Type        = "array<ViewStyles>"
+                            Default     = Some "[||]"
                             Description = None
                         }
                     ])
                     MaybeScrapeErrors = None
                 })
             ),
-            notes       = LC.Text """An ad hoc block with manual executor usage that handles the in-progress state using LC.InProgress.
+            notes = LC.Text """An ad hoc block with manual executor usage that handles the in-progress state using LC.InProgress.
  TODO: plumb through the LC.InProgress theme when implemented""",
-            samples     = element {
-                
+            samples = element {
+
                 Ui.ComponentSample (
                     heading = """Basics""",
                     visuals = (element {
 
      LC.Executor.AlertErrors (fun makeExecutor -> element {
          LC.With.Executor (makeExecutor "test", fun executor -> [|
-             RX.View (
-                 onPress = (fun _ -> executor.MaybeExecute action),
+             Rn.View (
+                 onPress  = (fun _ -> executor.MaybeExecute action),
                  children = [|
                      LC.InfoMessage "Press Here"
                  |]
              )
          |])
      })
- 
+
                     }),
                     code =
                         ComponentSample.Children (element {
@@ -940,7 +982,7 @@ module private Module_With_Executor =
 
      LC.Executor.AlertErrors (fun makeExecutor -> element {
          LC.With.Executor (makeExecutor "test", fun executor -> [|
-             RX.View (
+             Rn.View (
                  onPress = (fun _ -> executor.MaybeExecute action),
                  children = [|
                      LC.InfoMessage "Press Here"
@@ -967,12 +1009,21 @@ module private Module_With_Executor =
 
 
 type Ui.XmlDocsContent.LC with
-    
+
     static member LibClient_Disposables_SerialDisposable () : ReactElement =
         Module_LibClient_Disposables_SerialDisposable.content ()
 
     static member LibClient_Disposables_CompositeDisposable () : ReactElement =
         Module_LibClient_Disposables_CompositeDisposable.content ()
+
+    static member LibClient_Accessibility_AccessibilityRole () : ReactElement =
+        Module_LibClient_Accessibility_AccessibilityRole.content ()
+
+    static member LibClient_Accessibility () : ReactElement =
+        Module_LibClient_Accessibility.content ()
+
+    static member LibClient_UiActionLog () : ReactElement =
+        Module_LibClient_UiActionLog.content ()
 
     static member Fragment () : ReactElement =
         Module_Fragment.content ()
@@ -994,4 +1045,3 @@ type Ui.XmlDocsContent.LC with
 
     static member With_Executor () : ReactElement =
         Module_With_Executor.content ()
-    

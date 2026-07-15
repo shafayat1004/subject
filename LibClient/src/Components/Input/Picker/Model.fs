@@ -64,10 +64,10 @@ type StateUpdate<'Item when 'Item : comparison> = {
 }
 
 type PickerInputEvent<'Item when 'Item : comparison> =
-| QueryChange of Option<NonemptyString>
-| Select      of Index: int * Item: 'Item
-| Toggle      of Index: int * Item: 'Item
-| Unselect    of Item: 'Item
+| QueryChange      of Option<NonemptyString>
+| Select           of Index: int * Item: 'Item
+| Toggle           of Index: int * Item: 'Item
+| Unselect         of Item: 'Item
 | UnselectAllIfAllowed
 | ResetDeleteState
 | Backspace
@@ -99,7 +99,7 @@ type PickerModel<'Item when 'Item : comparison> (eventBus: EventBus, items: Item
             if maybeQuery = state.MaybeQuery then
                 this.UpdateState
                     { state with
-                        SelectableItems           = selectableItems |> OrderedSet.toList |> Available
+                        SelectableItems = selectableItems |> OrderedSet.toList |> Available
                         MaybeHighlightedItemIndex =
                             match (state.IsListVisible, selectableItems.IsEmpty) with
                             | (false, _)     -> None
@@ -116,7 +116,7 @@ type PickerModel<'Item when 'Item : comparison> (eventBus: EventBus, items: Item
     member this.MaybeSelectForDeletion (maybeItem: Option<'Item>) : unit =
         let deleteState =
             match maybeItem with
-            | None -> DeleteState.Idle
+            | None      -> DeleteState.Idle
             | Some item -> DeleteState.Selected item
         this.UpdateState { state with DeleteState = deleteState }
 

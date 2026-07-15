@@ -15,10 +15,10 @@ type FullyTypedViewFunction<'Res> =
     abstract member Invoke: View<_, _, _, _, _, _, _> -> 'Res
 
 and IView =
-    abstract member Name: string
-    abstract member Def: IViewDef
+    abstract member Name:            string
+    abstract member Def:             IViewDef
     abstract member EnableApiAccess: bool
-    abstract member Invoke: FullyTypedViewFunction<'Res> -> 'Res
+    abstract member Invoke:          FullyTypedViewFunction<'Res> -> 'Res
 
 and ViewResult<'Output, 'OpError when 'OpError :> OpError> = ViewResult of Task<Result<'Output, 'OpError>>
 
@@ -34,7 +34,7 @@ and FullyTypedViewFunction<'Res, 'Input, 'Output, 'OpError when 'OpError :> OpEr
 and IView<'Input, 'Output, 'OpError when 'OpError :> OpError> =
     inherit IView
     abstract member MetaData: ViewMetaData
-    abstract member Invoke: FullyTypedViewFunction<'Res, 'Input, 'Output, 'OpError> -> 'Res
+    abstract member Invoke:   FullyTypedViewFunction<'Res, 'Input, 'Output, 'OpError> -> 'Res
 
     // TODO: these also can be supplanted with function invocations (Invoke calls)
     abstract member Read: CallOrigin -> IServiceProvider -> 'Input -> ViewResult<'Output, 'OpError>
@@ -71,7 +71,7 @@ with
 
     member internal _.CreateEnv (callOrigin: CallOrigin) (serviceProvider: IServiceProvider) =
         createEnvImpl<'Env>
-            { CallOrigin = callOrigin
+            { CallOrigin      = callOrigin
               LocalSubjectRef = None }
             serviceProvider
 
@@ -93,7 +93,7 @@ with
 and AccessRule<'AccessPredicateInput, 'Role
         when 'AccessPredicateInput :> AccessPredicateInput
         and  'Role                 :  comparison> = {
-    Input:        AccessMatch<'AccessPredicateInput>
-    Roles:        AccessMatch<NonemptySet<'Role>>
-    Decision:     AccessDecision
+    Input:    AccessMatch<'AccessPredicateInput>
+    Roles:    AccessMatch<NonemptySet<'Role>>
+    Decision: AccessDecision
 }

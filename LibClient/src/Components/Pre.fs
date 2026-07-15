@@ -5,7 +5,7 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -18,16 +18,15 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Pre(
-            text: string,
+            text:    string,
             ?styles: array<TextStyles>,
-            ?key: string
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 
         LC.Text(
-            value = text,
+            value      = text,
             selectable = true,
-            numberOfLines = 1,
             styles =
                 [|
                     Styles.text

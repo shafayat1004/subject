@@ -4,6 +4,7 @@
     "start": "webpack-dev-server"
   },
   "dependencies": {
+    "react-native-render-html": "^6.3.4",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler",
     "showdown": "^2.1.0"
   }

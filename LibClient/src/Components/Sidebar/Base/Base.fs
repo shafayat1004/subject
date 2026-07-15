@@ -1,7 +1,7 @@
 // Cluster conversion (strategy A): this consumer is converted together with its producer
 // LC.VerticallyScrollable. The old Base.styles.fs styled the producer's internal "top"/"bottom" blocks
 // via the legacy `==> VerticallyScrollableStyles.Theme.One*` class cascade; now we pass those styles
-// explicitly through the producer's per-section style params. See LEARNINGS.md.
+// explicitly through the producer's per-section style params. See the gallery docs runbooks/troubleshooting.md.
 [<AutoOpen>]
 module LibClient.Components.Sidebar_Base
 
@@ -9,7 +9,7 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Styles
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -32,7 +32,7 @@ type LibClient.Components.Constructors.LC.Sidebar with
             ?scrollableMiddle: ReactElement,
             ?fixedBottom:      ReactElement,
             ?styles:           array<ViewStyles>,
-            ?xLegacyStyles:    List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:              string
         ) : ReactElement =
         key           |> ignore
@@ -42,6 +42,7 @@ type LibClient.Components.Constructors.LC.Sidebar with
             ?fixedTop         = fixedTop,
             ?scrollableMiddle = scrollableMiddle,
             ?fixedBottom      = fixedBottom,
+            middleTestId      = "sidebar-scroll-middle",
             styles            = [| Styles.view; yield! (defaultArg styles [||]) |],
             topStyles         = [| Styles.topSection |],
             bottomStyles      = [| Styles.bottomSection |]

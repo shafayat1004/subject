@@ -3,8 +3,9 @@ module LibClient.Components.InfoMessage
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open LibClient.Accessibility
+open Rn.Components
+open Rn.Styles
 
 type Level =
 | Info
@@ -24,30 +25,35 @@ open LC.InfoMessage
 module private Styles =
     let view = makeViewStyles { marginVertical 16; paddingHorizontal 20 }
 
-    let text (theme: Theme) (level: Level) =
-        let levelColor =
-            match level with
-            | Info      -> theme.InfoColor
-            | Attention -> theme.AttentionColor
-            | Caution   -> theme.CautionColor
-        makeTextStyles { TextAlign.Center; color levelColor }
+    // Key on CSS string (primitive), not Color — fast-memoize uses reference equality on objects.
+    let textForColorCss =
+        TextStyles.Memoize (fun (colorCss: string) ->
+            makeTextStyles { TextAlign.Center; color (Color.InternalString colorCss) }
+        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
-    static member InfoMessage(message: string, ?level: Level, ?styles: array<TextStyles>, ?theme: Theme -> Theme, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
+    static member InfoMessage(message: string, ?level: Level, ?styles: array<TextStyles>, ?theme: Theme -> Theme, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
         key |> ignore
         let theLevel = defaultArg level Level.Info
         let theTheme = Themes.GetMaybeUpdatedWith theme
+        let levelColor =
+            match theLevel with
+            | Info      -> theTheme.InfoColor
+            | Attention -> theTheme.AttentionColor
+            | Caution   -> theTheme.CautionColor
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
-                | s  -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" s |]
+                | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
-        RX.View(
-            styles = [| Styles.view; yield! legacyViewStyles |],
-            children = [|
-                LC.Text(message, styles = [| Styles.text theTheme theLevel; yield! defaultArg styles [||] |])
+        Rn.View(
+            styles                  = [| Styles.view; yield! legacyViewStyles |],
+            accessibilityRole       = AccessibilityRole.Status,
+            accessibilityLiveRegion = unbox<Rn.Components.View.AccessibilityLiveRegion> (int AccessibilityLiveRegion.Polite),
+            children                = [|
+                LC.Text(message, styles = [| Styles.textForColorCss levelColor.ToCssString; yield! defaultArg styles [||] |])
             |]
         )

@@ -8,8 +8,8 @@ open LibClient
 open LibClient.Components
 open LibClient.Components.Input.NamedFile
 open LibLifeCycleTypes.File
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 #if !EGGSHELL_PLATFORM_IS_WEB
 module private Styles =
@@ -39,10 +39,10 @@ module private Styles =
     let selectFileButton = makeViewStyles { maxWidth 236 }
 
 type DocumentPickerResult =
-    { ``type``: string
+    { ``type``:    string
       fileCopyUri: string
-      name: string
-      size: int }
+      name:        string
+      size:        int }
 
 [<Import("readFile", "react-native-fs")>]
 let private readFile (_filePath: string, _enCoding: string) : JS.Promise<string> = jsNative
@@ -152,7 +152,7 @@ type FilePicker =
                             { Name = result.name |> getPrintableAsciiChars |> NonemptyString.ofStringWithDefault "Untitled"
                               File =
                                 { MimeType = mimeType
-                                  Data = FileData.Base64(base64string, asB result.size) } }
+                                  Data     = FileData.Base64(base64string, asB result.size) } }
             }
 
         let fileTypeFromAcceptedType acceptedType =
@@ -177,7 +177,7 @@ type FilePicker =
                 let documentPickerProps: obj =
                     {| copyTo = "cachesDirectory"
                        allowMultiSelection = maybeMaxFileCount <> Some PositiveInteger.One
-                       ``type`` = acceptedFileTypes |}
+                       ``type``            = acceptedFileTypes |}
 
                 let! results = pickDocument documentPickerProps
 
@@ -231,17 +231,17 @@ type FilePicker =
             |> startSafely
 
         element {
-            RX.View (
-                ?key = key,
+            Rn.View (
+                ?key   = key,
                 styles = [| Styles.view |],
                 children =
                     [| LC.Button (
                            styles = [| Styles.selectFileButton |],
-                           label = "Select File",
-                           state = ButtonHighLevelStateFactory.MakeLowLevel(ButtonLowLevelState.Actionable pickFiles)
+                           label  = "Select File",
+                           state  = ButtonHighLevelStateFactory.MakeLowLevel(ButtonLowLevelState.Actionable pickFiles)
                        )
 
-                       RX.View (
+                       Rn.View (
                            children =
                                [| LC.Text (
                                       styles = [| Styles.textCenter |],
@@ -256,20 +256,20 @@ type FilePicker =
                                   ) |]
                        )
 
-                       RX.View (
+                       Rn.View (
                            styles = [| Styles.messageContainer |],
                            children =
-                               [| RX.View
+                               [| Rn.View
                                       [| match value.Length with
                                          | 1 ->
                                              LC.Text (
                                                  styles = [| Styles.textCenter; Styles.infoMessage |],
-                                                 value = $"{value.Length} file selected"
+                                                 value  = $"{value.Length} file selected"
                                              )
                                          | length when length > 1 ->
                                              LC.Text (
                                                  styles = [| Styles.textCenter; Styles.infoMessage |],
-                                                 value = $"{value.Length} files selected"
+                                                 value  = $"{value.Length} files selected"
                                              )
                                          | _ -> noElement |] |]
                        )
@@ -278,10 +278,10 @@ type FilePicker =
                        | None ->
                            noElement
                        | Some reason ->
-                           RX.View [| LC.Text (styles = [| Styles.invalidReason |], value = reason) |]
+                           Rn.View [| LC.Text (styles = [| Styles.invalidReason |], value = reason) |]
 
                        if validity = InputValidity.Missing then
-                           RX.View [| LC.Text (styles = [| Styles.invalidReason |], value = "This field is required") |] |]
+                           Rn.View [| LC.Text (styles = [| Styles.invalidReason |], value = "This field is required") |] |]
             )
         }
     #endif

@@ -27,7 +27,7 @@ type ResponseChannel<'Response> =
 
 type MultiResponseChannel<'Response> =
     abstract member RespondNext: value: 'Response -> unit
-    abstract member Complete: unit -> ResponseVerificationToken
+    abstract member Complete:    unit -> ResponseVerificationToken
 
 type Service<'Request when 'Request :> Request> =
     abstract member Name:  string
@@ -46,15 +46,15 @@ and FullyTypedConnectorFunction<'Res> =
     abstract member Invoke: Connector<_, _> -> 'Res
 
 and Connector =
-    abstract member Name: string
+    abstract member Name:   string
     abstract member Invoke: FullyTypedConnectorFunction<'Res> -> 'Res
 
 and
     [<CLIMutable>] // Temporary hack needed to register foreign ecosystem connector in the current ecosystem in the test environment
     Connector<'Request, 'Env when 'Request :> Request and 'Env :> Env> = {
-    RequestProcessor: 'Env -> 'Request -> Task<ResponseVerificationToken>
-    Name: string
-    Interceptors: list<ConnectorInterceptor<'Request>>
+    RequestProcessor:    'Env -> 'Request -> Task<ResponseVerificationToken>
+    Name:                string
+    Interceptors:        list<ConnectorInterceptor<'Request>>
     ShouldSendTelemetry: bool
 } with
     member this.Request<'Response, 'SourceAction when 'SourceAction :> LifeAction>

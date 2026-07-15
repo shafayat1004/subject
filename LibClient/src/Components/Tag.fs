@@ -4,10 +4,11 @@ module LibClient.Components.Tag
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Responsive
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Tag =
@@ -19,28 +20,28 @@ module LC =
         | Disabled
 
         type TagTheme = {
-            TextColor: Color
+            TextColor:       Color
             BackgroundColor: Color
         }
 
         type TagsTheme = {
-            Selected: TagTheme
+            Selected:   TagTheme
             Unselected: TagTheme
         }
 
         type SizeTheme = {
-            FontSize: int
+            FontSize:          int
             PaddingHorizontal: int
-            PaddingVertical: int
+            PaddingVertical:   int
         }
 
         type SizesTheme = {
-            Desktop: SizeTheme
+            Desktop:  SizeTheme
             Handheld: SizeTheme
         }
 
         type Theme = {
-            Tags: TagsTheme
+            Tags:  TagsTheme
             Sizes: SizesTheme
         }
         with
@@ -52,7 +53,7 @@ module LC =
                         this.Tags.Unselected
                 let sizeTheme =
                     match screenSize with
-                    | ScreenSize.Desktop -> this.Sizes.Desktop
+                    | ScreenSize.Desktop  -> this.Sizes.Desktop
                     | ScreenSize.Handheld -> this.Sizes.Handheld
                 (tagTheme, sizeTheme)
 
@@ -69,11 +70,13 @@ module private Styles =
 
     let view =
         makeViewStyles {
+            Position.Relative
             // TODO it's wrong to specify margin internally — LC.Tags should specify margin
             marginHorizontal 6
             marginVertical 6
             borderRadius 20
             Cursor.Default
+            AlignSelf.FlexStart
         }
 
     let labelBlock =
@@ -99,25 +102,25 @@ module private Styles =
 
     let textTheme =
         TextStyles.Memoize(
-            fun (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) ->
-                let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
-
+            fun (textColorCss: string) (labelFontSize: int) ->
                 makeTextStyles {
-                    color tagTheme.TextColor
-                    fontSize sizeTheme.FontSize
+                    color (Color.InternalString textColorCss)
+                    fontSize labelFontSize
                 }
         )
 
+    let textThemeFor (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) =
+        let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
+        textTheme tagTheme.TextColor.ToCssString sizeTheme.FontSize
+
     let viewTheme =
         ViewStyles.Memoize(
-            fun (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) (isHovered: bool) (isDepressed: bool) (state: ThemeState) ->
-                let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
-
+            fun (padHorizontal: int) (padVertical: int) (fillColorCss: string) (isHovered: bool) (isDepressed: bool) (state: ThemeState) ->
                 makeViewStyles {
-                    paddingHorizontal sizeTheme.PaddingHorizontal
-                    paddingVertical sizeTheme.PaddingVertical
+                    paddingHorizontal padHorizontal
+                    paddingVertical padVertical
 
-                    backgroundColor tagTheme.BackgroundColor
+                    backgroundColor (Color.InternalString fillColorCss)
 
                     if isHovered then
                         shadow (Color.BlackAlpha 0.2) 5 (0, 3)
@@ -128,29 +131,34 @@ module private Styles =
                     match state with
                     | ThemeState.Disabled ->
                         opacity 0.5
-                    | ThemeState.Actionable _ ->
+                    | ThemeState.Actionable ->
                         Cursor.Pointer
                     | ThemeState.Other ->
                         Noop
                 }
         )
 
+    let viewThemeFor (theme: Theme) (screenSize: ScreenSize) (isSelected: bool) (isHovered: bool) (isDepressed: bool) (state: ThemeState) =
+        let tagTheme, sizeTheme = theme.TagAndSizeTheme screenSize isSelected
+        viewTheme sizeTheme.PaddingHorizontal sizeTheme.PaddingVertical tagTheme.BackgroundColor.ToCssString isHovered isDepressed state
+
 type private State with
     member private this.ToThemeState() =
         match this with
         | State.Actionable _ -> Styles.ThemeState.Actionable
-        | State.Disabled -> Styles.ThemeState.Disabled
-        | _ -> Styles.ThemeState.Other
+        | State.Disabled     -> Styles.ThemeState.Disabled
+        | _                  -> Styles.ThemeState.Other
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tag(
-            text: string,
-            ?state: State,
+            text:        string,
+            ?state:      State,
             ?isSelected: bool,
-            ?theme: Theme -> Theme,
-            ?styles: array<ViewStyles>,
-            ?key: string
+            ?testId:     string,
+            ?theme:      Theme -> Theme,
+            ?styles:     array<ViewStyles>,
+            ?key:        string
         ) : ReactElement =
         key |> ignore
 
@@ -166,16 +174,16 @@ type LibClient.Components.Constructors.LC with
                         let isHovered = pointerState.IsHovered && (not pointerState.IsDepressed)
                         let isDepressed = pointerState.IsDepressed
 
-                        RX.View(
+                        Rn.View(
                             styles =
                                 [|
                                     Styles.view
-                                    Styles.viewTheme theTheme screenSize isSelected isHovered isDepressed (state.ToThemeState())
+                                    Styles.viewThemeFor theTheme screenSize isSelected isHovered isDepressed (state.ToThemeState())
                                     yield! styles
                                 |],
                             children =
                                 elements {
-                                    RX.View(
+                                    Rn.View(
                                         styles = [| Styles.labelBlock |],
                                         children =
                                             elements {
@@ -184,7 +192,7 @@ type LibClient.Components.Constructors.LC with
                                                     styles =
                                                         [|
                                                             Styles.labelText
-                                                            Styles.textTheme theTheme screenSize isSelected
+                                                            Styles.textThemeFor theTheme screenSize isSelected
                                                         |]
                                                 )
                                             }
@@ -192,19 +200,31 @@ type LibClient.Components.Constructors.LC with
 
                                     match state with
                                     | State.Actionable onPress ->
-                                        LC.TapCapture(
-                                            key = "tap capture",
-                                            pointerState = pointerState,
-                                            onPress = onPress
+                                        let resolvedTestId =
+                                            testId |> Option.orElse (Some (A11ySlug.testId "tag" text))
+                                        let pressState =
+                                            match isSelected with
+                                            | true  -> AccessibilityStateRecord.selected true
+                                            | false -> AccessibilityStateRecord.empty
+                                        LC.Pressable(
+                                            key           = "tap capture",
+                                            onPress       = onPress,
+                                            label         = text,
+                                            testId        = resolvedTestId.Value,
+                                            role          = AccessibilityRole.Button,
+                                            state         = pressState,
+                                            overlay       = true,
+                                            pointerState  = pointerState,
+                                            componentName = "LC.Tag"
                                         )
                                     | State.InProgress ->
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.spinnerBlock |],
                                             children =
                                                 elements {
-                                                    RX.ActivityIndicator(
+                                                    Rn.ActivityIndicator(
                                                         color = "#aaaaaa",
-                                                        size = Size.Tiny
+                                                        size  = Size.Tiny
                                                     )
                                                 }
                                         )

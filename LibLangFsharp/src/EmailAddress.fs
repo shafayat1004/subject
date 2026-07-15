@@ -4,27 +4,27 @@ module EmailAddressModule
 open System.Text.RegularExpressions
 
 // https://stackoverflow.com/a/201378/6493611
-let emailPattern = """^(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$"""
+let emailPattern =
+    """^(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$"""
+
 let emailRegex = Regex(emailPattern, RegexOptions.Compiled)
 
 [<Struct>]
-type EmailAddress = private {
-    Value_: string
-}
-with
-    member this.Value : string =
-        this.Value_
+type EmailAddress =
+    private
+        { Value_: string }
 
-    override this.ToString() =
-        this.Value
+    member this.Value: string = this.Value_
+
+    override this.ToString() = this.Value
 
 type EmailAddressValidationError =
-| EmptyString
-| NoAtSymbol
-| MultipleAtSymbols
-| AtSymbolAtStart
-| AtSymbolAtEnd
-| NotAValidEmail
+    | EmptyString
+    | NoAtSymbol
+    | MultipleAtSymbols
+    | AtSymbolAtStart
+    | AtSymbolAtEnd
+    | NotAValidEmail
 
 module EmailAddress =
     let tryOfString (source: string) : Result<EmailAddress, EmailAddressValidationError> =
@@ -50,10 +50,13 @@ module EmailAddress =
 
 open CodecLib
 
-type EmailAddress
-with
-    static member get_Codec () : Codec<_, EmailAddress> =
-        Codec.create (fun x -> EmailAddress.tryOfString x |> Result.mapError (fun _ -> Uncategorized "Failed parsing")) (fun x -> x.Value_)
+type EmailAddress with
+    static member get_Codec() : Codec<_, EmailAddress> =
+        Codec.create
+            (fun x ->
+                EmailAddress.tryOfString x
+                |> Result.mapError (fun _ -> Uncategorized "Failed parsing"))
+            (fun x -> x.Value_)
         |> Codec.compose Codecs.string
 
 #endif

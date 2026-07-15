@@ -17,7 +17,7 @@ type FullyTypedLifeCycleDefFunction<'Res> =
 
 and LifeCycleDef =
     abstract member LifeCycleKey: LifeCycleKey
-    abstract Invoke: FullyTypedLifeCycleDefFunction<'Res> -> 'Res
+    abstract Invoke:              FullyTypedLifeCycleDefFunction<'Res> -> 'Res
 
 and UntypedSubjectProjectionDef<'Subject> = {
     ProjectionType: Type
@@ -39,7 +39,7 @@ and LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Sub
     and 'SubjectId : comparison> =
     // can't be internal because instantiated inside inline functions (for codecs)
     {
-        Key: LifeCycleKey
+        Key:            LifeCycleKey
         ProjectionDefs: KeyedSet<string, UntypedSubjectProjectionDef<'Subject>>
     }
     with
@@ -98,7 +98,7 @@ type FullyTypedViewDefFunction<'Res> =
 
 and IViewDef =
     abstract ViewName: string
-    abstract Invoke: FullyTypedViewDefFunction<'Res> -> 'Res
+    abstract Invoke:   FullyTypedViewDefFunction<'Res> -> 'Res
 
 // TODO: ideally 'Input 'Output and 'OpError should be constrained to ViewInput<> ViewOutput<> and ViewOpError<> but there's already lots of free-typed legacy views
 /// Represents a combination of public view-specific types which together define view interface from client perspective.
@@ -438,7 +438,7 @@ type [<RequireQualifiedAccess>] SubscriptionTriggerType =
 
 type ExternalCallOrigin = {
     RemoteAddress: string
-    Headers: Map<string, Set<string>>
+    Headers:       Map<string, Set<string>>
 }
 
 [<RequireQualifiedAccess>]
@@ -508,7 +508,7 @@ type ExternalCallOrigin with
             and! headers = reqWith (Codecs.gmap Codecs.string (Codecs.set Codecs.string)) "Headers" (fun x -> Some x.Headers)
             return {
                 RemoteAddress = remoteAddress
-                Headers = headers
+                Headers       = headers
              }
         }
     static member get_Codec () = ofObjCodec (ExternalCallOrigin.get_ObjCodec_V1 ())

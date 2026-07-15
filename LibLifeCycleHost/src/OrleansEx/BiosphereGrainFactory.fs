@@ -18,12 +18,12 @@ type BiosphereConnectionException(message:string, innerException: System.Excepti
 // Probably expensive, but more importantly we only know statically referenced ecosystems but not dynamic.
 
 type BiosphereGrainProvider (
-        hostEcosystem: Ecosystem,
-        hostEcosystemGrainFactory: IGrainFactory,
+        hostEcosystem:              Ecosystem,
+        hostEcosystemGrainFactory:  IGrainFactory,
         membershipConnectionString: string,
-        operationTracker: OperationTracker,
-        useDevelopmentCertificate: bool,
-        buildAssembly: Assembly) =
+        operationTracker:           OperationTracker,
+        useDevelopmentCertificate:  bool,
+        buildAssembly:              Assembly) =
     let semaphore = new SemaphoreSlim ((* maxCount *) 1)
     let mutable remoteClientsByEcosystemName: Map<string, IClusterClient> = Map.empty
 with
@@ -55,11 +55,11 @@ with
                                             hostEcosystem,
                                             buildAssembly,
                                             EcosystemSiloClientSetup.HostToRemoteHost
-                                                { OrleansTlsCertificate = orleansTlsCertificate
-                                                  OrleansHostName = orleansHostName
+                                                { OrleansTlsCertificate      = orleansTlsCertificate
+                                                  OrleansHostName            = orleansHostName
                                                   MembershipConnectionString = membershipConnectionString
-                                                  OperationTracker = operationTracker
-                                                  RemoteEcosystemName = ecosystemName })
+                                                  OperationTracker           = operationTracker
+                                                  RemoteEcosystemName        = ecosystemName })
                                             |> fun clientBuilder -> clientBuilder.Build()
 
                                 try

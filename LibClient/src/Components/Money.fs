@@ -4,8 +4,8 @@ module LibClient.Components.Money
 open Fable.React
 
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Money =
@@ -37,7 +37,7 @@ module LC =
 
         type Format =
         | WithThousandSeparator of Decimals: int
-        | Custom of string
+        | Custom                of string
         with
             member this.String : string =
                 match this with
@@ -63,7 +63,7 @@ type LibClient.Components.Constructors.LC with
         let format = defaultArg format (Format.WithThousandSeparator 2)
         let styles = styles |> Option.defaultValue ([||])
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |],
             children =
                 elements {

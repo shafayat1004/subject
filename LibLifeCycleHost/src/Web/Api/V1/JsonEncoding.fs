@@ -17,7 +17,7 @@ let private getVersionedSubjectProjectionEncoder<'Subject, 'Projection>
     let typedProjection =
         fun versionedData ->
             {
-                Data = projection.Projection versionedData.Data :?> 'Projection
+                Data    = projection.Projection versionedData.Data :?> 'Projection
                 Version = versionedData.Version
             }
     let versionedProjectionEncoder = generateAutoEncoder<VersionedData<'Projection>>
@@ -31,7 +31,7 @@ let private getAccessControlledSubjectChangeEncoder<'Subject, 'SubjectId, 'Proje
     let typedProjection =
         fun versionedData ->
             {
-                Data = projection.Projection versionedData.Data :?> 'Projection
+                Data    = projection.Projection versionedData.Data :?> 'Projection
                 Version = versionedData.Version
             }
     let accessControlledSubjectChangeEncoder = generateAutoEncoder<AccessControlledSubjectChange<'Projection, 'SubjectId>>
@@ -53,7 +53,7 @@ let private getAccessControlledVersionedSubjectProjectionListEncoder<'Subject, '
     let typedProjection =
         fun versionedData ->
             {
-                Data = projection.Projection versionedData.Data :?> 'Projection
+                Data    = projection.Projection versionedData.Data :?> 'Projection
                 Version = versionedData.Version
             }
     let projectionEncoder = generateAutoEncoder<List<AccessControlled<VersionedData<'Projection>, 'SubjectId>>>
@@ -69,7 +69,7 @@ let private getAccessControlledVersionedSubjectProjectionListWithTotalCountEncod
     let typedProjection =
         fun versionedData ->
             {
-                Data = projection.Projection versionedData.Data :?> 'Projection
+                Data    = projection.Projection versionedData.Data :?> 'Projection
                 Version = versionedData.Version
             }
     let projectionEncoder = generateAutoEncoder<ListWithTotalCount<AccessControlled<VersionedData<'Projection>, 'SubjectId>>>
@@ -90,12 +90,12 @@ let private getActOrConstructAndWaitOnLifeEventResultProjectionEncoder<'Subject,
     let typedProjection =
         fun versionedData ->
             {
-                Data = projection.Projection versionedData.Data :?> 'Projection
+                Data    = projection.Projection versionedData.Data :?> 'Projection
                 Version = versionedData.Version
             }
     let projectionEncoder = generateAutoEncoder<ApiActOrConstructAndWaitOnLifeEventResult<'Projection, 'LifeEvent>>
     (function
-    | WaitOnLifeEventTimedOut versionedSubject -> (typedProjection versionedSubject) |> WaitOnLifeEventTimedOut
+    | WaitOnLifeEventTimedOut versionedSubject        -> (typedProjection versionedSubject) |> WaitOnLifeEventTimedOut
     | LifeEventTriggered(versionedSubject, lifeEvent) -> ((typedProjection versionedSubject), lifeEvent) |> LifeEventTriggered)
     >> projectionEncoder
 

@@ -2,13 +2,13 @@
 module LibPushNotification.Types
 
 type iSubscription =
-    abstract endpoint: string with get, set
+    abstract endpoint:       string with get, set
     abstract expirationTime: Option<double> with get, set
-    abstract toJSON: unit -> obj
+    abstract toJSON:         unit -> obj
 
 type ClientDeviceToken =
-| FcmToken  of NonemptyString
-| ApnsToken of NonemptyString
+| FcmToken            of NonemptyString
+| ApnsToken           of NonemptyString
 | WebPushSubscription of NonemptyString
 
 
@@ -48,11 +48,11 @@ type NotificationChannel = {
 
 let DefaultNotificationChannelId = NotificationChannelId(NonemptyString.ofStringUnsafe "Default")
 let DefaultNotificationChannel = {
-    Id = DefaultNotificationChannelId
-    Name = (NonemptyString.ofStringUnsafe "Default")
-    Description = (NonemptyString.ofStringUnsafe "Default")
+    Id             = DefaultNotificationChannelId
+    Name           = (NonemptyString.ofStringUnsafe "Default")
+    Description    = (NonemptyString.ofStringUnsafe "Default")
     MaybeSoundName = None
-    Importance = NotificationImportance.DEFAULT
+    Importance     = NotificationImportance.DEFAULT
 }
 
 ////////////////////////////////

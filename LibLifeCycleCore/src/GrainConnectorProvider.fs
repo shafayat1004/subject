@@ -44,15 +44,15 @@ module private Common =
 
 type GrainConnectorProvider =
     inherit IDisposable
-    abstract member CreateGrainConnector : unit -> GrainConnector
+    abstract member CreateGrainConnector: unit -> GrainConnector
 
 
 type AdoNetClusteringGrainConnectorProvider
     (ecosystemDef: EcosystemDef,
         membershipConnectionString: string,
-        retryFilter: exn -> Task<bool>,
-        useDevelopmentCertificate: bool,
-        buildAssembly: Assembly) =
+        retryFilter:                exn -> Task<bool>,
+        useDevelopmentCertificate:  bool,
+        buildAssembly:              Assembly) =
 
     let cancellationTokenSource = new CancellationTokenSource()
 
@@ -77,9 +77,9 @@ type AdoNetClusteringGrainConnectorProvider
                                     adoNetOptions.ConnectionString <- membershipConnectionString
                                     adoNetOptions.Invariant        <- "Microsoft.Data.SqlClient")
                             |> ignore
-                            services.AddSingleton<AdoNetGatewayListProvider, AdoNetGatewayListProvider>() |> ignore
+                            services.AddSingleton<AdoNetGatewayListProvider, AdoNetGatewayListProvider>()                     |> ignore
                             services.AddSingleton<IGatewayListProvider, AdoNetGatewayListProviderWithSuppressedTransaction>() |> ignore
-                            services.AddSingleton<IConfigurationValidator, AdoNetClusteringClientOptionsValidator>() |> ignore)
+                            services.AddSingleton<IConfigurationValidator, AdoNetClusteringClientOptionsValidator>()          |> ignore)
                         .Configure<ClusterOptions>(
                             fun (opts: ClusterOptions) ->
                                 opts.ClusterId <- ecosystemDef.Name

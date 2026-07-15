@@ -9,6 +9,6 @@ type LC.With with
     [<Component>]
     static member GlobalExecutor (``with``: MakeExecutor -> ReactElement) : ReactElement =
         LC.With.Context(
-            context = globalExecutorContext,
+            context  = globalExecutorContext,
             ``with`` = ``with``
         )

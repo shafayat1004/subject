@@ -2,9 +2,9 @@
 module OptionExtensions
 
 type Option<'T> with
-    member this.SideEffect (f: 'T -> unit) : unit = Option.iter f this
+    member this.SideEffect(f: 'T -> unit) : unit = Option.iter f this
 
-    member this.ToDisplayString : string =
+    member this.ToDisplayString: string =
         match this with
         | Some value -> value.ToString()
         | None       -> "N/A"
@@ -12,17 +12,16 @@ type Option<'T> with
 // For some reason, without this alias, we get the following error:
 // error FS0534: A module abbreviation must be a simple name, not a path
 module Option = Microsoft.FSharp.Core.Option
+
 module Option =
     let tap (o: 'O option) (f: 'O -> 'T -> 'T) (x: 'T) =
         match o with
         | Some o -> f o x
-        | None -> x
+        | None   -> x
 
-    let getOrElse<'T> (elseValue: 'T) (o: Option<'T>) : 'T =
-        Option.defaultValue elseValue o
+    let getOrElse<'T> (elseValue: 'T) (o: Option<'T>) : 'T = Option.defaultValue elseValue o
 
-    let getOrElseLazy<'T> (elseValueThunk: unit -> 'T) (o: Option<'T>) : 'T =
-        Option.defaultWith elseValueThunk o
+    let getOrElseLazy<'T> (elseValueThunk: unit -> 'T) (o: Option<'T>) : 'T = Option.defaultWith elseValueThunk o
 
     let getOrElseRaise<'T, 'E when 'E :> System.Exception> (theException: 'E) (o: Option<'T>) : 'T =
         getOrElseLazy (fun () -> raise theException) o
@@ -36,8 +35,8 @@ module Option =
         | None :: _ -> None
         | (Some t) :: rest ->
             match all rest with
-            | None -> None
-            | Some restUnwrapped -> Some (t :: restUnwrapped)
+            | None               -> None
+            | Some restUnwrapped -> Some(t :: restUnwrapped)
 
 
     /// <summary>
@@ -55,7 +54,7 @@ module Option =
     /// </example>
     let unwrap<'T, 'E> (option: Option<'T>) : 'T =
         match option with
-        | None -> failwith "Called Option.Unwrap on None value"
+        | None       -> failwith "Called Option.Unwrap on None value"
         | Some value -> value
 
     /// <summary>
@@ -74,7 +73,7 @@ module Option =
     /// </example>
     let expect<'T> (expectReason: string) (option: Option<'T>) : 'T =
         match option with
-        | None -> failwith expectReason
+        | None       -> failwith expectReason
         | Some value -> value
 
     let getAsResult<'T, 'Error> (none: 'Error) (o: Option<'T>) : Result<'T, 'Error> =
@@ -85,7 +84,7 @@ module Option =
     let getAsResultLazy<'T, 'Error> (noneThunk: unit -> 'Error) (o: Option<'T>) : Result<'T, 'Error> =
         match o with
         | Some t -> Ok t
-        | None   -> Error (noneThunk ())
+        | None   -> Error(noneThunk ())
 
     let sideEffect<'T> (f: 'T -> unit) (o: Option<'T>) : unit = Option.iter f o
 
@@ -93,39 +92,35 @@ module Option =
 
     let flattenSeq (opts: seq<Option<'T>>) : List<'T> =
         (opts, List.empty)
-        ||> Seq.foldBack
-            (fun opt acc ->
-                match opt with
-                | Some t -> t :: acc
-                | None   -> acc
-            )
+        ||> Seq.foldBack (fun opt acc ->
+            match opt with
+            | Some t -> t :: acc
+            | None   -> acc)
 
-    let flattenList<'T> (os: List<Option<'T>>): List<'T> =
-        let rec loop (acc: List<'T>) = function
-        | []             -> List.rev acc
-        | None :: os     -> loop acc os
-        | (Some o) :: os -> loop (o :: acc) os
+    let flattenList<'T> (os: List<Option<'T>>) : List<'T> =
+        let rec loop (acc: List<'T>) =
+            function
+            | []             -> List.rev acc
+            | None :: os     -> loop acc os
+            | (Some o) :: os -> loop (o :: acc) os
 
         loop [] os
 
     let mapYield<'T, 'U> (mapper: 'T -> 'U) (o: Option<'T>) : seq<'U> =
         match o with
         | Some v -> mapper v |> Seq.singleton
-        | None -> Seq.empty
+        | None   -> Seq.empty
 
 type OptionBuilder() =
     member _.Bind(x, f) =
         match x with
-        | None -> None
+        | None       -> None
         | Some value -> f value
 
-    member _.Return(value) =
-        Some value
+    member _.Return(value) = Some value
 
-    member _.ReturnFrom(wrappedValue) =
-        wrappedValue
+    member _.ReturnFrom(wrappedValue) = wrappedValue
 
-    member _.Zero() =
-        None
+    member _.Zero() = None
 
 let optional = OptionBuilder()

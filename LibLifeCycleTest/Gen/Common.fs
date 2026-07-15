@@ -61,7 +61,7 @@ let genImageFile = gen {
     let mimeType = (MimeType.ofString "image/jpeg").Value
 
     let file = {
-        Data = fileData
+        Data     = fileData
         MimeType = mimeType
     }
 
@@ -81,7 +81,7 @@ let genPdfFile = gen {
     let mimeType = (MimeType.ofString "application/pdf").Value
 
     let file = {
-        Data = fileData
+        Data     = fileData
         MimeType = mimeType
     }
 

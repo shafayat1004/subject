@@ -1,7 +1,7 @@
 namespace LibClient.Components
 
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 open LibClient.Components.Button
 open Fable.Core.JsInterop
 
@@ -11,7 +11,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module ButtonTypeExtensions =
     type LibClient.Components.Constructors.LC with
-        static member Button(label: string, state: ButtonHighLevelState, ?children: ReactChildrenProp, ?level: Level, ?icon: Icon, ?badge: Badge, ?styles: array<ViewStyles>, ?contentContainerStyles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Button(label: string, state: ButtonHighLevelState, ?children: ReactChildrenProp, ?level: Level, ?icon: Icon, ?badge: Badge, ?styles: array<ViewStyles>, ?contentContainerStyles: array<ViewStyles>, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Label = label

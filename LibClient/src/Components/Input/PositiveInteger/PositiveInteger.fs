@@ -4,7 +4,7 @@ namespace LibClient.Components.Input
 open LibClient
 open LibClient.Input
 open System.Text.RegularExpressions
-open ReactXP.Styles
+open Rn.Styles
 
 module PositiveInteger =
 
@@ -44,7 +44,7 @@ namespace LibClient.Components.Input
 
 module PositiveIntegerStyles =
 
-    open ReactXP.LegacyStyles
+    open Rn.LegacyStyles
 
     let private baseStyles = lazy (asBlocks [])
 
@@ -96,8 +96,8 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_PositiveIntegerComponent =
@@ -120,7 +120,7 @@ module Input_PositiveIntegerComponent =
                 ?onKeyPress:          (Browser.Types.KeyboardEvent -> unit),
                 ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?styles:              array<ViewStyles>,
-                ?xLegacyStyles:       List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:                 string
             ) : ReactElement =
             key |> ignore

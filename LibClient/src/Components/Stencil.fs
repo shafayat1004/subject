@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.LocalImages
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 type Animation =
@@ -79,22 +79,22 @@ type LibClient.Components.Constructors.LC with
 
         match animation with
         | Animation.Pulsate ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     yield Styles.stencil variant animation
                     yield! styles
                 |],
                 children = [|
-                    RX.Image (
-                        styles = [|Styles.stencilImage|],
-                        size   = Image.Size.FromStyles,
-                        source = localImage "/libs/LibClient/images/stencil.gif",
+                    Rn.Image (
+                        styles     = [|Styles.stencilImage|],
+                        size       = Image.Size.FromStyles,
+                        source     = localImage "/libs/LibClient/images/stencil.gif",
                         resizeMode = ResizeMode.Cover
                     )
                 |]
             )
         | Animation.NoAnimation ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     yield Styles.stencil variant animation
                     yield! styles

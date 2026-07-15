@@ -14,7 +14,7 @@ type PageTitleService (appName: string) =
     let mutable maybeNotificationsCount: Option<int>         = None
 
     let setTitle (title: string) : unit =
-        ReactXP.Runtime.ifWeb (fun document ->
+        Rn.Runtime.ifWeb (fun document ->
             document.title <- title
         )
 

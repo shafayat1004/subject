@@ -2,8 +2,8 @@
 module ThirdParty.ImagePicker.Components.ReactNativeImagePicker
 
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 open LibClient.LocalImages
 open Fable.Core.JsInterop
@@ -21,11 +21,13 @@ type Asset = {
 }
 
 #if EGGSHELL_PLATFORM_IS_WEB
-    type ImagePicker.Native with
-        [<Component>]
-        static member ReactNativeImagePicker (onImageSelect: Option<list<Asset>> -> Unit) =
-            ignore onImageSelect
-            nothing
+
+type ImagePicker.Native with
+    [<Component>]
+    static member ReactNativeImagePicker (onImageSelect: Option<list<Asset>> -> Unit) =
+        ignore onImageSelect
+        nothing
+
 #else
 module private Styles =
 
@@ -105,29 +107,37 @@ type ImagePicker.Native with
             | ImagePickingSource.Camera  -> launchCamera       options (onImageSelectTransformer onImageSelect)
 
 
-        RX.View (styles = [| Styles.view |], children = [|
-            RX.View(styles = [|Styles.photoSource|], children = [|
+        Rn.View (styles = [| Styles.view |], children = [|
+            Rn.View(styles = [|Styles.photoSource|], children = [|
                 LC.Text("Take Photo", styles = [|Styles.photoSourceText|])
-                RX.Image (
+                Rn.Image (
                     styles = [|Styles.photoSourceIcon|],
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/ImagePicker/images/camera.png"
                 )
-                LC.TapCapture (onPress = (fun e ->
-                    selectImage ImagePickingSource.Camera e
-                ))
+                LC.Pressable(
+                    onPress       = (fun e -> selectImage ImagePickingSource.Camera e),
+                    label         = "Take Photo",
+                    testId        = "image-picker-take-photo",
+                    overlay       = true,
+                    componentName = "ImagePicker.Native.ReactNativeImagePicker"
+                )
             |])
 
-            RX.View(styles = [|Styles.photoSource|], children = [|
+            Rn.View(styles = [|Styles.photoSource|], children = [|
                 LC.Text("Photo Gallery", styles = [|Styles.photoSourceText|])
-                RX.Image (
+                Rn.Image (
                     styles = [|Styles.photoSourceIcon|],
                     size   = Image.Size.FromStyles,
                     source = localImage "/libs/ThirdParty/ImagePicker/images/gallery.png"
                 )
-                LC.TapCapture (onPress = (fun e ->
-                    selectImage ImagePickingSource.Gallary e
-                ))
+                LC.Pressable(
+                    onPress       = (fun e -> selectImage ImagePickingSource.Gallary e),
+                    label         = "Photo Gallery",
+                    testId        = "image-picker-gallery",
+                    overlay       = true,
+                    componentName = "ImagePicker.Native.ReactNativeImagePicker"
+                )
             |])
         |])
 #endif

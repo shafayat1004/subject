@@ -6,8 +6,8 @@ react {
     autolinkLibrariesWithApp()
 }
 
-project.ext.set("nodeModulesPath", "../../../../ThirdParty/ReactNativeCodePush/node_modules")
-apply from: "../../../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push/android/codepush.gradle"
+// react-native-code-push dropped for RN 0.86 (App Center service retired; 9.0.1 breaks on 0.86).
+// OTA-update replacement options are noted in the RN 0.86 status doc (EAS Update / expo-updates).
 
 def enableProguardInReleaseBuilds = true
 

@@ -4,10 +4,11 @@ module LibClient.Components.Thumb
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.Services.ImageService
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Thumb =
@@ -31,6 +32,7 @@ module LC =
 
         module private Theme =
             let thumb = ViewStyles.Memoize (fun size -> makeViewStyles {
+                Position.Relative
                 flex 0
                 borderWidth 2
                 borderColor Color.Transparent
@@ -38,12 +40,12 @@ module LC =
                 width size
             })
 
-            let selected = ViewStyles.Memoize (fun color -> makeViewStyles {
-                borderColor color
+            let selected = ViewStyles.Memoize (fun (borderCss: string) -> makeViewStyles {
+                borderColor (Color.InternalString borderCss)
             })
 
         type Theme = {
-            Size: int
+            Size:                int
             SelectedBorderColor: Color
         }
         with
@@ -51,7 +53,7 @@ module LC =
                 Theme.thumb this.Size
 
             member this.Selected =
-                Theme.selected this.SelectedBorderColor
+                Theme.selected this.SelectedBorderColor.ToCssString
 
 open LC.Thumb
 
@@ -68,10 +70,14 @@ module private Styles =
             trbl 0 0 0 0
         }
 
-    let corners = ViewStyles.Memoize (fun corners -> makeViewStyles {
-        if corners = Corners.Rounded then
-            borderRadius 12
-    })
+    let cornersSharp = makeViewStyles { Noop }
+
+    let cornersRounded = makeViewStyles { borderRadius 12 }
+
+    let cornersFor (corners: Corners) =
+        match corners with
+        | Corners.Sharp   -> cornersSharp
+        | Corners.Rounded -> cornersRounded
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
@@ -79,6 +85,7 @@ type LibClient.Components.Constructors.LC with
             source:      ImageSource,
             ?isSelected: bool,
             ?onPress:    ReactEvent.Action -> unit,
+            ?testId:     string,
             ?styles:     array<ViewStyles>,
             ?theme:      Theme -> Theme,
             ?corners:    Corners,
@@ -90,6 +97,7 @@ type LibClient.Components.Constructors.LC with
             ``for``     = For.Of source,
             ?isSelected = isSelected,
             ?onPress    = onPress,
+            ?testId     = testId,
             ?styles     = styles,
             ?theme      = theme,
             ?corners    = corners,
@@ -101,6 +109,7 @@ type LibClient.Components.Constructors.LC with
             ``for``:     For<'T>,
             ?isSelected: bool,
             ?onPress:    ReactEvent.Action -> unit,
+            ?testId:     string,
             ?styles:     array<ViewStyles>,
             ?theme:      Theme -> Theme,
             ?corners:    Corners,
@@ -108,15 +117,21 @@ type LibClient.Components.Constructors.LC with
         ) : ReactElement =
         ignore key
 
-        let theTheme = Themes.GetMaybeUpdatedWith theme
+        let theTheme   = Themes.GetMaybeUpdatedWith theme
         let isSelected = defaultArg isSelected false
         let corners    = defaultArg corners    Corners.Sharp
+        let thumbTestId =
+            testId
+            |> Option.orElse (
+                onPress
+                |> Option.map (fun _ -> A11ySlug.testId "thumb" "select")
+            )
 
         LC.With.Layout(
             initialOnly = true,
             ``with`` =
                 fun (onLayoutOption, maybeLayout) ->
-                    RX.View (
+                    Rn.View (
                         styles =
                             [|
                                 theTheme.Thumb
@@ -124,20 +139,35 @@ type LibClient.Components.Constructors.LC with
                                 if isSelected then
                                     theTheme.Selected
 
-                                Styles.corners corners
+                                Styles.cornersFor corners
                                 yield! (styles |> Option.defaultValue [||])
                             |],
                         ?onLayout = onLayoutOption,
                         children =
                             elements {
-                                RX.Image (
+                                Rn.Image (
                                     styles     = [| Styles.image |],
                                     source     = ``for``.Source,
-                                    resizeMode = ReactXP.Components.Image.ResizeMode.Cover,
+                                    resizeMode = Rn.Components.Image.ResizeMode.Cover,
                                     size       = Size.FromParentLayout maybeLayout
                                 )
 
-                                onPress |> Option.map LC.TapCapture
+                                match onPress with
+                                | Some onPress ->
+                                    LC.Pressable(
+                                        onPress = onPress,
+                                        label   = "Select thumbnail",
+                                        role    = AccessibilityRole.Button,
+                                        state =
+                                            { AccessibilityStateRecord.empty with
+                                                Selected = Some isSelected
+                                            },
+                                        ?testId       = thumbTestId,
+                                        overlay       = true,
+                                        componentName = "LC.Thumb"
+                                    )
+                                | None ->
+                                    noElement
                             }
                     )
         )

@@ -167,12 +167,12 @@ ones are used for other purposes.
 
 ## Under the hood
 
-ReactXP has limited support for SVG, so limited that the only element supported is `<path>`, which is why we use `svgo` to
+The RN/RNW SVG layer has limited support for SVG elements (only `<path>` is reliably supported cross-platform), which is why we use `svgo` to
 convert regular `.svg` files into normalized ones first. Color and size have to be specified imperatively, which doesn't sit
 well with our desire for declarative styling, so we had to implement some hacks.
 
 The type for passing around icons, `IconConstructor`, is actually a function `Color -> int -> Icon`, and `Icon` itself is
-just a react element that represents the ReactXP specific SVG elements. The `Icon` component in `LibClient` takes this
+just a react element that represents the RN-specific SVG elements. The `Icon` component in `LibClient` takes this
 function as a prop, extracts the `color` style prop and the `fontSize` style prop from whatever styles are passed into it,
 and passes them as the first and second parameters to the `IconConstructor`, resulting in concrete react elements, that
 can then be just rendered.

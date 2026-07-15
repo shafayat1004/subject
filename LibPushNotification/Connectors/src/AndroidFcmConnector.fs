@@ -23,13 +23,13 @@ let mutable globalTokenWithExpiry = NonemptyString.ofLiteral "N/A", DateTimeOffs
 type AndroidNotificationPayload = {
     [<JsonProperty("channel_id")>]
     ChannelId: string
-    
+
     [<JsonProperty("icon", Required = Required.AllowNull, NullValueHandling=NullValueHandling.Ignore)>]
     Icon: string
-    
+
     [<JsonProperty("sound", Required = Required.AllowNull, NullValueHandling=NullValueHandling.Ignore)>]
     Sound: string
-    
+
     [<JsonProperty("image", Required = Required.AllowNull, NullValueHandling=NullValueHandling.Ignore)>]
     Image: string
 }
@@ -39,15 +39,15 @@ type AndroidPayload = {
 }
 
 type (* private *) MessagePayload = {
-    [<JsonProperty "token">]        
+    [<JsonProperty "token">]
     RecipientFcmToken: string
-    
+
     [<JsonProperty "notification">]
     Notification: System.Collections.Generic.IDictionary<string, string>
-    
+
     [<JsonProperty "data">]
     Data: System.Collections.Generic.IDictionary<string, string>
-    
+
     [<JsonProperty "android">]
     Android: AndroidPayload
 }
@@ -80,7 +80,7 @@ let private getAccessToken (googleCredential: GoogleCredential) : Task<Result<No
         return
             match maybeToken  with
             | Some token -> token |> Ok
-            | None -> Error (Exception "No Token Found")
+            | None       -> Error (Exception "No Token Found")
     }
 
 
@@ -134,9 +134,9 @@ let private makeHttpRequestMessage
                     Android           = {
                         Notification = {
                             ChannelId = message.ChannelId.Value.Value
-                            Sound     = message.MaybeSound    |> Option.mapOrElse null (fun v -> v.Value) 
-                            Image     = message.MaybeImageUrl |> Option.mapOrElse null (fun v -> v.Value) 
-                            Icon      = message.MaybeIconUrl  |> Option.mapOrElse null (fun v -> v.Value) 
+                            Sound     = message.MaybeSound    |> Option.mapOrElse null (fun v -> v.Value)
+                            Image     = message.MaybeImageUrl |> Option.mapOrElse null (fun v -> v.Value)
+                            Icon      = message.MaybeIconUrl  |> Option.mapOrElse null (fun v -> v.Value)
                         }
                     }
                 }
@@ -209,4 +209,3 @@ let sendMessage
         | Error exn ->
             return PushNotificationRequestError.InvalidToken (recipient |> FcmToken, exn) |> Error
     }
-

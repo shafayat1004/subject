@@ -60,7 +60,7 @@ let (* want private but called by inline *) maybePropagateInternalNodeSettingsTo
         match maybeValue with
         | Some value ->
             let pathToValue: Map<Path, InputValue> = generateLeafValues path theType value Map.empty
-            match Set.intersect acc.UserInputValues.Keys pathToValue.Keys |> Set.isEmpty with
+            match Set.intersect (Set.ofSeq acc.UserInputValues.Keys) (Set.ofSeq pathToValue.Keys) |> Set.isEmpty with
             | false -> acc
             | true ->
                 pathToValue
@@ -186,7 +186,7 @@ and getObjectAndPutInAccumulator (path: Path) (theType: Type) (acc: Accumulator)
             | StringValue null
             | StringValue ""   -> acc.UpdateDerivedValue (path, (MissingValue path))
             | StringValue v    -> acc.UpdateDerivedValue (path, v)
-            | invalidValue     ->
+            | _                ->
                 acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a valid string")))
         )
 
@@ -205,13 +205,13 @@ and getObjectAndPutInAccumulator (path: Path) (theType: Type) (acc: Accumulator)
     | t when t = typeof<Decimal> ->
         updateAccumulatorWithDecodedRawValue acc path (fun acc -> function
            | NumericValue(v) -> acc.UpdateDerivedValue (path, v |> box)
-           | _              -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a valid number")))
+           | _               -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a valid number")))
        )
 
     | t when t = typeof<Boolean> ->
         updateAccumulatorWithDecodedRawValue acc path (fun acc -> function
            | BooleanValue(v) -> acc.UpdateDerivedValue (path, v |> box)
-           | _              -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a boolean value (true/false)")))
+           | _               -> acc.UpdateDerivedValue (path, (InvalidValue (path, "Expecting a boolean value (true/false)")))
        )
 
     | t when t = typeof<Unit> ->

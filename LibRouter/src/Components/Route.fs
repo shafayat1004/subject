@@ -3,20 +3,22 @@ module LibRouter.Components.Route
 
 open Fable.React
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 open LibClient
 open LibClient.Components
 
 open LibRouter.Components
+open LibRouter.Components.Constructors
+open LibRouter.Components.With.Location
 
 type Scroll = ScrollView.Scroll
 
-let NoScroll                                      = Scroll.NoScroll
-let Horizontal                                    = Scroll.Horizontal
-let Vertical                                      = Scroll.Vertical
-let Both                                          = Scroll.Both
+let NoScroll   = Scroll.NoScroll
+let Horizontal = Scroll.Horizontal
+let Vertical   = Scroll.Vertical
+let Both       = Scroll.Both
 
 type RestoreScroll                                = ScrollView.RestoreScroll
 let No                                            = RestoreScroll.No
@@ -48,6 +50,16 @@ module private Styles =
         flex 1
     }
 
+    // -1 = no layout yet (height 0); otherwise minHeight from measured layout height.
+    let scroll_view_with_footer_height =
+        ViewStyles.Memoize (fun (layoutHeightOrMinusOne: int) ->
+            makeViewStyles {
+                if layoutHeightOrMinusOne >= 0 then
+                    minHeight layoutHeightOrMinusOne
+                else
+                    height 0
+            })
+
     let no_scroll_view = makeViewStyles {
         FlexDirection.Column
         flex 1
@@ -68,7 +80,7 @@ module private Styles =
         flex 1
         match contentWidth with
         | Fixed contentWidth -> maxWidth contentWidth
-        | _ -> ()
+        | _                  -> ()
     })
 
     let scroll_view_footer = makeViewStyles {
@@ -96,7 +108,7 @@ type LR with
             let contentWidth:     ContentWidth     = defaultArg contentWidth Full
             let onNetworkFailure: OnNetworkFailure = defaultArg onNetworkFailure OnNetworkFailure.DefaultVisuals
             let elevateFooter:    bool             = defaultArg elevateFooter false
-            
+
             let createElement (items: List<ReactElement option>) : ReactElement =
                 element {
                     items
@@ -108,7 +120,7 @@ type LR with
                     )
                     |> asFragment
                 }
-            
+
             let topElement, bottomElement =
                 match elevateFooter with
                 | true  ->
@@ -134,23 +146,23 @@ type LR with
                                     match exn with
                                     | AsyncDataException AsyncDataFailure.NetworkFailure ->
                                         match onNetworkFailure with
-                                        | DefaultVisuals -> LC.AppShell.NetworkFailureMessage ()
-                                        | Custom makeVisuals ->  makeVisuals()
-                                        | Reraise -> LC.Text $"raise {exn}"
+                                        | DefaultVisuals     -> LC.AppShell.NetworkFailureMessage ()
+                                        | Custom makeVisuals -> makeVisuals()
+                                        | Reraise            -> LC.Text $"raise {exn}"
                                     | _ ->
                                         LC.Text $"raise {exn}"
                                 ),
                             ``try`` = element {
                                 let url = location.Url
                                 let restoreScroll = restoreScroll |> Option.getOrElse (WhenContentApproximatelyMatchesOriginalHeight url)
-                                RX.View (styles   = (styles |> Option.getOrElse [| Styles.view elevateFooter |]), children = [|
+                                Rn.View (styles = (styles |> Option.getOrElse [| Styles.view elevateFooter |]), children = [|
                                     topElement
 
                                     match (scroll, footer) with
                                     | Scroll.NoScroll, maybeFooter ->
-                                        RX.View (styles = [| Styles.no_scroll_view |], children = [|
-                                            RX.View (styles = [| Styles.content_container |], children = [|
-                                                RX.View (styles = [| Styles.content contentWidth |] , children = children)
+                                        Rn.View (styles = [| Styles.no_scroll_view |], children = [|
+                                            Rn.View (styles = [| Styles.content_container |], children = [|
+                                                Rn.View (styles = [| Styles.content contentWidth |] , children = children)
                                             |])
                                             maybeFooter |> Option.getOrElse nothing
                                         |])
@@ -164,9 +176,9 @@ type LR with
                                                         scroll        = scroll,
                                                         scrollViewRef = bindScrollView,
                                                         children      = [|
-                                                            RX.View (styles = [| Styles.scroll_view_no_footer |], children = [|
-                                                                RX.View (styles = [| Styles.content_container |], children = [|
-                                                                    RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                                            Rn.View (styles = [| Styles.scroll_view_no_footer |], children = [|
+                                                                Rn.View (styles = [| Styles.content_container |], children = [|
+                                                                    Rn.View (styles = [| Styles.content contentWidth |], children = children)
                                                                 |])
                                                             |])
                                                         |]
@@ -192,12 +204,12 @@ type LR with
                                                                 scroll        = scroll,
                                                                 scrollViewRef = bindScrollView,
                                                                 children      = [|
-                                                                    RX.View (styles = [| Styles.scroll_view_with_footer; makeViewStyles { maybeLayout |> Option.map (fun l -> minHeight l.Height) |> Option.getOrElse (height 0) } |], children = [|
-                                                                        RX.View (styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
-                                                                            RX.View (styles = [| Styles.content contentWidth |], children = children)
+                                                                    Rn.View (styles = [| Styles.scroll_view_with_footer; Styles.scroll_view_with_footer_height (maybeLayout |> Option.map (fun l -> l.Height) |> Option.getOrElse -1) |], children = [|
+                                                                        Rn.View (styles = [| Styles.scroll_view_children_and_footer; Styles.content_container |], children = [|
+                                                                            Rn.View (styles = [| Styles.content contentWidth |], children = children)
                                                                         |])
 
-                                                                        RX.View (styles = [| Styles.scroll_view_footer |], children = [| footer |])
+                                                                        Rn.View (styles = [| Styles.scroll_view_footer |], children = [| footer |])
                                                                     |])
                                                                 |]
                                                             )
@@ -209,7 +221,7 @@ type LR with
                                                             else nothing
                                                         })
                                             )
-                                    
+
                                     bottomElement
                                 |])
                             }

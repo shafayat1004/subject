@@ -59,7 +59,7 @@ type EventBus () =
             listener data
             match maybeResult with
             | Some { Off = off } -> off()
-            | None -> failwith "result is none in EventBus' Once implementation, which should never happen"
+            | None               -> failwith "result is none in EventBus' Once implementation, which should never happen"
         )
 
         let result = this.On queue wrappedListener
@@ -72,4 +72,3 @@ type EventBus () =
             broadcast queue data
         else
             runOnNextTick (fun () -> broadcast queue data)
-

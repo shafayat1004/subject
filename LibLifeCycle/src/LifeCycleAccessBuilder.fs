@@ -43,17 +43,17 @@ let grant (events: list<AccessEventType<'LifeAction, 'Constructor>>) =
     match NonemptySet.ofList events with
     | None -> // To be safe, convert this to a Deny
         {
-            Input =      MatchAny
-            Roles =      MatchAny
+            Input      = MatchAny
+            Roles      = MatchAny
             EventTypes = MatchAny
-            Decision =   Deny
+            Decision   = Deny
         }
     | Some events ->
         {
-            Input =      MatchAny
-            Roles =      MatchAny
+            Input      = MatchAny
+            Roles      = MatchAny
             EventTypes = Match events
-            Decision =   Grant
+            Decision   = Grant
         }
 
 let grantWhen input (events: list<AccessEventType<'LifeAction, 'Constructor>>) =
@@ -61,10 +61,10 @@ let grantWhen input (events: list<AccessEventType<'LifeAction, 'Constructor>>) =
 
 let deny (events: list<AccessEventType<'LifeAction, 'Constructor>>) =
     {
-        Input =      MatchAny
-        Roles =      MatchAny
+        Input      = MatchAny
+        Roles      = MatchAny
         EventTypes = NonemptySet.ofList events |> Option.map Match |> Option.defaultValue MatchAny
-        Decision =   Deny
+        Decision   = Deny
     }
 
 let denyWhen input (events: list<AccessEventType<'LifeAction, 'Constructor>>) =
@@ -72,18 +72,18 @@ let denyWhen input (events: list<AccessEventType<'LifeAction, 'Constructor>>) =
 
 let grantAll =
     {
-        Input =      MatchAny
-        Roles =      MatchAny
+        Input      = MatchAny
+        Roles      = MatchAny
         EventTypes = MatchAny
-        Decision =   Grant
+        Decision   = Grant
     }
 
 let denyAccess =
     {
-        Input =      MatchAny
-        Roles =      MatchAny
+        Input      = MatchAny
+        Roles      = MatchAny
         EventTypes = MatchAny
-        Decision =   Deny
+        Decision   = Deny
     }
 
 let toRole role accessRule =

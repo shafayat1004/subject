@@ -2,28 +2,19 @@ const path      = require("path")
 
 module.exports = {
   project: {
+    ios: {},
     android: {
       packageName: "com.eggshell.appgallery",
     },
   },
   dependencies: {
-    'reactxp-netinfo': {
-      root: path.resolve(__dirname, "../LibClient/node_modules/reactxp-netinfo"),
-    },
     '@react-native-community/netinfo': {
       root: path.resolve(__dirname, "../LibClient/node_modules/@react-native-community/netinfo"),
     },
-    'react-native-push-notification': {
-      root: path.resolve(__dirname, "../LibPushNotification/Client/node_modules/react-native-push-notification"),
-    },
-    'react-native-code-push': {
-      root: path.resolve(__dirname, "../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push"),
-      platforms: {
-        android: {
-          sourceDir: path.resolve(__dirname, "../ThirdParty/ReactNativeCodePush/node_modules/react-native-code-push/android/app"),
-        },
-      },
-    },
+    // react-native-push-notification and react-native-code-push were dropped for the RN 0.86
+    // upgrade: both are dead ends (push-notification unmaintained since 2022; code-push's App
+    // Center service retired in 2025 and 9.0.1 breaks on RN 0.86). See the RN 0.86 status doc for
+    // replacement options (Notifee for notifications; EAS Update / expo-updates for OTA).
     'react-native-fbsdk-next': {
       root: path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk-next"),
     },
@@ -33,6 +24,9 @@ module.exports = {
     'react-native-webview': {
       root: path.resolve(__dirname, "../LibClient/node_modules/react-native-webview"),
     },
+    // reanimated + worklets are direct gallery deps (package.json) now, so autolinking picks up
+    // their native modules automatically — no explicit entry needed. (Required or the app crashes at
+    // startup: NativeWorklets "Cannot read property 'loadUnpackers' of undefined".)
     'react-native-image-picker': {
       root: path.resolve(__dirname, "../ThirdParty/ImagePicker/node_modules/react-native-image-picker"),
     },

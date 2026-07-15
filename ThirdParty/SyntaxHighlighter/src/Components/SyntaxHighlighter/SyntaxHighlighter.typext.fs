@@ -7,6 +7,7 @@ module ThirdParty.SyntaxHighlighter.Components.SyntaxHighlighter
 
 open Fable.Core
 open Fable.Core.JsInterop
+open Fable.React
 
 let private rawReactSyntaxHighliter: obj = import "Light" "react-syntax-highlighter"
 let private rawLangXml: obj              = importDefault "react-syntax-highlighter/dist/esm/languages/hljs/xml"
@@ -32,13 +33,20 @@ type Props = (* GenerateMakeFunction *) {
     Source:   string
 }
 
-let Make =
-    LibClient.ThirdParty.wrapComponentTransformingProps<Props>
-        rawReactSyntaxHighliter
-        (fun (props: Props) ->
-            createObj [
-                "language" ==> props.Language
-                "children" ==> props.Source
-                "style"    ==> tweakedStyles
-            ]
-        )
+[<Emit("typeof $0 === 'string' ? $0 : ''")>]
+let private ensureCodeString (_source: obj) : string = jsNative
+
+let Make (props: Props) (_children: array<ReactElement>) : ReactElement =
+    let source = ensureCodeString (box props.Source)
+    // Pass source as a plain string in props.children only — do not also pass
+    // React children via createElement's 3rd arg (wrapComponentTransformingProps
+    // merged both and react-syntax-highlighter received a React element).
+    ReactBindings.React.createElement(
+        rawReactSyntaxHighliter,
+        createObj [
+            "language" ==> props.Language
+            "style"    ==> tweakedStyles
+            "children" ==> source
+        ],
+        [||]
+    )

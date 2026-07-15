@@ -2,6 +2,11 @@ npm install
 npm link react-templates-fable
 npm link ../../LibClient/node_modules/react
 
+if [ ! -f .gitignore ] && [ -f .gitignore.template ]; then
+  cp .gitignore.template .gitignore
+  echo "Created .gitignore from template"
+fi
+
 # Android debug keystore (standard RN debug signing)
 if [ ! -f android/app/debug.keystore ]; then
   keytool -genkeypair -v \
@@ -27,5 +32,10 @@ mkdir -p ./.vscode
 ln -s ../../../Meta/renderdsl.code-snippets ./.vscode/renderdsl.code-snippets
 ln -s ../images ./public-dev/
 ln -s ../configSourceOverrides.dev.js public-dev/configSourceOverrides.dev.js
+
+if [ ! -f configSourceOverrides.native.js ]; then
+  cp configSourceOverrides.native.js.template configSourceOverrides.native.js
+  echo "Created configSourceOverrides.native.js from template"
+fi
 
 dotnet restore src/App.fsproj

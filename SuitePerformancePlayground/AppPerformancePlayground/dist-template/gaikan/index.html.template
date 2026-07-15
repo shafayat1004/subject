@@ -9,7 +9,8 @@
 </head>
 <body class="page page--basic">
     <div id="app-pre-bootstrap-loader">
-      <img id="loader-img" src="#{root.urlLoader}"/>
+      <div class="app-pre-bootstrap-loader__brand">#{root.title}</div>
+      <div class="app-pre-bootstrap-loader__hint">Loading…</div>
     </div>
     <div class="app-container"></div>
     <!-- Using JavaScript template engine "Gaikan" to replace config values with env var values -->

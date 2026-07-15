@@ -24,7 +24,7 @@ type GrainGetError =
 [<RequireQualifiedAccess>]
 type GrainConstructionError<'OpError when 'OpError :> OpError> =
 | SubjectAlreadyInitialized of PrimaryKey: string
-| ConstructionError of 'OpError
+| ConstructionError         of 'OpError
 | AccessDenied
 
 [<RequireQualifiedAccess>]
@@ -40,7 +40,7 @@ type GrainMaybeConstructionError<'OpError when 'OpError :> OpError> =
 [<RequireQualifiedAccess>]
 type GrainTransitionError<'OpError when 'OpError :> OpError> =
 | SubjectNotInitialized of PrimaryKey: string
-| TransitionError of 'OpError
+| TransitionError       of 'OpError
 | TransitionNotAllowed
 | LockedInTransaction
 | AccessDenied
@@ -48,10 +48,10 @@ type GrainTransitionError<'OpError when 'OpError :> OpError> =
 [<RequireQualifiedAccess>]
 type GrainTriggerTimerError<'OpError, 'LifeAction when 'OpError :> OpError and 'LifeAction :> LifeAction> =
 | SubjectNotInitialized of PrimaryKey: string
-| TransitionError of 'OpError * 'LifeAction
-| TransitionNotAllowed of 'LifeAction
+| TransitionError       of 'OpError * 'LifeAction
+| TransitionNotAllowed  of 'LifeAction
 | LockedInTransaction
-| Exn of ExceptionDetails: string * Option<'LifeAction>
+| Exn                   of ExceptionDetails: string * Option<'LifeAction>
 
 [<RequireQualifiedAccess>]
 type GrainOperationError<'OpError when 'OpError :> OpError> =
@@ -76,7 +76,7 @@ type SessionHandle =
 type ClientGrainCallContext =
     {
         SessionHandle: SessionHandle
-        CallOrigin: CallOrigin
+        CallOrigin:    CallOrigin
     }
 
 type ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId
@@ -88,7 +88,7 @@ type ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId
     abstract member EventTriggered: versionedSubject: VersionedSubject<'Subject, 'SubjectId> -> lifeEvent: 'LifeEvent -> unit
 
 type AwaiterWithTimeout<'Subject, 'LifeEvent, 'SubjectId when 'Subject :> Subject<'SubjectId> and 'LifeEvent :> LifeEvent and 'SubjectId :> SubjectId and 'SubjectId : comparison> = {
-    Awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>
+    Awaiter:    ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>
     ExpiryTime: DateTimeOffset
 }
 
@@ -114,17 +114,17 @@ type ISubjectClientGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEve
                     and  'SubjectId            :  comparison> =
     inherit IGrainWithGuidCompoundKey
 
-    abstract member Construct: clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainConstructionError<'OpError>>>
-    abstract member ConstructNoContent: clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<unit, GrainConstructionError<'OpError>>>
-    abstract member ConstructAndWait: clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> lifeEventToAwaitOn: 'LifeEvent -> awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> -> waitTimeout: TimeSpan -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainConstructionError<'OpError>>>
-    abstract member Act: clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainTransitionError<'OpError>>>
-    abstract member ActNoContent: clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> Task<Result<unit, GrainTransitionError<'OpError>>>
-    abstract member ActAndWait: clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> lifeEventToAwaitOn: 'LifeEvent -> awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> -> waitTimeout: TimeSpan -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainTransitionError<'OpError>>>
-    abstract member ActMaybeConstruct: clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> ctor: 'Constructor -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainOperationError<'OpError>>>
+    abstract member Construct:                  clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainConstructionError<'OpError>>>
+    abstract member ConstructNoContent:         clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<unit, GrainConstructionError<'OpError>>>
+    abstract member ConstructAndWait:           clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> lifeEventToAwaitOn: 'LifeEvent -> awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> -> waitTimeout: TimeSpan -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainConstructionError<'OpError>>>
+    abstract member Act:                        clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainTransitionError<'OpError>>>
+    abstract member ActNoContent:               clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> Task<Result<unit, GrainTransitionError<'OpError>>>
+    abstract member ActAndWait:                 clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> lifeEventToAwaitOn: 'LifeEvent -> awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> -> waitTimeout: TimeSpan -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainTransitionError<'OpError>>>
+    abstract member ActMaybeConstruct:          clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> ctor: 'Constructor -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainOperationError<'OpError>>>
     abstract member ActMaybeConstructNoContent: clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> ctor: 'Constructor -> Task<Result<unit, GrainOperationError<'OpError>>>
-    abstract member ActMaybeConstructAndWait: clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> ctor: 'Constructor -> lifeEventToAwaitOn: 'LifeEvent -> awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> -> waitTimeout: TimeSpan -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainOperationError<'OpError>>>
-    abstract member GetMaybeConstruct: clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainMaybeConstructionError<'OpError>>>
-    abstract member MaybeConstructNoContent: clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<unit, GrainMaybeConstructionError<'OpError>>>
+    abstract member ActMaybeConstructAndWait:   clientGrainCallContext: ClientGrainCallContext -> action: 'LifeAction -> ctor: 'Constructor -> lifeEventToAwaitOn: 'LifeEvent -> awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> -> waitTimeout: TimeSpan -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainOperationError<'OpError>>>
+    abstract member GetMaybeConstruct:          clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainMaybeConstructionError<'OpError>>>
+    abstract member MaybeConstructNoContent:    clientGrainCallContext: ClientGrainCallContext -> subjectId: 'SubjectId -> ctor: 'Constructor -> Task<Result<unit, GrainMaybeConstructionError<'OpError>>>
 
     [<Orleans.Concurrency.ReadOnly>]
     abstract member Get: clientGrainCallContext: ClientGrainCallContext -> Task<Result<Option<VersionedSubject<'Subject, 'SubjectId>>, GrainGetError>>
@@ -167,64 +167,64 @@ type ISubjectRepoGrain<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'Subject
                     and  'OpError      :> OpError> =
     inherit IGrainWithGuidCompoundKey
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member Versioned_GetByIdsStr:                       ids: Set<string> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
+    abstract member Versioned_GetByIdsStr: ids: Set<string> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member Versioned_GetByIds:                          ids: Set<'SubjectId> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
+    abstract member Versioned_GetByIds: ids: Set<'SubjectId> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member Any:                                         predicate: PreparedIndexPredicate<'SubjectIndex> -> Task<bool>
+    abstract member Any: predicate: PreparedIndexPredicate<'SubjectIndex> -> Task<bool>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member Versioned_FilterFetchSubjects:               query: IndexQuery<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
+    abstract member Versioned_FilterFetchSubjects: query: IndexQuery<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FilterFetchIds:                              query: IndexQuery<'SubjectIndex> -> Task<List<'SubjectId>>
+    abstract member FilterFetchIds: query: IndexQuery<'SubjectIndex> -> Task<List<'SubjectId>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FilterCountSubjects:                         predicate: PreparedIndexPredicate<'SubjectIndex> -> Task<uint64>
+    abstract member FilterCountSubjects: predicate: PreparedIndexPredicate<'SubjectIndex> -> Task<uint64>
 
     [<Orleans.Concurrency.ReadOnly>]
     abstract member Versioned_FilterFetchSubjectsWithTotalCount: query: IndexQuery<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>> * uint64>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member Versioned_FetchAllSubjects:                  resultSetOptions: ResultSetOptions<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
+    abstract member Versioned_FetchAllSubjects: resultSetOptions: ResultSetOptions<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FetchAllSubjectsWithTotalCount:              resultSetOptions: ResultSetOptions<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>> * uint64>
+    abstract member FetchAllSubjectsWithTotalCount: resultSetOptions: ResultSetOptions<'SubjectIndex> -> Task<List<VersionedSubject<'Subject, 'SubjectId>> * uint64>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member CountAllSubjects:                            unit -> Task<uint64>
+    abstract member CountAllSubjects: unit -> Task<uint64>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member GetVersionSnapshotByIdStr:                   idStr: string -> ofVersion: GetSnapshotOfVersion -> Task<Option<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
+    abstract member GetVersionSnapshotByIdStr: idStr: string -> ofVersion: GetSnapshotOfVersion -> Task<Option<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member GetVersionSnapshotById:                      id: 'SubjectId -> ofVersion: GetSnapshotOfVersion -> Task<Option<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
+    abstract member GetVersionSnapshotById: id: 'SubjectId -> ofVersion: GetSnapshotOfVersion -> Task<Option<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FetchWithHistoryById:                        id: 'SubjectId -> fromLastUpdatedOn: Option<DateTimeOffset> -> toLastUpdatedOn: Option<DateTimeOffset> -> page: ResultPage -> Task<List<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
+    abstract member FetchWithHistoryById: id: 'SubjectId -> fromLastUpdatedOn: Option<DateTimeOffset> -> toLastUpdatedOn: Option<DateTimeOffset> -> page: ResultPage -> Task<List<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FetchWithHistoryByIdStr:                     idStr: string -> fromLastUpdatedOn: Option<DateTimeOffset> -> toLastUpdatedOn: Option<DateTimeOffset> -> page: ResultPage -> Task<List<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
+    abstract member FetchWithHistoryByIdStr: idStr: string -> fromLastUpdatedOn: Option<DateTimeOffset> -> toLastUpdatedOn: Option<DateTimeOffset> -> page: ResultPage -> Task<List<TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>>>
 
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FetchAuditTrail:                             idStr: string -> page: ResultPage -> Task<List<SubjectAuditData<'LifeAction, 'Constructor>>>
+    abstract member FetchAuditTrail: idStr: string -> page: ResultPage -> Task<List<SubjectAuditData<'LifeAction, 'Constructor>>>
 
     // As of 23rd June, 2023, these are obsolete. They can be removed some time in the future when all
     // suites have seen a rollout. The "Versioned_" prefix in methods above can then be removed (also
     // requires an interim rollout).
     [<Obsolete>]
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member GetByIdsStr:                       ids: Set<string> -> Task<List<'Subject>>
+    abstract member GetByIdsStr: ids: Set<string> -> Task<List<'Subject>>
 
     [<Obsolete>]
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member GetByIds:                          ids: Set<'SubjectId> -> Task<List<'Subject>>
+    abstract member GetByIds: ids: Set<'SubjectId> -> Task<List<'Subject>>
 
     [<Obsolete>]
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FilterFetchSubjects:               query: IndexQuery<'SubjectIndex> -> Task<List<'Subject>>
+    abstract member FilterFetchSubjects: query: IndexQuery<'SubjectIndex> -> Task<List<'Subject>>
 
     [<Obsolete>]
     [<Orleans.Concurrency.ReadOnly>]
@@ -232,7 +232,7 @@ type ISubjectRepoGrain<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'Subject
 
     [<Obsolete>]
     [<Orleans.Concurrency.ReadOnly>]
-    abstract member FetchAllSubjects:                  resultSetOptions: ResultSetOptions<'SubjectIndex> -> Task<List<'Subject>>
+    abstract member FetchAllSubjects: resultSetOptions: ResultSetOptions<'SubjectIndex> -> Task<List<'Subject>>
 
 /// a stateless grain for out-of-process clients that can't use IBlobRepo directly because it requires SQL connection
 type IBlobRepoGrain =
@@ -280,7 +280,7 @@ with
 
 // TODO: need to be renamed to ConstructOrBeforeActSubscriptions, but it may break ISubjectGrain contract, so not touching
 type ConstructSubscriptions = {
-    Subscriber: SubjectPKeyReference // subscriber can be from other unreferenced ecosystem, hence weakly typed
+    Subscriber:    SubjectPKeyReference // subscriber can be from other unreferenced ecosystem, hence weakly typed
     Subscriptions: Map<SubscriptionName, LifeEvent>
 }
 type BeforeActSubscriptions = ConstructSubscriptions
@@ -304,15 +304,15 @@ with
 [<RequireQualifiedAccess>]
 type GrainPrepareConstructionError<'OpError when 'OpError :> OpError> =
 | SubjectAlreadyInitialized of PrimaryKey: string
-| ConstructionError of 'OpError
-| ConflictingPrepare of SubjectTransactionId
+| ConstructionError         of 'OpError
+| ConflictingPrepare        of SubjectTransactionId
 
 [<RequireQualifiedAccess>]
 type GrainPrepareTransitionError<'OpError when 'OpError :> OpError> =
-| TransitionError of 'OpError
+| TransitionError       of 'OpError
 | TransitionNotAllowed
 | SubjectNotInitialized of PrimaryKey: string
-| ConflictingPrepare of SubjectTransactionId
+| ConflictingPrepare    of SubjectTransactionId
 
 [<RequireQualifiedAccess>]
 type GrainSubscriptionError =
@@ -335,7 +335,7 @@ type GrainTriggerSubscriptionError<'OpError when 'OpError :> OpError> =
 type GrainTriggerDynamicSubscriptionError =
 | SubjectNotInitialized of PrimaryKey: string
 // TODO: retire TransitionError and TransitionNotAllowed when biosphere upgraded - they will be caught on Subscriber side and set aside for the subscriber's response handler
-| TransitionError of UntypedOpError: string
+| TransitionError   of UntypedOpError: string
 | TransitionNotAllowed
 | LockedInTransaction
 | LifeCycleNotFound of LifeCycleName: string
@@ -352,7 +352,7 @@ type GrainRefreshTimersAndSubsError =
 // * Caller is not interested in Result.Ok payload details (which is usually just unit)
 // * If target (callee) fails with a domain error it does not write dedup info into storage (or anything else for that matter)
 type SideEffectDedupInfo = {
-    Id: Guid // unique Id of the call, usually equal to GrainSideEffectId (defined in LibLifeCycleHost)
+    Id:     Guid // unique Id of the call, usually equal to GrainSideEffectId (defined in LibLifeCycleHost)
     Caller: SubjectPKeyReference
 }
 
@@ -654,7 +654,7 @@ type ClientGrainCallContext with
             and! callOrigin = reqWith codecFor<_, CallOrigin> "CallOrigin" (fun x -> Some x.CallOrigin)
             return {
                 SessionHandle = sessionHandle
-                CallOrigin = callOrigin
+                CallOrigin    = callOrigin
             }
         }
 
@@ -689,7 +689,7 @@ with
     static member CastUnsafe (subjectUpdate: SubjectChange<#Subject<'SubjectId>, 'SubjectId>) : SubjectChange<'Subject, 'SubjectId> =
         match subjectUpdate with
         | Updated subjectUpdate -> subjectUpdate |> VersionedSubject.CastUnsafe |> Updated
-        | NotInitialized  -> NotInitialized
+        | NotInitialized        -> NotInitialized
 
 type ConstructSubscriptions
 with

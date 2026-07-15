@@ -18,33 +18,33 @@ type PredicateBound<'T> =
 
 [<RequireQualifiedAccess>]
 type OptimizedUntypedPredicate =
-| BetweenNumeric              of Key: string * LowerBound: PredicateBound<int64>  * UpperBound: PredicateBound<int64>  * Option<PromotedKey * PromotedValue>
-| BetweenString               of Key: string * LowerBound: PredicateBound<string> * UpperBound: PredicateBound<string> * Option<PromotedKey * PromotedValue>
-| InNumeric                   of Key: string * Values: List<int64>                                                     * Option<PromotedKey * PromotedValue>
-| InString                    of Key: string * Values: List<string>                                                    * Option<PromotedKey * PromotedValue>
-| StartsWith                  of Key: string * StartsWith: string                                                      * Option<PromotedKey * PromotedValue>
-| And                         of OptimizedUntypedPredicate * OptimizedUntypedPredicate
-| Or                          of OptimizedUntypedPredicate * OptimizedUntypedPredicate
-| Diff                        of OptimizedUntypedPredicate * OptimizedUntypedPredicate
-| Matches                     of Key: string * Keywords: string
-| MatchesExact                of Key: string * Keywords: string
-| MatchesPrefix               of Key: string * KeywordsPrefix: string
-| IntersectsGeography         of Key: string * GeographyIndexValue
+| BetweenNumeric      of Key: string * LowerBound: PredicateBound<int64>  * UpperBound: PredicateBound<int64>  * Option<PromotedKey * PromotedValue>
+| BetweenString       of Key: string * LowerBound: PredicateBound<string> * UpperBound: PredicateBound<string> * Option<PromotedKey * PromotedValue>
+| InNumeric           of Key: string * Values: List<int64>                                                     * Option<PromotedKey * PromotedValue>
+| InString            of Key: string * Values: List<string>                                                    * Option<PromotedKey * PromotedValue>
+| StartsWith          of Key: string * StartsWith: string                                                      * Option<PromotedKey * PromotedValue>
+| And                 of OptimizedUntypedPredicate * OptimizedUntypedPredicate
+| Or                  of OptimizedUntypedPredicate * OptimizedUntypedPredicate
+| Diff                of OptimizedUntypedPredicate * OptimizedUntypedPredicate
+| Matches             of Key: string * Keywords: string
+| MatchesExact        of Key: string * Keywords: string
+| MatchesPrefix       of Key: string * KeywordsPrefix: string
+| IntersectsGeography of Key: string * GeographyIndexValue
 
 [<RequireQualifiedAccess>]
 type private AlgoUntypedPredicate =
-| BetweenNumeric              of Key: string * LowerBound: PredicateBound<int64>  * UpperBound: PredicateBound<int64>  * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| BetweenString               of Key: string * LowerBound: PredicateBound<string> * UpperBound: PredicateBound<string> * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| InNumeric                   of Key: string * Values: List<int64>                                                     * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| InString                    of Key: string * Values: List<string>                                                    * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| StartsWith                  of Key: string * StartsWith: string                                                      * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| AndGroup                    of Set<AlgoUntypedPredicate>                                                             * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| OrGroup                     of Set<AlgoUntypedPredicate>                                                             * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| Diff                        of AlgoUntypedPredicate * AlgoUntypedPredicate                                           * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
-| Matches                     of Key: string * Keywords: string
-| MatchesExact                of Key: string * Keywords: string
-| MatchesPrefix               of Key: string * KeywordsPrefix: string
-| IntersectsGeography         of Key: string * GeographyIndexValue
+| BetweenNumeric      of Key: string * LowerBound: PredicateBound<int64>  * UpperBound: PredicateBound<int64>  * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| BetweenString       of Key: string * LowerBound: PredicateBound<string> * UpperBound: PredicateBound<string> * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| InNumeric           of Key: string * Values: List<int64>                                                     * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| InString            of Key: string * Values: List<string>                                                    * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| StartsWith          of Key: string * StartsWith: string                                                      * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| AndGroup            of Set<AlgoUntypedPredicate>                                                             * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| OrGroup             of Set<AlgoUntypedPredicate>                                                             * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| Diff                of AlgoUntypedPredicate * AlgoUntypedPredicate                                           * Option<(PromotedKey * PromotedValue) * Set<BaseKey>>
+| Matches             of Key: string * Keywords: string
+| MatchesExact        of Key: string * Keywords: string
+| MatchesPrefix       of Key: string * KeywordsPrefix: string
+| IntersectsGeography of Key: string * GeographyIndexValue
 
 let optimizeQueryWithPromotedIndices (promotedIndicesConfig: Map<PromotedKey, NonemptyList<Choice<BaseKey, BaseSeparator>>>) (query: UntypedPredicate) : OptimizedUntypedPredicate =
     // all promoted base index keys, either promoted as singular promoted index or as part of compound promoted index
@@ -390,7 +390,7 @@ let optimizeQueryWithPromotedIndices (promotedIndicesConfig: Map<PromotedKey, No
         let chosenPromotion =
             match maybeParentChosenPromotion with
             | Some parentChosenPromotion -> Some parentChosenPromotion
-            | None -> root |> getPotentialPromotables |> Set.toSeq |> Map.ofSeq |> bestPromotion
+            | None                       -> root |> getPotentialPromotables |> Set.toSeq |> Map.ofSeq |> bestPromotion
 
         match root with
         | AlgoUntypedPredicate.BetweenNumeric (key, lowerBound, upperBound, None) -> AlgoUntypedPredicate.BetweenNumeric (key, lowerBound, upperBound, chosenPromotion)
@@ -413,10 +413,10 @@ let optimizeQueryWithPromotedIndices (promotedIndicesConfig: Map<PromotedKey, No
         | AlgoUntypedPredicate.AndGroup       (group,                       Some promotion) -> AlgoUntypedPredicate.AndGroup       (group,                       Some promotion)
         | AlgoUntypedPredicate.OrGroup        (group,                       Some promotion) -> AlgoUntypedPredicate.OrGroup        (group,                       Some promotion)
         | AlgoUntypedPredicate.Diff           (left, right,                 Some promotion) -> AlgoUntypedPredicate.Diff           (left, right,                 Some promotion)
-        | AlgoUntypedPredicate.Matches       (key, keywords)       -> AlgoUntypedPredicate.Matches       (key, keywords)
-        | AlgoUntypedPredicate.MatchesExact  (key, keywords)       -> AlgoUntypedPredicate.MatchesExact  (key, keywords)
-        | AlgoUntypedPredicate.MatchesPrefix (key, keywordsPrefix) -> AlgoUntypedPredicate.MatchesPrefix (key, keywordsPrefix)
-        | AlgoUntypedPredicate.IntersectsGeography (key, value) -> AlgoUntypedPredicate.IntersectsGeography (key, value)
+        | AlgoUntypedPredicate.Matches       (key, keywords)                                -> AlgoUntypedPredicate.Matches       (key, keywords)
+        | AlgoUntypedPredicate.MatchesExact  (key, keywords)                                -> AlgoUntypedPredicate.MatchesExact  (key, keywords)
+        | AlgoUntypedPredicate.MatchesPrefix (key, keywordsPrefix)                          -> AlgoUntypedPredicate.MatchesPrefix (key, keywordsPrefix)
+        | AlgoUntypedPredicate.IntersectsGeography (key, value)                             -> AlgoUntypedPredicate.IntersectsGeography (key, value)
 
     query
     |> queryToAlgoInput

@@ -26,9 +26,9 @@ module private Actions =
 type LibClient.Components.Constructors.LC.Executor with
     [<Component>]
     static member AlertErrors(
-            ``with``: MakeExecutor -> ReactElement,
+            ``with``:                    MakeExecutor -> ReactElement,
             ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
-            ?key: string
+            ?key:                        string
         ) : ReactElement =
         key |> ignore
 

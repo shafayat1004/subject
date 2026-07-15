@@ -15,10 +15,10 @@ type private ObserverEntry<'Observer> = {
 type ObserverManager<'Address, 'Observer when 'Address : comparison>
     (
         autoExpiration: TimeSpan,
-        logger: IFsLogger,
-        getNow: unit -> DateTimeOffset,
-        onNonEmpty: unit -> unit,
-        onEmpty: unit -> unit
+        logger:         IFsLogger,
+        getNow:         unit -> DateTimeOffset,
+        onNonEmpty:     unit -> unit,
+        onEmpty:        unit -> unit
     ) =
 
     let observerEntriesByAddress = Dictionary<'Address, ObserverEntry<'Observer>>()
@@ -86,7 +86,7 @@ type ObserverManager<'Address, 'Observer when 'Address : comparison>
         expiredObservers
         |> Seq.iter (function
             | Some address -> removeObserver address
-            | None -> Noop)
+            | None         -> Noop)
 
     let clearExpiredObservers () =
         logger.Trace "Clearing expired observers"
@@ -97,7 +97,7 @@ type ObserverManager<'Address, 'Observer when 'Address : comparison>
         |> Seq.choose
             (fun kvp ->
                 match hasExpired now kvp.Value with
-                | true -> Some kvp.Key
+                | true  -> Some kvp.Key
                 | false -> None
             )
         |> Seq.iter removeObserver

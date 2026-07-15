@@ -55,21 +55,21 @@ with
     member this.SessionHandle =
         match this with
         | External (x, _) -> x
-        | InterGrain _ -> SessionHandle.NoSession
+        | InterGrain _    -> SessionHandle.NoSession
 
     member this.CallOrigin =
         match this with
         | External (_, x) -> x
-        | InterGrain _ -> CallOrigin.Internal
+        | InterGrain _    -> CallOrigin.Internal
 
     member this.MaybeDedupInfo =
         match this with
-        | External _ -> None
+        | External _           -> None
         | InterGrain (x, _, _) -> x
 
     member this.MaybeConstructSubscriptions =
         match this with
-        | External _ -> None
+        | External _           -> None
         | InterGrain (_, x, _) -> x
 
 [<RequireQualifiedAccess>]
@@ -80,26 +80,26 @@ with
     member this.SessionHandle =
         match this with
         | External (x, _) -> x
-        | InterGrain _ -> SessionHandle.NoSession
+        | InterGrain _    -> SessionHandle.NoSession
 
     member this.CallOrigin =
         match this with
         | External (_, x) -> x
-        | InterGrain _ -> CallOrigin.Internal
+        | InterGrain _    -> CallOrigin.Internal
 
     member this.MaybeDedupInfo =
         match this with
-        | External _ -> None
+        | External _        -> None
         | InterGrain (x, _) -> x
 
     member this.MaybeBeforeActSubscriptions =
         match this with
-        | External _ -> None
+        | External _        -> None
         | InterGrain (_, x) -> x
 
     member this.ShouldWarnOnOpError =
         match this with
-        | External _ -> true
+        | External _   -> true
         | InterGrain _ -> false
 
 [<RequireQualifiedAccess>]
@@ -115,7 +115,7 @@ with
 
     member this.ActContext =
         match this with
-        | External (x1, x2) -> ActContext.External (x1, x2)
+        | External (x1, x2)                          -> ActContext.External (x1, x2)
         | InterGrain (dedupInfo, maybeSubscriptions) -> ActContext.InterGrain (dedupInfo, maybeSubscriptions)
 
 type private SafeServiceProvider (innerProvider: IServiceProvider) =
@@ -174,16 +174,16 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 and  'SubjectId            :> SubjectId
                 and  'SubjectId            :  comparison>
         (
-            lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
-            grainStorageHandler: IGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'SubjectId, 'OpError>,
+            lifeCycleAdapter:          HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
+            grainStorageHandler:       IGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent, 'SubjectId, 'OpError>,
             grainScopedServiceProviderUnsafe: IServiceProvider,
             hostEcosystemGrainFactory: IGrainFactory,
-            adapters: HostedOrReferencedLifeCycleAdapterRegistry,
-            ctx: IGrainActivationContext,
-            valueSummarizers: ValueSummarizers,
-            clock: Service<Clock>,
-            unscopedLogger: Microsoft.Extensions.Logging.ILogger<'Subject>,
-            operationTracker: OperationTracker
+            adapters:                  HostedOrReferencedLifeCycleAdapterRegistry,
+            ctx:                       IGrainActivationContext,
+            valueSummarizers:          ValueSummarizers,
+            clock:                     Service<Clock>,
+            unscopedLogger:            Microsoft.Extensions.Logging.ILogger<'Subject>,
+            operationTracker:          OperationTracker
         ) as this =
 
     inherit Grain()
@@ -391,7 +391,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 let! res = startTask ()
                 return
                     match res with
-                    | Ok x -> Ok x
+                    | Ok x    -> Ok x
                     | Error e -> e |> Choice1Of2 |> Error
             with
             | :? Orleans.Storage.InconsistentStateException as ex ->
@@ -505,7 +505,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 Some (SubjectStateContainer.Committed currentStateContainer),
                 SubjectChange.Updated
                   { Subject = currentStateContainer.CurrentSubjectState.Subject
-                    AsOf = currentStateContainer.CurrentSubjectState.LastUpdatedOn
+                    AsOf    = currentStateContainer.CurrentSubjectState.LastUpdatedOn
                     Version = currentStateContainer.Version },
                 raisedLifeEventsPayload |> Option.map (fun (now, events) -> now, events, currentStateContainer.VersionedSubject)
             | None ->
@@ -523,7 +523,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
     let initializeSubject now raisedLifeEvents dedupInfo insertData =
         task {
             match primaryStore.Value with
-            | None -> ()
+            | None   -> ()
             | Some x -> failwithf "unexpected initializeSubject when primary store is not None: %A" x
 
             match! grainStorageHandler.InitializeSubject grainPKey dedupInfo insertData with
@@ -538,14 +538,15 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     Dedup.sideEffectDedupDataFor maxDedupCacheSize None
                         (dedupInfo |> Option.map (fun d -> d, insertData.DataToInsert.UpdatedSubjectState.LastUpdatedOn))
 
-                let newSubjectCurrentStateContainer =
-                    { CurrentSubjectState      = insertData.DataToInsert.UpdatedSubjectState
-                      CurrentOthersSubscribing = insertData.CreatorSubscribing
-                      ETag                     = success.ETag
-                      Version                  = success.Version
-                      NextSideEffectSeqNum     = insertData.DataToInsert.NextSideEffectSeq
-                      SideEffectDedupCache     = dedupCache
-                      SkipHistoryOnNextOp      = success.SkipHistoryOnNextOp }
+                let newSubjectCurrentStateContainer = {
+                    CurrentSubjectState      = insertData.DataToInsert.UpdatedSubjectState
+                    CurrentOthersSubscribing = insertData.CreatorSubscribing
+                    ETag                     = success.ETag
+                    Version                  = success.Version
+                    NextSideEffectSeqNum     = insertData.DataToInsert.NextSideEffectSeq
+                    SideEffectDedupCache     = dedupCache
+                    SkipHistoryOnNextOp      = success.SkipHistoryOnNextOp
+                }
 
                 (newSubjectCurrentStateContainer, Some (now, raisedLifeEvents))
                 |> Some
@@ -560,7 +561,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
     let prepareInitializeSubject preparedSubjectInsertData uniqueIndicesToReserve transactionId : Task<Result<unit, 'OpError>> =
         task {
             match primaryStore.Value with
-            | None -> ()
+            | None   -> ()
             | Some x -> failwithf "unexpected prepareInitializeSubject when primary store is not None: %A" x
 
             match! grainStorageHandler.PrepareInitializeSubject grainPKey preparedSubjectInsertData uniqueIndicesToReserve transactionId with
@@ -589,14 +590,15 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             insertData.DataToInsert.SideEffectGroup
             |> Option.iter (queueSideEffectGroupForAsyncProcessing subjectId)
 
-            let newSubjectCurrentStateContainer =
-                { CurrentSubjectState      = insertData.DataToInsert.UpdatedSubjectState
-                  CurrentOthersSubscribing = insertData.CreatorSubscribing
-                  ETag                     = success.ETag
-                  Version                  = success.Version
-                  NextSideEffectSeqNum     = insertData.DataToInsert.NextSideEffectSeq
-                  SideEffectDedupCache     = Map.empty
-                  SkipHistoryOnNextOp      = success.SkipHistoryOnNextOp }
+            let newSubjectCurrentStateContainer = {
+                CurrentSubjectState      = insertData.DataToInsert.UpdatedSubjectState
+                CurrentOthersSubscribing = insertData.CreatorSubscribing
+                ETag                     = success.ETag
+                Version                  = success.Version
+                NextSideEffectSeqNum     = insertData.DataToInsert.NextSideEffectSeq
+                SideEffectDedupCache     = Map.empty
+                SkipHistoryOnNextOp      = success.SkipHistoryOnNextOp
+            }
 
             ({ newSubjectCurrentStateContainer with NextSideEffectSeqNum = insertData.DataToInsert.NextSideEffectSeq }, None)
             // TODO: raisedLifeEvents awaiting? but nothing can await them while it's being constructed in transaction?
@@ -646,14 +648,15 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 updateData.DataToUpdate.SideEffectGroup
                 |> Option.iter (queueSideEffectGroupForAsyncProcessing subjectId)
 
-                let newSubjectStateContainer =
-                    { CurrentSubjectState = updateData.DataToUpdate.UpdatedSubjectState
-                      CurrentOthersSubscribing = currentStateContainer.CurrentOthersSubscribing
-                      ETag = success.NewETag
-                      Version = success.NewVersion
-                      NextSideEffectSeqNum = updateData.DataToUpdate.NextSideEffectSeq
-                      SideEffectDedupCache = newDedupCache
-                      SkipHistoryOnNextOp = success.SkipHistoryOnNextOp }
+                let newSubjectStateContainer = {
+                    CurrentSubjectState      = updateData.DataToUpdate.UpdatedSubjectState
+                    CurrentOthersSubscribing = currentStateContainer.CurrentOthersSubscribing
+                    ETag                     = success.NewETag
+                    Version                  = success.NewVersion
+                    NextSideEffectSeqNum     = updateData.DataToUpdate.NextSideEffectSeq
+                    SideEffectDedupCache     = newDedupCache
+                    SkipHistoryOnNextOp      = success.SkipHistoryOnNextOp
+                }
 
                 (newSubjectStateContainer, Some (now, raisedLifeEvents)) |> Some |> updatePrimaryStoreWithNotify
 
@@ -722,14 +725,15 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             updateData.DataToUpdate.SideEffectGroup
             |> Option.iter (queueSideEffectGroupForAsyncProcessing subjectId)
 
-            let subjectCurrentStateContainer =
-                { CurrentSubjectState = preparedUpdateData.PreparedDataToUpdate.UpdatedSubjectState
-                  CurrentOthersSubscribing = currentStateContainer.CurrentOthersSubscribing
-                  ETag = success.NewETag
-                  Version = success.NewVersion
-                  NextSideEffectSeqNum = updateData.DataToUpdate.NextSideEffectSeq
-                  SideEffectDedupCache = currentStateContainer.SideEffectDedupCache
-                  SkipHistoryOnNextOp = success.SkipHistoryOnNextOp }
+            let subjectCurrentStateContainer = {
+                CurrentSubjectState      = preparedUpdateData.PreparedDataToUpdate.UpdatedSubjectState
+                CurrentOthersSubscribing = currentStateContainer.CurrentOthersSubscribing
+                ETag                     = success.NewETag
+                Version                  = success.NewVersion
+                NextSideEffectSeqNum     = updateData.DataToUpdate.NextSideEffectSeq
+                SideEffectDedupCache     = currentStateContainer.SideEffectDedupCache
+                SkipHistoryOnNextOp      = success.SkipHistoryOnNextOp
+            }
             (subjectCurrentStateContainer, None)
             |> Some // TODO: raisedLifeEvents? but nothing can await them while it's being updated in transaction?
             |> updatePrimaryStoreWithNotify
@@ -758,7 +762,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             let! newETag = grainStorageHandler.AddSubscriptions grainPKey currentStateContainer.ETag subscriptionsToAdd
             let newCurrentStateContainer =
                 { currentStateContainer with
-                    ETag = newETag
+                    ETag                     = newETag
                     CurrentOthersSubscribing = updatedOthersSubscribing }
 
             match primaryStore.Value with
@@ -802,7 +806,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             |> Seq.iter (queueSideEffectGroupForAsyncProcessing subjectId)
 
             { currentStateContainer with
-                ETag = newETag
+                ETag                 = newETag
                 SideEffectDedupCache = newDedupCache
                 NextSideEffectSeqNum = nextSideEffectSeqNum }
             |> SubjectStateContainer.Committed
@@ -846,7 +850,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             match lifeCycleAdapter.LifeCycle.ResponseHandler
                       (SideEffectResponse.Success
                            (SideEffectSuccess.ActOk (
-                                { SubjectId = currentStateContainer.CurrentSubjectState.Subject.SubjectId
+                                { SubjectId    = currentStateContainer.CurrentSubjectState.Subject.SubjectId
                                   LifeCycleKey = lifeCycleAdapter.LifeCycle.Def.LifeCycleKey }, action)))
                       |> Seq.tryHead with
             | None -> true
@@ -854,7 +858,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 match decision with
                 | SideEffectResponseDecision_ (Choice1Of2 success) ->
                     match success with
-                    | SideEffectSuccessDecision.RogerThat -> true
+                    | SideEffectSuccessDecision.RogerThat  -> true
                     | SideEffectSuccessDecision.Continue _ -> false
                 | SideEffectResponseDecision_ (Choice2Of2 (_: SideEffectFailureDecision<_>)) ->
                     false
@@ -893,8 +897,8 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             sideEffectGroup |> Option.iter (queueSideEffectGroupForAsyncProcessing subjectId)
 
             { currentStateContainer with
-                CurrentSubjectState = { currentStateContainer.CurrentSubjectState with TickState = tickState }
-                ETag = newETag
+                CurrentSubjectState  = { currentStateContainer.CurrentSubjectState with TickState = tickState }
+                ETag                 = newETag
                 NextSideEffectSeqNum = nextSideEffectSeqNum }
             |> SubjectStateContainer.Committed
             |> Some
@@ -902,7 +906,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
         }
 
     let setTickStateAndSubscriptions (currentStateContainer: SubjectCurrentStateContainer<'Subject, 'SubjectId, 'LifeEvent, 'LifeAction>)
-        tickState subscriptions maybeReminderUpdate sideEffectGroup : Task =
+        tickState subscriptions maybeReminderUpdate sideEffectGroup: Task =
         task {
             match primaryStore.Value with
             | Some (SubjectStateContainer.Committed _) -> ()
@@ -922,9 +926,9 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             { currentStateContainer with
                 CurrentSubjectState =
                     { currentStateContainer.CurrentSubjectState with
-                        TickState = tickState
+                        TickState        = tickState
                         OurSubscriptions = subscriptions }
-                ETag = newETag
+                ETag                 = newETag
                 NextSideEffectSeqNum = nextSideEffectSeqNum }
             |> SubjectStateContainer.Committed
             |> Some |> updatePrimaryStoreWithoutNotify
@@ -964,7 +968,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 |> Seq.iter (queueSideEffectGroupForAsyncProcessing subjectId)
 
                 { currentStateContainer with
-                    ETag = newETag
+                    ETag                 = newETag
                     NextSideEffectSeqNum = nextSideEffectSeqNum }
                 |> SubjectStateContainer.Committed
                 |> Some |> updatePrimaryStoreWithoutNotify
@@ -1358,11 +1362,11 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                     BlobActions         = blobActions
                                     IndexActions        = indexActions
                                 }
-                                ActionThatCausedUpdate  = action
-                                SubscriptionsToAdd      = maybeSubscriptionsToAdd
-                                ExpectedETag            = currentStateContainer.ETag
-                                CurrentVersion          = currentStateContainer.Version
-                                SkipHistory             = currentStateContainer.SkipHistoryOnNextOp
+                                ActionThatCausedUpdate = action
+                                SubscriptionsToAdd     = maybeSubscriptionsToAdd
+                                ExpectedETag           = currentStateContainer.ETag
+                                CurrentVersion         = currentStateContainer.Version
+                                SkipHistory            = currentStateContainer.SkipHistoryOnNextOp
                             }
 
                         match!
@@ -1400,11 +1404,11 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                     IndexActions        = []
                                 }
                                 // TODO: find a way to not overwrite previous action, it's a no-op
-                                ActionThatCausedUpdate  = action
-                                SubscriptionsToAdd      = Some subscriptionsToAdd
-                                ExpectedETag            = currentStateContainer.ETag
-                                CurrentVersion          = currentStateContainer.Version
-                                SkipHistory             = currentStateContainer.SkipHistoryOnNextOp
+                                ActionThatCausedUpdate = action
+                                SubscriptionsToAdd     = Some subscriptionsToAdd
+                                ExpectedETag           = currentStateContainer.ETag
+                                CurrentVersion         = currentStateContainer.Version
+                                SkipHistory            = currentStateContainer.SkipHistoryOnNextOp
                             }
 
                         match!
@@ -1479,11 +1483,11 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                 BlobActions         = blobActions
                                 IndexActions        = indexActions
                             }
-                            ActionThatCausedUpdate  = action
-                            SubscriptionsToAdd      = None
-                            ExpectedETag            = currentStateContainer.ETag
-                            CurrentVersion          = currentStateContainer.Version
-                            SkipHistory             = currentStateContainer.SkipHistoryOnNextOp
+                            ActionThatCausedUpdate = action
+                            SubscriptionsToAdd     = None
+                            ExpectedETag           = currentStateContainer.ETag
+                            CurrentVersion         = currentStateContainer.Version
+                            SkipHistory            = currentStateContainer.SkipHistoryOnNextOp
                         },
                         raisedLifeEvents
                     | Choice2Of2 maybeTickStateAndReminderUpdate ->
@@ -1505,11 +1509,11 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                 BlobActions         = []
                                 IndexActions        = []
                             }
-                            ActionThatCausedUpdate  = action
-                            SubscriptionsToAdd      = None
-                            ExpectedETag            = currentStateContainer.ETag
-                            CurrentVersion          = currentStateContainer.Version
-                            SkipHistory             = currentStateContainer.SkipHistoryOnNextOp
+                            ActionThatCausedUpdate = action
+                            SubscriptionsToAdd     = None
+                            ExpectedETag           = currentStateContainer.ETag
+                            CurrentVersion         = currentStateContainer.Version
+                            SkipHistory            = currentStateContainer.SkipHistoryOnNextOp
                         },
                         []
 
@@ -1520,15 +1524,15 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     match!
                         fun () -> prepareUpdateSubject currentStateContainer preparedUpdateData uniqueIndicesToReserve transactionId
                         |> catchExnButRethrowTransientIfInternalCall_OnResultTask context.CallOrigin with
-                    | Ok () -> return Ok ()
+                    | Ok ()                  -> return Ok ()
                     | Error (Choice1Of2 err) -> return err |> GrainPrepareTransitionError.TransitionError |> Choice1Of2 |> Error
                     | Error (Choice2Of2 exn) -> return exn |> Choice2Of2 |> Error
 
             | Error err ->
                 return
                     match err with
-                    | LifeCycleError err -> err |> GrainPrepareTransitionError.TransitionError |> Choice1Of2 |> Error
-                    | TransitionNotAllowed -> GrainPrepareTransitionError.TransitionNotAllowed |> Choice1Of2 |> Error
+                    | LifeCycleError err     -> err |> GrainPrepareTransitionError.TransitionError |> Choice1Of2 |> Error
+                    | TransitionNotAllowed   -> GrainPrepareTransitionError.TransitionNotAllowed |> Choice1Of2 |> Error
                     | LifeCycleException exn -> exn |> Choice2Of2 |> Error
         }
 
@@ -1836,10 +1840,10 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                         let grainIdHash = getGrainIdHash ()
 
                         let insertData = {
-                            DataToInsert = writeData
-                            CreatorSubscribing = creatorSubscribing
+                            DataToInsert                = writeData
+                            CreatorSubscribing          = creatorSubscribing
                             ConstructorThatCausedInsert = ctor
-                            GrainIdHash = grainIdHash
+                            GrainIdHash                 = grainIdHash
                         }
 
                         match!
@@ -1853,7 +1857,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     | Error err ->
                         return
                             match err with
-                            | LifeCycleCtorError err -> Choice1Of2 err
+                            | LifeCycleCtorError err     -> Choice1Of2 err
                             | LifeCycleCtorException exn -> Choice2Of2 exn
                             |> Error
                 })
@@ -1887,10 +1891,10 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 let grainIdHash = getGrainIdHash ()
 
                 let insertData = {
-                    DataToInsert = writeData
-                    CreatorSubscribing = creatorSubscribing
+                    DataToInsert                = writeData
+                    CreatorSubscribing          = creatorSubscribing
                     ConstructorThatCausedInsert = ctor
-                    GrainIdHash = grainIdHash
+                    GrainIdHash                 = grainIdHash
                 }
 
                 match insertData.TryCastToPrepared raisedLifeEvents with
@@ -1904,7 +1908,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             | Error err ->
                 return
                     match err with
-                    | LifeCycleCtorError err -> Choice1Of2 err
+                    | LifeCycleCtorError err     -> Choice1Of2 err
                     | LifeCycleCtorException exn -> Choice2Of2 exn
                     |> Error
         }
@@ -2063,7 +2067,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                         callOrigin
                         (AccessEvent.Read (subject, SubjectProjection.OriginalProjection))
                         (GrainGetError.AccessDenied |> Error)
-                        (fun () -> subject |> Some |> Ok |> Task.FromResult)
+                        (fun () -> subject          |> Some |> Ok |> Task.FromResult)
                         None
                 | None ->
                     None |> Ok |> Task.FromResult
@@ -2369,9 +2373,9 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     this.Construct (ConstructContext.InterGrain (maybeDedupInfo, maybeConstructSubscriptions, okIfAlreadyInitialized)) subjectId ctor serviceScope
                 return
                     match res with
-                    | Ok versionedSubject -> Ok (if includeResponse then Some versionedSubject.Subject else None)
+                    | Ok versionedSubject    -> Ok (if includeResponse then Some versionedSubject.Subject else None)
                     | Error (Choice1Of2 err) -> err |> SubjectFailure.Err |> Error
-                    | Error (Choice2Of2 ex) -> ex.ToString() |> SubjectFailure.Exn |> Error
+                    | Error (Choice2Of2 ex)  -> ex.ToString() |> SubjectFailure.Exn |> Error
             }
 
         member _.PrepareInitialize (subjectId: 'SubjectId) (ctor: 'Constructor) (transactionId: SubjectTransactionId) : Task<Result<unit, SubjectFailure<GrainPrepareConstructionError<'OpError>>>> =
@@ -2452,9 +2456,9 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     this.RunAction (ActContext.InterGrain (maybeDedupInfo, maybeBeforeActSubscriptions)) action serviceScope
                 return
                     match res with
-                    | Ok _ -> Ok ()
+                    | Ok _                   -> Ok ()
                     | Error (Choice1Of2 err) -> err |> SubjectFailure.Err |> Error
-                    | Error (Choice2Of2 ex) -> ex.ToString() |> SubjectFailure.Exn |> Error
+                    | Error (Choice2Of2 ex)  -> ex.ToString() |> SubjectFailure.Exn |> Error
             }
 
         member _.RunPrepareAction (action: 'LifeAction) (transactionId: SubjectTransactionId) : Task<Result<unit, SubjectFailure<GrainPrepareTransitionError<'OpError>>>> =
@@ -2525,9 +2529,9 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     this.RunActionMaybeInitialize (ActMaybeConstructContext.InterGrain (maybeDedupInfo, maybeConstructSubscriptions)) action ctor serviceScope
                 return
                     match res with
-                    | Ok versionedSubject -> Ok (if includeResponse then Some versionedSubject.Subject else None)
+                    | Ok versionedSubject    -> Ok (if includeResponse then Some versionedSubject.Subject else None)
                     | Error (Choice1Of2 err) -> err |> SubjectFailure.Err |> Error
-                    | Error (Choice2Of2 ex) -> ex.ToString() |> SubjectFailure.Exn |> Error
+                    | Error (Choice2Of2 ex)  -> ex.ToString() |> SubjectFailure.Exn |> Error
             }
 
         member _.ActMaybeConstructAndWait (clientGrainCallContext: ClientGrainCallContext) (action: 'LifeAction) (ctor: 'Constructor) (lifeEventToAwaitOn: 'LifeEvent) (awaiter: ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>) (timeout: TimeSpan) : Task<Result<VersionedSubject<'Subject, 'SubjectId>, GrainOperationError<'OpError>>> =
@@ -2563,7 +2567,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             fun () -> task {
                 use serviceScope = prepareChildScope ()
                 match! this.GetMaybeConstruct clientGrainCallContext.SessionHandle clientGrainCallContext.CallOrigin subjectId ctor serviceScope with
-                | Ok _ -> return Ok ()
+                | Ok _      -> return Ok ()
                 | Error err -> return Error err
             }
             |> wrapClientExceptions "MaybeConstructNoContent"
@@ -2663,9 +2667,9 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                     |> this.WithConsistencyCheckOnError
                 return
                     match res with
-                    | Ok _ -> Ok ()
+                    | Ok _                   -> Ok ()
                     | Error (Choice1Of2 err) -> err |> SubjectFailure.Err |> Error
-                    | Error (Choice2Of2 ex) -> ex.ToString() |> SubjectFailure.Exn |> Error
+                    | Error (Choice2Of2 ex)  -> ex.ToString() |> SubjectFailure.Exn |> Error
             }
 
         member _.Unsubscribe (subscriptions: Set<SubscriptionName>) (subscriber: SubjectPKeyReference) : Task =
@@ -2691,7 +2695,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
 
                         let newCurrentStateContainer =
                             { currentStateContainer with
-                                ETag = newETag
+                                ETag                     = newETag
                                 CurrentOthersSubscribing = updatedOthersSubscribing }
 
                         match primaryStore.Value with
@@ -2758,11 +2762,11 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                                     BlobActions         = blobActions
                                                     IndexActions        = indexActions
                                                 }
-                                                ActionThatCausedUpdate  = action
-                                                SubscriptionsToAdd      = None
-                                                ExpectedETag            = currentStateContainer.ETag
-                                                CurrentVersion          = currentStateContainer.Version
-                                                SkipHistory             = currentStateContainer.SkipHistoryOnNextOp
+                                                ActionThatCausedUpdate = action
+                                                SubscriptionsToAdd     = None
+                                                ExpectedETag           = currentStateContainer.ETag
+                                                CurrentVersion         = currentStateContainer.Version
+                                                SkipHistory            = currentStateContainer.SkipHistoryOnNextOp
                                             }
                                             |> updateSubject now raisedLifeEvents maybeDedupInfo currentStateContainer
                                         |> catchExnButRethrowTransientIfInternalCall_OnResultTask CallOrigin.Internal
@@ -2905,11 +2909,11 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                                     BlobActions         = blobActions
                                                     IndexActions        = indexActions
                                                 }
-                                                ActionThatCausedUpdate  = action
-                                                SubscriptionsToAdd      = None
-                                                ExpectedETag            = currentStateContainer.ETag
-                                                CurrentVersion          = currentStateContainer.Version
-                                                SkipHistory             = currentStateContainer.SkipHistoryOnNextOp
+                                                ActionThatCausedUpdate = action
+                                                SubscriptionsToAdd     = None
+                                                ExpectedETag           = currentStateContainer.ETag
+                                                CurrentVersion         = currentStateContainer.Version
+                                                SkipHistory            = currentStateContainer.SkipHistoryOnNextOp
                                             }
                                             |> updateSubject now raisedLifeEvents (Some dedupInfo) currentStateContainer
                                         |> catchExnButRethrowTransientIfInternalCall_OnResultTask CallOrigin.Internal
@@ -3060,10 +3064,10 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
 
                     let grainIdHash = getGrainIdHash ()
                     let insertData = {
-                        DataToInsert = writeData
-                        CreatorSubscribing = Map.empty
+                        DataToInsert                = writeData
+                        CreatorSubscribing          = Map.empty
                         ConstructorThatCausedInsert = someRandomCtor
-                        GrainIdHash = grainIdHash
+                        GrainIdHash                 = grainIdHash
                     }
 
                     match! initializeSubject now raisedLifeEvents None insertData with
@@ -3148,7 +3152,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 | Some shouldSendTelemetry ->
                     match args with
                     | null -> Array.empty
-                    | _ -> args
+                    | _    -> args
                     |> Seq.collect (
                         function
                         | :? 'LifeAction as action ->

@@ -3,30 +3,32 @@ module LibClient.Components.VirtualListView
 
 open System
 
+open Fable.Core
+open Fable.Core.JsInterop
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.JsInterop
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+
+module RnPrimitives = Rn.RnPrimitives
 
 // Public types exposed at this module path so that callers using
 // `VirtualListView.WhenItemKeysMatch` or `VirtualListView.VirtualListItem`
 // continue to compile without changes.
 
 type RestoreScroll =
-| No
-| WhenItemKeysMatch of Key: string
-    member this.MaybeKey : Option<string> =
+    | No
+    | WhenItemKeysMatch of Key: string
+
+    member this.MaybeKey: Option<string> =
         match this with
         | WhenItemKeysMatch key -> Some key
-        | No -> None
+        | No                    -> None
 
-type private ScrollPosition = {
-    Left: int
-    Top:  int
-}
+type private ScrollPosition = { Left: int; Top: int }
 
 type private Measurements = {
     ScrollPosition: ScrollPosition
@@ -38,92 +40,147 @@ type VirtualListItem<'Item> = {
     Item:     'Item
     Height:   Option<int>
     Template: string
-} with
-    member this.ToRX : ReactXP.Components.VirtualListView.VirtualListViewItemInfo = {
-        key                          = this.Key
-        height                       = this.Height |> Option.getOrElse 1
-        payload                      = this.Item :> obj
-        measureHeight                = Some this.Height.IsNone
-        template                     = this.Template
-        isNavigable                  = Some false
-        disableTouchOpacityAnimation = true
-    }
+}
 
-module VirtualListItem =
-    let toRX (item: VirtualListItem<'Item>) = item.ToRX
+// Internal ref surface kept for callers that need programmatic scroll.
+type IVirtualListViewRef =
+    abstract member scrollToTop (* animate *): bool * (* top *) int -> unit
+
+module private Styles =
+    // VirtualListView has no visual styles of its own; the styles prop is passed
+    // straight through to the underlying FlatList root.
+    ()
+
+// Fable represents tupled functions as single-argument functions that destructure
+// an array. Raw JS callbacks (e.g. FlatList's `getItemLayout`) pass multiple
+// separate arguments, so we need an adapter that collects them into an array.
+[<Emit("function () { return $0(Array.prototype.slice.call(arguments)); }")>]
+let private fixTupledReturning (_f: 'T -> 'R) : obj = jsNative
 
 // Intentionally module-level: this cache survives across component instances
 // and across unmount/remount cycles (used to restore scroll on navigation return).
 let mutable private scrollPositionStorage: Map<string, Measurements> = Map.empty
 
 let private storeMeasurements (key: string) (scrollPosition: ScrollPosition) (keys: list<string>) : unit =
-    scrollPositionStorage <- scrollPositionStorage.AddOrUpdate (key, { ScrollPosition = scrollPosition; Keys = keys })
-
-module private Styles =
-    // VirtualListView has no visual styles of its own; the styles prop is passed
-    // straight through to the underlying RX.VirtualListView root.
-    ()
+    scrollPositionStorage <-
+        scrollPositionStorage.AddOrUpdate(
+            key,
+            { ScrollPosition = scrollPosition
+              Keys           = keys }
+        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
-    static member VirtualListView<'Item> (
+    static member VirtualListView<'Item>
+        (
             items:             seq<VirtualListItem<'Item>>,
             render:            'Item -> ReactElement,
             restoreScroll:     RestoreScroll,
             ?scrollSideEffect: (int * int -> unit),
             ?styles:           array<ViewStyles>,
-            ?xLegacyStyles:    List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:              string
         ) : ReactElement =
         key |> ignore
 
+        let itemsArray = items |> Array.ofSeq
+
         // Per-instance mutable refs (do not trigger re-render on change).
-        let lastScrollPositionRef:      IRefHook<ScrollPosition>                                               = Hooks.useRef { Left = 0; Top = 0 }
-        let maybeLastKeysRef:           IRefHook<Option<list<string>>>                                         = Hooks.useRef None
-        let restoreWhenMatchRef:        IRefHook<Option<Measurements>>                                         = Hooks.useRef None
-        let maybeVirtualListViewRef:    IRefHook<Option<ReactXP.Components.VirtualListView.IVirtualListViewRef>> = Hooks.useRef None
+        let lastScrollPositionRef: IRefHook<ScrollPosition> =
+            Hooks.useRef { Left = 0; Top = 0 }
+
+        let maybeLastKeysRef: IRefHook<Option<list<string>>> = Hooks.useRef None
+        let restoreWhenMatchRef: IRefHook<Option<Measurements>> = Hooks.useRef None
+        let maybeFlatListRef: IRefHook<Option<obj>> = Hooks.useRef None
 
         // Stable helpers: capture per-instance refs in a closure that does not change.
         let tryRestore (itemsSeq: seq<VirtualListItem<'Item>>) : unit =
             let nextKeys = itemsSeq |> Seq.map (fun item -> item.Key) |> Seq.toList
             maybeLastKeysRef.current <- Some nextKeys
+
             restoreWhenMatchRef.current
             |> Option.sideEffect (fun originalMeasurements ->
                 if nextKeys = originalMeasurements.Keys then
                     restoreWhenMatchRef.current <- None
-                    maybeVirtualListViewRef.current |> Option.sideEffect (fun virtualListViewRef ->
+
+                    maybeFlatListRef.current
+                    |> Option.sideEffect (fun flatListRef ->
                         // restore after render
                         runOnNextTick (fun () ->
-                            virtualListViewRef.scrollToTop ((* animate *) false, originalMeasurements.ScrollPosition.Top)
-                        )
-                    )
-            )
+                            flatListRef?scrollToOffset
+                                {| offset = originalMeasurements.ScrollPosition.Top
+                                   animated = false |})))
 
-        // Stable callbacks for renderItem and ref — VirtualListView asserts they
-        // don't change identity on every re-render, so we pin them with useMemo.
+        // Stable callbacks for FlatList — renderItem/keyExtractor/ref must not change
+        // identity on every re-render or FlatList will re-mount cells.
         let stableRenderItem =
             Hooks.useMemo (
                 (fun () ->
-                    fun (details: ReactXP.Components.VirtualListView.VirtualListCellRenderDetails) ->
-                        details.GetItem<'Item>() |> render
-                ),
+                    fun (info: obj) ->
+                        let item = info?item |> unbox<VirtualListItem<'Item>>
+
+                        let cellProps = createEmpty
+
+                        RnPrimitives.assignA11yAndAutomation
+                            cellProps
+                            (Some(A11ySlug.testId "vlv-item" item.Key))
+                            None
+                            None
+                            (Some AccessibilityRole.ListItem)
+                            None
+                            None
+                            None
+                            None
+                            None
+                            None
+                            None
+                            None
+
+                        RnPrimitives.createElement RnPrimitives.View cellProps [| render item.Item |]),
                 [||]
             )
+
+
+        let stableKeyExtractor =
+            fixTupledReturning (fun (item: VirtualListItem<'Item>, _index: int) -> item.Key)
 
         let stableRefCallback =
             Hooks.useMemo (
                 (fun () ->
-                    fun (nullableInstance: JsNullable<ReactXP.Components.VirtualListView.IVirtualListViewRef>) ->
-                        maybeVirtualListViewRef.current <- nullableInstance.ToOption
-                ),
+                    fun (nullableInstance: JsNullable<obj>) -> maybeFlatListRef.current <- nullableInstance.ToOption),
                 [||]
+            )
+
+        // getItemLayout: only supplied when every item has a known height. When any
+        // height is missing we let FlatList measure cells itself.
+        let stableGetItemLayout =
+            Hooks.useMemo (
+                (fun () ->
+                    let allHeightsKnown = itemsArray |> Array.forall (fun item -> item.Height.IsSome)
+
+                    if allHeightsKnown then
+                        let heights = itemsArray |> Array.map (fun item -> item.Height.Value)
+
+                        let offsets = heights |> Array.scan (+) 0 |> Array.take heights.Length
+
+                        fixTupledReturning (fun (_data: obj, index: int) ->
+                            box
+                                {| length = heights.[index]
+                                   offset = offsets.[index]
+                                   index  = index |})
+                        |> Some
+                    else
+                        None),
+                [| itemsArray :> obj |]
             )
 
         // onScroll: update per-instance scroll position and dispatch side-effect.
         let onScroll (top: int, left: int) : unit =
             lastScrollPositionRef.current <- { Top = top; Left = left }
+
             if restoreWhenMatchRef.current.IsSome then
                 restoreWhenMatchRef.current <- None
+
             scrollSideEffect |> Option.sideEffect (fun callback -> callback (top, left))
 
         // componentDidMount equivalent: initialise the restore-when-keys-match
@@ -135,13 +192,15 @@ type LibClient.Components.Constructors.LC with
                      scrollPositionStorage.TryFind key
                      |> Option.sideEffect (fun measurements ->
                          restoreWhenMatchRef.current <- Some measurements
+
                          async {
                              // if we couldn't restore focus for 10 seconds, give up
-                             do! Async.Sleep (TimeSpan.FromSeconds 10.)
+                             do! Async.Sleep(TimeSpan.FromSeconds 10.)
+
                              if restoreWhenMatchRef.current.IsSome then
                                  restoreWhenMatchRef.current <- None
-                         } |> startSafely
-                     )
+                         }
+                         |> startSafely)
                  | No -> Noop)
 
                 tryRestore items
@@ -150,42 +209,44 @@ type LibClient.Components.Constructors.LC with
                 { new IDisposable with
                     member _.Dispose() =
                         match (restoreScroll.MaybeKey, maybeLastKeysRef.current) with
-                        | (Some scrollKey, Some keys) ->
-                            storeMeasurements scrollKey lastScrollPositionRef.current keys
-                        | _ -> Noop
-                }
-            ),
+                        | (Some scrollKey, Some keys) -> storeMeasurements scrollKey lastScrollPositionRef.current keys
+                        | _                           -> Noop }),
             [||]
         )
 
         // componentWillReceiveProps equivalent: call tryRestore whenever the items list changes.
-        Hooks.useEffect (
-            (fun () -> tryRestore items),
-            [| items :> obj |]
-        )
+        Hooks.useEffect ((fun () -> tryRestore items), [| items :> obj |])
 
         // Resolve styles: merge any ?xLegacyStyles top-level-block styles with explicit ?styles.
-        let legacyStyles : array<ViewStyles> =
+        let legacyStyles: array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
-                | []     -> [||]
-                | found  -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.VirtualListView" found |]
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                | [] -> [||]
+                | found ->
+                    [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles>
+                           "LibClient.Components.VirtualListView"
+                           found |]
             | None -> [||]
 
-        let resolvedStyles : array<ViewStyles> option =
-            let combined =
-                Array.append legacyStyles (defaultArg styles [||])
-            if combined.Length = 0 then None
-            else Some combined
+        let resolvedStyles: array<ViewStyles> option =
+            let combined = Array.append legacyStyles (defaultArg styles [||])
+            if combined.Length = 0 then None else Some combined
 
-        element {
-            RX.VirtualListView (
-                renderItem          = stableRenderItem,
-                scrollEventThrottle = 10,
-                itemList            = (items |> Seq.map VirtualListItem.toRX |> Array.ofSeq),
-                ref                 = stableRefCallback,
-                ?onScroll           = (match restoreScroll with No -> None | _ -> Some onScroll),
-                ?styles             = resolvedStyles
-            )
-        }
+        let __props = createEmpty
+        __props?data <- itemsArray
+        __props?renderItem <- stableRenderItem
+        __props?keyExtractor <- stableKeyExtractor
+        __props?ref <- stableRefCallback
+        __props?scrollEventThrottle <- 10
+
+        if restoreScroll <> No || scrollSideEffect.IsSome then
+            RnPrimitives.wrapOnScroll (Some onScroll)
+            |> Option.iter (fun v -> __props?onScroll <- v)
+
+        stableGetItemLayout |> Option.iter (fun f -> __props?getItemLayout <- f)
+
+        resolvedStyles
+        |> Option.iter (fun ss -> __props?style <- ss |> Array.map (fun s -> (!!s) :> obj) |> box)
+
+        RnPrimitives.createElement RnPrimitives.FlatList __props [||]

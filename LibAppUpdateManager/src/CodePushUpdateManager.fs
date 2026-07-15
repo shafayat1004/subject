@@ -7,8 +7,8 @@ open LibClient.Chars
 open LibClient.Services.LocalStorageService
 open LibRouter.RoutesSpec
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open ThirdParty.ReactNativeCodePush
 open LibAppUpdateManager.icons
 
@@ -19,20 +19,20 @@ type private InitialRouteState =
 
 type SyncState =
 | InProgress of CodePush.SyncStatus
-| Complete of CodePush.SyncStatus
+| Complete   of CodePush.SyncStatus
 
 type AppUpdateScreen =
 | CheckingForUpdate
 | DownloadInProgress of progress: Option<PositivePercentage>
 | DownloadComplete
-| NoUpdateAvailable of binaryUpdateUrl: Option<NonemptyString>
+| NoUpdateAvailable  of binaryUpdateUrl: Option<NonemptyString>
 
 module private Styles =
     let background =
         makeViewStyles {
             backgroundColor Color.White
         }
-        
+
     let view =
         makeViewStyles {
             marginTop 16
@@ -40,7 +40,7 @@ module private Styles =
             JustifyContent.Center
             AlignItems.Center
         }
-        
+
     let buttons =
         makeViewStyles {
             maxWidth 150
@@ -48,32 +48,32 @@ module private Styles =
             AlignItems.Center
             AlignSelf.Center
         }
-        
+
     let primaryContent = makeViewStyles {
         FlexDirection.Column
         AlignItems.Center
     }
-    
+
     let newUpdateVersionText = makeTextStyles {
         fontSize 12
     }
-    
+
     let syncStateText = makeTextStyles {
         fontSize 8
         color (Color.Grey "cc")
     }
-    
+
     let updateScreenProgressBar = makeViewStyles {
         marginTop 5
         marginBottom 15
         FlexDirection.Row
     }
-    
+
     let progressBarPercentage = makeTextStyles {
         color Color.Black
         fontSize 16
     }
-        
+
     let progressBarLayoutProvider = makeViewStyles {
         flex 1
     }
@@ -88,7 +88,7 @@ module private Styles =
             JustifyContent.Center
         }
     )
-    
+
     let progressBar = ViewStyles.Memoize (
         fun (layoutWidth: int)-> makeViewStyles {
             backgroundColor (Color.Hex "#ff3458")
@@ -97,7 +97,7 @@ module private Styles =
             width layoutWidth
         }
     )
-    
+
     let updateScreenContainer = makeViewStyles {
         flex 1
         paddingHorizontal 60
@@ -106,192 +106,192 @@ module private Styles =
         JustifyContent.SpaceBetween
         FlexDirection.Column
     }
-    
+
     let updateScreenTopContent = makeViewStyles {
         AlignItems.Center
     }
-    
+
     let iconContainer = makeViewStyles {
         marginTop 40
         marginBottom 70
     }
-    
+
     let updateScreenIcon = makeTextStyles {
         fontSize 130
         color Color.Black
     }
-    
+
     let titleContainer = makeViewStyles {
         AlignItems.Center
         maxWidth 250
     }
-    
+
     let updateScreenTitle = makeTextStyles {
         marginBottom 30
         fontSize 22
         color Color.Black
     }
-    
+
     let updateScreenDescription = makeTextStyles {
         fontSize 12
         TextAlign.Center
         color Color.Black
     }
-    
+
     let updateScreenFootNoteContainer = makeViewStyles {
         AlignItems.Center
     }
-    
+
     let updateScreenFootNote = makeTextStyles {
         fontSize 12
         TextAlign.Center
     }
-    
+
     let currentAppVersion = makeTextStyles {
         fontSize 12
         marginTop 20
     }
-    
+
     let error = makeViewStyles {
         AlignSelf.Center
         flex      1
         padding   0
         minHeight 200
     }
-    
+
 type Helpers =
     [<Component>]
     static member progressbar (progressPercentage: Percentage.PositivePercentage) =
         LC.With.Layout (fun (onLayoutOption, maybeLayout) ->
-            RX.View (styles=[|Styles.progressBarLayoutProvider|], ?onLayout = onLayoutOption, children = [|
+            Rn.View (styles=[|Styles.progressBarLayoutProvider|], ?onLayout = onLayoutOption, children = [|
                 maybeLayout
                 |> Option.map(fun layout->
-                    RX.View(styles = [|Styles.progressBarContainer layout.Width|], children = [|
+                    Rn.View(styles = [|Styles.progressBarContainer layout.Width|], children = [|
                         match UnsignedDecimal.ofDecimal (decimal layout.Width) with
                         | Some widthUnsignedDecimal ->
                             let currentProgress = progressPercentage.PercentOf widthUnsignedDecimal
-                            RX.View(styles = [|Styles.progressBar (int currentProgress.Value)|])
+                            Rn.View(styles = [|Styles.progressBar (int currentProgress.Value)|])
                         | None -> noElement
                     |])
                 )
-                |> Option.defaultValue (RX.View(children=[|
-                    RX.Text "No Layout"
+                |> Option.defaultValue (Rn.View(children=[|
+                    Rn.Text "No Layout"
                 |]))
             |])
         )
-        
+
     [<Component>]
     static member updateScreen (screenState: AppUpdateScreen, maybeSyncStatus: Option<CodePush.SyncStatus>, maybeRunningAppVersion: Option<string>, maybeLatestAppVersion: Option<string>) =
-        
+
         let icon =
             match screenState with
             | CheckingForUpdate    -> Icon.CloudLoading
             | DownloadInProgress _ -> Icon.CloudSync
             | DownloadComplete     -> Icon.CloudComplete
             | NoUpdateAvailable _  -> Icon.AppDownload
-            
+
         let title =
             match screenState with
             | CheckingForUpdate    -> "Checking for update"
             | DownloadInProgress _ -> "Downloading update"
             | DownloadComplete     -> "Update Complete"
             | NoUpdateAvailable  _ -> "Download update"
-            
+
         let description =
             match screenState with
             | CheckingForUpdate    -> "Please wait while we check for new app update"
             | DownloadInProgress _ -> "Please wait while we download the app update"
             | DownloadComplete     -> "Update complete. We will take you to the app now"
             | NoUpdateAvailable  _ -> "Please update the latest version of the app from the store"
-            
+
         let footnote =
             match screenState with
             | NoUpdateAvailable _ -> ""
-            | _ -> "You will be able to continue using the app as soon as the app update is complete"
+            | _                   -> "You will be able to continue using the app as soon as the app update is complete"
 
-            
-        let activityIndicator = RX.ActivityIndicator(color = "#ff3458", size = Size.Large)
+
+        let activityIndicator = Rn.ActivityIndicator(color = "#ff3458", size = Size.Large)
         let latestAppVersion =
             maybeLatestAppVersion |> Option.mapOrElse "" (fun appVersion -> appVersion)
-            
+
         let runningAppVersion =
             maybeRunningAppVersion |> Option.mapOrElse "" (fun appVersion -> appVersion)
-            
+
         let mainContent =
             match screenState with
             | CheckingForUpdate -> activityIndicator
             | DownloadInProgress maybePercentage ->
                 match maybePercentage with
-                | None -> activityIndicator
+                | None            -> activityIndicator
                 | Some percentage -> element {
-                    RX.Text (latestAppVersion, styles = [|Styles.newUpdateVersionText|])
-                    RX.View ( styles = [|Styles.updateScreenProgressBar|], children = [|
-                        Helpers.progressbar(percentage)    
+                    Rn.Text (latestAppVersion, styles = [|Styles.newUpdateVersionText|])
+                    Rn.View ( styles                  = [|Styles.updateScreenProgressBar|], children = [|
+                        Helpers.progressbar(percentage)
                     |])
-                    RX.Text ($"{(int percentage.Value).ToString()}{Char.percent}", styles = [|Styles.progressBarPercentage|])
+                    Rn.Text ($"{(int percentage.Value).ToString()}{Char.percent}", styles = [|Styles.progressBarPercentage|])
                 }
             | DownloadComplete  -> noElement
             | NoUpdateAvailable maybeUpdateUrl->
                 match maybeUpdateUrl with
                 | Some updateUrl ->
-                    LC.Button (label = "Update app", state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> (ReactXP.Linking.openUrl(updateUrl.Value)))))
+                    LC.Button (label = "Update app", state = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> (Rn.Linking.openUrl(updateUrl.Value)))))
                 | None -> noElement
 
-        
-        RX.View( styles = [|Styles.updateScreenContainer; Styles.background|], children=[|
+
+        Rn.View( styles = [|Styles.updateScreenContainer; Styles.background|], children=[|
             // icon
-            RX.View( styles=[|Styles.updateScreenTopContent|], children=[|
-                RX.View( styles = [|Styles.iconContainer|], children=[|
+            Rn.View( styles=[|Styles.updateScreenTopContent|], children=[|
+                Rn.View( styles = [|Styles.iconContainer|], children=[|
                     LC.Icon(icon, styles=[|Styles.updateScreenIcon|])
                 |])
 
                 // Title
-                RX.View( styles = [|Styles.titleContainer|], children=[|
-                    RX.Text(title, styles=[|Styles.updateScreenTitle|])
-                    RX.Text(description, styles=[|Styles.updateScreenDescription|])
+                Rn.View( styles = [|Styles.titleContainer|], children=[|
+                    Rn.Text(title, styles=[|Styles.updateScreenTitle|])
+                    Rn.Text(description, styles=[|Styles.updateScreenDescription|])
                 |])
             |])
-            
+
             // ProgressBar
-            RX.View( styles = [|Styles.primaryContent|], children=[|
+            Rn.View( styles = [|Styles.primaryContent|], children=[|
                 mainContent
             |])
-            
+
             // footnote
-            RX.View(styles = [|Styles.updateScreenFootNoteContainer|], children=[|
-                RX.Text(footnote, styles = [|Styles.updateScreenFootNote|])
-                
-                RX.Text (runningAppVersion, styles=[|Styles.currentAppVersion|])
+            Rn.View(styles = [|Styles.updateScreenFootNoteContainer|], children=[|
+                Rn.Text(footnote, styles = [|Styles.updateScreenFootNote|])
+
+                Rn.Text (runningAppVersion, styles=[|Styles.currentAppVersion|])
                 match maybeSyncStatus with
-                | Some syncStatus -> RX.Text (syncStatus.ToString(), styles = [|Styles.syncStateText|])
-                | None -> noElement
+                | Some syncStatus -> Rn.Text (syncStatus.ToString(), styles = [|Styles.syncStateText|])
+                | None            -> noElement
             |])
-                    
+
         |])
 
-    
+
     [<Component>]
     static member UpdateUI (maybeSyncState: Option<SyncState>, maybeDownloadProgress: Option<CodePush.DownloadProgress>, isPendingUpdateAvailable: bool, ?binaryUpdateUrl: NonemptyString) =
         let maybeRunningMetaData = Hooks.useState(None)
         let maybeLatestMetaData  = Hooks.useState(None)
-        
+
         let refreshMetaData () =
             async {
                 let! runningUpdate = CodePush.getUpdateMetadata()
                 maybeRunningMetaData.update(runningUpdate)
-                
-                let! latestUpdate  = CodePush.checkForUpdate(None)
+
+                let! latestUpdate = CodePush.checkForUpdate(None)
                 maybeLatestMetaData.update(latestUpdate)
             }
             |> startSafely
-        
+
         Hooks.useEffect(
             ( fun _ ->
                 refreshMetaData ()
                 if isPendingUpdateAvailable then
                     CodePush.restartApp (*onlyRestartIfUpdatePending*) false
             ), [|isPendingUpdateAvailable|])
-        
+
         let currentScreen =
             match maybeSyncState with
             | Some runningSyncState ->
@@ -306,7 +306,7 @@ type Helpers =
                             (decimal downloadProgress.receivedBytes / decimal downloadProgress.totalBytes) * 100m
                             |> PositivePercentage.ofDecimal
                         )
-                        |> AppUpdateScreen.DownloadInProgress 
+                        |> AppUpdateScreen.DownloadInProgress
                     | CodePush.INSTALLING_UPDATE ->
                         AppUpdateScreen.DownloadInProgress None
                     | CodePush.DOWNLOADING_PACKAGE ->
@@ -330,14 +330,14 @@ type Helpers =
                         AppUpdateScreen.NoUpdateAvailable binaryUpdateUrl
             | None ->
                 AppUpdateScreen.CheckingForUpdate
-        
+
         let maybeSyncStatus     = maybeSyncState |> Option.map( fun syncState -> match syncState with | Complete status | InProgress status -> status )
         let maybeRunningVersion = maybeRunningMetaData.current |> Option.map (fun metaData -> metaData.label)
         let maybeLatestVersion  = maybeLatestMetaData.current |> Option.map (fun metaData -> metaData.label)
-            
+
         Helpers.updateScreen (currentScreen, maybeSyncStatus, maybeRunningVersion, maybeLatestVersion)
 
-    
+
 
 type CodePushUpdateManager =
     [<Component>]
@@ -345,27 +345,27 @@ type CodePushUpdateManager =
         let localStoragePendingRouteKey = "PendingNextRoute"
         let isPendingUpdateAvailable    = Hooks.useState(false)
         let maybeInitialRouteState      = Hooks.useState(InitialRouteState.Loading)
-        
-        let codePushSyncState           = Hooks.useState<Option<SyncState>>(None)
-        let downloadProgress            = Hooks.useState(None)
-                
+
+        let codePushSyncState = Hooks.useState<Option<SyncState>>(None)
+        let downloadProgress  = Hooks.useState(None)
+
         let restartAppIfPendingUpdate() =
             CodePush.restartApp (*onlyRestartIfUpdatePending*) true
-        
+
         let checkPendingInitialRoute () =
             async {
                 let! maybePendingRoute = storageService.Get localStoragePendingRouteKey Json.FromString<Location>
                 maybeInitialRouteState.update (Loaded maybePendingRoute)
                 do! storageService.Remove localStoragePendingRouteKey
             } |> startSafely
-            
+
         let syncCodePush () =
             async {
                 let syncOption: CodePush.SyncOptions = {
-                    installMode = CodePush.InstallMode.ON_NEXT_SUSPEND
+                    installMode          = CodePush.InstallMode.ON_NEXT_SUSPEND
                     mandatoryInstallMode = CodePush.InstallMode.IMMEDIATE
                 }
-        
+
                 let! syncState =
                     CodePush.sync (
                         syncOption,
@@ -380,7 +380,7 @@ type CodePushUpdateManager =
                     )
 
                 codePushSyncState.update (Some (SyncState.Complete syncState))
-                
+
                 match syncState with
                 | CodePush.SyncStatus.AWAITING_USER_ACTION ->
                     isPendingUpdateAvailable.update true
@@ -390,14 +390,14 @@ type CodePushUpdateManager =
         let onNavigation = fun (location: Location) ->
             if isPendingUpdateAvailable.current then
                 async {
-                    do! storageService.Put localStoragePendingRouteKey location Json.ToString<Location> 
+                    do! storageService.Put localStoragePendingRouteKey location Json.ToString<Location>
                     isPendingUpdateAvailable.update false
                     restartAppIfPendingUpdate ()
                 } |> startSafely
                 false
             else
                 true
-                
+
         Hooks.useEffect(fun () ->
             syncCodePush ()
             checkPendingInitialRoute ()
@@ -408,8 +408,8 @@ type CodePushUpdateManager =
             ``try`` = (
                 match maybeInitialRouteState.current with
                 | InitialRouteState.Loading ->
-                    RX.View (styles = [| Styles.view |], children=[|
-                        RX.ActivityIndicator(color = "#aaaaaa", size = Size.Medium)
+                    Rn.View (styles = [| Styles.view |], children=[|
+                        Rn.ActivityIndicator(color = "#aaaaaa", size = Size.Medium)
                     |])
                 | InitialRouteState.Loaded maybeInitialRoute ->
                     ``with`` maybeInitialRoute (Some onNavigation)
@@ -429,26 +429,26 @@ type CodePushUpdateManager =
                 )
             )
         }
-        
+
     [<Component>]
     static member FallBackWrapper () =
         let fallbackCodePushSyncCall () =
             async {
                 let syncOption: CodePush.SyncOptions = {
-                    installMode = CodePush.InstallMode.IMMEDIATE
+                    installMode          = CodePush.InstallMode.IMMEDIATE
                     mandatoryInstallMode = CodePush.InstallMode.IMMEDIATE
                 }
-                
+
                 return! CodePush.sync (syncOption, None, None) |> Async.Ignore
             } |> startSafely
-        
+
         Hooks.useEffect (
             (fun _ ->
                 fallbackCodePushSyncCall ()
             ), [||]
         )
-        
+
         noElement
 
-    
+
 #endif

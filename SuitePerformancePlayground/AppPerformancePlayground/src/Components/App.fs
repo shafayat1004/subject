@@ -4,8 +4,8 @@ module AppPerformancePlayground.Components.App
 open Fable.React
 open LibRouter.RoutesSpec
 open LibClient
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components
 open LibRouter.Components
 open AppPerformancePlayground.Navigation
@@ -16,7 +16,7 @@ type Ui.App with
     static member Root () : ReactElement =
         let isVisible = Hooks.useState false
 
-        RX.View [|
+        Rn.View [|
             LC.Button (
                 label = "Toggle",
                 state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (fun _ -> isVisible.update (fun curr -> not curr)))
@@ -24,13 +24,13 @@ type Ui.App with
             if isVisible.current then
                 [1 .. 100]
                 |> Seq.map (fun i ->
-                    RX.View (
-                        key = $"{i}",
-                        styles = [|Styles.Card|],
+                    Rn.View (
+                        key      = $"{i}",
+                        styles   = [|Styles.Card|],
                         children = [|
                             LC.Text (
                                 styles = [|Styles.Text|],
-                                value = "6 CDEF"
+                                value  = "6 CDEF"
                             )
                         |]
                     )
@@ -44,11 +44,11 @@ type Ui.App with
         let maybeRoute = maybeNavigationFrame |> Option.map NavigationFrame.route
 
         LC.AppShell.Content (
-            desktopSidebarStyle = AppShell.Content.DesktopSidebarStyle.Fixed,
+            desktopSidebarStyle = AppShell_Content.DesktopSidebarStyle.Fixed,
             sidebar             = Ui.Sidebar maybeRoute,
             topNav              = Ui.Nav.Top maybeRoute,
             onError             = LC.AppShell.TopLevelErrorMessage,
-            dialogs = (
+            dialogs             = (
                 LR.Dialogs (
                     nav          = nav,
                     dialogsState = navigationState.DialogsState,

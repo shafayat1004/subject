@@ -61,15 +61,15 @@ module JsonNode =
 
 [<RequireQualifiedAccess>]
 type EvolutionError =
-    | NoDecoderFound of JsonNodeShortForm: JsonNodeShortForm
+    | NoDecoderFound                of JsonNodeShortForm: JsonNodeShortForm
     | NoDecoderForEncodedNullValue
-    | TerminalNodeMismatch of {| Expected: TerminalJsonNode; Found : TerminalJsonNode |}
-    | TerminalNodeParsingError of Found: TerminalJsonNode
-    | KeyNotFoundInEncodedRecord of {| Expected: string; Found: List<string> |}
-    | DecodeErrorForKey of key: string
+    | TerminalNodeMismatch          of {| Expected: TerminalJsonNode; Found : TerminalJsonNode |}
+    | TerminalNodeParsingError      of Found: TerminalJsonNode
+    | KeyNotFoundInEncodedRecord    of {| Expected: string; Found: List<string> |}
+    | DecodeErrorForKey             of key: string
     | CannotReplaceOptWithByReqWith of Key: string
-    | TupleSizeMismatch of {| Expected: int; Found: int |}
-    | ChoiceSizeMismatch of {| Expected: int; Found: int |}
+    | TupleSizeMismatch             of {| Expected: int; Found: int |}
+    | ChoiceSizeMismatch            of {| Expected: int; Found: int |}
     | CannotRemoveAnyDecoder
 
 [<RequireQualifiedAccess>]

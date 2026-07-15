@@ -5,24 +5,24 @@ open System
 
 type RecurringJobExecution = {
     FiredOn: DateTimeOffset
-    Id: JobId
+    Id:      JobId
 }
 
 [<RequireQualifiedAccess>]
 type RecurringJobState =
 | Scheduled of DueOn: DateTimeOffset * LastExecution: Option<RecurringJobExecution>
-| Fired of NextDueOn: DateTimeOffset * RecurringJobExecution
+| Fired     of NextDueOn: DateTimeOffset * RecurringJobExecution
 
 type RecurringJob = {
-    Id: RecurringJobId
+    Id:   RecurringJobId
     Name: NonemptyString
     // TODO : make separate type for JobInstanceData, at least remove SentOn field, anything else?
     JobInstanceData: JobConstructorCommonData
-    CreatedOn: DateTimeOffset
-    CronExpression: string
-    TimeZoneId: string
-    State: RecurringJobState
-    HardDelete: bool
+    CreatedOn:       DateTimeOffset
+    CronExpression:  string
+    TimeZoneId:      string
+    State:           RecurringJobState
+    HardDelete:      bool
 }
 with
     interface Subject<RecurringJobId> with
@@ -35,13 +35,13 @@ type RecurringJobAction =
 | TriggerJob
 | OnFiredJobTimeout
 | OnJobStatusChanged of JobStatus
-| Update of CronExpression: string * TimeZoneId: string * JobConstructorCommonData
+| Update             of CronExpression: string * TimeZoneId: string * JobConstructorCommonData
 | HardDelete
 with interface LifeAction
 
 [<RequireQualifiedAccess>]
 type RecurringJobOpError =
-| ScheduleError of Message: string
+| ScheduleError       of Message: string
 | NameAlreadyReserved of Name: NonemptyString
 with interface OpError
 
@@ -89,7 +89,7 @@ type RecurringJobExecution with
             and! id = reqWith codecFor<_, JobId> "Id" (fun x -> Some x.Id)
             return {
                 FiredOn = firedOn
-                Id = id
+                Id      = id
              }
         }
     static member get_Codec () = ofObjCodec (RecurringJobExecution.get_ObjCodec_V1 ())
@@ -129,14 +129,14 @@ type RecurringJob with
             and! state = reqWith codecFor<_, RecurringJobState> "State" (fun x -> Some x.State)
             and! hardDelete = reqWith Codecs.boolean "HardDelete" (fun x -> Some x.HardDelete)
             return {
-                Id = maybeId |> Option.defaultWith (fun () -> RecurringJobId name.Value)
-                Name = name
+                Id              = maybeId |> Option.defaultWith (fun () -> RecurringJobId name.Value)
+                Name            = name
                 JobInstanceData = jobInstanceData
-                CreatedOn = createdOn
-                CronExpression = cronExpression
-                TimeZoneId = timeZoneId
-                State = state
-                HardDelete = hardDelete
+                CreatedOn       = createdOn
+                CronExpression  = cronExpression
+                TimeZoneId      = timeZoneId
+                State           = state
+                HardDelete      = hardDelete
              }
         }
 

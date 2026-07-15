@@ -3,8 +3,8 @@ module LibClient.Components.AppShell_NetworkFailureMessage
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module private Styles =
     let view       = makeViewStyles { margin 20; AlignItems.Center }
@@ -12,21 +12,21 @@ module private Styles =
 
 type LibClient.Components.Constructors.LC.AppShell with
     [<Component>]
-    static member NetworkFailureMessage(?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
+    static member NetworkFailureMessage(?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>, ?key: string) : ReactElement =
         key |> ignore
         let legacyStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some ls ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles ls with
                 | [] -> [||]
-                | s  -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" s |]
+                | s  -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" s |]
             | None -> [||]
-        RX.View(
-            styles = [| Styles.view; yield! legacyStyles |],
+        Rn.View(
+            styles   = [| Styles.view; yield! legacyStyles |],
             children = [|
                 LC.Heading(children = [| LC.UiText "Network Unreachable!" |])
-                RX.View(
-                    styles = [| Styles.secondLine |],
+                Rn.View(
+                    styles   = [| Styles.secondLine |],
                     children = [| LC.Text "It seems like you may have lost network connectivity, please check and try again." |]
                 )
             |]

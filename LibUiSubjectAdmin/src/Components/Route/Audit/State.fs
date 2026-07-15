@@ -4,8 +4,8 @@ module LibUiSubjectAdmin.Components.Route_Audit_State
 open Fable.React
 open LibClient
 open LibClient.Services.DateService
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components
 open LibRouter.Components
 open LibUiSubjectAdmin.Components
@@ -72,11 +72,11 @@ type UiSubjectAdmin.Route.Audit with
             LC.ScrollView (
                 scroll        = LibClient.Components.ScrollView.Scroll.Horizontal,
                 restoreScroll = LibClient.Components.ScrollView.RestoreScroll.No,
-                children = [|
+                children      = [|
                     LC.Section.Padded (styles = [|Styles.Content|], children = [|
-                        RX.View [|
+                        Rn.View [|
                             LC.AsyncData (
-                                data = dataState.current,
+                                data          = dataState.current,
                                 whenAvailable = fun snapshot -> element {
                                     LC.Heading [|LC.Text $"{service.LifeCycleKey.LocalLifeCycleName} Subject State Snapshot"|]
 

@@ -3,4 +3,3 @@ module ThirdParty.FilePicker.ComponentRegistration
 
 let registerAllTheThings () : unit =
     ()
-

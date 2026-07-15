@@ -1,7 +1,7 @@
 module LibClient.Icons
 
-open ReactXP.SVG
-open ReactXP.Styles
+open Rn.SVG
+open Rn.Styles
 
 type IconConstructor = Color -> int -> Icon
 
@@ -25,7 +25,7 @@ and Icon =
 
     static member (* protected *) MakeSvgPathIcon (viewboxDimensions: int * int) (pathDs: array<string>) (color: Color) (size: int) : Icon =
         pathDs
-        |> Array.map (fun d -> SvgPath {| fillColor = color.ToReactXPString; d = d |} [||])
+        |> Array.map (fun d -> SvgPath {| fillColor = color.ToRnString; d = d |} [||])
         |> Icon.MakeIcon viewboxDimensions size
 
     static member X = Icon.MakeSvgPathIcon (512, 512) [|

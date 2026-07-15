@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <LangVersion>7.0</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <Configurations>Fable Debug;Fable Release;Native Debug</Configurations>
     <DefineConstants>FABLE_COMPILER</DefineConstants>
     <Platforms>AnyCPU</Platforms>

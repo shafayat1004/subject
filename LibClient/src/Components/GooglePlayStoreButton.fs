@@ -4,10 +4,11 @@ module LibClient.Components.GooglePlayStoreButton
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.LocalImages
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -28,11 +29,11 @@ type LibClient.Components.Constructors.LC with
 
         LC.With.ScreenSize(
             fun screenSize ->
-                RX.View(
+                Rn.View(
                     styles = (styles |> Option.defaultValue [||]),
                     children =
                         elements {
-                            RX.Image(
+                            Rn.Image(
                                 styles =
                                     [|
                                         if screenSize = Responsive.ScreenSize.Desktop then
@@ -40,13 +41,18 @@ type LibClient.Components.Constructors.LC with
                                         else
                                             Styles.handheldImage
                                     |],
-                                source = localImage "/libs/LibClient/images/google-play.png",
+                                source     = localImage "/libs/LibClient/images/google-play.png",
                                 resizeMode = Image.ResizeMode.Contain,
-                                size = Size.FromStyles
+                                size       = Size.FromStyles
                             )
 
-                            LC.TapCapture(
-                                onPress = onPress
+                            LC.Pressable(
+                                onPress       = onPress,
+                                label         = "Get it on Google Play",
+                                testId        = "google-play-store-button",
+                                role          = AccessibilityRole.Link,
+                                overlay       = true,
+                                componentName = "LC.GooglePlayStoreButton"
                             )
                         }
                 )

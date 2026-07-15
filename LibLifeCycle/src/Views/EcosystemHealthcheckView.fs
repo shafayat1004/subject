@@ -8,9 +8,9 @@ open LibLifeCycle.ViewAccessBuilder
 open Microsoft.Extensions.Logging
 
 type SubjectTransactionHealthcheckViewEnvironment = {
-    Clock: Service<Clock>
+    Clock:              Service<Clock>
     HealthcheckManager: Service<EcosystemHealthManager>
-    Logger: ILogger<SubjectTransactionHealthcheckViewEnvironment>
+    Logger:             ILogger<SubjectTransactionHealthcheckViewEnvironment>
 } with interface Env
 
 let private view

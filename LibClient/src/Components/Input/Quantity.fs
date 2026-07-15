@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Icons
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Input =
@@ -27,8 +27,8 @@ module LC =
             }
 
             type Theme = {
-                NormalColors: ThemeColors
-                InvalidColors: ThemeColors
+                NormalColors:        ThemeColors
+                InvalidColors:       ThemeColors
                 InvalidMessageColor: Color
             }
 
@@ -38,18 +38,20 @@ open LC.Input.QuantityTypes
 module private Styles =
     let field =
         ViewStyles.Memoize(
-            fun (theme: Theme) (isInvalid: bool) ->
+            fun (outlineColor: Color) ->
                 makeViewStyles {
                     FlexDirection.Row
                     AlignItems.Stretch
                     borderWidth  1
                     borderRadius 4
                     size         96 32
-
-                    borderColor
-                        (if isInvalid then theme.InvalidColors.Border else theme.NormalColors.Border)
+                    borderColor outlineColor
                 }
         )
+
+    let fieldFor (theme: Theme) (isInvalid: bool) =
+        let colors = if isInvalid then theme.InvalidColors else theme.NormalColors
+        field colors.Border
 
 
     let side =
@@ -69,21 +71,23 @@ module private Styles =
 
     let centerText =
         TextStyles.Memoize(
-            fun (theme: Theme) (isInvalid: bool) ->
+            fun (valueColor: Color) ->
                 makeTextStyles {
                     fontSize 16
-
-                    color
-                        (if isInvalid then theme.InvalidColors.Value else theme.NormalColors.Value)
+                    color valueColor
                 }
         )
 
+    let centerTextFor (theme: Theme) (isInvalid: bool) =
+        let colors = if isInvalid then theme.InvalidColors else theme.NormalColors
+        centerText colors.Value
+
     let invalidReason =
         TextStyles.Memoize(
-            fun (theme: Theme) ->
+            fun (reasonColor: Color) ->
                 makeTextStyles {
                     fontSize 12
-                    color theme.InvalidMessageColor
+                    color reasonColor
                 }
         )
 
@@ -97,37 +101,37 @@ module private Styles =
             Actionable =
                 { theme.Actionable with
                     IconColor = themeColors.Icons
-                    IconSize = iconSize
+                    IconSize  = iconSize
                 }
         }
 
 type LibClient.Components.Constructors.LC.Input with
     [<Component>]
     static member Quantity(
-        value: Option<PositiveInteger>,
+        value:    Option<PositiveInteger>,
         validity: InputValidity,
         onChange: OnChange,
-        ?max: PositiveInteger,
-        ?theme: Theme -> Theme,
-        ?styles: array<ViewStyles>,
-        ?key: string
+        ?max:     PositiveInteger,
+        ?theme:   Theme -> Theme,
+        ?styles:  array<ViewStyles>,
+        ?key:     string
     ) : ReactElement =
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
         let isInvalid = validity.IsInvalid
 
-        RX.View(
+        Rn.View(
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [|
-                            Styles.field theTheme isInvalid
+                            Styles.fieldFor theTheme isInvalid
                             yield! styles |> Option.defaultValue [||]
                         |],
                         children =
                             elements {
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.side |],
                                     children =
                                         elements {
@@ -136,16 +140,18 @@ type LibClient.Components.Constructors.LC.Input with
                                                 match (quantity - 1, onChange) with
                                                 | (None, CanRemove onChange) ->
                                                     LC.IconButton(
+                                                        label = "Remove",
                                                         theme = Styles.iconButtonTheme theTheme isInvalid true,
-                                                        icon = Icon.GarbageBin,
+                                                        icon  = Icon.GarbageBin,
                                                         state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange None))
                                                     )
                                                 | (None, CannotRemove _) ->
                                                     noElement
                                                 | (Some decremented, onChange) ->
                                                     LC.IconButton(
+                                                        label = "Decrease",
                                                         theme = Styles.iconButtonTheme theTheme isInvalid false,
-                                                        icon = Icon.Minus,
+                                                        icon  = Icon.Minus,
                                                         state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange.Call decremented))
                                                     )
                                             | None ->
@@ -153,15 +159,15 @@ type LibClient.Components.Constructors.LC.Input with
                                         }
                                 )
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.center |],
                                     children =
                                         elements {
                                             match value with
                                             | Some value ->
                                                 LC.Text(
-                                                    value = (string value.Value),
-                                                    styles = [| Styles.centerText theTheme isInvalid |]
+                                                    value  = (string value.Value),
+                                                    styles = [| Styles.centerTextFor theTheme isInvalid |]
                                                 )
                                             | None ->
                                                 noElement
@@ -172,7 +178,7 @@ type LibClient.Components.Constructors.LC.Input with
                                     value
                                     |> Option.mapOrElse PositiveInteger.One (fun q -> q + 1u)
 
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.side |],
                                     children =
                                         elements {
@@ -189,8 +195,9 @@ type LibClient.Components.Constructors.LC.Input with
                                             match maybeIncremented with
                                             | Some incremented ->
                                                 LC.IconButton(
+                                                    label = "Increase",
                                                     theme = Styles.iconButtonTheme theTheme isInvalid false,
-                                                    icon = Icon.Plus,
+                                                    icon  = Icon.Plus,
                                                     state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable (onChange.Call incremented))
                                                 )
                                             | None ->
@@ -202,12 +209,12 @@ type LibClient.Components.Constructors.LC.Input with
 
                     match validity.InvalidReason with
                     | Some reason ->
-                        RX.View(
+                        Rn.View(
                             children =
                                 elements {
                                     LC.Text(
                                         reason,
-                                        styles = [| Styles.invalidReason theTheme |]
+                                        styles = [| Styles.invalidReason theTheme.InvalidMessageColor |]
                                     )
                                 }
                         )

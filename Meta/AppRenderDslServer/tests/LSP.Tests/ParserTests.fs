@@ -85,10 +85,10 @@ let ``parse a DidOpenTextDocument notification`` () =
     let expected = (DidOpenTextDocument {
             textDocument =
                 {
-                    uri = Uri("file://workspace/RenderDSLServer.fs")
+                    uri        = Uri("file://workspace/RenderDSLServer.fs")
                     languageId = "fsharp"
-                    version = 1
-                    text = "let x = 1"
+                    version    = 1
+                    text       = "let x = 1"
                 }
         })
     Assert.AreEqual(expected, found)
@@ -108,15 +108,15 @@ let ``parse a DidChangeTextDocument notification`` () =
     let expected = (DidChangeTextDocument {
             textDocument =
                 {
-                    uri = Uri("file://workspace/RenderDSLServer.fs")
+                    uri     = Uri("file://workspace/RenderDSLServer.fs")
                     version = 1
                 }
             contentChanges =
             [
                 {
-                    range = None
+                    range       = None
                     rangeLength = None
-                    text = "let x = 1"
+                    text        = "let x = 1"
                 }
             ]
         })
@@ -142,17 +142,17 @@ let ``parse a DidChangeTextDocument notification with range`` () =
     let expected = (DidChangeTextDocument {
             textDocument =
                 {
-                    uri = Uri("file://workspace/RenderDSLServer.fs")
+                    uri     = Uri("file://workspace/RenderDSLServer.fs")
                     version = 1
                 }
             contentChanges =
             [{
                 range = Some {
-                    start = {line = 0; character = 0}
+                    start   = {line = 0; character = 0}
                     ``end`` = {line = 0; character = 3}
                 }
                 rangeLength = Some 3
-                text = "let x = 1"
+                text        = "let x = 1"
             }]
         })
     Assert.AreEqual(expected, found)
@@ -168,7 +168,7 @@ let ``parse a WillSaveTextDocument notification`` () =
     let found = parseNotification("textDocument/willSave", Some(json))
     let expected = (WillSaveTextDocument {
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
-            reason = TextDocumentSaveReason.AfterDelay
+            reason       = TextDocumentSaveReason.AfterDelay
         })
     Assert.AreEqual(expected, found)
 
@@ -183,7 +183,7 @@ let ``parse a WillSaveWaitUntilTextDocument request`` () =
     let found = parseRequest("textDocument/willSaveWaitUntil", json)
     let expected = (WillSaveWaitUntilTextDocument {
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
-            reason = TextDocumentSaveReason.AfterDelay
+            reason       = TextDocumentSaveReason.AfterDelay
         })
     Assert.AreEqual(expected, found)
 
@@ -197,7 +197,7 @@ let ``parse a DidSaveTextDocument notification`` () =
     let found = parseNotification("textDocument/didSave", Some(json))
     let expected = (DidSaveTextDocument {
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
-            text = None
+            text         = None
         })
     Assert.AreEqual(expected, found)
 
@@ -212,7 +212,7 @@ let ``parse a DidSaveTextDocument notification with text`` () =
     let found = parseNotification("textDocument/didSave", Some(json))
     let expected = (DidSaveTextDocument {
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
-            text = Some "let x = 1"
+            text         = Some "let x = 1"
         })
     Assert.AreEqual(expected, found)
 
@@ -241,7 +241,7 @@ let ``parse a DidChangeWatchedFiles notification`` () =
     let expected = (DidChangeWatchedFiles {
             changes =
                 [{
-                    uri = Uri("file://workspace/RenderDSLServer.fs")
+                    uri      = Uri("file://workspace/RenderDSLServer.fs")
                     ``type`` = FileChangeType.Changed
                 }]
         })
@@ -258,11 +258,11 @@ let ``parse a minimal Initialize request`` () =
     let (Initialize i) = parseRequest("initialize", json)
     let expected = (
             {
-                processId = Some(1);
-                rootUri = Some(Uri("file:///workspace"));
+                processId             = Some(1);
+                rootUri               = Some(Uri("file:///workspace"));
                 initializationOptions = None;
-                capabilitiesMap = Map.empty;
-                trace = None
+                capabilitiesMap       = Map.empty;
+                trace                 = None
             }
         )
     Assert.AreEqual(expected, i)
@@ -299,7 +299,7 @@ let ``processId can be null`` () =
     }"""
     let (Initialize i) = parseRequest("initialize", json)
     Assert.AreEqual(None, i.processId)
-   
+
 [<Test>]
 let ``parse capabilities as map`` () =
     let json = JsonValue.Parse """{
@@ -336,7 +336,7 @@ let ``parse Completion request`` () =
                 }
             position =
                 {
-                    line = 0
+                    line      = 0
                     character = 5
                 }
         })
@@ -349,19 +349,19 @@ let ``parse minimal ResolveCompletionItem request`` () =
     }"""
     let found = parseRequest("completionItem/resolve", json)
     let expected = (ResolveCompletionItem {
-            label = "foo"
-            kind = None
-            detail = None
-            documentation = None
-            sortText = None
-            filterText = None
-            insertText = None
-            insertTextFormat = None
-            textEdit = None
+            label               = "foo"
+            kind                = None
+            detail              = None
+            documentation       = None
+            sortText            = None
+            filterText          = None
+            insertText          = None
+            insertTextFormat    = None
+            textEdit            = None
             additionalTextEdits = []
-            commitCharacters = []
-            command = None
-            data = JsonValue.Null
+            commitCharacters    = []
+            command             = None
+            data                = JsonValue.Null
         })
     Assert.AreEqual(expected, found)
 
@@ -400,18 +400,18 @@ let ``parse maximal ResolveCompletionItem request`` () =
     }"""
     let found = parseRequest("completionItem/resolve", json)
     let expected = (ResolveCompletionItem {
-            label = "foo"
-            kind = Some CompletionItemKind.Text
-            detail = Some "foo(): string"
-            documentation = Some({kind=MarkupKind.Markdown; value="Foo returns foo"})
-            sortText = Some "1/foo"
-            filterText = Some "foo"
-            insertText = Some "foo()"
+            label            = "foo"
+            kind             = Some CompletionItemKind.Text
+            detail           = Some "foo(): string"
+            documentation    = Some({kind=MarkupKind.Markdown; value="Foo returns foo"})
+            sortText         = Some "1/foo"
+            filterText       = Some "foo"
+            insertText       = Some "foo()"
             insertTextFormat = Some InsertTextFormat.PlainText
-            textEdit = Some {
+            textEdit         = Some {
                 range =
                     {
-                        start = {line = 0; character = 0}
+                        start   = {line = 0; character = 0}
                         ``end`` = {line = 0; character = 2}
                     }
                 newText = "foo()"
@@ -420,15 +420,15 @@ let ``parse maximal ResolveCompletionItem request`` () =
                 [{
                     range =
                         {
-                            start = {line = 1; character = 0}
+                            start   = {line = 1; character = 0}
                             ``end`` = {line = 1; character = 0}
                         }
                     newText = "foo()"
                 }]
             commitCharacters = ['\t']
-            command = Some {
-                title = "eval"
-                command = "do/eval"
+            command          = Some {
+                title     = "eval"
+                command   = "do/eval"
                 arguments = [JsonValue.Parse """{"hello":"world"}"""]
             }
             data = JsonValue.Parse """{"hello":"world"}"""
@@ -451,7 +451,7 @@ let ``parse SignatureHelp request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             position =
                 {
-                    line = 0
+                    line      = 0
                     character = 5
                 }
         })
@@ -473,7 +473,7 @@ let ``parse GotoDefinition request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             position =
                 {
-                    line = 0
+                    line      = 0
                     character = 5
                 }
         })
@@ -496,8 +496,8 @@ let ``parse FindReferences request`` () =
     let found = parseRequest("textDocument/references", json)
     let expected = (FindReferences {
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
-            position = { line = 0; character = 5 }
-            context = { includeDeclaration = true }
+            position     = { line = 0; character = 5 }
+            context      = { includeDeclaration = true }
         })
     Assert.AreEqual(expected, found)
 
@@ -515,7 +515,7 @@ let ``parse DocumentHighlight request`` () =
     let found = parseRequest("textDocument/documentHighlight", json)
     let expected = (DocumentHighlight {
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
-            position = { line = 0; character = 5 }
+            position     = { line = 0; character = 5 }
         })
     Assert.AreEqual(expected, found)
 
@@ -568,7 +568,7 @@ let ``parse minimal CodeActions request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
             context =
@@ -577,13 +577,13 @@ let ``parse minimal CodeActions request`` () =
                         [{
                             range =
                                 {
-                                    start = {line = 1; character = 0}
+                                    start   = {line = 1; character = 0}
                                     ``end`` = {line = 1; character = 0}
                                 }
                             severity = None
-                            code = None
-                            source = None
-                            message = "Some error"
+                            code     = None
+                            source   = None
+                            message  = "Some error"
                         }]
                 }
         })
@@ -617,7 +617,7 @@ let ``parse maximal CodeActions request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
             context =
@@ -626,13 +626,13 @@ let ``parse maximal CodeActions request`` () =
                         [{
                             range =
                                 {
-                                    start = {line = 1; character = 0}
+                                    start   = {line = 1; character = 0}
                                     ``end`` = {line = 1; character = 0}
                                 }
                             severity = Some DiagnosticSeverity.Error
-                            code = Some "SomeError"
-                            source = Some "compiler"
-                            message = "Some error"
+                            code     = Some "SomeError"
+                            source   = Some "compiler"
+                            message  = "Some error"
                         }]
                 }
         })
@@ -664,7 +664,7 @@ let ``parse CodeActions request with an integer code`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
             context =
@@ -673,13 +673,13 @@ let ``parse CodeActions request with an integer code`` () =
                         [{
                             range =
                                 {
-                                    start = {line = 1; character = 0}
+                                    start   = {line = 1; character = 0}
                                     ``end`` = {line = 1; character = 0}
                                 }
                             severity = None
-                            code = Some "1"
-                            source = None
-                            message = "Some error"
+                            code     = Some "1"
+                            source   = None
+                            message  = "Some error"
                         }]
                 }
         })
@@ -710,11 +710,11 @@ let ``parse minimal ResolveCodeLens request`` () =
     let expected = (ResolveCodeLens {
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
             command = None
-            data = JsonValue.Null
+            data    = JsonValue.Null
         })
     Assert.AreEqual(expected, found)
 
@@ -736,12 +736,12 @@ let ``parse maximal ResolveCodeLens request`` () =
     let expected = (ResolveCodeLens {
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
             command = Some {
-                title = "save"
-                command = "doSave"
+                title     = "save"
+                command   = "doSave"
                 arguments = [JsonValue.String "hi"]
             }
             data = JsonValue.String "hi"
@@ -773,7 +773,7 @@ let ``parse ResolveDocumentLink request`` () =
     let expected = (ResolveDocumentLink {
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
             target = None
@@ -799,7 +799,7 @@ let ``parse DocumentFormatting request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             options =
                 {
-                    tabSize = 1
+                    tabSize      = 1
                     insertSpaces = true
                 }
             optionsMap = Map.ofSeq
@@ -836,7 +836,7 @@ let ``parse DocumentRangeFormatting request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             options =
                 {
-                    tabSize = 1
+                    tabSize      = 1
                     insertSpaces = true
                 }
             optionsMap = Map.ofSeq
@@ -849,7 +849,7 @@ let ``parse DocumentRangeFormatting request`` () =
                 ]
             range =
                 {
-                    start = {line = 1; character = 0}
+                    start   = {line = 1; character = 0}
                     ``end`` = {line = 1; character = 0}
                 }
         })
@@ -879,7 +879,7 @@ let ``parse DocumentOnTypeFormatting request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             options =
                 {
-                    tabSize = 1
+                    tabSize      = 1
                     insertSpaces = true
                 }
             optionsMap = Map.ofSeq
@@ -892,7 +892,7 @@ let ``parse DocumentOnTypeFormatting request`` () =
                 ]
             position =
                 {
-                    line = 0
+                    line      = 0
                     character = 0
                 }
             ch = 'a'
@@ -916,7 +916,7 @@ let ``parse Rename request`` () =
             textDocument = { uri = Uri("file://workspace/RenderDSLServer.fs") }
             position =
                 {
-                    line = 0
+                    line      = 0
                     character = 0
                 }
             newName = "foo"
@@ -930,7 +930,7 @@ let ``parse ExecuteCommand request with no arguments`` () =
     }"""
     let found = parseRequest("workspace/executeCommand", json)
     let expected = (ExecuteCommand {
-            command = "foo"
+            command   = "foo"
             arguments = []
         })
     Assert.AreEqual(expected, found)
@@ -943,7 +943,7 @@ let ``parse ExecuteCommand request with arguments`` () =
     }"""
     let found = parseRequest("workspace/executeCommand", json)
     let expected = (ExecuteCommand {
-            command = "foo"
+            command   = "foo"
             arguments = [JsonValue.String "bar"]
         })
     Assert.AreEqual(expected, found)

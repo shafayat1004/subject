@@ -3,8 +3,8 @@ module LibClient.Components.TriStateful_Simple
 
 open LibClient
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LC.TriStateful.Abstract
 
 module private Styles =
@@ -25,13 +25,13 @@ type LibClient.Components.Constructors.LC.TriStateful with
                 match mode with
                 | Mode.Initial -> noElement
                 | Mode.InProgress ->
-                    RX.View(styles = [| Styles.shield |], children = [|
-                        RX.ActivityIndicator(size = Size.Small, color = "#aaaaaa")
+                    Rn.View(styles = [| Styles.shield |], children = [|
+                        Rn.ActivityIndicator(size = Size.Small, color = "#aaaaaa")
                     |])
                 | Mode.Error message ->
-                    RX.View(styles = [| Styles.shield; Styles.error |], children = [|
+                    Rn.View(styles = [| Styles.shield; Styles.error |], children = [|
                         LC.Text(message, styles = [| Styles.message |])
-                        LC.Button(label = "Ok", state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable reset))
+                        LC.Button(label         = "Ok", state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable reset))
                     |])
             |]
         )

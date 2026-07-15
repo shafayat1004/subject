@@ -1,0 +1,1 @@
+EggShell gallery audit fixture file.

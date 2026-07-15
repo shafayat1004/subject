@@ -1,3 +1,0 @@
-<div class='view'>
-    Take a deep breath. Here's something: {props.Something}.
-</div>

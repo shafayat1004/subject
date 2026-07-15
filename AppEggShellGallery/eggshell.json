@@ -29,7 +29,7 @@
 		],
 		"componentLibraryAliases": [
 			["default",           "AppEggShellGallery.Components"],
-			["RX",                "ReactXP.Components"],
+			["Rn",                "Rn.Components"],
 			["LC",                "LibClient.Components"],
 			["LR",                "LibRouter.Components"],
 			["UiAdmin",           "LibUiAdmin.Components"],
@@ -40,13 +40,13 @@
 		],
 		"componentLibraryPaths": [
 			["LibClient.Components", "../LibClient/src/Components"],
-			["ReactXP.Components",   "../LibClient/src/ReactXP/Components"]
+			["Rn.Components",   "../LibClient/src/Rn/Components"]
 		],
 		"componentAliases": [
-			["div",       "RX.View"],
-			["anidiv",    "RX.AnimatableView"],
+			["div",       "Rn.View"],
+			["anidiv",    "Rn.AnimatableView"],
 			["text",      "LC.LegacyText"],
-			["anitext",   "RX.AnimatableText"],
+			["anitext",   "Rn.AnimatableText"],
 			["uitext",    "LC.LegacyUiText"]
 		]
 	},
@@ -58,7 +58,7 @@
 			["public-dev/Montserrat-Light.ttf",  "public/[resources]/Montserrat-Light.ttf"],
 			["public-dev/Montserrat-Medium.ttf", "public/[resources]/Montserrat-Medium.ttf"],
 			["images/**/*",                      "public/[resources]/images/"],
-			["../Meta/Docs/**/*",                "public/[resources]/docs/"]
+			["public-dev/docs/**/*",             "public/[resources]/docs/"]
 		]
 	}
 }

@@ -2,21 +2,21 @@
 module LibClient.Components.HandheldListItem
 
 open Fable.React
-open Browser.Types
 
 open LibClient
+open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 // Public types are nested under `module LC = module HandheldListItem` (the Tab.fs pattern) so their
 // union cases (Disabled/InProgress/Actionable/Text/Icon/Number/...) are NOT leaked into the global
 // namespace by [<AutoOpen>] — otherwise they collide with other components' same-named cases
-// (ButtonLowLevelState, FloatingActionButtonStyles.State) used unqualified elsewhere. See LEARNINGS.md.
+// (ButtonLowLevelState, FloatingActionButtonStyles.State) used unqualified elsewhere. See the gallery docs runbooks/troubleshooting.md.
 module LC =
     module HandheldListItem =
         type State =
-        | Actionable of OnPress: (Browser.Types.Event -> unit)
+        | Actionable of OnPress: (ReactEvent.Action -> unit)
         | InProgress
         | Disabled
         with
@@ -38,6 +38,7 @@ open LC.HandheldListItem
 module private Styles =
     let view =
         makeViewStyles {
+            Position.Relative
             FlexDirection.Row
             AlignItems.Center
             minHeight    42
@@ -61,6 +62,21 @@ module private Styles =
 
     let numberText = makeTextStyles { color Color.White }
 
+let private a11yLabel (label: Label) =
+    match label with
+    | Label.Text text -> text
+    | Label.Children  -> "List item"
+
+let private itemA11yState (state: State) =
+    match state with
+    | Disabled   -> AccessibilityStateRecord.disabled true
+    | InProgress -> AccessibilityStateRecord.busy true
+    | _          -> AccessibilityStateRecord.empty
+
+let private itemTestId (label: Label) (testId: string option) =
+    let text = a11yLabel label
+    testId |> Option.orElse (Some (A11ySlug.testId "handheld-list-item" text))
+
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member HandheldListItem(
@@ -69,7 +85,8 @@ type LibClient.Components.Constructors.LC with
             ?children:      array<ReactElement>,
             ?leftIcon:      int -> LibClient.Icons.Icon,
             ?right:         Right,
-            ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?testId:        string,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:           string
         ) : ReactElement =
         key |> ignore
@@ -78,27 +95,27 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
-        let onPress : Option<PointerEvent -> unit> =
+        let onPress =
             match state with
-            | Actionable onPress -> Some (fun (e: PointerEvent) -> e.stopPropagation(); onPress e)
+            | Actionable onPress -> Some onPress
             | _                  -> None
 
-        RX.View(
-            styles   = [| Styles.view; yield! legacyViewStyles |],
-            ?onPress = onPress,
+        Rn.View(
+            styles            = [| Styles.view; yield! legacyViewStyles |],
+            accessibilityRole = AccessibilityRole.ListItem,
             children =
                 [|
                     (match leftIcon with
-                     | Some icon -> RX.View(styles = [| Styles.leftIcon |], children = [| (icon 20 :> ReactElement) |])
+                     | Some icon -> Rn.View(styles = [| Styles.leftIcon |], children = [| (icon 20 :> ReactElement) |])
                      | None      -> noElement)
 
-                    RX.View(
-                        styles   = [| Styles.label |],
+                    Rn.View(
+                        styles = [| Styles.label |],
                         children =
                             [|
                                 (match label with
@@ -109,20 +126,34 @@ type LibClient.Components.Constructors.LC with
 
                     (match right with
                      | Some right ->
-                        RX.View(
-                            styles   = [| Styles.right |],
+                        Rn.View(
+                            styles = [| Styles.right |],
                             children =
                                 (match right with
                                  | Right.Number number ->
-                                     [| RX.View(styles = [| Styles.number |], children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |]) |]
+                                     [| Rn.View(styles = [| Styles.number |], children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |]) |]
                                  | Right.Icon icon ->
-                                     [| RX.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |]) |]
+                                     [| Rn.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |]) |]
                                  | Right.NumberAndIcon (number, icon) ->
                                      [|
-                                         RX.View(styles = [| Styles.number |],    children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |])
-                                         RX.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |])
+                                         Rn.View(styles = [| Styles.number |],    children = [| (LC.Text(string number, styles = [| Styles.numberText |])) |])
+                                         Rn.View(styles = [| Styles.rightIcon |], children = [| (icon 32 :> ReactElement) |])
                                      |])
                         )
                      | None -> noElement)
+
+                    match onPress with
+                    | Some onPress ->
+                        LC.Pressable(
+                            onPress       = onPress,
+                            label         = a11yLabel label,
+                            role          = AccessibilityRole.Button,
+                            state         = itemA11yState state,
+                            testId        = (itemTestId label testId |> Option.defaultValue (A11ySlug.testId "handheld-list-item" (a11yLabel label))),
+                            overlay       = true,
+                            componentName = "LC.HandheldListItem"
+                        )
+                    | None ->
+                        noElement
                 |]
         )

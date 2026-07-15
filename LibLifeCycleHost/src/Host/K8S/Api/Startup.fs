@@ -47,11 +47,11 @@ type Startup(ecosystem: Ecosystem, buildAssembly: BuildAssembly, hostConfigurati
     [<VolatileField>]
     let mutable isClusterClientConnected = false
 
-    let sqlServerConfig         = configuration.GetSection("Storage.SqlServer").GetAndValidate<SqlServerConfiguration>()
+    let sqlServerConfig = configuration.GetSection("Storage.SqlServer").GetAndValidate<SqlServerConfiguration>()
 
     let orleansMembershipConnectionString = configuration.GetSection("Orleans.Clustering")["MembershipConnectionString"];
 
-    let certificateConfig       = configuration.GetSection("Certificate").Get<CertificateConfiguration>()
+    let certificateConfig      = configuration.GetSection("Certificate").Get<CertificateConfiguration>()
     let maybeAppInsightsConfig = configuration.GetSection("AppInsights").TryGetAndTryValidate<AppInsightsConfiguration>()
 
     let (orleansTlsCertificate, orleansHostName) = getOrleansTlsCertificateAndHostName ecosystem.Name certificateConfig.UseDevelopmentCertificate
@@ -153,12 +153,12 @@ type Startup(ecosystem: Ecosystem, buildAssembly: BuildAssembly, hostConfigurati
                             ecosystem,
                             buildAssembly.Assembly,
                             EcosystemSiloClientSetup.ApiToHost
-                                { OrleansTlsCertificate = orleansTlsCertificate
-                                  OrleansHostName = orleansHostName
+                                { OrleansTlsCertificate      = orleansTlsCertificate
+                                  OrleansHostName            = orleansHostName
                                   MembershipConnectionString = orleansMembershipConnectionString
-                                  HostingEnvironment = hostingEnv
-                                  OperationTracker = operationTracker
-                                  MaybeAppInsightsConfig = maybeAppInsightsConfig })
+                                  HostingEnvironment         = hostingEnv
+                                  OperationTracker           = operationTracker
+                                  MaybeAppInsightsConfig     = maybeAppInsightsConfig })
                         |> fun clientBuilder -> clientBuilder.Build()
                     :> IGrainFactory
             )

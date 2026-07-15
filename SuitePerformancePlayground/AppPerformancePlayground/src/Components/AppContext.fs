@@ -11,10 +11,10 @@ type Ui with
     [<Component>]
     static member AppContext(children: ReactChildrenProp) =
         LR.NavigationRouter (
-            spec = routesSpec(),
+            spec            = routesSpec(),
             navigationState = navigationState,
-            queue = navigationQueue,
-            child = element {
+            queue           = navigationQueue,
+            child           = element {
                 #if !EGGSHELL_PLATFORM_IS_WEB
                 LR.NativeBackButton(nav.GoBack)
                 #endif

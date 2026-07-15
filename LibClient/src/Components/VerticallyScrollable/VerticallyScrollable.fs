@@ -5,10 +5,10 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
-// See LEARNINGS.md (render-DSL -> F# recipe). Don't `open ReactXP.LegacyStyles` (shadows new-dialect rules).
+// See the gallery docs modernization/render-dsl-retirement.md (conversion recipe). Don't `open Rn.LegacyStyles` (shadows new-dialect rules).
 // Per-section style params (`topStyles`/`middleStyles`/`bottomStyles`) replace the old legacy mechanism
 // where a parent styled this component's internal "top"/"middle"/"bottom" blocks via class cascade.
 
@@ -25,11 +25,12 @@ type LibClient.Components.Constructors.LC with
             ?fixedTop:         ReactElement,
             ?scrollableMiddle: ReactElement,
             ?fixedBottom:      ReactElement,
+            ?middleTestId:     string,
             ?styles:           array<ViewStyles>,
             ?topStyles:        array<ViewStyles>,
             ?middleStyles:     array<ScrollViewStyles>,
             ?bottomStyles:     array<ViewStyles>,
-            ?xLegacyStyles:    List<ReactXP.LegacyStyles.RuntimeStyles>,
+            ?xLegacyStyles:    List<Rn.LegacyStyles.RuntimeStyles>,
             ?key:              string
         ) : ReactElement =
         key |> ignore
@@ -37,12 +38,12 @@ type LibClient.Components.Constructors.LC with
         let legacyViewStyles : array<ViewStyles> =
             match xLegacyStyles with
             | Some legacyStyles ->
-                match ReactXP.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
+                match Rn.LegacyStyles.Runtime.findTopLevelBlockStyles legacyStyles with
                 | []     -> [||]
-                | styles -> [| ReactXP.LegacyStyles.Runtime.prepareStylesForPassingToReactXpComponent<ViewStyles> "ReactXP.Components.View" styles |]
+                | styles -> [| Rn.LegacyStyles.Runtime.prepareStylesForPassingToRnComponent<ViewStyles> "Rn.Components.View" styles |]
             | None -> [||]
 
-        RX.View(
+        Rn.View(
             styles =
                 [|
                     Styles.view
@@ -52,15 +53,15 @@ type LibClient.Components.Constructors.LC with
             children =
                 [|
                     (match fixedTop with
-                     | Some el -> RX.View(styles = [| Styles.top; yield! (defaultArg topStyles [||]) |], children = [| el |])
+                     | Some el -> Rn.View(styles = [| Styles.top; yield! (defaultArg topStyles [||]) |], children = [| el |])
                      | None    -> noElement)
 
                     (match scrollableMiddle with
-                     | Some el -> RX.ScrollView(vertical = true, styles = [| Styles.middle; yield! (defaultArg middleStyles [||]) |], children = [| el |])
+                     | Some el -> Rn.ScrollView(?testId = middleTestId, vertical = true, styles = [| Styles.middle; yield! (defaultArg middleStyles [||]) |], children = [| el |])
                      | None    -> noElement)
 
                     (match fixedBottom with
-                     | Some el -> RX.View(styles = [| Styles.bottom; yield! (defaultArg bottomStyles [||]) |], children = [| el |])
+                     | Some el -> Rn.View(styles = [| Styles.bottom; yield! (defaultArg bottomStyles [||]) |], children = [| el |])
                      | None    -> noElement)
                 |]
         )

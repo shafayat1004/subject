@@ -1,5 +1,9 @@
 # RenderDSL Introduction
 
+> **Legacy section.** The render DSL is retired in product code. New components are pure F# using
+> the `[<Component>]` attribute. This page documents the DSL for reference and for understanding
+> the compiler test fixtures. See [How to Add a Component](./fsharp/component.md).
+
 RenderDSL is a domain-specific language for building React component render functions.
 It is similar to JSX, except control flow (if, match, loop/map, etc) are also implemented
 as XML tags and attributes.
@@ -41,7 +45,7 @@ The following language constructs are available:
   control flow attributes
 * A couple flavours of string interpolation are supported
 * Passing react elements through props in various ways is supported
-* `rt-class` and `class` attributes allow styling of both DOM elements and ReactXP base components
+* `rt-class` and `class` attributes allow styling of both DOM elements and `Rn.*` base components (formerly ReactXP base components)
 * `rt-prop` tag allows you to wrap some elements to pass them through props to the parent component,
   which enables construction of various higher-order components
 * `rt-outer-let` tag is for special cases of using children to construct props that are not served
@@ -332,7 +336,7 @@ There are a few standard use cases for classes, as illustrated by the following 
 * Dynamically named, conditionally present class — put it in the `rt-class` attribute, using the
   backtick syntax for the name
 
-On DOM elements, classes just get added to the element. For ReactXP components, based on the class
+On DOM elements, classes just get added to the element. For `Rn.*` components (formerly ReactXP components), based on the class
 names that end up on leaf node elements, actual style rules are extracted from the style sheet, and
 passed into the component's `style` prop. See the [StylesDSL documentation](./stylesDsl/index.md)
 for details.

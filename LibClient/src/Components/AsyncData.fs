@@ -6,8 +6,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -37,11 +37,11 @@ module private Styles =
 type private HelperComponents =
     [<Component>]
     static member ActivityIndicator(overlay: bool) : ReactElement =
-        RX.View(
+        Rn.View(
             key = "activityIndicator",
             children =
                 elements {
-                    RX.ActivityIndicator(
+                    Rn.ActivityIndicator(
                         color = "#aaaaaa"
                     )
                 },
@@ -54,17 +54,28 @@ type private HelperComponents =
                 |]
         )
 
+type private FailureProps = {
+    Error: AsyncDataFailure
+}
+
+type private ThrowAsyncDataFailure(initialProps: FailureProps) as this =
+    inherit Fable.React.Component<FailureProps, unit>(initialProps)
+
+    override _.render() =
+        raise (AsyncDataException this.props.Error)
+        noElement
+
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member AsyncData<'T>(
-            data: LibClient.AsyncDataModule.AsyncData<'T>,
-            whenAvailable: 'T -> ReactElement,
+            data:               LibClient.AsyncDataModule.AsyncData<'T>,
+            whenAvailable:      'T -> ReactElement,
             ?whenUninitialized: unit -> ReactElement,
-            ?whenFetching: Option<'T> -> ReactElement,
-            ?whenFailed: AsyncDataFailure -> ReactElement,
-            ?whenUnavailable: unit -> ReactElement,
-            ?whenAccessDenied: unit -> ReactElement,
-            ?whenElse: unit -> ReactElement
+            ?whenFetching:      Option<'T> -> ReactElement,
+            ?whenFailed:        AsyncDataFailure -> ReactElement,
+            ?whenUnavailable:   unit -> ReactElement,
+            ?whenAccessDenied:  unit -> ReactElement,
+            ?whenElse:          unit -> ReactElement
         ) : ReactElement =
         // It is vitally important that we keep the child stable in terms of its identity in the React tree, so that React does not
         // unnecessarily remount it in response to changes to data. Without this wrapping, a transition from Fetching to Available
@@ -136,10 +147,9 @@ type LibClient.Components.Constructors.LC with
                 match whenFailed, whenElse with
                 | None, None ->
                     // error boundaries up the tree should catch this and deal with it as appropriate
-                    raise (AsyncDataException error)
+                    Fable.React.Helpers.ofType<ThrowAsyncDataFailure, FailureProps, unit> { Error = error } Seq.empty
                 | Some whenFailed, _ ->
                     error |> whenFailed |> wrapWithStableKey
                 | None, Some whenElse ->
                     () |> whenElse |> wrapWithStableKey
         }
-

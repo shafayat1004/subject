@@ -39,7 +39,7 @@ type InputType =
 | DateTimeInput
 | TimeSpanInput
 | UnsupportedInput
-| FileInput of MaxFileSizeInBytes: int64
+| FileInput    of MaxFileSizeInBytes: int64
 
 type InputForm = {
     Path:        Path

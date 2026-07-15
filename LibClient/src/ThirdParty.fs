@@ -7,7 +7,7 @@ let private isJsArray (value: obj) : bool =
 
 let fixPotentiallySingleChild (children: array<Fable.React.ReactElement>) : array<Fable.React.ReactElement> =
     match isJsArray children with
-    | true -> children
+    | true  -> children
     | false -> [|children :> obj :?> Fable.React.ReactElement|]
 
 let wrapComponent<'Props>(rawFn: obj) : ('Props -> array<Fable.React.ReactElement> -> Fable.React.ReactElement) =

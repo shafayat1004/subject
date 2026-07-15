@@ -1,4 +1,4 @@
-// Sidebar nav item lists, factored out of Sidebar.render.
+// Sidebar nav item lists, factored out of the gallery Sidebar shell.
 //
 // The render DSL compiles a component's whole template into ONE `render` member.
 // Sidebar's template carries ~250 nested Sidebar.Item/Divider/Heading elements
@@ -18,35 +18,47 @@ module SI = LibClient.Components.Sidebar.Item
 
 let private icon = SI.Right.Icon AppEggShellGallery.Icons.Icon.EggShell
 
+let private componentTestId (item: ComponentItem) =
+    sprintf "sidebar-component-%s" (unionCaseName item)
+
+let private compItem (label: string) (item: ComponentItem) (itemState: ComponentItem -> SI.State) =
+    LC.Sidebar.Item(label = label, testId = componentTestId item, state = itemState item)
+
+let private compItemIcon (label: string) (item: ComponentItem) (itemState: ComponentItem -> SI.State) =
+    LC.Sidebar.Item(label = label, testId = componentTestId item, right = icon, state = itemState item)
+
 let docsItems (itemState: string -> SI.State) : ReactElement =
     castAsElement [|
         LC.Sidebar.Item(label = "EggShell Introduction", state = itemState "index.md")
+        LC.Sidebar.Item(label = "Evaluating EggShell",   state = itemState "evaluating-eggshell.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Item(label = "Getting Started", state = itemState "basics/getting-started.md")
         LC.Sidebar.Item(label = "Dev Experience",  state = itemState "basics/dev-experience.md")
         LC.Sidebar.Item(label = "Components",       state = itemState "fsharp/component.md")
         LC.Sidebar.Item(label = "Styling",          state = itemState "fsharp/styling.md")
         LC.Sidebar.Item(label = "Themeing",         state = itemState "fsharp/themeing.md")
+        LC.Sidebar.Item(label = "Formatting",       state = itemState "fsharp/formatting.md")
         LC.Sidebar.Item(label = "Legacy Interop",   state = itemState "fsharp/legacy.md")
         LC.Sidebar.Item(label = "Libraries",        state = itemState "basics/libraries.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Native")
-        LC.Sidebar.Item(label = "Getting Started",     state = itemState "native/getting-started.md")
-        LC.Sidebar.Item(label = "Dev Experience",      state = itemState "native/dev-experience.md")
-        LC.Sidebar.Item(label = "Link Native Libray",  state = itemState "native/link-native-library.md")
-        LC.Sidebar.Item(label = "Release Native App",  state = itemState "native/release-app.md")
+        LC.Sidebar.Item(label   = "Getting Started",     state = itemState "native/getting-started.md")
+        LC.Sidebar.Item(label   = "Dev Experience",      state = itemState "native/dev-experience.md")
+        LC.Sidebar.Item(label   = "Link Native Libray",  state = itemState "native/link-native-library.md")
+        LC.Sidebar.Item(label   = "Release Native App",  state = itemState "native/release-app.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Housekeeping")
-        LC.Sidebar.Item(label = "Changelog",              state = itemState "basics/changelog.md")
-        LC.Sidebar.Item(label = "Roadmap",                state = itemState "basics/roadmap.md")
-        LC.Sidebar.Item(label = "Where to find examples", state = itemState "fsharp/examples.md")
+        LC.Sidebar.Item(label   = "Maintaining the docs",   state = itemState "maintaining-docs.md")
+        LC.Sidebar.Item(label   = "Changelog",              state = itemState "basics/changelog.md")
+        LC.Sidebar.Item(label   = "Roadmap",                state = itemState "basics/roadmap.md")
+        LC.Sidebar.Item(label   = "Where to find examples", state = itemState "fsharp/examples.md")
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Unsorted")
-        LC.Sidebar.Item(label = "Background",                                 state = itemState "unsorted/background.md")
-        LC.Sidebar.Item(label = "Icons infra",                                state = itemState "unsorted/icons.md")
-        LC.Sidebar.Item(label = "Component types",                            state = itemState "unsorted/component-design.md")
-        LC.Sidebar.Item(label = "EggShell-specific F# Good Coding Practices", state = itemState "unsorted/eggshell-specific-fsharp-good-practices.md")
-        LC.Sidebar.Item(label = "Directory structure",                        state = itemState "unsorted/directory-structure.md")
+        LC.Sidebar.Item(label   = "Background",                                 state = itemState "unsorted/background.md")
+        LC.Sidebar.Item(label   = "Icons infra",                                state = itemState "unsorted/icons.md")
+        LC.Sidebar.Item(label   = "Component types",                            state = itemState "unsorted/component-design.md")
+        LC.Sidebar.Item(label   = "EggShell-specific F# Good Coding Practices", state = itemState "unsorted/eggshell-specific-fsharp-good-practices.md")
+        LC.Sidebar.Item(label   = "Directory structure",                        state = itemState "unsorted/directory-structure.md")
     |]
 
 let toolsItems (itemState: string -> SI.State) : ReactElement =
@@ -66,7 +78,7 @@ let howToItems (itemStateMarkdown: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Taps, Clicks, Hovers, etc", state = itemStateMarkdown "how-to/tap-capture.md")
         LC.Sidebar.Item(label = "Executors",                 state = itemStateMarkdown "how-to/executors.md")
         LC.Sidebar.Item(label = "Responsive Components",     state = itemStateMarkdown "how-to/responsive.md")
-        LC.Sidebar.Item(label = "Scrolling in ReactXP",      state = itemStateMarkdown "how-to/scrolling.md")
+        LC.Sidebar.Item(label = "Scrolling in Rn",      state = itemStateMarkdown "how-to/scrolling.md")
         LC.Sidebar.Item(label = "React Refs",                state = itemStateMarkdown "how-to/refs.md")
         LC.Sidebar.Item(label = "Dealing with Spinners",     state = itemStateMarkdown "how-to/spinners.md")
     |]
@@ -88,6 +100,79 @@ let subjectItems (itemState: string -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Consumption",    state = itemState "subject/consumption.md")
     |]
 
+let architectureItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview", state = itemState "architecture/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Backend")
+        LC.Sidebar.Item(label   = "Lifecycles / State Machines", state = itemState "architecture/backend-lifecycles.md")
+        LC.Sidebar.Item(label   = "Hosting & Persistence",       state = itemState "architecture/backend-hosting-persistence.md")
+        LC.Sidebar.Item(label   = "Shared Types & Codecs",       state = itemState "architecture/shared-types-codecs.md")
+        LC.Sidebar.Item(label   = "Testing Framework",           state = itemState "architecture/testing-framework.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Frontend & Toolchain")
+        LC.Sidebar.Item(label   = "Frontend",              state = itemState "architecture/frontend.md")
+        LC.Sidebar.Item(label   = "Render DSL & Toolchain", state = itemState "architecture/render-dsl-and-toolchain.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Key File Map", state = itemState "architecture/file-map.md")
+    |]
+
+let modernizationItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Current Status", state = itemState "modernization/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Goals & Roadmap", state = itemState "modernization/goals-and-roadmap.md")
+        LC.Sidebar.Item(label = "Phased Plan",     state = itemState "modernization/phased-plan.md")
+        LC.Sidebar.Item(label = "RN 0.86 Upgrade: Done & Remaining", state = itemState "modernization/rn86-upgrade-status.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Workstreams")
+        LC.Sidebar.Item(label   = "Rn → RNW",       state = itemState "modernization/reactxp-to-rnw.md")
+        LC.Sidebar.Item(label   = "Render DSL Retirement", state = itemState "modernization/render-dsl-retirement.md")
+        LC.Sidebar.Item(label   = "Build Performance",   state = itemState "modernization/build-performance.md")
+        LC.Sidebar.Item(label   = "SQL Server → Postgres", state = itemState "modernization/sql-server-to-postgres.md")
+        LC.Sidebar.Item(label   = "Scaffolding",         state = itemState "modernization/scaffolding.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Security Review", state = itemState "modernization/security-review.md")
+    |]
+
+let runbooksItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview & Decision Tree", state = itemState "runbooks/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "The Dev Loop", state = itemState "runbooks/dev-loop.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Platforms")
+        LC.Sidebar.Item(label   = "Android", state = itemState "runbooks/android.md")
+        LC.Sidebar.Item(label   = "iOS",     state = itemState "runbooks/ios.md")
+        LC.Sidebar.Item(label   = "Web",     state = itemState "runbooks/web.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Audit Toolkit",      state = itemState "runbooks/audit-toolkit.md")
+        LC.Sidebar.Item(label = "Build & Rebuild",    state = itemState "runbooks/build-rebuild.md")
+        LC.Sidebar.Item(label = "Troubleshooting",    state = itemState "runbooks/troubleshooting.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Migration Execution", state = itemState "runbooks/migration-execution.md")
+    |]
+
+let accessibilityItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview & Principles", state = itemState "accessibility/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Full Spectrum & WCAG", state = itemState "accessibility/spectrum.md")
+        LC.Sidebar.Item(label = "Recipes & Playbook",   state = itemState "accessibility/recipes.md")
+        LC.Sidebar.Item(label = "Platform Settings",    state = itemState "accessibility/platform-settings.md")
+        LC.Sidebar.Item(label = "Backlog",              state = itemState "accessibility/backlog.md")
+        LC.Sidebar.Item(label = "Scanner Audits",       state = itemState "accessibility/scanner-audit.md")
+    |]
+
+let knowledgeBaseItems (itemState: string -> SI.State) : ReactElement =
+    castAsElement [|
+        LC.Sidebar.Item(label = "Overview", state = itemState "knowledge-base/index.md")
+        LC.Sidebar.Divider()
+        LC.Sidebar.Item(label = "Engineering Log", state = itemState "knowledge-base/engineering-log.md")
+        LC.Sidebar.Item(label = "App Structure",   state = itemState "knowledge-base/app-structure.md")
+        LC.Sidebar.Item(label = "Dependencies",    state = itemState "knowledge-base/dependencies.md")
+    |]
+
 let designItems (itemState: DesignItem -> SI.State) : ReactElement =
     castAsElement [|
         LC.Sidebar.Item(label = "Design Introduction", state = itemState (DesignItem.Markdown "design/index.md"))
@@ -101,133 +186,153 @@ let legacyItems (itemState: LegacyItem -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "Legacy Introduction", state = itemState (LegacyItem.Markdown "design/index.md"))
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Render DSL")
-        LC.Sidebar.Item(label = "Language Description", state = itemState (LegacyItem.Markdown "renderDsl/index.md"))
-        LC.Sidebar.Item(label = "Style Guide",          state = itemState (LegacyItem.Markdown "renderDsl/style-guide.md"))
-        LC.Sidebar.Item(label = "Sunsetting",           state = itemState (LegacyItem.Markdown "fsharp/background.md"))
+        LC.Sidebar.Item(label   = "Language Description", state = itemState (LegacyItem.Markdown "renderDsl/index.md"))
+        LC.Sidebar.Item(label   = "Style Guide",          state = itemState (LegacyItem.Markdown "renderDsl/style-guide.md"))
+        LC.Sidebar.Item(label   = "Sunsetting",           state = itemState (LegacyItem.Markdown "fsharp/background.md"))
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Styles DSL")
-        LC.Sidebar.Item(label = "Language Description", state = itemState (LegacyItem.Markdown "stylesDsl/index.md"))
-        LC.Sidebar.Item(label = "Style Guide",          state = itemState (LegacyItem.Markdown "stylesDsl/style-guide.md"))
+        LC.Sidebar.Item(label   = "Language Description", state = itemState (LegacyItem.Markdown "stylesDsl/index.md"))
+        LC.Sidebar.Item(label   = "Style Guide",          state = itemState (LegacyItem.Markdown "stylesDsl/style-guide.md"))
     |]
 
 let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
     castAsElement [|
-        LC.Sidebar.Item(label = "Components Introduction", state = itemState Index)
+        compItem "Components Introduction" Index itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Layout")
-        LC.Sidebar.Item(label = "Row",         state = itemState Layout_Row)
-        LC.Sidebar.Item(label = "Column",      state = itemState Layout_Column)
-        LC.Sidebar.Item(label = "Sized",       state = itemState Layout_Sized)
-        LC.Sidebar.Item(label = "Constrained", state = itemState Layout_Constrained)
+        compItem "Row" Layout_Row itemState
+        compItem "Column" Layout_Column itemState
+        compItem "Sized" Layout_Sized itemState
+        compItem "Constrained" Layout_Constrained itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Buttons")
-        LC.Sidebar.Item(label = "Buttons",              right = icon, state = itemState ComponentItem.Buttons)
-        LC.Sidebar.Item(label = "Button",               right = icon, state = itemState ComponentItem.Button)
-        LC.Sidebar.Item(label = "IconButton",           right = icon, state = itemState IconButton)
-        LC.Sidebar.Item(label = "FloatingActionButton", right = icon, state = itemState FloatingActionButton)
-        LC.Sidebar.Item(label = "TextButton",           right = icon, state = itemState TextButton)
-        LC.Sidebar.Item(label = "ToggleButtons",        right = icon, state = itemState ToggleButtons)
+        compItemIcon "Buttons" ComponentItem.Buttons itemState
+        compItemIcon "Button" ComponentItem.Button itemState
+        compItemIcon "IconButton" IconButton itemState
+        compItemIcon "FloatingActionButton" FloatingActionButton itemState
+        compItemIcon "TextButton" TextButton itemState
+        compItemIcon "ToggleButtons" ToggleButtons itemState
+        compItemIcon "SegmentedControl" SegmentedControl itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Input")
-        LC.Sidebar.Item(label = "Forms",                 right = icon, state = itemState Forms)
-        LC.Sidebar.Item(label = "Input.Checkbox",        right = icon, state = itemState Input_Checkbox)
-        LC.Sidebar.Item(label = "Input.ChoiceList",      right = icon, state = itemState Input_ChoiceList)
-        LC.Sidebar.Item(label = "Input.Date",            right = icon, state = itemState Input_Date)
-        LC.Sidebar.Item(label = "Input.DayOfTheWeek",    right = icon, state = itemState Input_DayOfTheWeek)
-        LC.Sidebar.Item(label = "Input.Decimal",         right = icon, state = itemState Input_Decimal)
-        LC.Sidebar.Item(label = "Input.Duration",        right = icon, state = itemState Input_Duration)
-        LC.Sidebar.Item(label = "Input.EmailAddress",    right = icon, state = itemState Input_EmailAddress)
-        LC.Sidebar.Item(label = "Input.LocalTime",       right = icon, state = itemState Input_LocalTime)
-        LC.Sidebar.Item(label = "Input.File",            right = icon, state = itemState Input_File)
-        LC.Sidebar.Item(label = "Input.Image",           right = icon, state = itemState Input_Image)
-        LC.Sidebar.Item(label = "Input.Picker",          right = icon, state = itemState Input_Picker)
-        LC.Sidebar.Item(label = "Input.PhoneNumber",     right = icon, state = itemState Input_PhoneNumber)
-        LC.Sidebar.Item(label = "Input.PositiveInteger", right = icon, state = itemState Input_PositiveInteger)
-        LC.Sidebar.Item(label = "Input.PositiveDecimal", right = icon, state = itemState Input_PositiveDecimal)
-        LC.Sidebar.Item(label = "Input.Quantity",        right = icon, state = itemState Input_Quantity)
-        LC.Sidebar.Item(label = "Input.Text",            right = icon, state = itemState Input_Text)
-        LC.Sidebar.Item(label = "Input.UnsignedInteger", right = icon, state = itemState Input_UnsignedInteger)
-        LC.Sidebar.Item(label = "Input.UnsignedDecimal", right = icon, state = itemState Input_UnsignedDecimal)
+        compItemIcon "Forms" Forms itemState
+        compItemIcon "AutoUi.InputForm" AutoUi_InputForm itemState
+        compItemIcon "Input.Checkbox" Input_Checkbox itemState
+        compItemIcon "Input.ChoiceList" Input_ChoiceList itemState
+        compItemIcon "Input.Date" Input_Date itemState
+        compItemIcon "Input.DayOfTheWeek" Input_DayOfTheWeek itemState
+        compItemIcon "Input.Decimal" Input_Decimal itemState
+        compItemIcon "Input.Duration" Input_Duration itemState
+        compItemIcon "Input.EmailAddress" Input_EmailAddress itemState
+        compItemIcon "Input.LocalTime" Input_LocalTime itemState
+        compItemIcon "Input.File" Input_File itemState
+        compItemIcon "Input.Image" Input_Image itemState
+        compItemIcon "Input.Picker" Input_Picker itemState
+        compItemIcon "Input.PhoneNumber" Input_PhoneNumber itemState
+        compItemIcon "Input.PositiveInteger" Input_PositiveInteger itemState
+        compItemIcon "Input.PositiveDecimal" Input_PositiveDecimal itemState
+        compItemIcon "Input.Quantity" Input_Quantity itemState
+        compItemIcon "Input.Text" Input_Text itemState
+        compItemIcon "Input.UnsignedInteger" Input_UnsignedInteger itemState
+        compItemIcon "Input.UnsignedDecimal" Input_UnsignedDecimal itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Content Blocks")
-        LC.Sidebar.Item(label = "Card",           right = icon, state = itemState Card)
-        LC.Sidebar.Item(label = "Carousel",       right = icon, state = itemState Carousel)
-        LC.Sidebar.Item(label = "Dialogs",        right = icon, state = itemState Dialogs)
-        LC.Sidebar.Item(label = "Draggable",      right = icon, state = itemState Draggable)
-        LC.Sidebar.Item(label = "ImageCard",      right = icon, state = itemState ImageCard)
-        LC.Sidebar.Item(label = "InfoMessage",    right = icon, state = itemState InfoMessage)
-        LC.Sidebar.Item(label = "ItemList",       right = icon, state = itemState ItemList)
-        LC.Sidebar.Item(label = "Section.Padded", right = icon, state = itemState Section_Padded)
-        LC.Sidebar.Item(label = "Tabs",           right = icon, state = itemState Tabs)
+        compItemIcon "Card" Card itemState
+        compItemIcon "Carousel" Carousel itemState
+        compItemIcon "Dialogs" Dialogs itemState
+        compItemIcon "Draggable" Draggable itemState
+        compItemIcon "HorizontalPanArea" HorizontalPanArea itemState
+        compItemIcon "ImageCard" ImageCard itemState
+        compItemIcon "InfoMessage" InfoMessage itemState
+        compItemIcon "ItemList" ItemList itemState
+        compItemIcon "Section.Padded" Section_Padded itemState
+        compItemIcon "Tabs" Tabs itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Animation")
-        LC.Sidebar.Item(label = "AnimatableImage",     right = icon, state = itemState AnimatableImage)
-        LC.Sidebar.Item(label = "AnimatableText",      right = icon, state = itemState AnimatableText)
-        LC.Sidebar.Item(label = "AnimatableTextInput", right = icon, state = itemState AnimatableTextInput)
-        LC.Sidebar.Item(label = "AnimatableView",      right = icon, state = itemState AnimatableView)
+        compItemIcon "AnimatableImage" AnimatableImage itemState
+        compItemIcon "AnimatableText" AnimatableText itemState
+        compItemIcon "AnimatableTextInput" AnimatableTextInput itemState
+        compItemIcon "AnimatableView" AnimatableView itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Admin Panels")
-        LC.Sidebar.Item(label = "Grid",              right = icon, state = itemState Grid)
-        LC.Sidebar.Item(label = "QueryGrid",         right = icon, state = itemState QueryGrid)
+        compItemIcon "Grid" Grid itemState
+        compItemIcon "QueryGrid" QueryGrid itemState
         LC.Sidebar.Item(label = "WithSortAndFilter", right = icon, state = SI.State.Disabled)
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Text & Formatting")
-        LC.Sidebar.Item(label = "Heading",   right = icon, state = itemState ComponentItem.Heading)
-        LC.Sidebar.Item(label = "Pre",       right = icon, state = itemState Pre)
-        LC.Sidebar.Item(label = "Tag",       right = icon, state = itemState Tag)
-        LC.Sidebar.Item(label = "TimeSpan",  right = icon, state = itemState TimeSpan)
-        LC.Sidebar.Item(label = "Timestamp", right = icon, state = itemState Timestamp)
+        compItemIcon "Heading" ComponentItem.Heading itemState
+        compItemIcon "Pre" Pre itemState
+        compItemIcon "Tag" Tag itemState
+        compItemIcon "TimeSpan" TimeSpan itemState
+        compItemIcon "Timestamp" Timestamp itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Graphic")
-        LC.Sidebar.Item(label = "Avatar",        right = icon, state = itemState Avatar)
-        LC.Sidebar.Item(label = "Icon",          right = icon, state = itemState ComponentItem.Icon)
-        LC.Sidebar.Item(label = "IconWithBadge", right = icon, state = itemState IconWithBadge)
-        LC.Sidebar.Item(label = "Thumb",         right = icon, state = itemState Thumb)
-        LC.Sidebar.Item(label = "Thumbs",        right = icon, state = itemState Thumbs)
-        LC.Sidebar.Item(label = "Scrim",         right = icon, state = itemState Scrim)
-        LC.Sidebar.Item(label = "Stars",         right = icon, state = itemState Stars)
+        compItemIcon "Avatar" Avatar itemState
+        compItemIcon "Icon" ComponentItem.Icon itemState
+        compItemIcon "IconWithBadge" IconWithBadge itemState
+        compItemIcon "Thumb" Thumb itemState
+        compItemIcon "Thumbs" Thumbs itemState
+        compItemIcon "Scrim" Scrim itemState
+        compItemIcon "Stars" Stars itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Navigation")
-        LC.Sidebar.Item(label = "Context Menu", right = icon, state = itemState ComponentItem.ContextMenu)
-        LC.Sidebar.Item(label = "Sidebar",      right = icon, state = itemState ComponentItem.Sidebar)
-        LC.Sidebar.Item(label = "Nav.Top",      right = icon, state = itemState Nav_Top)
-        LC.Sidebar.Item(label = "Nav.Bottom",   right = icon, state = itemState Nav_Bottom)
+        compItemIcon "Context Menu" ComponentItem.ContextMenu itemState
+        compItemIcon "Sidebar" ComponentItem.Sidebar itemState
+        compItemIcon "Nav.Top" Nav_Top itemState
+        compItemIcon "Nav.Bottom" Nav_Bottom itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Higher Order Components")
-        LC.Sidebar.Item(label = "ErrorBoundary",       state = itemState ErrorBoundary)
-        LC.Sidebar.Item(label = "AlertErrors",         state = itemState Executor_AlertErrors)
-        LC.Sidebar.Item(label = "AsyncData",           state = itemState AsyncData)
-        LC.Sidebar.Item(label = "WithDataFlowControl", state = itemState WithContext)
-        LC.Sidebar.Item(label = "TriStateful",         state = itemState TriStateful)
-        LC.Sidebar.Item(label = "QuadStateful",        state = itemState QuadStateful)
-        LC.Sidebar.Item(label = "Responsive",          state = itemState Responsive)
-        LC.Sidebar.Item(label = "InProgress",          state = itemState InProgress)
-        LC.Sidebar.Item(label = "With.Executor",       state = itemState WithExecutor)
+        compItem "ErrorBoundary" ErrorBoundary itemState
+        compItem "AlertErrors" Executor_AlertErrors itemState
+        compItem "AsyncData" AsyncData itemState
+        compItem "WithDataFlowControl" WithContext itemState
+        compItem "TriStateful" TriStateful itemState
+        compItem "QuadStateful" QuadStateful itemState
+        compItem "Responsive" Responsive itemState
+        compItem "InProgress" InProgress itemState
+        compItem "With.Executor" WithExecutor itemState
+
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "Accessibility")
+        compItem "Group" Accessibility_Group itemState
+        compItem "LiveRegion" Accessibility_LiveRegion itemState
+        compItem "With.Accessibility" Accessibility_WithAccessibility itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "With")
-        LC.Sidebar.Item(label = "WithContext",     state = itemState WithContext)
-        LC.Sidebar.Item(label = "DataFlowControl", state = itemState WithDataFlowControl)
+        compItem "WithContext" WithContext itemState
+        compItem "DataFlowControl" WithDataFlowControl itemState
+
+        LC.Sidebar.Divider()
+        LC.Sidebar.Heading(text = "LibRouter")
+        compItem "LR.Dialogs" LibRouter_Dialogs itemState
+        compItem "LR.LogRouteTransitions" LibRouter_LogRouteTransitions itemState
+        compItem "LR.NativeBackButton" LibRouter_NativeBackButton itemState
+        compItem "LR.With.Location" LibRouter_WithLocation itemState
+        compItem "LR.With.Route" LibRouter_WithRoute itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Third Party")
-        LC.Sidebar.Item(label = "Map",      right = icon, state = itemState ThirdParty_Map)
-        LC.Sidebar.Item(label = "Recharts", right = icon, state = itemState ThirdParty_Recharts)
+        compItemIcon "MarkdownViewer" ThirdParty_MarkdownViewer itemState
+        compItemIcon "Map" ThirdParty_Map itemState
+        compItemIcon "ImagePicker" ThirdParty_ImagePicker itemState
+        compItemIcon "ReCaptcha" ThirdParty_ReCaptcha itemState
+        compItemIcon "Recharts" ThirdParty_Recharts itemState
 
         LC.Sidebar.Divider()
         LC.Sidebar.Heading(text = "Unsorted")
-        LC.Sidebar.Item(label = "DateSelector",                       right = icon, state = itemState DateSelector)
-        LC.Sidebar.Item(label = "TouchableOpacity",                   right = icon, state = itemState TouchableOpacity)
+        compItemIcon "DateSelector" DateSelector itemState
+        compItemIcon "TouchableOpacity" TouchableOpacity itemState
         LC.Sidebar.Item(label = "Dialog.Confirm",                     right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "Dialog.Shell.WhiteRounded.Base",     right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "Dialog.Shell.WhiteRounded.Standard", right = icon, state = SI.State.Disabled)
@@ -237,7 +342,7 @@ let componentsItems (itemState: ComponentItem -> SI.State) : ReactElement =
         LC.Sidebar.Item(label = "FormFieldsDivider",                  right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "HandheldListItem",                   right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "HeaderCell",                         right = icon, state = SI.State.Disabled)
-        LC.Sidebar.Item(label = "LabelledFormField",                  right = icon, state = SI.State.Disabled)
+        compItemIcon "LabelledFormField" LabelledFormField itemState
         LC.Sidebar.Item(label = "LabelledValue",                      right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "Popup",                              right = icon, state = SI.State.Disabled)
         LC.Sidebar.Item(label = "Route",                              right = icon, state = SI.State.Disabled)

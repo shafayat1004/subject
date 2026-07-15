@@ -3,8 +3,9 @@ module ThirdParty.GoogleAnalytics.Native
 open Fable.Core
 open Fable.Core.JsInterop
 open LibClient
+open ThirdParty.GoogleAnalytics.Types
 
-let Analytics (_screenViewParam: obj): obj  = importDefault "@react-native-firebase/analytics"
+let Analytics (_screenViewParam: obj): obj = importDefault "@react-native-firebase/analytics"
 
 let private setAnalyticsUserForTelemetryUser (user: TelemetryUser) : unit =
     match user with
@@ -15,53 +16,38 @@ let private setAnalyticsUserForTelemetryUser (user: TelemetryUser) : unit =
 
 let TrackViewItem (itemId: string) (itemName: string) (price: decimal) (currency: string) =
     Telemetry.GetUser() |> setAnalyticsUserForTelemetryUser
-    let item = createObj [
-        "item_id"   ==> itemId
-        "item_name" ==> itemName
-        "price"     ==> float price
-    ]
-    let viewParam = createObj [
-        "currency" ==> currency
-        "value"    ==> float price
-        "items"    ==> [| item |]
-    ]
+    let item =
+        (FirebaseCommerceItemJs(itemId, itemName, float price))
+        |> box
+    let viewParam =
+        (FirebaseCommerceEventJs(currency, float price, [| item |]))
+        |> box
     Analytics()?logViewItem viewParam
 
 let TrackAddToCart (itemId: string) (itemName: string) (quantity: int) (price: decimal) (currency: string) =
     Telemetry.GetUser() |> setAnalyticsUserForTelemetryUser
-    let item = createObj [
-        "item_id"   ==> itemId
-        "item_name" ==> itemName
-        "price"     ==> float price
-        "quantity"  ==> quantity
-    ]
-    let cartParam = createObj [
-        "currency" ==> currency
-        "value"    ==> float price * float quantity
-        "items"    ==> [| item |]
-    ]
+    let item =
+        (FirebaseCommerceItemJs(itemId, itemName, float price, ?quantity = Some quantity))
+        |> box
+    let cartParam =
+        (FirebaseCommerceEventJs(currency, float price * float quantity, [| item |]))
+        |> box
     Analytics()?logAddToCart cartParam
 
-let TrackBeginCheckout (items: List<Types.FirebaseItem>) (orderTotal: decimal) (currency: string) =
+let TrackBeginCheckout (items: List<FirebaseItem>) (orderTotal: decimal) (currency: string) =
     Telemetry.GetUser() |> setAnalyticsUserForTelemetryUser
     let itemsInLibraryFormat : obj[] = items |> List.map (fun item -> item.toLibraryObj()) |> Array.ofList
-    let beginCheckoutParam = createObj [
-        "currency"       ==> currency
-        "value"          ==> float orderTotal
-        "items"          ==> itemsInLibraryFormat
-    ]
+    let beginCheckoutParam =
+        (FirebaseBeginCheckoutJs(currency, float orderTotal, itemsInLibraryFormat))
+        |> box
     Analytics()?logBeginCheckout beginCheckoutParam
 
-let TrackPurchase (orderId: string) (items: List<Types.FirebaseItem>) (orderTotal: decimal) (shippingCost: decimal) (currency: string) =
+let TrackPurchase (orderId: string) (items: List<FirebaseItem>) (orderTotal: decimal) (shippingCost: decimal) (currency: string) =
     Telemetry.GetUser() |> setAnalyticsUserForTelemetryUser
     let itemsInLibraryFormat: obj[] = items |> List.map (fun item -> item.toLibraryObj()) |> Array.ofList
-    let purchaseParam = createObj [
-        "transaction_id" ==> orderId
-        "currency"       ==> currency
-        "value"          ==> float orderTotal
-        "shipping"       ==> float shippingCost
-        "items"          ==> itemsInLibraryFormat
-    ]
+    let purchaseParam =
+        (FirebasePurchaseJs(orderId, currency, float orderTotal, float shippingCost, itemsInLibraryFormat))
+        |> box
     Analytics()?logPurchase purchaseParam
 
 type GoogleAnalyticsTelemetrySink () =
@@ -71,8 +57,6 @@ type GoogleAnalyticsTelemetrySink () =
         member _.TrackScreenView (url: string) (user: TelemetryUser) (_: TelemetryProperties) : unit =
             setAnalyticsUserForTelemetryUser user
 
-            Analytics()?logScreenView (createObj [
-            "screen_name" ==> url
-            ])
+            Analytics()?logScreenView (FirebaseScreenViewJs(?screen_name = Some url) |> box)
             |> Async.AwaitPromise
             |> startSafely

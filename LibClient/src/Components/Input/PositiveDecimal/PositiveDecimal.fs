@@ -4,7 +4,7 @@ namespace LibClient.Components.Input
 open LibClient
 open LibClient.Input
 open System.Text.RegularExpressions
-open ReactXP.Styles
+open Rn.Styles
 
 module PositiveDecimal =
 
@@ -43,8 +43,8 @@ namespace LibClient.Components
 open Fable.React
 open LibClient
 open LibClient.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<AutoOpen>]
 module Input_PositiveDecimalComponent =
@@ -66,7 +66,7 @@ module Input_PositiveDecimalComponent =
                 ?onKeyPress:          (Browser.Types.KeyboardEvent -> unit),
                 ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?styles:              array<ViewStyles>,
-                ?xLegacyStyles:       List<ReactXP.LegacyStyles.RuntimeStyles>,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
                 ?key:                 string
             ) : ReactElement =
             key |> ignore

@@ -9,9 +9,9 @@ open LibLifeCycleHost
 
 type TestTimeSeriesDataPointKey = {
     TimeIndex: DateTimeOffset
-    IndexKey: string
-    IndexVal: string
-    Hash: int
+    IndexKey:  string
+    IndexVal:  string
+    Hash:      int
 }
 
 let private murmur32 = Murmur.MurmurHash.Create32()
@@ -44,7 +44,7 @@ type TestTimeSeriesStorageHandler<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure
             partitionGuid,
             fun _ ->
                 {
-                    LockObj = obj()
+                    LockObj           = obj()
                     TimeSeriesByIdStr = Map.empty
                 })
 
