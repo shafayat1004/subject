@@ -22,7 +22,7 @@ module Duration =
             | None -> Error(field, "Allowed numeric characters only")
             | Some value ->
                 match Unsigned.UnsignedInteger.ofInt value with
-                | None -> Error(field, "Allowed only positive numbers")
+                | None                 -> Error(field, "Allowed only positive numbers")
                 | Some unsignedDecimal -> unsignedDecimal |> Some |> Ok
 
     let private validateDays (days: UnsignedInteger) : Result<UnsignedInteger, Field * string> = Ok days
@@ -80,26 +80,26 @@ module Duration =
         }
 
     type Value =
-        { Raw: Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>
+        { Raw:                      Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>
           InternalValidationResult: Option<Field * string>
-          Result: Option<TimeSpan> }
+          Result:                   Option<TimeSpan> }
 
         member this.InternalFieldValidity(field: Field) : InputValidity =
             match this.InternalValidationResult with
             | Some(errField, _message) when errField = field -> Missing
-            | _ -> Valid
+            | _                                              -> Valid
 
         member this.InternalValidity: InputValidity =
             match this.InternalValidationResult with
             | Some(_, message) -> Invalid message
-            | _ -> Valid
+            | _                -> Valid
 
         static member FromRaw(raw: Option<NonemptyString> * Option<NonemptyString> * Option<NonemptyString>) : Value =
             let result = computeResult raw
 
-            { Raw = raw
+            { Raw                      = raw
               InternalValidationResult = result |> Result.invert |> Result.toOption
-              Result = result |> Result.toOption |> Option.getOrElse None }
+              Result                   = result |> Result.toOption |> Option.getOrElse None }
 
         member this.SetDays(value: Option<NonemptyString>) : Value =
             let (_, hours, minutes) = this.Raw
@@ -120,19 +120,20 @@ module Duration =
 
             match maybeDays with
             | Some days -> sprintf "%s:%s:%s" days.Value hours minutes
-            | None -> sprintf "%s:%s" hours minutes
+            | None      -> sprintf "%s:%s" hours minutes
 
     let wrap (value: TimeSpan) : Value =
         Value.FromRaw(
-            value.Days.ToString() |> NonemptyString.ofString,
-            value.Hours.ToString() |> NonemptyString.ofString,
+            value.Days.ToString()        |> NonemptyString.ofString,
+            value.Hours.ToString()       |> NonemptyString.ofString,
             sprintf "%02i" value.Minutes |> NonemptyString.ofString
         )
 
-    let empty: Value =
-        { Raw = (None, None, None)
-          InternalValidationResult = None
-          Result = None }
+    let empty: Value = {
+        Raw                      = (None, None, None)
+        InternalValidationResult = None
+        Result                   = None
+    }
 
 
 // Component extension
@@ -170,16 +171,16 @@ module Input_DurationComponent =
         [<Component>]
         static member Duration
             (
-                value: Value,
-                validity: InputValidity,
-                onChange: Value -> unit,
-                ?label: string,
-                ?testId: string,
-                ?onEnterKeyPress: (ReactEvent.Keyboard -> unit),
+                value:                Value,
+                validity:             InputValidity,
+                onChange:             Value -> unit,
+                ?label:               string,
+                ?testId:              string,
+                ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
-                ?shouldDisplayDays: bool,
-                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key: string
+                ?shouldDisplayDays:   bool,
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
+                ?key:                 string
             ) : ReactElement =
             key |> ignore
 
@@ -204,12 +205,12 @@ module Input_DurationComponent =
             let legacyLabelStyles: List<Rn.LegacyStyles.RuntimeStyles> =
                 match xLegacyStyles with
                 | Some ls -> ls
-                | None -> []
+                | None    -> []
 
             let fieldXLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles> option =
                 match Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field" with
                 | [] -> None
-                | s -> Some s
+                | s  -> Some s
 
             let refDaysInput (nullableInstance: LibClient.JsInterop.JsNullable<ITextRef>) : unit =
                 maybeDaysInput.current <- nullableInstance.ToOption
@@ -227,7 +228,7 @@ module Input_DurationComponent =
             let externalValidityForFields =
                 match validity with
                 | Valid -> Valid
-                | _ -> Missing
+                | _     -> Missing
 
             let (rawDays, rawHours, rawMinutes) = value.Raw
 
@@ -260,12 +261,12 @@ module Input_DurationComponent =
                                                       (System.String.Format("{0}", lbl)) |]
                                        )
                                        LC.Pressable(
-                                           onPress = (fun _ -> focusHoursInput ()),
-                                           label = lbl,
-                                           testId = sprintf "%s-focus" resolvedTestId,
-                                           role = AccessibilityRole.Button,
-                                           overlay = true,
-                                           styles = [| Styles.pressableOverlay |],
+                                           onPress       = (fun _ -> focusHoursInput ()),
+                                           label         = lbl,
+                                           testId        = sprintf "%s-focus" resolvedTestId,
+                                           role          = AccessibilityRole.Button,
+                                           overlay       = true,
+                                           styles        = [| Styles.pressableOverlay |],
                                            componentName = "LC.Input.Duration.Focus"
                                        ) |]
                             )
@@ -276,18 +277,18 @@ module Input_DurationComponent =
                            children =
                                [| (if shouldDisplayDays then
                                        LC.Input.Text(
-                                           value = rawDays,
-                                           onChange = (value.SetDays >> onChange),
-                                           validity = ((value.InternalFieldValidity Days).Or externalValidityForFields),
-                                           maxLength = 3,
-                                           placeholder = "00",
-                                           testId = A11ySlug.testId resolvedTestId "days",
-                                           onFocus = onFocus,
-                                           onBlur = onBlur,
-                                           ref = refDaysInput,
-                                           styles = [| Styles.field |],
+                                           value            = rawDays,
+                                           onChange         = (value.SetDays >> onChange),
+                                           validity         = ((value.InternalFieldValidity Days).Or externalValidityForFields),
+                                           maxLength        = 3,
+                                           placeholder      = "00",
+                                           testId           = A11ySlug.testId resolvedTestId "days",
+                                           onFocus          = onFocus,
+                                           onBlur           = onBlur,
+                                           ref              = refDaysInput,
+                                           styles           = [| Styles.field |],
                                            ?onEnterKeyPress = onEnterKeyPress,
-                                           ?xLegacyStyles = fieldXLegacyStyles
+                                           ?xLegacyStyles   = fieldXLegacyStyles
                                        )
                                    else
                                        noElement)
@@ -301,19 +302,19 @@ module Input_DurationComponent =
                                        noElement)
 
                                   LC.Input.Text(
-                                      value = rawHours,
-                                      onChange = (value.SetHours >> onChange),
-                                      validity = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
-                                      maxLength = 2,
-                                      placeholder = "00",
-                                      testId = A11ySlug.testId resolvedTestId "hours",
+                                      value               = rawHours,
+                                      onChange            = (value.SetHours >> onChange),
+                                      validity            = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
+                                      maxLength           = 2,
+                                      placeholder         = "00",
+                                      testId              = A11ySlug.testId resolvedTestId "hours",
                                       requestFocusOnMount = requestFocusOnMount,
-                                      onFocus = onFocus,
-                                      onBlur = onBlur,
-                                      ref = refHoursInput,
-                                      styles = [| Styles.field |],
-                                      ?onEnterKeyPress = onEnterKeyPress,
-                                      ?xLegacyStyles = fieldXLegacyStyles
+                                      onFocus             = onFocus,
+                                      onBlur              = onBlur,
+                                      ref                 = refHoursInput,
+                                      styles              = [| Styles.field |],
+                                      ?onEnterKeyPress    = onEnterKeyPress,
+                                      ?xLegacyStyles      = fieldXLegacyStyles
                                   )
 
                                   LC.LegacyText(
@@ -321,17 +322,17 @@ module Input_DurationComponent =
                                   )
 
                                   LC.Input.Text(
-                                      value = rawMinutes,
-                                      onChange = (value.SetMinutes >> onChange),
-                                      validity = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
-                                      maxLength = 2,
-                                      placeholder = "00",
-                                      testId = A11ySlug.testId resolvedTestId "minutes",
-                                      onFocus = onFocus,
-                                      onBlur = onBlur,
-                                      styles = [| Styles.field |],
+                                      value            = rawMinutes,
+                                      onChange         = (value.SetMinutes >> onChange),
+                                      validity         = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
+                                      maxLength        = 2,
+                                      placeholder      = "00",
+                                      testId           = A11ySlug.testId resolvedTestId "minutes",
+                                      onFocus          = onFocus,
+                                      onBlur           = onBlur,
+                                      styles           = [| Styles.field |],
                                       ?onEnterKeyPress = onEnterKeyPress,
-                                      ?xLegacyStyles = fieldXLegacyStyles
+                                      ?xLegacyStyles   = fieldXLegacyStyles
                                   )
 
                                   LC.LegacyText(

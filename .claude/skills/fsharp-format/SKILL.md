@@ -43,6 +43,18 @@ dotnet fsi .claude/skills/fsharp-format/scripts/parsecheck.fsx LibClient/src
 Exit 0 = no introduced parse errors. Also confirm idempotency (`eggshell-fmt --check .` = clean) and,
 for a wide run, a real frontend Fable build + backend `dotnet build` of the affected libs.
 
+`eggshell build-lib` does NOT type-check Fable (render/typext codegen only, can exit green on broken
+code). For a real check, compile the touched lib's `src` directly and grep for `error FS`:
+
+```bash
+dotnet fable LibClient/src --exclude FablePlugins --define DEBUG --define EGGSHELL_PLATFORM_IS_WEB \
+  --noCache -o /tmp/<lib>-check
+rm -rf /tmp/<lib>-check   # scratch output only, never commit
+```
+
+Confirms `0 Error(s)` and `Fable compilation finished`; pre-existing warnings unrelated to your files
+are expected noise, not a blocker.
+
 ## Levels (`--level`, default `standard`)
 
 | Level | Alias | Alignment | Relaxation | let/CE `=` |

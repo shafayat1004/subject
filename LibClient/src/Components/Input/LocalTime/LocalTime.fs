@@ -22,7 +22,7 @@ module LocalTime =
             | None -> Error(field, "Allowed numeric characters only")
             | Some value ->
                 match Unsigned.UnsignedInteger.ofInt value with
-                | None -> Error(field, "Allowed only positive numbers")
+                | None                 -> Error(field, "Allowed only positive numbers")
                 | Some unsignedDecimal -> unsignedDecimal |> Some |> Ok
 
     let private validateHours (hours: UnsignedInteger) : Result<UnsignedInteger, Field * string> =
@@ -73,26 +73,26 @@ module LocalTime =
         {| Label = periodToFilterString offset |}
 
     type Value =
-        { Raw: Option<NonemptyString> * Option<NonemptyString> * int
+        { Raw:                      Option<NonemptyString> * Option<NonemptyString> * int
           InternalValidationResult: Option<Field * string>
-          Result: Option<TimeSpan> }
+          Result:                   Option<TimeSpan> }
 
         member this.InternalFieldValidity(field: Field) : InputValidity =
             match this.InternalValidationResult with
             | Some(errField, _message) when errField = field -> Missing
-            | _ -> Valid
+            | _                                              -> Valid
 
         member this.InternalValidity: InputValidity =
             match this.InternalValidationResult with
             | Some(_, message) -> Invalid message
-            | _ -> Valid
+            | _                -> Valid
 
         static member FromRaw(raw: Option<NonemptyString> * Option<NonemptyString> * int) : Value =
             let result = computeResult raw
 
-            { Raw = raw
+            { Raw                      = raw
               InternalValidationResult = result |> Result.invert |> Result.toOption
-              Result = result |> Result.toOption |> Option.getOrElse None }
+              Result                   = result |> Result.toOption |> Option.getOrElse None }
 
         member this.SetPeriod(value: int) : Value =
             let (hours, minutes, _) = this.Raw
@@ -117,7 +117,7 @@ module LocalTime =
         let (hours, periodOffset) =
             match value.Hours with
             | hours when hours < 12 -> (hours, 0)
-            | hours -> (hours % 12, 12)
+            | hours                 -> (hours % 12, 12)
 
         let twelveAdjustedHours =
             match hours with
@@ -126,20 +126,22 @@ module LocalTime =
 
         Value.FromRaw(
             twelveAdjustedHours.ToString() |> NonemptyString.ofString,
-            sprintf "%02i" value.Minutes |> NonemptyString.ofString,
+            sprintf "%02i" value.Minutes   |> NonemptyString.ofString,
             periodOffset
         )
 
-    let empty: Value =
-        { Raw = (None, None, 0)
-          InternalValidationResult = None
-          Result = None }
+    let empty: Value = {
+        Raw                      = (None, None, 0)
+        InternalValidationResult = None
+        Result                   = None
+    }
 
-    type Theme =
-        { LabelBlurredColor: Color
-          LabelFocusedColor: Color
-          LabelInvalidColor: Color
-          InvalidReasonColor: Color }
+    type Theme = {
+        LabelBlurredColor:  Color
+        LabelFocusedColor:  Color
+        LabelInvalidColor:  Color
+        InvalidReasonColor: Color
+    }
 
 
 // Component extension
@@ -178,15 +180,15 @@ module Input_LocalTimeComponent =
         [<Component>]
         static member LocalTime
             (
-                value: Value,
-                validity: InputValidity,
-                onChange: Value -> unit,
-                ?label: string,
-                ?testId: string,
-                ?onEnterKeyPress: (ReactEvent.Keyboard -> unit),
+                value:                Value,
+                validity:             InputValidity,
+                onChange:             Value -> unit,
+                ?label:               string,
+                ?testId:              string,
+                ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
                 ?requestFocusOnMount: bool,
-                ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>,
-                ?key: string
+                ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>,
+                ?key:                 string
             ) : ReactElement =
             key |> ignore
 
@@ -209,7 +211,7 @@ module Input_LocalTimeComponent =
             let legacyLabelStyles: List<Rn.LegacyStyles.RuntimeStyles> =
                 match xLegacyStyles with
                 | Some ls -> ls
-                | None -> []
+                | None    -> []
 
             let refHoursInput (nullableInstance: LibClient.JsInterop.JsNullable<ITextRef>) : unit =
                 maybeHoursInput.current <- nullableInstance.ToOption
@@ -224,7 +226,7 @@ module Input_LocalTimeComponent =
             let externalValidityForFields =
                 match validity with
                 | Valid -> Valid
-                | _ -> Missing
+                | _     -> Missing
 
             let (rawHours, rawMinutes, rawPeriodOffset) = value.Raw
 
@@ -257,12 +259,12 @@ module Input_LocalTimeComponent =
                                                       (System.String.Format("{0}", lbl)) |]
                                        )
                                        LC.Pressable(
-                                           onPress = (fun _ -> focusHoursInput ()),
-                                           label = lbl,
-                                           testId = sprintf "%s-focus" resolvedTestId,
-                                           role = AccessibilityRole.Button,
-                                           overlay = true,
-                                           styles = [| Styles.pressableOverlay |],
+                                           onPress       = (fun _ -> focusHoursInput ()),
+                                           label         = lbl,
+                                           testId        = sprintf "%s-focus" resolvedTestId,
+                                           role          = AccessibilityRole.Button,
+                                           overlay       = true,
+                                           styles        = [| Styles.pressableOverlay |],
                                            componentName = "LC.Input.LocalTime.Focus"
                                        ) |]
                             )
@@ -272,17 +274,17 @@ module Input_LocalTimeComponent =
                            styles = [| Styles.fields |],
                            children =
                                [| LC.Input.Text(
-                                      value = rawHours,
-                                      onChange = (value.SetHours >> onChange),
-                                      validity = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
-                                      maxLength = 2,
-                                      placeholder = "00",
-                                      testId = A11ySlug.testId resolvedTestId "hours",
+                                      value               = rawHours,
+                                      onChange            = (value.SetHours >> onChange),
+                                      validity            = ((value.InternalFieldValidity Hours).Or externalValidityForFields),
+                                      maxLength           = 2,
+                                      placeholder         = "00",
+                                      testId              = A11ySlug.testId resolvedTestId "hours",
                                       requestFocusOnMount = requestFocusOnMount,
-                                      onFocus = onFocus,
-                                      onBlur = onBlur,
-                                      ref = refHoursInput,
-                                      ?onEnterKeyPress = onEnterKeyPress,
+                                      onFocus             = onFocus,
+                                      onBlur              = onBlur,
+                                      ref                 = refHoursInput,
+                                      ?onEnterKeyPress    = onEnterKeyPress,
                                       ?xLegacyStyles =
                                           (let s =
                                               Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "field"
@@ -297,14 +299,14 @@ module Input_LocalTimeComponent =
                                   )
 
                                   LC.Input.Text(
-                                      value = rawMinutes,
-                                      onChange = (value.SetMinutes >> onChange),
-                                      validity = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
-                                      maxLength = 2,
-                                      placeholder = "00",
-                                      testId = A11ySlug.testId resolvedTestId "minutes",
-                                      onFocus = onFocus,
-                                      onBlur = onBlur,
+                                      value            = rawMinutes,
+                                      onChange         = (value.SetMinutes >> onChange),
+                                      validity         = ((value.InternalFieldValidity Minutes).Or externalValidityForFields),
+                                      maxLength        = 2,
+                                      placeholder      = "00",
+                                      testId           = A11ySlug.testId resolvedTestId "minutes",
+                                      onFocus          = onFocus,
+                                      onBlur           = onBlur,
                                       ?onEnterKeyPress = onEnterKeyPress,
                                       ?xLegacyStyles =
                                           (let s =
@@ -314,16 +316,16 @@ module Input_LocalTimeComponent =
                                   )
 
                                   LC.Input.Picker(
-                                      items = Static(periodItems, periodToFilterString),
+                                      items    = Static(periodItems, periodToFilterString),
                                       itemView = Default periodItemVisuals,
                                       value =
                                           ExactlyOne(
                                               Some rawPeriodOffset,
                                               fun offset -> value.SetPeriod offset |> onChange
                                           ),
-                                      validity = externalValidityForFields,
+                                      validity      = externalValidityForFields,
                                       showSearchBar = false,
-                                      testId = A11ySlug.testId resolvedTestId "period",
+                                      testId        = A11ySlug.testId resolvedTestId "period",
                                       ?xLegacyStyles =
                                           (let s =
                                               Rn.LegacyStyles.Runtime.findApplicableStyles legacyLabelStyles "picker"

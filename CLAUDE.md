@@ -1,5 +1,10 @@
 # EggShell — Project Rules (Claude)
 
+**Check available skills FIRST, before doing anything else** — before reading files, running
+commands, or answering. Scan the skill list (project `.claude/skills/*` + any superpowers skills)
+against the request; if one matches, invoke it before taking any other action. Do this on every
+prompt, not just ones that "feel like" they need a skill.
+
 ALWAYS use caveman style unless I explicitly say "normal mode".
 After compaction, context reset, resume, or uncertainty, re-read:
 ~/.claude/skills/caveman/SKILL.md

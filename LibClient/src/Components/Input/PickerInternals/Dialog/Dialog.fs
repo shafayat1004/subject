@@ -16,12 +16,13 @@ open LibClient.Responsive
 open Rn.Components
 open Rn.Styles
 
-type Parameters<'Item when 'Item: comparison> =
-    { Placeholder: string option
-      Model: PickerModel<'Item>
-      ItemView: PickerItemView<'Item>
-      HideDeferred: Deferred<unit>
-      ShowSearchBar: bool }
+type Parameters<'Item when 'Item: comparison> = {
+    Placeholder:   string option
+    Model:         PickerModel<'Item>
+    ItemView:      PickerItemView<'Item>
+    HideDeferred:  Deferred<unit>
+    ShowSearchBar: bool
+}
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -35,7 +36,7 @@ module private Styles =
             backgroundColor fieldTheme.BackgroundColor
 
             match screenSize with
-            | ScreenSize.Desktop -> height 46
+            | ScreenSize.Desktop  -> height 46
             | ScreenSize.Handheld -> height 40
         }
 
@@ -44,7 +45,7 @@ module private Styles =
             color fieldTheme.TextColor
 
             match screenSize with
-            | ScreenSize.Desktop -> fontSize 20
+            | ScreenSize.Desktop  -> fontSize 20
             | ScreenSize.Handheld -> fontSize 16
         }
 
@@ -116,11 +117,11 @@ module private Helpers =
         let itemLabel (item: 'Item) =
             match itemView with
             | PickerItemView.Default toItemInfo -> (toItemInfo item).Label
-            | PickerItemView.Custom _ -> "Select item"
+            | PickerItemView.Custom _           -> "Select item"
 
         LC.ItemList(
-            style = ItemList.Raw,
-            items = items,
+            style  = ItemList.Raw,
+            items  = items,
             styles = [| Styles.itemList |],
             whenNonempty =
                 fun items ->
@@ -135,7 +136,7 @@ module private Helpers =
                                            children =
                                                [| if modelState.Value.IsSelected item then
                                                       LC.Icon(
-                                                          icon = Icon.CheckMark,
+                                                          icon   = Icon.CheckMark,
                                                           styles = [| Styles.itemSelectedIcon fieldTheme |]
                                                       )
                                                   else
@@ -147,18 +148,18 @@ module private Helpers =
                                                [| match itemView with
                                                   | PickerItemView.Default toItemInfo ->
                                                       LC.UiText(
-                                                          value = (toItemInfo item).Label,
+                                                          value  = (toItemInfo item).Label,
                                                           styles = [| Styles.itemLabel fieldTheme |]
                                                       )
                                                   | PickerItemView.Custom render -> render item |]
                                        )
                                        LC.Pressable(
-                                           onPress = onToggle index item,
-                                           label = itemLabel item,
-                                           testId = A11ySlug.testId "picker-item" (itemLabel item),
-                                           role = AccessibilityRole.Button,
-                                           overlay = true,
-                                           styles = [| Styles.pressableOverlay |],
+                                           onPress       = onToggle index item,
+                                           label         = itemLabel item,
+                                           testId        = A11ySlug.testId "picker-item" (itemLabel item),
+                                           role          = AccessibilityRole.Button,
+                                           overlay       = true,
+                                           styles        = [| Styles.pressableOverlay |],
                                            componentName = "LC.Input.PickerInternals.Dialog.Toggle"
                                        ) |]
                             ))
@@ -231,7 +232,7 @@ type private DialogContent<'Item when 'Item: comparison> =
                     let position =
                         match screenSize with
                         | ScreenSize.Handheld -> Raw.DialogPosition.Center
-                        | ScreenSize.Desktop -> Raw.DialogPosition.Center
+                        | ScreenSize.Desktop  -> Raw.DialogPosition.Center
 
                     LC.Dialog.Shell.WhiteRounded.Raw(
                         position = position,
@@ -247,7 +248,7 @@ type private DialogContent<'Item when 'Item: comparison> =
                                                    children =
                                                        [| Rn.TextInput(
                                                               ``ref`` = bindInput,
-                                                              styles = [| Styles.textInput fieldTheme screenSize |],
+                                                              styles  = [| Styles.textInput fieldTheme screenSize |],
                                                               value =
                                                                   (modelState.MaybeQuery
                                                                    |> NonemptyString.optionToString),
@@ -265,7 +266,7 @@ type private DialogContent<'Item when 'Item: comparison> =
                                    vertical = true,
                                    children =
                                        [| LC.AsyncData(
-                                              data = modelState.SelectableItems,
+                                              data          = modelState.SelectableItems,
                                               whenAvailable = renderWhenAvailable,
                                               whenFetching =
                                                   fun maybeOldData ->
@@ -275,7 +276,7 @@ type private DialogContent<'Item when 'Item: comparison> =
                                                               styles = [| Styles.activityIndicatorBlock |],
                                                               children =
                                                                   [| Rn.ActivityIndicator(
-                                                                         size = ActivityIndicator.Medium,
+                                                                         size  = ActivityIndicator.Medium,
                                                                          color = "#aaaaaa"
                                                                      ) |]
                                                           )
@@ -286,7 +287,7 @@ type private DialogContent<'Item when 'Item: comparison> =
                                                                      styles = [| Styles.activityIndicatorOverlay |],
                                                                      children =
                                                                          [| Rn.ActivityIndicator(
-                                                                                size = ActivityIndicator.Medium,
+                                                                                size  = ActivityIndicator.Medium,
                                                                                 color = "#aaaaaa"
                                                                             ) |]
                                                                  ) |]
@@ -322,12 +323,12 @@ let Open
 
     doOpen<Parameters<'Item>, unit>
         "PickerInternals.Dialog"
-        { Placeholder = placeholder
-          Model = model
-          ItemView = itemView
-          HideDeferred = hideDeferred
+        { Placeholder   = placeholder
+          Model         = model
+          ItemView      = itemView
+          HideDeferred  = hideDeferred
           ShowSearchBar = showSearchBar }
         (fun dialogProps _ -> DialogContent.Render(dialogProps, dialogProps.Parameters))
-        { OnResult = ignore
+        { OnResult      = ignore
           MaybeOnCancel = None }
         close
