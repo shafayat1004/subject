@@ -4,7 +4,108 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
-## 2026-07-15 (session 23 -- SQL Server to PostgreSQL migration plan added)
+## 2026-07-15 (session 24 -- Goal G plan re-evaluated: PG-only, Orleans 10.2, PG 18, spike-driven)
+
+Re-evaluated the [SQL Server to Postgres](./modernization/sql-server-to-postgres.md) plan against "update to
+latest stable Orleans + pgsql, maximize native Orleans + native PG features for reliability/perf, and
+optionally go PG-only." Deep-researched upstream (Orleans releases, Npgsql, PG 18 release notes) and re-wrote
+the plan in place (not appended) so it reads as one coherent document with an immediate starting point.
+
+**Context:** the prior plan (session 23) targeted Orleans 9.x/10.x, PostgreSQL 17, and a permanent dual-DB with
+a maintained `DatabaseProvider` switch + pgloader cut-over (P0-P6).
+
+**Learning/decisions (woven into the doc):**
+- **PostgreSQL is the only end-state backend.** No live apps / no running cluster → no reason to maintain two
+  backends. SQL Server becomes a **throwaway diff oracle** during the port, then is deleted. The
+  `IDbConnectionProvider`/`IDbSetup`/`DatabaseProvider` seam is **scaffolding, not a permanent feature**.
+  Phase 6 (pgloader cut-over) is removed (fresh seed only); CI is PG-only after confidence. This is the single
+  biggest reshape vs the prior plan.
+- **Target stack bumped:** Orleans **10.2.1** (10.2.2-rc.1 out 2026-07-10; 10.0 multi-targets net8+net10),
+  Npgsql **10.0.3**, **PostgreSQL 18** (was 17; current stable since 2025-09), PostGIS **3.5**
+  (`postgis/postgis:18-3.5`). Backend TFM **net10.0** (SDK already `10.0.301`; projects still `net7.0`).
+- **Drop `OrleansDashboard` 3.1.0 + `Microsoft.Orleans.OrleansTelemetryConsumers.AI` 3.7.2** — Orleans 10 ships
+  its own dashboard + native metrics (`IMeterFactory`) + DiagnosticSource + OTel. Adopt `Npgsql.OpenTelemetry`
+  + PG `pg_stat_statements`/per-backend I/O stats; this supersedes the custom `Diagnostics/*.sql` scripts
+  (decode/Stalled*).
+- **Durable Jobs evaluation** is the biggest *simplification* payoff: the repo's custom durable side-effect/
+  action queue (`EnqueueAction`/`RetryPermanentFailures`/`Stalled*`/`Prepare*`/`Rollback*`) is a hand-rolled
+  durable-job system; Orleans 10 Durable Jobs + journaling catalog may replace the queue part (the
+  2-phase-commit grain-state persistence stays regardless). Gated after the storage-handler spike.
+- **Concurrency token: prefer `xmin`** over an explicit version column (the prior plan preferred explicit).
+  For an ETag (detect concurrent modification) `xmin` only needs to differ post-update, so wraparound is a
+  non-issue; zero extra columns. Spike confirms both, fallback to explicit column.
+- **PG 18 native features to bake in during the port:** AIO (`io_method=worker`), temporal constraints
+  (`WITHOUT OVERLAPS`/`PERIOD`), `uuidv7()`, `OLD`/`NEW` in `RETURNING`, data checksums default-on, virtual
+  generated columns, parallel GIN build. Each validated by a spike; earned ones go in the schema during the
+  port, not after.
+- **TVP strategy is per-volume, not blanket:** `unnest` (default for relational row-lists), binary `COPY`
+  (highest-volume only), JSONB+`jsonb_to_recordset` (candidate for the list-payload TVPs — fewer tables/joins).
+- **Identifier case: `lower_snake_case`** recommended for the new PG schema (no mixed-case legacy to preserve
+  since the SQL Server code is deleted). Adopt **Central Package Management** with the TFM bump (~12 packages
+  across 6 projects).
+- Execution is now **spike-driven** (13 spikes, S0-S13, tiered so the foundation is proven before the
+  expensive storage work): S0 TFM+CPM → S10 pkg bump → S1 Orleans-on-PG18 baseline → S9 DbUp → (S3 ‖ S2) →
+  S4 PostgresGrainStorageHandler (the pivotal one) → (S5 ‖ S7 ‖ S8) → S6 Durable Jobs → S11 observability →
+  S12 PG18 features → S13 PG-only acceptance. Phase correspondence table maps spikes to the original P0-P6
+  arc for continuity.
+
+**Grounded facts re-confirmed from the repo:** `LibLifeCycle{Core,Host}` target `net7.0`; Orleans pinned
+**3.7.2** across Core/Clustering.AdoNet/Connections.Security/Runtime/Providers/CodeGenerator/
+TelemetryConsumers.AI; `Microsoft.Data.SqlClient` **5.2.3**; **no** Npgsql ref; **no** `Directory.Packages.props`
+(no CPM); **no** `IDbConnectionProvider`/`IDbSetup` seam; `OrleansDashboard` 3.1.0; ~58 embedded `.sql`
+resources; custom `SubjectReminderTable`; custom durable side-effect queue in subject tables.
+
+**Docs convention gotcha reinforced:** gallery docs use **root-relative** links (resolved from the docs root),
+not file-relative. The original plan used `./modernization/goals-and-roadmap.md` and
+`./architecture/backend-hosting-persistence.md` even though it lives in `modernization/`. My first rewrite used
+file-relative `./goals-and-roadmap.md` / `../architecture/...` which `check-doc-links.mjs` flagged as broken
+(false positive for a real renderer, but the repo convention + checker require root-relative). Fixed via
+replaceAll. **Distilled:** added to runbooks/troubleshooting.md (docs link convention).
+
+**Distilled:** docs link convention (root-relative, not file-relative) added to runbooks/troubleshooting.md.
+
+---
+
+## 2026-07-15 (session 24b -- Goal G decisions settled: K8s target, no-regression bar)
+
+User settled the open decisions from session 24, governed by a single constraint: **no regressions versus what
+SQL Server supports today, and no regression in the dev/DBA experience.** The plan doc and goals-and-roadmap Goal
+G were updated in place.
+
+**Context:** the session-24 revision left five decisions open (deployment target/membership, Durable Jobs
+appetite, identifier case, serializer, plus the no-regression framing).
+
+**Decisions:**
+- **Deployment target = Kubernetes.** Membership = `Orleans.Clustering.Kubernetes` **10.0.1** (verified
+  Orleans-10-compatible, targets net8+net10, depends on `KubernetesClient` 18.0.5). K8s pod-label liveness
+  replaces ADO.NET-on-Postgres clustering → the upstream `PostgreSQL-Clustering.sql` script is **skipped**
+  (only Main + Persistence + Reminders applied). Dev/CI uses `UseLocalhostClustering` (no K8s requirement for
+  the inner loop) — per-environment config switch, not a code fork. Added spike **S14** (K8s membership
+  validation against a throwaway minikube/kind cluster, gated last). No regression: K8s liveness is *more*
+  reliable than DB-polling membership.
+- **Durable Jobs — adopt if S6 proves parity.** Delete the custom durable side-effect/action queue only if the
+  S6 spike shows Orleans 10 Durable Jobs covers the enqueue/retry/stalled/failed semantics; otherwise keep the
+  uncovered subset as a thin Postgres handler. The no-regression bar requires exact semantic parity before
+  deletion. The 2-phase-commit grain-state persistence stays regardless.
+- **Identifier case — `lower_snake_case`.** No regression (no mixed-case legacy to preserve — SQL Server code
+  is deleted); improves DBA experience (no quoting friction in `psql`/`pg_dump`/editors).
+- **Serializer — keep JSON.** `UseJsonFormat = true`. No regression on debuggability/DBA inspectability (matches
+  the current gzip-JSON-in-`VARBINARY` approach). MemoryPack (perf) deferred to the perf pass; revisit only if a
+  hot path demands it and the inspectability loss is acceptable for that path alone.
+- **The no-regression bar** codified as the governing principle in the plan doc — every port decision must clear
+  "no regression vs SQL Server feature + dev/DBA experience." This is why some decisions are "adopt if the spike
+  proves parity" rather than unconditional.
+
+**Doc changes:** decision #4 (K8s) + the no-regression-bar subsection added; toolchain table updated (K8s
+clustering row, serializer row); "Orleans on PostgreSQL" section rewritten (K8s membership, skip clustering
+script); S1 spike updated (localhost clustering, skip clustering script); S14 spike added; "Risks and open
+questions" restructured into "settled decisions" + "residual open questions"; goals-and-roadmap Goal G updated;
+references updated.
+
+**Distilled:** not a separate troubleshooting entry — the no-regression bar is a plan-level principle, not a
+symptom→fix. The K8s-membership + skip-clustering-script decision is recorded in the plan doc and codemem.
+
+
 
 Added [modernization/sql-server-to-postgres.md](./modernization/sql-server-to-postgres.md) for the Goal G
 storage migration; wired into the sidebar (`SidebarContent.fs` Workstreams), `llms.txt`, and cross-linked

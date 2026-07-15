@@ -56,18 +56,22 @@ dialect + provider + Orleans clustering. Exact touch points:
    Introduce a DB-dialect switch on the existing `EcosystemStorageSetup` union.
 3. **Connection factory** — `SqlConnection`/`Microsoft.Data.SqlClient` is hardcoded in
    `SqlServerConfiguration.fs` and the handlers. Abstract behind a factory; Postgres uses `Npgsql`.
-4. **SQL dialect** — the DDL/stored-proc `.sql` files are T-SQL. Postgres equivalents needed for:
+4. **SQL dialect** — the embedded `.sql` files are T-SQL (dynamic SQL built in F# and executed via
+   `sp_executesql`; there are **no stored procedures**). Postgres equivalents needed for:
    `ROWVERSION` → `xmin`/`bigserial`; `BIT` → `boolean`; `NVARCHAR ... COLLATE` → `text`/collation;
-   full-text catalog → `tsvector`/`tsquery`; geography indices → PostGIS; stored procs → PL/pgSQL.
+   full-text catalog → `tsvector`/`tsquery`; geography indices → PostGIS; the dynamic-SQL builders emit
+   PostgreSQL dialect directly (no PL/pgSQL proc rewrite).
 5. **Orleans clustering** — Orleans 3.7 ADO.NET clustering can target Postgres, but membership SQL
    (`SetupOrleans.sql`) must be ported and the invariant changed to the Npgsql provider.
 6. **Transient-error detection** — Postgres error codes differ from SQL Server's.
 
 Rough estimate: the F# handler layer is a moderate rewrite (~40%); the bulk of the effort is porting and
-testing the SQL/stored-proc surface and the membership tables. The core lifecycle/Orleans layers are
-untouched.
+testing the SQL surface and the membership tables. The core lifecycle/Orleans layers are untouched. This seam
+is **scaffolding** (PostgreSQL-only end-state — no permanent dual-DB); it is deleted with the SQL Server code
+once the Postgres path is proven.
 
-> **Sequencing note.** A `.NET 7` → current-LTS upgrade and the Postgres effort interact. If an Orleans
-> 7.x upgrade is also on the table, do the storage rewrite **once**, against the target Orleans version,
-> to avoid doing the membership/clustering port twice. See
-> [Goals & Roadmap → G](./modernization/goals-and-roadmap.md).
+> **Sequencing note.** A `net7.0` → `net10.0` TFM bump and the Postgres effort interact. The Orleans
+> upgrade (target **10.2.1**) is coupled with the DB swap, so the storage rewrite is done **once**, against
+> the target Orleans version, to avoid doing the membership/clustering port twice. See
+> [Goals & Roadmap → G](./modernization/goals-and-roadmap.md) and the full plan in
+> [SQL Server to Postgres](./modernization/sql-server-to-postgres.md).
