@@ -235,7 +235,7 @@ export function resolveIosSessionUdid(options = {}) {
   if (booted.length > 1) {
     throw new Error(
       `${booted.length} simulators booted (${booted.map((s) => s.name).join(', ')}). ` +
-        `Set defaultIosSimulator: npm run observe -- setup-devices --ios "iPhone 16"`
+        `Set defaultIosSimulator: npm run observe -- setup-devices --ios "iPhone 17 Pro Max"`
     );
   }
 
@@ -357,7 +357,7 @@ export function buildDeviceChecks(inventory) {
       id: 'ios-default-sim',
       ok: true,
       informational: true,
-      detail: 'No default simulator — npm run observe -- setup-devices --ios "iPhone 16"',
+      detail: 'No default simulator — npm run observe -- setup-devices --ios "iPhone 17 Pro Max"',
     });
   }
 

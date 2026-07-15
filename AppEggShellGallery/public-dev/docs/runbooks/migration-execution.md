@@ -272,7 +272,7 @@ rg "error FS" /tmp/build-<p>.log                      # MUST be empty
 ```
 
 7. **Verify WEB.** `cd AppEggShellGallery && ../eggshell dev-web` (restart after any LibClient change); `npm run observe -- snapshot -p web` and `--orientation landscape`. No console/health errors, correct in both orientations.
-8. **Verify iOS.** `npx react-native run-ios --simulator "iPhone 16" --no-packager`; relaunch the app; `xcrun simctl io booted screenshot`; read `xcrun simctl spawn booted log show --last 2m`. Repeat rotated. No red box, clean log.
+8. **Verify iOS.** `npx react-native run-ios --simulator "iPhone 17 Pro Max" --no-packager`; relaunch the app; `xcrun simctl io booted screenshot`; read `xcrun simctl spawn booted log show --last 2m`. Repeat rotated. No red box, clean log.
 9. **Verify Android.** `adb reverse tcp:8081 tcp:8081`; force-stop + monkey-launch; `screencap`/`pull`; `adb logcat -d | grep -iE "Uncaught|Error|Warning|unique .key.|Color is expected"`. If the change is absent:
 
 ```bash
@@ -337,7 +337,7 @@ cd SuiteTodo/AppTodo ; ../../eggshell dev-native & ; npx react-native start --po
 # Screenshot WEB (Tier 2, both orientations):
 npm run observe -- snapshot -p web ; npm run observe -- snapshot -p web --orientation landscape
 # Screenshot iOS:
-npx react-native run-ios --simulator "iPhone 16" --no-packager
+npx react-native run-ios --simulator "iPhone 17 Pro Max" --no-packager
 xcrun simctl io booted screenshot /tmp/ios.png
 xcrun simctl spawn booted log show --last 2m --style compact | tail -300
 # Screenshot ANDROID:

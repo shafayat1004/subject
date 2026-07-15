@@ -29,6 +29,7 @@ configSourceOverrides.native.js
 
 # iOS libraries and dependencies
 ios/Pods/
+ios/build_derived/
 
 # Fable native dev emits JS beside .fs sources (Metro uses .build/native/commonjs/ instead)
 **/*.fs.js

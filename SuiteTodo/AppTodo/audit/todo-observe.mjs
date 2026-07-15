@@ -96,7 +96,7 @@ const argv = yargs(hideBin(process.argv))
       y
         .option('list', { type: 'boolean', default: false, describe: 'List available devices (default when no --android/--ios)' })
         .option('android', { type: 'string', describe: 'Default Android AVD name (emulator -list-avds)' })
-        .option('ios', { type: 'string', describe: 'Default iOS simulator name (e.g. iPhone 16)' })
+        .option('ios', { type: 'string', describe: 'Default iOS simulator name (e.g. iPhone 17 Pro Max)' })
         .option('orientation', {
           type: 'string',
           choices: ['portrait', 'landscape'],

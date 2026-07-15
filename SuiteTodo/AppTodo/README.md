@@ -132,7 +132,7 @@ adb reverse tcp:8081 tcp:8081
 npx react-native run-android --no-packager
 
 # iOS
-npx react-native run-ios --simulator "iPhone 16" --no-packager
+npx react-native run-ios --simulator "iPhone 17 Pro Max" --no-packager
 ```
 
 `npm run android` / `npm run ios` without `--no-packager` will try to start Metro themselves — avoid that if Metro is already on `:8081`.
@@ -180,12 +180,12 @@ xcrun simctl list devices available
 npm run observe:setup-devices    # lists simulators + AVDs
 ```
 
-Use the **device name** column (e.g. `iPhone 16`, `iPhone SE (3rd generation)`). If several runtimes share a name, disambiguate with the iOS version in parentheses (see step 4).
+Use the **device name** column (e.g. `iPhone 17 Pro Max`, `iPhone SE (3rd generation)`). If several runtimes share a name, disambiguate with the iOS version in parentheses (see step 4).
 
 **2. Boot the simulator you want** (Xcode → Open Developer Tool → Simulator, or CLI):
 
 ```bash
-xcrun simctl boot "iPhone 16"
+xcrun simctl boot "iPhone 17 Pro Max"
 open -a Simulator
 ```
 
@@ -195,7 +195,7 @@ Skip `boot` if that simulator is already running (check with `xcrun simctl list 
 
 ```bash
 # By name (recommended)
-npx react-native run-ios --simulator "iPhone 16" --no-packager
+npx react-native run-ios --simulator "iPhone 17 Pro Max" --no-packager
 
 # Exact runtime when names collide, e.g. two "iPhone 15" entries
 npx react-native run-ios --simulator "iPhone 15 (17.0)" --no-packager
@@ -212,7 +212,7 @@ Metro key **`i`** builds and launches on a default simulator (often the booted o
 **4. Keep one simulator booted** when using observe or Metro — multiple booted simulators cause ambiguous targets. Set a default for observe:
 
 ```bash
-npm run observe -- setup-devices --ios "iPhone 16"
+npm run observe -- setup-devices --ios "iPhone 17 Pro Max"
 ```
 
 Open **`ios/*.xcworkspace`** in Xcode (not `.xcodeproj`) when debugging native code. Re-run `pod install` after Podfile changes.
@@ -229,7 +229,7 @@ Open **`ios/*.xcworkspace`** in Xcode (not `.xcodeproj`) when debugging native c
 npx react-native start --port 8081
 
 # Android: emulator + adb reverse, then press `a` or run-android --no-packager
-# iOS: boot simulator, then press `i` or run-ios --simulator "iPhone 16" --no-packager
+# iOS: boot simulator, then press `i` or run-ios --simulator "iPhone 17 Pro Max" --no-packager
 ```
 
 Reload each app independently (Android: R R; iOS: Cmd+R; or press **`r`** in Metro).
@@ -346,7 +346,7 @@ Copy `audit/native.local.json.example` → `audit/native.local.json` (gitignored
 
 ```bash
 npm run observe:setup-devices
-npm run observe -- setup-devices --android Medium_Phone_API_35 --ios "iPhone 16"
+npm run observe -- setup-devices --android Medium_Phone_API_35 --ios "iPhone 17 Pro Max"
 npm run observe -- setup-devices --orientation portrait
 ```
 
@@ -403,7 +403,7 @@ Uncomment `BackendUrl` in the relevant config to use a real Todo backend instead
 | `configSourceOverrides.native.js missing` | `./scripts/scaffold-native.sh` |
 | iOS build fails after pod change | `cd ios && pod install` |
 | Observe native fails | `npm run observe:doctor`; ensure Appium + Metro + one simulator/emulator |
-| Wrong iOS simulator launches | Boot target first: `xcrun simctl boot "iPhone 16"`; use `run-ios --simulator "iPhone 16"` |
+| Wrong iOS simulator launches | Boot target first: `xcrun simctl boot "iPhone 17 Pro Max"`; use `run-ios --simulator "iPhone 17 Pro Max"` |
 | Multiple iOS simulators booted | Quit extras (Simulator → Window); set default: `npm run observe -- setup-devices --ios "…"` |
 | Web "Network failure" loading todos | Remove or comment `BackendUrl` in dev config; use fake service |
 | Fable "Skipped compilation" | Touch changed `.fs` or delete `.build/native/fable`; re-run build |

@@ -1,7 +1,7 @@
 #!/bin/zsh
 # iOS dev-loop preflight: booted simulator + Metro. See runbooks/ios.md.
 set -u
-SIM="${1:-iPhone 16}"
+SIM="${1:-iPhone 17 Pro Max}"
 if xcrun simctl list devices | grep -q "Booted"; then
   echo "simulator booted:"; xcrun simctl list devices | grep Booted
 else

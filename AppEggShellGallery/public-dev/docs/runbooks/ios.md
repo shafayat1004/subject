@@ -15,7 +15,7 @@ Related: [Dev loop](./runbooks/dev-loop.md) | [Android](./runbooks/android.md) |
 ```bash
 xcrun simctl list devices available
 xcrun simctl list devices booted          # is one already up?
-xcrun simctl boot "iPhone 16"             # skip if already booted
+xcrun simctl boot "iPhone 17 Pro Max"     # skip if already booted
 open -a Simulator                         # show the window
 ```
 
@@ -42,8 +42,22 @@ npx react-native start --port 8081 &
 First-time install or after native dep changes:
 
 ```bash
-npx react-native run-ios --simulator "iPhone 16" --no-packager
+npx react-native run-ios --simulator "iPhone 17 Pro Max" --no-packager
 ```
+
+**`run-ios` fails here with "Something went wrong while installing CocoaPods"** even after a manual
+`pod install` succeeds — none of our apps has a root `Gemfile`, and the RN 0.86 CLI hard-requires one
+before it will drive CocoaPods. Workaround: `pod install` manually, then build + install directly:
+
+```bash
+xcrun simctl list devices available | grep "iPhone 17 Pro Max"   # get the UDID
+xcodebuild -workspace ios/<Workspace>.xcworkspace -scheme <Scheme> -configuration Debug \
+  -destination "platform=iOS Simulator,id=<SIMUDID>" -derivedDataPath ios/build_derived
+xcrun simctl install <SIMUDID> ios/build_derived/Build/Products/Debug-iphonesimulator/<App>.app
+xcrun simctl launch <SIMUDID> <bundleid>
+```
+
+Metro (and `eggshell dev-native`) must already be running for the JS bundle to load.
 
 Subsequent reloads without a rebuild:
 
@@ -136,6 +150,7 @@ only when you want adb-style raw tapping without standing up an Appium server.
 | `run-ios` finds zero eligible destinations | Xcode simulator runtime version mismatch | Download the correct runtime via Xcode Components or `xcodebuild -downloadPlatform iOS`. |
 | Build fails with `.xcodeproj` not found | Used the wrong project file | Open `.xcworkspace`, not `.xcodeproj`. |
 | `pod install` fails with version conflicts | ThirdParty React Native libs with conflicting peer ranges | Use `--legacy-peer-deps` when needed and verify Podfile platform target (`platform :ios, '15.5'` for CodePush 9.x). |
+| `run-ios` errors "Something went wrong while installing CocoaPods" despite pods already installed | RN 0.86 CLI requires a root `Gemfile`; none of our apps has one | `pod install` manually, then `xcodebuild` + `simctl install`/`launch` directly (see [Launch and reload](#launch-reload)). |
 | Can't dismiss a LogBox red box / can't tap a button from the CLI | `simctl` has no tap/swipe/type | Use Tier 2 Appium (`npm run observe -- snapshot -p ios` reads the LogBox text; tap by id), or install `idb`/`axe`. See [Interacting with the simulator](#interact). |
 
 For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).

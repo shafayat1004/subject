@@ -9,12 +9,12 @@ argument-hint: "[preflight|screenshot|log|launch <bundleid>]"
 
 ## Preflight (always first)
 
-`scripts/ios-preflight.sh` checks: a simulator is Booted (boots "iPhone 16" if not), Simulator app
+`scripts/ios-preflight.sh` checks: a simulator is Booted (boots "iPhone 17 Pro Max" if not), Simulator app
 open, Metro reachable on :8081.
 
 ## Install + launch
 
-- First install (from the app dir): `npx react-native run-ios --simulator "iPhone 16" --no-packager`
+- First install (from the app dir): `npx react-native run-ios --simulator "iPhone 17 Pro Max" --no-packager`
 - Subsequent runs: `scripts/ios-observe.sh terminate <bundleid> && scripts/ios-observe.sh launch <bundleid>`
 - Bundle ids: AppTodo `com.eggshell.apptodo`; gallery: read it from
   `AppEggShellGallery/ios/AppEggshellGallery/Info.plist` (CFBundleIdentifier, a build variable;
@@ -75,6 +75,18 @@ Hard-won technique for "control does nothing on tap" on native:
   the Metro terminal and not `simctl log show` (you may see the odd stray hit, do not depend on it).
   For a reliable runtime signal, diff Appium page-source / screenshots, or open react-native-devtools.
   F# `Log.Info` does not surface either.
+- **`react-native run-ios` always fails with "Something went wrong while installing CocoaPods" on
+  this repo**, even after a manual `pod install` succeeded — none of our apps has a root `Gemfile`,
+  and the RN 0.86 CLI (`@react-native-community/cli-config-apple`) hard-requires one before it will
+  drive CocoaPods, throwing before it ever gets to the actual `pod install` step. Workaround: after
+  `pod install`, build and launch directly, bypassing the CLI's pod-install path entirely:
+  ```bash
+  xcodebuild -workspace ios/<Workspace>.xcworkspace -scheme <Scheme> -configuration Debug \
+    -destination "platform=iOS Simulator,id=<SIMUDID>" -derivedDataPath ios/build_derived
+  xcrun simctl install <SIMUDID> ios/build_derived/Build/Products/Debug-iphonesimulator/<App>.app
+  xcrun simctl launch <SIMUDID> <bundleid>
+  ```
+  Metro (and `eggshell dev-native` for the Fable watch) must already be running for the JS bundle to load.
 
 ## Patch not showing?
 

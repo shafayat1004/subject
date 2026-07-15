@@ -144,7 +144,7 @@ export function buildDevPlaybooks(report, ctx = {}) {
           defaultIos ? `xcrun simctl boot "${defaultIos}"  # if needed` : 'open -a Simulator',
           defaultIos
             ? `# defaultIosSimulator: ${defaultIos}`
-            : 'npm run observe -- setup-devices --ios "iPhone 16"',
+            : 'npm run observe -- setup-devices --ios "iPhone 17 Pro Max"',
           '# Keep one simulator booted — multiple booted simulators confuse observe',
         ],
       },
