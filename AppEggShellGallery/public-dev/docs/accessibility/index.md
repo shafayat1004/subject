@@ -6,8 +6,8 @@ targets are at least 44px; every gesture has a non-gesture alternative; and dyna
 live regions. This is not optional, not a follow-up task, and not "good enough without it."
 
 > This section is reference and recipe material. For the platform migration context that unblocks
-> web-specific items, see [ReactXP to RNW](./modernization/reactxp-to-rnw.md). For the frontend
-> component model, see [Frontend Architecture](./architecture/frontend.md).
+> web-specific items, see [ReactXP to RNW](../modernization/reactxp-to-rnw.md). For the frontend
+> component model, see [Frontend Architecture](../architecture/frontend.md).
 
 ---
 
@@ -37,7 +37,7 @@ decorative icon hidden; rows with native checkboxes, `aria-labelledby`, and scre
 `prefers-reduced-motion` with a non-motion swipe fallback; 44px targets; keyboard alternatives to every
 swipe gesture.
 
-Each pattern in `ui2.html` maps to a framework primitive or recipe -- see [Recipes](./accessibility/recipes.md).
+Each pattern in `ui2.html` maps to a framework primitive or recipe -- see [Recipes](./recipes.md).
 
 ---
 
@@ -53,7 +53,7 @@ Migration tags used throughout this section:
 |-----|---------|
 | `[safe]` | Uses RN-native props/styles/hooks. Survived the ReactXP to RNW migration unchanged. **Build now.** |
 | `[web-only]` | Only meaningful on the web target. Build behind the web seam, not in shared logic. |
-| `[rnw-blocked]` | Needed the RNW/New-Architecture host-element seam or a modern library the migration brought. Now that the seam plus Reanimated 4 / RNGH 3 exist, most of these are unblocked (see [Backlog](./accessibility/backlog.md)). |
+| `[rnw-blocked]` | Needed the RNW/New-Architecture host-element seam or a modern library the migration brought. Now that the seam plus Reanimated 4 / RNGH 3 exist, most of these are unblocked (see [Backlog](./backlog.md)). |
 | `[lib]` | Needs a third-party native library (haptics, media captions). Wire via the `ThirdParty` recipe, ideally after the migration settles the dependency stack. |
 
 The safe set (most things): `LC.Pressable(label, role, state, liveRegion, importantForAccessibility,
@@ -65,7 +65,7 @@ accessibilityLiveRegion, importantForAccessibility, accessibilityActions, ariaRo
 The gated set (small): `:focus-visible` ring styling, true landmarks and heading levels, skip
 links, roving-tabindex mechanics, haptics, media captions. The migration has unlocked these (the RNW
 seam plus Reanimated 4 / RNGH 3 now exist); several are already built. Don't fake the rest by hand --
-see [Backlog](./accessibility/backlog.md#deferred--do-not-hand-roll).
+see [Backlog](./backlog.md#deferred--do-not-hand-roll).
 
 **Hard rule:** never reach past the seam (`document.*`, raw DOM attrs, RN/RNW internals) from app or
 framework F#.
@@ -138,13 +138,13 @@ A component is accessibility-complete when:
 
 ## In this section
 
-- [Spectrum](./accessibility/spectrum.md) -- the full coverage map: vision, motor, hearing, cognitive, motion,
+- [Spectrum](./spectrum.md) -- the full coverage map: vision, motor, hearing, cognitive, motion,
   seizure, speech, situational, i18n, and the WCAG POUR cross-index.
-- [Recipes](./accessibility/recipes.md) -- screen-reader semantics recipes and the per-component playbook (buttons,
+- [Recipes](./recipes.md) -- screen-reader semantics recipes and the per-component playbook (buttons,
   toggles, tabs, inputs, pickers, checkboxes, lists, chips, headings).
-- [Platform Settings](./accessibility/platform-settings.md) -- reactive OS settings to honor (reduce-motion, text
+- [Platform Settings](./platform-settings.md) -- reactive OS settings to honor (reduce-motion, text
   scaling, screen reader, bold, high-contrast) and how the framework responds.
-- [Backlog](./accessibility/backlog.md) -- the migration-safe vs deferred item list with `[safe]`/`[rnw-blocked]`/
+- [Backlog](./backlog.md) -- the migration-safe vs deferred item list with `[safe]`/`[rnw-blocked]`/
   `[web-only]`/`[lib]` tags, plus the "do-not-hand-roll" list.
-- [Scanner Audits](./accessibility/scanner-audit.md) -- how to use Google's Accessibility Scanner for on-device
+- [Scanner Audits](./scanner-audit.md) -- how to use Google's Accessibility Scanner for on-device
   WCAG-AA audits, plus the AppTodo finding set from the 2026-07-11 audit.

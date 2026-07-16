@@ -2,7 +2,7 @@
 
 > **Legacy section.** The render DSL is retired in product code. The StylesDSL and `.styles.fs`
 > pattern described here is the old authoring path. New components use `makeViewStyles` /
-> `makeTextStyles` directly in pure-F# `[<Component>]` files. See [Styling](./fsharp/styling.md).
+> `makeTextStyles` directly in pure-F# `[<Component>]` files. See [Styling](../fsharp/styling.md).
 
 RenderDSL was originally intended for normal React, styled through CSS. When ReactXP support was
 added, it became apparent that styling in that universe is done very differently, in a crappy

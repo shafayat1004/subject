@@ -90,12 +90,17 @@ When you edit docs (not just code), check these invariants:
 
 Docs are plain Markdown; the first `# H1` is the page title. **No YAML frontmatter.**
 
-- **Links are root-relative with a `./` prefix**, resolved against the docs root, not the file's folder.
-  From any page, link another as `./section/page.md` (e.g. `./architecture/frontend.md`), never
-  `../section/page.md` or a bare `./page.md`. The in-app link handler (`Components/App/App.fs`
-  `globalMarkdownLinkHandler`) routes `./architecture/`, `./modernization/`, `./runbooks/`,
-  `./accessibility/`, `./knowledge-base/`, `./tools/`, `./how-to/`, `./subject/` prefixes to their
-  sections; everything else renders through the generic Docs route.
+- **Links are true relative paths**, resolved against the linking file's own folder, exactly like
+  GitHub (and any standard markdown renderer) resolves them. From `modernization/index.md`, link a
+  sibling as `./other.md`, a page under a different top-level section as `../architecture/frontend.md`,
+  and a page in the same section as a bare `sibling.md` or `./sibling.md` (equivalent). Never write a
+  root-relative `./section/page.md` from a non-root file; it renders fine in the gallery but 404s on
+  github.com. The in-app link handler (`Components/App/App.fs` `globalMarkdownLinkHandler`, backed by
+  `AppEggShellGallery/src/RenderHelpers.fs` `resolveRelativeDocPath`) resolves the href against the
+  current page's folder and then routes the result into `architecture/`, `modernization/`,
+  `runbooks/`, `accessibility/`, `knowledge-base/`, `tools/`, `how-to/`, `subject/` sections by
+  prefix; everything else renders through the generic Docs route. A leading `/` (e.g. `/llms.txt`) is
+  docs-root-relative, an escape hatch for links that must not shift when a file moves.
 - **Tables** use GFM pipe syntax; they render because Showdown has `tables` enabled
   (`AppEggShellGallery/src/RenderHelpers.fs`) and the markdown container carries the `markdown-body`
   class styled in `AppEggShellGallery/public-dev/app.css`.

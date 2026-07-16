@@ -31,7 +31,7 @@ genuinely strong safety net given that subjects are persisted as JSON.
 > `Option`/`NonemptyList` encodings, ISO-8601 datetimes) are the wire contract. For how other clients
 > (a .NET NuGet SDK, an OpenAPI-generated client) can consume the standalone backend, and how the
 > codec-shape extractor seeds an OpenAPI contract, see
-> [Backend Interoperability](./modernization/backend-interop.md).
+> [Backend Interoperability](../modernization/backend-interop.md).
 
 ## Request path and subscriptions
 
@@ -63,7 +63,7 @@ ASP.NET Core SignalR (server). What is *not* off-the-shelf is the **typed F# bin
 - **Only revisit** if EggShell ever drops typed bidirectional streaming for a request/response shape; then a
   thin interop becomes viable and the sibling repo could retire.
 - **Upgrade tail.** The vendored binding still targets **net7.0**; it is bumped to net10 alongside the backend
-  TFM in [Phase 3](modernization/phased-plan.md#phase-3-backend-tfm-to-net10-orleans-frozen).
+  TFM in [Phase 3](../modernization/phased-plan.md#phase-3-backend-tfm-to-net10-orleans-frozen).
 
 ## Lang libraries
 

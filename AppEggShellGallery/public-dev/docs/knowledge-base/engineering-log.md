@@ -1,8 +1,39 @@
 # Engineering Log
 
-This is the running engineering log for the EggShell modernization effort (formerly LEARNINGS.md). Newest entries first; append new entries at the top with a date. For the distilled, timeless troubleshooting reference see [Troubleshooting](./runbooks/troubleshooting.md).
+This is the running engineering log for the EggShell modernization effort (formerly LEARNINGS.md). Newest entries first; append new entries at the top with a date. For the distilled, timeless troubleshooting reference see [Troubleshooting](../runbooks/troubleshooting.md).
 
 ---
+
+## 2026-07-16 (session 33 -- doc links switched from root-relative to true relative, so they work on GitHub too)
+
+**Problem:** gallery docs used a root-relative link convention (`./section/page.md`, always resolved
+against the docs root regardless of the linking file's folder). This worked in the gallery (both the
+web fetch path and the in-app `globalMarkdownLinkHandler` resolved that way) but is **not** how GitHub
+(or any standard markdown renderer) resolves relative links -- GitHub always resolves `./`/`../` against
+the *current file's* directory. Any link crossing top-level sections from a non-root file (the common
+case) rendered fine in the gallery but 404'd on github.com.
+
+**Fix:** flipped the convention to true relative paths, resolved against the linking file's folder in
+both places:
+- `AppEggShellGallery/src/RenderHelpers.fs` gained `resolveRelativeDocPath`, a path-join/normalize
+  helper (handles `./`, `../`, bare segments, and a leading `/` as a docs-root-relative escape hatch).
+- `Components/App/App.fs` `handleMarkdownLink` now resolves the clicked href against the *currently
+  displayed* document's path before dispatching to a section route; `currentDocPath` is threaded
+  from each `Docs`/`Subject`/`HowTo`/`Tools`/`Design`/`Legacy`/`Components` route down through
+  `Showdown.MarkdownViewer`'s new `currentDocPath` prop, through `processHtml`/`makeHtml`
+  (`ThirdParty/Showdown/src/Components/MarkdownViewer/MarkdownViewer.fs`), embedded in the web
+  onclick call and passed alongside the native `onPress` href, since the click only carries the raw
+  href with no document context otherwise.
+- `.claude/skills/docs-sync/scripts/check-doc-links.mjs` updated to resolve the same way (a leading
+  `/` still means docs-root-relative, matching the F# resolver).
+- All 365 existing `.md` cross-links across 59 docs files were rewritten mechanically (derive the old
+  resolved target under the old convention, then re-derive the new href as `path.relative` from the
+  linking file's folder) -- not hand-edited, so the rewrite is correct by construction wherever the old
+  link already worked.
+
+**Distilled:** [Keeping Code and Docs in Sync](../maintaining-docs.md) linking-convention section and
+[Troubleshooting](../runbooks/troubleshooting.md) docs section updated; the old troubleshooting entry
+recommending root-relative links is superseded in place (not deleted, marked historical).
 
 ## 2026-07-16 (session 32 -- Goal G membership refined to substrate-flexible; K8s liveness mechanism; SignalR vendoring documented)
 
@@ -171,9 +202,9 @@ changed; the durable output is two new docs.
 
 **Docs added/updated:**
 
-- New [Evaluating EggShell](./evaluating-eggshell.md): strengths, tradeoffs, performance
+- New [Evaluating EggShell](../evaluating-eggshell.md): strengths, tradeoffs, performance
   characteristics, when-to-use / when-not. Linked from the frontpage and `llms.txt`.
-- New [Backend Interoperability](./modernization/backend-interop.md) covering the three consumer tiers
+- New [Backend Interoperability](../modernization/backend-interop.md) covering the three consumer tiers
   (Fable UI / .NET NuGet SDK carve-out / OpenAPI-generated clients) and the contract-first approach. Split
   into two committed goals at the user's request: **Goal J** (standalone service + .NET client SDK via a
   `LibClient.Core` carve-out) and **Goal K** (polyglot API contract: OpenAPI/JSON-Schema emitted from the
@@ -246,7 +277,7 @@ boxShadow). Also noted the dev-web/LibStandard restart gotcha in runbooks/build-
 ## 2026-07-15 (session 25 -- Orleans/PG upgrade research verified; serializer + F# interop risk added)
 
 Adversarially-verified research (2026 primary sources) corroborated the Goal G target set in
-[SQL Server to Postgres](./modernization/sql-server-to-postgres.md): Orleans **10.2.1** (preview 10.2.2-rc.1;
+[SQL Server to Postgres](../modernization/sql-server-to-postgres.md): Orleans **10.2.1** (preview 10.2.2-rc.1;
 multi-targets net8+net10), Npgsql **10.0.3**, PostgreSQL **18** (GA 2025-09), .NET **10** LTS. Orleans 3.x is
 unsupported; documented path is 3.x to 7.0 to 8.0 to 9.0 to 10.0. Orleans ADO.NET providers support PostgreSQL
 first-class (invariant `Npgsql`) for Main/Persistence/Reminders and the grain directory.
@@ -263,7 +294,7 @@ matches the existing embedded-`.sql` mechanism; no EF Core in the repo).
 
 ## 2026-07-15 (session 24 -- Goal G plan re-evaluated: PG-only, Orleans 10.2, PG 18, spike-driven)
 
-Re-evaluated the [SQL Server to Postgres](./modernization/sql-server-to-postgres.md) plan against "update to
+Re-evaluated the [SQL Server to Postgres](../modernization/sql-server-to-postgres.md) plan against "update to
 latest stable Orleans + pgsql, maximize native Orleans + native PG features for reliability/perf, and
 optionally go PG-only." Deep-researched upstream (Orleans releases, Npgsql, PG 18 release notes) and re-wrote
 the plan in place (not appended) so it reads as one coherent document with an immediate starting point.
@@ -364,7 +395,7 @@ symptom→fix. The K8s-membership + skip-clustering-script decision is recorded 
 
 
 
-Added [modernization/sql-server-to-postgres.md](./modernization/sql-server-to-postgres.md) for the Goal G
+Added [modernization/sql-server-to-postgres.md](../modernization/sql-server-to-postgres.md) for the Goal G
 storage migration; wired into the sidebar (`SidebarContent.fs` Workstreams), `llms.txt`, and cross-linked
 from Goal G, `modernization/index.md`, and `architecture/backend-hosting-persistence.md`.
 
@@ -385,7 +416,7 @@ Non-obvious facts established while inventorying the storage layer:
 
 **Docs convention reinforced:** gallery docs are as-is technical documentation. They must not carry
 meta-status about the document itself or narration of how/why it was produced (see
-[maintaining-docs.md](./maintaining-docs.md) "Voice and content").
+[maintaining-docs.md](../maintaining-docs.md) "Voice and content").
 
 ## 2026-07-15 (session 22 -- Fantomas retired; eggshell-fmt is now the sole F# formatter)
 
@@ -464,7 +495,7 @@ invisible to them as well).
 
 **Verified** end-to-end on iPhone 17 Pro Max (iOS 26.5) via Appium coordinate taps: tap Priority ->
 dialog opens; tap "High" -> dialog closes and the field shows "High". Distilled to
-[Troubleshooting -> RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade).
+[Troubleshooting -> RN 0.86 upgrade](../runbooks/troubleshooting.md#rn86-upgrade).
 
 **Guidance:** never hide an interactive overlay with `opacity 0` on Fabric. Use `opacity 0.02` (or make
 the visible content itself the Pressable). Any new invisible-tap-target must clear the `>= 0.02` alpha
@@ -515,7 +546,7 @@ already wires third-party components.
 `didFinishLaunchingWithOptions` before `[super …]`, `self.dependencyProvider = [RCTAppDependencyProvider new];`.
 Rebuilt native + relaunched: no `receiveEvent` line, app renders fully with safe-area insets applied
 (only benign warnings remain -- key-prop + `Color.Grey` lint). Distilled to
-[Troubleshooting -> RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade).
+[Troubleshooting -> RN 0.86 upgrade](../runbooks/troubleshooting.md#rn86-upgrade).
 
 **Applied to the gallery too:** `AppEggShellGallery/ios/AppEggshellGallery/AppDelegate.mm` had the same
 omission and the `ReactAppDependencyProvider` pod is already generated for it, so it got the identical
@@ -616,7 +647,7 @@ per-app `window.__DEV__ = true` in `public-dev/index.html`, which AppTodo lacked
 app renders fully with seeded fake todos (verified: heading, tabs, add-todo form, "8 open / 3 done",
 todo rows; `audit:web` gets past readiness and creates a todo). Backend runtime remains unavailable
 on this M4 host (SQL Server full-text search will not start) -- fake service is the web path there;
-documented in [Web Runbook](./runbooks/web.md) #fake-service + the `debug-web` skill.
+documented in [Web Runbook](../runbooks/web.md) #fake-service + the `debug-web` skill.
 
 ---
 
@@ -626,7 +657,7 @@ Ran Google's Accessibility Scanner (`com.google.android.apps.accessibility.audit
 (POCO F1) to get a real on-device WCAG-AA audit. This is a Tier-1.5 tool: faster than the Appium
 harness and catches things `uiautomator dump` cannot (contrast ratios, touch target dp, duplicate
 descriptions, unexposed text, competing editable labels). New doc page:
-[Scanner Audits](./accessibility/scanner-audit.md).
+[Scanner Audits](../accessibility/scanner-audit.md).
 
 **How to use it.** Install from Play Store, enable as an accessibility service. A floating blue
 tick-mark overlay appears. Tap it with a **real finger** (synthetic `adb shell input tap` does not
@@ -641,8 +672,8 @@ normally on those windows. The `claude` CLI vision model (screenshot-describe sk
 read the overlay menu coordinates since `uiautomator dump` does not include the overlay either.
 
 **Findings (5-screen session, dark + light themes, post reduce-motion fix).** Consolidated and
-deduplicated in [Scanner Audits](./accessibility/scanner-audit.md) and added to
-[Backlog](./accessibility/backlog.md). Summary:
+deduplicated in [Scanner Audits](../accessibility/scanner-audit.md) and added to
+[Backlog](../accessibility/backlog.md). Summary:
 
 - **Touch target < 48dp**: 14 elements (filter tabs 40dp, category chips 44dp / Work 36x44dp, Add
   todo 46dp, title + search inputs 42dp, todo checkbox 44dp w, edit button 42x42dp).
@@ -968,7 +999,7 @@ verification of both fixes (esp. the iOS edge-swipe, which is new code with no d
   unaffected, but `App.fs` opened only `Fable.Core.JsInterop` and `MarkdownViewer.fs` used the
   now-stale fully-qualified `Fable.Core.JsInterop.jsNative`. Fix: `open Fable.Core` in `App.fs`;
   qualify-→-unqualified `jsNative` in `MarkdownViewer.fs`. Added to
-  [Troubleshooting](./runbooks/troubleshooting.md#build-cache).
+  [Troubleshooting](../runbooks/troubleshooting.md#build-cache).
 
 ### Gotchas / lessons
 - **`jsNative` moved in Fable.Core 5.0.0.** It is now top-level in `Fable.Core`, not in
@@ -1007,7 +1038,7 @@ verification of both fixes (esp. the iOS edge-swipe, which is new code with no d
 Fixed the pan-slider (defect 4), the picker crash (defect 6), and the blank docs (defect 5) on the
 physical POCO F1, same debug dev loop as session 11. 4 and 6 are framework fixes; 5 is app-level content
 bundling plus a framework render-html styling/link fix. Full status in
-[rn86-upgrade-status.md](./modernization/rn86-upgrade-status.md) (RW8).
+[rn86-upgrade-status.md](../modernization/rn86-upgrade-status.md) (RW8).
 
 ### What shipped
 - **Defect 4 — `HorizontalPanArea` "Drag me" didn't drag on native.** RNGH's `PanGestureHandler`
@@ -1081,7 +1112,7 @@ bundling plus a framework render-html styling/link fix. Full status in
 
 Fixed the first three RW8 defects on the physical POCO F1, iterating with a **debug** dev loop
 (`eggshell dev-native` + Metro + `run-android`) instead of the release APK. All three are framework fixes
-(benefit every app). Full status in [rn86-upgrade-status.md](./modernization/rn86-upgrade-status.md) (RW8).
+(benefit every app). Full status in [rn86-upgrade-status.md](../modernization/rn86-upgrade-status.md) (RW8).
 
 ### What shipped
 - **Defect 1 — header behind status bar → new `Rn.SafeArea` seam.** The shell already asked for
@@ -1265,7 +1296,7 @@ the home screen renders, but with these bugs (documented, not yet fixed):
 6. Opening an input Picker green-flashes + jumps to top (no options shown) — same ErrorBoundary-remount
    signature as the `crypto` loop; picker-open throws a JS exception. Capture it with logcat first, then
    fix (likely the `@react-native-picker/picker` modal path / another missing global).
-Details + leads in [RN 0.86 status](./modernization/rn86-upgrade-status.md) RW1 "Known on-device defects".
+Details + leads in [RN 0.86 status](../modernization/rn86-upgrade-status.md) RW1 "Known on-device defects".
 
 ---
 
@@ -1343,8 +1374,8 @@ identifier variants. Deleted dead `@chaldal/reactxp*` metro aliases, the dead
   from source. Native config from the `react-native-community/template` `0.86.0`
   tag: Gradle **9.3.1**, Kotlin **2.1.20**, SDK **36**, NDK **27.1.12297006**, `newArchEnabled=true`;
   `MainApplication.kt` rewritten to the `ReactHost`/`loadReactNative` model (no more `SoLoader.init`
-  / `ReactNativeHost`). See [Android runbook](./runbooks/android.md) and
-  [Troubleshooting](./runbooks/troubleshooting.md) for the full recipe + gotchas.
+  / `ReactNativeHost`). See [Android runbook](../runbooks/android.md) and
+  [Troubleshooting](../runbooks/troubleshooting.md) for the full recipe + gotchas.
 - **Native modules must be bumped for RN 0.86 Fabric C++** (old ones fail codegen with
   `BaseShadowNode`/`SharedImageManager` undeclared): react-native-svg **15.15.5**, webview
   **14.0.1**, netinfo **12.0.1**, picker **2.11.4**, async-storage **3.1.1**.
@@ -1391,7 +1422,7 @@ Instrumented `GestureView`'s responder lifecycle on the device. During a swipe t
 - **RNGH child must be ref-forwarding.** `PanGestureHandler` attaches a `ref` + `collapsable` to its single child; a `wrapComponent` function component can't receive them, so the child is wrapped in a raw RN `View`.
 
 ### Perf note
-The **dev** build feels laggy: Metro lazy bundling (first interactions stream modules, e.g. dark-mode toggle delayed then smooths out), per-frame `deepFreezeAndThrowOnMutationInDev` on the JS-driven `translateX.SetValue`, and unminified JS. A **release** build (single-ABI, debug-signed) is dramatically smoother and is the correct way to judge feel -- see [Android runbook: release perf build](./runbooks/android.md#release-perf-build). If native-thread animation is ever required, `react-native-reanimated` is the next step (not adopted now).
+The **dev** build feels laggy: Metro lazy bundling (first interactions stream modules, e.g. dark-mode toggle delayed then smooths out), per-frame `deepFreezeAndThrowOnMutationInDev` on the JS-driven `translateX.SetValue`, and unminified JS. A **release** build (single-ABI, debug-signed) is dramatically smoother and is the correct way to judge feel -- see [Android runbook: release perf build](../runbooks/android.md#release-perf-build). If native-thread animation is ever required, `react-native-reanimated` is the next step (not adopted now).
 
 ### Field-defect status (session-6 list)
 - **1-4 fixed** (RNGH native arbitration + fling).
@@ -1648,7 +1679,7 @@ Session 4's GestureView `isActive` direction fix was a partial symptom fix. Real
 
 - **`context-provider` React key warning: framework fix** — Root cause was `Fable.React.contextProvider` rendering children without injecting keys. Fix: wrap provider children in `tellReactArrayKeysAreOkay` in `Context.fs` (`Components/AppShell/Context/Context.fs`). Vendor ReactXP patches only when no F# seam exists; Metro bundles from `dist/`, not `src/` — verify patches reach the bundle with `curl`.
 
-- **Fable worklets run on JS thread, not UI thread** — Confirmed via a "jam JS thread for 3s" test: Fable-emitted `useAnimatedStyle` froze mid-animation, proving JS-thread execution. `runOnJS` inside a Fable worklet `SIGABRT`s `libworklets`. Rule: use declarative animations (Moti or Reanimated declarative/CSS API); any genuine UI-thread worklet must be a tiny JS shim in `ThirdParty`. Updated the migration runbook (now [runbooks/migration-execution.md](./runbooks/migration-execution.md) section 4.6).
+- **Fable worklets run on JS thread, not UI thread** — Confirmed via a "jam JS thread for 3s" test: Fable-emitted `useAnimatedStyle` froze mid-animation, proving JS-thread execution. `runOnJS` inside a Fable worklet `SIGABRT`s `libworklets`. Rule: use declarative animations (Moti or Reanimated declarative/CSS API); any genuine UI-thread worklet must be a tiny JS shim in `ThirdParty`. Updated the migration runbook (now [runbooks/migration-execution.md](../runbooks/migration-execution.md) section 4.6).
 
 - **Fable "skipped compilation" is not a green build** — Fable cache can skip type-check and exit 0 without compiling edits. Force recompile by touching changed `.fs` or deleting `.build/*/fable`; grep `error FS` in output.
 

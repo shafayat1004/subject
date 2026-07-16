@@ -4,7 +4,7 @@
 
 Orientation for machine readers:
 - Docs are Markdown served at `/docs/<path>`. The links below are paths relative to this docs root; fetch `/docs/<path>` to read a page.
-- Cross-links inside pages are root-relative (`./section/page.md`), resolved against the docs root, not the current file's directory.
+- Cross-links inside pages are true relative paths (`./sibling.md`, `../other-section/page.md`), resolved against the linking file's own directory, exactly like GitHub renders them.
 - Current toolchain: Fable 5.4.0, .NET 10 SDK (10.0.301), Fable.React 10.0.0-alpha.1. The frontend primitive layer has been migrated off `@chaldal/reactxp` to react-native-web (stabilizing). Orleans is 3.7.2 and storage is SQL Server (both pending upgrade).
 - Start at [Architecture Overview](architecture/index.md) for the system model and [Modernization & Current Status](modernization/index.md) for where the project stands.
 - For the framework's strengths, tradeoffs, performance characteristics, and fit (when to use it and when not), see [Evaluating EggShell](evaluating-eggshell.md).

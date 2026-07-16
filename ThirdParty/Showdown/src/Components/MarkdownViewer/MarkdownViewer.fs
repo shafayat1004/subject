@@ -88,7 +88,7 @@ type private HttpRequestOptionsJs(acceptType: string, customResponseType: string
     member val acceptType = acceptType
     member val customResponseType = customResponseType
 
-let private processHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : string =
+let private processHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (currentDocPath: string) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : string =
     let rawHtml: string = converter?makeHtml source
 
     let linksProcessedHtml =
@@ -96,8 +96,11 @@ let private processHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>
         match maybeGlobalLinkHandler with
         | None -> rawHtml
         | Some globalLinkHandler ->
+            // currentDocPath (the doc-root-relative path of the document being rendered) rides
+            // along on every link click so the handler can resolve "./"/"../" hrefs relative to
+            // this document's folder, the same way GitHub resolves relative markdown links.
             let regex = System.Text.RegularExpressions.Regex """<a href="([^"]*)">(.*)</a>"""
-            regex.Replace(rawHtml, "<a class='markdown-global-link' onclick=\"" + globalLinkHandler + "(event, '$1')\">$2</a>")
+            regex.Replace(rawHtml, "<a class='markdown-global-link' onclick=\"" + globalLinkHandler + "(event, '$1', '" + currentDocPath + "')\">$2</a>")
         #else
         rawHtml
         #endif
@@ -113,8 +116,8 @@ let private processHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>
             beforeUrl + (imageUrlTransformer url) + afterUrl
         ))
 
-let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : ReactElement =
-    let html = processHtml converter maybeGlobalLinkHandler maybeImageUrlTransformer source
+let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (currentDocPath: string) (maybeImageUrlTransformer: Option<string -> string>) (source: string) : ReactElement =
+    let html = processHtml converter maybeGlobalLinkHandler currentDocPath maybeImageUrlTransformer source
 
     #if EGGSHELL_PLATFORM_IS_WEB
     let props =
@@ -200,13 +203,16 @@ let makeHtml (converter: obj) (maybeGlobalLinkHandler: Option<string>) (maybeIma
                 "a" ==> createObj [
                     // onPress is (event, href, ...). render-html resolves a relative href against an
                     // "about://" base (so "./x.md" -> "about:///x.md"); the app-side handler normalizes
-                    // that prefix back to a routable path.
-                    // Must type the handler as a callable function: assigning to `obj` and applying it
-                    // makes Fable emit a `throw` (an `obj` isn't callable in F#), which surfaced as an
-                    // uncaught error on every link tap.
+                    // that prefix back to a routable path. currentDocPath rides along so the handler can
+                    // resolve "./"/"../" hrefs relative to this document's folder.
+                    // handler must stay `obj` and be invoked with the `$` uncurried-call operator: the
+                    // registered JS function (App.fs) is a genuine 2-arg function, but typing `handler`
+                    // as a curried `string -> string -> unit` makes Fable emit `handler(href)(currentDocPath)`
+                    // -- two chained 1-arg calls -- which fires the handler with currentDocPath undefined
+                    // on the first call before ever attempting the second.
                     "onPress" ==> System.Func<obj, string, unit>(fun _event href ->
-                        let handler: string -> unit = jsGlobalThis?(handlerName)
-                        if not (isNullOrUndefined (box handler)) then handler href)
+                        let handler: obj = jsGlobalThis?(handlerName)
+                        if not (isNullOrUndefined handler) then handler $ (href, currentDocPath))
                 ]
             ]
         | None -> createEmpty
@@ -230,6 +236,7 @@ type ThirdParty.Showdown.Components.Constructors.Showdown with
     static member MarkdownViewer(
             source:               Source,
             ?globalLinkHandler:   string,
+            ?currentDocPath:      string,
             ?imageUrlTransformer: Source -> string -> string,
             ?showdownConverter:   obj,
             ?key:                 string
@@ -237,6 +244,7 @@ type ThirdParty.Showdown.Components.Constructors.Showdown with
         ignore key
 
         let showdownConverter = defaultArg showdownConverter defaultShowdownConverter
+        let currentDocPath = defaultArg currentDocPath ""
 
         let initialSourceCode =
             match source with
@@ -269,6 +277,7 @@ type ThirdParty.Showdown.Components.Constructors.Showdown with
                     makeHtml
                         showdownConverter
                         globalLinkHandler
+                        currentDocPath
                         (imageUrlTransformer |> Option.map (fun f -> f source))
                         sourceCode
                 )

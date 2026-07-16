@@ -9,13 +9,13 @@ content. Creating this Legacy section is an attempt to start cleaning up the gal
 and making it reflect the latest and greatest in EggShell tech.
 
 ## RenderDSL
-* [RenderDSL Language Description](./renderDsl/index.md)
-* [RenderDSL Style Guide](./renderDsl/style-guide.md)
-* [Sunsetting RenderDSL](./fsharp/background.md)
+* [RenderDSL Language Description](../renderDsl/index.md)
+* [RenderDSL Style Guide](../renderDsl/style-guide.md)
+* [Sunsetting RenderDSL](../fsharp/background.md)
 
 ## StylesDSL
-* [StylesDSL Language Description](./stylesDsl/index.md)
-* [StylesDSL Style Guide](./stylesDsl/style-guide.md)
+* [StylesDSL Language Description](../stylesDsl/index.md)
+* [StylesDSL Style Guide](../stylesDsl/style-guide.md)
 
 ---
 

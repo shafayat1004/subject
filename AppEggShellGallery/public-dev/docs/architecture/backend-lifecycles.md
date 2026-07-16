@@ -1,7 +1,7 @@
 # Backend: the Lifecycle / State-Machine Core
 
 The backend programming model is a strongly-typed state machine called a **lifecycle**. See
-[Subject](./subject/index.md) for the developer-facing guide; this page is the architectural view.
+[Subject](../subject/index.md) for the developer-facing guide; this page is the architectural view.
 
 ## What a lifecycle is
 
@@ -75,7 +75,7 @@ type Subscription<'LifeAction> =
 All in `LibLifeCycle/src`:
 
 - **Views** (`View.fs`) — read-only projections over subjects, with their own access control. This is the
-  primary read path the frontend hits. See [Views](./subject/views.md).
+  primary read path the frontend hits. See [Views](../subject/views.md).
 - **TimeSeries** (`TimeSeries.fs`) — units-of-measure-typed, time-indexed data streams ingested via side
   effects; support bucketing/aggregation.
 - **Connectors** (`Services.fs`) — the integration boundary to the outside world (HTTP APIs, gateways,
@@ -85,7 +85,7 @@ All in `LibLifeCycle/src`:
   ecosystem maps onto an Orleans cluster identity (ClusterId/ServiceId = ecosystem name).
 - **Default services** (`DefaultServices.fs`) — ambient capabilities injected into `Env`: `ISubjectRepo`,
   `IBlobRepo`, `ITimeSeriesRepo`, `ICryptographer`, `ISequence`, `Clock`, etc. The `Clock` service is
-  what makes time mockable (see [Testing Framework](./architecture/testing-framework.md)).
+  what makes time mockable (see [Testing Framework](./testing-framework.md)).
 
 ## Mapping onto Orleans
 

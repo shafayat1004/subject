@@ -39,13 +39,13 @@ that the react-native-web migration improves on for web.
 
 ## How do I make a new component/route/dialog?
 
-Use the [`eggshell` CLI](./tools/cli.md). New components should be **pure F#** — see
-[How to Add a Component](./fsharp/component.md). Legacy render scaffolding is deprecated.
+Use the [`eggshell` CLI](../tools/cli.md). New components should be **pure F#** — see
+[How to Add a Component](../fsharp/component.md). Legacy render scaffolding is deprecated.
 
 ## Should I use RenderDSL or F#?
 
 **F#** for all new UI. The render DSL is retired in product code (0 `.render` files in `Lib*` or apps;
-compiler test fixtures remain under `Meta/AppRenderDslCompiler`). See [Sunsetting RenderDSL](./fsharp/background.md) and [Legacy](./legacy/index.md).
+compiler test fixtures remain under `Meta/AppRenderDslCompiler`). See [Sunsetting RenderDSL](../fsharp/background.md) and [Legacy](../legacy/index.md).
 
 ## How do I build an admin panel?
 

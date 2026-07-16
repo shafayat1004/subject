@@ -9,12 +9,12 @@ target sizes in dp, duplicate content descriptions, unexposed text, and competin
 
 Use it after any UI change that touches interactive elements, colors, or layout to get a real
 WCAG-AA-oriented second opinion before declaring a11y work done (rule 12). It is not a replacement
-for the [Audit Toolkit](./runbooks/audit-toolkit.md) (Appium/Playwright for CI), but it is faster to
+for the [Audit Toolkit](../runbooks/audit-toolkit.md) (Appium/Playwright for CI), but it is faster to
 run and catches a different class of defects.
 
-Related: [Accessibility](./accessibility/index.md) | [Recipes](./accessibility/recipes.md) |
-[Backlog](./accessibility/backlog.md) | [Android Runbook](./runbooks/android.md) |
-[Screenshot Describe](./knowledge-base/engineering-log.md)
+Related: [Accessibility](./index.md) | [Recipes](./recipes.md) |
+[Backlog](./backlog.md) | [Android Runbook](../runbooks/android.md) |
+[Screenshot Describe](../knowledge-base/engineering-log.md)
 
 ---
 
@@ -92,7 +92,7 @@ Categories the Scanner checks:
 
 Bounds are in **device pixels** (not dp). To map a bound to a UI element, cross-reference with
 `uiautomator dump` testIds, or ask the vision model (see [Screenshot Describe
-skill](./knowledge-base/engineering-log.md)) with the annotated screenshot.
+skill](../knowledge-base/engineering-log.md)) with the annotated screenshot.
 
 ---
 
@@ -185,7 +185,7 @@ description was cleaned up. Worth confirming explicitly.
 - **Keyboard navigation** -- it does not test tab order or focus-visible rings; use the web audit
   (axe-core / Playwright) for that.
 - **Reduce-motion behavior** -- it does not toggle or test reduce-motion paths; do that manually
-  (see [Troubleshooting: reduce-motion](./runbooks/troubleshooting.md)).
+  (see [Troubleshooting: reduce-motion](../runbooks/troubleshooting.md)).
 - **Gesture alternatives** -- it flags "swipe" in descriptions but does not verify a non-gesture
   alternative exists.
 - **Color-independence** -- it does not check whether color is the sole signal; verify manually.

@@ -1,8 +1,8 @@
 # The Render DSL and the Toolchain
 
 > The render DSL is being **retired**. This page documents what it is and how the toolchain works today;
-> for status and the retirement plan see [Render DSL Retirement](./modernization/render-dsl-retirement.md).
-> Legacy DSL reference lives under [Legacy](./legacy/index.md).
+> for status and the retirement plan see [Render DSL Retirement](../modernization/render-dsl-retirement.md).
+> Legacy DSL reference lives under [Legacy](../legacy/index.md).
 
 ## What the DSL is
 
@@ -21,7 +21,7 @@ pipeline (`Render/Parsing.fs`, `Render/CodeGeneration.fs`, `Render/Compiler.fs`,
 
 ## The `eggshell` CLI
 
-`Meta/AppEggshellCli` (TypeScript/Node) is the developer entry point (see [Tools → CLI](./tools/cli.md)),
+`Meta/AppEggshellCli` (TypeScript/Node) is the developer entry point (see [Tools → CLI](../tools/cli.md)),
 delegating to:
 
 - `Meta/LibEggshell` — project discovery (`eggshell.json` walk-up, project types).
@@ -46,4 +46,4 @@ Commands include `create-app`, `dev-web`, `dev-native`, `dev-android`, `dev-ios`
 The conversion itself is largely mechanical because the DSL has always been thin sugar over the same F#
 render shape — the risk is volume and reviewing the generated F# for readability, not semantics. Retiring
 the DSL also **removes an entire build stage** (a per-file compiler subprocess spawned across the repo) —
-see [Build Performance](./modernization/build-performance.md).
+see [Build Performance](../modernization/build-performance.md).

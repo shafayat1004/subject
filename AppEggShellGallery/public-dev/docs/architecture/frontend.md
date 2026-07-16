@@ -1,7 +1,7 @@
 # Frontend: Components, react-native-web, Routing
 
-For the practical developer guide see [F# Components](./fsharp/component.md), [Styling](./fsharp/styling.md),
-and [Theming](./fsharp/themeing.md). This page is the architectural view.
+For the practical developer guide see [F# Components](../fsharp/component.md), [Styling](../fsharp/styling.md),
+and [Theming](../fsharp/themeing.md). This page is the architectural view.
 
 ## Component model
 
@@ -18,7 +18,7 @@ Components are F# classes inheriting one of three bases (`LibClient/src/ChaldalR
 
 There is a **modern, lighter** path using `[<Component>]` + hooks (e.g. `FlexFiller.fs`, `Tabs.fs`,
 `Heading.fs`), with no `.render` and minimal boilerplate. This is now the target style — the render DSL is
-being retired (see [Render DSL Retirement](./modernization/render-dsl-retirement.md)), and pure-F#
+being retired (see [Render DSL Retirement](../modernization/render-dsl-retirement.md)), and pure-F#
 `[<Component>]` is the convention for all new and converted components.
 
 ## React Native for Web interop
@@ -39,7 +39,7 @@ objects, with nesting (`&&`, `=>`), responsive breakpoints, and themes.
 > The **wrapped `Rn.*` primitive layer in `LibClient/src/Rn` is the single seam** the migration
 > re-implemented against react-native-web. Because the wrappers kept their F# signatures, the bulk of
 > component code was untouched. Stabilization (scroll, gestures, pickers) is ongoing. See
-> [ReactXP → RNW](./modernization/reactxp-to-rnw.md).
+> [ReactXP → RNW](../modernization/reactxp-to-rnw.md).
 
 ## Routing
 
@@ -53,7 +53,7 @@ parts (`Integer/Guid/String/NonemptyString/Json/JsonBase64`), and React Router v
 The dominant pattern is **subscription-driven**, not Redux-style global state: a component subscribes to a
 backend subject/view and re-renders on `AsyncData<'T>` updates. A `UniDirectionalDataFlow` executor context
 exists for action dispatch with built-in in-progress/error states (see
-[Executors](./how-to/executors.md)).
+[Executors](../how-to/executors.md)).
 
 ## UI libraries & ThirdParty
 
@@ -81,11 +81,11 @@ plain style; the animated View drives the prop on the UI thread), because a Fabl
 synchronously call a Remote Function"* on the UI runtime. The seam depends only on
 `react-native-reanimated` + `react-native-worklets` (shipped by every app + the scaffold); **do not add
 a per-app animation dependency to the seam** (Moti was tried and dropped for exactly this reason -- see
-the [RN 0.86 status](./modernization/rn86-upgrade-status.md) RW2). Consumers: `Scrim`,
+the [RN 0.86 status](../modernization/rn86-upgrade-status.md) RW2). Consumers: `Scrim`,
 `SegmentedControl`, `Carousel`, `Draggable`, AppTodo's swipe, and the gallery `HorizontalPanArea` page.
 
 The legacy RN-`Animated` seam (`Rn.Animatable{View,Text,Image,TextInput}`, `Rn.Styles.Animation`,
 `animated*` style rules) remains as an **escape hatch** (it is load-bearing for the legacy style
 runtime), but new code uses `Rn.Reanimated`. Still missing for a fuller motion story: layout /
 shared-element transitions, route transitions, scroll-linked effects, coordinated timeline/stagger. See
-[ReactXP → RNW](./modernization/reactxp-to-rnw.md) (note the Fable worklet caveat).
+[ReactXP → RNW](../modernization/reactxp-to-rnw.md) (note the Fable worklet caveat).

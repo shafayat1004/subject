@@ -5,7 +5,7 @@ Exposing these once, centrally, means every component benefits without per-scree
 
 All items in this section are `[safe]`: they use RN's `AccessibilityInfo` APIs and React Native's
 existing event system, which RNW maps to web media queries. They survived the ReactXP to RNW migration
-unchanged -- see [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the migration context.
+unchanged -- see [ReactXP to RNW](../modernization/reactxp-to-rnw.md) for the migration context.
 
 ---
 
@@ -73,7 +73,7 @@ benefits; survives migration (same RN APIs, same F# surface).
 - Transitions should cross-fade or cut; spring/slide animations should skip.
 - Content remains fully accessible and readable without the animation -- motion is enhancement only.
 - The Reanimated 4 / Moti layer (now on the stack) reads this flag declaratively, so per-screen code is
-  not needed. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the animation stack.
+  not needed. See [ReactXP to RNW](../modernization/reactxp-to-rnw.md) for the animation stack.
 
 ### Bold text and reduce transparency
 
@@ -93,7 +93,7 @@ benefits; survives migration (same RN APIs, same F# surface).
 - Keep `allowFontScaling = true` on all text elements (this is the default; do not set it to `false`).
 - Use `minHeight` instead of fixed `height` on containers that hold text.
 - Use `maxContentSizeMultiplier` only when an extreme multiplier (for example, 3x) genuinely breaks
-  layout -- prefer reflow; see [Recipes L](./accessibility/recipes.md#l-any-text).
+  layout -- prefer reflow; see [Recipes L](./recipes.md#l-any-text).
 - `PixelRatio.getFontScale()` can be queried for layout decisions (for example, switching from a
   two-column to a single-column layout above a threshold).
 
@@ -115,7 +115,7 @@ benefits; survives migration (same RN APIs, same F# surface).
 - On dialog open: trap focus within the dialog; move focus to the first interactive element.
 - On dialog close: return focus to the element that triggered the dialog.
 - Basic native binding is `[safe]`; polished roving-tabindex and `inert` mechanics are
-  `[rnw-blocked]` (the RNW host-element seam is needed for web). See [Backlog](./accessibility/backlog.md) #16.
+  `[rnw-blocked]` (the RNW host-element seam is needed for web). See [Backlog](./backlog.md) #16.
 
 ---
 
@@ -133,5 +133,5 @@ These are available now that the primitive layer runs on react-native-web. They 
 | `color-scheme` | OS dark/light mode | Already handled by the theme system |
 | `prefers-color-scheme` | Browser dark/light preference | Same |
 
-See [ReactXP to RNW](./modernization/reactxp-to-rnw.md) for the full picture of what the migration
+See [ReactXP to RNW](../modernization/reactxp-to-rnw.md) for the full picture of what the migration
 unlocks.

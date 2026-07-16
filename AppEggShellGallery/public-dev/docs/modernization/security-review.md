@@ -1,7 +1,7 @@
 # Security Review
 
 A focused pass over the framework's auth, SQL, crypto, and transport surfaces was conducted as part
-of the architectural review documented in the [Architecture](./architecture/index.md) review (section 11). The findings below are
+of the architectural review documented in the [Architecture](../architecture/index.md) review (section 11). The findings below are
 **candidate leads to verify, not proven exploits.** Access-control defaults in particular often have
 subtle intended paths; confirm the exact branches and intended semantics before making any change.
 
@@ -55,4 +55,4 @@ defaults and hardening one SQL identifier surface.
 
 Not started. Security fixes are independent of other goals and goals A through H; they can be
 verified and applied at any time without waiting for the modernization work to complete. See
-[Goals & Roadmap: Security hardening](./modernization/goals-and-roadmap.md#security-hardening).
+[Goals & Roadmap: Security hardening](./goals-and-roadmap.md#security-hardening).

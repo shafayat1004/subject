@@ -19,6 +19,7 @@ let private renderContent (content: ComponentItem) : ReactElement =
         Showdown.MarkdownViewer(
             source            = docMarkdownSource "components/index.md",
             globalLinkHandler = "globalMarkdownLinkHandler",
+            currentDocPath    = "components/index.md",
             showdownConverter = showdownConverterWithSyntaxHighlighting
         )
     | Avatar                          -> Ui.Content.Avatar()

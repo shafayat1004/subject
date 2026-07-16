@@ -1,8 +1,8 @@
 # Troubleshooting
 
-Symptom-to-fix catalog organized by theme. Entries come from the dev-loop gotchas and curated durable entries from the [Engineering Log](./knowledge-base/engineering-log.md). If your symptom is here, apply the fix directly. If it is not here and the fix is not obvious after one attempt, escalate.
+Symptom-to-fix catalog organized by theme. Entries come from the dev-loop gotchas and curated durable entries from the [Engineering Log](../knowledge-base/engineering-log.md). If your symptom is here, apply the fix directly. If it is not here and the fix is not obvious after one attempt, escalate.
 
-Related: [Build and rebuild](./runbooks/build-rebuild.md) | [Dev loop](./runbooks/dev-loop.md) | [Android](./runbooks/android.md) | [iOS](./runbooks/ios.md) | [Web](./runbooks/web.md) | [Migration execution: Phase 4 pitfalls](./runbooks/migration-execution.md#phase4-pitfalls)
+Related: [Build and rebuild](./build-rebuild.md) | [Dev loop](./dev-loop.md) | [Android](./android.md) | [iOS](./ios.md) | [Web](./web.md) | [Migration execution: Phase 4 pitfalls](./migration-execution.md#phase4-pitfalls)
 
 ---
 
@@ -211,16 +211,16 @@ reduce-motion path AND the normal (animations-on) path must work.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Emulator window sideways or landscape | AVD `skin.name` reversed (e.g. `2400x1080`) + landscape default in `config.ini` | Edit `~/.android/avd/<AVD>.avd/config.ini`: `hw.initialOrientation = portrait`, `skin.name = 1080x2400`; delete snapshot cache. See [Android: boot](./runbooks/android.md#boot). |
+| Emulator window sideways or landscape | AVD `skin.name` reversed (e.g. `2400x1080`) + landscape default in `config.ini` | Edit `~/.android/avd/<AVD>.avd/config.ini`: `hw.initialOrientation = portrait`, `skin.name = 1080x2400`; delete snapshot cache. See [Android: boot](./android.md#boot). |
 | `dotnet --version` returns 137 or is killed | .NET 10 host SIGKILL'd; environment problem, not code | Escalate; do not attempt code fixes. |
 | `eggshell` or `dotnet fable` cannot find the runtime | `DOTNET_ROOT` not set | `export DOTNET_ROOT="$HOME/.dotnet"` (add to `.zshrc`). |
-| Duplicate `dev-native`/Metro instances; racing output; half-old bundle | Stale background processes from a previous session | Kill all stale processes; see [Build and rebuild: killing stale processes](./runbooks/build-rebuild.md#killing-stale-processes). |
+| Duplicate `dev-native`/Metro instances; racing output; half-old bundle | Stale background processes from a previous session | Kill all stale processes; see [Build and rebuild: killing stale processes](./build-rebuild.md#killing-stale-processes). |
 | `DevelopmentHost` fails to load `LibLifeCycleHost` assembly on Apple Silicon | `PlatformTarget=x64` in `LibLifeCycleHost` conflicts with AnyCPU host | Use conditional platform: `x64` on Windows, `AnyCPU` elsewhere. |
 | `TypeError: Cannot read property 'add' of undefined` tapping navbar (RN 0.76 bridgeless) | `LR.Router` defaulted `future.v7_startTransition = true`; React Router wraps navigation in `React.startTransition`, which breaks on bridgeless | Enable `v7_startTransition` on web only; set `None` on native in `LibRouter.Components.Router.defaultFuture`. |
-| `adb connect` "failed to connect" to a phone that pings fine | Not yet paired, or used the pairing port instead of the connect port (they differ and rotate) | `adb pair <ip>:<PAIRING_PORT> <code>` (pairing dialog), then `adb connect <ip>:<CONNECT_PORT>` (main Wireless debugging screen). See [Android: physical device](./runbooks/android.md#physical-device). |
+| `adb connect` "failed to connect" to a phone that pings fine | Not yet paired, or used the pairing port instead of the connect port (they differ and rotate) | `adb pair <ip>:<PAIRING_PORT> <code>` (pairing dialog), then `adb connect <ip>:<CONNECT_PORT>` (main Wireless debugging screen). See [Android: physical device](./android.md#physical-device). |
 | Release APK will not install ("no signature" / `INSTALL_PARSE_FAILED_NO_CERTIFICATES`) | `android/app/build.gradle` `release` signingConfig is empty unless `MYAPP_RELEASE_*` props are set, so `assembleRelease` is unsigned | Sign with the debug keystore: `./gradlew assembleRelease -PMYAPP_RELEASE_STORE_FILE=debug.keystore -PMYAPP_RELEASE_STORE_PASSWORD=android -PMYAPP_RELEASE_KEY_ALIAS=androiddebugkey -PMYAPP_RELEASE_KEY_PASSWORD=android`. |
 | Standalone release app has no todos / needs a backend | A true non-DEBUG build drops `FakeTodoService` (`#if DEBUG`) | The release bundle packages the existing `.build/native/commonjs` (Fable `--define DEBUG` watch output), so fake data stays in; do not recompile Fable without `DEBUG` for a standalone demo build. |
-| `adb shell input tap`/`text` does nothing on a native RN build | Taps inside a swipe `GestureView` are swallowed (it claims the responder on touch-start; only real touches negotiate to the child); `input text` sets the native value without firing RN `onChangeText` | Use real touch or the Appium `observe` harness ([Audit toolkit](./runbooks/audit-toolkit.md)); raw adb is fine only for large simple taps. |
+| `adb shell input tap`/`text` does nothing on a native RN build | Taps inside a swipe `GestureView` are swallowed (it claims the responder on touch-start; only real touches negotiate to the child); `input text` sets the native value without firing RN `onChangeText` | Use real touch or the Appium `observe` harness ([Audit toolkit](./audit-toolkit.md)); raw adb is fine only for large simple taps. |
 | `react-native-gesture-handler` Kotlin compile error `Cannot access 'ViewManagerWithGeneratedInterface'` on `run-android` | RNGH major mismatched to the RN version's codegen | On **RN 0.76** pin `react-native-gesture-handler@2.21.2`. On **RN 0.86** use **RNGH 3.0.2** (2.31.x is JS-incompatible with 0.86 -- see [RN 0.86 upgrade](#rn86-upgrade)). |
 | `Failed to free NNN on storage device at /data` on install | Device storage full; a debug APK bundles native libs for **all 4 ABIs** (~600 MB) | Free space and/or build a single ABI: `run-android --active-arch-only` (builds only the connected device's architecture). |
 
@@ -229,7 +229,7 @@ reduce-motion path AND the normal (animations-on) path must work.
 ## React Native 0.86 / New Architecture upgrade {#rn86-upgrade}
 
 Distilled from the session-8 upgrade (RN 0.76.5 -> 0.86, New Architecture / Fabric). Full recipe +
-authoritative version values in the [Engineering Log](./knowledge-base/engineering-log.md) (session 8).
+authoritative version values in the [Engineering Log](../knowledge-base/engineering-log.md) (session 8).
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -253,7 +253,7 @@ authoritative version values in the [Engineering Log](./knowledge-base/engineeri
 
 ## iOS signing and IPA export {#ios-signing}
 
-For the full release flow (preflight -> archive -> wrap IPA), see [iOS runbook: Release archive and IPA export](./runbooks/ios.md#release-ipa). Distilled failure modes:
+For the full release flow (preflight -> archive -> wrap IPA), see [iOS runbook: Release archive and IPA export](./ios.md#release-ipa). Distilled failure modes:
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -271,5 +271,5 @@ For the full release flow (preflight -> archive -> wrap IPA), see [iOS runbook: 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `check-doc-links.mjs` reports a link as BROKEN even though the target file exists and the path is correct *relative to the linking file* | Gallery docs use **root-relative links** (resolved from the docs root), not file-relative. A doc at `modernization/foo.md` must link its neighbor as `./modernization/bar.md` (not `./bar.md`) and an architecture page as `./architecture/x.md` (not `../architecture/x.md`). The checker resolves `./` against the docs root. | Always use root-relative paths in gallery docs. When editing, match the existing convention (`./modernization/...`, `./architecture/...`); `replaceAll` file-relative fixes if the checker flags them. Log 2026-07-15 (session 24). |
+| `check-doc-links.mjs` reports a link as BROKEN even though the target file exists | (Historical, superseded 2026-07-16.) Gallery docs used to use root-relative links (resolved from the docs root); the checker now resolves `./`/`../`/bare hrefs against the *linking file's own folder*, exactly like GitHub, so links work in both plain repo browsing and the gallery. See [Keeping Code and Docs in Sync](../maintaining-docs.md) linking-convention section. | Use true relative paths: a sibling in the same folder is `./other.md` or bare `other.md`; a page in a different top-level section is `../section/page.md`. A leading `/` (e.g. `/llms.txt`) is still docs-root-relative. Log 2026-07-16. |
 | Sidebar never highlights a doc page as active, on any platform, no matter how you navigate to it (sidebar click or in-markdown hyperlink) | `Ui.Sidebar` derives active state by comparing the live current route against a hardcoded URL string in `AppEggShellGallery/src/Components/Sidebar/SidebarContent.fs`'s per-section `*Items` list (`docsItems`, `modernizationItems`, etc). A doc page that exists and is linked but has no matching `LC.Sidebar.Item(... state = itemState "<path>.md")` entry can never match, so no row is ever `Selected` for it. This is not a navigation bug — both sidebar-click and markdown-hyperlink navigation call the identical `nav.Go`/`navigate.Push` primitive. | Add the missing item to the matching `*Items` list in `SidebarContent.fs`. When adding any new top-level doc page, add its sidebar entry in the same change. Log 2026-07-15 (session 28). |

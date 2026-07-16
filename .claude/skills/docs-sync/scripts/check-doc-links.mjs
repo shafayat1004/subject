@@ -23,12 +23,12 @@ for (const file of mdFiles(ROOT)) {
   for (const m of text.matchAll(/\]\(([^)\s]+?\.md)(#[^)]*)?\)/g)) {
     const href = m[1];
     if (/^https?:/.test(href)) continue;
-    // Docs use root-relative links (see maintaining-docs.md linking-convention section and its
-    // reference Python checker): a `./` prefix is stripped and resolved against the docs ROOT, not
-    // the source file's folder. Bare hrefs (no `./`) are likewise root-relative; a leading `/` is
-    // stripped too, matching the reference checker's `raw.lstrip("/")`.
-    const cleaned = href.startsWith('./') ? href.slice(2) : href.replace(/^\/+/, '');
-    const targetPath = resolve(ROOT, cleaned);
+    // Docs use true relative links (see maintaining-docs.md linking-convention section), resolved
+    // against the SOURCE FILE's folder -- same as GitHub's plain markdown rendering -- so `./x.md`,
+    // `../section/y.md`, and bare `x.md` all resolve identically here and on github.com. A leading
+    // `/` is treated as docs-root-relative (matches AppEggShellGallery/src/RenderHelpers.fs
+    // `resolveRelativeDocPath`, which affords the same escape hatch for the in-app link handler).
+    const targetPath = href.startsWith('/') ? resolve(ROOT, href.slice(1)) : resolve(dirname(file), href);
     if (!existsSync(targetPath)) broken.push(`${file}: ${href}`);
   }
 }

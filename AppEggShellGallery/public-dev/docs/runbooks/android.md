@@ -4,7 +4,7 @@ Full step-by-step runbook for booting an Android emulator, starting the EggShell
 
 Examples use AppTodo (`com.eggshell.apptodo`, AVD `Medium_Phone_API_35`). Substitute your app's package, AVD name, and paths as needed. Paths shown are macOS defaults.
 
-Related: [Dev loop](./runbooks/dev-loop.md) | [Build and rebuild](./runbooks/build-rebuild.md) | [Troubleshooting](./runbooks/troubleshooting.md) | [Audit toolkit](./runbooks/audit-toolkit.md)
+Related: [Dev loop](./dev-loop.md) | [Build and rebuild](./build-rebuild.md) | [Troubleshooting](./troubleshooting.md) | [Audit toolkit](./audit-toolkit.md)
 
 ---
 
@@ -99,7 +99,7 @@ $ADB shell settings put system user_rotation 1   # 1=landscape, 0=portrait
 $ADB shell settings put system user_rotation 0 ; $ADB shell settings put system accelerometer_rotation 1
 ```
 
-When a tap target matters more than speed, prefer Tier 2 (`observe`/Appium) to tap by `testId` instead of guessing pixels. See [Audit toolkit](./runbooks/audit-toolkit.md).
+When a tap target matters more than speed, prefer Tier 2 (`observe`/Appium) to tap by `testId` instead of guessing pixels. See [Audit toolkit](./audit-toolkit.md).
 
 ---
 
@@ -152,7 +152,7 @@ adb -s <phone-ip>:<CONNECT_PORT> shell am start -n com.eggshell.apptodo/.MainAct
 
 `versionCode` is still `1`; keep signing with the same key so installs update in place.
 
-**Caveat: raw `adb` cannot reliably drive RN gestures on this build.** Synthetic `adb shell input tap` on a control inside a swipe `GestureView` is swallowed (the GestureView claims the responder on touch-start; only real touches negotiate to the child), and `adb shell input text` sets the native field value without firing RN `onChangeText`. Use real touch or the Appium `observe` harness ([Audit toolkit](./runbooks/audit-toolkit.md)) for gesture/text interactions.
+**Caveat: raw `adb` cannot reliably drive RN gestures on this build.** Synthetic `adb shell input tap` on a control inside a swipe `GestureView` is swallowed (the GestureView claims the responder on touch-start; only real touches negotiate to the child), and `adb shell input text` sets the native field value without firing RN `onChangeText`. Use real touch or the Appium `observe` harness ([Audit toolkit](./audit-toolkit.md)) for gesture/text interactions.
 
 ---
 
@@ -187,9 +187,9 @@ This produces a **standalone** APK (JS bundled + minified, no Metro, no live rel
 | `backgroundColor` + `borderRadius` renders square corners | Missing `Overflow.Hidden` on the filled view | Add `Overflow.Hidden` to filled rounded views. |
 | Runtime crash `Color is expected to match #[0-oa-f]{6}` | `Color.Hex` requires lowercase hex; uppercase throws at runtime even though the build is green | Lowercase all hex strings passed to `Color.Hex`. |
 | `adb` / `run-android` fails | DOTNET_ROOT not set | `export DOTNET_ROOT="$HOME/.dotnet"` before any dotnet/fable/eggshell command. |
-| `libhermes_executor.so not found` at startup (RN 0.76) | `SoLoader.init(this, false)` in `MainApplication.kt` | Use `SoLoader.init(this, OpenSourceMergedSoMapping)`. **On RN 0.86** `MainApplication.kt` no longer calls `SoLoader.init` at all -- `loadReactNative(this)` handles it; see [RN 0.86 upgrade](./runbooks/troubleshooting.md#rn86-upgrade). |
+| `libhermes_executor.so not found` at startup (RN 0.76) | `SoLoader.init(this, false)` in `MainApplication.kt` | Use `SoLoader.init(this, OpenSourceMergedSoMapping)`. **On RN 0.86** `MainApplication.kt` no longer calls `SoLoader.init` at all -- `loadReactNative(this)` handles it; see [RN 0.86 upgrade](./troubleshooting.md#rn86-upgrade). |
 
-For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).
+For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./troubleshooting.md).
 
 ---
 
@@ -199,7 +199,7 @@ Google's Accessibility Scanner (Play Store, `com.google.android.apps.accessibili
 fast on-device a11y audit. It records a screen or session, draws annotated boxes on a screenshot,
 and exports a text report + screenshot ZIP. It catches contrast ratios, touch target dp,
 duplicate descriptions, and unexposed text that `uiautomator dump` cannot. Full how-to + AppTodo
-findings: [Scanner Audits](./accessibility/scanner-audit.md).
+findings: [Scanner Audits](../accessibility/scanner-audit.md).
 
 Quick start:
 

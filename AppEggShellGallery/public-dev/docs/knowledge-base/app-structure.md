@@ -2,7 +2,7 @@
 
 A lightweight convention for organizing an EggShell application (`App*`) project under `src/`. It is deliberately loose: follow the spirit (clear layers, predictable locations, dependencies flow one direction) rather than enforcing every folder for tiny apps. `AppTodo` inside `SuiteTodo/` is the reference implementation.
 
-For where files live in the broader repository tree, see [Directory Structure](./unsorted/directory-structure.md). For how to write components inside an app, see [Component Guide](./fsharp/component.md).
+For where files live in the broader repository tree, see [Directory Structure](../unsorted/directory-structure.md). For how to write components inside an app, see [Component Guide](../fsharp/component.md).
 
 ---
 
@@ -92,11 +92,11 @@ Foundation services may depend on Domain and FakeData, so services appear after 
 
 ### Styles never run in render
 
-Static styles are top-level `let` bindings. Parametrized styles use `ViewStyles.Memoize` / `TextStyles.Memoize` keyed on **primitives** (Color, int, bool, small DU), never on whole `Theme` or `Colors` records (fresh record references defeat the cache). See the framework [Styling guide](./fsharp/styling.md) for the full recipe, including the CE naming trap.
+Static styles are top-level `let` bindings. Parametrized styles use `ViewStyles.Memoize` / `TextStyles.Memoize` keyed on **primitives** (Color, int, bool, small DU), never on whole `Theme` or `Colors` records (fresh record references defeat the cache). See the framework [Styling guide](../fsharp/styling.md) for the full recipe, including the CE naming trap.
 
 ### Pure F# components
 
-Use `type Ui.Route with [<Component>] static member RouteName(...)` (and a private `Helpers` type for sub-components). No render DSL in apps. See [Component Guide](./fsharp/component.md).
+Use `type Ui.Route with [<Component>] static member RouteName(...)` (and a private `Helpers` type for sub-components). No render DSL in apps. See [Component Guide](../fsharp/component.md).
 
 ### Appearance (light/dark mode)
 

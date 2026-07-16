@@ -3,9 +3,9 @@
 Copy-paste recipes for screen-reader semantics and per-component accessibility patterns. These are the
 `[safe]` building blocks -- all use RN-native props that survive the ReactXP to RNW migration unchanged.
 
-For the theory behind these patterns, see [Spectrum](./accessibility/spectrum.md). For the platform settings that
-feed into them, see [Platform Settings](./accessibility/platform-settings.md). For the component model these build on,
-see [Frontend Architecture](./architecture/frontend.md) and [Component Authoring](./fsharp/component.md).
+For the theory behind these patterns, see [Spectrum](./spectrum.md). For the platform settings that
+feed into them, see [Platform Settings](./platform-settings.md). For the component model these build on,
+see [Frontend Architecture](../architecture/frontend.md) and [Component Authoring](../fsharp/component.md).
 
 ---
 
@@ -212,7 +212,7 @@ The gallery shows a live version of each pattern in the **Group/RadioGroup**, **
 ### J. Decorative icon
 
 - Always `importantForAccessibility = ImportantForAccessibility.No`.
-- Never the sole content of a control (backlog #9 / principle 3 in [index](./accessibility/index.md)).
+- Never the sole content of a control (backlog #9 / principle 3 in [index](./index.md)).
 
 ### K. Destructive action
 
@@ -300,4 +300,4 @@ Run through this before marking a component accessibility-complete:
 | Gesture has a non-gesture alternative | Tap or keyboard path exists for every swipe action |
 
 For a full description of verification tools and commands, see
-[Troubleshooting](./runbooks/troubleshooting.md).
+[Troubleshooting](../runbooks/troubleshooting.md).

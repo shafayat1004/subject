@@ -44,7 +44,7 @@ Per lifecycle the schema generates: main table, `_History`, `_Index`, `_Subscrip
 
 > The full migration plan (current storage layer, a feature-by-feature SQL Server to PostgreSQL port
 > table, Orleans-on-Postgres specifics, and a phased execution plan) lives in
-> [SQL Server to Postgres](./modernization/sql-server-to-postgres.md). The list below is the summary.
+> [SQL Server to Postgres](../modernization/sql-server-to-postgres.md). The list below is the summary.
 
 This is feasible but non-trivial. The abstraction (`IGrainStorageHandler`) is already clean; the work is
 dialect + provider + Orleans clustering. Exact touch points:
@@ -73,5 +73,5 @@ once the Postgres path is proven.
 > **Sequencing note.** A `net7.0` → `net10.0` TFM bump and the Postgres effort interact. The Orleans
 > upgrade (target **10.2.1**) is coupled with the DB swap, so the storage rewrite is done **once**, against
 > the target Orleans version, to avoid doing the membership/clustering port twice. See
-> [Goals & Roadmap → G](./modernization/goals-and-roadmap.md) and the full plan in
-> [SQL Server to Postgres](./modernization/sql-server-to-postgres.md).
+> [Goals & Roadmap → G](../modernization/goals-and-roadmap.md) and the full plan in
+> [SQL Server to Postgres](../modernization/sql-server-to-postgres.md).

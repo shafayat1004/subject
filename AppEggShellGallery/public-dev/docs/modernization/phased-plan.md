@@ -4,9 +4,9 @@ The modernization is structured as seven phases (0 through 6). Phases 0, 1, and 
 Phase 3 is designed but not started. Phase 4 is the live frontier. Phases 5 and 6 are designed but
 not started.
 
-For the goal-level view (Goals A through H + security), see [Goals & Roadmap](./modernization/goals-and-roadmap.md).
-For the motivation behind each step, see [ReactXP to RNW](./modernization/reactxp-to-rnw.md) and
-[Architecture](./architecture/index.md).
+For the goal-level view (Goals A through H + security), see [Goals & Roadmap](./goals-and-roadmap.md).
+For the motivation behind each step, see [ReactXP to RNW](./reactxp-to-rnw.md) and
+[Architecture](../architecture/index.md).
 
 ---
 
@@ -38,7 +38,7 @@ thread? Answered: Fable closures run on the JS thread, not the UI thread, becaus
 on FSharp.Core helpers that do not exist in the isolated worklet runtime. The correct framework
 pattern is declarative animation (Moti / Reanimated declarative API) from F#, with any genuine UI-thread
 worklet authored as a tiny vetted JS shim via the `ThirdParty` / `TypesJs.fs` recipe. See
-[ReactXP to RNW: F#/Fable specific risks](./modernization/reactxp-to-rnw.md#11-f--fable-specific-risks).
+[ReactXP to RNW: F#/Fable specific risks](./reactxp-to-rnw.md#11-f--fable-specific-risks).
 
 **SignalR spike.** The public `Fable.SignalR` package is abandoned and pinned to Fable 3 era;
 EggShell's private builds are also Fable-3-era. Solution: bind Microsoft's maintained
@@ -108,7 +108,7 @@ stock ASP.NET Core SignalR (Microsoft-maintained, tracks .NET). The client bindi
 - **Bump the vendored SignalR binding.** The sibling `eggshell-signalr` repo (`LibSignalRClient` +
   `LibSignalRServer`, referenced by `LibUiSubject` / `LibLifeCycleHost`) still builds on **net7.0**. Bump
   it to net10 in lockstep with the backend TFM so the real-time seam compiles against the net10 host.
-  Background on why it exists: [Real-time / SignalR](architecture/shared-types-codecs.md#real-time--signalr).
+  Background on why it exists: [Real-time / SignalR](../architecture/shared-types-codecs.md#real-time--signalr).
 - Run the full `LibLifeCycleTest` simulation suite against the bumped backend.
 
 **Orleans stays at 3.7.2.** The 3.x to 7.x upgrade (wire protocol change, grain identity change) is a
@@ -131,7 +131,7 @@ targeted test run with the actual database in Phase 3 or a staging environment.
 > earlier spike (RN 0.85); the shipped apps are now on RN 0.86. Remaining: gallery +
 > PerformancePlayground native config; Reanimated 4 + Moti. See the session-8 engineering-log entry
 > for the full recipe + gotchas (render-compiler rebuild, native-module bumps, RNGH shim), and
-> [RN 0.86 Upgrade: Done and Remaining](./modernization/rn86-upgrade-status.md) for the detailed
+> [RN 0.86 Upgrade: Done and Remaining](./rn86-upgrade-status.md) for the detailed
 > done-vs-remaining tracker.
 
 **Shape:** re-implement `LibClient/src/ReactXP` against React Native (native) + react-native-web
@@ -162,7 +162,7 @@ native RN equivalent; keep them web-only (RNW supports some), handle native vari
 (`LC.With.ScreenSize`, `#if EGGSHELL_PLATFORM_IS_WEB`).
 
 **Proven version pins:** React 19.2.3, RN 0.85.3, RNW 0.21.2, Reanimated 4.3.1 +
-`react-native-worklets` 0.8.3, RNGH 2.31.1, Moti 0.30, Expo SDK 56. See [Migration Execution](./runbooks/migration-execution.md)
+`react-native-worklets` 0.8.3, RNGH 2.31.1, Moti 0.30, Expo SDK 56. See [Migration Execution](../runbooks/migration-execution.md)
 sections 4.5 to 4.8.
 
 ---
@@ -221,4 +221,4 @@ survives the ReactXP-to-RNW seam swap unchanged. Work that is gated until after 
 landmarks, skip links, `:focus-visible` ring styling, roving-tabindex keyboard mechanics) is tagged
 `[rnw-blocked]` in the accessibility plan and should not be hand-rolled before the seam swap.
 
-See [Accessibility](./accessibility/index.md).
+See [Accessibility](../accessibility/index.md).

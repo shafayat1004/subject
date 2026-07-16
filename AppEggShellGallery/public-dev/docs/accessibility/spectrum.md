@@ -1,8 +1,8 @@
 # Accessibility Spectrum
 
 Accessibility is not just screen readers. This page covers the full spectrum of needs EggShell targets,
-plus the WCAG POUR cross-index. For how to implement each category, see [Recipes](./accessibility/recipes.md). For the
-platform settings that map to these categories, see [Platform Settings](./accessibility/platform-settings.md).
+plus the WCAG POUR cross-index. For how to implement each category, see [Recipes](./recipes.md). For the
+platform settings that map to these categories, see [Platform Settings](./platform-settings.md).
 
 ---
 
@@ -26,7 +26,7 @@ changes are announced; decorative content is hidden; images have text alternativ
 `setAccessibilityFocus`.
 
 **Status:** primitives have the props (`[safe]`). Gaps: not all primitives set role/state by default
-(backlog #9); no `announce` helper yet (backlog #8). See [Recipes §1-2](./accessibility/recipes.md).
+(backlog #9); no `announce` helper yet (backlog #8). See [Recipes §1-2](./recipes.md).
 
 ---
 
@@ -212,26 +212,26 @@ a single-locale app, but document so new components prefer logical layout.
 
 | Principle | Criteria | Covered by |
 |-----------|----------|------------|
-| **Perceivable** | 1.1.1 text alternatives | Screen-reader section above; [Recipes](./accessibility/recipes.md) |
+| **Perceivable** | 1.1.1 text alternatives | Screen-reader section above; [Recipes](./recipes.md) |
 | **Perceivable** | 1.2.x captions/alternatives | Hearing section above |
-| **Perceivable** | 1.3.1 info and relationships | [Recipes](./accessibility/recipes.md) role/name/state |
+| **Perceivable** | 1.3.1 info and relationships | [Recipes](./recipes.md) role/name/state |
 | **Perceivable** | 1.3.4 orientation | Done -- app no longer locks orientation |
 | **Perceivable** | 1.4.1 use of color | Color section above |
-| **Perceivable** | 1.4.3 / 1.4.11 contrast | Color section above; [Backlog](./accessibility/backlog.md) #13 |
+| **Perceivable** | 1.4.3 / 1.4.11 contrast | Color section above; [Backlog](./backlog.md) #13 |
 | **Perceivable** | 1.4.4 / 1.4.10 resize/reflow | Low-vision section above |
 | **Perceivable** | 1.4.12 text spacing | Low-vision section above |
 | **Operable** | 2.1.1 keyboard | Motor section above; `[web-only]` |
 | **Operable** | 2.2.x timing | Cognitive section above |
 | **Operable** | 2.3.1 three flashes | Seizure section above |
-| **Operable** | 2.3.3 animation from interactions | Motion section above; [Platform Settings](./accessibility/platform-settings.md) |
-| **Operable** | 2.4.3 focus order | Screen-reader section above; [Recipes](./accessibility/recipes.md) |
-| **Operable** | 2.4.7 focus visible | `[web-only]`/`[rnw-blocked]`; [Backlog](./accessibility/backlog.md) |
+| **Operable** | 2.3.3 animation from interactions | Motion section above; [Platform Settings](./platform-settings.md) |
+| **Operable** | 2.4.3 focus order | Screen-reader section above; [Recipes](./recipes.md) |
+| **Operable** | 2.4.7 focus visible | `[web-only]`/`[rnw-blocked]`; [Backlog](./backlog.md) |
 | **Operable** | 2.5.1 pointer gestures | Motor section above |
 | **Operable** | 2.5.2 pointer cancellation | Motor section above (`LC.Pressable`) |
-| **Operable** | 2.5.3 label in name | [Recipes](./accessibility/recipes.md); Motor section above |
-| **Operable** | 2.5.5 / 2.5.8 target size | [Backlog](./accessibility/backlog.md) #4 |
+| **Operable** | 2.5.3 label in name | [Recipes](./recipes.md); Motor section above |
+| **Operable** | 2.5.5 / 2.5.8 target size | [Backlog](./backlog.md) #4 |
 | **Understandable** | 3.1.1 language of page | Forward requirement |
 | **Understandable** | 3.2.x predictable | Cognitive section above |
-| **Understandable** | 3.3.x input assistance | Cognitive section above; [Recipes](./accessibility/recipes.md) D |
-| **Robust** | 4.1.2 name/role/value | Screen-reader section above; [Recipes](./accessibility/recipes.md) |
-| **Robust** | 4.1.3 status messages | [Recipes](./accessibility/recipes.md) live regions |
+| **Understandable** | 3.3.x input assistance | Cognitive section above; [Recipes](./recipes.md) D |
+| **Robust** | 4.1.2 name/role/value | Screen-reader section above; [Recipes](./recipes.md) |
+| **Robust** | 4.1.3 status messages | [Recipes](./recipes.md) live regions |

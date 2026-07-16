@@ -15,6 +15,7 @@ open LibRouter.RoutesSpec
 open AppEggShellGallery.Colors
 open AppEggShellGallery.Navigation
 open AppEggShellGallery.Components
+open AppEggShellGallery.RenderHelpers
 open System.Text.RegularExpressions
 
 do
@@ -39,7 +40,10 @@ let private jsGlobalThis: obj = jsNative
 
 // Platform-neutral: turn a markdown link href into in-app navigation (or external open).
 // Shared by the web onclick handler and the native react-native-render-html anchor onPress.
-let private handleMarkdownLink (nav: Navigation) (actionEvent: ReactEvent.Action) (rawMarkdownUrl: string) : unit =
+// `currentDocPath` is the doc-root-relative path of the document the link was clicked in; it's
+// used to resolve "./"/"../"/bare relative hrefs the same way GitHub resolves them, so the same
+// links work in plain repo browsing and in the gallery (see maintaining-docs.md).
+let private handleMarkdownLink (nav: Navigation) (actionEvent: ReactEvent.Action) (rawMarkdownUrl: string) (currentDocPath: string) : unit =
     // react-native-render-html resolves a relative href against an "about://" base, so a native
     // anchor arrives as e.g. "about:///modernization/x.md". Normalize it back to the "./modernization/x.md"
     // form the rest of this handler (and the web onclick) expects. No-op on web (hrefs are already "./x").
@@ -66,40 +70,37 @@ let private handleMarkdownLink (nav: Navigation) (actionEvent: ReactEvent.Action
         | Some frame -> nav.Go frame actionEvent
 
     else
+        let resolvedUrl = resolveRelativeDocPath currentDocPath markdownUrl
         let route =
-            if markdownUrl.StartsWith "./" then
-                let trimmedUrl = markdownUrl.Substring("./".Length)
-                if markdownUrl.StartsWith "./tools/" then
-                    Tools trimmedUrl
-                else if markdownUrl.StartsWith "./how-to/" then
-                    HowTo (HowToItem.Markdown trimmedUrl)
-                else if markdownUrl.StartsWith "./subject/" then
-                    Subject trimmedUrl
-                else if markdownUrl.StartsWith "./architecture/" then
-                    Architecture trimmedUrl
-                else if markdownUrl.StartsWith "./modernization/" then
-                    Modernization trimmedUrl
-                else if markdownUrl.StartsWith "./runbooks/" then
-                    Runbooks trimmedUrl
-                else if markdownUrl.StartsWith "./accessibility/" then
-                    Accessibility trimmedUrl
-                else if markdownUrl.StartsWith "./knowledge-base/" then
-                    KnowledgeBase trimmedUrl
-                else
-                    Docs trimmedUrl
+            if resolvedUrl.StartsWith "tools/" then
+                Tools resolvedUrl
+            else if resolvedUrl.StartsWith "how-to/" then
+                HowTo (HowToItem.Markdown resolvedUrl)
+            else if resolvedUrl.StartsWith "subject/" then
+                Subject resolvedUrl
+            else if resolvedUrl.StartsWith "architecture/" then
+                Architecture resolvedUrl
+            else if resolvedUrl.StartsWith "modernization/" then
+                Modernization resolvedUrl
+            else if resolvedUrl.StartsWith "runbooks/" then
+                Runbooks resolvedUrl
+            else if resolvedUrl.StartsWith "accessibility/" then
+                Accessibility resolvedUrl
+            else if resolvedUrl.StartsWith "knowledge-base/" then
+                KnowledgeBase resolvedUrl
             else
-                Docs markdownUrl
+                Docs resolvedUrl
 
         nav.Go (None, route) actionEvent
 
 let private registerGlobalMarkdownLinkHandler (nav: Navigation) : ReactElement =
 #if EGGSHELL_PLATFORM_IS_WEB
-    Browser.Dom.window?globalMarkdownLinkHandler <- (fun (e: Browser.Types.PointerEvent) (markdownUrl: string) ->
-        handleMarkdownLink nav (ReactEvent.Pointer.OfBrowserEvent e |> ReactEvent.Action.Make) markdownUrl)
+    Browser.Dom.window?globalMarkdownLinkHandler <- (fun (e: Browser.Types.PointerEvent) (markdownUrl: string) (currentDocPath: string) ->
+        handleMarkdownLink nav (ReactEvent.Pointer.OfBrowserEvent e |> ReactEvent.Action.Make) markdownUrl currentDocPath)
 #else
-    // Native has no DOM event; the render-html anchor onPress passes just the href.
-    jsGlobalThis?globalMarkdownLinkHandler <- (fun (markdownUrl: string) ->
-        handleMarkdownLink nav ReactEvent.Action.NonUserOriginatingAction markdownUrl)
+    // Native has no DOM event; the render-html anchor onPress passes the href and currentDocPath.
+    jsGlobalThis?globalMarkdownLinkHandler <- (fun (markdownUrl: string) (currentDocPath: string) ->
+        handleMarkdownLink nav ReactEvent.Action.NonUserOriginatingAction markdownUrl currentDocPath)
 
     // Deep-link handler: navigate to a path from an incoming URL (adb am start -a VIEW -d
     // "http://example.app/components/Accessibility_Group"). The AndroidManifest already has an
@@ -132,7 +133,9 @@ let private registerGlobalMarkdownLinkHandler (nav: Navigation) : ReactElement =
                         sprintf "/\"Desktop\"/%s/\"%s\"" (System.Char.ToUpper(section.[0]).ToString() + section.Substring(1)) item
                     else
                         path
-                jsGlobalThis?globalMarkdownLinkHandler("gallery://" + galleryUrl) |> ignore
+                // "gallery://" links are absolute route encodings, not resolved relative to any
+                // document, so currentDocPath is irrelevant here.
+                jsGlobalThis?globalMarkdownLinkHandler("gallery://" + galleryUrl, "") |> ignore
             with exn ->
                 Log.Error ("Deep-link navigation failed: " + rawUrl + " — " + string exn.Message)
 

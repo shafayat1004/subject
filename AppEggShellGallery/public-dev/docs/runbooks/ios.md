@@ -6,7 +6,7 @@ iOS shares the same `dev-native` + Metro as Android. No `adb reverse` is needed;
 
 Examples use AppEggShellGallery (`com.eggshell.appgallery`). Substitute your app's bundle ID and simulator name.
 
-Related: [Dev loop](./runbooks/dev-loop.md) | [Android](./runbooks/android.md) | [Build and rebuild](./runbooks/build-rebuild.md) | [Troubleshooting](./runbooks/troubleshooting.md)
+Related: [Dev loop](./dev-loop.md) | [Android](./android.md) | [Build and rebuild](./build-rebuild.md) | [Troubleshooting](./troubleshooting.md)
 
 ---
 
@@ -106,7 +106,7 @@ To actually drive iOS, pick one:
 
 1. **Tier 2 audit toolkit (preferred — already installed).** Appium + `xcuitest` driver, tap by
    `testId`/accessibility id, structured JSON output. WebDriverAgent is already built for this repo.
-   No new dependency. See [Audit toolkit](./runbooks/audit-toolkit.md).
+   No new dependency. See [Audit toolkit](./audit-toolkit.md).
    ```bash
    cd SuiteTodo/AppTodo
    npm run observe -- doctor                 # checks Appium :4723 + simulator
@@ -153,7 +153,7 @@ only when you want adb-style raw tapping without standing up an Appium server.
 | `run-ios` errors "Something went wrong while installing CocoaPods" despite pods already installed | RN 0.86 CLI requires a root `Gemfile`; none of our apps has one | `pod install` manually, then `xcodebuild` + `simctl install`/`launch` directly (see [Launch and reload](#launch-reload)). |
 | Can't dismiss a LogBox red box / can't tap a button from the CLI | `simctl` has no tap/swipe/type | Use Tier 2 Appium (`npm run observe -- snapshot -p ios` reads the LogBox text; tap by id), or install `idb`/`axe`. See [Interacting with the simulator](#interact). |
 
-For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).
+For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./troubleshooting.md).
 
 ---
 

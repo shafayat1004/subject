@@ -1,6 +1,6 @@
 # Getting Started with EggShell
 
-Our official editor is VSCode. We target VSCode + Ionide for F# tooling; see [Dev Experience](./basics/dev-experience.md).
+Our official editor is VSCode. We target VSCode + Ionide for F# tooling; see [Dev Experience](./dev-experience.md).
 
 The tooling runs most smoothly on macOS and Linux. Windows users should use **Git Bash** with symlink support enabled (see below).
 
@@ -15,7 +15,7 @@ The tooling runs most smoothly on macOS and Linux. Windows users should use **Gi
 2. Install Node.js 22.11+ ( [nvm-windows](https://github.com/coreybutler/nvm-windows) is fine)
 3. Install the .NET SDK pinned in `global.json` (currently **10.0.301**) via
    [Microsoft's dotnet-install script](https://dotnet.microsoft.com/download/dotnet)
-4. For native apps: see [Native getting started](./native/getting-started.md)
+4. For native apps: see [Native getting started](../native/getting-started.md)
 5. Clone this repository
 
 Run the steps below from **Git Bash**, not PowerShell.
@@ -63,7 +63,7 @@ eggshell dev-web
 
 Open **http://127.0.0.1:8082/** (gallery-specific port; other apps use 9080 by default).
 
-For **native** gallery dev, see [Native Development](./basics/native.md).
+For **native** gallery dev, see [Native Development](./native.md).
 
 ## Creating a new app
 
@@ -102,15 +102,15 @@ Change an F# file and save; the browser or Metro bundle should pick up the chang
 1. Repo root: `./initialize` (if tooling changed or first clone)
 2. App directory: `./initialize`
 3. Web: `eggshell dev-web`
-4. Native: see [Native Development](./basics/native.md)
+4. Native: see [Native Development](./native.md)
 
 `./initialize` in the app directory is **not** run automatically by `eggshell dev-web` (to keep daily web dev fast).
 
 ## Next steps
 
-* [eggshell CLI](./tools/cli.md) — scaffold components, routes, libraries; build and test
-* [How to Add a Component](./fsharp/component.md) — the F# dialect (default for new UI)
-* [Directory structure](./unsorted/directory-structure.md)
-* [How To index](./how-to/index.md)
-* [Native Development](./basics/native.md)
-* [Legacy RenderDSL](./legacy/index.md) — reference for remaining framework render files
+* [eggshell CLI](../tools/cli.md) — scaffold components, routes, libraries; build and test
+* [How to Add a Component](../fsharp/component.md) — the F# dialect (default for new UI)
+* [Directory structure](../unsorted/directory-structure.md)
+* [How To index](../how-to/index.md)
+* [Native Development](./native.md)
+* [Legacy RenderDSL](../legacy/index.md) — reference for remaining framework render files

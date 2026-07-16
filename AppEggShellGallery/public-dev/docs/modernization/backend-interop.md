@@ -4,10 +4,10 @@ The backend is already a standalone service. This page describes how clients oth
 F#/Fable UI can consume it, and the work that makes non-EggShell .NET clients and polyglot clients
 first-class. That work is tracked as two roadmap goals: **Goal J** (standalone service + .NET client
 SDK) and **Goal K** (polyglot API contract via OpenAPI + generated clients). See
-[Goals & Roadmap](./modernization/goals-and-roadmap.md).
+[Goals & Roadmap](./goals-and-roadmap.md).
 
-For the wire format itself see [Shared Types & Codecs](./architecture/shared-types-codecs.md); for the
-overall fit discussion see [Evaluating EggShell](./evaluating-eggshell.md).
+For the wire format itself see [Shared Types & Codecs](../architecture/shared-types-codecs.md); for the
+overall fit discussion see [Evaluating EggShell](../evaluating-eggshell.md).
 
 ## The backend is standalone (dependency direction)
 
@@ -95,7 +95,7 @@ output. Order:
 - **Carve `LibClient.Core`** (Goal J). Split transport + codecs (`.NET`-portable) from the Fable/RN UI,
   and package it as a NuGet client SDK for .NET consumers. Mostly a project split, not a rewrite. This
   also advances the long-standing "move Subject-related components out of `LibClient`" item in
-  [Goals & Roadmap](./modernization/goals-and-roadmap.md).
+  [Goals & Roadmap](./goals-and-roadmap.md).
 - **Emit an OpenAPI / JSON-Schema contract** (Goal K) by wiring the existing `LibCodecValidation` type
   walker to output a schema document instead of only comparing shapes for the evolution gate.
 - **Publish the JS SDK from the existing codecs** (Goal J) (Fable-compiled shared types + generated
@@ -103,6 +103,6 @@ output. Order:
 
 ## Status
 
-Not started. Tracked as two roadmap goals: [Goal J](./modernization/goals-and-roadmap.md) (standalone
-service + .NET client SDK) and [Goal K](./modernization/goals-and-roadmap.md) (polyglot API contract:
+Not started. Tracked as two roadmap goals: [Goal J](./goals-and-roadmap.md) (standalone
+service + .NET client SDK) and [Goal K](./goals-and-roadmap.md) (polyglot API contract:
 OpenAPI + generated clients).
