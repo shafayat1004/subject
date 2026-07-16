@@ -129,14 +129,16 @@ migration (wire protocol and grain identity changed at 7.0): stand up a new clus
 one. The Postgres storage rewrite touches the same persistence / reminders seams, so both are done **once,
 together**, against the target Orleans version. **PostgreSQL is the only end-state backend** — no live apps and
 no running cluster mean no permanent dual-DB; SQL Server serves as a throwaway diff oracle during the port, then
-is deleted. Target stack: Orleans **10.2.1**, `Orleans.Clustering.Kubernetes` **10.0.1** (K8s is the deployment
-target — K8s liveness-based membership replaces ADO.NET clustering), Npgsql **10.0.3**, **PostgreSQL 18** +
+is deleted. Target stack: Orleans **10.2.1**, `Orleans.Clustering.Kubernetes` **10.0.1** (K8s is the *preferred*
+deployment target, not mandated: K8s pod-status membership when on K8s, `UseAdoNetClustering` on Postgres as a
+real non-K8s fallback), Npgsql **10.0.3**, **PostgreSQL 18** +
 PostGIS 3.5, backend TFM **net10.0**. (The repo has no stored procedures — persistence is dynamic F# SQL emitting
 `sp_executesql`; the port emits PostgreSQL dialect directly.)
 
 **Governing constraint: the no-regression bar** — every port decision must clear "no regression versus what SQL
-Server supports today, and no regression in the dev/DBA experience." Settled decisions: K8s membership (more
-reliable than DB-polling; dev uses localhost clustering), `lower_snake_case` identifiers (no legacy to preserve;
+Server supports today, and no regression in the dev/DBA experience." Settled decisions: K8s membership preferred
+(more reliable than DB-polling) with a real `UseAdoNetClustering`-on-PG fallback so K8s stays optional; dev uses
+localhost clustering; `lower_snake_case` identifiers (no legacy to preserve;
 improves DBA experience), keep JSON serialization (debuggable/inspectable), adopt Orleans 10 Durable Jobs only if
 the S6 spike proves semantic parity.
 

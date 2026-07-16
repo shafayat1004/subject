@@ -105,6 +105,10 @@ stock ASP.NET Core SignalR (Microsoft-maintained, tracks .NET). The client bindi
 - Resolve `Microsoft.Extensions.*` version-unification conflicts that arise against a net10 host.
 - Verify `Giraffe 6.2.0` / `Giraffe.TokenRouter 3.0.0-alpha-1` against ASP.NET Core 10.
 - Remove the stray `System.Text.Json 5.0.2` pin in `LibLangFsharp.fsproj`.
+- **Bump the vendored SignalR binding.** The sibling `eggshell-signalr` repo (`LibSignalRClient` +
+  `LibSignalRServer`, referenced by `LibUiSubject` / `LibLifeCycleHost`) still builds on **net7.0**. Bump
+  it to net10 in lockstep with the backend TFM so the real-time seam compiles against the net10 host.
+  Background on why it exists: [Real-time / SignalR](architecture/shared-types-codecs.md#real-time--signalr).
 - Run the full `LibLifeCycleTest` simulation suite against the bumped backend.
 
 **Orleans stays at 3.7.2.** The 3.x to 7.x upgrade (wire protocol change, grain identity change) is a

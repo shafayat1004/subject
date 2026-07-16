@@ -1,0 +1,14 @@
+// EggShell iOS signing config (committed, project-level base configuration).
+//
+// This file carries NO personal identity. Per-developer signing values live in
+// ios/Local.xcconfig, which is git-ignored (see the app .gitignore) and never
+// committed. The optional include below pulls it in when present.
+//
+// First-time setup on a new machine, create ios/Local.xcconfig with:
+//     DEVELOPMENT_TEAM = <your 10-char Apple team id>
+// (find it in Xcode -> Settings -> Accounts, or `security find-identity -v -p codesigning`).
+// Without it the target has no team and Xcode signing is left to the UI, exactly as a
+// fresh clone of any public repo should behave.
+//
+// See AppEggShellGallery/public-dev/docs/runbooks/ios.md (Signing) for the full flow.
+#include? "Local.xcconfig"

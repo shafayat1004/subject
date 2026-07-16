@@ -162,6 +162,40 @@ For a complete catalog of build, styling, and layout gotchas, see [Troubleshooti
 Produce a signed Release IPA for installation on a provisioned device (not the simulator and not
 TestFlight/App Store). Three deterministic stages. The preflight script is the gate for stages 1-2.
 
+### Signing setup (per developer, one-time) {#signing}
+
+`DEVELOPMENT_TEAM` is **never committed** (a personal team id must not land in a shared/public repo,
+and Xcode re-dirties the pbxproj on every open). Signing is layered through xcconfig:
+
+- `ios/Config.xcconfig` -- **committed**, carries no identity. Set as the project-level
+  `baseConfigurationReference` (target-level base configs stay owned by CocoaPods, so `pod install`
+  never warns). It only does `#include? "Local.xcconfig"`.
+- `ios/Local.xcconfig` -- **git-ignored** (`ios/**/Local.xcconfig`), per developer. Create it once
+  per clone:
+
+  ```
+  DEVELOPMENT_TEAM = <your 10-char Apple team id>
+  ```
+
+  Find the id in Xcode -> Settings -> Accounts, or `security find-identity -v -p codesigning`.
+  Without it the target has no team (correct fresh-clone state); set it in the Xcode UI or this file.
+
+Deployment target is **iOS 18.0** (pbxproj `IPHONEOS_DEPLOYMENT_TARGET` and Podfile `platform :ios`).
+
+Verify the wiring resolves: `xcodebuild -project ios/<App>.xcodeproj -target <App> -configuration
+Release -showBuildSettings | grep DEVELOPMENT_TEAM` should print your team.
+
+**Adding iOS to a new app.** The scaffold (`eggshell create-app`) does not generate an `ios/` tree;
+add it by hand, then apply the signing hygiene in one shot (idempotent):
+
+```bash
+Meta/LibScaffolding/scripts/wire-ios-signing.pl <app>/ios/<App>.xcodeproj/project.pbxproj
+```
+
+It strips any hardcoded `DEVELOPMENT_TEAM`, normalizes `IPHONEOS_DEPLOYMENT_TARGET` to 18.0, and
+creates + wires `ios/Config.xcconfig`. The scaffold `.gitignore.template` already ignores
+`ios/**/Local.xcconfig` and `*.mobileprovision`, so a new app is protected by default.
+
 ### Stage 1: preflight (run before archiving)
 
 ```bash
@@ -170,7 +204,8 @@ TestFlight/App Store). Three deterministic stages. The preflight script is the g
 
 Each check prints `PASS`/`FAIL`/`WARN` with the exact value it tested; any `FAIL` exits non-zero
 with an actionable fix. Do not archive until it is green. Checks: workspace + Pods, scheme (prefers
-the scheme matching the app stem), `PRODUCT_BUNDLE_IDENTIFIER` + `DEVELOPMENT_TEAM`, keychain
+the scheme matching the app stem), `PRODUCT_BUNDLE_IDENTIFIER` (pbxproj) + `Config.xcconfig` present
++ `DEVELOPMENT_TEAM` (from `ios/Local.xcconfig`, see [Signing setup](#signing)), keychain
 `Apple Development` identity, the team is logged into Xcode Accounts, a cached provisioning profile
 for `<TEAM>.<BUNDLE_ID>` with the target device listed, Podfile disables pod-target signing, the
 Fable native bundle is fresh, and two advisories (`__DEV__` config gating, the home-screen display

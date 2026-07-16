@@ -72,19 +72,44 @@ The target Orleans major, .NET LTS, Npgsql line, and PostgreSQL major are picked
 target. The repo-wide TFM bump off `net7.0` is a prerequisite (the `global.json` SDK is already `10.0.301`, so
 the build host is ready; the backend projects are not).
 
-### 4. Kubernetes is the deployment target
+### 4. Kubernetes is the *preferred* deployment target, not a hard requirement
 
-The cluster runs on **Kubernetes**. That fixes the Orleans membership provider: **`Orleans.Clustering.Kubernetes`
-10.0.1** (the community-contributed provider, Orleans 10-compatible, targets net8+net10, depends on
-`KubernetesClient` 18.0.5) replaces the SQL-Server ADO.NET clustering. K8s liveness/pod-label-based membership
-is more reliable than DB-polling membership and removes a class of split-brain and stale-membership bugs the
-ADO.NET provider carries. It also means the upstream `PostgreSQL-Clustering.sql` script is **not** applied —
-only `PostgreSQL-Main.sql` + `PostgreSQL-Persistence.sql` + `PostgreSQL-Reminders.sql`.
+Kubernetes is not a fixed premise; the design stays **substrate-flexible**. The rule is: *when* the cluster
+runs on K8s, use the best-native membership approach; when it does not, fall back to ADO.NET-on-PostgreSQL
+clustering. Both implement the same Orleans `IMembershipTable` seam, so switching is a **per-environment config
+switch** (`UseKubernetesClustering()` vs `UseAdoNetClustering()` vs `UseLocalhostClustering()`), never a code fork.
 
-Local development does **not** require a K8s cluster: dev uses **localhost clustering** (`UseLocalhostClustering`),
-the same pattern the existing silo already falls back to. The membership provider is a per-environment config
-switch, not a code fork. CI runs against a PG container with localhost clustering for unit/integration; K8s
-membership is validated in [S14](#tier-5--validation--perf-acceptance) against a throwaway minikube/kind cluster.
+On K8s, membership uses **`Orleans.Clustering.Kubernetes` 10.0.1** (community-contributed, Orleans 10-compatible,
+targets net8+net10, depends on `KubernetesClient` 18.0.5). It is more reliable than DB-polling membership and
+removes a class of split-brain and stale-membership bugs the ADO.NET provider carries.
+
+**How K8s membership actually works** (correcting the shorthand "K8s replaces Orleans membership"): Orleans always
+runs its **own** membership protocol regardless of provider: peer probing, periodic `IAmAliveTime`, and
+suspect-and-vote eviction. The K8s provider does not replace that; it **feeds it better signal**. Two distinct
+mechanisms are in play:
+
+- **Kubelet liveness/readiness probes** are the thing literally named a "liveness probe." Kubelet hits an
+  HTTP/TCP/exec endpoint on the container; on failure it *restarts the pod*. This is process-level health, not
+  Orleans membership, but you point it at a silo health endpoint so a wedged silo gets recycled.
+- **Pod-status watch via the API server** is what the Orleans provider consumes. It watches pods in the
+  silo's label selector; when a pod is deleted/evicted/`Failed` (or its node stops renewing its lease), the
+  provider marks that silo `Dead` in the roster directly, **short-circuiting** the probe-timeout-and-vote path.
+  This is the "direct liveness" advantage: an authoritative event from the orchestrator that killed the
+  process, versus inferring death from missed DB heartbeats.
+
+> Not yet verified against the 10.0.1 source: the exact roster backing the provider uses (CRD / ConfigMap /
+> pods-as-truth). Confirm in [S14](#tier-5--validation--perf-acceptance) before relying on the detail.
+
+**PostgreSQL clustering stays a real, runnable fallback.** Because K8s is not mandated, the upstream
+`PostgreSQL-Clustering.sql` script is **ported alongside** `-Main`/`-Persistence`/`-Reminders`, not skipped. That
+keeps the non-K8s substrate genuinely deployable (a Postgres box with no orchestrator) and preserves an escape
+hatch if [S14](#tier-5--validation--perf-acceptance) finds the K8s provider unsuitable. The only cost is porting
+one more SQL script; the payoff is substrate flexibility, which the project explicitly wants.
+
+Local development requires **no** K8s cluster: dev uses **localhost clustering** (`UseLocalhostClustering`), the
+pattern the existing silo already falls back to. CI runs against a PG container with localhost clustering for
+unit/integration; K8s membership is validated in [S14](#tier-5--validation--perf-acceptance) against a throwaway
+minikube/kind cluster.
 
 ### The no-regression bar
 
@@ -99,8 +124,8 @@ and no regression in the dev/DBA experience.** Concretely:
 - The dev experience stays frictionless and matches or beats today: a developer runs the app and database
   locally with no K8s cluster. `docker compose up` gives a working local silo (`UseLocalhostClustering` + a
   local PG 18 container); the deterministic simulation and unit tests use the in-memory `Test`/`Volatile`
-  handlers and need no database at all. K8s is a production deployment detail (decision 4), never a local-dev
-  requirement.
+  handlers and need no database at all. K8s is a production deployment *option* (decision 4), never a local-dev
+  requirement, and never the only path to production.
 
 This bar is why some decisions are "adopt if the spike proves parity" rather than "adopt unconditionally" — the
 spikes exist to prove no regression before a deletion.
@@ -244,9 +269,10 @@ Confirm exact point releases on nuget.org before pinning. The target shape, conf
 | Npgsql | **10.0.3** (May 2026) | Targets net8/9/10. **Npgsql 10 deprecates synchronous APIs** — write async DB access only. |
 | PostgreSQL | **18** (current stable since 2025-09; 19 in beta) | Bumped from 17. Use `postgis/postgis:18-3.5`. Data checksums now default-on. |
 | PostGIS | **3.5+** | Matches PG 18. `CREATE EXTENSION postgis;` per database. |
-| Orleans ADO.NET invariant | `Npgsql` | Replaces `Microsoft.Data.SqlClient` for persistence + reminders. (Clustering is K8s — see below.) |
-| Orleans packages | `Microsoft.Orleans.{Persistence,Reminders}.AdoNet` 10.2.1 | Apply `PostgreSQL-Main.sql` then per-feature scripts. **Skip `PostgreSQL-Clustering.sql`** — membership is K8s (decision 4). |
-| Membership (prod) | **`Orleans.Clustering.Kubernetes` 10.0.1** | K8s pod-label liveness; more reliable than DB-polling. Orleans 10-compatible (net8+net10). |
+| Orleans ADO.NET invariant | `Npgsql` | Replaces `Microsoft.Data.SqlClient` for persistence + reminders (+ clustering on the non-K8s substrate). |
+| Orleans packages | `Microsoft.Orleans.{Clustering,Persistence,Reminders}.AdoNet` 10.2.1 | Apply `PostgreSQL-Main.sql` then per-feature scripts, **including `PostgreSQL-Clustering.sql`** (it backs the PG-membership fallback, decision 4). |
+| Membership (prod, on K8s) | **`Orleans.Clustering.Kubernetes` 10.0.1** | Preferred when the substrate is K8s: pod-status watch, more reliable than DB-polling. Orleans 10-compatible (net8+net10). |
+| Membership (prod, non-K8s) | `UseAdoNetClustering` on Postgres | Real fallback: keeps the app deployable on a plain Postgres box with no orchestrator. |
 | Membership (dev/CI) | `UseLocalhostClustering` | No K8s requirement for the inner loop; per-environment config switch. |
 | Dashboard | **Built-in `Microsoft.Orleans.Dashboard`** (part of Server) | Drop community `OrleansDashboard` 3.1.0. |
 | Telemetry | **Native metrics (`IMeterFactory`) + DiagnosticSource + OTel + `Npgsql.OpenTelemetry`** | Drop `Microsoft.Orleans.OrleansTelemetryConsumers.AI` 3.7.2. |
@@ -357,11 +383,12 @@ The `ROWVERSION` ETag maps to either:
 
 ## Orleans on PostgreSQL
 
-- **Membership: Kubernetes (decision 4).** `Orleans.Clustering.Kubernetes` 10.0.1 replaces the SQL-Server
-  ADO.NET clustering. K8s pod-label liveness is the source of truth for "which silos are alive" — more reliable
-  than DB-polling membership and immune to its split-brain/stale-entry failure modes. The upstream
-  **`PostgreSQL-Clustering.sql` script is skipped**; only `PostgreSQL-Main.sql` + `PostgreSQL-Persistence.sql`
-  + `PostgreSQL-Reminders.sql` are applied. Dev/CI uses `UseLocalhostClustering` (no K8s needed for the inner loop).
+- **Membership: K8s preferred, PG fallback kept real (decision 4).** On K8s, `Orleans.Clustering.Kubernetes`
+  10.0.1 feeds Orleans' own membership protocol from pod-status watches (more reliable than DB polling and immune
+  to its split-brain/stale-entry failure modes). Because K8s is *not* a hard requirement, the upstream
+  **`PostgreSQL-Clustering.sql` script is ported too** (not skipped), backing an `UseAdoNetClustering` fallback so
+  the app stays deployable on a plain Postgres box. All of `PostgreSQL-Main.sql` + `-Clustering` + `-Persistence`
+  + `-Reminders` are applied. Dev/CI uses `UseLocalhostClustering` (no K8s needed for the inner loop).
 - **Persistence + Reminders: ADO.NET on PostgreSQL.** `Microsoft.Orleans.Persistence.AdoNet` +
   `Microsoft.Orleans.Reminders.AdoNet` (10.2.1). Provider package: `Npgsql`. Set `Invariant = "Npgsql"` and the
   `ConnectionString`; for grain persistence set `UseJsonFormat = true` (debuggable, DBA-inspectable — see the
@@ -382,8 +409,8 @@ The `ROWVERSION` ETag maps to either:
   handler stays. Stock AdoNet persistence is used only where a plain blob-per-grain suffices (if anywhere); the
   stock reminder table is a separate evaluation ([S5](#tier-3--feature-ports)).
 - **Setup scripts** live in the `dotnet/orleans` repo and are applied **Main first**, then per feature:
-  `PostgreSQL-Main.sql`, then ~~`PostgreSQL-Clustering.sql`~~ (skipped — K8s), `PostgreSQL-Persistence.sql`,
-  `PostgreSQL-Reminders.sql`. Every silo must reach the database before start. They are applied via the
+  `PostgreSQL-Main.sql`, then `PostgreSQL-Clustering.sql` (backs the non-K8s membership fallback, decision 4),
+  `PostgreSQL-Persistence.sql`, `PostgreSQL-Reminders.sql`. Every silo must reach the database before start. They are applied via the
   `IDbSetup` Postgres implementation (bundle the upstream scripts as embedded resources, the same pattern as
   today's `SetupOrleans.sql`).
 - **The custom `SubjectReminderTable`** is the awkward part. It bypasses the Orleans reminder table and
@@ -424,9 +451,10 @@ machinery and are adopted *during* the port, not after.
   (S11) for deterministic reminder/timer behavior.
 - **Built-in dashboard.** `Microsoft.Orleans.Dashboard` (part of `Microsoft.Orleans.Server`) replaces the
   community `OrleansDashboard` 3.1.0. The 10.2.0 release added a lifecycle dependency graph to the dashboard.
-- **Membership provider.** Decision 4 settled this: **`Orleans.Clustering.Kubernetes` 10.0.1** for prod (K8s
-  pod-label liveness, via the `IMembershipManager` abstraction Orleans 10 added), `UseLocalhostClustering` for
-  dev/CI. The upstream clustering script is skipped. Validated in [S14](#tier-5--validation--perf-acceptance).
+- **Membership provider.** Decision 4 settled this: **`Orleans.Clustering.Kubernetes` 10.0.1** preferred when the
+  substrate is K8s, `UseAdoNetClustering` on Postgres as the real non-K8s fallback, `UseLocalhostClustering` for
+  dev/CI, all one `IMembershipTable` seam, a per-environment config switch. The upstream clustering script is
+  ported (not skipped) so the fallback is runnable. K8s path validated in [S14](#tier-5--validation--perf-acceptance).
 - **Runtime placement, directory, and failure detection (free wins from the jump).** Orleans 9.x/10 default to
   a strong-consistency grain directory, `ResourceOptimizedPlacement` as the default placement (9.2+), and
   memory-based activation shedding; failure detection dropped from ~10 minutes (3.x) to ~90 seconds. Orleans 8.2+
@@ -488,8 +516,9 @@ covers dev/CI.
 ### Tier 1 — foundation (de-risk the core combination)
 
 - **S1 · Orleans-on-PG18 baseline (throwaway console).** *(~1d, maps to P0 spike.)*
-  Apply upstream `PostgreSQL-Main` + `-Persistence` + `-Reminders` (skip `-Clustering` — K8s handles membership,
-  decision 4) to `postgis/postgis:18-3.5`. Run a trivial silo: `UseLocalhostClustering` + ADO.NET persistence
+  Apply upstream `PostgreSQL-Main` + `-Persistence` + `-Reminders` to `postgis/postgis:18-3.5` (the S1 baseline
+  uses localhost clustering, so `-Clustering` is exercised later in the PG-fallback path, decision 4). Run a
+  trivial silo: `UseLocalhostClustering` + ADO.NET persistence
   (`UseJsonFormat`) + reminders, invariant `Npgsql`, on net10 + Orleans 10.2.1. Confirm: silo boots, grain state
   survives restart, reminder fires. Run on the **arm64 dev machine** and confirm the `postgis/postgis:18-3.5`
   image is the native arm64 variant (not emulated amd64) with FTS + PostGIS queries working. **Proves:** the
@@ -567,12 +596,17 @@ covers dev/CI.
   and the scaffolding seam** (decision 2). `EXPLAIN ANALYZE` the index/search/geography/hot-write queries; tune
   GIN/GiST, `work_mem`, AIO, eager-freeze. **Proves:** the acceptance bar. There is no P6 cut-over — fresh seed
   only.
-- **S14 · Kubernetes membership validation.** *(~1d, maps to P4.)*
+- **S14 · Kubernetes membership validation (gated last).** *(~1d, maps to P4.)*
+  Gated last on purpose: membership sits on top of a complete silo (it needs a booting silo that already persists
+  state + runs reminders to cluster at all), and it needs infra the inner loop lacks (a cluster + RBAC + a
+  pod-status watch). The localhost path (S1) already covers dev/CI, so S14's absence blocks nothing earlier.
   Stand up a throwaway cluster (minikube or kind), deploy the silo with `Orleans.Clustering.Kubernetes` 10.0.1,
-  and confirm: silo registers via K8s pod labels, a second silo joins and membership converges, a killed pod's
-  membership entry is reaped by K8s liveness (not DB polling). Confirm persistence + reminders still reach the PG
-  container. **Proves:** the K8s membership decision (decision 4) and the "no clustering script" choice hold in
-  the target environment; the localhost path (S1) is the dev/CI equivalent.
+  and confirm: the silo registers, a second silo joins and membership converges, and a killed pod's membership
+  entry is reaped from the **pod-status watch** (short-circuiting Orleans' own probe-timeout-and-vote), not from
+  DB polling. Confirm persistence + reminders still reach the PG container. Also confirm the exact roster backing
+  the provider uses (CRD/ConfigMap/pods), unverified at plan time. **Proves:** the K8s membership decision
+  (decision 4) holds in the target environment. The PG `UseAdoNetClustering` fallback (decision 4) is the escape
+  hatch if this spike fails; the localhost path (S1) is the dev/CI equivalent.
 
 ### Phase correspondence (for continuity)
 
@@ -634,9 +668,12 @@ covers dev/CI.
 
 **Decisions settled this revision** (governed by the [no-regression bar](#the-no-regression-bar)):
 
-- **Deployment target / membership provider — DECIDED: Kubernetes.** `Orleans.Clustering.Kubernetes` 10.0.1 for
-  prod, `UseLocalhostClustering` for dev/CI (decision 4). No regression — K8s liveness is more reliable than
-  DB-polling membership, and the dev loop needs no cluster. Validated by [S14](#tier-5--validation--perf-acceptance).
+- **Deployment target / membership provider, DECIDED: K8s preferred, not mandated.** K8s is not a hard given;
+  the design stays substrate-flexible. `Orleans.Clustering.Kubernetes` 10.0.1 when running on K8s (best-native,
+  pod-status watch feeding Orleans' own protocol), `UseAdoNetClustering` on Postgres as a real non-K8s fallback,
+  `UseLocalhostClustering` for dev/CI (decision 4). No regression: K8s liveness is more reliable than DB-polling
+  membership, the PG fallback keeps orchestrator-free deployment open, and the dev loop needs no cluster.
+  Validated by [S14](#tier-5--validation--perf-acceptance).
 - **Durable Jobs appetite — DECIDED: adopt if S6 proves parity.** Delete the custom durable side-effect/action
   queue only if [S6](#tier-4--modernize-maximize-features-do-these-in-the-port-not-after) shows Orleans 10
   Durable Jobs covers the enqueue/retry/stalled/failed semantics with no regression; otherwise keep the
@@ -697,7 +734,7 @@ Upstream (confirmed 2026-07-15):
 - `Microsoft.Orleans.Serialization.FSharp`: https://www.nuget.org/packages/Microsoft.Orleans.Serialization.FSharp
 - Orleans ADO.NET grain persistence (`IGrainStorageSerializer`, default Newtonsoft.Json, signed-32-bit Version/ETag): https://learn.microsoft.com/en-us/dotnet/orleans/grains/grain-persistence/relational-storage
 - Orleans grain persistence overview (opaque ETag, `InconsistentStateException` optimistic concurrency): https://learn.microsoft.com/en-us/dotnet/orleans/grains/grain-persistence/
-- Orleans PostgreSQL setup scripts (`dotnet/orleans` main): `src/AdoNet/Shared/PostgreSQL-Main.sql` and the per-feature `PostgreSQL-{Persistence,Reminders}.sql` (skip `PostgreSQL-Clustering.sql` — membership is K8s, decision 4)
+- Orleans PostgreSQL setup scripts (`dotnet/orleans` main): `src/AdoNet/Shared/PostgreSQL-Main.sql` and the per-feature `PostgreSQL-{Clustering,Persistence,Reminders}.sql` (all applied; `-Clustering` backs the non-K8s membership fallback, decision 4)
 - `Microsoft.Orleans.Persistence.AdoNet` (10.2.1): https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet
 - `Orleans.Clustering.Kubernetes` (10.0.1, Orleans 10-compatible, net8+net10, depends on `KubernetesClient` 18.0.5): https://www.nuget.org/packages/Orleans.Clustering.Kubernetes
 - Npgsql 10.0.3: https://www.nuget.org/packages/Npgsql (targets net8/9/10; 10.x deprecates sync APIs)
