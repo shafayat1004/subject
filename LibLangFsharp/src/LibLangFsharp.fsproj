@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Configurations>Debug;Release;Fable Debug;Fable Release</Configurations>
@@ -76,7 +76,6 @@
     <Compile Include="PlatformCertificateStore.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="5.0.2" />
     <PackageReference Include="Fleece.SystemTextJson" Version="0.10.0" />
     <!-- Fleece 0.10.0 above pulls FSharpPlus 1.2.4 which is not liked by Fable 4 -->
     <PackageReference Include="FSharpPlus" Version="1.6.1" />

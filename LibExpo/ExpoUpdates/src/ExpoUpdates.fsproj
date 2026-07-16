@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Configurations>Fable Debug;Fable Release;Native Debug</Configurations>
     <DefineConstants>FABLE_COMPILER</DefineConstants>

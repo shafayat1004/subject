@@ -91,7 +91,7 @@ type private Helpers =
                 else
                     min
 
-            let animation = Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1)
+            let animation = Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1.0)
             animation.Start(fun () -> isAnimatedRef.current <- not isAnimatedRef.current)
 
         LC.Column(
@@ -208,7 +208,7 @@ type private Helpers =
             let animation =
                 Animation.Sequence(
                     Animation.Timing(animatedValue.current, mid, TimeSpan.FromSeconds 0.5),
-                    Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1)
+                    Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1.0)
                 )
             animation.Start(fun () -> isAnimatedRef.current <- not isAnimatedRef.current)
 
@@ -257,7 +257,7 @@ type private Helpers =
             let animation =
                 Animation.Sequence(
                     Animation.Timing(animatedValue.current, mid, TimeSpan.FromSeconds 0.5),
-                    Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1)
+                    Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1.0)
                 )
             animation.Start(fun () -> isAnimatedRef.current <- not isAnimatedRef.current)
 
@@ -348,7 +348,7 @@ type private Helpers =
             easingsWithAnimationValues
             |> Array.map (
                 fun (easing, animatedValue) ->
-                    Animation.Timing(animatedValue, animateTo, TimeSpan.FromSeconds 1, easing = easing)
+                    Animation.Timing(animatedValue, animateTo, TimeSpan.FromSeconds 1.0, easing = easing)
             )
             |> (fun animations ->
                 let animation = Animation.Parallel(animations)

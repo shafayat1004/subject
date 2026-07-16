@@ -118,7 +118,7 @@ module private Styles =
                 }
         )
 
-let private slideDuration = TimeSpan.FromMilliseconds(200)
+let private slideDuration = TimeSpan.FromMilliseconds(200.0)
 
 type LibClient.Components.Constructors.LC with
     [<Component>]

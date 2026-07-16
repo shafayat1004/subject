@@ -45,7 +45,7 @@ type private Helpers =
                 else
                     min
 
-            let animation = Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1)
+            let animation = Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1.0)
             animation.Start(fun () -> isAnimatedRef.current <- not isAnimatedRef.current)
 
         LC.Column(

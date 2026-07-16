@@ -139,6 +139,7 @@ type RealTimeService(eventBus: LibClient.EventBus.EventBus, backendUrl: string, 
                         2.0 ** (float attempt)
                         |> min 15.0
                         |> int
+                        |> float
                         |> TimeSpan.FromSeconds
 
                     let retryingAt = DateTimeOffset.UtcNow.Add(waitPeriod)

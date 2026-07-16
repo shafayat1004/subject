@@ -13,17 +13,17 @@ let ``Scheduled job enqueues itself when time comes`` () =
         let! jobId = genJobId
         let! common = genTypicalJobConstructorCommonData
         let! now = Ecosystem.now
-        let! scheduleAfter = Gen.choose (5, 100) |> Gen.map TimeSpan.FromMinutes
+        let! scheduleAfter = Gen.choose (5, 100) |> Gen.map (fun m -> TimeSpan.FromMinutes (float m))
         do!
             JobConstructor.NewProper(jobId, ProperJobConstructor.Scheduled (common, now.Add scheduleAfter))
             |> Ecosystem.construct jobLifeCycle
             |> Ecosystem.thenAssertOk
             |> Ecosystem.thenAssertEventually jobLifeCycle
                    (fun j -> match j.ProperState with JobState.Scheduled _ -> true | _ -> false)
-            |> Ecosystem.thenMoveTimeForwardAndRunReminders (scheduleAfter.Subtract (TimeSpan.FromSeconds 1))
+            |> Ecosystem.thenMoveTimeForwardAndRunReminders (scheduleAfter.Subtract (TimeSpan.FromSeconds 1.0))
             |> Ecosystem.thenAssertEventually jobLifeCycle
                    (fun j -> match j.ProperState with JobState.Scheduled _ -> true | _ -> false)
-            |> Ecosystem.thenMoveTimeForwardAndRunReminders (TimeSpan.FromSeconds 1)
+            |> Ecosystem.thenMoveTimeForwardAndRunReminders (TimeSpan.FromSeconds 1.0)
             |> Ecosystem.thenAssertEventually jobLifeCycle
                     (fun j -> match j.ProperState with JobState.Enqueued _ -> true | _ -> false)
             |> Ecosystem.thenIgnore

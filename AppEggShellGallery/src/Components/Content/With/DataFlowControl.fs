@@ -42,7 +42,7 @@ type Ui.Content.With with
                                     heading = "Immediate Propagation",
                                     visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds 5,
+                                            updateFrequency = TimeSpan.FromSeconds 5.0,
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
@@ -78,7 +78,7 @@ LC.With.DataFlowControl(
                                     heading = "Blocked Propagation",
                                     visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds 5,
+                                            updateFrequency = TimeSpan.FromSeconds 5.0,
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
@@ -113,7 +113,7 @@ LC.With.DataFlowControl(
                                     heading = "Confirmed Propagation",
                                     visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds 5,
+                                            updateFrequency = TimeSpan.FromSeconds 5.0,
                                             ``with`` =
                                                 fun now ->
                                                     LC.With.DataFlowControl(
@@ -151,7 +151,7 @@ LC.With.DataFlowControl(
                                     heading = "Resolved Propagation",
                                     visuals =
                                         LC.With.Now(
-                                            updateFrequency = TimeSpan.FromSeconds 5,
+                                            updateFrequency = TimeSpan.FromSeconds 5.0,
                                             ``with`` =
                                                 fun now ->
                                                     element {

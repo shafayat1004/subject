@@ -63,7 +63,7 @@ let partitionOperationOfValue value =
     fun (_partition: TestPartition) ->
         Task.FromResult value
 
-let defaultStasisWaitFor = TimeSpan.FromSeconds 15
+let defaultStasisWaitFor = TimeSpan.FromSeconds 15.0
 
 // TODO: clear this out :)
 type WhyIsThisHackNeeded =

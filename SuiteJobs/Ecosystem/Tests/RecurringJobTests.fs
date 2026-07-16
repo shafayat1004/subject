@@ -18,7 +18,7 @@ let ``Recurring job scheduled by cron expression and enqueues a new job at speci
 
         let! jobData = genTypicalJobConstructorCommonData
         let! simulationStartedOn = Ecosystem.now
-        let interval = TimeSpan.FromMinutes 5
+        let interval = TimeSpan.FromMinutes 5.0
 
         let! recurringJob =
              Ecosystem.construct recurringJobLifeCycle
@@ -80,7 +80,7 @@ let ``Recurring job fired much later because system was offline, ignore missed p
     simulation {
         let! jobData = genTypicalJobConstructorCommonData
         let! simulationStartedOn = Ecosystem.now
-        let interval = TimeSpan.FromMinutes 5
+        let interval = TimeSpan.FromMinutes 5.0
 
         let! recurringJob =
              Ecosystem.construct recurringJobLifeCycle
@@ -125,7 +125,7 @@ let ``Recurring job fired but job not started, it times out eventually and sched
     simulation {
         let! jobData = genTypicalJobConstructorCommonData
         let! simulationStartedOn = Ecosystem.now
-        let interval = TimeSpan.FromMinutes 7
+        let interval = TimeSpan.FromMinutes 7.0
 
         let! recurringJob =
              Ecosystem.construct recurringJobLifeCycle
