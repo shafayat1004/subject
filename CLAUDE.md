@@ -177,7 +177,7 @@ non-trivial F# edit. Hard rules (rule number in parens):
 ## Project skills
 
 Procedure skills live in `.claude/skills/` and wrap the runbooks (rule 11): `fable-rebuild-verify`,
-`debug-android`, `debug-ios`, `debug-web`, `style-leak-audit`, `a11y-check`, `docs-sync`,
+`debug-android`, `debug-ios`, `debug-web`, `fsharp-format`, `style-leak-audit`, `a11y-check`, `docs-sync`,
 `gallery-page-add`, `release-build`, `verify-feature`, `screenshot-describe`, `codemem-update`. Prefer
 invoking the matching skill over improvising commands.
 

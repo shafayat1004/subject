@@ -148,6 +148,68 @@ type TodoId with
     static member Init (typeLabel: string, _typeParams: _) = initializeInterfaceImplementation<SubjectId, TodoId> (fun () -> attachCodecTypeLabel ("__type_" + typeLabel) <| TodoId.get_ObjCodec ())
 
 
+type TodoPriority with
+    static member private get_ObjCodec_AllCases () =
+        function
+        | TodoPriority.Low ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.Low -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Low" (function TodoPriority.Low -> Some () | _ -> None)
+                return TodoPriority.Low
+            }
+        | TodoPriority.Medium ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.Medium -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Medium" (function TodoPriority.Medium -> Some () | _ -> None)
+                return TodoPriority.Medium
+            }
+        | TodoPriority.High ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.High -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "High" (function TodoPriority.High -> Some () | _ -> None)
+                return TodoPriority.High
+            }
+        |> mergeUnionCases
+    static member get_Codec () = ofObjCodec (TodoPriority.get_ObjCodec_AllCases ())
+
+
+type TodoCategory with
+    static member private get_ObjCodec_AllCases () =
+        function
+        | TodoCategory.Work ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Work -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Work" (function TodoCategory.Work -> Some () | _ -> None)
+                return TodoCategory.Work
+            }
+        | TodoCategory.Personal ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Personal -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Personal" (function TodoCategory.Personal -> Some () | _ -> None)
+                return TodoCategory.Personal
+            }
+        | TodoCategory.Shopping ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Shopping -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Shopping" (function TodoCategory.Shopping -> Some () | _ -> None)
+                return TodoCategory.Shopping
+            }
+        | TodoCategory.Health ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Health -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Health" (function TodoCategory.Health -> Some () | _ -> None)
+                return TodoCategory.Health
+            }
+        | TodoCategory.Other ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Other -> Some 0 | _ -> None)
+                and! _ = reqWith Codecs.unit "Other" (function TodoCategory.Other -> Some () | _ -> None)
+                return TodoCategory.Other
+            }
+        |> mergeUnionCases
+    static member get_Codec () = ofObjCodec (TodoCategory.get_ObjCodec_AllCases ())
+
+
 type Todo with
     static member TypeLabel () = "Todo"
 
@@ -308,68 +370,6 @@ type TodoLifeEvent with
     static member private get_ObjCodec () = TodoLifeEvent.get_ObjCodec_AllCases ()
     static member get_Codec () = ofObjCodec <| TodoLifeEvent.get_ObjCodec ()
     static member Init (typeLabel: string, _typeParams: _) = initializeInterfaceImplementation<LifeEvent, TodoLifeEvent> (fun () -> attachCodecTypeLabel ("__type_" + typeLabel) <| TodoLifeEvent.get_ObjCodec ())
-
-
-type TodoPriority with
-    static member private get_ObjCodec_AllCases () =
-        function
-        | TodoPriority.Low ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.Low -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Low" (function TodoPriority.Low -> Some () | _ -> None)
-                return TodoPriority.Low
-            }
-        | TodoPriority.Medium ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.Medium -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Medium" (function TodoPriority.Medium -> Some () | _ -> None)
-                return TodoPriority.Medium
-            }
-        | TodoPriority.High ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoPriority.High -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "High" (function TodoPriority.High -> Some () | _ -> None)
-                return TodoPriority.High
-            }
-        |> mergeUnionCases
-    static member get_Codec () = ofObjCodec (TodoPriority.get_ObjCodec_AllCases ())
-
-
-type TodoCategory with
-    static member private get_ObjCodec_AllCases () =
-        function
-        | TodoCategory.Work ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Work -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Work" (function TodoCategory.Work -> Some () | _ -> None)
-                return TodoCategory.Work
-            }
-        | TodoCategory.Personal ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Personal -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Personal" (function TodoCategory.Personal -> Some () | _ -> None)
-                return TodoCategory.Personal
-            }
-        | TodoCategory.Shopping ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Shopping -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Shopping" (function TodoCategory.Shopping -> Some () | _ -> None)
-                return TodoCategory.Shopping
-            }
-        | TodoCategory.Health ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Health -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Health" (function TodoCategory.Health -> Some () | _ -> None)
-                return TodoCategory.Health
-            }
-        | TodoCategory.Other ->
-            codec {
-                let! _version = reqWith Codecs.int "__v1" (function TodoCategory.Other -> Some 0 | _ -> None)
-                and! _ = reqWith Codecs.unit "Other" (function TodoCategory.Other -> Some () | _ -> None)
-                return TodoCategory.Other
-            }
-        |> mergeUnionCases
-    static member get_Codec () = ofObjCodec (TodoCategory.get_ObjCodec_AllCases ())
 
 
 type TodoArchiveStatus with

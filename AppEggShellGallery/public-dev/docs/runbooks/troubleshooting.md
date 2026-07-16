@@ -6,6 +6,23 @@ Related: [Build and rebuild](./build-rebuild.md) | [Dev loop](./dev-loop.md) | [
 
 ---
 
+## .NET 10 SDK build / running the simulation suite {#net10-build}
+
+Prereqs to run `dotnet test SuiteTodo/Ecosystem/Tests` (or any backend sim) on a fresh machine: SDK `10.0.301`, the **net7 + aspnetcore-7 runtimes** (tests target net7.0), the `eggshell-signalr` sibling repo cloned beside `subject`, and (where `libicu` is absent) `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1`. See [Engineering Log 2026-07-16 session 33](../knowledge-base/engineering-log.md).
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Every `dotnet` command: "A compatible .NET SDK was not found. Requested 10.0.301" | Only a lower band (e.g. 10.0.203) installed; `rollForward: latestFeature` will not roll a lower band *up* to satisfy 10.0.301 | Install the pinned SDK: `dotnet-install.sh --version 10.0.301 --install-dir ~/.dotnet` (no sudo). |
+| CLI FailFasts: "Couldn't find a valid ICU package installed" | Host has no `libicu` | Install `libicu`, or run with `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` (workaround; culture-sensitive formatting goes invariant). |
+| Test host: "You must install ... Microsoft.AspNetCore.App 7.0.0" or "...NETCore.App 7.0.0" | net7.0 test host, but only net10 runtimes present | `dotnet-install.sh --channel 7.0 --runtime dotnet` and `--channel 7.0 --runtime aspnetcore` into `~/.dotnet`. |
+| 126 errors: `Fable.SignalR` / `SignalR` / `FableHub` not defined (in `LibLifeCycleHost` `RealTimeHandler.fs`) | The unconditional `ProjectReference` to `../../../eggshell-signalr/...` is unresolved -- sibling repo not checked out | `git clone https://github.com/shafayat1004/eggshell-signalr.git` beside `subject` (its projects still target net7.0). Sims link the whole host, so this is required. |
+| `LibLifeCycleCore` `FS0686`/`FS0717` on `toEncoding<Enc,'T> x` / `toSummaryValue<'T> x` (WarningsAsErrors) | net10 F# compiler rejects explicit type args on inline SRTP fns that declare no type params | Drop the `<...>`; pin the encoding by annotation: `(toEncoding x: ValueSummaryEncoding)`. Same class as the old `CodecLib.fs` fix. |
+| `FS0001 'codecFor' does not support type X, ... lacks ... get_Codec` in a `[<CodecAutoGenerate>]` types file | Generated `get_Codec` augmentation for a leaf type sits *below* the record/DU codec that consumes it; net10 resolves SRTP top-down so the later augmentation is invisible | Reorder the leaf-type codec blocks above their consumers. Durable fix belongs in `LibCodecGen` (emit leaf types first); Suite*/templates share the latent bug. |
+| xUnit discovery: "could not find dependent assembly 'LibLifeCycleTest, Version=1.0.0'" (real error: "assembly architecture is not compatible") on arm64 | `LibLifeCycleTest.fsproj` had unconditional `<PlatformTarget>x64</PlatformTarget>`; the dll can't load on the arm64 runtime | Make `PlatformTarget` conditional like `LibLifeCycleHost`: `x64` on Windows, `AnyCPU` elsewhere. |
+| Op-error sim test fails with "some bad logs were captured: 1 Warnings" despite the assertion passing | Framework logs every ctor/action op-error at `Warn` (`SubjectGrain.fs`); the harness fails any simulation that captured a Warn (`TestRunner.fs:147`) | Pipe the expected, deliberately-triggered warning through `Ecosystem.thenClearAllBadLogs` in the test. |
+
+---
+
 ## Accessibility {#accessibility}
 
 | Symptom | Cause | Fix |

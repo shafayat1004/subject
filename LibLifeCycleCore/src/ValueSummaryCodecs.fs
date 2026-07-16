@@ -263,7 +263,7 @@ with
 ///////////////////////
 
 /// Get the summary representation of the value, using its default codec.
-let inline toSummaryValue (x: 'T) : ValueSummaryEncoding = toEncoding<ValueSummaryEncoding, 'T> x |> ValueSummaryEncoding.Unwrap
+let inline toSummaryValue (x: 'T) : ValueSummaryEncoding = (toEncoding x: ValueSummaryEncoding) |> ValueSummaryEncoding.Unwrap
 
 let getSummaryString (maxDepth: int) (summaryValue: ValueSummaryEncoding) =
     // pretty-print that tries to balance readability & redundant whitespace

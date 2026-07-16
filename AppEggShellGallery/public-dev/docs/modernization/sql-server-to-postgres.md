@@ -501,10 +501,25 @@ covers dev/CI.
 
 ### Tier 0 — prerequisites (unblock all)
 
-- **S0 · net10 TFM + Central Package Management.** *(~0.5d, maps to P1 prereq.)*
-  Bump `LibLifeCycle{Core,Host,Types,Ui,Test}` + `LibLifeCycle` to `net10.0`. Add `Directory.Packages.props`;
-  pin the *current* package versions centrally first (keep Orleans 3.7.2 etc.) to isolate the TFM bump from
-  package bumps. `dotnet build` green. **Proves:** the net10 SDK builds the F# backend as-is.
+- **S0 · net10 TFM + Central Package Management.** *(revised — NOT a ~0.5d backend-only task; maps to P1 prereq.)*
+  **Correction (verified 2026-07-16):** the original premise — "bump `LibLifeCycle{Core,Host,Types,Ui,Test}` +
+  `LibLifeCycle` to `net10.0`" as an isolated backend step — is **wrong**. Those are not backend-only projects:
+  the **shared type libs (`LibLangFsharp`, `LibLifeCycleTypes`, `Todo.Types`/`Jobs.Types`, `LibLifeCycle`) are
+  `ProjectReference`d directly by the Fable frontend** (`LibClient`, every `LibUi*`, `App*`, `ThirdParty/*`, the
+  gallery — ~45 projects hang off `LibLangFsharp` alone). A net7 project **cannot** consume a net10 project, so
+  bumping any shared lib **breaks the entire frontend build**. Only two closure projects (`LibLifeCycleTest`'s
+  `Tests`, `LibLifeCycleHost`) are truly backend-only. **Consequence:** the net10 TFM bump is **atomic and
+  repo-wide** — frontend + backend move together, or not at all (net10 *can* consume net7, so the one-way blocker
+  is only net7-consuming-net10). This is why CLAUDE.md defers the repo-wide TFM migration; it is not a small PR.
+  - **What IS separable and is already done** (PR #21, branch `s0/net10-backend-build-fixes`): making the *net7*
+    code compile + run the simulation suite under the **net10 SDK** (SRTP explicit-type-arg fixes in
+    `LibLifeCycleCore`; codec-generator emit-order forward-reference in `Todo.fs`; `LibLifeCycleTest`
+    `PlatformTarget` conditional for arm64; `Microsoft.NET.Test.Sdk` bump). Verified: `SuiteTodo` sims 5/5 green
+    on aarch64 (requires the `eggshell-signalr` sibling checked out + `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1`
+    where `libicu` is absent). This proved "does the net10 SDK build the backend as-is" → **no**, and fixed it.
+  - **What remains for the actual TFM bump** (do as one repo-wide change, with the frontend Fable 5 toolchain):
+    move every `net7.0` TFM to `net10.0` together, then add `Directory.Packages.props` (CPM) pinning the *current*
+    package versions first (keep Orleans 3.7.2 etc.) to isolate the TFM bump from the package bumps.
 - **S10 · net10 + Orleans 10.2 + Npgsql 10 package bump (isolated branch).** *(~1–2d, maps to P1.)*
   On top of S0, swap all Orleans packages → 10.2.1; add `Npgsql` 10.0.3; add
   `Microsoft.Orleans.{Clustering,Persistence,Reminders}.AdoNet` 10.2.1; drop `OrleansDashboard` and

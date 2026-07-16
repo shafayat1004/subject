@@ -32,6 +32,7 @@ let ``Empty title is rejected on construct`` () =
             |> Ecosystem.construct todoLifeCycle
             |> Ecosystem.thenAssertConstructionOpError
             |> Ecosystem.thenAssert (fun err -> err = TodoOpError.EmptyTitle)
+            |> Ecosystem.thenClearAllBadLogs
             |> Ecosystem.thenIgnore
     }
 
@@ -47,6 +48,7 @@ let ``Empty title is rejected on set title`` () =
             |> Ecosystem.thenAct todoLifeCycle (TodoAction.SetTitle blankTitle)
             |> Ecosystem.thenAssertTransitionOpError
             |> Ecosystem.thenAssert (fun err -> err = TodoOpError.EmptyTitle)
+            |> Ecosystem.thenClearAllBadLogs
             |> Ecosystem.thenIgnore
     }
 
