@@ -45,6 +45,26 @@ genuinely strong safety net given that subjects are persisted as JSON.
   client, `EntityService` turns those into `Subscription<'T>` streams that emit `AsyncData<'T>`
   (`Uninitialized | Fetching | Available | Error`), which components consume.
 
+### Real-time / SignalR
+
+The transport is standard Microsoft SignalR on both ends: `@microsoft/signalr` (client runtime) and
+ASP.NET Core SignalR (server). What is *not* off-the-shelf is the **typed F# binding** over it.
+
+- **Not a reimplementation of SignalR.** EggShell does not reimplement the SignalR protocol. It vendors the
+  dead **`Fable.SignalR`** F# binding (the `Fable.SignalR` 0.16.0 / `Fable.SignalR.AspNetCore` 0.14.0 NuGet
+  packages, derived from `Shmew/Fable.SignalR`, MIT) into a sibling repo, **`eggshell-signalr`**, checked out
+  beside `subject/`. `LibUiSubject` and `LibLifeCycleHost` reference it by path.
+- **Why vendor rather than drop it.** EggShell leans on the binding's deepest feature, **typed bidirectional
+  streaming hubs** (`SignalR.connect<ClientApi, ClientStreamApi, _, ServerApi, ServerStreamApi>`,
+  `Settings`/`Config`), plus MessagePack wire encoding and reconnect-driven stream recreation, across two
+  real-time API generations (legacy + v1). A thin hand-rolled interop over `@microsoft/signalr` would have to
+  reimplement most of that, so it is *more* work than re-hosting the MIT source, not less. The fork is thin:
+  a Fable 5 port, `Subject` → `StreamSubject` rename, and a `CancellationToken` on server `streamFrom` handlers.
+- **Only revisit** if EggShell ever drops typed bidirectional streaming for a request/response shape; then a
+  thin interop becomes viable and the sibling repo could retire.
+- **Upgrade tail.** The vendored binding still targets **net7.0**; it is bumped to net10 alongside the backend
+  TFM in [Phase 3](modernization/phased-plan.md#phase-3-backend-tfm-to-net10-orleans-frozen).
+
 ## Lang libraries
 
 - `LibLangFsharp` — the F# "prelude": codecs plus `NonemptyList/Set/Map`, `EmailAddress`, `PhoneNumber`,

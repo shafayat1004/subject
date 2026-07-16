@@ -4,6 +4,71 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-16 (session 32 -- Goal G membership refined to substrate-flexible; K8s liveness mechanism; SignalR vendoring documented)
+
+Q&A session that surfaced three imprecise/stale framings in the Goal G plan and the architecture docs;
+corrected all three in place.
+
+- **K8s is preferred, not mandated (decision 4 refined).** The plan read as "Kubernetes is *the*
+  deployment target" and "skip `PostgreSQL-Clustering.sql`". User clarified K8s is not a hard given: they
+  want substrate flexibility, but want the best-native approach *when* on K8s. Refit: K8s pod-status
+  membership when on K8s, `UseAdoNetClustering` on Postgres as a **real** non-K8s fallback,
+  `UseLocalhostClustering` for dev/CI, one `IMembershipTable` seam, per-env config switch. **Consequence
+  reversed:** `PostgreSQL-Clustering.sql` is now **ported** (not skipped) so the fallback is actually
+  runnable. Cost = porting one more SQL script; payoff = orchestrator-free deployment stays open + escape
+  hatch if S14 rejects the K8s provider. Updated `sql-server-to-postgres.md` throughout (decision 4, the
+  version table, the decision log, S1, S14, references).
+- **How K8s membership actually works (corrected the shorthand).** "K8s replaces Orleans membership" is
+  wrong. Orleans *always* runs its own membership protocol (peer probing + `IAmAliveTime` + suspect-vote).
+  The K8s provider *feeds* it: it watches **pod status via the API server** and marks a lost pod's silo
+  `Dead` directly, short-circuiting probe-timeout-and-vote. That is distinct from the **kubelet
+  liveness/readiness probe** (which restarts a pod, process-level, not membership). The "direct liveness"
+  advantage = authoritative pod-status event vs inferring death from missed DB heartbeats.
+- **Unverified detail flagged, not asserted.** The exact roster backing `Orleans.Clustering.Kubernetes`
+  10.0.1 uses (CRD / ConfigMap / pods-as-truth) was *not* verified against source; documented as an S14
+  confirmation item rather than stated as fact.
+- **SignalR is vendored, not reimplemented.** "Why did we reimplement SignalR": we didn't. The transport
+  is stock Microsoft SignalR both ends; the dead thing was the F# **`Fable.SignalR`** typed binding
+  (Shmew, MIT), vendored into the sibling `eggshell-signalr` repo. Grepped the consumers: EggShell uses
+  the deep surface (typed **bidirectional** streaming, `ClientStreamApi`+`ServerStreamApi`, across legacy
+  + v1 APIs, 47 stream-related lines, 5 files), so thin hand-rolled interop would be *more* work, not less;
+  vendoring is the correct call. Fork is thin (Fable 5 port + `Subject`→`StreamSubject` + `CancellationToken`
+  on `streamFrom`). Documented in `architecture/shared-types-codecs.md` (new "Real-time / SignalR" section).
+- **New tracked item:** the vendored binding still targets **net7.0**; added its net10 bump to Phase 3
+  (backend TFM) in `phased-plan.md`.
+
+**Learning/gotcha:** the doc had drifted to a harder K8s commitment than the project actually wants;
+"preferred-with-real-fallback" is the accurate stance, and it changes the SQL port scope (clustering
+script back in). **Distilled:** not a symptom→fix runbook item; plan/architecture correction only.
+
+## 2026-07-16 (session 31 -- iOS signing hygiene: xcconfig team, min iOS 18, gitignore, scaffold tool)
+
+Removed the machine-specific pbxproj churn from git for good and made the setup public-repo-correct
+and reproducible on any Mac.
+
+- **Signing via xcconfig, not pbxproj.** `DEVELOPMENT_TEAM` (was hardcoded as a personal team id in
+  both apps' `project.pbxproj`, which Xcode re-dirties on every open) now lives in git-ignored
+  `ios/Local.xcconfig`, pulled in by a committed `ios/Config.xcconfig` set as the **project-level**
+  `baseConfigurationReference`. Project-level is used because the target-level base config is owned by
+  CocoaPods (`Pods-*.xcconfig`); attaching at project level means no CocoaPods reinstall warning and
+  the team still resolves for the app + test targets. Verified end-to-end with
+  `xcodebuild -showBuildSettings`: team resolves to the Local.xcconfig value, and is empty (no error,
+  `#include?` is optional) on a simulated fresh clone.
+- **Min iOS 18.0** across both apps: all `IPHONEOS_DEPLOYMENT_TARGET` normalized to 18.0 (were 15.1,
+  with Gallery's app target drifted to 18.6) and Podfile `platform :ios` set to 18.0. `pod install`
+  not re-run (platform bump does not churn Podfile.lock; pods pick up the min on next install).
+- **.gitignore**: added the full iOS set to Gallery's (it was missing xcuserdata / xcuserstate /
+  DerivedData / build_derived) and added `ios/**/Local.xcconfig` + `*.mobileprovision` to both apps
+  and the scaffold `.gitignore.template`.
+- **Scaffold coverage** (the scaffold generates **no** `ios/` tree; iOS is added by hand): promoted
+  the reusable transform to `Meta/LibScaffolding/scripts/wire-ios-signing.pl` (+ `Config.xcconfig.template`).
+  Idempotent: strips hardcoded team, normalizes deploy target to 18.0, creates + wires
+  `ios/Config.xcconfig` (auto-mints the pbxproj id, auto-derives mainGroup + project config UUIDs).
+- **Preflight fix (would have broken):** `ios-preflight.sh` check 3 grepped the team from the pbxproj;
+  it now resolves it from `ios/Local.xcconfig`, checks `Config.xcconfig` is present, and WARNs if a
+  team is still hardcoded in the pbxproj. Docs: `runbooks/ios.md` (new Signing setup section),
+  release-build `SKILL.md`. `plutil -lint` clean on both pbxproj after the transform.
+
 ## 2026-07-16 (session 30 -- iOS Release IPA: deterministic signing/export flow + preflight)
 
 **Motivation:** producing a device-installable Release IPA for AppTodo and AppEggShellGallery surfaced four signing/export gotchas that were each rediscovered the hard way and that weaker models will keep hitting. There was no deterministic preflight and the release-build skill's iOS branch only built for the simulator, so the workflow was ad hoc.

@@ -32,6 +32,12 @@ APK embeds the JS bundle from `.build/native/commonjs` and runs WITHOUT Metro; `
 A Release IPA for own-device install is produced in three deterministic stages. The
 `ios-preflight.sh` script gates stages 1-2 and MUST pass before archiving.
 
+**Signing prerequisite (one-time per clone).** `DEVELOPMENT_TEAM` is never committed; it lives in
+git-ignored `ios/Local.xcconfig` (`DEVELOPMENT_TEAM = <team id>`), pulled in by the committed
+`ios/Config.xcconfig` project-level base config. New app without `ios/` wiring yet:
+`Meta/LibScaffolding/scripts/wire-ios-signing.pl <app>/ios/<App>.xcodeproj/project.pbxproj`. Full
+detail in `runbooks/ios.md` (Signing setup). Deployment target is iOS 18.0.
+
 ### Stage 1: preflight (deterministic gate)
 
 ```
@@ -44,7 +50,8 @@ actionable fix and you must not archive until it is green:
 1. `.xcworkspace` exists, `Pods/` installed
 2. scheme resolves (prefers the scheme matching the app/workspace stem; `xcodebuild -list` prints
    schemes alphabetically so the first is often a pod like `AppCenter`)
-3. `PRODUCT_BUNDLE_IDENTIFIER` + `DEVELOPMENT_TEAM` extracted from the app's `project.pbxproj`
+3. `PRODUCT_BUNDLE_IDENTIFIER` (from `project.pbxproj`), `ios/Config.xcconfig` present, and
+   `DEVELOPMENT_TEAM` (from git-ignored `ios/Local.xcconfig`; WARNs if hardcoded in the pbxproj)
 4. an `Apple Development` codesigning identity exists in the keychain (with its team id)
 5. `DEVELOPMENT_TEAM` is logged into Xcode -> Settings -> Accounts (else `-allowProvisioningUpdates`
    / a UI archive cannot fetch a profile; fails with "No Account for Team" / "No profiles for X")

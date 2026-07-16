@@ -27,9 +27,18 @@ buck-out/
 # contains secrets like API keys and the like, only template included in the repo
 configSourceOverrides.native.js
 
-# iOS libraries and dependencies
+# --- iOS (React Native) ---
 ios/Pods/
+ios/build/
+ios/DerivedData/
 ios/build_derived/
+ios/.xcode.env.local
+ios/**/*.xcuserstate
+ios/**/xcuserdata/
+# Per-developer signing: ios/Config.xcconfig is committed and #include?s this local,
+# never-committed file (see ios/Config.xcconfig). Never commit a personal DEVELOPMENT_TEAM.
+ios/**/Local.xcconfig
+*.mobileprovision
 
 # Fable native dev emits JS beside .fs sources (Metro uses .build/native/commonjs/ instead)
 **/*.fs.js
@@ -53,6 +62,3 @@ console-errors-*.txt
 # Ignore copied assets
 public-dev/images/
 public-dev/libs/
-
-# Machine-specific Xcode env override (keep the .xcode.env template, ignore local)
-ios/.xcode.env.local

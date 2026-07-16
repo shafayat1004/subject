@@ -49,17 +49,30 @@ SCHEME=$(printf '%s\n' "$ALL_SCHEMES" | grep -Fx "$WS_STEM" | head -1)
 [[ -z "$SCHEME" ]] && SCHEME=$(printf '%s\n' "$ALL_SCHEMES" | head -1)
 if [[ -z "$SCHEME" ]]; then no "no scheme resolved from 'xcodebuild -workspace $WS -list'"; else ok "scheme: $SCHEME"; fi
 
-# ---------- 3. bundle id + team from pbxproj ----------
-section "3. identity (pbxproj)"
+# ---------- 3. bundle id (pbxproj) + team (xcconfig) ----------
+section "3. identity (bundle id + signing team)"
 # zsh does not glob the RHS of an assignment by default, so resolve explicitly.
 # Exclude Pods.xcodeproj; the app project shares the workspace's name stem.
 PBX=$(ls -d "$APP"/ios/*.xcodeproj/project.pbxproj 2>/dev/null | grep -v '/Pods.xcodeproj/' | head -1)
 if [[ -z "$PBX" ]]; then no "no app .xcodeproj/project.pbxproj under $APP/ios"; else
   BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' "$PBX" 2>/dev/null | sed -E 's/.*= *//;s/;.*//;s/"//g')
-  TEAM=$(grep -m1 'DEVELOPMENT_TEAM' "$PBX" 2>/dev/null | sed -E 's/.*= *//;s/;.*//;s/"//g')
 fi
 if [[ -z "$BUNDLE" ]]; then no "PRODUCT_BUNDLE_IDENTIFIER not found in pbxproj"; else ok "bundle id: $BUNDLE"; fi
-if [[ -z "$TEAM" ]]; then no "DEVELOPMENT_TEAM not set in pbxproj (set it in Xcode Signing & Capabilities)"; else ok "team: $TEAM"; fi
+# DEVELOPMENT_TEAM is NOT hardcoded in the pbxproj (it must never be committed). It comes
+# from ios/Local.xcconfig (git-ignored), pulled in by the committed ios/Config.xcconfig
+# project-level base config. See runbooks/ios.md (Signing).
+CFG="$APP/ios/Config.xcconfig"
+LOCALCFG="$APP/ios/Local.xcconfig"
+if [[ ! -f "$CFG" ]]; then
+  no "ios/Config.xcconfig missing (the committed base config that carries no identity). Run: Meta/LibScaffolding/scripts/wire-ios-signing.pl $PBX"
+else ok "Config.xcconfig present (project base config)"; fi
+if grep -q 'DEVELOPMENT_TEAM' "$PBX" 2>/dev/null; then
+  warn "pbxproj hardcodes DEVELOPMENT_TEAM -- a personal team must not be committed. Move it to ios/Local.xcconfig by running Meta/LibScaffolding/scripts/wire-ios-signing.pl $PBX"
+fi
+TEAM=$(grep -m1 'DEVELOPMENT_TEAM' "$LOCALCFG" 2>/dev/null | sed -E 's/.*= *//;s/;.*//;s/"//g')
+if [[ -z "$TEAM" ]]; then
+  no "no DEVELOPMENT_TEAM in ios/Local.xcconfig. Create it (git-ignored) with:  DEVELOPMENT_TEAM = <your 10-char Apple team id>  (from Xcode -> Settings -> Accounts, or 'security find-identity -v -p codesigning')."
+else ok "team: $TEAM (from ios/Local.xcconfig)"; fi
 
 # ---------- 4. codesigning identities ----------
 section "4. keychain signing identities"
