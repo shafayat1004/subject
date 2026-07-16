@@ -24,6 +24,7 @@ android/app/my-upload-key.keystore
 ios/Pods/
 ios/build/
 ios/DerivedData/
+ios/build_derived/
 ios/.xcode.env.local
 ios/**/*.xcuserstate
 ios/**/xcuserdata/
