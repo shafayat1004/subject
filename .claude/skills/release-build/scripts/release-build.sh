@@ -20,13 +20,53 @@ case "$PLAT" in
     fi
     echo "RESULT: PASS" ;;
   ios)
-    WS=$(ls "$APP"/ios/*.xcworkspace 2>/dev/null | head -1)
-    [[ -n "$WS" ]] || { echo "RESULT: FAIL (no .xcworkspace; pods installed?)"; exit 0; }
-    SCHEME=$(xcodebuild -workspace "$WS" -list 2>/dev/null | awk '/Schemes:/{f=1;next} f&&NF{print $1;exit}')
-    echo "workspace: $WS scheme: $SCHEME"
-    xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator build \
-      && echo "RESULT: PASS (smoke: install+launch on booted sim with Metro stopped)" \
-      || echo "RESULT: FAIL (xcodebuild)" ;;
+    # iOS release = archive (UI, see SKILL.md) then wrap the signed .app into an IPA.
+    # Run the deterministic preflight first; it must PASS before archiving.
+    "$SCRIPT_DIR/ios-preflight.sh" "$APP"; RC=$?
+    if [[ $RC -ne 0 ]]; then
+      echo "RESULT: FAIL (preflight); fix every FAIL above, then re-run."
+      exit 1
+    fi
+    # Read the target bundle id from the pbxproj so we can match the archive regardless of
+    # app/dir/xcodeproj naming case (AppEggShellGallery dir vs AppEggshellGallery.xcworkspace).
+    PBX=$(ls -d "$APP"/ios/*.xcodeproj/project.pbxproj 2>/dev/null | grep -v '/Pods.xcodeproj/' | head -1)
+    BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' "$PBX" 2>/dev/null | sed -E 's/.*= *//;s/;.*//;s/"//g')
+    [[ -n "$BUNDLE" ]] || { echo "RESULT: FAIL (could not read PRODUCT_BUNDLE_IDENTIFIER)"; exit 1; }
+    # Find the newest .xcarchive whose .app has this bundle id. Use find (zsh nomatch aborts globs).
+    ARCH=""
+    while IFS= read -r a; do
+      APP_DIR=$(ls -d "$a/Products/Applications/"*.app 2>/dev/null | head -1)
+      [[ -n "$APP_DIR" ]] || continue
+      AB=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_DIR/Info.plist" 2>/dev/null)
+      if [[ "$AB" == "$BUNDLE" ]]; then ARCH="$a"; break; fi
+    done < <(find "$HOME/Library/Developer/Xcode/Archives" -name '*.xcarchive' -maxdepth 3 2>/dev/null | sort -r)
+    if [[ -z "$ARCH" ]]; then
+      WS=$(ls -d "$APP"/ios/*.xcworkspace 2>/dev/null | head -1)
+      echo "RESULT: FAIL (no .xcarchive for bundle id $BUNDLE under ~/Library/Developer/Xcode/Archives)"
+      echo "Open ${WS:-<appdir>/ios/*.xcworkspace} in Xcode, set destination 'Any iOS Device (arm64)', Product -> Archive, then re-run."
+      exit 1
+    fi
+    APP_DIR=$(ls -d "$ARCH/Products/Applications/"*.app 2>/dev/null | head -1)
+    codesign --verify --verbose=1 "$APP_DIR" >/dev/null 2>&1 || { echo "RESULT: FAIL ($APP_DIR not validly signed)"; exit 1; }
+    [[ -f "$APP_DIR/main.jsbundle" ]] || { echo "RESULT: FAIL (no main.jsbundle in $(basename "$APP_DIR"); Bundle React Native phase did not run)"; exit 1; }
+    [[ -f "$APP_DIR/embedded.mobileprovision" ]] || { echo "RESULT: FAIL (no embedded.mobileprovision in $(basename "$APP_DIR"))"; exit 1; }
+    OUT_DIR="$APP/dist/ios"; mkdir -p "$OUT_DIR"
+    OUT_IPA="$OUT_DIR/${BUNDLE}.ipa"
+    WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
+    mkdir -p "$WORK/Payload"; cp -R "$APP_DIR" "$WORK/Payload/"
+    ( cd "$WORK" && zip -qr -X "$OUT_IPA" Payload/ -x '*.DS_Store' )
+    echo "archive: $ARCH"
+    echo "artifact: $OUT_IPA ($(du -h "$OUT_IPA" | cut -f1))"
+    echo "bundle id: $BUNDLE; signed; main.jsbundle $(du -h "$APP_DIR/main.jsbundle" | cut -f1)"
+    if [[ "$INSTALL" == "--install" ]]; then
+      UDID=$(xcrun devicectl list devices 2>/dev/null | awk '/available/{print $3; exit}')
+      if [[ -n "$UDID" ]]; then
+        xcrun devicectl device install app --device "$UDID" "$OUT_IPA" && echo "installed on $UDID"
+      else
+        echo "no available device found via 'xcrun devicectl list devices'; install via Xcode -> Window -> Devices and Simulators"
+      fi
+    fi
+    echo "RESULT: PASS (install: drag into Xcode Devices window, or 'xcrun devicectl device install app --device <UDID> $OUT_IPA')" ;;
   web)
     ( cd "$APP" && "$REPO_ROOT/eggshell" package-web ) \
       && echo "RESULT: PASS (smoke: serve dist statically, confirm no dev-server refs / console errors)" \

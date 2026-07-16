@@ -154,3 +154,62 @@ only when you want adb-style raw tapping without standing up an Appium server.
 | Can't dismiss a LogBox red box / can't tap a button from the CLI | `simctl` has no tap/swipe/type | Use Tier 2 Appium (`npm run observe -- snapshot -p ios` reads the LogBox text; tap by id), or install `idb`/`axe`. See [Interacting with the simulator](#interact). |
 
 For a complete catalog of build, styling, and layout gotchas, see [Troubleshooting](./runbooks/troubleshooting.md).
+
+---
+
+## Release archive and IPA export {#release-ipa}
+
+Produce a signed Release IPA for installation on a provisioned device (not the simulator and not
+TestFlight/App Store). Three deterministic stages. The preflight script is the gate for stages 1-2.
+
+### Stage 1: preflight (run before archiving)
+
+```bash
+.claude/skills/release-build/scripts/ios-preflight.sh <appdir>
+```
+
+Each check prints `PASS`/`FAIL`/`WARN` with the exact value it tested; any `FAIL` exits non-zero
+with an actionable fix. Do not archive until it is green. Checks: workspace + Pods, scheme (prefers
+the scheme matching the app stem), `PRODUCT_BUNDLE_IDENTIFIER` + `DEVELOPMENT_TEAM`, keychain
+`Apple Development` identity, the team is logged into Xcode Accounts, a cached provisioning profile
+for `<TEAM>.<BUNDLE_ID>` with the target device listed, Podfile disables pod-target signing, the
+Fable native bundle is fresh, and two advisories (`__DEV__` config gating, the home-screen display
+name).
+
+### Stage 2: archive in Xcode UI
+
+The first archive (and any archive after a signing change) MUST be done in Xcode, not `xcodebuild`
+CLI. Two reasons specific to a free personal team:
+
+1. `-allowProvisioningUpdates` generates a provisioning profile from the CLI but NOT a signing
+   certificate; the certificate is generated on first archive inside the Xcode UI session.
+2. The CLI `codesign` of embedded frameworks (`[CP] Embed Pods Frameworks`) hits
+   `errSecInternalComponent` because it cannot unlock the login keychain non-interactively; the
+   Xcode UI session holds that unlock.
+
+Steps: open `<appdir>/ios/<App>.xcworkspace`, set the preflight's scheme, set destination to
+**Any iOS Device (arm64)**, **Product -> Archive**. The `.xcarchive` lands under
+`~/Library/Developer/Xcode/Archives/<date>/`.
+
+### Stage 3: wrap the signed app into an IPA (do not exportArchive)
+
+`xcodebuild -exportArchive` re-signs embedded frameworks and hits the same `errSecInternalComponent`
+as stage 2. A Development IPA is just a signed `.app` inside a `Payload/` zip, so wrap the
+already-signed app from the archive directly (no re-signing, no App Store / "release testing" gate):
+
+```bash
+.claude/skills/release-build/scripts/release-build.sh ios <appdir>
+```
+
+The script picks the newest `.xcarchive` for the app, verifies it is signed + has `main.jsbundle` +
+`embedded.mobileprovision`, and writes `<bundleid>.ipa` to `<appdir>/dist/ios/`.
+
+Install: drag the `.ipa` into Xcode -> Window -> Devices and Simulators -> the iPhone, or
+`xcrun devicectl device install app --device <UDID> <ipa>`, then on the phone trust the team under
+Settings -> General -> VPN & Device Management.
+
+### Why not the simulator build?
+
+`xcodebuild ... -sdk iphonesimulator build` only builds for the simulator and is a fast smoke
+(`SKILL.md` used to point here). It does not produce a device-installable artifact and does not
+exercise signing. Use it only for a quick "does it compile for iOS" check, never for a release IPA.
