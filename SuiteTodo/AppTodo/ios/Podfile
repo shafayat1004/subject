@@ -41,5 +41,17 @@ target 'AppTodo' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Pod targets inherit manual signing with the legacy "iOS Development"
+    # identity, which no modern cert matches. They don't need their own signing:
+    # the app target re-signs embedded frameworks at the [CP] Embed Pods
+    # Frameworks step. Disable per-pod signing so device/archive builds succeed.
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |c|
+        c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+        c.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+        c.build_settings['CODE_SIGN_IDENTITY'] = ''
+      end
+    end
   end
 end
