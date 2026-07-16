@@ -33,13 +33,18 @@ case "$PLAT" in
     BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' "$PBX" 2>/dev/null | sed -E 's/.*= *//;s/;.*//;s/"//g')
     [[ -n "$BUNDLE" ]] || { echo "RESULT: FAIL (could not read PRODUCT_BUNDLE_IDENTIFIER)"; exit 1; }
     # Find the newest .xcarchive whose .app has this bundle id. Use find (zsh nomatch aborts globs).
+    # Sort by mtime, not by path: same-day archive filenames embed a 12h clock time
+    # ("1.52 PM" vs "11.52 AM") that sorts wrong lexically, so a path sort can pick a
+    # not-newest archive. `stat -f '%m'` (epoch mtime) orders them correctly.
     ARCH=""
     while IFS= read -r a; do
       APP_DIR=$(ls -d "$a/Products/Applications/"*.app 2>/dev/null | head -1)
       [[ -n "$APP_DIR" ]] || continue
       AB=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_DIR/Info.plist" 2>/dev/null)
       if [[ "$AB" == "$BUNDLE" ]]; then ARCH="$a"; break; fi
-    done < <(find "$HOME/Library/Developer/Xcode/Archives" -name '*.xcarchive' -maxdepth 3 2>/dev/null | sort -r)
+    done < <(find "$HOME/Library/Developer/Xcode/Archives" -maxdepth 3 -name '*.xcarchive' 2>/dev/null \
+      | while IFS= read -r a; do printf '%s %s\n' "$(stat -f '%m' "$a" 2>/dev/null)" "$a"; done \
+      | sort -rn | cut -d' ' -f2-)
     if [[ -z "$ARCH" ]]; then
       WS=$(ls -d "$APP"/ios/*.xcworkspace 2>/dev/null | head -1)
       echo "RESULT: FAIL (no .xcarchive for bundle id $BUNDLE under ~/Library/Developer/Xcode/Archives)"
