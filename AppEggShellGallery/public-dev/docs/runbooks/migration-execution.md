@@ -1,10 +1,10 @@
 # Migration Execution
 
-> **Companion to [../modernization/reactxp-to-rnw.md](./modernization/reactxp-to-rnw.md) (the why). This is the how.**
+> **Companion to [../modernization/reactxp-to-rnw.md](../modernization/reactxp-to-rnw.md) (the why). This is the how.**
 
 Step-by-step executor manual for the .NET 10 + Fable 5 + react-native-web modernization (Phases 1-6). Written for an executor model doing the mechanical bulk of the work.
 
-See also: [Modernization overview](./modernization/index.md) | [Dev loop](./runbooks/dev-loop.md) | [Build and rebuild](./runbooks/build-rebuild.md) | [Troubleshooting](./runbooks/troubleshooting.md) | [Accessibility](./accessibility/index.md)
+See also: [Modernization overview](../modernization/index.md) | [Dev loop](./dev-loop.md) | [Build and rebuild](./build-rebuild.md) | [Troubleshooting](./troubleshooting.md) | [Accessibility](../accessibility/index.md)
 
 ---
 
@@ -16,9 +16,9 @@ See also: [Modernization overview](./modernization/index.md) | [Dev loop](./runb
 4. **Work framework-only** (`Lib*`, `LibUi*`, `LibRouter`, `LibAutoUi`, `LibLifeCycleUi`, `ThirdParty`, `Meta/*`) by default. Exception: Phases 5-6 explicitly create `SuiteTodo/` + `AppTodo/` as the reference implementation.
 5. **No em-dash in prose. No banned NuGet packages (Moq, AutoMapper).**
 6. **Environment:** always `export DOTNET_ROOT="$HOME/.dotnet"` before dotnet/fable/eggshell commands.
-7. **Keep the [Engineering Log](./knowledge-base/engineering-log.md) updated** with anything you got wrong and corrected.
-8. **Accessibility is the default and mandatory.** Every UI you build or port ships accessible across the full spectrum. Follow the [Accessibility docs](./accessibility/index.md) (pit-of-success principles + recipes). Never silently skip a11y.
-9. **Use the dev runbook for any device/build/observe loop.** See [Dev loop](./runbooks/dev-loop.md), [Android](./runbooks/android.md), [iOS](./runbooks/ios.md), [Web](./runbooks/web.md). Debug with raw adb/simctl/browser (Tier 1); verify/gate with the `audit/` toolkit (Tier 2).
+7. **Keep the [Engineering Log](../knowledge-base/engineering-log.md) updated** with anything you got wrong and corrected.
+8. **Accessibility is the default and mandatory.** Every UI you build or port ships accessible across the full spectrum. Follow the [Accessibility docs](../accessibility/index.md) (pit-of-success principles + recipes). Never silently skip a11y.
+9. **Use the dev runbook for any device/build/observe loop.** See [Dev loop](./dev-loop.md), [Android](./android.md), [iOS](./ios.md), [Web](./web.md). Debug with raw adb/simctl/browser (Tier 1); verify/gate with the `audit/` toolkit (Tier 2).
 
 **Build/validate commands (memorize):**
 
@@ -281,7 +281,7 @@ curl -s "http://localhost:8081/index.bundle?platform=android&dev=true" | grep -c
 ```
 
 10. **Update the gallery page** (`AppEggShellGallery/src/Components/Content/` page must use the new F# API in pure F#; add one if missing). Re-run step 7.
-11. **Update the [Engineering Log](./knowledge-base/engineering-log.md)** (dated, newest at top): symptom, cause, fix, files for anything corrected.
+11. **Update the [Engineering Log](../knowledge-base/engineering-log.md)** (dated, newest at top): symptom, cause, fix, files for anything corrected.
 
 ### Phase 4 pitfall checklist {#phase4-pitfalls}
 
@@ -433,7 +433,7 @@ cd SuiteTodo/AppTodo && eggshell dev-web    # web build
 # eggshell dev-native + Metro + npx react-native run-ios --no-packager (simulator)
 ```
 
-For the native dev/observe loop, follow the [Android](./runbooks/android.md) and [iOS](./runbooks/ios.md) runbooks rather than improvising.
+For the native dev/observe loop, follow the [Android](./android.md) and [iOS](./ios.md) runbooks rather than improvising.
 
 ### 5D. UI automation (`SuiteTodo/AppTodo/audit/`)
 
@@ -520,4 +520,4 @@ Hand back to a stronger model for any of these; do not guess.
 | Target output | `SuiteTodo/` (Phase 5 reference; becomes scaffold source) |
 | Frontend spike | `../eggshell-rnw-spike/` (transport + animation probes only) |
 | Backend spike | `../orleans-net10-spike/` (Orleans 3.7.2 on net10) |
-| Strategy doc | [ReactXP to RNW](./modernization/reactxp-to-rnw.md) |
+| Strategy doc | [ReactXP to RNW](../modernization/reactxp-to-rnw.md) |

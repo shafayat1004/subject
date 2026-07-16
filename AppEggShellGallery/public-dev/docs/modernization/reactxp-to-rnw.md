@@ -13,8 +13,8 @@ Reanimated 4 + worklets + Moti are installed and wired (declarative-only from F#
 remains the strategy/research narrative; anywhere below that says "ReactXP fork" / `RX.` / `RNSeam`
 describes the pre-migration state -- read it as history. Remaining tail: gallery +
 PerformancePlayground native config, and adopting Reanimated in components. For the exact upgrade
-recipe + gotchas see the session-8 [Engineering Log](./knowledge-base/engineering-log.md) entry; for
-phase status see [Phased Plan](./modernization/phased-plan.md) Phase 4.
+recipe + gotchas see the session-8 [Engineering Log](../knowledge-base/engineering-log.md) entry; for
+phase status see [Phased Plan](./phased-plan.md) Phase 4.
 
 ---
 
@@ -119,7 +119,7 @@ the web side.
 ### Blocker C: possibly already broken on RN 0.76.5
 
 The fork calls `Dimensions.addEventListener` (in `native-common/UserInterface.tsx`), which was
-**removed in RN 0.76**. The gallery app reportedly runs RN 0.76.5, and the [Engineering Log](./knowledge-base/engineering-log.md) documents a
+**removed in RN 0.76**. The gallery app reportedly runs RN 0.76.5, and the [Engineering Log](../knowledge-base/engineering-log.md) documents a
 flood of ReactXP legacy-context warnings in logcat (which corroborates Blocker A being live). Whether
 the `Dimensions` path is crashing, shimmed, or simply not hit on the current build is an action item
 to verify directly.

@@ -58,7 +58,7 @@ The fix plan:
 The cleanest way to fix scaffolding is not to patch the existing templates incrementally. Instead:
 
 1. Build the concrete `SuiteTodo/` in-repo reference implementation (Phase 5, see
-   [Phased Plan](./modernization/phased-plan.md)) and get it green on all platforms.
+   [Phased Plan](./phased-plan.md)) and get it green on all platforms.
 2. Templatize it into `Meta/LibScaffolding/templates`: replace domain-specific TODO content with
    generic placeholders; keep the modern conventions (nested render schema, pure F#, correct
    `App.fsproj`, generic app shell).
@@ -92,5 +92,5 @@ of the current initiative.
 ## Status
 
 Not started. Scaffolding work is planned for Phase 5, riding on the concrete TODO reference app.
-See [Goals & Roadmap: Goal B](./modernization/goals-and-roadmap.md#b-fix-scaffolding) and
-[Phased Plan: Phase 5](./modernization/phased-plan.md#phase-5-full-stack-todo-reference-app--templatized-scaffold).
+See [Goals & Roadmap: Goal B](./goals-and-roadmap.md#b-fix-scaffolding) and
+[Phased Plan: Phase 5](./phased-plan.md#phase-5-full-stack-todo-reference-app--templatized-scaffold).

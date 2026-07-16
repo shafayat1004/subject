@@ -224,7 +224,7 @@ in the XML.
 
 ## Why we can't have polymorphic props without the `^` character.
 
-Read the section on the `^` operator in [RenderDSL docs](./renderDsl/index.md) first.
+Read the section on the `^` operator in [RenderDSL docs](../renderDsl/index.md) first.
 
 This implementation begs the question: for each prop, why don't we auto-generate the
 

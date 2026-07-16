@@ -26,6 +26,7 @@ type Ui.Route with
                                 Showdown.MarkdownViewer(
                                     source              = docMarkdownSource url,
                                     globalLinkHandler   = "globalMarkdownLinkHandler",
+                                    currentDocPath      = url,
                                     imageUrlTransformer = markdownImageUrlTransformer,
                                     showdownConverter   = showdownConverterWithSyntaxHighlighting
                                 )

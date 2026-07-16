@@ -2,11 +2,11 @@
 
 ## Repo level
 
-Libraries are described [separately](./basics/libraries.md).
+Libraries are described [separately](../basics/libraries.md).
 
-Which projects may be good examples to follow is also described [separately](./how-to/projects.md).
+Which projects may be good examples to follow is also described [separately](../how-to/projects.md).
 
-Detailed information about the format of the `eggshell.json` config file is [here](./tools/cli.md).
+Detailed information about the format of the `eggshell.json` config file is [here](../tools/cli.md).
 
 ```sh
 .

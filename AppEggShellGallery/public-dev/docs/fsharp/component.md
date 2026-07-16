@@ -168,7 +168,7 @@ The saving grace is that we're unlikely have namespaces that go deeper than this
 ## Styles
 
 Styles can appear anywhere in the file before they are used. You do **not** need a mutually recursive
-type with the component (that was an older workaround; see [Styling](./fsharp/styling.md)).
+type with the component (that was an older workaround; see [Styling](./styling.md)).
 
 **Preferred patterns** (in order):
 
@@ -207,7 +207,7 @@ underlying primitives are react-native-web on web and React Native on native, su
 `Rn.*` wrappers).
 Familiar `Rn.*` and `LC.*` components accept `?styles: array<...Styles>`.
 
-More on styles, including memoization and themes, is [here](./fsharp/styling.md).
+More on styles, including memoization and themes, is [here](./styling.md).
 
 ## The `elements` and `element` CEs
 

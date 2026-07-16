@@ -24,6 +24,7 @@ type Ui.Route with
                             Showdown.MarkdownViewer(
                                 source            = docMarkdownSource markdownUrl,
                                 globalLinkHandler = "globalMarkdownLinkHandler",
+                                currentDocPath    = markdownUrl,
                                 showdownConverter = showdownConverterWithSyntaxHighlighting
                             )
                             if markdownUrl = "tools/snippets.md" then

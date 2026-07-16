@@ -16,7 +16,7 @@ perf tuning.
 
 ## 2021-08-31
 
-* RenderDSL now supports a new attribute, `rt-with`, see [language reference](./renderDsl/index.md) for details.
+* RenderDSL now supports a new attribute, `rt-with`, see [language reference](../renderDsl/index.md) for details.
 
 ## 2021-08-11
 
@@ -69,30 +69,30 @@ perf tuning.
 
 * Changed `MaybeValue` prop of [`LC.Input.Quantity`](gallery:///%22Desktop%22/Components/%22Input_Quantity%22) to `Value`
 
-* [RenderDSL language reference](./renderDsl/index.md) rewritten, including a handy summary
+* [RenderDSL language reference](../renderDsl/index.md) rewritten, including a handy summary
   of all language constructs
 
-* [Roadmap](./basics/roadmap.md) added, scattered TODO lists from various other docs moved here
+* [Roadmap](./roadmap.md) added, scattered TODO lists from various other docs moved here
 
 * marked responsive components in gallery with a `Responsive` tag
 
-* Moved react refs documentation to a [stand-alone how-to](./how-to/refs.md)
+* Moved react refs documentation to a [stand-alone how-to](../how-to/refs.md)
 
 * Made the `reactref` snippet for working with react refs
 
-* Documented the [directory structure](./unsorted/directory-structure.md)
+* Documented the [directory structure](../unsorted/directory-structure.md)
 
 * Updated version of `showdown-highlight` to get rid of end-of-life warning
 
 ## 2021-02-10
 
-* [Snippets](./tools/snippets.md) docs added
+* [Snippets](../tools/snippets.md) docs added
 
-* [Responsive](./how-to/responsive.md) docs updated
+* [Responsive](../how-to/responsive.md) docs updated
 
 * `LC.With.ScreenSize` added as a replacement for using the raw `LC.With.Context`
 
-* [Taps, Clicks, Hovers, etc](./how-to/tap-capture.md) docs added
+* [Taps, Clicks, Hovers, etc](../how-to/tap-capture.md) docs added
 
 * Nav.Top now allows you to return `{=noElement}` from inside `<rt-prop name='Handheld'>` (or Desktop)
   to render no top nav. (you'll need to do a `./initialize` in `LibClient` for this to work)

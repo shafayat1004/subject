@@ -2,13 +2,13 @@
 
 We rely on tooling to increase our productivity when building Apps in EggShell.
 
-Using the [eggshell CLI](./tools/cli.md) allows us to scaffold new apps, new components,
+Using the [eggshell CLI](./cli.md) allows us to scaffold new apps, new components,
 routes, dialogs, wrappers for third party libraries. It also allows us to rename components
 easily. And it is what is used to package the app for deployment.
 
 VSCode is our IDE of choice for working on EggShell projects. A number
 of extensions and configuration options make for a more productive experience. And while
-the `eggshell` CLI is used to scaffold multi-file things like components, VSCode [snippets](./tools/snippets.md)
+the `eggshell` CLI is used to scaffold multi-file things like components, VSCode [snippets](./snippets.md)
 are a huge time saver for scaffolding localized snippets of code that you would otherwise
 be unlikely to keep in memory, and would probably to to copy/paste/modify from somewhere else.
 
@@ -63,7 +63,7 @@ You need to attack the problem from three directions:
 Additive notes — the sections above still apply wherever `.render` files exist (framework libs,
 older apps).
 
-* **New UI** should be pure F# (`[<Component>]`). See [How to Add a Component](./fsharp/component.md).
+* **New UI** should be pure F# (`[<Component>]`). See [How to Add a Component](../fsharp/component.md).
   This gallery app has no `.render` files left.
 * Useful commands from an app/lib directory:
 

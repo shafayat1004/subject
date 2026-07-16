@@ -2,7 +2,7 @@
 
 Future work for EggShell. More of a prioritized "future work" list than a committed schedule. Items
 carry a status derived from a 2026-07 codebase check. For the phase-by-phase execution plan, see
-[Phased Plan](./modernization/phased-plan.md).
+[Phased Plan](./phased-plan.md).
 
 This page supersedes `docs/basics/roadmap.md`. All prior content has been folded in, including the
 candid "Platform Fundamentals / Higher Level Abstractions / Tooling / Conveniences / Gallery
@@ -31,7 +31,7 @@ Convert all framework `.render` components to pure F#, then delete the DSL machi
 `.render` files. 41 `.render` files remain as compiler test fixtures only, all under
 `Meta/AppRenderDslCompiler/compiler.Tests/tests/`. DSL machinery deletion is the remaining closure
 step, deferred until the full audit pass confirms no regressions. See
-[Render DSL Retirement](./modernization/render-dsl-retirement.md).
+[Render DSL Retirement](./render-dsl-retirement.md).
 
 ### B. Fix scaffolding
 
@@ -45,7 +45,7 @@ canonical modern EggShell app, so this also anchors Goals C and D.
 - Auto-update the `.fsproj` on `create-component` (today it is a manual, error-prone step).
 - Add a `create-app -> dev-web` CI smoke test so scaffolding cannot silently rot again.
 
-**Status:** Not started. See [Scaffolding](./modernization/scaffolding.md) for the detailed drift table and fix plan.
+**Status:** Not started. See [Scaffolding](./scaffolding.md) for the detailed drift table and fix plan.
 
 ### C. Reduce component verbosity
 
@@ -80,7 +80,7 @@ The structural wins come from A (deleting the 548-spawn render stage) and F (Fab
 already done). Bundler swap (esbuild/Vite) is the large long-term win.
 
 **Status:** Partial. The render subprocess stage is eliminated by Goal A. Quick wins not yet applied.
-See [Build Performance](./modernization/build-performance.md).
+See [Build Performance](./build-performance.md).
 
 ### I. Frontend render hygiene: key warnings + style leaks
 
@@ -149,15 +149,15 @@ data).
 
 **Status:** Not started. Phase 0 decisions revised this session; execution begins with the spike set. The full
 plan (current storage layer, feature port table, Durable Jobs evaluation, spike-driven execution) is in
-[SQL Server to Postgres](./modernization/sql-server-to-postgres.md); see
-[Architecture: Hosting & Persistence](./architecture/backend-hosting-persistence.md) for the concrete
+[SQL Server to Postgres](./sql-server-to-postgres.md); see
+[Architecture: Hosting & Persistence](../architecture/backend-hosting-persistence.md) for the concrete
 seam map.
 
 ### H. ReactXP to react-native-web seam swap
 
 ReactXP is archived upstream; `@chaldal/reactxp` was the only living fork, and it could not be nudged
 forward without a substantial rewrite (React 19 removed `childContextTypes`, `findDOMNode`; the New
-Architecture deprecated `setNativeProps`, `findNodeHandle`). See [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
+Architecture deprecated `setNativeProps`, `findNodeHandle`). See [ReactXP to RNW](./reactxp-to-rnw.md).
 
 The contained seam is `LibClient/src/Rn`. F# components above that seam call `Rn.*` / `LC.*`
 and are insulated from the swap. The seam has been re-implemented against RN + react-native-web
@@ -178,7 +178,7 @@ Android and iOS. Remaining: gallery and PerformancePlayground native passes, plu
 Make the standalone backend consumable by .NET clients other than the built-in F#/Fable UI. The backend
 already exposes a JSON-over-HTTP request/response API plus a SignalR subscription hub and has no code
 dependency on the frontend, so this is packaging, not a re-architecture. See
-[Backend Interoperability](./modernization/backend-interop.md).
+[Backend Interoperability](./backend-interop.md).
 
 - **Carve `LibClient.Core`** (transport + codecs, .NET-portable) out of the Fable/RN UI and package it
   as a NuGet client SDK, so any .NET frontend (Blazor, MAUI, WPF, a console daemon, another service)
@@ -194,7 +194,7 @@ dependency on the frontend, so this is packaging, not a re-architecture. See
 Publish a machine-readable API contract so clients in any language can consume the backend without
 hand-porting the codec conventions. This is the polyglot path (Dart, Kotlin, Swift, TypeScript, Python,
 and so on) and is the source of truth for generated SDKs. See
-[Backend Interoperability](./modernization/backend-interop.md).
+[Backend Interoperability](./backend-interop.md).
 
 - **Emit an OpenAPI / JSON-Schema contract** by wiring the existing `LibCodecValidation` /
   `EvolutionCheckerLib.fs` type walker, which already extracts each type into a `JsonNode` schema for the
@@ -209,7 +209,7 @@ and so on) and is the source of truth for generated SDKs. See
 
 ### Security hardening
 
-A focused framework auth/SQL/crypto pass. See [Security Review](./modernization/security-review.md) for the full
+A focused framework auth/SQL/crypto pass. See [Security Review](./security-review.md) for the full
 candidate findings table. High-priority items to verify first:
 
 - Possible **default-allow** when a subject/view has no session handling configured

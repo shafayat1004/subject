@@ -1,6 +1,6 @@
 # npm Dependency Baseline
 
-This is a point-in-time snapshot of the npm audit results taken when `./initialize` was run across the full repository. It reflects the state after the framework-wide NPM upgrade carried out during the modernization initiative (see the [Engineering Log](./knowledge-base/engineering-log.md) entry dated 2026-06-27).
+This is a point-in-time snapshot of the npm audit results taken when `./initialize` was run across the full repository. It reflects the state after the framework-wide NPM upgrade carried out during the modernization initiative (see the [Engineering Log](./engineering-log.md) entry dated 2026-06-27).
 
 **This page is not continuously maintained.** To regenerate the numbers, run `./initialize` from the repository root and inspect the `npm audit` output per workspace. The snapshot below is provided for orientation.
 

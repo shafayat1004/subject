@@ -90,4 +90,4 @@ recompile (`touch` changed `.fs`, or clear `.build/<platform>/fable`), confirm
 `Started Fable compilation...` appears in output, and confirm `rg "error FS"` is clean. If a
 watch/dev terminal is already running, its output is authoritative for that edit.
 
-See [Runbooks](./runbooks/migration-execution.md) for the full build-and-validate commands.
+See [Runbooks](../runbooks/migration-execution.md) for the full build-and-validate commands.

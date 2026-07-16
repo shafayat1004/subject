@@ -2,9 +2,9 @@
 
 The `audit/` toolkit lives in `SuiteTodo/AppTodo/audit/`. It drives native platforms via **Appium** and the web via **Playwright**, using `testId`/accessibility ids instead of pixel coordinates. Output is structured JSON in `audit/out/<timestamp>/` -- machine-readable for agents and CI gates.
 
-Use this for reliable element interaction, before/after layout diffs, and CI regression checks. For the fast interactive debug loop (did my change render? is there a red-box error?) use [Tier 1 raw CLI](./runbooks/index.md#two-tiers-of-observation) first.
+Use this for reliable element interaction, before/after layout diffs, and CI regression checks. For the fast interactive debug loop (did my change render? is there a red-box error?) use [Tier 1 raw CLI](./index.md#two-tiers-of-observation) first.
 
-Related: [Dev loop](./runbooks/dev-loop.md) | [Android](./runbooks/android.md) | [iOS](./runbooks/ios.md) | [Web](./runbooks/web.md)
+Related: [Dev loop](./dev-loop.md) | [Android](./android.md) | [iOS](./ios.md) | [Web](./web.md)
 
 ---
 

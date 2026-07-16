@@ -6,7 +6,7 @@ Tracked work items for accessibility improvements. Items are tagged by migration
 - `[web-only]` -- only meaningful on web. Build behind the web seam (now on react-native-web).
 - `[rnw-blocked]` -- previously blocked on the RNW/New-Architecture host-element seam. The seam now
   exists (react-native-web, New Architecture, Reanimated 4, RNGH 3), so these are **unblocked**; most
-  are not yet built. See [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
+  are not yet built. See [ReactXP to RNW](../modernization/reactxp-to-rnw.md).
 - `[lib]` -- needs a third-party native library. Wire via the `ThirdParty` recipe now that the
   dependency stack has settled.
 
@@ -18,7 +18,7 @@ For context on why deferred items are sequenced, not abandoned, see the
 ## Accessibility Scanner findings (2026-07-11, post reduce-motion fix)
 
 Found by Google's Accessibility Scanner on the POCO F1, 5-screen recording session (dark + light
-themes). Full detail + how-to in [Scanner Audits](./accessibility/scanner-audit.md). All are
+themes). Full detail + how-to in [Scanner Audits](./scanner-audit.md). All are
 `[safe]` (RN-native props/styles). None are gated on the migration.
 
 - **Touch targets under 48dp (14 elements).** Filter tabs (40dp h, All 32x40dp), category chips
@@ -49,7 +49,7 @@ themes). Full detail + how-to in [Scanner Audits](./accessibility/scanner-audit.
 ## Field-reported defects (real device, POCO F1, 2026-07-02)
 
 Found during real-touch testing of the standalone build; detail + reproduction in the
-[Engineering Log](./knowledge-base/engineering-log.md) (sessions 6-7). Swipe gesture/scroll defects
+[Engineering Log](../knowledge-base/engineering-log.md) (sessions 6-7). Swipe gesture/scroll defects
 were fixed in session 7 (native swipe rebuilt on react-native-gesture-handler); a11y-specific items
 below remain.
 
@@ -62,7 +62,7 @@ below remain.
   reduce-motion user cannot toggle the theme or use the row actions via the normal path. Reduce-motion
   must remove *animation*, not *interaction* (keep the control tappable; just skip the sliding thumb /
   swipe animation). Violates the "any gesture has a non-gesture alternative" principle in
-  [Recipes](./accessibility/recipes.md).
+  [Recipes](./recipes.md).
 - **Swipe-to-delete has no robust non-gesture alternative** (scroll-hijack part **done**). `[safe]` --
   vertical-scroll hijack and gesture jank were fixed in session 7 by rebuilding the swipe on
   react-native-gesture-handler (`Rn.HorizontalPanArea`; native `activeOffsetX`/`failOffsetY`
@@ -78,7 +78,7 @@ below remain.
 
 ## Small (hours)
 
-5. AppTodo: label toggle/tabs/chips/rows/counts per [Recipes §3](./accessibility/recipes.md#3-per-component-playbook).
+5. AppTodo: label toggle/tabs/chips/rows/counts per [Recipes §3](./recipes.md#3-per-component-playbook).
    `[safe]` -- **Done** (swipe delete has title context; tabs/chips/counts/rows all have roles wired; `HandheldListItem` now emits `role=ListItem` on outer view)
 
 ---
@@ -130,7 +130,7 @@ key-warning fix in `AppShell/Context/Context.fs`, documented in the Engineering 
 
 The ReactXP to RNW migration is done. It was not just parity -- it **raised the accessibility ceiling**
 and unblocks most of the deferred items above (they now need building, not waiting). Full details in
-[ReactXP to RNW](./modernization/reactxp-to-rnw.md).
+[ReactXP to RNW](../modernization/reactxp-to-rnw.md).
 
 ### React Native New Architecture (Fabric / JSI / TurboModules)
 
@@ -168,7 +168,7 @@ RNW renders true DOM, making the deferred web items first-class:
 ### React 19
 
 - **Form Actions / `useActionState`** -- accessible submit with built-in pending/error state to
-  announce (pairs with form-error live regions from [Recipes D](./accessibility/recipes.md#d-text-input)).
+  announce (pairs with form-error live regions from [Recipes D](./recipes.md#d-text-input)).
 - **Document metadata / `<title>`** per route -- page titles (WCAG 2.4.2) on web.
 - **Ref-as-prop** simplifies focus refs; improved Suspense yields predictable, announceable loading
   states.
@@ -176,7 +176,7 @@ RNW renders true DOM, making the deferred web items first-class:
 ### Modern motion / gesture / media stack
 
 - **Reanimated 4 + Moti** run on the UI thread and read the reduce-motion flag declaratively: motion
-  accessibility (see [Spectrum](./accessibility/spectrum.md#vestibular--motion-sensitivity)) becomes a property of
+  accessibility (see [Spectrum](./spectrum.md#vestibular--motion-sensitivity)) becomes a property of
   the animation API, not per-screen code. Unblocks backlog #11 fully.
 - **RNGH** gives robust swipe/drag with a clean place to attach the required non-gesture alternative
   (tap/keyboard/rotor action) for WCAG 2.5.1. Unblocks the gesture parts of backlog #4 / #15.

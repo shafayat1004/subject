@@ -2,7 +2,7 @@
 
 > **Legacy section.** The render DSL is retired in product code. New components are pure F# using
 > the `[<Component>]` attribute. This page documents the DSL for reference and for understanding
-> the compiler test fixtures. See [How to Add a Component](./fsharp/component.md).
+> the compiler test fixtures. See [How to Add a Component](../fsharp/component.md).
 
 RenderDSL is a domain-specific language for building React component render functions.
 It is similar to JSX, except control flow (if, match, loop/map, etc) are also implemented
@@ -338,7 +338,7 @@ There are a few standard use cases for classes, as illustrated by the following 
 
 On DOM elements, classes just get added to the element. For `Rn.*` components (formerly ReactXP components), based on the class
 names that end up on leaf node elements, actual style rules are extracted from the style sheet, and
-passed into the component's `style` prop. See the [StylesDSL documentation](./stylesDsl/index.md)
+passed into the component's `style` prop. See the [StylesDSL documentation](../stylesDsl/index.md)
 for details.
 
 
@@ -747,7 +747,7 @@ Note that having one factory type per prop type may feel a little verbose, but i
 the factory type between components, which is hugely important. For example, all of `LC.Button`,
 `LC.IconButton`, `LC.TextButton`, and `LC.FloatingActionButton` reuse a factory for the `State` prop.
 
-(see a note in [Background](./unsorted/background.md) on why we couldn't get away without the `^` character)
+(see a note in [Background](../unsorted/background.md) on why we couldn't get away without the `^` character)
 
 ### The `rt-root` tag
 

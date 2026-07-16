@@ -8,7 +8,7 @@ while the framework handles distribution, persistence, synchronization, and acce
 > This section is reference material derived from the framework source under `Lib*` / `Meta*`. The
 > frontend primitive layer has been migrated off the archived `@chaldal/reactxp` fork to
 > **react-native-web** (stabilization is ongoing); for that story and the rest of the platform work
-> (Postgres/Orleans, .NET 10 TFMs), see [Modernization & Current Status](./modernization/index.md).
+> (Postgres/Orleans, .NET 10 TFMs), see [Modernization & Current Status](../modernization/index.md).
 
 ## 1. Big picture
 
@@ -33,11 +33,11 @@ The two halves share a single mental model:
 - **Backend** = a set of **lifecycles** (state machines). Each lifecycle owns a **Subject** (the state),
   reacts to **LifeActions** (transitions), emits **LifeEvents**, and produces side effects (create other
   subjects, call connectors, schedule timers, raise actions on self). See
-  [Lifecycles / State Machines](./architecture/backend-lifecycles.md).
+  [Lifecycles / State Machines](./backend-lifecycles.md).
 - **Frontend** = React Native (for Web) components that **subscribe** to backend subjects and re-render
-  as state changes flow in as `AsyncData<'T>`. See [Frontend](./architecture/frontend.md).
+  as state changes flow in as `AsyncData<'T>`. See [Frontend](./frontend.md).
 - **Tests** = deterministic simulations of lifecycles across virtual time — a first-class reliability
-  mechanism, not an afterthought. See [Testing Framework](./architecture/testing-framework.md).
+  mechanism, not an afterthought. See [Testing Framework](./testing-framework.md).
 
 ## Repository layout conventions
 
@@ -54,7 +54,7 @@ The two halves share a single mental model:
 
 The toolchain has been migrated to **Fable 5 / .NET 10 SDK**, and the frontend primitive layer has been
 migrated to **react-native-web**. Several backend concerns (Orleans version, SQL Server) are still on
-their original footing and are tracked in [Modernization](./modernization/index.md).
+their original footing and are tracked in [Modernization](../modernization/index.md).
 
 | Layer     | In use today                    | Note |
 |-----------|---------------------------------|------|
@@ -67,16 +67,16 @@ their original footing and are tracked in [Modernization](./modernization/index.
 The strategic backstory: **ReactXP was archived upstream by Microsoft**, which points people at React
 Native for Web. EggShell ran on the `@chaldal/reactxp` fork for years and has now migrated the primitive
 layer (`LibClient/src/Rn`) to react-native-web. See
-[ReactXP → RNW](./modernization/reactxp-to-rnw.md) for the full story.
+[ReactXP → RNW](../modernization/reactxp-to-rnw.md) for the full story.
 
 ## In this section
 
-- [Lifecycles / State Machines](./architecture/backend-lifecycles.md) — the backend programming model.
-- [Hosting & Persistence](./architecture/backend-hosting-persistence.md) — Orleans silo, SQL Server storage, and the
+- [Lifecycles / State Machines](./backend-lifecycles.md) — the backend programming model.
+- [Hosting & Persistence](./backend-hosting-persistence.md) — Orleans silo, SQL Server storage, and the
   Postgres seams.
-- [Shared Types & Codecs](./architecture/shared-types-codecs.md) — Fleece codecs, evolution validation, the wire.
-- [Testing Framework](./architecture/testing-framework.md) — the `simulation { }` harness and virtual clock.
-- [Frontend](./architecture/frontend.md) — components, react-native-web interop, routing, data flow, animation.
-- [Render DSL & Toolchain](./architecture/render-dsl-and-toolchain.md) — the `.render` DSL, its compiler, and the
+- [Shared Types & Codecs](./shared-types-codecs.md) — Fleece codecs, evolution validation, the wire.
+- [Testing Framework](./testing-framework.md) — the `simulation { }` harness and virtual clock.
+- [Frontend](./frontend.md) — components, react-native-web interop, routing, data flow, animation.
+- [Render DSL & Toolchain](./render-dsl-and-toolchain.md) — the `.render` DSL, its compiler, and the
   `eggshell` CLI.
-- [Key File Map](./architecture/file-map.md) — where each concern lives in the source tree.
+- [Key File Map](./file-map.md) — where each concern lives in the source tree.

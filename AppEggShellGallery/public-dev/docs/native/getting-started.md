@@ -6,7 +6,7 @@ Choose your host OS and target platform:
 
 ### Windows
 
-* [Android on Windows](./native/setup-dev-env-windows-android.md)
+* [Android on Windows](./setup-dev-env-windows-android.md)
 
 ### macOS
 
@@ -27,9 +27,9 @@ After platform SDKs are installed:
 2. App directory: `./initialize` (creates `configSourceOverrides.native.js` from template)
 3. iOS only: `cd ios && pod install`
 
-Then follow [Native Development](./basics/native.md) for the three-terminal workflow.
+Then follow [Native Development](../basics/native.md) for the three-terminal workflow.
 
 ## 3. Further reading
 
-* [Dev experience notes](./native/dev-experience.md)
-* [Releasing native app](./native/release-app.md)
+* [Dev experience notes](./dev-experience.md)
+* [Releasing native app](./release-app.md)

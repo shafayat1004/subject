@@ -2,10 +2,10 @@
 
 The EggShell backend persists to SQL Server through Microsoft Orleans. This page is the plan for moving that
 storage backend to PostgreSQL **and** upgrading Orleans 3.7 to current-major together, as the single
-[Goal G](./modernization/goals-and-roadmap.md) workstream ([Phase 6](./modernization/phased-plan.md)). It maps the current storage layer,
+[Goal G](./goals-and-roadmap.md) workstream ([Phase 6](./phased-plan.md)). It maps the current storage layer,
 the SQL-Server-specific constructs that must be ported, the Orleans-on-Postgres specifics, the
 modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven execution order. The concrete
-seam list also appears in [Hosting & Persistence](./architecture/backend-hosting-persistence.md); this page
+seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
 **Workstream status: not started. Phase 0 (decisions) revised this session; execution begins with the spikes
@@ -631,7 +631,7 @@ covers dev/CI.
   FreeTDS, auto-maps types incl. `varbinary` → `bytea`, validate the truncation caveat) stays in the toolbox
   only in case a one-time bulk import from an external SQL Server is ever wanted.
 - **Dev stack:** a single `docker compose` file running the engine, folded into the planned `./dev-stack up`
-  ([Phase 6 of the phased plan](./modernization/phased-plan.md)). SQL Server is **not** in the permanent dev stack (only
+  ([Phase 6 of the phased plan](./phased-plan.md)). SQL Server is **not** in the permanent dev stack (only
   during the port, as the diff oracle):
 
   ```yaml
@@ -650,7 +650,7 @@ covers dev/CI.
 ## Testing strategy
 
 - **The simulation suite is the primary safety net.** The deterministic simulation tests (see
-  [Testing framework](./architecture/testing-framework.md)) exercise lifecycles through the storage layer.
+  [Testing framework](../architecture/testing-framework.md)) exercise lifecycles through the storage layer.
   Running them in `TestDataSeeding` mode against Postgres is the acceptance bar for each handler.
 - **SQL Server as a transient diff oracle (during the port only).** For the query-heavy paths (subject repo,
   FTS, geography), diff Postgres results against SQL Server for the same inputs *before* removing the SQL
@@ -717,10 +717,10 @@ covers dev/CI.
 ## References
 
 Internal:
-- [Goal G — PostgreSQL + Orleans upgrade](./modernization/goals-and-roadmap.md)
-- [Phased Plan — Phase 6](./modernization/phased-plan.md)
-- [Hosting & Persistence](./architecture/backend-hosting-persistence.md)
-- [Testing framework](./architecture/testing-framework.md)
+- [Goal G — PostgreSQL + Orleans upgrade](./goals-and-roadmap.md)
+- [Phased Plan — Phase 6](./phased-plan.md)
+- [Hosting & Persistence](../architecture/backend-hosting-persistence.md)
+- [Testing framework](../architecture/testing-framework.md)
 
 Upstream (confirmed 2026-07-15):
 - Orleans releases: https://github.com/dotnet/orleans/releases (10.2.1 stable 2026-06-24; 10.2.2-rc.1 2026-07-10; 10.0 multi-targets net8+net10)

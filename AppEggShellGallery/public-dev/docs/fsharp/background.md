@@ -37,4 +37,4 @@ code should be written in the F# dialect, but all legacy components are easily
 instantiatable from F#, and conversely all new F# components are easily instantiatable
 from within `.render` files.
 
-**Partial:** LibClient still has **9** `.render` files; see [Roadmap](./basics/roadmap.md).
+**Partial:** LibClient still has **9** `.render` files; see [Roadmap](../basics/roadmap.md).

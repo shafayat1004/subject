@@ -187,7 +187,7 @@ internal implementation. There are plenty of examples of this in the standard co
 
 The less privacy-invasive way of telling a component how to look is to use the "theme" that it provides
 to style it. When a component declares a theme, they are explicitly saying "my visuals can be modified, here
-are the modifications I accept". To learn more about themeing, read [here](./fsharp/themeing.md).
+are the modifications I accept". To learn more about themeing, read [here](./themeing.md).
 
 ## What about dynamic style values
 
@@ -213,4 +213,4 @@ and private Styles() =
 That forced an unorthodox `static member val` syntax; missing `val` caused runtime performance
 degradation. We then switched to `module private Styles =`, which is simpler but the generic name
 collides easily. **Current guidance:** top-level `let` bindings, or `[<RequireQualifiedAccess>] module private FooStyles`.
-See [Components](./fsharp/component.md).
+See [Components](./component.md).

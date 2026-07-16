@@ -3,8 +3,8 @@
 The detailed status of the "clean the framework of ReactXP + upgrade to the latest React Native /
 react-native-web with the New Architecture" effort (branch `modernization/rnw`). This page is the
 single place that tracks, in detail, **what is done** and **what remains**. For the narrative and
-gotchas see the [Engineering Log](./knowledge-base/engineering-log.md) (sessions 8 and 9); for the
-one-line dashboard see [Current Status](./modernization/index.md).
+gotchas see the [Engineering Log](../knowledge-base/engineering-log.md) (sessions 8 and 9); for the
+one-line dashboard see [Current Status](./index.md).
 
 **Target stack (shipped):** React **19.2.3**, react-native **0.86.0**, react-native-web **0.21.2**,
 RNGH **3.0.2**, Reanimated **4.5.1** + worklets **0.10.2** + Moti **0.30.0**, New Architecture
@@ -96,7 +96,7 @@ reanimated + worklets as direct gallery deps (autolink) + a `babel.config.js`; (
 RCTImageView (`uri cannot be cast from Double to String`) — framework `Rn.Image` fix (bare asset for
 native imports, `ImageSource.RawNativeAsset`); (4) no global `crypto` (green-flashing `ReferenceError`) —
 added `react-native-get-random-values` + imported it first in `index.js`. Home screen renders (logo +
-tech-stack list), no crash. See the [Engineering Log](./knowledge-base/engineering-log.md) session 10.
+tech-stack list), no crash. See the [Engineering Log](../knowledge-base/engineering-log.md) session 10.
 
 **iOS:** gallery `pod install` was previously blocked behind the Android dead ends; with them gone it
 should be a `pod install` (like AppTodo) — not yet run.
@@ -180,7 +180,7 @@ but has these UX/functional bugs (none block launch):
    the caller sees it — `requestFocus()` → `focus()`, `selectAll()` → `setSelection(0, huge)` (RN clamps
    to the text bounds). Platform-agnostic (`focus()` exists on native + web).
 
-These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](./knowledge-base/engineering-log.md) sessions 10–14.
+These are tracked as **RW8** (gallery on-device polish) — see the [Engineering Log](../knowledge-base/engineering-log.md) sessions 10–14.
 
 **RW8 follow-ups status (updated session 14, after on-device test on POCO F1):** the six defects
 above are fixed. Of the three smaller follow-ups noted in session 12:
@@ -264,7 +264,7 @@ web-only. **Needs a product decision** (is PP still used?). Left untouched for n
 ### RW4 — Scaffolding `eggshell create-app` (Goal B) [gates end-to-end scaffold verify]
 
 Templates are updated to RN 0.86 (see Done), but `eggshell create-app` is **separately broken** (see
-[Scaffolding](./modernization/scaffolding.md) -- the "drift table"). Fixing Goal B is what lets a
+[Scaffolding](./scaffolding.md) -- the "drift table"). Fixing Goal B is what lets a
 generated app build web + native end-to-end and adds the `create-app -> dev-web` CI smoke gate.
 
 ### RW5 — React 19 / DOM validation follow-ups [minor]
@@ -295,7 +295,7 @@ classic-scrollbar first-mount layout. A tried-and-reverted mount-time forced re-
 fix it (a no-op React re-render doesn't force Safari to reflow). Likely next step: give the horizontal
 scroller an **explicit definite height** (a framework prop) so there is no async layout for Safari to
 get wrong on first paint. Needs a real Safari to verify. See
-[Troubleshooting](./runbooks/troubleshooting.md) (web section) and [Web Runbook](./runbooks/web.md).
+[Troubleshooting](../runbooks/troubleshooting.md) (web section) and [Web Runbook](../runbooks/web.md).
 
 ### RW6 — Ship [after the above]
 
@@ -307,6 +307,6 @@ Broader consumer check for any other `App*`/`Suite*` that build native, then ope
 ## Not in scope / deliberately deferred
 
 - **Backend** (Orleans/Postgres, Goal G) and the **.NET 10 per-project TFM** migration are separate
-  workstreams (see [Phased Plan](./modernization/phased-plan.md) Phase 3 / later).
+  workstreams (see [Phased Plan](./phased-plan.md) Phase 3 / later).
 - **`@chaldal/reactxp` history**: docs that narrate the migration keep the ReactXP name as history;
-  remaining "ReactXP" mentions are links to [ReactXP to RNW](./modernization/reactxp-to-rnw.md).
+  remaining "ReactXP" mentions are links to [ReactXP to RNW](./reactxp-to-rnw.md).

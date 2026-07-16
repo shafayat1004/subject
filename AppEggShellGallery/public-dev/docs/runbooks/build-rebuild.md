@@ -2,7 +2,7 @@
 
 Targeted recompile recipes, how to confirm a rebuild actually happened, when you must restart (not just touch), verifying that a vendor patch reached the bundle, and killing stale/duplicate processes.
 
-Related: [Dev loop](./runbooks/dev-loop.md) | [Troubleshooting](./runbooks/troubleshooting.md) | [Architecture: Frontend](./architecture/frontend.md)
+Related: [Dev loop](./dev-loop.md) | [Troubleshooting](./troubleshooting.md) | [Architecture: Frontend](../architecture/frontend.md)
 
 ---
 
