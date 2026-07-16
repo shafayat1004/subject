@@ -3,9 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
-    <!-- x64 on Windows (Fabric/SQL tooling); AnyCPU on macOS/Linux so DevelopmentHost loads on Apple Silicon -->
-    <PlatformTarget Condition="$([MSBuild]::IsOsPlatform('Windows'))">x64</PlatformTarget>
-    <PlatformTarget Condition="!$([MSBuild]::IsOsPlatform('Windows'))">AnyCPU</PlatformTarget>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>

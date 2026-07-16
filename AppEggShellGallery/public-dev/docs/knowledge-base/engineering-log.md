@@ -4,6 +4,64 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-16 (session 34 -- ran the backend simulation suite on the net10 SDK; net10 build blockers fixed; S0 premise corrected)
+
+Goal: "can we run the subject simulations locally?" Turned into the first real proof that the **net10 SDK
+does not build the backend as-is** -- and a fix down to green sims. Result: `SuiteTodo/Ecosystem/Tests`
+runs **5/5** on aarch64 Linux. Work is on branch `s0/net10-backend-build-fixes` / PR #21.
+
+- **Toolchain gaps (environment, not code).** The repo pins SDK `10.0.301` (`global.json`, `rollForward:
+  latestFeature`); only `10.0.203` was installed, and `latestFeature` will *not* roll a lower band up, so
+  every `dotnet` command failed. Installed `10.0.301` + the **net7 runtime** + **aspnetcore 7 runtime**
+  (tests target `net7.0`; the host is ASP.NET) into `~/.dotnet` via `dotnet-install.sh` (no sudo). On a box
+  with **no `libicu`**, the CLI itself FailFasts on globalization -- run everything with
+  `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` (real fix = install `libicu`).
+- **External sibling repo is a hard dependency.** `LibLifeCycleHost.fsproj` unconditionally
+  `ProjectReference`s `../../../eggshell-signalr/src/LibSignalRServer` (the vendored `Fable.SignalR`, see
+  session 32). It is a **separate public repo** and must be cloned beside `subject`
+  (`git clone https://github.com/shafayat1004/eggshell-signalr.git`), else 126 `Fable.SignalR`/`FableHub`
+  undefined errors cascade through the host. Sims link the *whole* production host, so this is required
+  even though sims never send a real-time message.
+- **net10 F# compiler is stricter about SRTP -- pre-existing breaks at HEAD.** `LibLifeCycleCore`
+  (`WarningsAsErrors`) failed on explicit type args to inline SRTP codec functions: `toEncoding<Enc,'T> x`
+  and `toSummaryValue<'T> x` -> `FS0686`/`FS0717`. Fix = drop the explicit `<...>` and pin the encoding by
+  annotation/inference (`(toEncoding x: ValueSummaryEncoding)`). Same class the log fixed once before in
+  `CodecLib.fs`; it recurs anywhere explicit type args are passed to a no-declared-type-param inline fn.
+- **Codec generator emits leaf codecs *after* their consumers.** `Todo.fs` (`[<CodecAutoGenerate>]`) put the
+  `TodoPriority`/`TodoCategory` `get_Codec` augmentations *below* the `Todo`/`TodoAction`/`TodoConstructor`
+  codecs that call `codecFor<_, TodoPriority>` -> `FS0001 lacks get_Codec` (net10 resolves SRTP top-down;
+  a later same-file augmentation is invisible). Fix here = reorder the two enum blocks above their consumers.
+  **Durable fix belongs in `LibCodecGen`** (emit leaf types first); `SuiteJobs`/templates have the same latent
+  bug. Confirmed identical on 10.0.203 and 10.0.301 -- it's a net10-vs-older-F# thing, not a band thing.
+- **`LibLifeCycleTest` was pinned x64 while its siblings were fixed.** `LibLifeCycleHost`/`HostBuild` already
+  carry a conditional `PlatformTarget` (x64 on Windows for SQL/Fabric native tooling, AnyCPU elsewhere so it
+  loads on Apple Silicon/arm64). `LibLifeCycleTest` still had unconditional `<PlatformTarget>x64</PlatformTarget>`,
+  so its dll built x64 and could not load on the arm64 runtime -> xUnit "could not find dependent assembly
+  LibLifeCycleTest" (the real cause is "assembly architecture is not compatible"). Fix = same conditional.
+  Also bumped `Microsoft.NET.Test.Sdk` 16.8.3 -> 17.12.0 + `coverlet` 1.0.1 -> 6.0.2 for the net10 test host.
+- **Op-error tests fail the bad-log detector, not their assertions.** The two empty-title tests correctly get
+  `EmptyTitle`; they went red because the framework logs every ctor/action op-error at **Warn**
+  (`SubjectGrain.fs`) and the sim harness fails any simulation that captured a Warn (`TestRunner.fs:147`). Fix
+  = pipe the expected warning through the existing `Ecosystem.thenClearAllBadLogs` combinator. Open question:
+  should op-errors log at `Info` framework-wide instead.
+- **S0 premise was wrong -- the net10 TFM bump is atomic, not backend-only.** Reverse-dependency analysis of
+  the sim closure: the shared type libs (`LibLangFsharp`, `LibLifeCycleTypes`, `Todo.Types`/`Jobs.Types`,
+  `LibLifeCycle`) are `ProjectReference`d directly by the **Fable frontend** (~45 projects hang off
+  `LibLangFsharp`). A net7 project cannot consume a net10 project, so bumping any shared lib **breaks the
+  frontend**; only `Tests` + `LibLifeCycleHost` are backend-only. **The TFM bump must be one repo-wide change
+  (frontend + backend together)** -- net10 *can* consume net7, so the one-way blocker is only
+  net7-consuming-net10. Corrected `sql-server-to-postgres.md` § Tier 0 / S0 and issue #3; **did NOT** touch
+  CLAUDE.md's deferral (it is now vindicated as a real structural constraint, not laziness).
+
+**Learning/gotcha:** "run the sims" on this repo has a five-layer setup tax that must all be satisfied before
+a single test runs -- SDK 10.0.301, net7 + aspnet7 runtimes, `eggshell-signalr` sibling clone, globalization
+invariant, and the two net10 F# compat fixes (SRTP + codec order) -- and even then error-path tests need
+`thenClearAllBadLogs`. None of it was written down; it is now (this entry + troubleshooting runbook). The
+strategic takeaway: the "small backend net10 bump" in the plan does not exist -- the shared-type seam makes it
+all-or-nothing with the frontend.
+
+---
+
 ## 2026-07-16 (session 33 -- doc links switched from root-relative to true relative, so they work on GitHub too)
 
 **Problem:** gallery docs used a root-relative link convention (`./section/page.md`, always resolved
@@ -34,6 +92,8 @@ both places:
 **Distilled:** [Keeping Code and Docs in Sync](../maintaining-docs.md) linking-convention section and
 [Troubleshooting](../runbooks/troubleshooting.md) docs section updated; the old troubleshooting entry
 recommending root-relative links is superseded in place (not deleted, marked historical).
+
+---
 
 ## 2026-07-16 (session 32 -- Goal G membership refined to substrate-flexible; K8s liveness mechanism; SignalR vendoring documented)
 

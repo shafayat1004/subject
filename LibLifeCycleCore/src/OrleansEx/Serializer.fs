@@ -13,7 +13,7 @@ open CodecLib.StjCodecs
 #nowarn "0686"  // Allow exceptionally here to have explicit parameters for codec related functions
 
 let inline private summarizerForType (toCodecFriendly: 'T -> 'CodecFriendly) : (Type * (obj -> string)) =
-    typeof<'T>, (fun (t: obj) -> t :?> 'T |> toCodecFriendly |> ValueSummaryCodecs.toSummaryValue<'CodecFriendly> |> ValueSummaryCodecs.getSummaryString 6)
+    typeof<'T>, (fun (t: obj) -> t :?> 'T |> toCodecFriendly |> ValueSummaryCodecs.toSummaryValue |> ValueSummaryCodecs.getSummaryString 6)
 
 
 type private UntypedSerializer = {
