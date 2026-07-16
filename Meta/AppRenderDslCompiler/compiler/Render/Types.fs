@@ -152,5 +152,5 @@ with
 
         | CodeGenerationError codeGenerationError ->
             match codeGenerationError with
-            | CodeGenerationError.CodeGenerationError message  -> sprintf "Code generation error: %s" message
-            | MissingDefaultLibraryMapping                     -> "Default mapping is missing from componentLibraryAliases"
+            | CodeGenerationError.CodeGenerationError message -> sprintf "Code generation error: %s" message
+            | MissingDefaultLibraryMapping                    -> "Default mapping is missing from componentLibraryAliases"

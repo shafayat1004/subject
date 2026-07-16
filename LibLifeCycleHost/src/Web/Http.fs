@@ -209,12 +209,12 @@ let authorizeTimeSeriesAndContinueWith
 
 let private hardCodedDefaultActRateLimits : list<RateLimit> =
     [
-        { Key = RateLimitKey.Scoped (Set.ofList [RateLimitScope.Value "1m"; RateLimitScope.UserSessionOrIp])
-          Limit = PositiveInteger.ofIntUnsafe 10
+        { Key      = RateLimitKey.Scoped (Set.ofList [RateLimitScope.Value "1m"; RateLimitScope.UserSessionOrIp])
+          Limit    = PositiveInteger.ofIntUnsafe 10
           Duration = TimeSpan.FromMinutes 1. }
 
-        { Key = RateLimitKey.Scoped (Set.ofList [RateLimitScope.Value "1h"; RateLimitScope.UserSessionOrIp])
-          Limit = PositiveInteger.ofIntUnsafe 100
+        { Key      = RateLimitKey.Scoped (Set.ofList [RateLimitScope.Value "1h"; RateLimitScope.UserSessionOrIp])
+          Limit    = PositiveInteger.ofIntUnsafe 100
           Duration = TimeSpan.FromHours 1. }
     ]
 
@@ -222,12 +222,12 @@ let private hardCodedDefaultActRateLimits : list<RateLimit> =
 
 let private hardCodedDefaultConstructRateLimits : list<RateLimit> =
     [
-        { Key = RateLimitKey.Scoped (Set.ofOneItem RateLimitScope.UserSessionOrIp)
-          Limit = PositiveInteger.ofIntUnsafe 5
+        { Key      = RateLimitKey.Scoped (Set.ofOneItem RateLimitScope.UserSessionOrIp)
+          Limit    = PositiveInteger.ofIntUnsafe 5
           Duration = TimeSpan.FromMinutes 1. }
 
-        { Key = RateLimitKey.Scoped (Set.ofOneItem RateLimitScope.UserSessionOrIp)
-          Limit = PositiveInteger.ofIntUnsafe 50
+        { Key      = RateLimitKey.Scoped (Set.ofOneItem RateLimitScope.UserSessionOrIp)
+          Limit    = PositiveInteger.ofIntUnsafe 50
           Duration = TimeSpan.FromHours 1. }
     ]
 
@@ -335,7 +335,7 @@ let withinRateLimits
             lifeCycleAdapter.ReferencedLifeCycle.RateLimitsPredicate rateLimitEvent
             |> Option.defaultWith (fun () ->
                 match rateLimitEvent with
-                | RateLimitEvent.Act _ -> hardCodedDefaultActRateLimits
+                | RateLimitEvent.Act _       -> hardCodedDefaultActRateLimits
                 | RateLimitEvent.Construct _ -> hardCodedDefaultConstructRateLimits)
             // group & sort by duration, and parallelize within one group
             // e.g. if 1 minute limit exhausted then don't increment 1h limit
@@ -348,7 +348,7 @@ let withinRateLimits
                     | RateLimitKey.Scoped scopes ->
                         let caseName =
                             match rateLimitEvent with
-                            | RateLimitEvent.Act action -> unionCaseName action
+                            | RateLimitEvent.Act action     -> unionCaseName action
                             | RateLimitEvent.Construct ctor -> unionCaseName ctor
 
                         $"{lifeCycleAdapter.ReferencedLifeCycle.Name}/{caseName}",

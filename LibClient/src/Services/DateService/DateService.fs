@@ -10,7 +10,7 @@ open LibClient.JsInterop
 
 type UniDateTime =
     private
-    | UnixTime       of int64
+    | UnixTime of int64
     // What is missing is sometimes more important than what is present.
     // We specifically do not want to allow `DateTime`. It is evil, and should
     // never be part of our applications' regular modelling. Instead, if we are

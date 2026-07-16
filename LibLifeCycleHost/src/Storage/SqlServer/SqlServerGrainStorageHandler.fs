@@ -105,11 +105,11 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                  and  'SubjectId            :> SubjectId
                  and  'SubjectId            : comparison>
     (
-        allTransferBlobHandlers: list<ITransferBlobHandler>,
-        lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
-        timeSeriesAdapters: TimeSeriesAdapterCollection,
-        config: SqlServerConnectionStrings,
-        logger: Microsoft.Extensions.Logging.ILogger<SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>,
+        allTransferBlobHandlers:    list<ITransferBlobHandler>,
+        lifeCycleAdapter:           HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
+        timeSeriesAdapters:         TimeSeriesAdapterCollection,
+        config:                     SqlServerConnectionStrings,
+        logger:                     Microsoft.Extensions.Logging.ILogger<SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>,
         remindersTriggeredManually: bool
     ) =
 
@@ -245,10 +245,10 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     return
                       Some {| SubjectState = subjectState
                               NextSideEffectSeqNum = nextSideEffectSeqNum
-                              ETag = (byteArrayToHexString concurrencyToken)
-                              Version = version
+                              ETag                 = (byteArrayToHexString concurrencyToken)
+                              Version              = version
                               PersistedGrainIdHash = persistedGrainIdHash
-                              SkipHistoryOnNextOp = skipHistoryOnNextOp |}
+                              SkipHistoryOnNextOp  = skipHistoryOnNextOp |}
              | false ->
                  return None
         }
@@ -267,7 +267,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     return
                         Some {| PreparedStateBytes = preparedStateBytes
                                 SubjectTransactionId = reader.GetGuid(1) |> SubjectTransactionId
-                                ETag = byteArrayToHexString preparedInitializeConcurrencyToken |}
+                                ETag                 = byteArrayToHexString preparedInitializeConcurrencyToken |}
             | false ->
                 return None
         }
@@ -280,7 +280,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     | true ->
                         let subjectPKeyRef: SubjectPKeyReference = {
                             LifeCycleKey = reader.GetString(0) |> parseLifeCycleKey
-                            SubjectIdStr  = reader.GetString(1)
+                            SubjectIdStr = reader.GetString(1)
                         }
 
                         let subscriptionName = reader.GetString(2)
@@ -404,8 +404,8 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
             sideEffects
             |> Seq.groupBy fst
             |> Seq.map (fun (seqNum, group) -> {
-                    SequenceNumber = seqNum
-                    SideEffects = group |> Seq.map snd |> NonemptyMap.ofSeq |> Option.get
+                    SequenceNumber        = seqNum
+                    SideEffects           = group |> Seq.map snd |> NonemptyMap.ofSeq |> Option.get
                     RehydratedFromStorage = true
                 })
             |> KeyedSet.ofSeq
@@ -589,9 +589,9 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
             (newSideEffects: Option<NonemptyKeyedSet<GrainSideEffectSequenceNumber, SideEffectGroup<'LifeAction, 'OpError>>>)
             : DataTable =
         let dataTable = new DataTable()
-        dataTable.Columns.Add("Id", typeof<Guid>) |> ignore
-        dataTable.Columns.Add("SideEffectTarget", typeof<string>) |> ignore
-        dataTable.Columns.Add("SideEffect", typeof<byte[]>) |> ignore
+        dataTable.Columns.Add("Id", typeof<Guid>)                   |> ignore
+        dataTable.Columns.Add("SideEffectTarget", typeof<string>)   |> ignore
+        dataTable.Columns.Add("SideEffect", typeof<byte[]>)         |> ignore
         dataTable.Columns.Add("SideEffectSeqNumber", typeof<int64>) |> ignore
 
         match newSideEffects with
@@ -650,9 +650,9 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
         let dataTable = new DataTable()
         dataTable.Columns.Add("Key",      typeof<string>).MaxLength <- 80
         dataTable.Columns.Add("ValueStr", typeof<string>).MaxLength <- -1
-        dataTable.Columns.Add("ValueInt", typeof<int64>)   |> ignore
-        dataTable.Columns.Add("Kind",     typeof<int>) |> ignore
-        dataTable.Columns.Add("IsDelete", typeof<bool>) |> ignore
+        dataTable.Columns.Add("ValueInt", typeof<int64>) |> ignore
+        dataTable.Columns.Add("Kind",     typeof<int>)   |> ignore
+        dataTable.Columns.Add("IsDelete", typeof<bool>)  |> ignore
 
         dataTable
 
@@ -663,7 +663,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
         dataTable.Columns.Add("Key",           typeof<string>).MaxLength <- 80
         dataTable.Columns.Add("ValueStr",      typeof<string>).MaxLength <- -1
         dataTable.Columns.Add("ValueInt",      typeof<int64>) |> ignore
-        dataTable.Columns.Add("IsDelete",      typeof<bool>) |> ignore
+        dataTable.Columns.Add("IsDelete",      typeof<bool>)  |> ignore
         dataTable
 
     let getEmptyReEncodeSubjectsListDataTable () =
@@ -700,9 +700,9 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
         let dataTable = new DataTable()
         dataTable.Columns.Add("CallerLifeCycleName", typeof<string>).MaxLength <- 80
         dataTable.Columns.Add("CallerId",            typeof<string>).MaxLength <- 80
-        dataTable.Columns.Add("CallId",              typeof<Guid>)   |> ignore
-        dataTable.Columns.Add("IsInsert",            typeof<bool>)   |> ignore
-        dataTable.Columns.Add("IsDelete",            typeof<bool>)   |> ignore
+        dataTable.Columns.Add("CallId",              typeof<Guid>) |> ignore
+        dataTable.Columns.Add("IsInsert",            typeof<bool>) |> ignore
+        dataTable.Columns.Add("IsDelete",            typeof<bool>) |> ignore
         [
             match dedupData with
             | None -> ()
@@ -723,9 +723,9 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
 
     let getEmptyBlobActionListDataTable () =
         let dataTable = new DataTable()
-        dataTable.Columns.Add("Id",             typeof<Guid>)   |> ignore
-        dataTable.Columns.Add("Revision",       typeof<int>)    |> ignore
-        dataTable.Columns.Add("NewRevision",    typeof<int>)    |> ignore
+        dataTable.Columns.Add("Id",             typeof<Guid>) |> ignore
+        dataTable.Columns.Add("Revision",       typeof<int>)  |> ignore
+        dataTable.Columns.Add("NewRevision",    typeof<int>)  |> ignore
         dataTable.Columns.Add("MimeType",       typeof<string>).MaxLength <- 127
         dataTable.Columns.Add("Data",           typeof<byte[]>) |> ignore
         dataTable.Columns.Add("IsDelete",       typeof<bool>)   |> ignore
@@ -817,11 +817,11 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     let maybeBytes =
                         match fileData with
                         | FileData.Bytes _ | FileData.Base64 _ -> fileData.ToBytes |> Some
-                        | FileData.InternalOnlyTransferBlob _ -> None
+                        | FileData.InternalOnlyTransferBlob _  -> None
 
                     let maybeTransferBlobId =
                         match fileData with
-                        | FileData.Bytes _ | FileData.Base64 _ -> None
+                        | FileData.Bytes _ | FileData.Base64 _                     -> None
                         | FileData.InternalOnlyTransferBlob (_, transferBlobId, _) -> Some transferBlobId
 
                     (blobId.Id, blobId.Revision, (* newRevision *) None, mimeType, maybeBytes, (* IsDelete *) false, (* IsAppend *) false, (* TransferBlobId *) maybeTransferBlobId)
@@ -970,7 +970,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
             let concurrencyToken = SqlParameter("@concurrencyToken", SqlDbType.Binary, 8)
             concurrencyToken.Direction <- ParameterDirection.InputOutput
             command.Parameters.Add concurrencyToken |> ignore
-            concurrencyToken.Value <- DBNull.Value |> box
+            concurrencyToken.Value <- DBNull.Value  |> box
 
             command.Parameters.Add("@preparedTransactionalState", SqlDbType.VarBinary).Value <-
                 (preparedInsertData
@@ -1173,7 +1173,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 let ctor =
                     match (box ctor) with
                     | :? IRedactable as ctor -> ctor.Redact() |> unbox
-                    | _ -> ctor
+                    | _                      -> ctor
                 (ctor :> Constructor)
                 |> toCompressedJsonControlledForSize logger.LogWarning lifeCycleName pKey "operation"
                 |> box
@@ -1233,25 +1233,26 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 return raise (Orleans.Storage.InconsistentStateException("ETag doesn't match", updatedETag, maybeTxnData |> Option.map (fun d -> d.ExpectedETag) |> Option.defaultValue "<MISSING>"))
 
             else if concurrencyToken.Value <> null && concurrencyToken.Value <> (box DBNull.Value) then
-                let res =
-                    { ETag = concurrencyToken.Value :?> byte[] |> byteArrayToHexString
-                      Version = version.Value :?> int64 |> uint64
-                      SkipHistoryOnNextOp =
-                          match historyRetention with
-                          | PersistentHistoryRetention.Unfiltered _ -> false
-                          | PersistentHistoryRetention.NoHistory _ -> true
-                          | PersistentHistoryRetention.FilteredByTelemetryRules _ ->
-                              match lifeCycleAdapter.LifeCycle.ShouldSendTelemetry with
-                              | None -> false
-                              | Some shouldSendTelemetry ->
-                                  shouldSendTelemetry (ShouldSendTelemetryFor.Constructor insertData.ConstructorThatCausedInsert)
-                                  |> not
-                          | PersistentHistoryRetention.FilteredByHistoryRules _ ->
-                              match lifeCycleAdapter.LifeCycle.ShouldRecordHistory with
-                              | None -> false
-                              | Some shouldRecordHistory ->
-                                  shouldRecordHistory (ShouldRecordHistoryFor.Constructor insertData.ConstructorThatCausedInsert)
-                                  |> not }
+                let res = {
+                    ETag    = concurrencyToken.Value :?> byte[] |> byteArrayToHexString
+                    Version = version.Value :?> int64 |> uint64
+                    SkipHistoryOnNextOp =
+                        match historyRetention with
+                        | PersistentHistoryRetention.Unfiltered _ -> false
+                        | PersistentHistoryRetention.NoHistory _ -> true
+                        | PersistentHistoryRetention.FilteredByTelemetryRules _ ->
+                            match lifeCycleAdapter.LifeCycle.ShouldSendTelemetry with
+                            | None -> false
+                            | Some shouldSendTelemetry ->
+                                shouldSendTelemetry (ShouldSendTelemetryFor.Constructor insertData.ConstructorThatCausedInsert)
+                                |> not
+                        | PersistentHistoryRetention.FilteredByHistoryRules _ ->
+                            match lifeCycleAdapter.LifeCycle.ShouldRecordHistory with
+                            | None -> false
+                            | Some shouldRecordHistory ->
+                                shouldRecordHistory (ShouldRecordHistoryFor.Constructor insertData.ConstructorThatCausedInsert)
+                                |> not
+                }
 
                 // Clear transfer blobs
                 do! transferBlobIdsByHandlers
@@ -1367,7 +1368,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                  let action =
                      match (box action) with
                      | :? IRedactable as a -> a.Redact() |> unbox
-                     | _ -> action
+                     | _                   -> action
                  action :> LifeAction
                  |> toCompressedJsonControlledForSize logger.LogWarning lifeCycleName pKey "operation"
                  |> box
@@ -1399,7 +1400,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     box DBNull.Value, box DBNull.Value, Map.empty
                 | Some s ->
                     serializeLifeCycleKey s.Subscriber.LifeCycleKey |> box,
-                    s.Subscriber.SubjectIdStr |> box,
+                    s.Subscriber.SubjectIdStr                       |> box,
                     s.NewSubscriptions
             command.Parameters.Add("@subscriberLifeCycleName", SqlDbType.NVarChar).Value <- subscriberLifeCycleNameValue
             command.Parameters.Add("@subscriberId", SqlDbType.NVarChar).Value <- subscriberIdValue
@@ -1445,7 +1446,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     |> Task.Ignore
 
                 return
-                    { NewETag = concurrencyToken.Value :?> byte[] |> byteArrayToHexString
+                    { NewETag    = concurrencyToken.Value :?> byte[] |> byteArrayToHexString
                       NewVersion = version.Value :?> int64 |> uint64
                       SkipHistoryOnNextOp =
                           match historyRetention with
@@ -1487,8 +1488,8 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
             match! updateOrCommitPreparedUpdateSubject pKey updateData (Choice2Of2 subjectTransactionId) with
             | Ok res ->
                 return
-                    { NewETag = res.NewETag
-                      NewVersion = res.NewVersion
+                    { NewETag             = res.NewETag
+                      NewVersion          = res.NewVersion
                       SkipHistoryOnNextOp = res.SkipHistoryOnNextOp }
             | Error err ->
                 return failwithf "domain error is not expected when committing prepared update: %A, %A" pKey err
@@ -2033,7 +2034,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
             | PersistentHistoryRetention.NoHistory _ -> None
             |> Option.map (function
                 | PersistentHistoryExpiration.AfterSubjectDeletion keepHistoryFor -> (now - keepHistoryFor, 1)
-                | PersistentHistoryExpiration.AfterSubjectChange keepHistoryFor -> (now - keepHistoryFor, 2))
+                | PersistentHistoryExpiration.AfterSubjectChange keepHistoryFor   -> (now - keepHistoryFor, 2))
 
         match maybeExpireAfterAndMode with
         | None ->
@@ -2069,7 +2070,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     let mappedSeverity =
                         match severity with
                         | SideEffectFailureSeverity.Warning -> 1
-                        | SideEffectFailureSeverity.Error -> 2
+                        | SideEffectFailureSeverity.Error   -> 2
                     (false, Some (err, mappedSeverity))
 
             if isSuccess
@@ -2151,7 +2152,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
 
                     let (whereCondition, param) =
                         match maybeLastSubjectIdRebuilt with
-                        | None -> ("", None)
+                        | None                -> ("", None)
                         | Some lastRebuiltKey -> ("WHERE Id > @id", (Some (SqlParameter("@id", lastRebuiltKey))))
 
                     command.CommandText <-
@@ -2264,7 +2265,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         |> Seq.iter (fun (idStr, concurrencyToken, ((PromotedKey promotedKey, PromotedValue promotedValue), (BaseKey baseKey, baseValue))) ->
                             let valueInt, valueStr, kindCode =
                                 match baseValue with
-                                | Choice1Of2 intVal -> box intVal, null, 1
+                                | Choice1Of2 intVal             -> box intVal, null, 1
                                 | Choice2Of2 (BaseValue strVal) -> null, box strVal, 2
                             rebuildDataTable.Rows.Add(promotedKey, promotedValue, idStr, concurrencyToken, baseKey, valueStr, valueInt, kindCode, (* isDelete *) false) |> ignore)
 
@@ -2315,7 +2316,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
 
                 let whereCondition, param =
                     match maybeLastSubjectIdReEncoded with
-                    | None -> ("", None)
+                    | None               -> ("", None)
                     | Some lastRebuiltId -> ("WHERE Id > @id", (Some (SqlParameter("@id", lastRebuiltId))))
 
                 command.CommandText <-
@@ -2743,14 +2744,14 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
             do! reader.ReadAsync() |> Task.Ignore
             let oldestAgeOfNonFailed =
                 match reader.IsDBNull 0 with
-                | true -> TimeSpan.Zero
+                | true  -> TimeSpan.Zero
                 | false -> reader.GetInt64 0 |> float |> TimeSpan.FromMilliseconds |> max TimeSpan.Zero
 
             return Some {
                 OldestAgeOfNonFailed = oldestAgeOfNonFailed
-                QueueLength = reader.GetInt32 1
-                FailureWarningCount = reader.GetInt32 2
-                FailureErrorCount = reader.GetInt32 3
+                QueueLength          = reader.GetInt32 1
+                FailureWarningCount  = reader.GetInt32 2
+                FailureErrorCount    = reader.GetInt32 3
             }
         }
         |> SqlServerTransientErrorDetection.wrapTransientExceptions
@@ -2778,7 +2779,7 @@ type SqlServerGrainStorageHandler<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 let expiredCount = reader.GetInt32 1
 
                 return Some {
-                    OldestAge = oldestAge
+                    OldestAge    = oldestAge
                     ExpiredCount = expiredCount
                 }
             | false ->

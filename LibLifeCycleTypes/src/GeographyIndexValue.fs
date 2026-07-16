@@ -21,7 +21,7 @@ with
 
     static member OfPointsUnsafe (points: seq<GeoLocation>) =
         match GeographyRing.OfPoints points with
-        | Ok ring -> ring
+        | Ok ring   -> ring
         | Error err -> failwith err
 
 type GeographyPolygon = {
@@ -30,7 +30,7 @@ type GeographyPolygon = {
     // in a counterclockwise direction, then it will be seen from the "top".
     // Any interior linear rings should be defined in opposite fashion compared to the exterior ring, in this case, clockwise
     ExteriorCounterclockwiseRing: GeographyRing
-    InteriorClockwiseRings: list<GeographyRing>
+    InteriorClockwiseRings:       list<GeographyRing>
 }
 
 type GeographyMultiPolygon = private { Polygons: NonemptyList<GeographyPolygon> }
@@ -48,12 +48,12 @@ with
     static member OfPolygonsUnsafe (polygons: seq<GeographyPolygon>) =
         match GeographyMultiPolygon.OfPolygons polygons with
         | Ok multiPolygon -> multiPolygon
-        | Error err -> failwith err
+        | Error err       -> failwith err
 
 type GeographyIndexValue =
-| Point of GeoLocation
-| MultiPoint of Point1: GeoLocation * NextPoints: NonemptyList<GeoLocation>
-| Polygon of GeographyPolygon
+| Point        of GeoLocation
+| MultiPoint   of Point1: GeoLocation * NextPoints: NonemptyList<GeoLocation>
+| Polygon      of GeographyPolygon
 | MultiPolygon of GeographyMultiPolygon
 // | ... add more when required
 with

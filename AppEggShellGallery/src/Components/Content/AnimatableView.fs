@@ -5,9 +5,9 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 open AppEggShellGallery.LocalImages
 
 [<RequireQualifiedAccess>]
@@ -52,14 +52,14 @@ module private Styles =
 type private Helpers =
     [<Component>]
     static member private Image() : ReactElement =
-        RX.Image(
+        Rn.Image(
             localImage "/images/wlop2.jpg",
             styles = [| Styles.image |]
         )
 
     [<Component>]
     static member private ScaleAnimationTarget(animatableValue: AnimatableValue) : ReactElement =
-        RX.AnimatableView(
+        Rn.AnimatableView(
             children =
                 elements {
                     Helpers.Image()
@@ -69,7 +69,7 @@ type private Helpers =
 
     [<Component>]
     static member private ColorAnimationTarget(interpolatedValue: InterpolatedValue) : ReactElement =
-        RX.AnimatableView(
+        Rn.AnimatableView(
             children =
                 elements {
                     Helpers.Image()
@@ -125,7 +125,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         children =
                             elements {
                                 Helpers.Image()
@@ -159,7 +159,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         children =
                             elements {
                                 Helpers.Image()
@@ -278,22 +278,22 @@ type private Helpers =
     static member private EaseAnimationTarget(easing: Easing, animatableValue: AnimatableValue) : ReactElement =
         let easingDisplayString (easing: Easing): string =
             match easing with
-            | Easing.Linear -> "Linear"
-            | Easing.Out -> "Out"
-            | Easing.In -> "In"
-            | Easing.InOut -> "In/Out"
-            | Easing.InBack -> "In/Back"
-            | Easing.OutBack -> "Out/Back"
-            | Easing.InOutBack -> "In/Out/Back"
-            | Easing.StepStart -> "Step Start"
-            | Easing.StepEnd -> "Step End"
-            | Easing.Steps _ -> "Steps"
+            | Easing.Linear        -> "Linear"
+            | Easing.Out           -> "Out"
+            | Easing.In            -> "In"
+            | Easing.InOut         -> "In/Out"
+            | Easing.InBack        -> "In/Back"
+            | Easing.OutBack       -> "Out/Back"
+            | Easing.InOutBack     -> "In/Out/Back"
+            | Easing.StepStart     -> "Step Start"
+            | Easing.StepEnd       -> "Step End"
+            | Easing.Steps _       -> "Steps"
             | Easing.CubicBezier _ -> "Cubic Bezier"
 
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableView(
+                    Rn.AnimatableView(
                         children =
                             elements {
                                 Helpers.Image()
@@ -385,8 +385,37 @@ type Ui.Content with
     [<Component>]
     static member AnimatableView () : ReactElement =
         Ui.ComponentContent (
-            displayName = "AnimatableView",
+            displayName  = "AnimatableView",
             isResponsive = false,
+            props        = ComponentContent.Manual (
+                Ui.ComponentProps (data = {
+                    Fields = (Choice2Of2 [
+                        {
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
+                            Description = None
+                        }
+                        {
+                            Name        = "styles"
+                            Type        = "array<AnimatableViewStyles>"
+                            Default     = None
+                            Description = Some "View styles with animated properties (opacity, transform, backgroundColor, etc.) via makeAnimatableViewStyles"
+                        }
+                    ])
+                    MaybeScrapeErrors = None
+                })
+            ),
+            notes = LC.Text """Rn.AnimatableView is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing/Sequence/Parallel, InterpolationConfig, Easing) to drive animated view styles.""",
+            a11y =
+                Ui.A11yPanel(
+                    componentName  = "Rn.AnimatableView",
+                    role           = "none (animated container)",
+                    namePattern    = "Child content provides accessible names",
+                    stateNotes     = "Animated opacity/transform; honor reduce-motion where wired",
+                    scalesWithFont = true,
+                    contrastNotes  = "Child content contrast unchanged by animation wrapper"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
@@ -395,37 +424,110 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Basic Timing",
                                     visuals = Helpers.BasicTiming(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+let animatedValue = Hooks.useRef (AnimatedValue.Create 1.0)
+
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
+    styles = [| makeAnimatableViewStyles {
+        animatedTransform [ [ animatedScale (AnimatableValue.Value animatedValue.current) ] ]
+    } |]
+)
+
+Animation.Timing(animatedValue.current, 0.1, TimeSpan.FromSeconds 1).Start(...)
+""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Sequence",
                                     visuals = Helpers.Sequence(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+Animation.Sequence(
+    Animation.Timing(animatedOpacityValue.current, targetOpacity, TimeSpan.FromSeconds 2.),
+    Animation.Timing(animatedScaleValue.current, targetScale, TimeSpan.FromSeconds 0.75)
+).Start(...)
+
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
+    styles = [| makeAnimatableViewStyles {
+        animatedOpacity (AnimatableValue.Value animatedOpacityValue.current)
+        animatedTransform [ [ animatedScale (AnimatableValue.Value animatedScaleValue.current) ] ]
+    } |]
+)
+""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Parallel",
                                     visuals = Helpers.Parallel(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+Animation.Parallel(
+    Animation.Timing(animatedOpacityValue.current, targetOpacity, TimeSpan.FromSeconds 2.),
+    Animation.Timing(animatedScaleValue.current, targetScale, TimeSpan.FromSeconds 0.75)
+).Start(...)
+
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
+    styles = [| makeAnimatableViewStyles {
+        animatedOpacity (AnimatableValue.Value animatedOpacityValue.current)
+        animatedTransform [ [ animatedScale (AnimatableValue.Value animatedScaleValue.current) ] ]
+    } |]
+)
+""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Numerical Interpolation",
                                     visuals = Helpers.NumericalInterpolation(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+let interpolationConfig = InterpolationConfig.Create [ (0.2, 0.5); (0.5, 2.0); (1.0, 1.2) ]
+let interpolatedValue = animatedValue.current.Interpolate interpolationConfig
+
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
+    styles = [| makeAnimatableViewStyles {
+        animatedTransform [ [ animatedScale (AnimatableValue.Interpolated interpolatedValue) ] ]
+    } |]
+)
+
+// Multi-stop interpolation uses Animation.Sequence on web
+Animation.Sequence(
+    Animation.Timing(animatedValue.current, 0.5, TimeSpan.FromSeconds 0.5),
+    Animation.Timing(animatedValue.current, target, TimeSpan.FromSeconds 1)
+).Start(...)
+""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Color Interpolation",
                                     visuals = Helpers.ColorInterpolation(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+let interpolationConfig = InterpolationConfig.Create [
+    (0.1, Color.DevBlue); (0.5, Color.DevGreen); (1.0, Color.DevRed)
+]
+let interpolatedValue = animatedValue.current.Interpolate interpolationConfig
+
+Rn.AnimatableView(
+    children = elements { Rn.Image(imageUrl, styles = [| ... |]) },
+    styles = [| makeAnimatableViewStyles {
+        animatedBackgroundColor interpolatedValue
+    } |]
+)
+""")
                                 )
 
                                 Ui.ComponentSample(
                                     heading = "Easing",
                                     visuals = Helpers.Easing(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+let easings = [ Easing.Linear; Easing.Out; Easing.InOut; Easing.CubicBezier ((0.5, 0.2), (0.75, 0.95)) ]
+
+easings
+|> List.map (fun easing ->
+    Animation.Timing(animatedValue, targetOpacity, TimeSpan.FromSeconds 1, easing = easing))
+|> Animation.Parallel
+|> fun animation -> animation.Start(...)
+""")
                                 )
                             }
                         )

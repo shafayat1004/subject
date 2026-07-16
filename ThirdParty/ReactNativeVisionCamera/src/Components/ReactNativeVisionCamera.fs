@@ -3,7 +3,7 @@ module ThirdParty.ReactNativeVisionCamera.ReactNativeVisionCamera
 open Fable.React
 open Fable.Core
 open Fable.Core.JsInterop
-open ReactXP
+open Rn
 open LibLifeCycleTypes.File
 
 
@@ -15,7 +15,7 @@ with
         match this with
         | Front -> "front"
         | Back  -> "back"
-        
+
 type CameraPermissionStatus =
 | Granted
 | Denied
@@ -24,7 +24,7 @@ with
         match this with
         | Granted -> "granted"
         | Denied  -> "denied"
-    
+
     static member ofString (status: string): CameraPermissionStatus =
         match status with
         | "granted" -> Granted
@@ -54,7 +54,7 @@ let requestCameraPermission (): Async<CameraPermissionStatus> =
 
 let getCameraDevice (mode: CameraMode) : obj =
     useCameraDevice mode.toString
-    
+
 let getAbsoluteFillStyleSheet () : obj =
     StyleSheet?absoluteFill
 
@@ -74,9 +74,9 @@ let capturePhoto (cameraRef: obj) (callback: File -> unit) (onError: CameraError
                 else
                     let filePath: string =
                         match Runtime.platform with
-                        | Native NativePlatform.IOS -> (string photoFile?path).Replace ("file://", "")
+                        | Native NativePlatform.IOS     -> (string photoFile?path).Replace ("file://", "")
                         | Native NativePlatform.Android -> photoFile?path
-                        | _ -> failwith "Unsupported platform"
+                        | _                             -> failwith "Unsupported platform"
 
                     match NonemptyString.ofString filePath with
                     | None ->
@@ -102,7 +102,7 @@ let qrCodeScanner (callback: string -> unit) : ReactElement =
     let codeScanner: obj =
         useCodeScanner
             {|
-                codeTypes     = [| "qr" |]
+                codeTypes = [| "qr" |]
                 onCodeScanned =
                     fun (codes : obj) ->
                         let codesArray = codes :?> obj[]

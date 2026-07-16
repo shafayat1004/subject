@@ -12,11 +12,11 @@ with
             id
 
 type RequestRateCounter = {
-    Id: RequestRateCounterId
+    Id:        RequestRateCounterId
     CreatedOn: DateTimeOffset
-    Expiry: TimeSpan
-    Limit: PositiveInteger
-    Counter: uint32
+    Expiry:    TimeSpan
+    Limit:     PositiveInteger
+    Counter:   uint32
 } with
     interface Subject<RequestRateCounterId> with
         member this.SubjectId = this.Id
@@ -90,11 +90,11 @@ type RequestRateCounter with
             and! limit = reqWith codecFor<_, PositiveInteger> "Limit" (fun x -> Some x.Limit)
             and! counter = reqWith Codecs.uint32 "Counter" (fun x -> Some x.Counter)
             return {
-                Id = id
+                Id        = id
                 CreatedOn = createdOn
-                Expiry = expiry
-                Limit = limit
-                Counter = counter
+                Expiry    = expiry
+                Limit     = limit
+                Counter   = counter
              }
         }
 

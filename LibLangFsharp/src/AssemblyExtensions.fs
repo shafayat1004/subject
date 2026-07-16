@@ -8,9 +8,9 @@ open System.Runtime.CompilerServices
 [<Extension>]
 type AssemblyExtensions =
     [<Extension>]
-    static member LoadResource (this: Assembly, resourcePath: string) : byte[] =
+    static member LoadResource(this: Assembly, resourcePath: string) : byte[] =
         use resourceStream = this.GetManifestResourceStream resourcePath
-        use memoryStream   = new System.IO.MemoryStream()
+        use memoryStream = new System.IO.MemoryStream()
         resourceStream.CopyTo memoryStream
         memoryStream.ToArray()
 

@@ -3,7 +3,7 @@ module LibClient.Components.Legacy_TopNav_IconButton
 
 open Fable.React
 open LibClient
-open ReactXP.Styles
+open Rn.Styles
 
 module LC =
     module Legacy =
@@ -11,7 +11,7 @@ module LC =
             module IconButtonTypes =
                 type Theme = {
                     IconColor: Color
-                    IconSize: int
+                    IconSize:  int
                 }
 
                 type State = LibClient.Input.ButtonLowLevelState
@@ -28,25 +28,27 @@ module private Styles =
             Actionable =
                 { theme.Actionable with
                     IconColor = theTheme.IconColor
-                    IconSize = theTheme.IconSize
+                    IconSize  = theTheme.IconSize
                 }
         }
 
 type LibClient.Components.Constructors.LC.Legacy.TopNav with
     [<Component>]
     static member IconButton(
-            state: State,
-            icon: LibClient.Icons.IconConstructor,
-            ?theme: Theme -> Theme,
+            state:   State,
+            icon:    LibClient.Icons.IconConstructor,
+            ?label:  string,
+            ?theme:  Theme -> Theme,
             ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?key:    string) : ReactElement =
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
 
         LC.IconButton(
             styles = (styles |> Option.defaultValue [||]),
-            icon = icon,
-            state = ButtonHighLevelState.LowLevel state,
-            theme = Styles.iconButtonTheme theTheme
+            icon   = icon,
+            ?label = label,
+            state  = ButtonHighLevelState.LowLevel state,
+            theme  = Styles.iconButtonTheme theTheme
         )

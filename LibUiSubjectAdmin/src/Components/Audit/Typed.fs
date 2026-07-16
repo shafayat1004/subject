@@ -5,6 +5,7 @@ open Fable.React
 open System
 open LibClient
 open LibUiSubjectAdmin.Components
+open LibUiSubjectAdmin.Components.Audit.Generic
 open LibClient.Services.HttpService.ThothEncodedHttpService
 
 type EndpointParams = {
@@ -24,12 +25,12 @@ let inline makeEndpoint(): ApiEndpoint<EndpointParams, unit, List<SubjectAuditDa
 type UiSubjectAdmin.AuditLog with
     [<Component>]
     static member Typed<'Action, 'Constructor when 'Action :> LifeAction and 'Constructor :> Constructor> (
-        endpoint: ApiEndpoint<EndpointParams, unit, List<SubjectAuditData<'Action, 'Constructor>>>,
-        baseUrl: string,
-        auditSubjectId: LibUiSubjectAdmin.Components.Audit.Types.AuditSubjectId,
+        endpoint:         ApiEndpoint<EndpointParams, unit, List<SubjectAuditData<'Action, 'Constructor>>>,
+        baseUrl:          string,
+        auditSubjectId:   LibUiSubjectAdmin.Components.Audit.Types.AuditSubjectId,
         headersAndFields: ReactElement * (SubjectAuditData<'Action, 'Constructor> -> ReactElement),
-        ?handheldRow: (SubjectAuditData<'Action, 'Constructor> -> ReactElement),
-        ?filter: (SubjectAuditData<'Action, 'Constructor> -> bool)
+        ?handheldRow:     (SubjectAuditData<'Action, 'Constructor> -> ReactElement),
+        ?filter:          (SubjectAuditData<'Action, 'Constructor> -> bool)
     ) : ReactElement =
         UiSubjectAdmin.Audit.Generic (
             endpoint             = endpoint,
@@ -47,4 +48,3 @@ type UiSubjectAdmin.AuditLog with
             ?handheldRow     = handheldRow,
             ?filter          = filter
         )
-

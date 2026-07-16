@@ -60,7 +60,7 @@ let private generateForTextNodeValue (rawValue: string) : List<FsharpCode> =
     | [lonelyString] ->
         match NonemptyString.ofString lonelyString with
         | Some nonemptyLonelyString -> [ Line (generateForStringExpressionValue nonemptyLonelyString).Value ]
-        | None -> []
+        | None                      -> []
     | [""; lonelyExpression; ""] -> [ Line lonelyExpression ]
     | _ ->
         parts
@@ -540,7 +540,7 @@ and generateCode (libAlias: string) (withStyles: bool) (node: ReactTemplateNode)
                                                 )
                                                 |> String.concat "; "
                                                 |> fun items -> $"[|{items}|]"
-                                            if nameSpace = "ReactXP.Components" then
+                                            if nameSpace = "Rn.Components" then
                                                 (
                                                     AttributeName (NonemptyString.ofLiteral "style"),
                                                     Line value

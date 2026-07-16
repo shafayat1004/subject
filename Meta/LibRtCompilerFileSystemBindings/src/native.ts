@@ -1,16 +1,26 @@
 import * as path from "path";
 import * as chokidar from "chokidar";
 import * as fs from "fs";
+import * as glob from "glob-promise";
 const fsPromises = fs.promises;
 
 import { childProcessPlus } from "../../../LibNode/dist";
 import { getRepoRootProject, AppProject, Project } from "../../LibEggshell/dist";
 import runFable from "../../LibFablePlus";
-import { copyFile } from "eggshell-lib-scaffolding";
-import * as gulp from "gulp";
 
-export const nativeAppImageAssetGlobbingPath = "public-dev/**/*.{png,jpg,gif,jpeg,svg}"
+// Copy from `images/` directly — `public-dev/images` is a symlink and gulp copy corrupts binaries.
+export const nativeAppImageAssetGlobbingPath = "images/**/*.{png,jpg,gif,jpeg,svg}"
 export const nativeAppBuildAssetPath         = (project: AppProject) => `${project.buildRootPath}/native/assets/`
+
+const nativeAppImagesDestPath = (project: AppProject) =>
+    path.join(nativeAppBuildAssetPath(project), "public-dev/images")
+
+async function copyImageFile(project: AppProject, relativePath: string) : Promise<void> {
+    const src  = path.join(project.rootPath, relativePath)
+    const dest = path.join(nativeAppImagesDestPath(project), path.relative("images", relativePath))
+    await fsPromises.mkdir(path.dirname(dest), { recursive: true })
+    await fsPromises.copyFile(src, dest)
+}
 
 export function transpileToJsForNative(project: AppProject, watchMode: boolean = false, onMessageCallback?: (message: string)=>void) : Promise<void> {
     return runFable(project, "native", watchMode ? "dev" : "package", false, false, onMessageCallback);
@@ -46,11 +56,9 @@ export async function runReactNativeCli(project: Project, isResetCacheRequested:
 }
 
 export async function copyStaticFiles(project: AppProject): Promise<void> {
-    const srcFilename  = nativeAppImageAssetGlobbingPath
-    const destFilename = nativeAppBuildAssetPath(project);
-    console.log("srcFilename", srcFilename)
-    console.log("destFilename", destFilename)
-    return copyFile(gulp, srcFilename, destFilename, project.rootPath)()
+    const files = await glob(nativeAppImageAssetGlobbingPath, { cwd: project.rootPath, nodir: true })
+    console.log(`Copying ${files.length} native image assets from images/ -> .build/native/assets/public-dev/images/`)
+    await Promise.all(files.map((relativePath: string) => copyImageFile(project, relativePath)))
 }
 
 export function startWatchNativeAssets(project: AppProject) : Promise<void> {
@@ -68,24 +76,20 @@ export function startWatchNativeAssets(project: AppProject) : Promise<void> {
 
         const nativeAppAssetWatcher = chokidar.watch(srcFileGlobbing, chokidarOptions);
 
-        const normalizeChokidarSrouceFilename = (chokidarFilename: string) : string => {
-            return path.join(project.rootPath, chokidarFilename);
-        };
-
         const normalizeChokidarDestinationFilename = (chokidarFilename: string) : string => {
-            return path.join(destPath, chokidarFilename);
+            return path.join(destPath, "public-dev/images", path.relative("images", chokidarFilename));
         };
 
         nativeAppAssetWatcher.on('change', async (chokidarFilename: string) => {
             logOnError(
-                copyFile(gulp, normalizeChokidarSrouceFilename(chokidarFilename), normalizeChokidarDestinationFilename(chokidarFilename)),
+                () => copyImageFile(project, chokidarFilename),
                 `File ${chokidarFilename} was changed`
             )
         });
 
         nativeAppAssetWatcher.on('add', async (chokidarFilename: string) => {
             logOnError(
-                copyFile(gulp, normalizeChokidarSrouceFilename(chokidarFilename), normalizeChokidarDestinationFilename(chokidarFilename)),
+                () => copyImageFile(project, chokidarFilename),
                 `File ${chokidarFilename} was added`
             )
         });

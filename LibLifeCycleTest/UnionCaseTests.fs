@@ -4,40 +4,40 @@ open Xunit
 open FsUnit.Xunit
 
 type SomeRecord = {
-    Whatever: string
+    Whatever:      string
     DoesNotMatter: Option<int>
-    WhoCares: List<Option<string>>
+    WhoCares:      List<Option<string>>
 }
 
 let someRecordInstance = {
-    Whatever = "whatever"
+    Whatever      = "whatever"
     DoesNotMatter = Some 42
-    WhoCares = [None; Some "foo"]
+    WhoCares      = [None; Some "foo"]
 }
 
 type SomePrivateRecord = private {
-    Whatever: string
+    Whatever:      string
     DoesNotMatter: Option<int>
-    WhoCares: List<Option<string>>
+    WhoCares:      List<Option<string>>
 }
 
 module SomePrivateRecord =
     let someRecordInstance = {
-        Whatever = "whatever"
+        Whatever      = "whatever"
         DoesNotMatter = Some 42
-        WhoCares = [None; Some "foo"]
+        WhoCares      = [None; Some "foo"]
     }
 
 type SomeUnion =
 | NoFields
 | SingleField of int
-| MultiField of int * string
+| MultiField  of int * string
 
 type SomePrivateUnion =
     private
     | NoFields
     | SingleField of int
-    | MultiField of int * string
+    | MultiField  of int * string
 
 module SomePrivateUnion =
     let noFields = SomePrivateUnion.NoFields

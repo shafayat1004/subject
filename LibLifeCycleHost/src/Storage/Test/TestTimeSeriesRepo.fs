@@ -15,7 +15,7 @@ type TestTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOf
     and  'OpError :> OpError
     and  'TimeSeriesIndex :> TimeSeriesIndex<'TimeSeriesIndex>>
     (
-        _timeSeries: ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>,
+        _timeSeries:    ITimeSeries<'TimeSeriesDataPoint, 'TimeSeriesId, 'UnitOfMeasure, 'OpError, 'TimeSeriesIndex>,
         grainPartition: GrainPartition
    ) as this =
 
@@ -27,7 +27,7 @@ type TestTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOf
             partitionGuid,
             fun _ ->
                 {
-                    LockObj = obj()
+                    LockObj           = obj()
                     TimeSeriesByIdStr = Map.empty
                 })
 
@@ -158,7 +158,7 @@ type TestTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOf
                 let! points = (this :> ITimeSeriesRepo<_, _, _, _>).DataPoints interval
                 return
                     match aggregate with
-                    | LastPoint -> points |> List.tryLast
+                    | LastPoint  -> points |> List.tryLast
                     | FirstPoint -> points |> List.tryHead
             }
 
@@ -180,7 +180,7 @@ type TestTimeSeriesRepo<'TimeSeriesDataPoint, 'TimeSeriesId, [<Measure>] 'UnitOf
                     |> Option.map (fun idx ->
                         idx,
                         match aggregate with
-                        | LastPoint -> sortedPoints |> Seq.last
+                        | LastPoint  -> sortedPoints |> Seq.last
                         | FirstPoint -> sortedPoints |> Seq.head
                         |> snd))
                 |> List.ofSeq

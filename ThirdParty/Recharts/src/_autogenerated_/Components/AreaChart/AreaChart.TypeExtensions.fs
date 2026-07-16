@@ -3,6 +3,8 @@ namespace ThirdParty.Recharts.Components
 open LibClient
 open LibClient.JsInterop
 open Fable.Core
+open Fable.React
+open Fable.React.Props
 open ThirdParty.Recharts.Components.Shared
 open ThirdParty.Recharts.Components.AreaChart
 open Fable.Core.JsInterop
@@ -13,7 +15,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module AreaChartTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member AreaChart(?children: ReactChildrenProp, ?layout: Layout, ?width: int, ?height: int, ?data: obj array, ?margin: EdgeInsets, ?stackOffset: StackOffset, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member AreaChart(?children: ReactChildrenProp, ?layout: Layout, ?width: int, ?height: int, ?data: obj array, ?margin: EdgeInsets, ?stackOffset: StackOffset, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Layout = layout |> Option.orElse (JsUndefined)

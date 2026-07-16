@@ -1,110 +1,106 @@
-﻿[<AutoOpen>]
+[<AutoOpen>]
 module LibClient.Components.Scrim
 
-open System
-
+open Fable.Core.JsInterop
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
-open ReactXP.Styles
-open ReactXP.Styles.Animation
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
+    let root =
+        makeViewStyles {
+            Position.Relative
+        }
+
     let gestureView =
         makeViewStyles {
             Position.Absolute
             trbl 0 0 0 0
         }
 
-    let scrimInner (value: AnimatableValue) =
-        makeAnimatableViewStyles {
+    // Opacity is driven by a Reanimated animated style (see below), never set here.
+    let scrimInner =
+        makeViewStyles {
             Position.Absolute
             top 0
             right 0
             bottom 0
             left 0
             backgroundColor (Color.Rgba(0, 0, 0, 0.5))
-            animatedOpacity value
         }
-
-[<RequireQualifiedAccess>]
-module private Helpers =
-    let animate
-            (maybeOngoingAnimationHook: IRefValue<Option<Animation>>)
-            (opacityAnimatedValue: AnimatedValue)
-            (toOpacity: float)
-            (onComplete: unit -> unit)
-            : unit =
-        maybeOngoingAnimationHook.current |> Option.sideEffect (fun ongoingAnimation ->
-            // it's important to set to None before calling stop() — there are instances
-            // where a hide/show in quick succession lets both animations succeed when
-            // stop is called before maybeOngoingAnimation is reset (see completon
-            // callback implementation below).
-            maybeOngoingAnimationHook.current <- None
-            ongoingAnimation.Stop()
-        )
-
-        let animation = Animation.Timing(opacityAnimatedValue, toOpacity, TimeSpan.FromMilliseconds(500))
-        maybeOngoingAnimationHook.current <- Some animation
-        animation.Start (fun () ->
-            if maybeOngoingAnimationHook.current = Some animation then
-                maybeOngoingAnimationHook.current <- None
-                onComplete ()
-        )
 
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Scrim(
-            isVisible: bool,
-            ?onPress: ReactEvent.Action -> unit,
-            ?onPanVertical: ReactXP.Components.GestureView.PanGestureState -> unit,
-            ?onPanHorizontal: ReactXP.Components.GestureView.PanGestureState -> unit,
-            ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            isVisible:        bool,
+            ?onPress:         ReactEvent.Action -> unit,
+            ?onPanVertical:   Rn.Components.GestureView.PanGestureState -> unit,
+            ?onPanHorizontal: Rn.Components.GestureView.PanGestureState -> unit,
+            ?testId:          string,
+            ?styles:          array<ViewStyles>,
+            ?key:             string) : ReactElement =
         key |> ignore
 
         let isMountedHook = Hooks.useState isVisible
-        let opacityAnimatableValue = Hooks.useRef (AnimatedValue.Create(if isVisible then 1.0 else 0.0))
-        let maybeOngoingAnimationHook = Hooks.useRef<Option<Animation>> None
+        let opacity = Reanimated.useSharedValue (if isVisible then 1.0 else 0.0)
+        let animatedStyle = Reanimated.useAnimatedOpacity opacity
+        // A token guards against a stale fade-out unmounting the overlay after a quick re-show.
+        let animTokenRef = Hooks.useRef 0
 
         Hooks.useEffect(
             (fun () ->
+                animTokenRef.current <- animTokenRef.current + 1
+                let token = animTokenRef.current
                 if isVisible then
                     isMountedHook.update true
-
-                    // using runLater here is important, otherwise the animation gets sporadically botched
+                    // runLater avoids the sporadically-botched animation seen without the deferral.
                     LibClient.JsInterop.runLater (System.TimeSpan.FromMilliseconds 10.) (fun () ->
-                        Helpers.animate maybeOngoingAnimationHook opacityAnimatableValue.current 1.0 NoopFn
-                    )
+                        if animTokenRef.current = token then
+                            opacity.AnimateTiming(1.0, durationMs = 500.0))
                 else
-                    // using runLater here is important, otherwise the animation gets sporadically botched
                     LibClient.JsInterop.runLater (System.TimeSpan.FromMilliseconds 10.) (fun () ->
-                        Helpers.animate maybeOngoingAnimationHook opacityAnimatableValue.current 0.0 (fun () ->
-                            isMountedHook.update false
-                        )
-                    )
+                        if animTokenRef.current = token then
+                            opacity.AnimateTiming(
+                                0.0,
+                                durationMs = 500.0,
+                                onComplete =
+                                    (fun () ->
+                                        if animTokenRef.current = token then
+                                            isMountedHook.update false)))
             ),
             [| isVisible |]
         )
 
         if isMountedHook.current then
-            RX.View(
-                styles = (styles |> Option.defaultValue [||]),
+            Rn.View(
+                styles =
+                    [|
+                        Styles.root
+                        yield! (styles |> Option.defaultValue [||])
+                    |],
                 children =
                     elements {
-                        RX.AnimatableView (
-                            styles = [| Styles.scrimInner (AnimatableValue.Value opacityAnimatableValue.current) |],
-                            children = [||]
+                        Rn.ReanimatedView(
+                            styles        = [| Styles.scrimInner |],
+                            animatedStyle = animatedStyle,
+                            children      = [||]
                         )
 
                         let child =
                             match onPress with
                             | Some onPress ->
-                                LC.TapCapture(
-                                    onPress = onPress
+                                LC.Pressable(
+                                    onPress       = onPress,
+                                    label         = "Dismiss",
+                                    role          = AccessibilityRole.Button,
+                                    testId        = (testId |> Option.defaultValue "scrim-dismiss"),
+                                    overlay       = true,
+                                    componentName = "LC.Scrim"
                                 )
                             | None ->
                                 noElement
@@ -112,10 +108,10 @@ type LibClient.Components.Constructors.LC with
                         let isPanEnabled = onPanHorizontal.IsSome || onPanVertical.IsSome
 
                         if isPanEnabled then
-                            RX.GestureView(
-                                styles = [| Styles.gestureView |],
+                            Rn.GestureView(
+                                styles           = [| Styles.gestureView |],
                                 ?onPanHorizontal = onPanHorizontal,
-                                ?onPanVertical = onPanVertical,
+                                ?onPanVertical   = onPanVertical,
                                 children =
                                     elements {
                                         child

@@ -1,0 +1,14 @@
+{
+  "Storage.SqlServer": {
+    "ConnectionString": "Server=localhost,1433;Database=Todo_Dev;User ID=sa;Password=EggShell_Dev_123!;Trusted_Connection=False;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  },
+  "Orleans.Clustering": {
+    "MembershipConnectionString": "Server=localhost,1433;Database=Todo_Dev;User ID=sa;Password=EggShell_Dev_123!;Trusted_Connection=False;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "DevHostSiloPort": 20042,
+    "DevHostGatewayPort": 20043
+  },
+  "DevHost.UnrestrictedApiAccess": true,
+  "Http": {
+    "Urls": "http://localhost:5001"
+  }
+}

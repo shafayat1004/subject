@@ -9,10 +9,10 @@ type Exception = System.Exception
 type EggshellProjectType = App | Library | Root
 
 type EggshellRenderConfig = {
-    ``additionalModulesToOpen``:  List<string>
-    ``componentLibraryAliases``:  List<List<string>> // actually List<string * string> but JSON parser doesn't deal with tuples
-    ``componentLibraryPaths``:    List<List<string>> // actually List<string * string> but JSON parser doesn't deal with tuples
-    ``componentAliases``:         List<List<string>> // actually List<string * string> but JSON parser doesn't deal with tuples
+    ``additionalModulesToOpen``: List<string>
+    ``componentLibraryAliases``: List<List<string>> // actually List<string * string> but JSON parser doesn't deal with tuples
+    ``componentLibraryPaths``:   List<List<string>> // actually List<string * string> but JSON parser doesn't deal with tuples
+    ``componentAliases``:        List<List<string>> // actually List<string * string> but JSON parser doesn't deal with tuples
 }
 with
     static member DecodeToMap (raw: List<List<string>>): Map<string, string> =
@@ -31,7 +31,7 @@ let private parseProjectType(text: string): EggshellProjectType =
     | "app"      -> EggshellProjectType.App
     | "library"  -> EggshellProjectType.Library
     | "repoRoot" -> EggshellProjectType.Root
-    | _ -> raise(Exception(sprintf "Unexpected project type %s" text))
+    | _          -> raise(Exception(sprintf "Unexpected project type %s" text))
 
 let private jsonReadOptions =
     { defaultJsonReadOptions with

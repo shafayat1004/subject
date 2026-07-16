@@ -9,17 +9,17 @@ let grant (events: list<TimeSeriesAccessEventType>) : TimeSeriesAccessRule<_, _>
     match NonemptySet.ofList events with
     | None -> // To be safe, convert this to a Deny
         {
-            Input =      MatchAny
-            Roles =      MatchAny
+            Input      = MatchAny
+            Roles      = MatchAny
             EventTypes = MatchAny
-            Decision =   Deny
+            Decision   = Deny
         }
     | Some events ->
         {
-            Input =      MatchAny
-            Roles =      MatchAny
+            Input      = MatchAny
+            Roles      = MatchAny
             EventTypes = Match events
-            Decision =   Grant
+            Decision   = Grant
         }
 
 let grantWhen input (events: list<TimeSeriesAccessEventType>) : TimeSeriesAccessRule<_, _> =
@@ -27,10 +27,10 @@ let grantWhen input (events: list<TimeSeriesAccessEventType>) : TimeSeriesAccess
 
 let deny (events: list<TimeSeriesAccessEventType>) : TimeSeriesAccessRule<_, _> =
     {
-        Input =      MatchAny
-        Roles =      MatchAny
+        Input      = MatchAny
+        Roles      = MatchAny
         EventTypes = NonemptySet.ofList events |> Option.map Match |> Option.defaultValue MatchAny
-        Decision =   Deny
+        Decision   = Deny
     }
 
 let denyWhen input (events: list<TimeSeriesAccessEventType>) : TimeSeriesAccessRule<_, _> =
@@ -38,18 +38,18 @@ let denyWhen input (events: list<TimeSeriesAccessEventType>) : TimeSeriesAccessR
 
 let grantAll : TimeSeriesAccessRule<_, _> =
     {
-        Input =      MatchAny
-        Roles =      MatchAny
+        Input      = MatchAny
+        Roles      = MatchAny
         EventTypes = MatchAny
-        Decision =   Grant
+        Decision   = Grant
     }
 
 let denyAccess : TimeSeriesAccessRule<_, _> =
     {
-        Input =      MatchAny
-        Roles =      MatchAny
+        Input      = MatchAny
+        Roles      = MatchAny
         EventTypes = MatchAny
-        Decision =   Deny
+        Decision   = Deny
     }
 
 let toRole role accessRule : TimeSeriesAccessRule<_, _> =

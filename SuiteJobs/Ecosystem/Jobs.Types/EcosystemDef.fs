@@ -32,9 +32,9 @@ let jobsDef =
           LifeCycles =
             {|
                recurringJobsManifest = recurringJobsManifest
-               dispatcher = dispatcher
-               recurringJob = recurringJob
-               batch = batch
-               job = job
+               dispatcher            = dispatcher
+               recurringJob          = recurringJob
+               batch                 = batch
+               job                   = job
             |}
     |}

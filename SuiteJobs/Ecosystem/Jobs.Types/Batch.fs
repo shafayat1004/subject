@@ -6,7 +6,7 @@ open System
 [<RequireQualifiedAccess>]
 type JobProgress =
 | Unfinished of JobId
-| Finished of JobId * Succeeded: bool * FinishedOn: DateTimeOffset
+| Finished   of JobId * Succeeded: bool * FinishedOn: DateTimeOffset
 with
     interface IKeyed<JobId> with
         member this.Key =
@@ -16,7 +16,7 @@ with
 
 type SequentialJobsParams = {
     AwaitingForJobStatus: AwaitingForJobStatus
-    NumberOfThreads: PositiveInteger
+    NumberOfThreads:      PositiveInteger
 }
 
 [<RequireQualifiedAccess>]
@@ -54,7 +54,7 @@ type BatchParent =
 // This status drives no business logic, only IndexBatchState which is used for Dashboard, we can really do without it otherwise.
 // More important things like BatchStatus are derived base on JobsProgress
 type BatchActivationStatus =
-| Awaiting of BatchParent
+| Awaiting  of BatchParent
 | Activated of On: DateTimeOffset * WasAwaiting: Option<BatchParent>
 
 [<CodecLib.SkipCodecAutoGenerate>]
@@ -67,19 +67,19 @@ type IndexBatchState = // imitates Hangfire states for dashboard
 | Cancelled
 
 type BatchBody = {
-    Description: Option<NonemptyString>
+    Description:  Option<NonemptyString>
     JobsProgress: KeyedSet<JobId, JobProgress>
     // CancelRequestedOn does not indicate or guarantee that all jobs will be deleted, it's only to avoid multiple cancellation requests
     CancelRequestedOn: Option<DateTimeOffset>
-    ActivationStatus: BatchActivationStatus
+    ActivationStatus:  BatchActivationStatus
     // captured on client side, to know how long it took it to relay the message to the backend
-    SentOn: DateTimeOffset
+    SentOn:              DateTimeOffset
     PlaceholderFilledOn: Option<DateTimeOffset>
 }
 with
     member this.Parent =
         match this.ActivationStatus with
-        | BatchActivationStatus.Awaiting parent -> Some parent
+        | BatchActivationStatus.Awaiting parent            -> Some parent
         | BatchActivationStatus.Activated (_, maybeParent) -> maybeParent
 
 type BatchBodyPlaceholder = {
@@ -95,9 +95,9 @@ type BatchBodyVariant =
 | Placeholder of BatchBodyPlaceholder
 
 type Batch = {
-    Id: BatchId
+    Id:        BatchId
     CreatedOn: DateTimeOffset
-    Body: BatchBodyVariant
+    Body:      BatchBodyVariant
 }
 with
     interface Subject<BatchId> with
@@ -148,24 +148,24 @@ with
             None // we really don't know the index state until placeholder filled
 
 type ProperBatchConstructor = {
-    Description: Option<NonemptyString>
+    Description:     Option<NonemptyString>
     JobsToConstruct: BatchJobsToConstruct
-    Parent: Option<BatchParent>
-    SentOn: DateTimeOffset
+    Parent:          Option<BatchParent>
+    SentOn:          DateTimeOffset
 }
 
 [<RequireQualifiedAccess>]
 type BatchSubscriber =
-| Job of JobId
+| Job   of JobId
 | Batch of BatchId
 
 [<RequireQualifiedAccess>]
 type BatchAction =
-| OnJobStatusChanged of JobId * JobStatus
+| OnJobStatusChanged  of JobId * JobStatus
 | OnParentBatchUpdate of BatchStatus
 | Cancel
-| FillPlaceholder of ProperBatchConstructor
-| OnNewSubscriber of BatchSubscriber // to repeat BatchStatus event on Subscribe, should be called if subscriber does not create this Batch
+| FillPlaceholder     of ProperBatchConstructor
+| OnNewSubscriber     of BatchSubscriber // to repeat BatchStatus event on Subscribe, should be called if subscriber does not create this Batch
 with
     interface LifeAction
     interface IRedactable with
@@ -186,7 +186,7 @@ with interface OpError
 [<RequireQualifiedAccess>]
 type BatchConstructor =
 | NewPlaceholder of BatchId * PlacedBy
-| NewProper of BatchId * ProperBatchConstructor
+| NewProper      of BatchId * ProperBatchConstructor
 with
     interface Constructor
     interface IRedactable with
@@ -206,13 +206,13 @@ with interface LifeEvent
 
 [<RequireQualifiedAccess>]
 type BatchNumericIndex =
-| State of IndexBatchState
-| CreatedOn of DateTimeOffset
-| StartedOn of DateTimeOffset
-| FinishedOn of DateTimeOffset
-| CancelledOn of DateTimeOffset
-| Placeholder of CreatedOn: DateTimeOffset
-| SentOn of DateTimeOffset
+| State               of IndexBatchState
+| CreatedOn           of DateTimeOffset
+| StartedOn           of DateTimeOffset
+| FinishedOn          of DateTimeOffset
+| CancelledOn         of DateTimeOffset
+| Placeholder         of CreatedOn: DateTimeOffset
+| SentOn              of DateTimeOffset
 | PlaceholderFilledOn of DateTimeOffset
 with
     interface SubjectNumericIndex<BatchOpError> with
@@ -220,12 +220,12 @@ with
             match this with
             | State state ->
                 match state with
-                | IndexBatchState.AwaitingBatch -> 1L
-                | IndexBatchState.AwaitingJob -> 2L
-                | IndexBatchState.Started -> 3L
-                | IndexBatchState.Finished true -> 4L
+                | IndexBatchState.AwaitingBatch  -> 1L
+                | IndexBatchState.AwaitingJob    -> 2L
+                | IndexBatchState.Started        -> 3L
+                | IndexBatchState.Finished true  -> 4L
                 | IndexBatchState.Finished false -> 5L
-                | IndexBatchState.Cancelled -> 6L
+                | IndexBatchState.Cancelled      -> 6L
                 |> IndexedNumber
             | CreatedOn dt
             | StartedOn dt
@@ -238,13 +238,13 @@ with
 
 type BatchStringIndex =
 | ParentBatch of BatchId
-| ParentJob of JobId
+| ParentJob   of JobId
 with
     interface SubjectStringIndex<BatchOpError> with
         member this.Primitive =
             match this with
             | ParentBatch (BatchId s) -> IndexedString s
-            | ParentJob (JobId s) -> IndexedString s
+            | ParentJob (JobId s)     -> IndexedString s
 
 type BatchSearchIndex = NoSearchIndex
 type BatchGeographyIndex = NoGeographyIndex
@@ -291,7 +291,7 @@ type SequentialJobsParams with
             and! numberOfThreads = reqWith codecFor<_, PositiveInteger> "NumberOfThreads" (fun x -> Some x.NumberOfThreads)
             return {
                 AwaitingForJobStatus = awaitingForJobStatus
-                NumberOfThreads = numberOfThreads
+                NumberOfThreads      = numberOfThreads
              }
         }
     static member get_Codec () = ofObjCodec (SequentialJobsParams.get_ObjCodec_V1 ())
@@ -365,11 +365,11 @@ type BatchBody with
             and! maybeSentOn = optWith Codecs.dateTimeOffset "SentOn" (fun x -> Some x.SentOn)
             and! placeholderFilledOn = optWith Codecs.dateTimeOffset "PlaceholderFilledOn" (fun x -> x.PlaceholderFilledOn)
             return {
-                Description = description
-                JobsProgress = jobsProgress
-                CancelRequestedOn = cancelRequestedOn
-                ActivationStatus = activationStatus
-                SentOn = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
+                Description         = description
+                JobsProgress        = jobsProgress
+                CancelRequestedOn   = cancelRequestedOn
+                ActivationStatus    = activationStatus
+                SentOn              = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
                 PlaceholderFilledOn = placeholderFilledOn
              }
         }
@@ -383,7 +383,7 @@ type BatchBodyPlaceholder with
             and! placedBy = reqWith codecFor<_, PlacedBy> "PlacedBy" (fun x -> Some x.PlacedBy)
             and! cancelRequestedOn = reqWith (Codecs.option Codecs.dateTimeOffset) "CancelRequestedOn" (fun x -> Some x.CancelRequestedOn)
             return {
-                PlacedBy = placedBy
+                PlacedBy          = placedBy
                 CancelRequestedOn = cancelRequestedOn
              }
         }
@@ -419,9 +419,9 @@ type Batch with
             and! createdOn = reqWith Codecs.dateTimeOffset "CreatedOn" (fun x -> Some x.CreatedOn)
             and! body = reqWith codecFor<_, BatchBodyVariant> "Body" (fun x -> Some x.Body)
             return {
-                Id = id
+                Id        = id
                 CreatedOn = createdOn
-                Body = body
+                Body      = body
              }
         }
 
@@ -431,9 +431,9 @@ type Batch with
 
 
 type private OBSOLETE_BatchConstructorCommonData = {
-    Description: Option<NonemptyString>
+    Description:     Option<NonemptyString>
     JobsToConstruct: BatchJobsToConstruct
-    SentOn: DateTimeOffset
+    SentOn:          DateTimeOffset
 } with
     static member private get_ObjCodec_V1 () =
         codec {
@@ -442,9 +442,9 @@ type private OBSOLETE_BatchConstructorCommonData = {
             and! jobsToConstruct = reqWith codecFor<_, BatchJobsToConstruct> "JobsToConstruct" (fun x -> Some x.JobsToConstruct)
             and! maybeSentOn = optWith Codecs.dateTimeOffset "SentOn" (fun x -> Some x.SentOn)
             return {
-                Description = description
+                Description     = description
                 JobsToConstruct = jobsToConstruct
-                SentOn = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
+                SentOn          = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
              }
         }
     static member get_Codec () = ofObjCodec (OBSOLETE_BatchConstructorCommonData.get_ObjCodec_V1 ())
@@ -459,10 +459,10 @@ type ProperBatchConstructor with
             and! parent = reqWith (Codecs.option codecFor<_, BatchParent>) "Parent" (fun x -> Some x.Parent)
             and! maybeSentOn = optWith Codecs.dateTimeOffset "SentOn" (fun x -> Some x.SentOn)
             return {
-                Description = description
+                Description     = description
                 JobsToConstruct = jobsToConstruct
-                Parent = parent
-                SentOn = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
+                Parent          = parent
+                SentOn          = maybeSentOn |> Option.defaultValue DateTimeOffset.UnixEpoch
              }
         }
 
@@ -471,10 +471,10 @@ type ProperBatchConstructor with
             let! _version = reqDecodeWithCodec Codecs.int "__v1"
             and! data = reqDecodeWithCodec (OBSOLETE_BatchConstructorCommonData.get_Codec()) "Enqueued"
             return {
-                Description = data.Description
+                Description     = data.Description
                 JobsToConstruct = data.JobsToConstruct
-                Parent = None
-                SentOn = data.SentOn
+                Parent          = None
+                SentOn          = data.SentOn
             }
         }
 
@@ -483,10 +483,10 @@ type ProperBatchConstructor with
             let! _version = reqDecodeWithCodec Codecs.int "__v1"
             and! data, parent = reqDecodeWithCodec (Codecs.tuple2 (OBSOLETE_BatchConstructorCommonData.get_Codec()) codecFor<_, BatchParent>) "Awaiting"
             return {
-                Description = data.Description
+                Description     = data.Description
                 JobsToConstruct = data.JobsToConstruct
-                Parent = Some parent
-                SentOn = data.SentOn
+                Parent          = Some parent
+                SentOn          = data.SentOn
             }
         }
 

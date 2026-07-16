@@ -3,17 +3,17 @@ module LibClient.Components.Dialog_Shell_FromBottom
 
 open Fable.React
 
-open ReactXP.LegacyStyles.RulesRestricted
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.LegacyStyles.RulesRestricted
+open Rn.Styles
+open Rn.Components
 
 open LibClient
 open LibClient.Components.Dialog.Base
 
 
 type CanClose = LibClient.Components.Dialog.Base.CanClose
-let When      = CanClose.When
-let Never     = CanClose.Never
+let When  = CanClose.When
+let Never = CanClose.Never
 
 type CloseAction = LibClient.Components.Dialog.Base.CloseAction
 let OnEscape      = CloseAction.OnEscape
@@ -37,7 +37,7 @@ module private Styles =
 
         match maybeMinHeight with
         | Some minimumHeight -> minHeight minimumHeight
-        | None -> ()
+        | None               -> ()
     })
 
     let scrollViewChildren = makeViewStyles {
@@ -61,9 +61,9 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
 
         LC.Dialog.Base (
             contentPosition = ContentPosition.Free,
-            canClose = canClose,
-            children = [|
-                RX.View (styles = [|Styles.wrapper|], children = [|
+            canClose        = canClose,
+            children        = [|
+                Rn.View (styles = [|Styles.wrapper|], children = [|
                     // Reversed to make drop shadow work
                     bottomSection
 
@@ -72,20 +72,20 @@ type LibClient.Components.Constructors.LC.Dialog.Shell with
                             maybeLayout
                             |> Option.map (fun layout -> layout.Height)
 
-                        RX.ScrollView (
+                        Rn.ScrollView (
                             ?onLayout = onLayoutOption,
-                            vertical = true,
-                            children = [|
-                                RX.View (
-                                    styles = [| Styles.scrollViewWrapper maybeMinHeight |],
+                            vertical  = true,
+                            children  = [|
+                                Rn.View (
+                                    styles   = [| Styles.scrollViewWrapper maybeMinHeight |],
                                     children = [|
-                                        RX.View (children = [|
-                                            RX.View (styles = [|Styles.scrollViewChildren|], children = elements {
+                                        Rn.View (children = [|
+                                            Rn.View (styles = [|Styles.scrollViewChildren|], children = elements {
                                                 match heading with
                                                 | None -> nothing
                                                 | Some headingText ->
                                                     LC.Heading (
-                                                        styles = [| Styles.heading |],
+                                                        styles   = [| Styles.heading |],
                                                         children = [|
                                                             LC.UiText headingText
                                                         |]

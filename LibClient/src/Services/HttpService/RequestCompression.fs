@@ -1,14 +1,26 @@
 module LibClient.Services.HttpService.RequestCompression
 
+open Fable.Core
 open Fable.Core.JsInterop
 open LibClient.Services.HttpService.HttpService
+
+[<Fable.Core.JS.Pojo>]
+type private DeflateAugmentHeadersJs() =
+    member val ``X-Content-Encoding`` = "deflate"
+
+[<Fable.Core.JS.Pojo>]
+type private CompressedRequestOptionsJs
+    ( augmentHeaders: obj, sendData: obj, contentType: string ) =
+    member val augmentHeaders = augmentHeaders
+    member val sendData = sendData
+    member val contentType = contentType
 
 let makeInterceptor (resultUrlRegexSource: string) (minPayloadSizeToEncodeBytes: int) : RequestInterceptor =
     let pako: obj = importDefault "pako"
 
     let regex = System.Text.RegularExpressions.Regex resultUrlRegexSource
 
-    fun (rawRequestParams: ReactXPRawRequestParams) ->
+    fun (rawRequestParams: RnRawRequestParams) ->
         let existingOptions =
             match rawRequestParams.MaybeOptions with
             | None         -> createEmpty
@@ -28,9 +40,7 @@ let makeInterceptor (resultUrlRegexSource: string) (minPayloadSizeToEncodeBytes:
                     Fable.Core.JS.Constructors.Object.assign (
                         createEmpty,
                         existingAugmentHeaders,
-                        createObj [
-                            "X-Content-Encoding" ==> "deflate"
-                        ]
+                        DeflateAugmentHeadersJs() |> box
                     )
 
                 let compressedSendData = pako?deflateRaw (existingOptions?sendData)
@@ -39,11 +49,11 @@ let makeInterceptor (resultUrlRegexSource: string) (minPayloadSizeToEncodeBytes:
                     Fable.Core.JS.Constructors.Object.assign (
                         createEmpty,
                         existingOptions,
-                        createObj [
-                            "augmentHeaders" ==> updatedAugmentHeaders
-                            "sendData"       ==> compressedSendData
-                            "contentType"    ==> "application/deflatedJson"
-                        ]
+                        CompressedRequestOptionsJs(
+                            updatedAugmentHeaders,
+                            compressedSendData,
+                            "application/deflatedJson"
+                        ) |> box
                     )
 
                 { rawRequestParams with

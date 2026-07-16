@@ -15,17 +15,17 @@
 		"componentLibraryAliases": [
 			["default", "LibClient.Components"],
 			["LC",      "LibClient.Components"],
-			["RX",      "ReactXP.Components"]
+			["Rn",      "Rn.Components"]
 		],
 		"componentLibraryPaths": [
 			["LibClient.Components", "./src/Components"],
-			["ReactXP.Components",   "./src/ReactXP/Components"]
+			["Rn.Components",   "./src/Rn/Components"]
 		],
 		"componentAliases": [
-			["div",       "RX.View"],
-			["anidiv",    "RX.AnimatableView"],
+			["div",       "Rn.View"],
+			["anidiv",    "Rn.AnimatableView"],
 			["text",      "LC.LegacyText"],
-			["anitext",   "RX.AnimatableText"],
+			["anitext",   "Rn.AnimatableText"],
 			["uitext",    "LC.LegacyUiText"]
 		]
 	}

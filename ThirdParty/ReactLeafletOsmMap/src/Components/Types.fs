@@ -44,6 +44,12 @@ type LeafletLatLngBounds =
         _northEast: LeafletLatLng
     }
 
+[<Fable.Core.JS.Pojo>]
+type private OsmMapStyleJs ( height: string, width: string, zIndex: int ) =
+    member val height = height
+    member val width = width
+    member val zIndex = zIndex
+
 type OsmMapStyle = {
     Width:  NonemptyString
     Height: NonemptyString
@@ -51,20 +57,18 @@ type OsmMapStyle = {
 }
 with
     member internal this.ToJs () : obj =
-        createObj [
-            "height" ==> this.Height.Value
-            "width"  ==> this.Width.Value
-            "zIndex" ==> this.ZIndex
-        ]
+        OsmMapStyleJs(this.Height.Value, this.Width.Value, this.ZIndex) |> box
+
+[<Fable.Core.JS.Pojo>]
+type private PaneStyleJs ( zIndex: int ) =
+    member val zIndex = zIndex
 
 type PaneStyle = {
     ZIndex: int
 }
 with
     member internal this.ToJs () : obj =
-        createObj [
-            "zIndex" ==> this.ZIndex
-        ]
+        PaneStyleJs(this.ZIndex) |> box
 
 type ControlPosition =
 | TopLeft
@@ -92,6 +96,14 @@ type Point =
                 snd this.Value |> float
             |]
 
+[<Fable.Core.JS.Pojo>]
+type private MarkerIconJs
+    ( iconUrl: string, iconSize: obj, iconAnchor: obj, ?iconRetinaUrl: string ) =
+    member val iconUrl = iconUrl
+    member val iconRetinaUrl = iconRetinaUrl
+    member val iconSize = iconSize
+    member val iconAnchor = iconAnchor
+
 type MarkerIcon = {
     IconUrl:       NonemptyString
     IconRetinaUrl: Option<NonemptyString>
@@ -113,12 +125,12 @@ with
         }
 
     member internal this.ToJs () : obj =
-        createObjWithOptionalValues [
-            "iconUrl"       ==!> this.IconUrl.Value
-            "iconRetinaUrl" ==?> (this.IconRetinaUrl |> Option.map (fun x -> x.Value))
-            "iconSize"      ==!> this.IconSize.ToJs ()
-            "iconAnchor"    ==!> this.IconAnchor.ToJs ()
-        ]
+        MarkerIconJs(
+            this.IconUrl.Value,
+            this.IconSize.ToJs(),
+            this.IconAnchor.ToJs(),
+            ?iconRetinaUrl = (this.IconRetinaUrl |> Option.map (fun x -> x.Value))
+        ) |> box
 
 type TooltipDirection =
 | Top
@@ -168,24 +180,24 @@ type ILeafletMouseEvent =
 
 type ILeafletResizeEvent =
     inherit ILeafletMapEvent
-    abstract member newSize:        obj
-    abstract member oldSize:        obj
+    abstract member newSize: obj
+    abstract member oldSize: obj
 
 type ILeafletKeyboardEvent =
     inherit ILeafletMapEvent
-    abstract member originalEvent:  obj
+    abstract member originalEvent: obj
 
 type ILeafletDragEndEvent =
     inherit ILeafletMapEvent
-    abstract member distance:       float
+    abstract member distance: float
 
 type ILeafletTooltipEvent =
     inherit ILeafletMapEvent
-    abstract member tooltip:        obj
+    abstract member tooltip: obj
 
 type ILeafletPopupEvent =
     inherit ILeafletMapEvent
-    abstract member popup:          obj
+    abstract member popup: obj
 
 type LeafletMapEventHandlerFn      = ILeafletMapEvent -> unit
 type LeafletMouseEventHandlerFn    = ILeafletMouseEvent -> unit
@@ -212,29 +224,29 @@ type LeafletEvent =
 | Load             of LeafletMapEventHandlerFn
 | Unload           of LeafletMapEventHandlerFn
 // Mouse Events
-| Click            of LeafletMouseEventHandlerFn
-| DblClick         of LeafletMouseEventHandlerFn
-| MouseDown        of LeafletMouseEventHandlerFn
-| MouseUp          of LeafletMouseEventHandlerFn
-| MouseOver        of LeafletMouseEventHandlerFn
-| MouseOut         of LeafletMouseEventHandlerFn
-| MouseMove        of LeafletMouseEventHandlerFn
-| ContextMenu      of LeafletMouseEventHandlerFn
-| PreClick         of LeafletMouseEventHandlerFn
+| Click       of LeafletMouseEventHandlerFn
+| DblClick    of LeafletMouseEventHandlerFn
+| MouseDown   of LeafletMouseEventHandlerFn
+| MouseUp     of LeafletMouseEventHandlerFn
+| MouseOver   of LeafletMouseEventHandlerFn
+| MouseOut    of LeafletMouseEventHandlerFn
+| MouseMove   of LeafletMouseEventHandlerFn
+| ContextMenu of LeafletMouseEventHandlerFn
+| PreClick    of LeafletMouseEventHandlerFn
 // Resize Events
-| Resize           of LeafletResizeEventHandlerFn
+| Resize of LeafletResizeEventHandlerFn
 // Keyboard Events
-| KeyPress         of LeafletKeyboardEventHandlerFn
-| KeyDown          of LeafletKeyboardEventHandlerFn
-| KeyUp            of LeafletKeyboardEventHandlerFn
+| KeyPress of LeafletKeyboardEventHandlerFn
+| KeyDown  of LeafletKeyboardEventHandlerFn
+| KeyUp    of LeafletKeyboardEventHandlerFn
 // Drag Events
-| DragEnd          of LeafletDragEndEventHandlerFn
+| DragEnd of LeafletDragEndEventHandlerFn
 // Tooltip Events
-| TooltipOpen      of LeafletTooltipEventHandlerFn
-| TooltipClose     of LeafletTooltipEventHandlerFn
+| TooltipOpen  of LeafletTooltipEventHandlerFn
+| TooltipClose of LeafletTooltipEventHandlerFn
 // Popup Events
-| PopupOpen        of LeafletPopupEventHandlerFn
-| PopupClose       of LeafletPopupEventHandlerFn
+| PopupOpen  of LeafletPopupEventHandlerFn
+| PopupClose of LeafletPopupEventHandlerFn
 with
     member private this.ToJs () : (string * obj) =
         match this with
@@ -277,15 +289,27 @@ with
         |> Array.ofSeq
         |> createObj
 
+[<Fable.Core.JS.Pojo>]
+type private EditOptionSetJs ( edit: bool, remove: bool ) =
+    member val edit = edit
+    member val remove = remove
+
 type EditOption =
 | Edit
 | Remove
 with
     static member internal SetToJs(options: Set<EditOption>) : obj =
-        createObj [
-            "edit"   ==> options.Contains Edit
-            "remove" ==> options.Contains Remove
-        ]
+        EditOptionSetJs(options.Contains Edit, options.Contains Remove) |> box
+
+[<Fable.Core.JS.Pojo>]
+type private DrawOptionSetJs
+    ( polyline: bool, polygon: bool, rectangle: bool, circle: bool, marker: bool, circlemarker: bool ) =
+    member val polyline = polyline
+    member val polygon = polygon
+    member val rectangle = rectangle
+    member val circle = circle
+    member val marker = marker
+    member val circlemarker = circlemarker
 
 type DrawOption =
 | Polyline
@@ -296,19 +320,19 @@ type DrawOption =
 | CircleMarker
 with
     static member internal SetToJs(options: Set<DrawOption>) : obj =
-        createObj [
-            "polyline"     ==> options.Contains Polyline
-            "polygon"      ==> options.Contains Polygon
-            "rectangle"    ==> options.Contains Rectangle
-            "circle"       ==> options.Contains Circle
-            "marker"       ==> options.Contains Marker
-            "circlemarker" ==> options.Contains CircleMarker
-        ]
+        DrawOptionSetJs(
+            options.Contains Polyline,
+            options.Contains Polygon,
+            options.Contains Rectangle,
+            options.Contains Circle,
+            options.Contains Marker,
+            options.Contains CircleMarker
+        ) |> box
 
 type LeafletDrawEventFn = obj -> unit
 
 type LeafletDrawEvent =
-| Mounted   of LeafletDrawEventFn
+| Mounted of LeafletDrawEventFn
 | Created of LeafletDrawEventFn
 | Edited  of LeafletDrawEventFn
 | Deleted of LeafletDrawEventFn
@@ -323,8 +347,3 @@ type LeafletDrawEvent =
     static member internal ToJsObj (events: array<LeafletDrawEvent>) : array<string * obj> =
         events
         |> Array.map (fun x -> x.ToJs ())
-
-
-
-
-

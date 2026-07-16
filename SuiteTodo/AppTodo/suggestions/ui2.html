@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Accessible todos app mockup showing light and dark theme layouts for planning, prioritizing, and tracking tasks.">
+<title>Modern Todos UI — Accessible Mockup</title>
+<style>
+  /*
+   * Accessibility — CSS decisions
+   *
+   * Focus: :focus { outline: none } removes the default ring for mouse clicks;
+   * :focus-visible restores a high-contrast ring for keyboard users only.
+   *
+   * Motion: prefers-reduced-motion disables transitions/animations so swipe-delete
+   * does not rely on movement (see HTML + script for the static delete fallback).
+   *
+   * Touch targets: icon action buttons are 44×44px minimum (WCAG 2.5.5).
+   *
+   * Swipe hint: closed rows use a 3px border-right on the card (not a separate
+   * strip) so the hint follows the card's border-radius.
+   *
+   * Completed tasks: line-through plus lowered opacity — not color alone.
+   *
+   * Category scroll: scrollbar stays visible (thin, themed) rather than hidden,
+   * so keyboard/mouse users can discover horizontal overflow without guessing.
+   */
+  :root {
+    /* Color Palette based on the modern redesign */
+    --bg-main: #FDF9F6;
+    --text-heading: #9C7063;
+    --text-body: #1F2937;
+    --surface-form: #EFE6DF;
+    --surface-card: #FFFFFF;
+    --btn-primary: #458B8C;
+    --btn-primary-hover: #377172;
+    --border-color: #D1D5DB;
+    --focus-ring: #458B8C;
+
+    /* Chips */
+    --chip-green-bg: #C6E4D1;
+    --chip-green-text: #275C3C;
+    --chip-blue-bg: #C2E2E9;
+    --chip-blue-text: #245763;
+    --chip-red-bg: #F4D3D3;
+    --chip-red-text: #7A2E2E;
+    --chip-orange-bg: #F6E2D0;
+    --chip-orange-text: #7A4E24;
+    --chip-neutral-bg: #E5E7EB;
+    --chip-neutral-text: #4B5563;
+
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-pill: 999px;
+
+    --scrollbar-thumb: #458B8C;
+    --scrollbar-track: rgba(69, 139, 140, 0.15);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Visually hidden but available to assistive tech */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 1000;
+    padding: 0.75rem 1rem;
+    background: #1F2937;
+    color: #FFFFFF;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #E5E5E5;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding: 2rem;
+    line-height: 1.5;
+  }
+
+  .page-title {
+    width: 100%;
+    text-align: center;
+    font-size: 1.125rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Mobile App Container */
+  .app-container {
+    background-color: var(--bg-main);
+    color: var(--text-body);
+    width: 100%;
+    max-width: 420px;
+    min-height: 850px;
+    max-height: calc(100vh - 4rem);
+    border-radius: 40px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Header Area */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 20px;
+    gap: 12px;
+  }
+
+  .header h1 {
+    color: var(--text-heading);
+    font-size: 28px;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .header p {
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-body);
+  }
+
+  .theme-toggle {
+    background-color: #EAE0D9;
+    border-radius: var(--radius-pill);
+    display: flex;
+    padding: 4px;
+    align-items: center;
+    border: none;
+    flex-shrink: 0;
+  }
+
+  .theme-toggle button {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    color: inherit;
+  }
+
+  .theme-toggle button[aria-checked="true"] {
+    background-color: #2D4C4C;
+    color: white;
+  }
+
+  /* Main Navigation Tabs */
+  .tabs {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #EAE0D9;
+    padding-bottom: 8px;
+    list-style: none;
+    gap: 4px;
+  }
+
+  .tab {
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+    font-weight: 500;
+    position: relative;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    padding: 4px 2px 10px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .tab[aria-selected="true"] {
+    color: var(--btn-primary);
+  }
+
+  .tab[aria-selected="true"]::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--btn-primary);
+  }
+
+  /* Sub Filter Pills (read-only status badges) */
+  .sub-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .pill-green { background: var(--chip-green-bg); color: var(--chip-green-text); }
+  .pill-blue { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .pill-red { background: var(--chip-red-bg); color: var(--chip-red-text); }
+  .pill-orange { background: var(--chip-orange-bg); color: var(--chip-orange-text); }
+  .pill-neutral { background: var(--chip-neutral-bg); color: var(--chip-neutral-text); }
+
+  /* Input Form Area */
+  .form-card {
+    background-color: var(--surface-form);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: none;
+  }
+
+  .form-card legend {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding: 0;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(0,0,0,0.1);
+    font-size: 14px;
+    font-family: inherit;
+    background-color: rgba(255, 255, 255, 0.4);
+    color: inherit;
+  }
+
+  select.input-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+
+  .category-scroll {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: none;
+    min-inline-size: 0;
+    /* Dedicated gutter below pills — scrollbar lives here, not over chip text */
+    padding-bottom: 14px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  .category-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .category-scroll::-webkit-scrollbar-track {
+    margin-top: 8px;
+    background: var(--scrollbar-track);
+    border-radius: var(--radius-pill);
+  }
+
+  .category-scroll::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--radius-pill);
+    min-width: 40px;
+  }
+
+  .category-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--btn-primary-hover);
+  }
+
+  .category-option {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Category pills: opacity-0 native radios stay keyboard-focusable; label is the visible chip. */
+  .category-option input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .category-option label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+
+  .category-option input:focus-visible + label {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .category-option input:checked + label {
+    border-color: var(--btn-primary);
+    box-shadow: 0 0 0 1px var(--btn-primary);
+  }
+
+  .category-option--neutral label { background: var(--chip-neutral-bg); color: var(--chip-neutral-text); }
+  .category-option--blue label { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .category-option--green label { background: var(--chip-green-bg); color: var(--chip-green-text); }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background-color: var(--btn-primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--btn-primary-hover);
+  }
+
+  /* Search */
+  .search-container {
+    position: relative;
+  }
+
+  .search-container input {
+    background-color: var(--surface-form);
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    padding: 12px 16px 12px 40px;
+    width: 100%;
+    font-size: 14px;
+    font-family: inherit;
+    color: inherit;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #666;
+    pointer-events: none;
+  }
+
+  /* List Stats */
+  .list-stats {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .list-stats .pill {
+    background-color: #DEECF0;
+    color: #3B6B78;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  /* Todo Items — iOS-style swipe to delete */
+  .todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style: none;
+  }
+
+  /* Swipe-to-delete: gradient reveal is decorative; real controls are native
+     checkbox, labelled buttons, and the Delete button when revealed. */
+  .todo-swipe {
+    --swipe-delete-width: 80px;
+    --swipe-hint: 3px;
+    --swipe-red-light: #F87171;
+    --swipe-red-mid: #DC2626;
+    --swipe-red-dark: #B91C1C;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: transparent;
+    isolation: isolate;
+  }
+
+  .todo-swipe::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background: linear-gradient(
+      to right,
+      var(--swipe-red-light) 0%,
+      var(--swipe-red-mid) 45%,
+      var(--swipe-red-dark) 100%
+    );
+    border-radius: inherit;
+    z-index: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .todo-swipe.is-open::before,
+  .todo-swipe.swipe-dragging::before {
+    opacity: 1;
+  }
+
+  .todo-swipe.swipe-dragging::before {
+    transition: none;
+  }
+
+  .todo-swipe.is-deleting {
+    pointer-events: none;
+  }
+
+  .todo-list > li {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: max-height 0.28s ease, opacity 0.22s ease, margin 0.28s ease;
+  }
+
+  .todo-swipe-delete {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: var(--swipe-delete-width);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #FFFFFF;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+
+  .todo-swipe:not(.is-open):not(.swipe-dragging) .todo-swipe-delete {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .todo-swipe-delete:hover {
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  .todo-swipe-delete:focus-visible {
+    background: rgba(0, 0, 0, 0.12);
+    outline: 3px solid #FFFFFF;
+    outline-offset: -3px;
+  }
+
+  .todo-swipe-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    transition: transform 0.25s ease, border-radius 0.25s ease, border-color 0.25s ease;
+    touch-action: pan-y;
+    background: var(--surface-card);
+    border-radius: var(--radius-md);
+    border-right: var(--swipe-hint) solid var(--swipe-red-mid);
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+
+  .todo-swipe.is-open .todo-swipe-content,
+  .todo-swipe.swipe-dragging .todo-swipe-content {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+  }
+
+  .todo-swipe-content :is(button, input, select, textarea, a, label) {
+    cursor: pointer;
+  }
+
+  .todo-swipe.swipe-dragging .todo-swipe-content {
+    transition: none;
+    touch-action: none;
+    cursor: grabbing;
+  }
+
+  .todo-swipe.is-open:not(.swipe-dragging) .todo-swipe-content {
+    transform: translateX(calc(-1 * var(--swipe-delete-width)));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Swipe fallback: row + delete side-by-side; no transform, delete always focusable. */
+    .todo-swipe {
+      display: flex;
+      overflow: visible;
+      gap: 8px;
+      background: transparent;
+    }
+
+    .todo-swipe::before {
+      display: none;
+    }
+
+    .todo-swipe-content {
+      flex: 1;
+      min-width: 0;
+      transition: none;
+      transform: none !important;
+    }
+
+    .todo-swipe-delete {
+      position: static;
+      width: auto;
+      min-width: 72px;
+      padding: 0 14px;
+      border-radius: var(--radius-md);
+      align-self: stretch;
+      background: linear-gradient(
+        to right,
+        var(--swipe-red-light),
+        var(--swipe-red-dark)
+      );
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .todo-item {
+    background-color: var(--surface-card);
+    border-radius: var(--radius-md);
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: none;
+  }
+
+  .app-container.dark .todo-swipe-content {
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+    border-right: var(--swipe-hint) solid var(--swipe-red-mid);
+  }
+
+  .app-container.dark .todo-swipe.is-open .todo-swipe-content,
+  .app-container.dark .todo-swipe.swipe-dragging .todo-swipe-content {
+    border-right: none;
+  }
+
+  .todo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+  }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .todo-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+  }
+
+  /* Custom checkbox skin: native input receives focus/AT; .todo-checkbox-ui is aria-hidden. */
+  .todo-checkbox-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .todo-checkbox {
+    position: absolute;
+    inset: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .todo-checkbox-ui {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--btn-primary);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .todo-checkbox:focus-visible + .todo-checkbox-ui {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .todo-checkbox:checked + .todo-checkbox-ui {
+    background-color: var(--btn-primary);
+  }
+
+  .todo-checkbox:checked + .todo-checkbox-ui::after {
+    content: "✓";
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .todo-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .todo-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.25;
+    transition: opacity 0.2s ease, color 0.2s ease;
+  }
+
+  /* Strikethrough + opacity when checked — redundant with checkbox state for AT. */
+  .todo-body:has(.todo-checkbox:checked) .todo-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+    opacity: 0.65;
+  }
+
+  .todo-edit {
+    flex-shrink: 0;
+  }
+
+  .action-btn {
+    background: transparent;
+    border: 2px solid transparent;
+    color: var(--btn-primary);
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .action-btn:hover {
+    background: rgba(69, 139, 140, 0.12);
+  }
+
+  .action-btn:focus-visible {
+    background: rgba(69, 139, 140, 0.15);
+    border-color: var(--focus-ring);
+  }
+
+  .action-btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  .tabpanel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ----------------------------------------------------------------
+     Dark mode
+     ---------------------------------------------------------------- */
+  .app-container.dark {
+    color-scheme: dark;
+    --bg-main: #160D08;
+    --text-heading: #E8B8A4;
+    --text-body: #F5EDE8;
+    --text-muted: #C4A898;
+    --text-placeholder: #9A8070;
+    --surface-form: #1C1008;
+    --surface-card: #251510;
+    --surface-input: #2A1A10;
+    --btn-primary: #5BA5A6;
+    --btn-primary-hover: #6FB6B7;
+    --border-color: #3D2217;
+    --focus-ring: #8DD4D5;
+    --chip-neutral-bg: #2A1A10;
+    --chip-neutral-text: #C4A898;
+
+    --chip-green-bg: #1A3D24;
+    --chip-green-text: #8AD99A;
+    --chip-blue-bg: #1F3F4C;
+    --chip-blue-text: #9DDCE9;
+    --chip-red-bg: #4A2020;
+    --chip-red-text: #F0A0A0;
+    --chip-orange-bg: #4A3018;
+    --chip-orange-text: #E8B080;
+
+    --scrollbar-thumb: #8DD4D5;
+    --scrollbar-track: rgba(139, 212, 213, 0.2);
+  }
+
+  .app-container.dark .tabs { border-bottom-color: var(--border-color); }
+  .app-container.dark .tab { color: var(--text-muted); }
+  .app-container.dark .tab[aria-selected="true"] { color: var(--btn-primary); }
+
+  .app-container.dark .theme-toggle { background-color: var(--surface-input); }
+  .app-container.dark .theme-toggle button { color: var(--text-muted); }
+  .app-container.dark .theme-toggle button[aria-checked="true"] {
+    background-color: var(--btn-primary);
+    color: #160D08;
+  }
+
+  .app-container.dark .input-field {
+    background-color: var(--surface-input);
+    border-color: #43271A;
+    color: var(--text-body);
+  }
+  .app-container.dark .input-field::placeholder { color: var(--text-placeholder); opacity: 1; }
+
+  .app-container.dark .search-container input {
+    background-color: var(--surface-input);
+    color: var(--text-body);
+    border-color: #43271A;
+  }
+  .app-container.dark .search-container input::placeholder { color: var(--text-placeholder); opacity: 1; }
+  .app-container.dark .search-icon { color: var(--text-muted); }
+
+  .app-container.dark .list-stats .pill {
+    background-color: #1F3F4C;
+    color: #9DDCE9;
+    border-color: var(--border-color);
+  }
+
+  .app-container.dark .todo-title { color: var(--text-body); }
+  .app-container.dark .header p { color: var(--text-muted); }
+
+  .app-container.dark .action-btn:hover {
+    background: rgba(139, 212, 213, 0.15);
+  }
+
+  .app-container.dark .action-btn:focus-visible {
+    background: rgba(139, 212, 213, 0.2);
+  }
+</style>
+</head>
+<body>
+
+<!--
+  Accessibility — page structure
+
+  Two previews (light + dark) sit side by side. Every interactive id is
+  suffixed -light or -dark so duplicate controls never share the same id.
+
+  Skip links: bypass the comparison chrome and land on each <main> landmark.
+
+  Landmarks: <main> per preview, <nav> for status tabs, <section> for add /
+  search / list. Visible h1; section h2s are sr-only to avoid heading noise.
+
+  Tabs: WAI-ARIA tablist (role=tab, aria-selected, aria-controls, roving
+  tabindex). Static mockup — arrow-key switching would need JS in production.
+
+  Forms: visible <label for=…> on every field; category uses <fieldset> +
+  native radio buttons (keyboard selectable, not decorative spans).
+
+  Search: type=search, associated label (sr-only), decorative icon aria-hidden.
+
+  Todo rows: native checkbox with sr-only label; title is aria-labelledby target;
+  meta chips prefix context in sr-only ("Priority:", "Category:"). Icon edit
+  buttons use aria-label; SVGs are aria-hidden.
+
+  Swipe delete (see script comment): pointer gesture plus keyboard alternatives
+  (Shift+Delete reveal, Delete confirm, Escape cancel). Delete stays aria-hidden
+  and tabindex=-1 until revealed so tab order is not polluted. aria-live
+  announcer confirms deletion. prefers-reduced-motion: delete button always
+  visible beside the row — no swipe required.
+
+  Dark preview mirrors the same patterns with -dark ids.
+-->
+
+<!-- Skip navigation: visible only on keyboard focus (see .skip-link:focus). -->
+<a class="skip-link" href="#light-app">Skip to light theme preview</a>
+<a class="skip-link" href="#dark-app" style="left: 14rem;">Skip to dark theme preview</a>
+
+<p class="page-title" id="page-title">Todos UI mockup — side-by-side light and dark theme previews</p>
+
+<!-- Light theme preview — main landmark labelled by h1 -->
+<main class="app-container" id="light-app" aria-labelledby="light-app-heading">
+  <header class="header">
+    <div>
+      <h1 id="light-app-heading">Todos</h1>
+      <p id="light-app-tagline">Plan, prioritize, and track work effortlessly.</p>
+    </div>
+    <!-- Theme toggle: radiogroup + role=radio + aria-checked (not unlabelled icons) -->
+    <div class="theme-toggle" role="radiogroup" aria-label="Color theme">
+      <button type="button" role="radio" aria-checked="true" aria-label="Light theme, selected">Light</button>
+      <button type="button" role="radio" aria-checked="false" aria-label="Dark theme">Dark</button>
+    </div>
+  </header>
+
+  <!-- Status filter tabs — tablist/tab/tabpanel pairing; only active tab in tab order -->
+  <nav aria-label="Filter todos by status">
+    <ul class="tabs" role="tablist" aria-label="Todo status">
+      <li role="presentation"><button type="button" class="tab" role="tab" id="light-tab-open" aria-selected="false" aria-controls="light-tabpanel" tabindex="-1">Open</button></li>
+      <li role="presentation"><button type="button" class="tab" role="tab" id="light-tab-done" aria-selected="false" aria-controls="light-tabpanel" tabindex="-1">Done</button></li>
+      <li role="presentation"><button type="button" class="tab" role="tab" id="light-tab-all" aria-selected="true" aria-controls="light-tabpanel" tabindex="0">All</button></li>
+      <li role="presentation"><button type="button" class="tab" role="tab" id="light-tab-archived" aria-selected="false" aria-controls="light-tabpanel" tabindex="-1">Archived</button></li>
+    </ul>
+  </nav>
+
+  <div class="tabpanel" id="light-tabpanel" role="tabpanel" aria-labelledby="light-tab-all" tabindex="0">
+
+    <section class="sub-filters" aria-label="Active filters">
+      <span class="pill pill-green">View: All</span>
+      <span class="pill pill-blue">Device: Handheld</span>
+    </section>
+
+    <!-- Add todo: labelled inputs, fieldset radios, submit button (not div.click) -->
+    <section aria-labelledby="light-add-heading">
+      <h2 class="sr-only" id="light-add-heading">Add a new todo</h2>
+      <form class="form-card" action="#" method="post" aria-describedby="light-app-tagline">
+        <div>
+          <label class="field-label" for="light-todo-title">Todo title</label>
+          <input type="text" id="light-todo-title" name="title" class="input-field" placeholder="What needs doing?" autocomplete="off" required>
+        </div>
+
+        <div>
+          <label class="field-label" for="light-todo-priority">Priority</label>
+          <select id="light-todo-priority" name="priority" class="input-field">
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        <!-- Category: real radio inputs styled as pills; legend + scroll hint for AT -->
+        <fieldset class="category-scroll" aria-describedby="light-category-hint">
+          <legend class="sr-only">Category</legend>
+          <p class="sr-only" id="light-category-hint">Scroll horizontally to see all category options.</p>
+          <div class="category-option category-option--neutral">
+            <input type="radio" name="light-category" id="light-cat-none" value="" checked>
+            <label for="light-cat-none">No category</label>
+          </div>
+          <div class="category-option category-option--blue">
+            <input type="radio" name="light-category" id="light-cat-work" value="work">
+            <label for="light-cat-work">Work</label>
+          </div>
+          <div class="category-option category-option--blue">
+            <input type="radio" name="light-category" id="light-cat-personal" value="personal">
+            <label for="light-cat-personal">Personal</label>
+          </div>
+          <div class="category-option category-option--green">
+            <input type="radio" name="light-category" id="light-cat-shopping" value="shopping">
+            <label for="light-cat-shopping">Shopping</label>
+          </div>
+          <div class="category-option category-option--green">
+            <input type="radio" name="light-category" id="light-cat-health" value="health">
+            <label for="light-cat-health">Health</label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Add todo</button>
+      </form>
+    </section>
+
+    <!-- Search: label associated with input; magnifier icon is decorative only -->
+    <section aria-labelledby="light-search-heading">
+      <h2 class="sr-only" id="light-search-heading">Search todos</h2>
+      <div class="search-container">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <label class="sr-only" for="light-search">Search todos</label>
+        <input type="search" id="light-search" name="search" placeholder="Search todos..." autocomplete="off" enterkeyhint="search">
+      </div>
+    </section>
+
+    <!-- Live counts — polite aria-live so total changes are announced -->
+    <div class="list-stats" role="status" aria-live="polite" aria-atomic="true">
+      <span class="pill"><span class="sr-only">Status: </span>1 open</span>
+      <span class="pill"><span class="sr-only">Status: </span>1 done</span>
+    </div>
+
+    <!-- Todo list: swipe instructions (sr-only), delete announcer, native controls per row -->
+    <section aria-labelledby="light-list-heading" aria-describedby="light-swipe-hint">
+      <h2 class="sr-only" id="light-list-heading">Todo list</h2>
+      <p class="sr-only" id="light-swipe-hint">Swipe a todo left to reveal delete, or swipe far left to delete immediately. Tap the right edge hint to reveal delete. Keyboard: Shift+Delete to reveal, Delete to confirm, Escape to cancel.</p>
+      <div id="light-delete-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <ul class="todo-list" role="list">
+        <!-- Row: role=group + swipe surface; checkbox/title/edit stay in tab order; delete off-tree until open -->
+        <li>
+          <div class="todo-swipe" data-todo-name="Welcome to AppTodo" role="group" aria-label="Todo: Welcome to AppTodo">
+            <div class="todo-swipe-content">
+              <article class="todo-item" aria-labelledby="light-todo-1-title">
+                <ul class="todo-meta" id="light-todo-1-meta" aria-label="Todo details">
+                  <li><span class="meta-chip pill-red"><span class="sr-only">Priority: </span>High</span></li>
+                  <li><span class="meta-chip pill-blue"><span class="sr-only">Category: </span>Work</span></li>
+                  <li><span class="meta-chip pill-orange">Due Jun 30</span></li>
+                </ul>
+                <div class="todo-body">
+                  <div class="todo-checkbox-wrap">
+                    <input type="checkbox" class="todo-checkbox" id="light-todo-1-check" aria-labelledby="light-todo-1-title" aria-describedby="light-todo-1-meta">
+                    <span class="todo-checkbox-ui" aria-hidden="true"></span>
+                    <label class="sr-only" for="light-todo-1-check">Mark "Welcome to AppTodo" as complete</label>
+                  </div>
+                  <div class="todo-content">
+                    <h3 class="todo-title" id="light-todo-1-title">Welcome to AppTodo</h3>
+                  </div>
+                  <button type="button" class="action-btn todo-edit" aria-label="Edit Welcome to AppTodo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+            <button type="button" class="todo-swipe-delete" aria-hidden="true" tabindex="-1" aria-label="Delete Welcome to AppTodo">Delete</button>
+          </div>
+        </li>
+        <li>
+          <div class="todo-swipe" data-todo-name="Try dark mode and filters" role="group" aria-label="Todo: Try dark mode and filters">
+            <div class="todo-swipe-content">
+              <article class="todo-item" aria-labelledby="light-todo-2-title">
+                <ul class="todo-meta" id="light-todo-2-meta" aria-label="Todo details">
+                  <li><span class="meta-chip pill-orange"><span class="sr-only">Priority: </span>Medium</span></li>
+                  <li><span class="meta-chip pill-green"><span class="sr-only">Category: </span>Personal</span></li>
+                </ul>
+                <div class="todo-body">
+                  <div class="todo-checkbox-wrap">
+                    <input type="checkbox" class="todo-checkbox" id="light-todo-2-check" checked aria-labelledby="light-todo-2-title" aria-describedby="light-todo-2-meta">
+                    <span class="todo-checkbox-ui" aria-hidden="true"></span>
+                    <label class="sr-only" for="light-todo-2-check">Mark "Try dark mode and filters" as incomplete</label>
+                  </div>
+                  <div class="todo-content">
+                    <h3 class="todo-title" id="light-todo-2-title"><span class="sr-only">Completed: </span>Try dark mode and filters</h3>
+                  </div>
+                  <button type="button" class="action-btn todo-edit" aria-label="Edit Try dark mode and filters">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+            <button type="button" class="todo-swipe-delete" aria-hidden="true" tabindex="-1" aria-label="Delete Try dark mode and filters">Delete</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<!-- Dark theme preview — same a11y patterns as light; ids suffixed -dark -->
+<main class="app-container dark" id="dark-app" aria-labelledby="dark-app-heading">
+  <header class="header">
+    <div>
+      <h1 id="dark-app-heading">Todos</h1>
+      <p id="dark-app-tagline">Plan, prioritize, and track work effortlessly.</p>
+    </div>
+    <!-- Theme toggle: radiogroup + role=radio + aria-checked (not unlabelled icons) -->
+    <div class="theme-toggle" role="radiogroup" aria-label="Color theme">
+      <button type="button" role="radio" aria-checked="false" aria-label="Light theme">Light</button>
+      <button type="button" role="radio" aria-checked="true" aria-label="Dark theme, selected">Dark</button>
+    </div>
+  </header>
+
+  <!-- Status filter tabs — tablist/tab/tabpanel pairing; only active tab in tab order -->
+  <nav aria-label="Filter todos by status">
+    <ul class="tabs" role="tablist" aria-label="Todo status">
+      <li role="presentation"><button type="button" class="tab" role="tab" id="dark-tab-open" aria-selected="false" aria-controls="dark-tabpanel" tabindex="-1">Open</button></li>
+      <li role="presentation"><button type="button" class="tab" role="tab" id="dark-tab-done" aria-selected="false" aria-controls="dark-tabpanel" tabindex="-1">Done</button></li>
+      <li role="presentation"><button type="button" class="tab" role="tab" id="dark-tab-all" aria-selected="true" aria-controls="dark-tabpanel" tabindex="0">All</button></li>
+      <li role="presentation"><button type="button" class="tab" role="tab" id="dark-tab-archived" aria-selected="false" aria-controls="dark-tabpanel" tabindex="-1">Archived</button></li>
+    </ul>
+  </nav>
+
+  <div class="tabpanel" id="dark-tabpanel" role="tabpanel" aria-labelledby="dark-tab-all" tabindex="0">
+
+    <section class="sub-filters" aria-label="Active filters">
+      <span class="pill pill-green">View: All</span>
+      <span class="pill pill-blue">Device: Handheld</span>
+    </section>
+
+    <!-- Add todo: labelled inputs, fieldset radios, submit button (not div.click) -->
+    <section aria-labelledby="dark-add-heading">
+      <h2 class="sr-only" id="dark-add-heading">Add a new todo</h2>
+      <form class="form-card" action="#" method="post" aria-describedby="dark-app-tagline">
+        <div>
+          <label class="field-label" for="dark-todo-title">Todo title</label>
+          <input type="text" id="dark-todo-title" name="title" class="input-field" placeholder="What needs doing?" autocomplete="off" required>
+        </div>
+
+        <div>
+          <label class="field-label" for="dark-todo-priority">Priority</label>
+          <select id="dark-todo-priority" name="priority" class="input-field">
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        <!-- Category: real radio inputs styled as pills; legend + scroll hint for AT -->
+        <fieldset class="category-scroll" aria-describedby="dark-category-hint">
+          <legend class="sr-only">Category</legend>
+          <p class="sr-only" id="dark-category-hint">Scroll horizontally to see all category options.</p>
+          <div class="category-option category-option--neutral">
+            <input type="radio" name="dark-category" id="dark-cat-none" value="" checked>
+            <label for="dark-cat-none">No category</label>
+          </div>
+          <div class="category-option category-option--blue">
+            <input type="radio" name="dark-category" id="dark-cat-work" value="work">
+            <label for="dark-cat-work">Work</label>
+          </div>
+          <div class="category-option category-option--blue">
+            <input type="radio" name="dark-category" id="dark-cat-personal" value="personal">
+            <label for="dark-cat-personal">Personal</label>
+          </div>
+          <div class="category-option category-option--green">
+            <input type="radio" name="dark-category" id="dark-cat-shopping" value="shopping">
+            <label for="dark-cat-shopping">Shopping</label>
+          </div>
+          <div class="category-option category-option--green">
+            <input type="radio" name="dark-category" id="dark-cat-health" value="health">
+            <label for="dark-cat-health">Health</label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Add todo</button>
+      </form>
+    </section>
+
+    <!-- Search: label associated with input; magnifier icon is decorative only -->
+    <section aria-labelledby="dark-search-heading">
+      <h2 class="sr-only" id="dark-search-heading">Search todos</h2>
+      <div class="search-container">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <label class="sr-only" for="dark-search">Search todos</label>
+        <input type="search" id="dark-search" name="search" placeholder="Search todos..." autocomplete="off" enterkeyhint="search">
+      </div>
+    </section>
+
+    <!-- Live counts — polite aria-live so total changes are announced -->
+    <div class="list-stats" role="status" aria-live="polite" aria-atomic="true">
+      <span class="pill"><span class="sr-only">Status: </span>1 open</span>
+      <span class="pill"><span class="sr-only">Status: </span>1 done</span>
+    </div>
+
+    <!-- Todo list: swipe instructions (sr-only), delete announcer, native controls per row -->
+    <section aria-labelledby="dark-list-heading" aria-describedby="dark-swipe-hint">
+      <h2 class="sr-only" id="dark-list-heading">Todo list</h2>
+      <p class="sr-only" id="dark-swipe-hint">Swipe a todo left to reveal delete, or swipe far left to delete immediately. Tap the right edge hint to reveal delete. Keyboard: Shift+Delete to reveal, Delete to confirm, Escape to cancel.</p>
+      <div id="dark-delete-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <ul class="todo-list" role="list">
+        <!-- Row: role=group + swipe surface; checkbox/title/edit stay in tab order; delete off-tree until open -->
+        <li>
+          <div class="todo-swipe" data-todo-name="Welcome to AppTodo" role="group" aria-label="Todo: Welcome to AppTodo">
+            <div class="todo-swipe-content">
+              <article class="todo-item" aria-labelledby="dark-todo-1-title">
+                <ul class="todo-meta" id="dark-todo-1-meta" aria-label="Todo details">
+                  <li><span class="meta-chip pill-red"><span class="sr-only">Priority: </span>High</span></li>
+                  <li><span class="meta-chip pill-blue"><span class="sr-only">Category: </span>Work</span></li>
+                  <li><span class="meta-chip pill-orange">Due Jun 30</span></li>
+                </ul>
+                <div class="todo-body">
+                  <div class="todo-checkbox-wrap">
+                    <input type="checkbox" class="todo-checkbox" id="dark-todo-1-check" aria-labelledby="dark-todo-1-title" aria-describedby="dark-todo-1-meta">
+                    <span class="todo-checkbox-ui" aria-hidden="true"></span>
+                    <label class="sr-only" for="dark-todo-1-check">Mark "Welcome to AppTodo" as complete</label>
+                  </div>
+                  <div class="todo-content">
+                    <h3 class="todo-title" id="dark-todo-1-title">Welcome to AppTodo</h3>
+                  </div>
+                  <button type="button" class="action-btn todo-edit" aria-label="Edit Welcome to AppTodo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+            <button type="button" class="todo-swipe-delete" aria-hidden="true" tabindex="-1" aria-label="Delete Welcome to AppTodo">Delete</button>
+          </div>
+        </li>
+        <li>
+          <div class="todo-swipe" data-todo-name="Try dark mode and filters" role="group" aria-label="Todo: Try dark mode and filters">
+            <div class="todo-swipe-content">
+              <article class="todo-item" aria-labelledby="dark-todo-2-title">
+                <ul class="todo-meta" id="dark-todo-2-meta" aria-label="Todo details">
+                  <li><span class="meta-chip pill-orange"><span class="sr-only">Priority: </span>Medium</span></li>
+                  <li><span class="meta-chip pill-green"><span class="sr-only">Category: </span>Personal</span></li>
+                </ul>
+                <div class="todo-body">
+                  <div class="todo-checkbox-wrap">
+                    <input type="checkbox" class="todo-checkbox" id="dark-todo-2-check" checked aria-labelledby="dark-todo-2-title" aria-describedby="dark-todo-2-meta">
+                    <span class="todo-checkbox-ui" aria-hidden="true"></span>
+                    <label class="sr-only" for="dark-todo-2-check">Mark "Try dark mode and filters" as incomplete</label>
+                  </div>
+                  <div class="todo-content">
+                    <h3 class="todo-title" id="dark-todo-2-title"><span class="sr-only">Completed: </span>Try dark mode and filters</h3>
+                  </div>
+                  <button type="button" class="action-btn todo-edit" aria-label="Edit Try dark mode and filters">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+            <button type="button" class="todo-swipe-delete" aria-hidden="true" tabindex="-1" aria-label="Delete Try dark mode and filters">Delete</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<script>
+/*
+ * Accessibility — swipe-to-delete behaviour
+ *
+ * Gesture is optional. Keyboard: Shift+Delete reveals delete and focuses it;
+ * Delete confirms when open; Escape closes and returns focus to row controls.
+ * Tap within ~20px of the row's right edge also reveals (matches visual hint).
+ *
+ * Delete button when closed: aria-hidden + tabindex=-1 so it is skipped in tab
+ * order and ignored by AT until revealed. setDeleteState toggles both.
+ *
+ * Delete click: first click reveals (does not delete); second click deletes —
+ * avoids accidental deletion from a single tap after a partial swipe.
+ *
+ * Full swipe (>= 50% row width) deletes immediately for power users; shorter
+ * swipe snaps open at DELETE_WIDTH. Horizontal intent detection avoids blocking
+ * vertical list scroll.
+ *
+ * prefers-reduced-motion: no pointer swipe handlers; delete stays visible and
+ * focusable; single click deletes. Matches CSS side-by-side layout.
+ *
+ * deleteTodo: aria-live announcer (#…-delete-announcer) speaks the removed
+ * title; updateStats preserves sr-only "Status:" prefixes in count pills.
+ */
+(function () {
+  var DELETE_WIDTH = 80;
+  var OPEN_THRESHOLD = 40;
+  var FULL_DELETE_RATIO = 0.5;
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function setDeleteState(deleteBtn, open) {
+    deleteBtn.setAttribute('aria-hidden', open ? 'false' : 'true');
+    deleteBtn.tabIndex = open ? 0 : -1;
+  }
+
+  function resetTransform(content) {
+    content.style.transform = '';
+    content.style.transition = '';
+  }
+
+  function updateStats(list) {
+    if (!list) return;
+    var app = list.closest('.app-container') || list.closest('main');
+    if (!app) return;
+    var stats = app.querySelector('.list-stats');
+    if (!stats) return;
+
+    var open = 0;
+    var done = 0;
+    list.querySelectorAll('.todo-swipe').forEach(function (swipe) {
+      var cb = swipe.querySelector('.todo-checkbox');
+      if (cb && cb.checked) done += 1;
+      else open += 1;
+    });
+
+    var pills = stats.querySelectorAll('.pill');
+    if (pills[0]) pills[0].innerHTML = '<span class="sr-only">Status: </span>' + open + ' open';
+    if (pills[1]) pills[1].innerHTML = '<span class="sr-only">Status: </span>' + done + ' done';
+  }
+
+  function deleteTodo(swipe) {
+    var name = swipe.dataset.todoName || 'Todo';
+    var li = swipe.closest('li');
+    var list = swipe.closest('.todo-list');
+    var section = swipe.closest('section');
+    var announcer = section && section.querySelector('[id$="-delete-announcer"]');
+
+    if (announcer) announcer.textContent = 'Deleted "' + name + '".';
+    closeAllExcept(null);
+
+    if (!li) return;
+
+    if (reducedMotion) {
+      li.remove();
+      updateStats(list);
+      return;
+    }
+
+    swipe.classList.add('is-deleting');
+    var content = swipe.querySelector('.todo-swipe-content');
+    var height = li.offsetHeight;
+
+    li.style.maxHeight = height + 'px';
+    li.style.opacity = '1';
+
+    content.style.transition = 'transform 0.22s ease';
+    content.style.transform = 'translateX(-100%)';
+
+    requestAnimationFrame(function () {
+      li.style.maxHeight = '0';
+      li.style.opacity = '0';
+      li.style.marginTop = '0';
+      li.style.marginBottom = '0';
+    });
+
+    window.setTimeout(function () {
+      li.remove();
+      updateStats(list);
+    }, 280);
+  }
+
+  function closeSwipe(swipe) {
+    swipe.classList.remove('is-open');
+    setDeleteState(swipe.querySelector('.todo-swipe-delete'), false);
+    resetTransform(swipe.querySelector('.todo-swipe-content'));
+  }
+
+  function closeAllExcept(except) {
+    document.querySelectorAll('.todo-swipe.is-open').forEach(function (el) {
+      if (el !== except) closeSwipe(el);
+    });
+  }
+
+  function openSwipe(swipe, focusDelete) {
+    closeAllExcept(swipe);
+    swipe.classList.add('is-open');
+    var deleteBtn = swipe.querySelector('.todo-swipe-delete');
+    var content = swipe.querySelector('.todo-swipe-content');
+    setDeleteState(deleteBtn, true);
+    content.style.transform = '';
+    content.style.transition = '';
+    if (focusDelete && deleteBtn) deleteBtn.focus();
+  }
+
+  function firstFocusable(container) {
+    return container.querySelector('input, button, select, textarea, a[href]');
+  }
+
+  function clampOffset(swipe, offset) {
+    return Math.max(-swipe.offsetWidth, Math.min(0, offset));
+  }
+
+  document.querySelectorAll('.todo-swipe').forEach(function (swipe) {
+    var content = swipe.querySelector('.todo-swipe-content');
+    var deleteBtn = swipe.querySelector('.todo-swipe-delete');
+    var startX = 0;
+    var baseOffset = 0;
+    var dragging = false;
+    var pointerId = null;
+
+    setDeleteState(deleteBtn, reducedMotion);
+
+    var checkbox = swipe.querySelector('.todo-checkbox');
+    if (checkbox) {
+      checkbox.addEventListener('change', function () {
+        updateStats(swipe.closest('.todo-list'));
+      });
+    }
+
+    deleteBtn.addEventListener('click', function (e) {
+      if (reducedMotion) {
+        deleteTodo(swipe);
+        return;
+      }
+      if (!swipe.classList.contains('is-open')) {
+        e.preventDefault();
+        openSwipe(swipe, true);
+        return;
+      }
+      deleteTodo(swipe);
+    });
+
+    swipe.addEventListener('keydown', function (e) {
+      if (e.shiftKey && e.key === 'Delete') {
+        e.preventDefault();
+        openSwipe(swipe, true);
+      } else if (e.key === 'Delete' && swipe.classList.contains('is-open')) {
+        e.preventDefault();
+        deleteTodo(swipe);
+      } else if (e.key === 'Escape' && swipe.classList.contains('is-open')) {
+        e.preventDefault();
+        closeSwipe(swipe);
+        var focusable = firstFocusable(content);
+        if (focusable) focusable.focus();
+      }
+    });
+
+    swipe.addEventListener('click', function (e) {
+      if (swipe.classList.contains('is-open') || swipe.classList.contains('swipe-dragging')) return;
+      if (e.target.closest('button, input, select, textarea, a, label')) return;
+      var rect = swipe.getBoundingClientRect();
+      if (rect.right - e.clientX <= 20) {
+        openSwipe(swipe, true);
+      }
+    });
+
+    if (reducedMotion) return;
+
+    var startY = 0;
+    var tracking = false;
+
+    function onDragStart(clientX, id) {
+      if (swipe.classList.contains('is-deleting')) return;
+      dragging = true;
+      tracking = false;
+      pointerId = id;
+      swipe.classList.add('swipe-dragging');
+      startX = clientX;
+      baseOffset = swipe.classList.contains('is-open') ? -DELETE_WIDTH : 0;
+      closeAllExcept(swipe);
+    }
+
+    function onDragMove(clientX) {
+      if (!dragging) return;
+      var offset = clampOffset(swipe, baseOffset + (clientX - startX));
+      content.style.transform = 'translateX(' + offset + 'px)';
+    }
+
+    function onDragEnd(clientX) {
+      if (!dragging) {
+        tracking = false;
+        pointerId = null;
+        return;
+      }
+      dragging = false;
+      tracking = false;
+      swipe.classList.remove('swipe-dragging');
+      pointerId = null;
+
+      var offset = clampOffset(swipe, baseOffset + (clientX - startX));
+      var fullDeleteThreshold = -swipe.offsetWidth * FULL_DELETE_RATIO;
+
+      if (offset <= fullDeleteThreshold) {
+        deleteTodo(swipe);
+        return;
+      }
+
+      if (offset < -OPEN_THRESHOLD) {
+        openSwipe(swipe, false);
+        return;
+      }
+
+      closeSwipe(swipe);
+    }
+
+    content.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      if (e.target.closest('button, input, select, textarea, a')) return;
+      tracking = true;
+      dragging = false;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    content.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== pointerId) return;
+
+      if (tracking && !dragging) {
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+
+        if (Math.abs(dy) >= Math.abs(dx)) {
+          tracking = false;
+          pointerId = null;
+          return;
+        }
+
+        if (dx >= 0 && !swipe.classList.contains('is-open')) {
+          tracking = false;
+          pointerId = null;
+          return;
+        }
+
+        onDragStart(startX, e.pointerId);
+        content.setPointerCapture(e.pointerId);
+      }
+
+      if (!dragging) return;
+      e.preventDefault();
+      onDragMove(e.clientX);
+    });
+
+    content.addEventListener('pointerup', function (e) {
+      if (e.pointerId !== pointerId) return;
+      if (dragging) {
+        try { content.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+      onDragEnd(e.clientX);
+    });
+
+    content.addEventListener('pointercancel', function (e) {
+      if (e.pointerId !== pointerId) return;
+      onDragEnd(e.clientX);
+    });
+  });
+
+  document.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.todo-swipe-delete')) return;
+    document.querySelectorAll('.todo-swipe.is-open').forEach(function (swipe) {
+      if (!swipe.contains(e.target)) closeSwipe(swipe);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -8,19 +8,19 @@
 		"componentLibraryAliases": [
 			["default", "ThirdParty.ReactNativeVisionCamera.Components"],
 			["LC",      "LibClient.Components"],
-			["RX",      "ReactXP.Components"]
+			["Rn",      "Rn.Components"]
 		],
 		"componentLibraryPaths": [
 			["LibClient.Components", "../LibClient/src/Components"],
-			["ReactXP.Components",   "../LibClient/src/ReactXP/Components"]
+			["Rn.Components",   "../LibClient/src/Rn/Components"]
 		],
 		"componentAliases": [
-			["div",       "RX.View"],
-			["anidiv",    "RX.AniView"],
+			["div",       "Rn.View"],
+			["anidiv",    "Rn.AniView"],
 			["text",      "LC.Text"],
-			["anitext",   "RX.AniText"],
+			["anitext",   "Rn.AniText"],
 			["uitext",    "LC.UiText"],
-			["aniuitext", "RX.AniUiText"]
+			["aniuitext", "Rn.AniUiText"]
 		]
 	}
 }

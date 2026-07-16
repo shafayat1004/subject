@@ -11,7 +11,7 @@ let private bindRef (refState: IStateHook<Option<Browser.Types.Element>>) (onIni
 
     match (refState.current, maybeNewRef, onInitialize) with
     | (None, Some ref, Some onInitialize) -> onInitialize ref
-    | _ -> Noop
+    | _                                   -> Noop
 
     refState.update maybeNewRef
 
@@ -29,4 +29,3 @@ type LC.With with
             )
 
         ``with`` (bindRefMemo, refState.current)
-

@@ -17,7 +17,7 @@ type ViewEndpoints<'Input, 'Output, 'OpError> = {
 // "Throttle" means if there is an ongoing request for a given key, then use it rather than starting another.
 type internal Throttling<'Input, 'Output, 'OpError when 'Input : comparison>(
         thothEncodedHttpService: ThothEncodedHttpService,
-        apiEndpoints: ViewEndpoints<'Input, 'Output, 'OpError>
+        apiEndpoints:            ViewEndpoints<'Input, 'Output, 'OpError>
     ) =
     let mutable ongoingRequestsOne: Map<'Input, Deferred<AsyncData<'Output>>> = Map.empty
 
@@ -55,8 +55,8 @@ type internal Throttling<'Input, 'Output, 'OpError when 'Input : comparison>(
             match Json.FromString<String>(webResponse.body :?> string) with
             | Ok decodedError -> return Failed (RequestFailure (ClientError (422, decodedError)))
             | Error _         -> return Failed (UnknownFailure "Decode Error")
-        | Error (Non200Code (404, _)) -> return Unavailable
-        | Error (Non200Code (0,   _)) -> return Failed AsyncDataFailure.NetworkFailure
+        | Error (Non200Code (404, _))                 -> return Unavailable
+        | Error (Non200Code (0,   _))                 -> return Failed AsyncDataFailure.NetworkFailure
         | Error (Non200Code (responseCode, response)) -> return Failed (AsyncDataFailure.RequestFailure (RequestFailure.ofStatusCode (responseCode, jsonStringify(response))))
-        | Error error                 -> return Failed (UnknownFailure (error.ToString()))
+        | Error error                                 -> return Failed (UnknownFailure (error.ToString()))
     }

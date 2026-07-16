@@ -19,14 +19,14 @@ with
             MaybeApiAccess =
                 match this.MaybeApiAccess |> box with
                 | :? (Option<ViewApiAccess<'Input, 'NewAccessPredicateInput, 'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                                            -> None
 
             Def = this.Def
         }
 
     member internal this.ToReferencedView(): ReferencedView<'Input, 'Output, 'OpError, 'AccessPredicateInput, 'Session, 'Role> =
         {
-            Def = this.Def
+            Def            = this.Def
             MaybeApiAccess = this.MaybeApiAccess
         }
 
@@ -39,7 +39,7 @@ module ReferencedViewBuilder =
             : ReferencedViewBuilder<'Input, 'Output, 'OpError, AccessPredicateInput, 'Session, 'Role> =
 
         {
-            Def = def
+            Def            = def
             MaybeApiAccess = None
         }
 
@@ -57,7 +57,7 @@ module ReferencedViewBuilder =
         { builder.AssumeTypes<AccessPredicateInput, 'Role>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
+                    AccessRules     = accessRules
                     AccessPredicate = (fun _ _ _ _ -> true)
                 }
         }
@@ -70,7 +70,7 @@ module ReferencedViewBuilder =
         { builder.AssumeTypes<'AccessPredicateInput, 'Role>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
+                    AccessRules     = accessRules
                     AccessPredicate = accessPredicate
             }
         }

@@ -36,20 +36,20 @@ type private SharedSubjectPipelineCacheKey = string
 
 type private SharedSubjectPipelineCacheItem<'Subject> =
     {
-        Pipeline: IObservable<ApiSubjectChange<'Subject>>
+        Pipeline:  IObservable<ApiSubjectChange<'Subject>>
         ForceSync: IObserver<unit>
     }
 
 type private SubjectPipelineCacheKey =
     {
-        HubConnectionId: string
-        SubjectId: string
+        HubConnectionId:     string
+        SubjectId:           string
         MaybeProjectionName: Option<string>
     }
 
 type private SubjectPipelineCacheItem =
     {
-        SubjectChange: IObservable<string>
+        SubjectChange:      IObservable<string>
         MaybeClientVersion: IObserver<Option<ComparableVersion>>
     }
 
@@ -65,7 +65,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
         (
             // Taking IServiceProvider is an anti-pattern, but we have little choice. GrainPartition is a scoped service and Fable.SignalR does not
             // support method-level DI.
-            serviceProvider: IServiceProvider,
+            serviceProvider:  IServiceProvider,
             lifeCycleAdapter: IHostedOrReferencedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>
         ) =
 
@@ -82,7 +82,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
         match subjectChange with
         | SubjectChange.Updated subjectUpdate ->
             {
-                Data = subjectUpdate.Subject
+                Data    = subjectUpdate.Subject
                 Version = (subjectUpdate.AsOf.Ticks, subjectUpdate.Version)
             }
             |> ApiSubjectChange.Updated
@@ -141,7 +141,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                         .RefCount(TimeSpan.FromSeconds(5))
 
                 {
-                    Pipeline = autoCleanUpSubjectObservable
+                    Pipeline  = autoCleanUpSubjectObservable
                     ForceSync = forceSync
                 }
             )
@@ -199,8 +199,8 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
             (subjectId: string) : SubjectPipelineCacheItem =
         let cacheKey =
             {
-                HubConnectionId = hubConnectionId
-                SubjectId = subjectId
+                HubConnectionId     = hubConnectionId
+                SubjectId           = subjectId
                 MaybeProjectionName = maybeProjectionName
             }
 
@@ -365,7 +365,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                         .RefCount(TimeSpan.FromSeconds(5))
 
                 {
-                    SubjectChange = publishedSubjectChangePipeline
+                    SubjectChange      = publishedSubjectChangePipeline
                     MaybeClientVersion = maybeClientVersion
                 }
             )
@@ -437,7 +437,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                 .Select(fun subjectChange ->
                     match subjectChange with
                     | ApiSubjectChange.Updated versionedData -> Some versionedData.Data
-                    | ApiSubjectChange.NotInitialized -> None)
+                    | ApiSubjectChange.NotInitialized        -> None)
 
 let private streamToClientGeneric<'Subject, 'Session>
         (logger: IFsLogger)

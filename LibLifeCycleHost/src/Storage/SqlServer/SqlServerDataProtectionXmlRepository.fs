@@ -29,7 +29,7 @@ type SqlServerDataProtectionXmlRepository(sqlServerConfig: SqlServerConfiguratio
             use connection = new SqlConnection(sqlServerConfig.ConnectionString)
             connection.Open()
             use cmd = new SqlCommand(sprintf "INSERT INTO [%s].DataProtectionKey (FriendlyName, Xml) VALUES (@name, @xml)" ecosystemName, connection)
-            cmd.Parameters.AddWithValue("@name", friendlyName) |> ignore
+            cmd.Parameters.AddWithValue("@name", friendlyName)                  |> ignore
             cmd.Parameters.AddWithValue("@xml", SqlXml(element.CreateReader())) |> ignore
             let numRowsAffected = cmd.ExecuteNonQuery()
             if numRowsAffected <> 1 then

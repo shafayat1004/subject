@@ -16,13 +16,13 @@ and FullyTypedReferencedLifeCycleFunction<'Res, 'Subject, 'LifeAction, 'OpError,
     abstract member Invoke: ReferencedLifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role> -> 'Res
 
 and IReferencedLifeCycle =
-    abstract member Name: string
-    abstract member Def: LifeCycleDef
+    abstract member Name:   string
+    abstract member Def:    LifeCycleDef
     abstract member Invoke: FullyTypedReferencedLifeCycleFunction<'Res> -> 'Res
     // TODO: HACK: need a way to update session handling in a referenced LC using only this interface, since the builder needs to
     // fill this in when building the referenced ecosystem.
     abstract member AssumeSessionHandling: Option<EcosystemSessionHandling<'Session, 'Role>> -> IReferencedLifeCycle
-    abstract member IsSessionLifeCycle: bool
+    abstract member IsSessionLifeCycle:    bool
 
 and IReferencedLifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId
                 when 'Subject              :> Subject<'SubjectId>
@@ -34,7 +34,7 @@ and IReferencedLifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEve
                 and  'SubjectId            :> SubjectId
                 and  'SubjectId            :  comparison> =
     inherit IReferencedLifeCycle
-    abstract member Invoke: FullyTypedReferencedLifeCycleFunction<'Res, 'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId> -> 'Res
+    abstract member Invoke:              FullyTypedReferencedLifeCycleFunction<'Res, 'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId> -> 'Res
     abstract member RateLimitsPredicate: LifeCycleRateLimitPredicate<'LifeAction, 'Constructor>
     abstract member ShouldSendTelemetry: Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
     abstract member ShouldRecordHistory: Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
@@ -53,11 +53,11 @@ and ReferencedLifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEven
                 and  'AccessPredicateInput :> AccessPredicateInput
                 and  'Role                 :  comparison> =
     internal {
-        Def:             LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
-        MaybeApiAccess:  Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
+        Def:                 LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
+        MaybeApiAccess:      Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
         ShouldSendTelemetry: Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
         ShouldRecordHistory: Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
-        SessionHandling: Option<EcosystemSessionHandling<'Session, 'Role>>
+        SessionHandling:     Option<EcosystemSessionHandling<'Session, 'Role>>
     }
 with
     member this.Name = this.Def.Key.LocalLifeCycleName
@@ -73,11 +73,11 @@ with
                 MaybeApiAccess =
                     match this.MaybeApiAccess |> box with
                     | :? (Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'NewSession, 'NewRole>>) as existing -> existing
-                    | _ -> None
+                    | _                                                                                                                                          -> None
                 ShouldSendTelemetry = this.ShouldSendTelemetry
                 ShouldRecordHistory = this.ShouldRecordHistory
-                SessionHandling = sessionHandling
-                Def = this.Def
+                SessionHandling     = sessionHandling
+                Def                 = this.Def
             }
         member this.IsSessionLifeCycle =
             this.SessionHandling
@@ -111,9 +111,9 @@ type LifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Subje
 with
     member this.ToReferencedLifeCycle(): ReferencedLifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role> =
         {
-            Def = this.Definition
-            MaybeApiAccess = this.MaybeApiAccess
+            Def                 = this.Definition
+            MaybeApiAccess      = this.MaybeApiAccess
             ShouldSendTelemetry = this.ShouldSendTelemetry
             ShouldRecordHistory = this.ShouldRecordHistory
-            SessionHandling = this.SessionHandling
+            SessionHandling     = this.SessionHandling
         }

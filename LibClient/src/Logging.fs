@@ -33,15 +33,15 @@ type ILogSink =
     abstract member Log: level: LogLevel * maybeCategory: Option<string> * properties: LogProperties * event: Event -> unit
 
 type ILog =
-    abstract member WithCategory: category: string -> ILog
+    abstract member WithCategory:     category: string -> ILog
     abstract member WithMinimumLevel: minimumLevel: LogLevel -> ILog
-    abstract member WithProperty: property: LogProperty -> ILog
-    abstract member WithProperties: properties: LogProperties -> ILog
+    abstract member WithProperty:     property: LogProperty -> ILog
+    abstract member WithProperties:   properties: LogProperties -> ILog
 
-    abstract member Log: level: LogLevel * messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
+    abstract member Log:   level: LogLevel * messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
     abstract member Debug: messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
-    abstract member Info: messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
-    abstract member Warn: messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
+    abstract member Info:  messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
+    abstract member Warn:  messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
     abstract member Error: messageTemplate: string * [<ParamArray>] Args: obj[] -> unit
 
 [<AutoOpen>]
@@ -49,20 +49,20 @@ module LoggingHelpers =
     [<RequireQualifiedAccess>]
     type TypedPropertyValue =
     | NullOrUndefined
-    | Boolean of bool
-    | String of string
-    | Integer of int64
-    | Real of float
+    | Boolean          of bool
+    | String           of string
+    | Integer          of int64
+    | Real             of float
     | SerializedObject of string
     with
         member this.ToDisplayString(): string =
             match this with
-            | TypedPropertyValue.Boolean b -> string b
-            | TypedPropertyValue.String str -> str
-            | TypedPropertyValue.Integer num -> string num
-            | TypedPropertyValue.Real num -> string num
+            | TypedPropertyValue.Boolean b            -> string b
+            | TypedPropertyValue.String str           -> str
+            | TypedPropertyValue.Integer num          -> string num
+            | TypedPropertyValue.Real num             -> string num
             | TypedPropertyValue.SerializedObject str -> str
-            | TypedPropertyValue.NullOrUndefined -> "null"
+            | TypedPropertyValue.NullOrUndefined      -> "null"
 
     let getTypedPropertyValue (value: obj): TypedPropertyValue =
         if Fable.Core.JsInterop.isNullOrUndefined value then
@@ -186,7 +186,7 @@ type ConsoleLogSink(?includeFormatting: bool, ?includePropertyGroup: bool) =
 
                 Seq.concat
                     [
-                        properties |> Map.toSeq
+                        properties            |> Map.toSeq
                         event.GetProperties() |> Seq.map (fun property -> (property.NamedHole.Name, property.Value))
                     ]
                 |> Seq.iter (fun (name, value) ->
@@ -231,9 +231,9 @@ type private CompositeLogSink(initialLogSinks: List<ILogSink>) =
 
 type private LogImpl(
         initialMinimumLevel: LogLevel,
-        maybeCategory: Option<string>,
-        initialProperties: LogProperties,
-        logSink: ILogSink ) =
+        maybeCategory:       Option<string>,
+        initialProperties:   LogProperties,
+        logSink:             ILogSink ) =
     let mutable minimumLevel = initialMinimumLevel
     let mutable properties = initialProperties
 
@@ -276,15 +276,15 @@ type private LogImpl(
                 let event =
                     {
                         MessageTemplate = MessageTemplate messageTemplate
-                        Arguments = if args = null then Array.empty else args
+                        Arguments       = if args = null then Array.empty else args
                     }
 
                 let countOfNamedHolesWithoutValues, countOfValuesWithoutNamedHoles =
                     event.GetNamedHolesAndValues()
                     |> Seq.choose (fun zipOuterResult ->
                         match zipOuterResult with
-                        | ZipOuterResult.BothPresent _ -> None
-                        | ZipOuterResult.FirstPresent _ -> Some (1, 0)
+                        | ZipOuterResult.BothPresent _   -> None
+                        | ZipOuterResult.FirstPresent _  -> Some (1, 0)
                         | ZipOuterResult.SecondPresent _ -> Some (0, 1)
                     )
                     |> Seq.fold

@@ -19,17 +19,32 @@ type Props = (* GenerateMakeFunction *) {
 
 }
 
+[<Fable.Core.JS.Pojo>]
+type private PieChartPropsJs
+    ( ?width:        int,
+      ?height:       int,
+      ?margin:       obj,
+      ?onClick:      (unit -> unit),
+      ?onMouseEnter: (unit -> unit),
+      ?onMouseLeave: (unit -> unit) ) =
+    member val width        = width
+    member val height       = height
+    member val margin       = margin
+    member val onClick      = onClick
+    member val onMouseEnter = onMouseEnter
+    member val onMouseLeave = onMouseLeave
+
 let private PieChart: obj = JsInterop.import "PieChart" "recharts"
 let Make =
     LibClient.ThirdParty.wrapComponentTransformingProps<Props>
         PieChart
         (fun (props: Props) ->
-            createObj [
-                "width"        ==> props.Width
-                "height"       ==> props.Height
-                "onClick"      ==> props.OnClick
-                "onMouseEnter" ==> props.OnMouseEnter
-                "onMouseLeave" ==> props.OnMouseLeave
-                "margin"       ==> (props.Margin |> Option.map (fun v -> v.ToJS))
-            ]
+            PieChartPropsJs(
+                ?width        = props.Width,
+                ?height       = props.Height,
+                ?margin       = (props.Margin |> Option.map (fun v -> v.ToJS)),
+                ?onClick      = props.OnClick,
+                ?onMouseEnter = props.OnMouseEnter,
+                ?onMouseLeave = props.OnMouseLeave
+            ) |> box
         )

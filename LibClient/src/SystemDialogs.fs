@@ -2,7 +2,7 @@
 module LibClient.SystemDialogs
 
 open LibClient.Services.ImageService
-open ReactXP.Components.Image
+open Rn.Components.Image
 
 type SystemDialog =
 | ConfirmCustom     of MaybeHeading: Option<string> * Details: string * Buttons: List<LibClient.Components.Dialog.Confirm.Button>

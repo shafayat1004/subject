@@ -18,11 +18,11 @@ type [<Extension>] RealTimeDataExtensions() =
                 Some
                     {
                         SignalR.Config<LibLifeCycleTypes.LegacyRealTime.ClientApi, LibLifeCycleTypes.LegacyRealTime.ServerApi>.Default () with
-                            LogLevel = Some LogLevel.Warning
+                            LogLevel   = Some LogLevel.Warning
                             HubOptions = Some (fun options -> options.EnableDetailedErrors <- true)
                     }
-            Send = (fun _ _ -> Task.CompletedTask)
-            Invoke = (fun _ _ -> () |> Task.FromResult)
+            Send            = (fun _ _ -> Task.CompletedTask)
+            Invoke          = (fun _ _ -> () |> Task.FromResult)
             EndpointPattern = "/realTime"
         }
 
@@ -32,18 +32,18 @@ type [<Extension>] RealTimeDataExtensions() =
                 Some
                     {
                         SignalR.Config<LibLifeCycleTypes.Api.V1.RealTime.ClientApi, LibLifeCycleTypes.Api.V1.RealTime.ServerApi>.Default () with
-                            LogLevel = Some LogLevel.Warning
+                            LogLevel   = Some LogLevel.Warning
                             HubOptions = Some (fun options -> options.EnableDetailedErrors <- true)
                     }
-            Send = (fun _ _ -> Task.CompletedTask)
-            Invoke = (fun _ _ -> () |> Task.FromResult)
+            Send            = (fun _ _ -> Task.CompletedTask)
+            Invoke          = (fun _ _ -> () |> Task.FromResult)
             EndpointPattern = "/api/v1/realTime"
         }
 
     [<Extension>]
     static member AddRealTimeEndpoints
             (
-                services: IServiceCollection,
+                services:  IServiceCollection,
                 ecosystem: Ecosystem
             ) =
         let serviceProvider = services.BuildServiceProvider()
@@ -81,7 +81,7 @@ type [<Extension>] RealTimeDataExtensions() =
     [<Extension>]
     static member UseRealTimeEndpoints
             (
-                builder: IApplicationBuilder,
+                builder:   IApplicationBuilder,
                 ecosystem: Ecosystem
             ) =
 

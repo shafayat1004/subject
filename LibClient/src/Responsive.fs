@@ -23,12 +23,12 @@ let mutable private onScreenSizeUpdatedListeners: List<System.Action> = []
 let private screenSizeOfWidth (width: int) : ScreenSize =
     // we are using this arbitrary value to determine whether we are on native or web
     // however for larger tablets (width > 900px) we might fall back to "desktop" mode
-    // in such case, DOM elements (i.e. not ReactXP components) will fail
+    // in such case, DOM elements (i.e. not Rn components) will fail
     match width < 900 with
     | true  -> ScreenSize.Handheld
     | false -> ScreenSize.Desktop
 
-let mutable private latestScreenSize: ScreenSize = screenSizeOfWidth (ReactXP.UserInterface.windowLayoutInfo()).width
+let mutable private latestScreenSize: ScreenSize = screenSizeOfWidth (Rn.UserInterface.windowLayoutInfo()).width
 
 let getLatestScreenSize () : ScreenSize =
     latestScreenSize
@@ -38,7 +38,7 @@ screenSizeContext?displayName <- "ScreenSizeContext"
 
 let screenSizeContextProvider: ScreenSize -> ReactElements -> ReactElement = contextProvider screenSizeContext
 
-let screenSizeOnLayout (e: ReactXP.Types.ViewOnLayoutEvent) : unit =
+let screenSizeOnLayout (e: Rn.Types.ViewOnLayoutEvent) : unit =
     let newScreenSize = screenSizeOfWidth e.width
 
     if newScreenSize <> latestScreenSize then

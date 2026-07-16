@@ -19,9 +19,9 @@ type InputType =
 | NumericInput of AllowDecimals: bool * MinValue: decimal * MaxValue: decimal
 | BooleanInput
 | DateTimeInput
-| OptionInput of Map<string, string>
+| OptionInput  of Map<string, string>
 | UnsupportedInput
-| FileInput of MaxFileSizeInBytes: int64
+| FileInput    of MaxFileSizeInBytes: int64
 
 type InputValue =
 | StringValue   of string
@@ -123,7 +123,7 @@ let buildInputForm (plugin: InputRendererPlugin) (name: string) (forType: Type) 
         | t when t = typeof<Double>         -> Value (name, path, NumericInput (true,  decimal Double.MinValue, decimal Double.MaxValue))
         | t when t = typeof<SByte>          -> Value (name, path, NumericInput (true,  Decimal.MinValue,        Decimal.MaxValue       ))
         // | t when t = typeof<Unsigned<_>>    -> Simple(name,path,NumericInput(true,Decimal.Zero,Decimal.MaxValue))
-        | _                                 -> Value(name,path,UnsupportedInput)
+        | _ -> Value(name,path,UnsupportedInput)
 
     let rec getInput (path: string) (name: string) (forType: Type) =
         match plugin (defaults getInput) path name forType with
@@ -153,7 +153,7 @@ let private getTupleFromInput root path (keyValuePairs:System.Collections.Generi
     |> Seq.map (fun (n,t) -> root (concatPath path n) keyValuePairs t)
     |> mergeValidationResults
     |> function
-       | Validated arr -> FSharpValue.MakeTuple(arr,tupleType) |> Validated
+       | Validated arr       -> FSharpValue.MakeTuple(arr,tupleType) |> Validated
        | ValidationFailed vf -> ValidationFailed vf
 
 let private getRecordFromInput root path (keyValuePairs:System.Collections.Generic.IDictionary<string,InputValue>) recordType :InputValidationResult<obj> =
@@ -161,7 +161,7 @@ let private getRecordFromInput root path (keyValuePairs:System.Collections.Gener
     |> Seq.map (fun t -> root (concatPath path t.Name) keyValuePairs t.PropertyType)
     |> mergeValidationResults
     |> function
-       | Validated arr -> FSharpValue.MakeRecord(recordType,arr) |> Validated
+       | Validated arr       -> FSharpValue.MakeRecord(recordType,arr) |> Validated
        | ValidationFailed vf -> ValidationFailed vf
 
 let private getUnionFromInput root path (keyValuePairs:System.Collections.Generic.IDictionary<string,InputValue>) unionType :InputValidationResult<obj> =
@@ -174,10 +174,10 @@ let private getUnionFromInput root path (keyValuePairs:System.Collections.Generi
                         |> Seq.map (fun p -> root (concatPath (concatPath path (uc.Tag.ToString())) p.Name) keyValuePairs p.PropertyType)
                         |> mergeValidationResults
                         |> function
-                           | Validated arr -> FSharpValue.MakeUnion(uc,arr) |> Validated
+                           | Validated arr       -> FSharpValue.MakeUnion(uc,arr) |> Validated
                            | ValidationFailed vf -> ValidationFailed vf
            | None -> InvalidValue(concatPath path "_Case", "Invalid case selected") |> ValidationFailed
-    | true,_ -> InvalidValue(concatPath path "_Case", "Invalid case selected") |> ValidationFailed
+    | true,_  -> InvalidValue(concatPath path "_Case", "Invalid case selected") |> ValidationFailed
     | false,_ -> MissingValue(concatPath path "_Case") |> ValidationFailed
 
 let getObjectFromInput<'T> (plugin:InputParserPlugin) (pathToValues:Map<string,InputValue>) :InputValidationResult<'T> =
@@ -187,98 +187,98 @@ let getObjectFromInput<'T> (plugin:InputParserPlugin) (pathToValues:Map<string,I
             | t when t = typeof<DateTime>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,DateTimeValue(dt) -> dt.DateTime |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid Date/Time") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,_                 -> InvalidValue(path,"Expecting a valid Date/Time") |> ValidationFailed
+                   | false,_                -> MissingValue path |> ValidationFailed
             | t when t = typeof<DateTime>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,DateTimeValue(dt) -> dt |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid Date/Time") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,_                 -> InvalidValue(path,"Expecting a valid Date/Time") |> ValidationFailed
+                   | false,_                -> MissingValue path |> ValidationFailed
             | t when t = typeof<string>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,StringValue(null) -> MissingValue path |> ValidationFailed
-                   | true,StringValue("") -> MissingValue path |> ValidationFailed
-                   | true,StringValue(v) -> v |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid string") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,StringValue("")   -> MissingValue path |> ValidationFailed
+                   | true,StringValue(v)    -> v |> box |> Validated
+                   | true,_                 -> InvalidValue(path,"Expecting a valid string") |> ValidationFailed
+                   | false,_                -> MissingValue path |> ValidationFailed
             | t when t = typeof<Int16>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal Int16.MinValue || v > decimal Int16.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToInt16(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                       -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                               -> Convert.ToInt16(v) |> box |> Validated
+                   | true,_                                                                             -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                            -> MissingValue path |> ValidationFailed
             | t when t = typeof<Int32>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal Int32.MinValue || v > decimal Int32.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToInt32(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                       -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                               -> Convert.ToInt32(v) |> box |> Validated
+                   | true,_                                                                             -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                            -> MissingValue path |> ValidationFailed
             | t when t = typeof<Int64>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal Int64.MinValue || v > decimal Int64.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToInt64(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                       -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                               -> Convert.ToInt64(v) |> box |> Validated
+                   | true,_                                                                             -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                            -> MissingValue path |> ValidationFailed
             | t when t = typeof<Byte>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal Byte.MinValue || v > decimal Byte.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToByte(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                     -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                             -> Convert.ToByte(v) |> box |> Validated
+                   | true,_                                                                           -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                          -> MissingValue path |> ValidationFailed
             | t when t = typeof<SByte>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal SByte.MinValue || v > decimal SByte.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToSByte(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                       -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                               -> Convert.ToSByte(v) |> box |> Validated
+                   | true,_                                                                             -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                            -> MissingValue path |> ValidationFailed
             | t when t = typeof<UInt16>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal UInt16.MinValue || v > decimal UInt16.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToUInt16(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                         -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                                 -> Convert.ToUInt16(v) |> box |> Validated
+                   | true,_                                                                               -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                              -> MissingValue path |> ValidationFailed
             | t when t = typeof<UInt32>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal UInt32.MinValue || v > decimal UInt32.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToUInt32(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                         -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                                 -> Convert.ToUInt32(v) |> box |> Validated
+                   | true,_                                                                               -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                              -> MissingValue path |> ValidationFailed
             | t when t = typeof<UInt64>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal UInt64.MinValue || v > decimal UInt64.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) when Math.Floor(v) <> v -> InvalidValue(path,"Value has decimals") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToUInt64(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v) when Math.Floor(v) <> v                                         -> InvalidValue(path,"Value has decimals") |> ValidationFailed
+                   | true,NumericValue(v)                                                                 -> Convert.ToUInt64(v) |> box |> Validated
+                   | true,_                                                                               -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                              -> MissingValue path |> ValidationFailed
             | t when t = typeof<Single>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal Single.MinValue || v > decimal Single.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToSingle(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v)                                                                 -> Convert.ToSingle(v) |> box |> Validated
+                   | true,_                                                                               -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                              -> MissingValue path |> ValidationFailed
             | t when t = typeof<Double>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) when v < decimal Double.MinValue || v > decimal Double.MaxValue -> InvalidValue(path,"Value is outside valid range") |> ValidationFailed
-                   | true,NumericValue(v) -> Convert.ToDouble(v) |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,NumericValue(v)                                                                 -> Convert.ToDouble(v) |> box |> Validated
+                   | true,_                                                                               -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_                                                                              -> MissingValue path |> ValidationFailed
             | t when t = typeof<Decimal>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,NumericValue(v) -> v |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,_               -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
+                   | false,_              -> MissingValue path |> ValidationFailed
             | t when t = typeof<Boolean>
                 -> match keyValuePairs.TryGetValue(path) with
                    | true,BooleanValue(v) -> v |> box |> Validated
-                   | true,_ -> InvalidValue(path,"Expecting a boolean value (true/false)") |> ValidationFailed
-                   | false,_ -> MissingValue path |> ValidationFailed
+                   | true,_               -> InvalidValue(path,"Expecting a boolean value (true/false)") |> ValidationFailed
+                   | false,_              -> MissingValue path |> ValidationFailed
 //            | t when t = typeof<Unsigned<_>>
 //                -> match keyValuePairs.TryGetValue(path) with
 //                   | true,NumericValue(v) -> match createUnsigned v with
@@ -286,14 +286,14 @@ let getObjectFromInput<'T> (plugin:InputParserPlugin) (pathToValues:Map<string,I
 //                                             | UnsignedResult.ErrNegative _ -> InvalidValue(path,"Expecting a positive number") |> ValidationFailed
 //                   | true,_ -> InvalidValue(path,"Expecting a valid number") |> ValidationFailed
 //                   | false,_ -> MissingValue path |> ValidationFailed
-            | t when FSharpType.IsTuple t -> getTupleFromInput getObject path keyValuePairs t
+            | t when FSharpType.IsTuple t  -> getTupleFromInput getObject path keyValuePairs t
             | t when FSharpType.IsRecord t -> getRecordFromInput getObject path keyValuePairs t
-            | t when FSharpType.IsUnion t -> getUnionFromInput getObject path keyValuePairs t
-            | _ -> UnsupportedInputType path |> ValidationFailed
+            | t when FSharpType.IsUnion t  -> getUnionFromInput getObject path keyValuePairs t
+            | _                            -> UnsupportedInputType path |> ValidationFailed
         match plugin defaults keyValuePairs path objType with
         | Some v -> v
-        | None -> defaults keyValuePairs path objType
+        | None   -> defaults keyValuePairs path objType
 
     match getObject "formui" (pathToValues |> Map.toSeq |> dict) typeof<'T> with
-    | Validated v -> v :?> 'T |> Validated
+    | Validated v         -> v :?> 'T |> Validated
     | ValidationFailed vf -> ValidationFailed vf

@@ -141,7 +141,6 @@ function initialize() {
         const sessionIdCookieDomain = eggshellConfigOverrides.MaybeSessionIdCookieDomain;
         const gaikanTemplateValues = {
             urlFavicon:              maybeCdn("/<%= resourcesPath %>/images/favicon.ico"),
-            urlLoader:               maybeCdn("/<%= resourcesPath %>/images/loader.gif"),
             urlStylesheet:           maybeCdn("/<%= resourcesPath %>/app.css"),
             urlBundle:               maybeCdn("/<%= bundleFilename %>"),
             eggshellConfigOverrides: eggshellConfigOverridesStringified,

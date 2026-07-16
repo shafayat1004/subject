@@ -12,8 +12,8 @@ module Result =
         | Error _  -> None
         | Ok value -> Some value
 #else
-type Microsoft.FSharp.Core.Result<'T,'Error> with
-    static member toOption (source: Result<'T, 'E>) : Option<'T> =
+type Microsoft.FSharp.Core.Result<'T, 'Error> with
+    static member toOption(source: Result<'T, 'E>) : Option<'T> =
         match source with
         | Error _  -> None
         | Ok value -> Some value
@@ -21,24 +21,23 @@ type Microsoft.FSharp.Core.Result<'T,'Error> with
 
 
 
-type Microsoft.FSharp.Core.Result<'T,'Error> with
-    static member liftList<'T, 'Error> (listOfResults: List<Result<'T, 'Error>>) : Result<List<'T>, List<'Error>> =
+type Microsoft.FSharp.Core.Result<'T, 'Error> with
+    static member liftList<'T, 'Error>(listOfResults: List<Result<'T, 'Error>>) : Result<List<'T>, List<'Error>> =
         let (oks, errors) =
             List.foldBack
                 (fun curr (oks, errors) ->
                     match curr with
                     | Ok ok       -> (ok :: oks, errors)
-                    | Error error -> (oks, error :: errors)
-                )
-                listOfResults ([], [])
+                    | Error error -> (oks, error :: errors))
+                listOfResults
+                ([], [])
 
         match errors.IsEmpty with
         | true  -> Ok oks
         | false -> Error errors
 
-    static member liftFirst<'T, 'E> (listOfResults: List<Result<'T, 'E>>) : Result<List<'T>, 'E> =
-        Result.liftList listOfResults
-        |> Result.mapError List.head
+    static member liftFirst<'T, 'E>(listOfResults: List<Result<'T, 'E>>) : Result<List<'T>, 'E> =
+        Result.liftList listOfResults |> Result.mapError List.head
 
     static member ofOption<'T, 'E> (noneCase: 'E) (option: Option<'T>) : Result<'T, 'E> =
         match option with
@@ -58,9 +57,9 @@ type Microsoft.FSharp.Core.Result<'T,'Error> with
     /// let errValue = Error "Oops" |> Result.unwrap  // Throws Exception
     /// </code>
     /// </example>
-    static member unwrap<'T, 'E> (result: Result<'T, 'E>) : 'T =
+    static member unwrap<'T, 'E>(result: Result<'T, 'E>) : 'T =
         match result with
-        | Error e -> failwith $"Called Result.Unwrap on an Error: {e}"
+        | Error e  -> failwith $"Called Result.Unwrap on an Error: {e}"
         | Ok value -> value
 
     /// <summary>
@@ -79,40 +78,40 @@ type Microsoft.FSharp.Core.Result<'T,'Error> with
     /// </example>
     static member expect<'T, 'E> (expectReason: string) (result: Result<'T, 'E>) : 'T =
         match result with
-        | Error _ -> failwith expectReason
+        | Error _  -> failwith expectReason
         | Ok value -> value
 
-    static member invert (source: Result<'T, 'E>) : Result<'E, 'T> =
+    static member invert(source: Result<'T, 'E>) : Result<'E, 'T> =
         match source with
-        | Error e -> Ok    e
-        | Ok    t -> Error t
+        | Error e -> Ok e
+        | Ok t    -> Error t
 
     static member tryRecover<'T, 'E> (f: 'E -> Result<'T, 'E>) (input: Result<'T, 'E>) : Result<'T, 'E> =
         match input with
         | Error e -> f e
-        | _ -> input
+        | _       -> input
 
     static member recover<'T, 'E> (f: 'E -> 'T) (input: Result<'T, 'E>) : 'T =
         match input with
         | Error e -> f e
-        | Ok    t -> t
+        | Ok t    -> t
 
     static member mapBoth (f: 'T -> 'T2) (g: 'Error -> 'Error2) (input: Result<'T, 'Error>) : Result<'T2, 'Error2> =
         match input with
         | Error e -> g e |> Error
         | Ok t    -> f t |> Ok
 
-    member this.IsError : bool =
+    member this.IsError: bool =
         match this with
         | Error _ -> true
-        | Ok    _ -> false
+        | Ok _    -> false
 
-    member this.IsOkay : bool =
-        not this.IsError
+    member this.IsOkay: bool = not this.IsError
 
 // A Result, where the Ok value is Disposable
-type DisposableResult<'T, 'TError when 'T :> IDisposable> = DisposableResult of Result<'T, 'TError>
-with
+type DisposableResult<'T, 'TError when 'T :> IDisposable> =
+    | DisposableResult of Result<'T, 'TError>
+
     member this.Result =
         let (DisposableResult res) = this
         res
@@ -120,7 +119,5 @@ with
     interface IDisposable with
         member this.Dispose() =
             match this with
-            | DisposableResult(Ok okValue) ->
-                okValue.Dispose()
-            | _ ->
-                ()
+            | DisposableResult(Ok okValue) -> okValue.Dispose()
+            | _                            -> ()

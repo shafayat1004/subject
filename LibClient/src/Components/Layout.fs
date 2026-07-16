@@ -3,8 +3,8 @@ module LibClient.Components.Layout
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     [<RequireQualifiedAccess>]
@@ -80,7 +80,7 @@ type LibClient.Components.Constructors.LC with
     /// <code>
     ///     LC.Constrained (
     ///         maxWidth = 200,
-    ///         child = RX.View (
+    ///         child = Rn.View (
     ///             styles = [|Styles.greyExpandingBox|],
     ///             children = [|LC.Text lipsum|]
     ///         )
@@ -93,7 +93,7 @@ type LibClient.Components.Constructors.LC with
     /// <code>
     ///     LC.Constrained (
     ///         maxHeight = 100,
-    ///         child = RX.View (
+    ///         child = Rn.View (
     ///             styles = [|Styles.greyExpandingBox|],
     ///             children = [|LC.Text lipsum|]
     ///         )
@@ -108,7 +108,7 @@ type LibClient.Components.Constructors.LC with
     ///     LC.Shrink (
     ///         LC.Constrained (
     ///             minWidth = 150,
-    ///             child = RX.View (
+    ///             child = Rn.View (
     ///                 styles = [|Styles.greyExpandingBox|],
     ///                 children = [|LC.Text "Little text"|]
     ///             )
@@ -124,7 +124,7 @@ type LibClient.Components.Constructors.LC with
     ///     LC.Shrink (
     ///         LC.Constrained (
     ///             minHeight = 150,
-    ///             child = RX.View (
+    ///             child = Rn.View (
     ///                 styles = [|Styles.greyExpandingBox|],
     ///                 children = [|LC.Text "Little text"|]
     ///             )
@@ -147,14 +147,14 @@ type LibClient.Components.Constructors.LC with
     /// </remarks>
     [<Component>]
     static member Constrained (child: ReactElement, ?maxWidth: int, ?minWidth: int, ?maxHeight: int, ?minHeight: int) : ReactElement =
-        RX.View (
+        Rn.View (
             styles   = [|Styles.constrained maxWidth minWidth maxHeight minHeight|],
             children = [|child|]
         )
 
     [<Component>]
     static member Shrink (child: ReactElement, ?styles: array<ViewStyles>) : ReactElement =
-        RX.View (
+        Rn.View (
             styles =
                 (Array.append
                     (defaultArg styles [||])
@@ -174,7 +174,7 @@ type LibClient.Components.Constructors.LC with
     ///     LC.Sized (
     ///         width = 100,
     ///         height = 100,
-    ///         child = RX.View (
+    ///         child = Rn.View (
     ///             styles = [|Styles.greyExpandingBox|],
     ///             children = [|LC.Text "the box"|]
     ///         )
@@ -187,7 +187,7 @@ type LibClient.Components.Constructors.LC with
     /// <code>
     ///     LC.Sized (
     ///         width = 100,
-    ///         child = RX.View (
+    ///         child = Rn.View (
     ///             styles = [|Styles.greyExpandingBox|],
     ///             children = [|LC.Text "the box"|]
     ///         )
@@ -200,7 +200,7 @@ type LibClient.Components.Constructors.LC with
     /// <code>
     ///     LC.Sized (
     ///         height = 100,
-    ///         child = RX.View (
+    ///         child = Rn.View (
     ///             styles = [|Styles.greyExpandingBox|],
     ///             children = [|LC.Text "the box"|]
     ///         )
@@ -221,7 +221,7 @@ type LibClient.Components.Constructors.LC with
 
     [<Component>]
     static member Sized (?child: ReactElement, ?width: int, ?height: int, ?styles: array<ViewStyles>) : ReactElement =
-        RX.View (
+        Rn.View (
             styles =
                 (Array.append
                     (defaultArg styles [||])
@@ -232,7 +232,7 @@ type LibClient.Components.Constructors.LC with
 
     [<Component>]
     static member Centered (child: ReactElement) : ReactElement =
-        RX.View (
+        Rn.View (
             styles   = [|Styles.centered|],
             children = [|child|]
         )
@@ -301,7 +301,7 @@ type LibClient.Components.Constructors.LC with
     static member Row (children: array<ReactElement>, ?crossAxisAlignment: CrossAxisAlignment, ?gap: int, ?styles: array<ViewStyles>) : ReactElement =
         let theCrossAxisAlignment = defaultArg crossAxisAlignment CrossAxisAlignment.Center
 
-        RX.View(
+        Rn.View(
             styles =
                 (Array.append
                     (defaultArg styles [||])
@@ -310,10 +310,10 @@ type LibClient.Components.Constructors.LC with
                         Styles.crossAxisAlignment theCrossAxisAlignment
                         match gap with
                         | Some value -> Styles.gap value
-                        | None -> ()
+                        | None       -> ()
                     |]
                 ),
-            children = children
+            children = tellReactArrayKeysAreOkay children
         )
 
     /// <summary>Lay out the children in a column, optionally configuring the gap beteween children, and the horizontal alignment</summary>
@@ -372,7 +372,7 @@ type LibClient.Components.Constructors.LC with
     static member Column (children: array<ReactElement>, ?crossAxisAlignment: CrossAxisAlignment, ?gap: int, ?styles: array<ViewStyles>) : ReactElement =
         let theCrossAxisAlignment = defaultArg crossAxisAlignment CrossAxisAlignment.Stretch
 
-        RX.View (
+        Rn.View (
             styles =
                 (Array.append
                     (defaultArg styles [||])
@@ -381,10 +381,10 @@ type LibClient.Components.Constructors.LC with
                         Styles.crossAxisAlignment theCrossAxisAlignment
                         match gap with
                         | Some value -> Styles.gap value
-                        | None -> ()
+                        | None       -> ()
                     |]
                 ),
-            children = children
+            children = tellReactArrayKeysAreOkay children
         )
 
     [<Component>]
@@ -399,7 +399,7 @@ type LibClient.Components.Constructors.LC with
         )
         LibClient.Responsive.screenSizeContextProvider (LibClient.Responsive.getLatestScreenSize())
             [|
-                RX.View (
+                Rn.View (
                     onLayout = LibClient.Responsive.screenSizeOnLayout,
                     styles   = [|Styles.appTopLevelLayoutResponsiveContainer|],
                     children = children

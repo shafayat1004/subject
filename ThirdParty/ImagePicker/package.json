@@ -4,7 +4,7 @@
     "start": "webpack-dev-server"
   },
   "dependencies": {
-    "react-native-image-picker": "4.10.0",
+    "react-native-image-picker": "^7.2.3",
     "react-templates-fable": "file:../../Meta/AppRenderDslCompiler"
   }
 }

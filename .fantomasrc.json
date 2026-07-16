@@ -1,0 +1,23 @@
+{
+  "IndentSize": 4,
+  "IndentOnTryWith": true,
+  "MaxLineLength": 120,
+  "SpaceBeforeColon": false,
+  "SpaceAfterComma": true,
+  "SpaceAfterSemicolon": true,
+  "IndentationStyle": "FSharp",
+  "MultilineBracketStyle": "Aligned",
+  "AlignFunctionSignatureToIndentation": true,
+  "AlternativeLongMemberDefinitions": true,
+  "MultilineBlockBracketsOnSameColumn": false,
+  "KeepIndentInBranch": true,
+  "SpaceAroundDelimiter": true,
+  "MaxRecordWidth": 60,
+  "MaxArrayOrListWidth": 60,
+  "MaxValueBindingWidth": 80,
+  "MaxFunctionBindingWidth": 80,
+  "MaxElmishWidth": 40,
+  "SingleArgumentWebMode": false,
+  "AlignLongDistanceOperators": true,
+  "StrictMode": false
+}

@@ -9,6 +9,6 @@ type LibClient.Components.Constructors.LC.With.GlobalDataFlowControl with
     [<Component>]
     static member Context(``with``: Control -> ReactElement) : ReactElement =
         LC.With.Context(
-            context = globalDataFlowControlContext,
+            context  = globalDataFlowControlContext,
             ``with`` = ``with``
         )

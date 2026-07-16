@@ -1,4 +1,14 @@
 <Project ToolsVersion="15.0">
+  <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
+    <!--
+      EggShell formatting check severity. Overridable per project in its .fsproj.
+        warning  (default) - emit a build warning on violations; build still succeeds
+        error              - block the build on violations
+        none               - skip entirely (use for vendored / in-progress projects)
+    -->
+    <EggShellFmtSeverity Condition="'$(EggShellFmtSeverity)' == ''">warning</EggShellFmtSeverity>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'!='Release'">
     <!-- Suppress QQQs during development -->
     <OtherFlags>--warnon:3390 --warnon:1182 --warnaserror+ --nowarn:3186;3511;3535;3536;3548;3560;10666;10667 --warnaserror-:44;1182 $(OtherFlags)</OtherFlags>
@@ -7,6 +17,10 @@
     <!-- In Release mode, QQQ becomes an error, QQQ_In_Longterm_Development becomes a warning -->
     <OtherFlags>--warnon:1182 --warnaserror+ --nowarn:3186;3511;3535;3536;3548;3560 --warnaserror-:44;1182;10667 $(OtherFlags)</OtherFlags>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Pin before SDK implicit FSharp.Core (7.0.403 on net7.0); required by LibSignalRServer / Fable 5. -->
+    <PackageReference Update="FSharp.Core" Version="9.0.201" />
+  </ItemGroup>
 </Project>
 
 <!--

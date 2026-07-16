@@ -1,3 +1,0 @@
-<div class='view'>
-    <uitext stylesOption='props.styles'>{props.Text}</uitext>
-</div>

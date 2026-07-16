@@ -1,3 +1,0 @@
-<rt-block>
-    {=props.Content(estate.Mode, actions.RunAction, actions.Reset)}
-</rt-block>

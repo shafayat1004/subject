@@ -1,17 +1,77 @@
-
+// Must be the very first import: sets up the gesture-handler native module before
+// anything renders (required on Android, no-op on web). Without it PanGestureHandler
+// silently no-ops (RW8 defect 4 -- the HorizontalPanArea "Drag me" slider did not drag).
+import 'react-native-gesture-handler';
+// Must be imported before any code touches `crypto` (native has no global crypto otherwise:
+// "ReferenceError: Property 'crypto' doesn't exist"). Polyfills crypto.getRandomValues.
+import 'react-native-get-random-values';
 import { LogBox } from 'react-native';
 
-// For the time being we are not going to update
-// the current codebase
-// Hence ignoring following warnings
+// react-native-web app entry (Fable output bootstraps below).
+// mount, each with a deep component stack (~15 logcat lines per warning).
+const ignoredNativeWarningPatterns = [
+  /legacy childContextTypes API/,
+  /legacy contextTypes API/,
+  /LC\.Icon is being used with legacy styles/,
+  /React Router Future Flag Warning/,
+  /componentWillUpdate has been renamed/,
+  /componentWillReceiveProps has been renamed/,
+  /AsyncStorage has been extracted from react-native/,
+  /`new NativeEventEmitter\(\)` was called with a non-null argument/,
+  /Support for defaultProps will be removed/,
+  /TRenderEngineProvider/,
+  /MemoizedTNodeRenderer/,
+  /TNodeChildrenRenderer/,
+  /^\s+in /,
+];
+
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  const message = typeof args[0] === 'string' ? args[0] : String(args[0]);
+  if (ignoredNativeWarningPatterns.some(pattern => pattern.test(message))) {
+    return;
+  }
+  originalConsoleWarn(...args);
+};
+
+// React Native's renderer logs legacy contextTypes via console.error in __DEV__.
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const message = typeof args[0] === 'string' ? args[0] : String(args[0]);
+  if (ignoredNativeWarningPatterns.some(pattern => pattern.test(message))) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 LogBox.ignoreLogs([
-  'componentWillUpdate has been renamed',                               // TODO - Replace all componentWillUpdate
-  'componentWillReceiveProps has been renamed',                         // TODO - Replace all componentWillReceiveProps
-  'AsyncStorage has been extracted from react-native',                  // TODO - Need to update react-native-community/AsyncStorage
-  '`new NativeEventEmitter()` was called with a non-null argument',     // TODO - Update @react-native-community/netinfo
-  'Require cycle: node_modules\\react-native\\Libraries\\Network\\fetch.js' // TODO - Investigate
+  'legacy childContextTypes API',
+  'legacy contextTypes API',
+  'LC.Icon is being used with legacy styles',
+  'React Router Future Flag Warning',
+  'componentWillUpdate has been renamed',
+  'componentWillReceiveProps has been renamed',
+  'AsyncStorage has been extracted from react-native',
+  '`new NativeEventEmitter()` was called with a non-null argument',
+  'Require cycle: node_modules\\react-native\\Libraries\\Network\\fetch.js',
+  'Support for defaultProps will be removed',
+  'TRenderEngineProvider',
+  'MemoizedTNodeRenderer',
+  'TNodeChildrenRenderer',
 ]);
 
+if (__DEV__) {
+  const errorUtils = global.ErrorUtils;
+  if (errorUtils && typeof errorUtils.getGlobalHandler === 'function') {
+    const defaultGlobalHandler = errorUtils.getGlobalHandler();
+    errorUtils.setGlobalHandler((error, isFatal) => {
+      if (error && error.stack) {
+        originalConsoleError('[EggShell uncaught]', error.message, '\n', error.stack);
+      }
+      defaultGlobalHandler(error, isFatal);
+    });
+  }
+}
 
 // This file is required by the react native metro bundler as
 // starting point of the application.

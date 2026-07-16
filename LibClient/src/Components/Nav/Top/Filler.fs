@@ -3,8 +3,8 @@ module LibClient.Components.Nav_Top_Filler
 
 open Fable.React
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -19,6 +19,6 @@ type LibClient.Components.Constructors.LC.Nav.Top with
             ?key: string) : ReactElement =
         key |> ignore
 
-        RX.View(
+        Rn.View(
             styles = [| Styles.view |]
         )

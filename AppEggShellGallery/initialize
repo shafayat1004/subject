@@ -1,6 +1,24 @@
 npm install
 npm link react-templates-fable
 
+# Android debug keystore (standard RN debug signing)
+if [ ! -f android/app/debug.keystore ]; then
+  keytool -genkeypair -v \
+    -keystore android/app/debug.keystore \
+    -storepass android \
+    -alias androiddebugkey \
+    -keypass android \
+    -keyalg RSA \
+    -keysize 2048 \
+    -validity 10000 \
+    -dname "CN=Android Debug,O=Android,C=US"
+fi
+
+# iOS CocoaPods (RN 0.76; requires iOS 15.5+ for CodePush)
+if [ -d ios ] && command -v pod >/dev/null 2>&1; then
+  (cd ios && pod install)
+fi
+
 # deleting for idempotency
 rm -rf ./fsharplint.json
 rm -rf .vscode/renderdsl.code-snippets
@@ -12,5 +30,11 @@ mkdir -p ./.vscode
 ln -s ../../Meta/renderdsl.code-snippets ./.vscode/renderdsl.code-snippets
 ln -s ../images ./public-dev/
 ln -s ../configSourceOverrides.dev.js public-dev/configSourceOverrides.dev.js
+
+# Local native dev overrides (gitignored); template is committed
+if [ ! -f configSourceOverrides.native.js ]; then
+  cp configSourceOverrides.native.js.template configSourceOverrides.native.js
+  echo "Created configSourceOverrides.native.js from template (edit for local API keys if needed)"
+fi
 
 dotnet restore src/App.fsproj

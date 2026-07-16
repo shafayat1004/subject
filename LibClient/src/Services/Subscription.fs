@@ -27,26 +27,26 @@ type Subscription<'T>() =
 
     member _.Off (): unit =
         match maybeEventBusOnResult with
-        | None -> failwith "Trying to unsubscribe from a subscription without OnResult"
+        | None          -> failwith "Trying to unsubscribe from a subscription without OnResult"
         | Some onResult -> onResult.Off()
 
     member _.On (listener: SubscriptionListener<'T>): unit =
         maybeListener <-
             match maybeListener with
-            | None -> Some(listener)
+            | None   -> Some(listener)
             | Some _ -> failwith "A subscription already has a listener, somebody is calling On more than once"
 
     // TODO reduce visibility to only be accessible to SubscriptionService
     member _.SetEventBusOnResult (onResult: OnResult): unit =
         maybeEventBusOnResult <-
             match maybeEventBusOnResult with
-            | None -> Some(onResult)
+            | None   -> Some(onResult)
             | Some _ -> failwith "A subscription already has onResult, somebody is calling SetEventBusOnResult more than once"
 
     // TODO reduce visibility to only be accessible to SubscriptionService
     member _.Notify (data: AsyncData<'T>) =
         match maybeListener with
-        | None -> failwith "Trying to notify a subscription that nobody listens to"
+        | None          -> failwith "Trying to notify a subscription that nobody listens to"
         | Some listener -> listener data
 
 
@@ -63,7 +63,7 @@ type Subscribers<'T>(maybeOnZeroSubscribers: Option<Subscribers<'T> -> unit>) =
 
                 match maybeOnZeroSubscribers, updatedSubscribers with
                 | Some onZeroSubscribers, [] -> onZeroSubscribers this
-                | _ -> ()
+                | _                          -> ()
         }
 
     member _.NotifyAll (t: 'T) : unit =

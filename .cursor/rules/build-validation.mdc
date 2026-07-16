@@ -1,0 +1,55 @@
+---
+description: EggShell/Fable build validation — no stale-cache false greens; check terminal output promptly
+alwaysApply: true
+---
+
+# Build validation and terminal checks
+
+## Fable cache is not proof of green
+
+`eggshell build-native` / `build-lib` may print **exit 0** while Fable says:
+
+`Skipped compilation because all generated files are up-to-date!`
+
+That is **not** validation. Before calling a frontend change done:
+
+1. **Force recompile** if you changed any `.fs` file: `touch` the file(s), or remove `.build/<platform>/fable`, or `dotnet fable clean` in the app/lib dir.
+2. Confirm output includes **`Started Fable compilation...`** and your changed file in `Compiled N/M: ...`.
+3. **`rg "error FS|Compilation failed"`** on build output — never rely on exit code alone after a skip.
+
+If the user has **`eggshell watch-*` / dev stack running**, treat **their watch terminal** as ground truth over a separate cached `build-native` you ran.
+
+## Framework dependency rebuild (LibClient / LibRouter)
+
+App `dev-native` / `dev-web` watches the app `src/` tree and **may not re-emit LibClient JS** until the changed framework `.fs` appears in Fable output. After editing **`LibClient` or `LibRouter`**:
+
+1. **`touch` the changed framework file(s)** (or `rm -rf LibClient/.build/<web|native>/fable` then `eggshell build-lib` from `LibClient/`).
+2. Confirm the **app watch terminal** logs `Compiled …/LibClient/…` or `LibRouter/…` — not only app files.
+3. If the bundle still looks stale: `rm -rf SuiteTodo/AppTodo/.build/<platform>/fable`, restart `dev-native` / `dev-web`; for native also Metro `--reset-cache`.
+4. Do not call a framework UI fix done until verified in the running app (web or native), not only `build-lib` exit 0.
+
+## Use the user's dev stack — do not fork it
+
+When the user already has **`eggshell dev-native`** (T1) and **Metro on `:8081`** (T2) in their own terminals:
+
+- **Do not** start parallel `dev-native`, Metro, `dev-web`, or Appium.
+- **Do not** run `build-native` or `rm -rf .build/native` while their `dev-native` watch is active.
+- **Read** their terminal files first; **code only**; confirm watch output before calling a UI change done.
+- **Never ask the user to press `r`** (or `a` / `i` / any key) in Metro, webpack-dev-server, or any **agent-started background terminal** — those sessions are **read-only for the user**.
+- **Reload yourself:** `touch` changed `.fs` for Fable watch; restart `dev-web` / Metro in **your** shell if needed; native reload via `adb shell input …` / simctl / app relaunch; web verify via `curl` + read terminal output. Browser hard-refresh is fine when they are viewing the page directly — do not delegate terminal reload to them.
+- **Observe** only against their running stack; ask before starting Appium/`dev-web` if they already have one.
+- Their **Metro terminal** is ground truth for LogBox / render errors (read the terminal file — do not ask them to operate it).
+
+See `AppEggShellGallery/public-dev/docs/knowledge-base/engineering-log.md` (2026-06-28 — AppTodo dev: use the user's terminals).
+
+## Check terminal output early
+
+- Use **30–45s** initial waits on builds; read output as soon as lines appear.
+- On long runs, **read the terminal file** (`terminals/*.txt`) instead of blocking for 120s+.
+- If output shows errors, fix them before retrying — do not rerun the same blind long command.
+
+## Hooks inside `LC.With.ScreenSize` / `LC.With.Context`
+
+These use `Hooks.useMemo` on the render callback. **Never call hook-using code inside that callback** (plain functions with `useState`/`useEffect`, or `renderPickerBase`). Use a `[<Component>]` wrapper `type` with `static member` instead — **not** a `module`.
+
+Example: `LibClient/.../Input/Picker/Picker.fs` → private `PickerHost` type wrapping `renderPickerBase`.

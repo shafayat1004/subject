@@ -7,8 +7,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Icons
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 // TODO: delete after RenderDSL migration
 type PropSuffixFactory = InputSuffixFactory
@@ -87,18 +87,18 @@ module LC =
             type Value = LibClient.Components.Input.ParsedText.Value<DateOnly>
 
             type Theme = {
-                BorderLabelBlurredColor: Color
-                BorderLabelFocusedColor: Color
-                BorderLabelInvalidColor: Color
-                TextColor: Color
-                NoneditableTextColor: Color
-                NoneditableBackgroundColor: Color
-                InvalidReasonColor: Color
-                PlaceholderColor: Color
-                TheVerticalPadding: int
-                CalendarButtonColor: Color
+                BorderLabelBlurredColor:       Color
+                BorderLabelFocusedColor:       Color
+                BorderLabelInvalidColor:       Color
+                TextColor:                     Color
+                NoneditableTextColor:          Color
+                NoneditableBackgroundColor:    Color
+                InvalidReasonColor:            Color
+                PlaceholderColor:              Color
+                TheVerticalPadding:            int
+                CalendarButtonColor:           Color
                 CalendarButtonBackgroundColor: Color
-                CalendarButtonIconSize: int
+                CalendarButtonIconSize:        int
             }
 
             let parse (raw: Option<NonemptyString>) : Value =
@@ -142,28 +142,28 @@ module private Styles =
             Actionable =
                 { theme.Actionable with
                     IconColor = theTheme.CalendarButtonColor
-                    IconSize = theTheme.CalendarButtonIconSize
+                    IconSize  = theTheme.CalendarButtonIconSize
                 }
         }
 
 type LibClient.Components.Constructors.LC.Input with
     [<Component>]
     static member Date(
-                value: Value,
-                validity: InputValidity,
-                onChange: Value -> unit,
-                ?valueFormat: string,
-                ?label: string,
-                ?placeholder: string,
+                value:                Value,
+                validity:             InputValidity,
+                onChange:             Value -> unit,
+                ?valueFormat:         string,
+                ?label:               string,
+                ?placeholder:         string,
                 ?requestFocusOnMount: bool,
-                ?onKeyPress: (Browser.Types.KeyboardEvent -> unit),
-                ?onEnterKeyPress: (ReactEvent.Keyboard -> unit),
-                ?minDate: DateOnly,
-                ?maxDate: DateOnly,
-                ?canSelectDate: (DateOnly -> bool),
-                ?styles: array<ViewStyles>,
-                ?theme:   Theme -> Theme,
-                ?key: string
+                ?onKeyPress:          (Browser.Types.KeyboardEvent -> unit),
+                ?onEnterKeyPress:     (ReactEvent.Keyboard -> unit),
+                ?minDate:             DateOnly,
+                ?maxDate:             DateOnly,
+                ?canSelectDate:       (DateOnly -> bool),
+                ?styles:              array<ViewStyles>,
+                ?theme:               Theme -> Theme,
+                ?key:                 string
             ) : ReactElement =
         key |> ignore
 
@@ -180,44 +180,45 @@ type LibClient.Components.Constructors.LC.Input with
                 // TODO: this doesn't currently work right, likely because clicking the button immediately hides the popup
                 match popupConnectorState.current.IsShown () with
                 | false -> popupConnectorState.current.Show source
-                | true -> popupConnectorState.current.Hide ()
+                | true  -> popupConnectorState.current.Hide ()
             )
 
         let inputSuffix =
             LC.IconButton(
-                theme = Styles.iconButtonTheme theTheme,
+                label  = "Open calendar",
+                theme  = Styles.iconButtonTheme theTheme,
                 styles = [| Styles.iconButton theTheme |],
-                icon = Icon.Calendar,
-                state = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable toggle)
+                icon   = Icon.Calendar,
+                state  = ButtonHighLevelState.LowLevel (ButtonLowLevelState.Actionable toggle)
             )
 
-        RX.View(
+        Rn.View(
             styles = (styles |> Option.defaultValue [||] ),
             children =
                 elements {
                     LC.Input.ParsedText(
-                        xLegacyStyles = Styles.legacyParsedText theTheme,
-                        parse = Helpers.parseProp minDate maxDate canSelectDate,
-                        value = value,
-                        validity = validity,
-                        placeholder = placeholder,
+                        xLegacyStyles       = Styles.legacyParsedText theTheme,
+                        parse               = Helpers.parseProp minDate maxDate canSelectDate,
+                        value               = value,
+                        validity            = validity,
+                        placeholder         = placeholder,
                         requestFocusOnMount = requestFocusOnMount,
-                        onChange = onChange,
-                        suffix = InputSuffix.Element inputSuffix,
-                        ?label = label,
-                        ?onKeyPress = onKeyPress,
-                        ?onEnterKeyPress = onEnterKeyPress
+                        onChange            = onChange,
+                        suffix              = InputSuffix.Element inputSuffix,
+                        ?label              = label,
+                        ?onKeyPress         = onKeyPress,
+                        ?onEnterKeyPress    = onEnterKeyPress
                     )
 
                     LC.Popup(
                         connector = popupConnectorState.current,
                         render =
                             fun () ->
-                                RX.View(
+                                Rn.View(
                                     styles = [| Styles.popup |],
                                     // XXX it looks like the component is rendered once and then cut
                                     // off from the world, i.e. updates to props.Value do not propagate
-                                    // to it. I think that's how ReactXP's popups infrastructure is set up,
+                                    // to it. I think that's how Rn's popups infrastructure is set up,
                                     // though it seems strange and unlikely.
                                     children =
                                         elements {
@@ -227,9 +228,9 @@ type LibClient.Components.Constructors.LC.Input with
                                                         wrap valueFormat date |> onChange
                                                         popupConnectorState.current.Hide()
                                                     ),
-                                                maybeSelected = (match value.Result with | Ok result -> result | Error _ -> None),
-                                                ?minDate = minDate,
-                                                ?maxDate = maxDate,
+                                                maybeSelected  = (match value.Result with | Ok result -> result | Error _ -> None),
+                                                ?minDate       = minDate,
+                                                ?maxDate       = maxDate,
                                                 ?canSelectDate = canSelectDate
                                             )
                                         }

@@ -13,15 +13,23 @@ type Props = (* GenerateMakeFunction *) {
     StrokeWidth: int option   // defaultWithAutoWrap JsUndefined
 }
 
+[<Fable.Core.JS.Pojo>]
+type private CellPropsJs
+    ( ?fill:        string,
+      ?stroke:      string,
+      ?strokeWidth: int ) =
+    member val fill        = fill
+    member val stroke      = stroke
+    member val strokeWidth = strokeWidth
+
 let private Cell : obj = JsInterop.import "Cell" "recharts"
 let Make =
     LibClient.ThirdParty.wrapComponentTransformingProps<Props>
         Cell
         (fun (props: Props) ->
-            createObj [
-                "fill"        ==> (props.Fill |> Option.map (fun v -> v.ToReactXPString))
-                "stroke"      ==> (props.Stroke |> Option.map (fun v -> v.ToReactXPString))
-                "strokeWidth" ==> props.StrokeWidth
-            ]
+            CellPropsJs(
+                ?fill        = (props.Fill |> Option.map (fun v -> v.ToRnString)),
+                ?stroke      = (props.Stroke |> Option.map (fun v -> v.ToRnString)),
+                ?strokeWidth = props.StrokeWidth
+            ) |> box
         )
-

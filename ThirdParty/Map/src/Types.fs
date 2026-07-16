@@ -39,7 +39,7 @@ with
     override this.Equals other =
         match other with
         | :? IgnoredDuringComparison<'T> as other -> (this :> IEquatable<IgnoredDuringComparison<'T>>).Equals(other)
-        | _ -> false
+        | _                                       -> false
 
     override _.GetHashCode(): int =
         0
@@ -50,7 +50,7 @@ type Point = int * int
 // Type declaration of types being used from MapView
 // https://github.com/react-native-maps/react-native-maps/blob/master/docs/mapview.md#types
 type NativeMapViewCoordinates = {
-    latitude: float
+    latitude:  float
     longitude: float
 }
 
@@ -84,7 +84,7 @@ module LatLng =
 
     let asNativeMapViewCoordinates (ll: LatLng) : NativeMapViewCoordinates =
         {
-            latitude =  ll |> fst
+            latitude  = ll |> fst
             longitude = ll |> snd
         }
 
@@ -108,67 +108,67 @@ type MapPosition =
 
 // https://developers.google.com/maps/documentation/javascript/reference/coordinates#Size
 type Size = {
-    Width: float
+    Width:  float
     Height: float
 }
 
 [<RequireQualifiedAccess>]
 type PixelOrPercentage =
-| Pixel of int
+| Pixel      of int
 | Percentage of float
 
 // https://developers.google.com/maps/documentation/javascript/reference/marker#Icon
 type Icon = {
-    Url: string
-    Anchor: Option<Point>
+    Url:         string
+    Anchor:      Option<Point>
     LabelOrigin: Option<Point>
-    Origin: Option<Point>
-    ScaledSize: Option<Size>
-    Size: Option<Size>
+    Origin:      Option<Point>
+    ScaledSize:  Option<Size>
+    Size:        Option<Size>
 }
 
 // https://developers.google.com/maps/documentation/javascript/reference/marker#Symbol
 type Symbol = {
-    Path: string
-    Anchor: Option<Point>
-    FillColor: Option<string>
-    FillOpacity: Option<float>
-    LabelOrigin: Option<Point>
-    Rotation: Option<float>
-    Scale: Option<float>
-    StrokeColor: Option<string>
+    Path:          string
+    Anchor:        Option<Point>
+    FillColor:     Option<string>
+    FillOpacity:   Option<float>
+    LabelOrigin:   Option<Point>
+    Rotation:      Option<float>
+    Scale:         Option<float>
+    StrokeColor:   Option<string>
     StrokeOpacity: Option<float>
-    StrokeWeight: Option<float>
+    StrokeWeight:  Option<float>
 }
 
 // https://developers.google.com/maps/documentation/javascript/reference/polygon#IconSequence
 type IconSequence = {
-    Icon: Symbol
+    Icon:          Symbol
     FixedRotation: bool
-    Offset: Option<PixelOrPercentage>
-    Repeat: Option<PixelOrPercentage>
+    Offset:        Option<PixelOrPercentage>
+    Repeat:        Option<PixelOrPercentage>
 }
 
 type InfoWindowHandle =
-    abstract member Focus : unit -> unit
-    abstract member Close : unit -> unit
+    abstract member Focus: unit -> unit
+    abstract member Close: unit -> unit
 
 // https://developers.google.com/maps/documentation/javascript/reference/info-window#InfoWindow
 type InfoWindow = {
-    Content: IgnoredDuringComparison<InfoWindowHandle -> ReactElement>
-    ShouldFocus: bool
-    DisableAutoPan: bool
+    Content:            IgnoredDuringComparison<InfoWindowHandle -> ReactElement>
+    ShouldFocus:        bool
+    DisableAutoPan:     bool
     GetDisplayLocation: Option<IgnoredDuringComparison<Option<LatLng> -> LatLng>>
-    IsOpen: bool
-    MinWidth: Option<int>
-    MaxWidth: Option<int>
-    PixelOffset: Option<Size>
-    ZIndex: Option<int>
+    IsOpen:             bool
+    MinWidth:           Option<int>
+    MaxWidth:           Option<int>
+    PixelOffset:        Option<Size>
+    ZIndex:             Option<int>
 }
 
 [<RequireQualifiedAccess>]
 type MarkerImage =
-| Icon of Icon
+| Icon   of Icon
 | Symbol of Symbol
 
 [<RequireQualifiedAccess>]
@@ -185,27 +185,27 @@ type MarkerAnimation =
 
 // https://developers.google.com/maps/documentation/javascript/reference/marker#MarkerLabel
 type MarkerLabel = {
-    Text: string
-    ClassName: Option<string>
-    Color: Option<string>
+    Text:       string
+    ClassName:  Option<string>
+    Color:      Option<string>
     FontFamily: Option<string>
-    FontSize: Option<string>
+    FontSize:   Option<string>
     FontWeight: Option<string>
 }
 
 // https://developers.google.com/maps/documentation/javascript/reference/marker#MarkerOptions
 type Marker = {
-    Key: string
-    Position: MarkerPosition
-    Draggable: bool
-    Label: Option<MarkerLabel>
-    Tooltip: Option<string>
-    Image: Option<MarkerImage>
-    Opacity: Option<float>
-    ZIndex: Option<int>
-    Animation: Option<MarkerAnimation>
+    Key:        string
+    Position:   MarkerPosition
+    Draggable:  bool
+    Label:      Option<MarkerLabel>
+    Tooltip:    Option<string>
+    Image:      Option<MarkerImage>
+    Opacity:    Option<float>
+    ZIndex:     Option<int>
+    Animation:  Option<MarkerAnimation>
     InfoWindow: Option<InfoWindow>
-    OnClick: Option<IgnoredDuringComparison<unit -> unit>>
+    OnClick:    Option<IgnoredDuringComparison<unit -> unit>>
 }
 with
     interface IKeyed with
@@ -215,26 +215,26 @@ with
         this.Image
         |> Option.map (fun img ->
             match img with
-            | MarkerImage.Icon icon -> icon.Anchor
+            | MarkerImage.Icon icon     -> icon.Anchor
             | MarkerImage.Symbol symbol -> symbol.Anchor
         )
         |> Option.flatten
 
 // https://developers.google.com/maps/documentation/javascript/reference/polygon#PolylineOptions
 type Polyline = {
-    Key: string
-    Path: LatLng[]
-    Draggable: bool
-    Editable: bool
-    Geodesic: bool
-    Visible: bool
-    Icons: Option<IconSequence[]>
-    StrokeColor: Option<string>
+    Key:           string
+    Path:          LatLng[]
+    Draggable:     bool
+    Editable:      bool
+    Geodesic:      bool
+    Visible:       bool
+    Icons:         Option<IconSequence[]>
+    StrokeColor:   Option<string>
     StrokeOpacity: Option<float>
-    StrokeWeight: Option<float>
-    ZIndex: Option<int>
-    InfoWindow: Option<InfoWindow>
-    OnClick: Option<IgnoredDuringComparison<unit -> unit>>
+    StrokeWeight:  Option<float>
+    ZIndex:        Option<int>
+    InfoWindow:    Option<InfoWindow>
+    OnClick:       Option<IgnoredDuringComparison<unit -> unit>>
 }
 with
     interface IKeyed with
@@ -249,21 +249,21 @@ type StrokePosition =
 
 // https://developers.google.com/maps/documentation/javascript/reference/polygon#PolygonOptions
 type Polygon = {
-    Key: string
-    Paths: LatLng[][]
-    Draggable: bool
-    Editable: bool
-    Geodesic: bool
-    Visible: bool
-    FillColor: Option<string>
-    FillOpacity: Option<float>
-    StrokeColor: Option<string>
-    StrokeOpacity: Option<float>
+    Key:            string
+    Paths:          LatLng[][]
+    Draggable:      bool
+    Editable:       bool
+    Geodesic:       bool
+    Visible:        bool
+    FillColor:      Option<string>
+    FillOpacity:    Option<float>
+    StrokeColor:    Option<string>
+    StrokeOpacity:  Option<float>
     StrokePosition: Option<StrokePosition>
-    StrokeWeight: Option<float>
-    ZIndex: Option<int>
-    InfoWindow: Option<InfoWindow>
-    OnClick: Option<IgnoredDuringComparison<unit -> unit>>
+    StrokeWeight:   Option<float>
+    ZIndex:         Option<int>
+    InfoWindow:     Option<InfoWindow>
+    OnClick:        Option<IgnoredDuringComparison<unit -> unit>>
 }
 with
     interface IKeyed with
@@ -271,21 +271,21 @@ with
 
 // https://developers.google.com/maps/documentation/javascript/reference/polygon#CircleOptions
 type Circle = {
-    Key: string
-    Center: LatLng
-    Radius: float
-    Draggable: bool
-    Editable: bool
-    Visible: bool
-    FillColor: Option<string>
-    FillOpacity: Option<float>
-    StrokeColor: Option<string>
-    StrokeOpacity: Option<float>
+    Key:            string
+    Center:         LatLng
+    Radius:         float
+    Draggable:      bool
+    Editable:       bool
+    Visible:        bool
+    FillColor:      Option<string>
+    FillOpacity:    Option<float>
+    StrokeColor:    Option<string>
+    StrokeOpacity:  Option<float>
     StrokePosition: Option<StrokePosition>
-    StrokeWeight: Option<float>
-    ZIndex: Option<int>
-    InfoWindow: Option<InfoWindow>
-    OnClick: Option<IgnoredDuringComparison<unit -> unit>>
+    StrokeWeight:   Option<float>
+    ZIndex:         Option<int>
+    InfoWindow:     Option<InfoWindow>
+    OnClick:        Option<IgnoredDuringComparison<unit -> unit>>
 }
 with
     interface IKeyed with
@@ -294,26 +294,26 @@ with
 [<RequireQualifiedAccess>]
 type Shape =
 | Polyline of Polyline
-| Polygon of Polygon
-| Circle of Circle
+| Polygon  of Polygon
+| Circle   of Circle
 with
     member this.Key =
         match this with
         | Shape.Polyline polyline -> polyline.Key
-        | Shape.Polygon polygon -> polygon.Key
-        | Shape.Circle circle -> circle.Key
+        | Shape.Polygon polygon   -> polygon.Key
+        | Shape.Circle circle     -> circle.Key
 
     member this.InfoWindow =
         match this with
         | Shape.Polyline polyline -> polyline.InfoWindow
-        | Shape.Polygon polygon -> polygon.InfoWindow
-        | Shape.Circle circle -> circle.InfoWindow
+        | Shape.Polygon polygon   -> polygon.InfoWindow
+        | Shape.Circle circle     -> circle.InfoWindow
 
     member this.OnClick =
         match this with
         | Shape.Polyline polyline -> polyline.OnClick
-        | Shape.Polygon polygon -> polygon.OnClick
-        | Shape.Circle circle -> circle.OnClick
+        | Shape.Polygon polygon   -> polygon.OnClick
+        | Shape.Circle circle     -> circle.OnClick
 
     interface IKeyed with
         member this.Key = this.Key
@@ -321,9 +321,9 @@ with
 // https://developers.google.com/maps/documentation/javascript/reference/directions#Place
 [<RequireQualifiedAccess>]
 type Place =
-| Id of string
+| Id     of string
 | LatLng of LatLng
-| Query of string
+| Query  of string
 
 // https://developers.google.com/maps/documentation/javascript/reference/directions#TravelMode
 [<RequireQualifiedAccess>]
@@ -335,7 +335,7 @@ type TravelMode =
 
 // https://developers.google.com/maps/documentation/javascript/reference/directions#DirectionsWaypoint
 type Waypoint = {
-    Place: Place
+    Place:      Place
     IsStopover: bool
 }
 
@@ -346,18 +346,18 @@ type DirectionsPolylineRenderer =
 
 // https://developers.google.com/maps/documentation/javascript/reference/directions#DirectionsRendererOptions
 type DirectionsRendererOptions = {
-    Draggable: bool
-    HideRouteList: bool
+    Draggable:        bool
+    HideRouteList:    bool
     PreserveViewport: bool
     PolylineRenderer: Option<DirectionsPolylineRenderer>
 }
 
 // https://developers.google.com/maps/documentation/javascript/reference/directions#DirectionsRequest
 type Directions = {
-    Origin: Place
+    Origin:      Place
     Destination: Place
-    TravelMode: TravelMode
-    Waypoints: Option<Waypoint[]>
+    TravelMode:  TravelMode
+    Waypoints:   Option<Waypoint[]>
 
     // Not technically part of the DirectionsRequest, but each Directions object may need custom renderer options.
     RendererOptions: Option<DirectionsRendererOptions>
@@ -416,19 +416,19 @@ type MapElementType =
 // https://developers.google.com/maps/documentation/javascript/style-reference#stylers
 [<RequireQualifiedAccess>]
 type MapStyler =
-| Color of string
-| Hue of string
-| Lightness of float
-| Saturation of float
-| Gamma of float
+| Color           of string
+| Hue             of string
+| Lightness       of float
+| Saturation      of float
+| Gamma           of float
 | InvertLightness of bool
-| Weight of int
+| Weight          of int
 
 // https://developers.google.com/maps/documentation/javascript/style-reference#the-json-object
 type MapStyle = {
     FeatureType: MapFeatureType
     ElementType: MapElementType
-    Stylers: MapStyler[]
+    Stylers:     MapStyler[]
 }
 
 // https://developers.google.com/maps/documentation/javascript/maptypes

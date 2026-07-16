@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <OutputType>Library</OutputType>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <IsPackable>false</IsPackable>
+    <NoWarn>FS0988</NoWarn>
+    <RunSettingsFilePath>$(MSBuildProjectDirectory)\.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="Autofac" Version="6.1.0" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="FsUnit.xUnit" Version="6.0.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="FsCheck.Xunit" Version="2.16.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../LifeCycles/LifeCycles.fsproj" />
+    <ProjectReference Include="../../../LibLifeCycleTest/LibLifeCycleTest.fsproj" />
+  </ItemGroup>
+  <ItemGroup Label="Subject">
+    <Content Include="template.appsettings.Tests.json" />
+    <Compile Include="Simulation.fs" />
+    <Compile Include="Gen/TodoGen.fs" />
+    <Compile Include="TodoTests.fs" />
+  </ItemGroup>
+</Project>

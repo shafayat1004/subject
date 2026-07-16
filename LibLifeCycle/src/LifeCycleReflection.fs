@@ -51,7 +51,7 @@ let isActionAllowedForSubject
             // the likely reason of exception is garbage arguments and service stubs
             true
     with
-        | _ ->  true
+        | _ -> true
 
 let allowedActionsForSubject
     (lifeCycle: ILifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>)

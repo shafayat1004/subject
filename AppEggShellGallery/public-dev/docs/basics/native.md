@@ -1,121 +1,125 @@
 # Native Development
 
-Good luck retaining your calm when doing native development.
+Native targets **React Native 0.76** with Fable output in `.build/native/commonjs`. Metro serves the bundle; the native shell loads it from the dev server in debug builds.
 
-## How to develop on the emulator
+## Prerequisites
 
-Navigate to your app directory and run
+* Completed [Getting Started](./basics/getting-started.md) (`./initialize` at repo root)
+* App `./initialize` (npm install, Android keystore, optional `pod install`)
+* **`configSourceOverrides.native.js`** in the app directory (gitignored; created from `configSourceOverrides.native.js.template` by `./initialize`)
 
-Android
+The template configures:
 
+| Setting | Purpose |
+|---------|---------|
+| `AppUrlBase` | Metro host as seen from the device (`10.0.2.2:8081` Android emulator, `localhost:8081` iOS simulator) |
+| `MaybeInBundleResourceUrlHashedDirectoryPrefix` | `/public-dev` — markdown and static docs under `public-dev/` (gallery Docs/Components/Tools pages) |
+| `BackendUrl` | Optional backend for Subject demos (`10.0.2.2:5000` / `localhost:5000`) |
+
+## Day-to-day workflow
+
+Use **three terminals** from the app directory (e.g. `AppEggShellGallery`):
+
+**Terminal 1 — Fable watch**
+
+```bash
+eggshell dev-native
 ```
+
+Compiles F# and `.render` files to `.build/native/commonjs`.
+
+**Terminal 2 — Metro**
+
+```bash
+npx react-native start --port 8081
+```
+
+After changing `metro.config.js` or native npm deps, restart with `--reset-cache`.
+
+**Terminal 3 — Run on device**
+
+Android (emulator must be running):
+
+```bash
+adb reverse tcp:8081 tcp:8081
+npx react-native run-android
+```
+
+iOS (macOS only):
+
+```bash
+npx react-native run-ios --no-packager
+```
+
+First-time / Podfile changes:
+
+```bash
+cd ios && pod install && cd ..
+```
+
+Open **`ios/*.xcworkspace`** in Xcode, not `.xcodeproj`.
+
+### Verify it worked
+
+* Logcat / Metro shows `Running "RXApp"`
+* Gallery: tap **Components** in the top nav (or sidebar on handheld) — should load markdown, not crash
+* If markdown pages are blank, check `configSourceOverrides.native.js` has `/public-dev` prefix and Metro serves `http://127.0.0.1:8081/public-dev/docs/...`
+
+## First-time platform setup
+
+See [Native getting started](./native/getting-started.md) for Android Studio / Xcode install links.
+
+**Android:** create or start an AVD (API 33+ recommended). `./gradlew assembleDebug` in `android/` should succeed.
+
+**iOS:** install CocoaPods. Podfile uses static Firebase frameworks; run `pod install` in `ios/`. Simulator needs an iOS runtime matching your Xcode SDK.
+
+## One-shot commands (legacy)
+
+Some docs still mention:
+
+```bash
 dotnet fsi ./build.fs build -t EggShell --command="dev-android"
 ```
 
-iOS ( Only on MACOS )
+Prefer the three-terminal workflow above with `eggshell dev-native` + Metro + `run-android` / `run-ios`. It matches RN 0.76 and current gallery validation.
 
-```
-dotnet fsi ./build.fs build -t EggShell --command="dev-ios"
-```
+## Metro reload quirks
 
-> Note: We are moving away from unix style bash based command.
-Instead we'll be using .net fake build, which is crossplatform
-
-
-This will do following tasks
-
-1. Transpile FS to JS
-
-2. Run metro bundler ( development server )
-
-3. Build native android app
-
-
-
-## Regular development workflow
-Once you have the native app running on your emulator
-(if not, see "How to develop on the emulator" section) -
-in your day to day workflow would be just run two console command in watch mode.
-
-1. Transpile FS to JS in watch mode
-    ```
-    dotnet fsi ./build.fs build -t EggShell --command="dev-native"
-    ```
-
-2. Run metro bundler ( development server )
-    ```
-    npx dev-native start
-    ```
-
-In most cases you'll need to open two console window and keep running 1 and 2.
-Both of them work together to detect any change to source file and push the
-change to the native app.
-
-Because of how react-native app development designed,
-like react-native we might need to run react-native cli commands.
-You can directly run those command using following format
-
-```
-npx react-native <command>
-```
-
-## Releasing
-
-### Android - Create APK
-
-```
-cd android && ./gradlew assembleRelease
-```
-
-
-### iOS - Release (Archieve)
-To create an Archieve to release to AppStore - You'll need to add your nodejs available to bash. While there are multiple ways to acheive that - one easiest way doing as following - 
-
-1. Manually removing an old version of node (in /usr/local/bin) (default shell used by xcode)
-2. Linking the nvm node installation by running 
-
-    ```
-    ln -s $(which node) /usr/local/bin/node
-    ```
-
-## Metro reload doesn't work!!
-
-BEWARE. Metro isn't good at picking up changes in the compiled .js files.
-It sometimes works, but a lot of the time doesn't. Thankfully Metro is quick
-to restart, so this isn't a big deal.
+Metro does not always pick up changes in precompiled `.js` under `.build/native`. If the app looks stale after a native compile, reload the app (R R in emulator) or restart Metro.
 
 ## Android hardware back button
 
-You need to have the <LR.NativeBackButton> instantiated in your component tree.
-Typically this happens inside AppContext, just under LR.Router.
+`<LR.NativeBackButton>` must appear once in the tree (typically in `AppContext`, under the router). Two `LR.Router` instances break back navigation.
 
-We've had a screwup once where the hardware back button didn't work because
-we had two instances of LR.Router in our app. Normally this of course wouldn't
-happen, but I'm leaving this note here in case somebody gets unlucky in the future.
+Some AVD images show hardware buttons that do not work; try a Pixel-class API 30+ image if back appears dead.
 
-It's possible to have an Android emulator virtual device where the hardware buttons
-are displayed but not working. For example, my Nexus 5X API 30 was such a device. I
-replaced it with a Pixel 5 API 30 and the hardware buttons started working.
+## When the app misbehaves
 
-## When the app just doesn't bloody work right
+* Android: App info → Storage → **Clear storage** (uninstall may not clear everything)
+* Delete `.build/native`, run `eggshell build-native`, restart Metro
+* `adb reverse tcp:8081 tcp:8081` after emulator restart
 
-Long-tapping the app icon, going to "app info", and clearing storage and cache helps.
-NOTE that uninstaling the app DOES NOT clear these things on Android.
+## Releasing
 
-You can also try deleting the .build/native directory and doing a fresh build.
+### Android APK
 
-## Emulator and the subject stack
-
-For reasons unknown to me, you need to comment out the following line
-
-```
-cookieOptions.Secure <- true
+```bash
+cd android && ./gradlew assembleRelease
 ```
 
-inside `LibLifeCycleHost/src/Web/Session.fs` for sessions to actually stick in the emulator,
-lest you are logged out on any action attempt. Obviously this change cannot be committed.
+### iOS archive
+
+Ensure Xcode build scripts find Node (e.g. `ln -s $(which node) /usr/local/bin/node` if needed).
+
+## Emulator and Subject backend
+
+When testing against a local Subject backend in the emulator, you may need to disable secure cookies in `LibLifeCycleHost/src/Web/Session.fs` (`cookieOptions.Secure <- true`) — **do not commit** that change.
 
 ## Debugging
-For any kind of native app debugging - use Flipper.
 
-https://fbflipper.com/
+RN 0.76 does not ship Flipper integration. Use:
+
+* React Native DevTools (press `j` in the Metro terminal when offered)
+* `npx react-native start --experimental-debugger`
+
+More notes: [Native dev experience](./native/dev-experience.md).

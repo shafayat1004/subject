@@ -13,11 +13,11 @@ type ReferencedLifeCycleBuilder<'Subject, 'LifeAction, 'OpError, 'Constructor, '
                 and  'AccessPredicateInput :> AccessPredicateInput
                 and  'Role                 :  comparison> =
     internal {
-        Def:             LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
-        MaybeApiAccess:  Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
+        Def:                 LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>
+        MaybeApiAccess:      Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role>>
         ShouldSendTelemetry: Option<ShouldSendTelemetryFor<'LifeAction, 'Constructor> -> bool>
         ShouldRecordHistory: Option<ShouldRecordHistoryFor<'LifeAction, 'Constructor> -> bool>
-        SessionHandling: Option<EcosystemSessionHandling<'Session, 'Role>>
+        SessionHandling:     Option<EcosystemSessionHandling<'Session, 'Role>>
     }
 with
     member internal this.AssumeTypes<'NewAccessPredicateInput, 'NewRole
@@ -30,24 +30,24 @@ with
             MaybeApiAccess =
                 match this.MaybeApiAccess |> box with
                 | :? (Option<LifeCycleApiAccess<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'NewAccessPredicateInput, 'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                                                                                          -> None
             SessionHandling =
                 match this.SessionHandling |> box with
                 | :? (Option<EcosystemSessionHandling<'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                     -> None
 
             ShouldSendTelemetry = this.ShouldSendTelemetry
             ShouldRecordHistory = this.ShouldRecordHistory
-            Def = this.Def
+            Def                 = this.Def
         }
 
     member internal this.ToReferencedLifeCycle(): ReferencedLifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, 'AccessPredicateInput, 'Session, 'Role> =
         {
-            Def = this.Def
-            MaybeApiAccess = this.MaybeApiAccess
+            Def                 = this.Def
+            MaybeApiAccess      = this.MaybeApiAccess
             ShouldSendTelemetry = this.ShouldSendTelemetry
             ShouldRecordHistory = this.ShouldRecordHistory
-            SessionHandling = this.SessionHandling
+            SessionHandling     = this.SessionHandling
         }
 
 [<RequireQualifiedAccess>]
@@ -67,11 +67,11 @@ module ReferencedLifeCycleBuilder =
             : ReferencedLifeCycleBuilder<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, AccessPredicateInput, 'Session, 'Role> =
 
         {
-            Def = def
-            MaybeApiAccess = None
+            Def                 = def
+            MaybeApiAccess      = None
             ShouldSendTelemetry = None
             ShouldRecordHistory = None
-            SessionHandling = None
+            SessionHandling     = None
         }
 
     let withoutApiAccess
@@ -91,9 +91,9 @@ module ReferencedLifeCycleBuilder =
         { builder.AssumeTypes<AccessPredicateInput, 'Role>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
-                    AccessPredicate = (fun _ _ _ _ -> true)
-                    RateLimitsPredicate = rateLimits
+                    AccessRules                = accessRules
+                    AccessPredicate            = (fun _ _ _ _ -> true)
+                    RateLimitsPredicate        = rateLimits
                     AnonymousCanReadTotalCount = false
                 }
         }
@@ -113,9 +113,9 @@ module ReferencedLifeCycleBuilder =
         { builder.AssumeTypes<'AccessPredicateInput, 'Role>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
-                    AccessPredicate = accessPredicate
-                    RateLimitsPredicate = rateLimits
+                    AccessRules                = accessRules
+                    AccessPredicate            = accessPredicate
+                    RateLimitsPredicate        = rateLimits
                     AnonymousCanReadTotalCount = false
             }
         }

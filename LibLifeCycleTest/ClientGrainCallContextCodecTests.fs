@@ -10,7 +10,7 @@ let ``can roundtrip ClientGrainCallContext data`` () =
     let original =
         {
             SessionHandle = SessionHandle.Session ("id", Authenticated ("james.bond", System.DateTimeOffset.UtcNow))
-            CallOrigin = CallOrigin.Internal
+            CallOrigin    = CallOrigin.Internal
         }
 
     let json = toJsonText original
@@ -29,7 +29,7 @@ let ``can deserialize ClientGrainCallContext V0,0 data`` () =
     let expected =
         {
             SessionHandle = SessionHandle.Session ("id", Anonymous)
-            CallOrigin = CallOrigin.Internal
+            CallOrigin    = CallOrigin.Internal
         }
 
     let parseResult: Result<ClientGrainCallContext, _> = ofJsonText json

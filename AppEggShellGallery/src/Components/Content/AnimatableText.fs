@@ -5,9 +5,9 @@ open System
 open Fable.React
 open LibClient
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
+open Rn.Styles.Animation
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -38,7 +38,7 @@ type private Helpers =
         LC.Column(
             children =
                 elements {
-                    RX.AnimatableText(
+                    Rn.AnimatableText(
                         children =
                             elements {
                                 LC.Text "Here is some text"
@@ -58,8 +58,37 @@ type Ui.Content with
     [<Component>]
     static member AnimatableText () : ReactElement =
         Ui.ComponentContent (
-            displayName = "AnimatableText",
+            displayName  = "AnimatableText",
             isResponsive = false,
+            props        = ComponentContent.Manual (
+                Ui.ComponentProps (data = {
+                    Fields = (Choice2Of2 [
+                        {
+                            Name        = "children"
+                            Type        = "array<ReactElement>"
+                            Default     = None
+                            Description = None
+                        }
+                        {
+                            Name        = "styles"
+                            Type        = "array<AnimatableTextStyles>"
+                            Default     = None
+                            Description = Some "Text styles with animated properties (fontSize, color, etc.) via makeAnimatableTextStyles"
+                        }
+                    ])
+                    MaybeScrapeErrors = None
+                })
+            ),
+            notes = LC.Text """Rn.AnimatableText is a Rn animation primitive. Use Rn.Styles.Animation (AnimatedValue, Animation.Timing, etc.) to drive animated text styles.""",
+            a11y =
+                Ui.A11yPanel(
+                    componentName  = "Rn.AnimatableText",
+                    role           = "text",
+                    namePattern    = "Child text content",
+                    stateNotes     = "Animated font size/color; honor reduce-motion via LC.With.ReducedMotion where wired",
+                    scalesWithFont = true,
+                    contrastNotes  = "Animated text colors should meet WCAG AA at rest"
+                ),
             samples = (
                 element {
                     Ui.ComponentSampleGroup(
@@ -68,7 +97,19 @@ type Ui.Content with
                                 Ui.ComponentSample(
                                     heading = "Basic",
                                     visuals = Helpers.Basic(),
-                                    code = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text "")
+                                    code    = ComponentSample.SingleBlock (ComponentSample.Fsharp, LC.Text """
+let animatedValue = Hooks.useRef (AnimatedValue.Create 32.0)
+
+Rn.AnimatableText(
+    children = elements { LC.Text "Here is some text" },
+    styles = [| makeAnimatableTextStyles {
+        color Color.DevRed
+        animatedFontSize (AnimatableValue.Value animatedValue.current)
+    } |]
+)
+
+Animation.Timing(animatedValue.current, 8.0, TimeSpan.FromSeconds 1).Start(...)
+""")
                                 )
                             }
                         )

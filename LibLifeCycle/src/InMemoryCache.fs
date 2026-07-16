@@ -7,7 +7,7 @@ open System.Threading.Tasks
 // Read the following before making any changes:
 // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/memory?view=aspnetcore-3.1#use-setsize-size-and-sizelimit-to-limit-cache-size
 type InMemoryCache =
-    abstract member TryFind : 'K -> ('K -> Task<Option<'V>>) -> TimeSpan -> Task<Option<'V>> when 'K : comparison
+    abstract member TryFind: 'K -> ('K -> Task<Option<'V>>) -> TimeSpan -> Task<Option<'V>> when 'K : comparison
 
 type internal DotnetInMemoryCache() =
     let memoryCache =

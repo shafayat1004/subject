@@ -63,13 +63,12 @@ Please install and use the following extensions:
 This helps you with the F# intellisense, definition and all the goodies.
 NOTE: You will need to install .Net Sdk 5.0 or what ever the latest version of the plugin requires.
 
-**Known Issues**:
-- If something is not going well, try going to View > Output, and selecting F# (and possibly msbuild) from the dropdown.
+NOTE: Ionide needs a .NET SDK installed (repo targets **.NET 7** / `net7.0`). It's used by the
+  tool internally; you can still build projects with the SDK version pinned in each `.fsproj`.
+  If Ionide misbehaves, check View → Output → F# / MSBuild.
 
-- For the latest (as of 2021-01-27) Ionide, you need to have the dotnet 5 SDK installed.
-  It's used by the tool internally, you can still have projects with lower SDK versions built on it.
-  Unless the SDK is installed, Ionide just silently chokes. For WSL users, it seems that the SDK needs to be
-  installed in WSL (as opposed to the Windows side). Instructions are [here](https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu).
+- For older Ionide versions, .NET 5 SDK was required internally — **not** the current requirement
+  if you install a recent Ionide on .NET 7.
   If the apt-get commands on this page are giving you a `http://archive.ubuntu.com/ubuntu focal-backports InRelease Temporary failure resolving 'archive.ubuntu.com'"`,
   then use the following command to fix the DNS: `echo nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null`
 

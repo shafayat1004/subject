@@ -10,6 +10,6 @@ type LC.With with
     [<Component>]
     static member ScreenSize (``with``: LibClient.Responsive.ScreenSize -> ReactElement) : ReactElement =
         LC.With.Context(
-            context = screenSizeContext,
+            context  = screenSizeContext,
             ``with`` = ``with``
         )

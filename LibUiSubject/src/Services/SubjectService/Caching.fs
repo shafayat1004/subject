@@ -27,6 +27,7 @@ type internal InMemoryCache<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, '
                       and  'Id           :  comparison
                       and  'OpError      :> OpError
                       and  'Index        :> SubjectIndex<'Index, 'NumericIndex, 'StringIndex, 'SearchIndex, 'GeographyIndex, 'OpError>
+                      and  'Index        : (new: unit -> 'Index)
                       and  'NumericIndex :> SubjectNumericIndex<'OpError>
                       and  'StringIndex  :> SubjectStringIndex<'OpError>
                       and  'SearchIndex  :> SubjectSearchIndex
@@ -188,7 +189,7 @@ type internal InMemoryCache<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, '
     member private this.AccessControlledId (value: AccessControlled<VersionedData<'Projection>, 'Id>) : 'Id =
         match value with
         | Granted versionedData -> versionedData.Data.SubjectId
-        | Denied  id      -> id
+        | Denied  id            -> id
 
     member this.CacheIndexed (query: IndexQuery<'Index>) (subjectsAD: AsyncData<seq<AccessControlled<VersionedData<'Projection>, 'Id>>>) : unit =
         this.CacheMany subjectsAD

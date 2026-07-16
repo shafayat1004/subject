@@ -2,8 +2,8 @@
 module LibUiAdmin.Components.LabelledValues
 
 open Fable.React
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient
 open LibClient.Components
 open LibClient.Responsive
@@ -82,7 +82,7 @@ type UiAdmin with
 
         match labelValuePosition with
         | LabelAboveValue ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     Styles.container false
                     yield! styles |> Option.defaultValue [||]
@@ -94,7 +94,7 @@ type UiAdmin with
                             Styles.label labelValuePosition theTheme
                         |]
                     )
-                    RX.View (
+                    Rn.View (
                         styles = [|
                             Styles.value
                         |],
@@ -103,13 +103,13 @@ type UiAdmin with
                 |]
             )
         | LabelBelowValue ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     Styles.container false
                     yield! styles |> Option.defaultValue [||]
                 |],
                 children = [|
-                    RX.View (
+                    Rn.View (
                         styles = [|
                             Styles.value
                         |],
@@ -124,7 +124,7 @@ type UiAdmin with
                 |]
             )
         | LabelNextToValue _ ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     Styles.container true
                     yield! styles |> Option.defaultValue [||]
@@ -136,7 +136,7 @@ type UiAdmin with
                             Styles.label labelValuePosition theTheme
                         |]
                     )
-                    RX.View (
+                    Rn.View (
                         styles = [|
                             Styles.value
                         |],
@@ -154,7 +154,7 @@ type UiAdmin with
     ) : ReactElement = element {
         let styles =
             styles
-            |> Option.defaultValue 
+            |> Option.defaultValue
                 (
                     makeViewStyles {
                         paddingHV    10 13
@@ -178,7 +178,7 @@ type UiAdmin with
                                 | ScreenSize.Desktop  ->
                                     {
                                         theme with
-                                            LabelColor = (Color.Grey "66")
+                                            LabelColor  = (Color.Grey "66")
                                             LabelIsBold = false
                                     }
                                 | ScreenSize.Handheld -> theme

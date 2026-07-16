@@ -16,9 +16,8 @@ behind the actual implementations. To remedy this situation, with newer componen
 adopted the "gallery-first" development approach. The samples page for the new component
 gets made, and the component is developed in the context of that page in the gallery, and
 only when it is complete does it get used in the project that it was needed for in the
-first place. (This is only for components that belong in the top level UI library — anything
+first place. (This is only for components that belong in the top level UI library — anything
 project specific is developed within that project as one would normally expect).
-
 
 ## Synchronizing with the design team
 

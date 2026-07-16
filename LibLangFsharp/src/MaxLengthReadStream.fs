@@ -33,33 +33,26 @@ Observations:
 2. This stream will kick in and prevent the bomb by throwing a MaxLengthReadStreamException
 *)
 
-exception MaxLengthReadStreamException of MaxLength: int
-    with
-        override this.Message =
-            sprintf "Cant read more than %d bytes from this stream" this.MaxLength
+exception MaxLengthReadStreamException of MaxLength: int with
+    override this.Message =
+        sprintf "Cant read more than %d bytes from this stream" this.MaxLength
 
 type MaxLengthReadStream(stream: Stream, maxLength: int) =
     inherit Stream()
 
-    let failNoWrite () =
-        invalidOp "Only Reads are supported"
+    let failNoWrite () = invalidOp "Only Reads are supported"
 
-    let failNoSeek () =
-        invalidOp "Seeking is not supported"
+    let failNoSeek () = invalidOp "Seeking is not supported"
 
     let failMaxRead () =
-        MaxLengthReadStreamException maxLength
-        |> raise
+        MaxLengthReadStreamException maxLength |> raise
 
     let mutable readSoFar = 0
 
     override _.Read(buffer, offset, count) =
         let allowedToRead = maxLength - readSoFar
 
-        if allowedToRead <= 0 then
-            failMaxRead ()
-        else
-            ()
+        if allowedToRead <= 0 then failMaxRead () else ()
 
         let actuallyToRead = if count > allowedToRead then allowedToRead else count
         let numRead = stream.Read(buffer, offset, actuallyToRead)
@@ -79,10 +72,7 @@ type MaxLengthReadStream(stream: Stream, maxLength: int) =
         backgroundTask {
             let allowedToRead = maxLength - readSoFar
 
-            if allowedToRead <= 0 then
-                failMaxRead ()
-            else
-                ()
+            if allowedToRead <= 0 then failMaxRead () else ()
 
             let actuallyToRead = if count > allowedToRead then allowedToRead else count
             let! numRead = stream.ReadAsync(buffer, offset, actuallyToRead, cancellationToken)
@@ -100,10 +90,7 @@ type MaxLengthReadStream(stream: Stream, maxLength: int) =
         backgroundTask {
             let allowedToRead = maxLength - readSoFar
 
-            if allowedToRead <= 0 then
-                failMaxRead ()
-            else
-                ()
+            if allowedToRead <= 0 then failMaxRead () else ()
 
             let slice =
                 if memory.Length > allowedToRead then
@@ -120,18 +107,17 @@ type MaxLengthReadStream(stream: Stream, maxLength: int) =
                 // Try reading 1 more byte
                 let anotherSlice = memory.Slice(allowedToRead, 1)
                 let! anotherRead = stream.ReadAsync(anotherSlice, cancellationToken)
-                if anotherRead > 0 then
-                    failMaxRead ()
-                else
-                    ()
+                if anotherRead > 0 then failMaxRead () else ()
             else
                 ()
 
             return numRead
-        } |> System.Threading.Tasks.ValueTask<int>
+        }
+        |> System.Threading.Tasks.ValueTask<int>
 
     override _.ReadByte() =
         let res = stream.ReadByte()
+
         if readSoFar >= maxLength && res <> -1 then
             failMaxRead ()
         else
@@ -145,6 +131,7 @@ type MaxLengthReadStream(stream: Stream, maxLength: int) =
 
         while shouldLoop do
             let numBytesRead = this.Read(buffer, 0, actualBufferSize)
+
             if numBytesRead = 0 then
                 shouldLoop <- false
             else
@@ -165,6 +152,7 @@ type MaxLengthReadStream(stream: Stream, maxLength: int) =
 
             while shouldLoop do
                 let! numBytesRead = this.ReadAsync(memory, cancellationToken)
+
                 if numBytesRead = 0 then
                     shouldLoop <- false
                 else
@@ -174,27 +162,37 @@ type MaxLengthReadStream(stream: Stream, maxLength: int) =
                     if readSoFar = maxLength then
                         // Ensure nothing else can be read
                         let! anotherRead = this.ReadAsync(memory.Slice(0, 1), cancellationToken)
+
                         if anotherRead <> 0 then
                             failMaxRead ()
         }
 
-    override _.CanRead with get() = stream.CanRead
-    override _.CanTimeout with get() = stream.CanTimeout
-    override _.ReadTimeout with get() = stream.ReadTimeout
-    override _.ReadTimeout with set(value) = stream.ReadTimeout <- value
-    override _.WriteTimeout with get() = failNoWrite()
-    override _.WriteTimeout with set(_) = failNoWrite()
-    override _.CanSeek with get() = false
-    override _.CanWrite with get() = false
-    override _.Length with get() = stream.Length
-    override _.Position with get() = stream.Position
-    override _.Position with set(_) = failNoSeek()
-    override _.Seek(_, _) = failNoSeek()
-    override _.Flush() = failNoWrite()
-    override _.FlushAsync(_) = failNoWrite()
-    override _.SetLength(_) = failNoWrite()
-    override _.Write(_, _, _) = failNoWrite()
-    override _.WriteByte(_) = failNoWrite()
+    override _.CanRead = stream.CanRead
+    override _.CanTimeout = stream.CanTimeout
+    override _.ReadTimeout = stream.ReadTimeout
+
+    override _.ReadTimeout
+        with set (value) = stream.ReadTimeout <- value
+
+    override _.WriteTimeout = failNoWrite ()
+
+    override _.WriteTimeout
+        with set (_) = failNoWrite ()
+
+    override _.CanSeek = false
+    override _.CanWrite = false
+    override _.Length = stream.Length
+    override _.Position = stream.Position
+
+    override _.Position
+        with set (_) = failNoSeek ()
+
+    override _.Seek(_, _) = failNoSeek ()
+    override _.Flush() = failNoWrite ()
+    override _.FlushAsync(_) = failNoWrite ()
+    override _.SetLength(_) = failNoWrite ()
+    override _.Write(_, _, _) = failNoWrite ()
+    override _.WriteByte(_) = failNoWrite ()
     override _.Dispose(_) = stream.Dispose()
     override _.DisposeAsync() = stream.DisposeAsync()
 

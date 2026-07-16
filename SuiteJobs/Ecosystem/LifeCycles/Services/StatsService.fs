@@ -21,27 +21,27 @@ type BatchStatsCounter =
 
 [<RequireQualifiedAccess>]
 type StatsRequest =
-| IncrementJobCounter of JobStatsCounter * QueueName: NonemptyString * ResponseChannel<unit>
+| IncrementJobCounter   of JobStatsCounter * QueueName: NonemptyString * ResponseChannel<unit>
 | IncrementBatchCounter of BatchStatsCounter * ResponseChannel<unit>
 with interface Request
 
 let private jobSequenceName (counter: JobStatsCounter) (maybeQueueName: Option<NonemptyString>) =
     match counter with
-    | JobStatsCounter.Created -> "JobsCreated"
+    | JobStatsCounter.Created        -> "JobsCreated"
     | JobStatsCounter.SuccessfulRuns -> "JobsSuccessfulRuns"
-    | JobStatsCounter.FailedRuns -> "JobsFailedRuns"
-    | JobStatsCounter.Deleted -> "JobsDeletions"
+    | JobStatsCounter.FailedRuns     -> "JobsFailedRuns"
+    | JobStatsCounter.Deleted        -> "JobsDeletions"
     |> fun counterName ->
         match maybeQueueName with
-        | None -> $"Total_%s{counterName}"
+        | None           -> $"Total_%s{counterName}"
         | Some queueName -> $"Queue_%s{counterName}_%s{queueName.Value}"
 
 let private batchSequenceName (counter: BatchStatsCounter) =
     match counter with
-    | BatchStatsCounter.Created -> "BatchesCreated"
+    | BatchStatsCounter.Created    -> "BatchesCreated"
     | BatchStatsCounter.Successful -> "BatchesSuccessful"
-    | BatchStatsCounter.Completed -> "BatchesCompleted"
-    | BatchStatsCounter.Cancelled -> "BatchesCancelled"
+    | BatchStatsCounter.Completed  -> "BatchesCompleted"
+    | BatchStatsCounter.Cancelled  -> "BatchesCancelled"
     |> fun counterName ->
         $"Total_%s{counterName}"
 

@@ -43,9 +43,9 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
         (
             // Taking IServiceProvider is an anti-pattern, but we have little choice. GrainPartition is a scoped service and Fable.SignalR does not
             // support method-level DI.
-            serviceProvider: IServiceProvider,
+            serviceProvider:           IServiceProvider,
             hostEcosystemGrainFactory: IGrainFactory,
-            lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>
+            lifeCycleAdapter:          HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>
         ) =
 
     static let wholeSubjectAccessControlledSubjectChangeEncoder = generateAutoEncoder<AccessControlledSubjectChange<'Subject, 'SubjectId>>
@@ -119,7 +119,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                     match accessControlledSubject with
                     | Granted _ ->
                         {
-                            Subject = versionedSubject.Subject
+                            Subject   = versionedSubject.Subject
                             UpdatedOn = versionedSubject.AsOf
                         }
                         |> LibLifeCycleTypes.LegacyRealTime.SubjectChange.Updated
@@ -134,7 +134,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
         match subjectChange with
         | SubjectChange.Updated subjectUpdate ->
             {
-                Subject = subjectUpdate.Subject
+                Subject   = subjectUpdate.Subject
                 UpdatedOn = subjectUpdate.AsOf
             }
             |> LibLifeCycleTypes.LegacyRealTime.SubjectChange.Updated
@@ -178,7 +178,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
             // HACK: only required for legacy code. We're assuming any Some means we shouldn't send a current value, which is true for legacy.
             let sendCurrentValue =
                 match maybeCurrentVersion with
-                | None -> true
+                | None   -> true
                 | Some _ -> false
 
             // Honor the sendCurrentValue setting.
@@ -251,7 +251,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                 .Select(fun subjectChange ->
                     match subjectChange with
                     | SubjectChange.Updated subjectSnapshot -> Some subjectSnapshot.Subject
-                    | SubjectChange.NotInitialized -> None)
+                    | SubjectChange.NotInitialized          -> None)
 
 let private streamToClientGeneric<'Subject, 'Session>
         (logger: IFsLogger)

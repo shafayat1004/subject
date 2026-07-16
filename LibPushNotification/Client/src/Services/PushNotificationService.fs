@@ -4,7 +4,7 @@ open Fable.Core
 open LibClient
 open Fable.Core.JsInterop
 open LibPushNotification.Types
-open ReactXP
+open Rn
 
 type IConfig =
     abstract onRegister:             string -> unit
@@ -20,6 +20,18 @@ type IToken =
 
 type IData =
     abstract onClickUrl: Option<string> with get, set
+
+[<Fable.Core.JS.Pojo>]
+type private NotificationChannelAttrsJs
+    ( channelId: string, channelName: string, channelDescription: string,
+      playSound: bool, soundName: string, importance: NotificationImportance, vibrate: bool ) =
+    member val channelId = channelId
+    member val channelName = channelName
+    member val channelDescription = channelDescription
+    member val playSound = playSound
+    member val soundName = soundName
+    member val importance = importance
+    member val vibrate = vibrate
 
 type INotification =
     abstract foreground:      bool   with get, set
@@ -42,11 +54,11 @@ type PermissionStatus =
 
 type IPermission =
     abstract request: obj  -> JS.Promise<string>
-    abstract check: string -> JS.Promise<bool>
-    
+    abstract check:   string -> JS.Promise<bool>
+
 type IPlatform =
     abstract Version: int
-    
+
 let androidNotificationPermissionNamespace = "android.permission.POST_NOTIFICATIONS"
 exception PushNotificationPermissionError of string
 
@@ -83,36 +95,36 @@ type PushNotificationService () =
                 popInitialNotification = true
                 requestPermissions     = true
             |}
-            
+
         async {
             // on Android 13 - we need to manually request notification permission
-            // for iOS - the push-notification library internally handle the permission request. 
+            // for iOS - the push-notification library internally handle the permission request.
             match Runtime.platform with
             | Platform.Native NativePlatform.Android ->
                 this.CreateChannel DefaultNotificationChannel
                 return! this.AndroidRequestPermissionAndRegisterPushNotification config
-            | _ -> 
+            | _ ->
                 return! this.IOSRegisterPushNotification config
         } |> AsyncHelpers.startSafely
-        
+
     member private this.ConfigureNotification (config: IConfig) =
         pushNotification?configure(config)
-        
+
     member private this.IOSRegisterPushNotification (config: IConfig) : Async<unit> =
         this.ConfigureNotification config
         |> Async.Of
-        
+
     member private this.AndroidRequestPermissionAndRegisterPushNotification (config: IConfig): Async<unit> =
         async {
             let! hasNotificationPermission = this.HasAndroidNotificationPermission ()
-            
+
             let! shouldConfigureNotification =
                 match hasNotificationPermission with
                 | true  -> Async.Of true
                 | false ->
                     async {
                         let! permission = this.Android13RequestNotificationPermission ()
-        
+
                         match permission with
                         | Granted ->
                             return true
@@ -126,7 +138,7 @@ type PushNotificationService () =
             if shouldConfigureNotification then
                 this.ConfigureNotification config
         }
-        
+
     member private this.HasAndroidNotificationPermission() : Async<bool> =
         if platform.Version >= 33 then // android 13 = platform version 33
             async {
@@ -134,13 +146,13 @@ type PushNotificationService () =
             }
         else
             Async.Of true
-        
+
     member private this.Android13CheckNotificationPermission (): Async<bool> =
         promise {
             return! permissionsAndroid.check androidNotificationPermissionNamespace
         }
         |> Async.AwaitPromise
-         
+
     member private this.Android13RequestNotificationPermission  (): Async<PermissionStatus> =
         promise {
             let! permission = permissionsAndroid.request(androidNotificationPermissionNamespace)
@@ -165,15 +177,16 @@ type PushNotificationService () =
             | Some sound -> sound.Value
             | None       -> "default"
 
-        let channelAttr = createObj [
-            "channelId"          ==> channelId.Value
-            "channelName"        ==> channelDetails.Name.Value
-            "channelDescription" ==> channelDetails.Description.Value
-            "playSound"          ==> true
-            "soundName"          ==> soundName
-            "importance"         ==> channelDetails.Importance
-            "vibrate"            ==> true
-        ]
+        let channelAttr =
+            NotificationChannelAttrsJs(
+                channelId.Value,
+                channelDetails.Name.Value,
+                channelDetails.Description.Value,
+                true,
+                soundName,
+                channelDetails.Importance,
+                true
+            ) |> box
 
         pushNotification?createChannel (channelAttr, ( fun _ -> ()))
 

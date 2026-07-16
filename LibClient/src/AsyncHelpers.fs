@@ -12,4 +12,3 @@ module AsyncHelpers =
             | Error e -> Log.Error ("Error in AsyncHelpers.startSafely: {error}", e.ToString())
         }
         |> Async.StartImmediate
-

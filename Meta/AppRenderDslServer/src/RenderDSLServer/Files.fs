@@ -14,4 +14,4 @@ let private readConfigFromFileSystem (path: string) : Async<Option<string>> = as
 let getTextFromStoreOrFilesystemIfNotOpen (documentStore: DocumentStore) (path: string) : Async<Option<string>> =
     match documentStore.GetText (FileInfo path) with
     | Some contentFromDocStore -> async { return Some contentFromDocStore }
-    | None -> readConfigFromFileSystem path
+    | None                     -> readConfigFromFileSystem path

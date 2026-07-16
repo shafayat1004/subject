@@ -41,7 +41,7 @@ type TestSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 
             partitionGuid,
             fun _ ->
                 {
-                    LockObj = obj()
+                    LockObj         = obj()
                     SubjectsByIdStr = Map.empty
                     UniqueIndicesByIndexKeyThenIdStr = Map.empty
                 })
@@ -162,7 +162,7 @@ type TestSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 
                     |> Seq.choose (fun index ->
                         match index.MaybeKeyAndPrimitiveNumber with
                         | Some (iKey, iValue) when iKey = key -> Some iValue.Value
-                        | _ -> None)
+                        | _                                   -> None)
                     |> Seq.tryHead
                 (vs, indexValue))
             |> sortByDirn dirn snd
@@ -176,7 +176,7 @@ type TestSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 
                     |> Seq.choose (fun index ->
                         match index.MaybeKeyAndPrimitiveString with
                         | Some (iKey, iValue) when iKey = key -> Some iValue.Value
-                        | _ -> None)
+                        | _                                   -> None)
                     |> Seq.tryHead
                 (vs, indexValue))
             |> sortByDirn dirn snd
@@ -206,7 +206,7 @@ type TestSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 
     let subjectCurrentStateContainerToVersionedSubject (subjectStateContainer: SubjectCurrentStateContainer<'Subject, 'SubjectId, 'LifeEvent, 'LifeAction>): VersionedSubject<'Subject, 'SubjectId> =
         {
             Subject = subjectStateContainer.CurrentSubjectState.Subject
-            AsOf = subjectStateContainer.CurrentSubjectState.LastUpdatedOn
+            AsOf    = subjectStateContainer.CurrentSubjectState.LastUpdatedOn
             Version = subjectStateContainer.Version
         }
 
@@ -242,7 +242,7 @@ type TestSubjectRepo<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 
                 db.LockObj
                 (fun _ ->
                     match db.SubjectsByIdStr.TryGetValue idStr with
-                    | (true, v) ->  maybeCurrentState v |> Option.map subjectCurrentStateContainerToVersionedSubject
+                    | (true, v)  -> maybeCurrentState v |> Option.map subjectCurrentStateContainerToVersionedSubject
                     | (false, _) -> None)
             |> Task.FromResult
 

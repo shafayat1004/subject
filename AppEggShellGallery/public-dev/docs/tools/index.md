@@ -30,9 +30,9 @@ The long term plan is to find a way to error-map back to the source file, so tha
 line and in the IDE you see the errors mapped right to the source.
 
 F# actually has a compiler directive `# line` for specifying the source line number from which
-the next line was generated. But this directive doesn't work with Fable. Since I tried, Fable 3 has
-been realeased, so we'll try again, and if it doesn't work in Fable 3 either, we'll request that the
-feature is added (it's actually not a Fable issue, but an F# compiler services issue, I think).
+the next line was generated. But this directive doesn't work with Fable. When this was written,
+Fable 3 had just been released; the repo now runs **Fable 4** and the issue may still apply — not
+re-verified on Fable 4.
 
 In the mid term we can add some more RenderDsl compiler level checks. A good candidate for this would
 be a check for balanced parenthesis/quotes — these tend to lead to the most cryptic error messages.
@@ -56,3 +56,22 @@ You need to attack the problem from three directions:
   And yeah, I get that it's a pain to have to do this, but that's the price of working with a framework
   in early stages of development. And's really not that hard.
 
+---
+
+## Supplement: F# workflow and build commands (2026)
+
+Additive notes — the sections above still apply wherever `.render` files exist (framework libs,
+older apps).
+
+* **New UI** should be pure F# (`[<Component>]`). See [How to Add a Component](./fsharp/component.md).
+  This gallery app has no `.render` files left.
+* Useful commands from an app/lib directory:
+
+| Command | Purpose |
+|---------|---------|
+| `eggshell dev-web` | Web dev server + watch (gallery: port **8082**, default apps: **9080**) |
+| `eggshell build-lib` | Compile `.render` deps, regenerate `ComponentRegistration.fs`, Fable precompile |
+| `eggshell test-build` | One-shot production webpack bundle |
+| `eggshell convert-component` | Print RenderConvert F# to stdout (does not write files) |
+
+Snippets in `Meta/renderdsl.code-snippets` include both **`fsharp`** and **`renderdsl`** scopes.

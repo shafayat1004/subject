@@ -1,6 +1,6 @@
 module LibClient.Styles
 
-open ReactXP.LegacyStyles
+open Rn.LegacyStyles
 
 // NOTE this file is a scratchpad for developing a library
 // of shared styles that will eventually become standard

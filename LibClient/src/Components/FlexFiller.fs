@@ -4,8 +4,8 @@ module LibClient.Components.FlexFiller
 open Fable.React
 
 open LibClient
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -17,7 +17,7 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member FlexFiller() : ReactElement =
-        RX.View(
-            styles = [| Styles.view |],
+        Rn.View(
+            styles   = [| Styles.view |],
             children = [| |]
         )

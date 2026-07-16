@@ -2,13 +2,13 @@ namespace LibDsl.CodeGeneration.FsharpCode
 
 type FsharpCode =
 | Nothing // sugar for building lists, lest we are forced to use concat and nested lists
-| Line of string
-| CommentLine of string
-| Codes of List<FsharpCode>
-| ParameterList of List<FsharpCode>
-| IndentedBlock of children: List<FsharpCode>
+| Line               of string
+| CommentLine        of string
+| Codes              of List<FsharpCode>
+| ParameterList      of List<FsharpCode>
+| IndentedBlock      of children: List<FsharpCode>
 | ParenthesizedBlock of children: List<FsharpCode>
-| RecordBlock of fields: List<string * string> // being lazy, not doing (string * Code) until need arises
+| RecordBlock        of fields: List<string * string> // being lazy, not doing (string * Code) until need arises
 
 module FsharpCode =
     let private makeIndent (indentCount: int): string = String.replicate indentCount "    "
@@ -57,4 +57,4 @@ module FsharpCode =
         | IndentedBlock codes      -> IndentedBlock (codes |> List.map (mapLines mapper))
         | ParenthesizedBlock codes -> ParenthesizedBlock (codes |> List.map (mapLines mapper))
         | RecordBlock fields       -> RecordBlock (fields |> List.map (fun (name, source) -> (name, mapper source)))
-        | _ -> code
+        | _                        -> code

@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module CartesianGridTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member CartesianGrid(?children: ReactChildrenProp, ?x: int, ?y: int, ?width: int, ?height: int, ?horizontal: bool, ?vertical: bool, ?horizontalPoints: float array, ?verticalPoints: float array, ?strokeDashArray: float array, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member CartesianGrid(?children: ReactChildrenProp, ?x: int, ?y: int, ?width: int, ?height: int, ?horizontal: bool, ?vertical: bool, ?horizontalPoints: float array, ?verticalPoints: float array, ?strokeDashArray: float array, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     X = x |> Option.orElse (JsUndefined)

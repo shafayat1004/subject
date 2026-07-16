@@ -27,7 +27,6 @@ LogBox.ignoreLogs([
    View,
    Button
  } from 'react-native';
- import * as RX from '@chaldal/reactxp';
  import {
    Colors,
    DebugInstructions,

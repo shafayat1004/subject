@@ -9,9 +9,9 @@ type ViewBuilder<'Input, 'Output, 'OpError, 'AccessPredicateInput, 'Session, 'Ro
         and  'Role                 :  comparison
         and  'Env                  :> Env> =
     internal {
-        Def: ViewDef<'Input, 'Output, 'OpError>
+        Def:            ViewDef<'Input, 'Output, 'OpError>
         MaybeApiAccess: Option<ViewApiAccess<'Input, 'AccessPredicateInput, 'Session, 'Role>>
-        Read: Option<Read<'Input, 'Output, 'OpError, 'Env>>
+        Read:           Option<Read<'Input, 'Output, 'OpError, 'Env>>
     }
 with
     member internal this.AssumeTypes<'NewAccessPredicateInput, 'NewRole, 'NewEnv
@@ -25,11 +25,11 @@ with
             MaybeApiAccess =
                 match this.MaybeApiAccess |> box with
                 | :? (Option<ViewApiAccess<'Input, 'NewAccessPredicateInput, 'Session, 'NewRole>>) as existing -> existing
-                | _ -> None
+                | _                                                                                            -> None
             Read =
                 match this.Read |> box with
                 | :? (Option<Read<'Input, 'Output, 'OpError, 'NewEnv>>) as existing -> existing
-                | _ -> None
+                | _                                                                 -> None
 
             Def = this.Def
         }
@@ -38,10 +38,10 @@ with
         match this.Read with
         | Some read ->
             {
-                Definition  = this.Def
-                Read = read
-                MetaData = { EnvironmentType_ = typeof<'Env> }
-                MaybeApiAccess = this.MaybeApiAccess
+                Definition      = this.Def
+                Read            = read
+                MetaData        = { EnvironmentType_ = typeof<'Env> }
+                MaybeApiAccess  = this.MaybeApiAccess
                 SessionHandling = None
             }
         | None ->
@@ -55,9 +55,9 @@ module ViewBuilder =
             (def: ViewDef<'Input, 'Output, 'OpError>)
             : ViewBuilder<'Input, 'Output, 'OpError, AccessPredicateInput, 'Session, 'Role, Env> =
         {
-            Def = def
+            Def            = def
             MaybeApiAccess = None
-            Read = None
+            Read           = None
         }
 
     let withoutApiAccess
@@ -74,7 +74,7 @@ module ViewBuilder =
         { builder.AssumeTypes<AccessPredicateInput, 'Role, 'Env>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
+                    AccessRules     = accessRules
                     AccessPredicate = (fun _ _ _ _ -> true)
                 }
         }
@@ -87,7 +87,7 @@ module ViewBuilder =
         { builder.AssumeTypes<'AccessPredicateInput, 'Role, 'Env>() with
             MaybeApiAccess =
                 Some {
-                    AccessRules = accessRules
+                    AccessRules     = accessRules
                     AccessPredicate = accessPredicate
             }
         }

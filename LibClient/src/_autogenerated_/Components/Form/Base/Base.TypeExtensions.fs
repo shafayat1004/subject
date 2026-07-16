@@ -10,7 +10,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module Form_BaseTypeExtensions =
     type LibClient.Components.Constructors.LC.Form with
-        static member Base(accumulator: Accumulator<'Acc>, submit: 'Acced -> ReactEvent.Action -> UDAction, content: FormHandle<'Field, 'Acc, 'Acced> -> ReactElement, ?children: ReactChildrenProp, ?initializeAccOnSubmit: bool, ?executor: MakeExecutor, ?key: string, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Base(accumulator: Accumulator<'Acc>, submit: 'Acced -> ReactEvent.Action -> UDAction, content: FormHandle<'Field, 'Acc, 'Acced> -> ReactElement, ?children: ReactChildrenProp, ?initializeAccOnSubmit: bool, ?executor: MakeExecutor, ?key: string, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Accumulator = accumulator

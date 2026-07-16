@@ -6,8 +6,8 @@ open LibClient
 open LibClient.Services.LocalStorageService
 open LibRouter.RoutesSpec
 open LibClient.Components
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibAppUpdateManager.Components
 
 module private Styles =
@@ -17,7 +17,7 @@ module private Styles =
         padding   0
         minHeight 600
     }
-    
+
 
 type UpdateManager =
     [<Component>]
@@ -30,7 +30,7 @@ type UpdateManager =
             ),
             catch =
                 (fun (error, retry) ->
-                    RX.View (styles = [|Styles.error|], children = [|
+                    Rn.View (styles = [|Styles.error|], children = [|
                         CodePushUpdateManager.FallBackWrapper ()
                         LC.AppShell.TopLevelErrorMessage (retry = retry, error = error)
                     |])
@@ -45,7 +45,7 @@ type UpdateManager =
             ),
             catch =
                 (fun (error, retry) ->
-                    RX.View (styles = [|Styles.error|], children = [|
+                    Rn.View (styles = [|Styles.error|], children = [|
                         LC.AppShell.TopLevelErrorMessage (retry = retry, error = error)
                     |])
                 )

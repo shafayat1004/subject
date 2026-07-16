@@ -2,7 +2,7 @@
 module LibUiAdmin.Components.InfoMessageRoute
 
 open Fable.React
-open ReactXP.Styles
+open Rn.Styles
 open LibClient
 open LibClient.Components
 open LibRouter.Components
@@ -14,7 +14,7 @@ type UiAdmin with
             LC.Section.Padded (styles = [|Styles.Section|], children = [|
                 LC.InfoMessage (
                     message = message,
-                    level = InfoMessage.Info
+                    level   = InfoMessage.Info
                 )
             |])
         |],

@@ -10,7 +10,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module LabelledFormFieldTypeExtensions =
     type LibClient.Components.Constructors.LC with
-        static member LabelledFormField(label: string, ?children: ReactChildrenProp, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member LabelledFormField(label: string, ?children: ReactChildrenProp, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Label = label

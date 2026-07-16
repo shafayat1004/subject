@@ -5,9 +5,9 @@ open LibClient
 open LibClient.Components
 open LibClient.Dialogs
 open Fable.React
-open LibClient.Components.Form.Base.Types
+open LibClient.Components.Form_Base.Types
 open AppPerformancePlayground.AppServices
-open ReactXP.Styles
+open Rn.Styles
 
 type Parameters = {
     Param: int
@@ -69,9 +69,9 @@ type DoSomething(initialProps) =
                 this.Actions.TryCancel
             ),
             heading = $"Type {this.props.Parameters.Param} in words",
-            body = element {
+            body    = element {
                 LC.Form.Base (
-                    accumulator = LibClient.Components.Form.Base.Accumulator.ManageInternallyInitializingWith (Acc.Initial ()),
+                    accumulator = LibClient.Components.Form_Base.Accumulator.ManageInternallyInitializingWith (Acc.Initial ()),
                     submit      = submit this.ResetForm,
                     key         = $"{this.state.estate.AddCount}",
                     content     = (fun form -> element {

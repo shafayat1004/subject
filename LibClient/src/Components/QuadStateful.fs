@@ -5,7 +5,7 @@ open Fable.React
 
 open LibClient
 
-open ReactXP.Components
+open Rn.Components
 
 module LC =
     module QuadStateful =
@@ -60,10 +60,10 @@ type LibClient.Components.Constructors.LC with
     [<Component>]
     static member QuadStateful<'InputAcc, 'Input>(
             initialInputAcc: InitialInputAcc<'InputAcc>,
-            act: 'Input -> Async<Result<unit, string>>,
-            validate: 'InputAcc -> Option<'Input>,
-            initial: ((* Edit *) ReactEvent.Action -> unit) -> ReactElement,
-            input: ('InputAcc * ((* SetInput *) 'InputAcc -> unit) * (* MaybeAct *) Option<ReactEvent.Action -> unit> * (* Cancel *) (ReactEvent.Action -> unit)) -> ReactElement
+            act:             'Input -> Async<Result<unit, string>>,
+            validate:        'InputAcc -> Option<'Input>,
+            initial:         ((* Edit *) ReactEvent.Action -> unit) -> ReactElement,
+            input:           ('InputAcc * ((* SetInput *) 'InputAcc -> unit) * (* MaybeAct *) Option<ReactEvent.Action -> unit> * (* Cancel *) (ReactEvent.Action -> unit)) -> ReactElement
         ) : ReactElement =
         let modeHook = Hooks.useState Mode<'InputAcc, 'Input>.Initial
 
@@ -88,13 +88,13 @@ type LibClient.Components.Constructors.LC with
             }
 
         | InProgress ->
-            RX.ActivityIndicator(
+            Rn.ActivityIndicator(
                 color = "#aaaaaa"
             )
 
         | Error message ->
             element {
-                RX.View(
+                Rn.View(
                     elements {
                         LC.Text $"Error: {message}"
                     }

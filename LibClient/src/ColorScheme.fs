@@ -47,11 +47,11 @@ with
 
 [<AbstractClass>]
 type ColorScheme() =
-    abstract member Neutral   : Variants
-    abstract member Primary   : Variants
-    abstract member Secondary : Variants
-    abstract member Attention : Variants
-    abstract member Caution   : Variants
+    abstract member Neutral:   Variants
+    abstract member Primary:   Variants
+    abstract member Secondary: Variants
+    abstract member Attention: Variants
+    abstract member Caution:   Variants
 
 // Other than grey, these color schemes are scraped from here:
 // https://material.io/design/color/the-color-system.html#tools-for-picking-colors

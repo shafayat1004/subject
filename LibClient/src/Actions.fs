@@ -35,4 +35,3 @@ type Action =
             | Ok _          -> ()
             | Error message -> Action.alert message
         } |> startSafely
-

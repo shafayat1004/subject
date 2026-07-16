@@ -3,7 +3,8 @@
         "module": "commonjs",
         "noImplicitAny": true,
         "declaration": true,
-        "outDir": "../dist"
+        "outDir": "../dist",
+        "skipLibCheck": true
     },
     "include": [
         "**/*.ts",

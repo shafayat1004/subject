@@ -34,15 +34,6 @@ let private desktop (_nav: Navigation) (maybeCurrentRoute: Option<Route>) () : R
             | Landing -> return "Landing"
             | Bananas -> return "Bananas"
             | Mangoes -> return "Mangoes"
-
-            // If you needed to pull a string value out of a subject
-            // | Stations warehouseId ->
-            //     return!
-            //         With.Dispatcher (DispatcherId warehouseId, fun dispatcherAD -> [
-            //             dispatcherAD |> AsyncData.toOption |> Option.map (fun d -> $"{d.WarehouseName.Value} Stations") |> Option.getOrElse ""
-            //             |> desktopPrefixedHeading
-            //         ])
-            //         |> Error
     }
 
     match heading with

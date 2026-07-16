@@ -11,12 +11,14 @@ open FSharp.Reflection
 // TODO convert to use a cached FSharpValue.PreCompute* variant
 let inline unionCaseName<'T> (case: 'T) : string =
     match Microsoft.FSharp.Reflection.FSharpValue.GetUnionFields(case, typeof<'T>) with
-        | case, _ -> case.Name
+    | case, _ -> case.Name
 
 
 // Getting the real field name in Fable land is blocked on this issue:
 // https://github.com/fable-compiler/Fable/issues/2017
-let private unionPropertyItemRegex = new System.Text.RegularExpressions.Regex("^Item(\d)?$")
+let private unionPropertyItemRegex =
+    new System.Text.RegularExpressions.Regex("^Item(\d)?$")
+
 let unionCaseFieldName (propertyInfo: PropertyInfo) : Option<string> =
     match unionPropertyItemRegex.IsMatch propertyInfo.Name with
     | true  -> None

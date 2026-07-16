@@ -8,8 +8,8 @@ open LSP.Json.Ser
 open Types
 
 type RawMessage = {
-    id: int option
-    method: string
+    id:         int option
+    method:     string
     ``params``: JsonValue option
 }
 
@@ -29,22 +29,22 @@ let parseFileChangeType(i: int): FileChangeType =
 
 let parseTrace(text: string): Trace =
     match text with
-    | "off" -> Trace.Off
+    | "off"      -> Trace.Off
     | "messages" -> Trace.Messages
-    | "verbose" -> Trace.Verbose
-    | _ -> raise(Exception(sprintf "Unexpected trace %s" text))
+    | "verbose"  -> Trace.Verbose
+    | _          -> raise(Exception(sprintf "Unexpected trace %s" text))
 
 let parseCompletionItemKind(i: int): CompletionItemKind =
     match i with
-    | 1 -> CompletionItemKind.Text
-    | 2 -> CompletionItemKind.Method
-    | 3 -> CompletionItemKind.Function
-    | 4 -> CompletionItemKind.Constructor
-    | 5 -> CompletionItemKind.Field
-    | 6 -> CompletionItemKind.Variable
-    | 7 -> CompletionItemKind.Class
-    | 8 -> CompletionItemKind.Interface
-    | 9 -> CompletionItemKind.Module
+    | 1  -> CompletionItemKind.Text
+    | 2  -> CompletionItemKind.Method
+    | 3  -> CompletionItemKind.Function
+    | 4  -> CompletionItemKind.Constructor
+    | 5  -> CompletionItemKind.Field
+    | 6  -> CompletionItemKind.Variable
+    | 7  -> CompletionItemKind.Class
+    | 8  -> CompletionItemKind.Interface
+    | 9  -> CompletionItemKind.Module
     | 10 -> CompletionItemKind.Property
     | 11 -> CompletionItemKind.Unit
     | 12 -> CompletionItemKind.Value
@@ -61,7 +61,7 @@ let parseCompletionItemKind(i: int): CompletionItemKind =
     | 23 -> CompletionItemKind.Event
     | 24 -> CompletionItemKind.Operator
     | 25 -> CompletionItemKind.TypeParameter
-    | _ -> raise(Exception(sprintf "%d is not a known CompletionItemKind" i))
+    | _  -> raise(Exception(sprintf "%d is not a known CompletionItemKind" i))
 
 let parseInsertTextFormat(i: int): InsertTextFormat =
     match i with
@@ -80,31 +80,32 @@ let parseDiagnosticSeverity(i: int): DiagnosticSeverity =
 let parseMarkupKind(s: string): MarkupKind =
     match s with
     | "plaintext" -> MarkupKind.PlainText
-    | "markdown" -> MarkupKind.Markdown
-    | _ -> raise(Exception(sprintf "%s is not a known MarkupKind" s))
+    | "markdown"  -> MarkupKind.Markdown
+    | _           -> raise(Exception(sprintf "%s is not a known MarkupKind" s))
 
-let private readOptions =
-    { defaultJsonReadOptions
-        with customReaders = [  parseTextDocumentSaveReason
-                                parseFileChangeType
-                                parseTrace
-                                parseCompletionItemKind
-                                parseInsertTextFormat
-                                parseDiagnosticSeverity
-                                parseMarkupKind ] }
+let private readOptions = {
+    defaultJsonReadOptions
+      with customReaders = [  parseTextDocumentSaveReason
+                              parseFileChangeType
+                              parseTrace
+                              parseCompletionItemKind
+                              parseInsertTextFormat
+                              parseDiagnosticSeverity
+                              parseMarkupKind ]
+}
 
 let private deserializeRawMessage = JsonValue.Parse >> deserializerFactory<RawMessage> readOptions
 
 type Message =
-| RequestMessage of id: int * method: string * json: JsonValue
+| RequestMessage      of id: int * method: string * json: JsonValue
 | NotificationMessage of method: string * json: JsonValue option
 
 let parseMessage(jsonText: string): Message =
     let raw = deserializeRawMessage jsonText
     match raw.id, raw.``params`` with
     | Some id, Some p -> RequestMessage (id, raw.method, p)
-    | Some id, None -> RequestMessage (id, raw.method, JsonValue.Null)
-    | None, _ -> NotificationMessage (raw.method, raw.``params``)
+    | Some id, None   -> RequestMessage (id, raw.method, JsonValue.Null)
+    | None, _         -> NotificationMessage (raw.method, raw.``params``)
 
 let parseDidChangeConfigurationParams = deserializerFactory<DidChangeConfigurationParams> readOptions
 
@@ -139,11 +140,11 @@ let parseNotification(method: string, maybeBody: JsonValue option): Notification
         OtherNotification method
 
 type InitializeParamsRaw = {
-    processId: int option
-    rootUri: Uri option
+    processId:             int option
+    rootUri:               Uri option
     initializationOptions: JsonValue option
-    capabilities: JsonValue
-    trace: Trace option
+    capabilities:          JsonValue
+    trace:                 Trace option
 }
 
 let private parseCapabilities(nested: JsonValue): Map<string, bool> =
@@ -153,7 +154,7 @@ let private parseCapabilities(nested: JsonValue): Map<string, bool> =
                 let newPath = path + "." + key
                 match value with
                 | JsonValue.Boolean setting -> yield (newPath, setting)
-                | _ -> yield! flatten(newPath, value)
+                | _                         -> yield! flatten(newPath, value)
         }
     let kvs = seq {
         for (key, value) in nested.Properties do
@@ -164,11 +165,11 @@ let private parseCapabilities(nested: JsonValue): Map<string, bool> =
 
 let private parseInitializeParams(raw: InitializeParamsRaw): InitializeParams =
     {
-         processId = raw.processId
-         rootUri = raw.rootUri
+         processId             = raw.processId
+         rootUri               = raw.rootUri
          initializationOptions = raw.initializationOptions
-         capabilitiesMap = raw.capabilities |> parseCapabilities
-         trace = raw.trace
+         capabilitiesMap       = raw.capabilities |> parseCapabilities
+         trace                 = raw.trace
     }
 
 let parseInitialize = deserializerFactory<InitializeParamsRaw> readOptions >> parseInitializeParams
@@ -197,25 +198,25 @@ let parseDocumentLink = deserializerFactory<DocumentLink> readOptions
 
 type DocumentFormattingParamsRaw = {
     textDocument: TextDocumentIdentifier
-    options: JsonValue
+    options:      JsonValue
 }
 
 type DocumentRangeFormattingParamsRaw = {
     textDocument: TextDocumentIdentifier
-    options: JsonValue
-    range: Range
+    options:      JsonValue
+    range:        Range
 }
 
 type DocumentOnTypeFormattingParamsRaw = {
     textDocument: TextDocumentIdentifier
-    options: JsonValue
-    position: Position
-    ch: char
+    options:      JsonValue
+    position:     Position
+    ch:           char
 }
 
 let private parseDocumentFormattingOptions(options: JsonValue) =
     {
-        tabSize = options?tabSize.AsInteger()
+        tabSize      = options?tabSize.AsInteger()
         insertSpaces = options?insertSpaces.AsBoolean()
     }
 
@@ -227,25 +228,25 @@ let private parseDocumentFormattingOptionsMap(options: JsonValue) =
 let private parseDocumentFormattingParamsRaw(raw: DocumentFormattingParamsRaw): DocumentFormattingParams =
     {
         textDocument = raw.textDocument
-        options = parseDocumentFormattingOptions raw.options
-        optionsMap = parseDocumentFormattingOptionsMap raw.options
+        options      = parseDocumentFormattingOptions raw.options
+        optionsMap   = parseDocumentFormattingOptionsMap raw.options
     }
 
 let private parseDocumentRangeFormattingParamsRaw(raw: DocumentRangeFormattingParamsRaw): DocumentRangeFormattingParams =
     {
         textDocument = raw.textDocument
-        options = parseDocumentFormattingOptions raw.options
-        optionsMap = parseDocumentFormattingOptionsMap raw.options
-        range = raw.range
+        options      = parseDocumentFormattingOptions raw.options
+        optionsMap   = parseDocumentFormattingOptionsMap raw.options
+        range        = raw.range
     }
 
 let private parseDocumentOnTypeFormattingParamsRaw(raw: DocumentOnTypeFormattingParamsRaw): DocumentOnTypeFormattingParams =
     {
         textDocument = raw.textDocument
-        options = parseDocumentFormattingOptions raw.options
-        optionsMap = parseDocumentFormattingOptionsMap raw.options
-        position = raw.position
-        ch = raw.ch
+        options      = parseDocumentFormattingOptions raw.options
+        optionsMap   = parseDocumentFormattingOptionsMap raw.options
+        position     = raw.position
+        ch           = raw.ch
     }
 
 let parseDocumentFormattingParams = deserializerFactory<DocumentFormattingParamsRaw> readOptions >> parseDocumentFormattingParamsRaw
@@ -262,27 +263,27 @@ let parseDidChangeWorkspaceFoldersParams = deserializerFactory<DidChangeWorkspac
 
 let parseRequest(method: string, json: JsonValue): Request =
     match method with
-    | "initialize" -> Initialize(parseInitialize json)
-    | "shutdown" -> Shutdown
-    | "textDocument/willSaveWaitUntil" -> WillSaveWaitUntilTextDocument(parseWillSaveTextDocumentParams json)
-    | "textDocument/completion" -> Completion(parseTextDocumentPositionParams json)
-    | "textDocument/hover" -> Hover(parseTextDocumentPositionParams json)
-    | "completionItem/resolve" -> ResolveCompletionItem(parseCompletionItem json)
-    | "textDocument/signatureHelp" -> SignatureHelp(parseTextDocumentPositionParams json)
-    | "textDocument/definition" -> GotoDefinition(parseTextDocumentPositionParams json)
-    | "textDocument/references" -> FindReferences(parseReferenceParams json)
-    | "textDocument/documentHighlight" -> DocumentHighlight(parseTextDocumentPositionParams json)
-    | "textDocument/documentSymbol" -> DocumentSymbols(parseDocumentSymbolParams json)
-    | "workspace/symbol" -> WorkspaceSymbols(parseWorkspaceSymbolParams json)
-    | "textDocument/codeAction" -> CodeActions(parseCodeActionParams json)
-    | "textDocument/codeLens" -> CodeLens(parseCodeLensParams json)
-    | "codeLens/resolve" -> ResolveCodeLens(parseCodeLens json)
-    | "textDocument/documentLink" -> DocumentLink(parseDocumentLinkParams json)
-    | "documentLink/resolve" -> ResolveDocumentLink(parseDocumentLink json)
-    | "textDocument/formatting" -> DocumentFormatting(parseDocumentFormattingParams json)
-    | "textDocument/rangeFormatting" -> DocumentRangeFormatting(parseDocumentRangeFormattingParams json)
-    | "textDocument/onTypeFormatting" -> DocumentOnTypeFormatting(parseDocumentOnTypeFormattingParams json)
-    | "textDocument/rename" -> Rename(parseRenameParams json)
-    | "workspace/executeCommand" -> ExecuteCommand(parseExecuteCommandParams json)
+    | "initialize"                          -> Initialize(parseInitialize json)
+    | "shutdown"                            -> Shutdown
+    | "textDocument/willSaveWaitUntil"      -> WillSaveWaitUntilTextDocument(parseWillSaveTextDocumentParams json)
+    | "textDocument/completion"             -> Completion(parseTextDocumentPositionParams json)
+    | "textDocument/hover"                  -> Hover(parseTextDocumentPositionParams json)
+    | "completionItem/resolve"              -> ResolveCompletionItem(parseCompletionItem json)
+    | "textDocument/signatureHelp"          -> SignatureHelp(parseTextDocumentPositionParams json)
+    | "textDocument/definition"             -> GotoDefinition(parseTextDocumentPositionParams json)
+    | "textDocument/references"             -> FindReferences(parseReferenceParams json)
+    | "textDocument/documentHighlight"      -> DocumentHighlight(parseTextDocumentPositionParams json)
+    | "textDocument/documentSymbol"         -> DocumentSymbols(parseDocumentSymbolParams json)
+    | "workspace/symbol"                    -> WorkspaceSymbols(parseWorkspaceSymbolParams json)
+    | "textDocument/codeAction"             -> CodeActions(parseCodeActionParams json)
+    | "textDocument/codeLens"               -> CodeLens(parseCodeLensParams json)
+    | "codeLens/resolve"                    -> ResolveCodeLens(parseCodeLens json)
+    | "textDocument/documentLink"           -> DocumentLink(parseDocumentLinkParams json)
+    | "documentLink/resolve"                -> ResolveDocumentLink(parseDocumentLink json)
+    | "textDocument/formatting"             -> DocumentFormatting(parseDocumentFormattingParams json)
+    | "textDocument/rangeFormatting"        -> DocumentRangeFormatting(parseDocumentRangeFormattingParams json)
+    | "textDocument/onTypeFormatting"       -> DocumentOnTypeFormatting(parseDocumentOnTypeFormattingParams json)
+    | "textDocument/rename"                 -> Rename(parseRenameParams json)
+    | "workspace/executeCommand"            -> ExecuteCommand(parseExecuteCommandParams json)
     | "workspace/didChangeWorkspaceFolders" -> DidChangeWorkspaceFolders(parseDidChangeWorkspaceFoldersParams json)
-    | _ -> raise(Exception(sprintf "Unexpected request method %s" method))
+    | _                                     -> raise(Exception(sprintf "Unexpected request method %s" method))

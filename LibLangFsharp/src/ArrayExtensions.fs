@@ -7,5 +7,4 @@ module Array =
         | Some additionalStyles -> Array.append baseStyles additionalStyles
         | None                  -> baseStyles
 
-    let ofOneItem<'T> (item: 'T) : array<'T> =
-        [|item|]
+    let ofOneItem<'T> (item: 'T) : array<'T> = [| item |]

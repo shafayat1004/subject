@@ -10,7 +10,7 @@ let private bindRef<'T> (refState: IStateHook<Option<'T>>) (onInitialize: Option
 
     match (refState.current, maybeNewRef, onInitialize) with
     | (None, Some ref, Some onInitialize) -> onInitialize ref
-    | _ -> Noop
+    | _                                   -> Noop
 
     refState.update maybeNewRef
 

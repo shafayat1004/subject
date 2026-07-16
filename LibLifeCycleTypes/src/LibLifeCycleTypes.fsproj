@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <LangVersion>7.0</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <Configurations>Debug;Release;Fable Debug;Fable Release</Configurations>
+    <!-- Formatting check suppressed here (4 files use constructs the formatter must not touch) -->
+    <EggShellFmtSeverity>none</EggShellFmtSeverity>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Fable Debug' Or '$(Configuration)'=='Fable Release'">

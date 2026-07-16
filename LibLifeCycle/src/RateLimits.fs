@@ -22,8 +22,8 @@ type RateLimitKey =
 | Global of Set<RateLimitScope>
 
 type RateLimit = {
-    Key: RateLimitKey
-    Limit: PositiveInteger
+    Key:      RateLimitKey
+    Limit:    PositiveInteger
     Duration: TimeSpan
 }
 

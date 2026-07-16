@@ -3,10 +3,11 @@ module LibClient.Components.ThumbCard
 
 open Fable.React
 open LibClient.Components.Layout.LC
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 open LibClient.Components
 open LibClient
+open LibClient.Accessibility
 
 module LC =
     module ThumbCard =
@@ -23,6 +24,7 @@ module private Styles =
     }
 
     let thumb = ViewStyles.Memoize (fun thumbPosition -> makeViewStyles {
+        Position.Relative
         AlignSelf.Stretch
         width 112
         minHeight 112
@@ -41,28 +43,36 @@ type private Helpers =
     static member Thumb (
         imageSource:   LibClient.Services.ImageService.ImageSource,
         thumbPosition: ThumbPosition,
-        ?onPress:      ReactEvent.Action -> unit
+        ?onPress:      ReactEvent.Action -> unit,
+        ?testId:       string
     ) : ReactElement =
         LC.With.Layout(
             initialOnly = true,
             ``with`` =
                 fun (onLayoutOption, maybeLayout) ->
-                    RX.View(
-                        styles = [|Styles.thumb thumbPosition|],
+                    Rn.View(
+                        styles    = [|Styles.thumb thumbPosition|],
                         ?onLayout = onLayoutOption,
                         children =
                             elements {
-                                RX.Image(
-                                    styles = [| Styles.image |],
-                                    source = imageSource,
-                                    resizeMode = ReactXP.Components.Image.ResizeMode.Cover,
-                                    size = (Size.FromParentLayout maybeLayout)
+                                Rn.Image(
+                                    styles     = [| Styles.image |],
+                                    source     = imageSource,
+                                    resizeMode = Rn.Components.Image.ResizeMode.Cover,
+                                    size       = (Size.FromParentLayout maybeLayout)
                                 )
 
                                 match onPress with
                                 | Some onPress ->
-                                    LC.TapCapture(
-                                        onPress = onPress
+                                    let resolvedTestId =
+                                        testId |> Option.orElse (Some (A11ySlug.testId "thumb-card" "Open image"))
+                                    LC.Pressable(
+                                        onPress       = onPress,
+                                        label         = "Open image",
+                                        testId        = resolvedTestId.Value,
+                                        role          = AccessibilityRole.Button,
+                                        overlay       = true,
+                                        componentName = "LC.ThumbCard"
                                     )
                                 | None ->
                                     noElement
@@ -80,15 +90,18 @@ type LC with
         child:          ReactElement,
         ?thumbPosition: ThumbPosition,
         ?onPress:       ReactEvent.Action -> unit,
+        ?label:         string,
+        ?testId:        string,
         ?styles:        array<ViewStyles>
     ) : ReactElement =
         let thumbPosition = defaultArg thumbPosition ThumbPosition.Left
+        let a11yLabel = defaultArg label "Open card"
         LC.Card (
             theme    = Helpers.CustomCardTheme,
             children = [|
                 LC.Row (
                     crossAxisAlignment = CrossAxisAlignment.Stretch,
-                    styles = [|Styles.row|],
+                    styles             = [|Styles.row|],
                     children =
                         match thumbPosition with
                         | ThumbPosition.Left ->
@@ -104,6 +117,7 @@ type LC with
                 )
             |],
             ?outerStyles = styles,
-            ?onPress     = onPress
+            ?onPress     = onPress,
+            label        = a11yLabel,
+            ?testId      = testId
         )
-

@@ -30,12 +30,12 @@ let private processItems<'Item, 'SortField> (sortKey: 'SortField -> 'Item -> str
 type LC.With with
     [<Component>]
     static member SortAndFilter<'Item, 'SortField when 'SortField: equality> (
-        allItems: seq<'Item>,
-        initialSort: 'SortField * SortDirection,
-        sortKey: 'SortField -> 'Item -> string,
+        allItems:        seq<'Item>,
+        initialSort:     'SortField * SortDirection,
+        sortKey:         'SortField -> 'Item -> string,
         filterCandidate: 'Item -> string,
-        content: (* sortedFilteredItems *) seq<'Item> * (* currSort *) ('SortField * SortDirection) * (* maybeCurrFilter *) Option<NonemptyString> * (* setSort *) ('SortField * SortDirection -> unit) * (* setFilter *) (Option<NonemptyString> -> unit) -> ReactElement,
-        ?initialFilter: NonemptyString) : ReactElement =
+        content:         (* sortedFilteredItems *) seq<'Item> * (* currSort *) ('SortField * SortDirection) * (* maybeCurrFilter *) Option<NonemptyString> * (* setSort *) ('SortField * SortDirection -> unit) * (* setFilter *) (Option<NonemptyString> -> unit) -> ReactElement,
+        ?initialFilter:  NonemptyString) : ReactElement =
         let itemsState = Hooks.useStateLazy (fun () -> processItems sortKey filterCandidate allItems None initialSort)
         let filterState = Hooks.useState initialFilter
         let sortState = Hooks.useState initialSort

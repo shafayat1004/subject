@@ -3,4 +3,3 @@ module ThirdParty.FormatfulText.ComponentRegistration
 
 let registerAllTheThings () : unit =
     ()
-

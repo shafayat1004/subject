@@ -76,7 +76,7 @@ let private thenNone(result: Async<'A>): Async<string option> = result |> thenMa
 let private notExit (message: Parser.Message) =
     match message with
     | Parser.NotificationMessage("exit", _) -> false
-    | _ -> true
+    | _                                     -> true
 
 let readMessages(receive: BinaryReader): seq<Parser.Message> =
     let tokens = Tokenizer.tokenize(receive)
@@ -104,7 +104,7 @@ type RealClient (send: BinaryWriter) =
 
 type private PendingTask =
 | ProcessNotification of method: string * task: Async<unit>
-| ProcessRequest of id: int * task: Async<string option> * cancel: CancellationTokenSource
+| ProcessRequest      of id: int * task: Async<string option> * cancel: CancellationTokenSource
 | Quit
 
 let connect(serverFactory: ILanguageClient -> ILanguageServer, receive: BinaryReader, send: BinaryWriter) =
@@ -230,7 +230,7 @@ let connect(serverFactory: ILanguageClient -> ILanguageServer, receive: BinaryRe
                 try
                     match Async.RunSynchronously(task, 0, cancel.Token) with
                     | Some(result) -> respond(send, id, result)
-                    | None -> respond(send, id, "null")
+                    | None         -> respond(send, id, "null")
                 with :? OperationCanceledException ->
                     dprintfn "Request %d was cancelled" id
             pendingRequests.TryRemove(id) |> ignore

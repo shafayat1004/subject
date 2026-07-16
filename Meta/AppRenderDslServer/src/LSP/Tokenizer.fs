@@ -59,8 +59,8 @@ let tokenize(client: BinaryReader): seq<string> =
             let maybeHeader = readLine(client)
             let next = Option.map parseHeader maybeHeader
             match next with
-                | None -> endOfInput <- true
+                | None                  -> endOfInput <- true
                 | Some(ContentLength l) -> contentLength <- l
-                | Some(EmptyHeader) -> yield readLength(contentLength, client)
-                | _ -> ()
+                | Some(EmptyHeader)     -> yield readLength(contentLength, client)
+                | _                     -> ()
     }

@@ -3,10 +3,19 @@ module LibRouter.App
 open LibLang
 open LibClient
 open LibClient.Responsive
+open Fable.Core
 open Fable.Core.JsInterop
 
+[<Fable.Core.JS.Pojo>]
+type private AbsoluteFillStyleJs() =
+    member val position = "absolute"
+    member val top = 0
+    member val right = 0
+    member val bottom = 0
+    member val left = 0
+
 // this is to make TEs available
-open ReactXP.Components
+open Rn.Components
 open LibClient.Components
 
 type Props = (* GenerateMakeFunction *) {
@@ -23,13 +32,7 @@ type AppComponent<'Parameters, 'Result, 'Actions, 'Self>(name: string, initialPr
     inherit PureStatelessComponent<Props, 'Actions, 'Self>(name, initialProps, actionsConstructor, hasStyles)
 
     let styles =
-        !!(createObj [
-            "position" ==> "absolute"
-            "top"      ==> 0
-            "right"    ==> 0
-            "bottom"   ==> 0
-            "left"     ==> 0
-        ] |> ReactXP.Helpers.ReactXPRaw?Styles?createViewStyle)
+        !!(AbsoluteFillStyleJs() |> box |> Rn.RnPrimitives.createViewStyle)
 
     do
         // technically we should be unmounting these, but because it's the top level app,
@@ -37,14 +40,14 @@ type AppComponent<'Parameters, 'Result, 'Actions, 'Self>(name: string, initialPr
         addOnScreenSizeUpdatedListener (System.Action (fun () -> this.forceUpdate())) |> ignore
         LibClient.Components.TapCaptureDebugVisibility.addIsVisibleForDebugChangeListener (System.Action (fun () -> this.forceUpdate())) |> ignore
 
-    member this.OnLayout (onLayoutEvent: ReactXP.Types.ViewOnLayoutEvent) : unit =
+    member this.OnLayout (onLayoutEvent: Rn.Types.ViewOnLayoutEvent) : unit =
         screenSizeOnLayout onLayoutEvent
 
     override this.render () : ReactElement =
         screenSizeContextProvider
             (getLatestScreenSize())
             [|
-                RX.View (
+                Rn.View (
                     onLayout = this.OnLayout,
                     styles   = styles,
                     children = castAsElements (base.render())

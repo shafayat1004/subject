@@ -73,7 +73,7 @@ module OperationBuilder =
 
         member _.ReturnFrom (res: OperationResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent>) : OperationResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent> =
             res
-            
+
         member _.ReturnFrom (res: InfallibleOperationResult<'Subject, 'LifeAction, 'LifeEvent>) : OperationResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent> =
             backgroundTask {
                 let (InfallibleOperationResult binderTask) = res
@@ -226,9 +226,9 @@ module OperationBuilderExtensions =
             let! subjectRef = context.Query CurrentSubjectRef
             let! guid = unique.Query NewUuid
             return
-                { Id_ = guid
+                { Id_       = guid
                   Revision_ = 0u
-                  Owner_ = subjectRef }
+                  Owner_    = subjectRef }
         }
 
     type OperationBuilder with
@@ -243,7 +243,7 @@ module OperationBuilderExtensions =
                     return Error err
             }
             |> OperationResult
-        
+
         member _.Bind(asyncTask: Task<'Subject1>, binder: 'Subject1 -> OperationResult<'Subject2, 'LifeAction, 'OpError, 'LifeEvent>) : OperationResult<'Subject2, 'LifeAction, 'OpError, 'LifeEvent> =
             backgroundTask {
                 let! resolved = asyncTask

@@ -8,8 +8,8 @@ type Guid with
         this.ToByteArray()
         |> Convert.ToBase64String
         |> fun str -> str.Substring(0, str.Length - 2) // remove trailing == padding
-        |> fun str -> str.Replace('+', '-')            // escape
-        |> fun str -> str.Replace('/', '_')            // escape
+        |> fun str -> str.Replace('+', '-') // escape
+        |> fun str -> str.Replace('/', '_') // escape
 
     static member FromTinyUuid(tinyUuid: string) : Guid =
         tinyUuid
@@ -29,6 +29,5 @@ type Guid with
             |> Convert.FromBase64String
             |> Guid
             |> Some
-        with
-        | _ ->
+        with _ ->
             None

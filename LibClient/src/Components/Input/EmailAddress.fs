@@ -4,8 +4,8 @@ module LibClient.Components.Input_EmailAddress
 open Fable.React
 open LibClient
 open LibClient.Components.Input
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 
 let parseProp (raw: Option<NonemptyString>): Result<Option<EmailAddress>, string> =
@@ -26,15 +26,15 @@ module LC =
     module Input =
         module EmailAddressTypes =
             type Theme = {
-                BorderLabelBlurredColor: Color
-                BorderLabelFocusedColor: Color
-                BorderLabelInvalidColor: Color
-                TextColor: Color
-                NoneditableTextColor: Color
+                BorderLabelBlurredColor:    Color
+                BorderLabelFocusedColor:    Color
+                BorderLabelInvalidColor:    Color
+                TextColor:                  Color
+                NoneditableTextColor:       Color
                 NoneditableBackgroundColor: Color
-                InvalidReasonColor: Color
-                PlaceholderColor: Color
-                TheVerticalPadding: int
+                InvalidReasonColor:         Color
+                PlaceholderColor:           Color
+                TheVerticalPadding:         int
             }
             type Value = ParsedText.Value<EmailAddress>
             let parse (raw: Option<NonemptyString>) : Value =
@@ -68,7 +68,7 @@ type LibClient.Components.Constructors.LC.Input with
         ?styles:              array<ViewStyles>,
         ?theme:               Theme -> Theme,
         ?key:                 string,
-        ?xLegacyStyles:       List<ReactXP.LegacyStyles.RuntimeStyles>
+        ?xLegacyStyles:       List<Rn.LegacyStyles.RuntimeStyles>
     ): ReactElement =
         key |> ignore
 
@@ -80,19 +80,19 @@ type LibClient.Components.Constructors.LC.Input with
             Fable.Core.JS.console.warn "LC.Input.EmailAddress is being used with legacy styles. Please update all usages to use styles rather than classes."
 
         LC.Input.ParsedText(
-            xLegacyStyles = (Styles.legacyParsedText theTheme |> List.append xLegacyStyles),
-            keyboardType = ParsedText.KeyboardType.EmailAddress,
-            onChange = onChange,
+            xLegacyStyles       = (Styles.legacyParsedText theTheme |> List.append xLegacyStyles),
+            keyboardType        = ParsedText.KeyboardType.EmailAddress,
+            onChange            = onChange,
             requestFocusOnMount = requestFocusOnMount,
-            validity = validity,
-            value = value,
-            parse = parseProp,
-            ?onEnterKeyPress = onEnterKeyPress,
-            ?onKeyPress = onKeyPress,
-            ?tabIndex = tabIndex,
-            ?suffix = suffix,
-            ?prefix = prefix,
-            ?placeholder = placeholder,
-            ?label = label,
-            ?styles = styles
+            validity            = validity,
+            value               = value,
+            parse               = parseProp,
+            ?onEnterKeyPress    = onEnterKeyPress,
+            ?onKeyPress         = onKeyPress,
+            ?tabIndex           = tabIndex,
+            ?suffix             = suffix,
+            ?prefix             = prefix,
+            ?placeholder        = placeholder,
+            ?label              = label,
+            ?styles             = styles
         )

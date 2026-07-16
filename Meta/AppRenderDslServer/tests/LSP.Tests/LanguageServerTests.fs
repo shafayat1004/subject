@@ -1,34 +1,34 @@
 module LSP.LanguageServerTests
 
 open System
-open System.IO 
+open System.IO
 open System.Text
 open FSharp.Data
 open LSP.Types
 open NUnit.Framework
 
 [<SetUp>]
-let setup() = 
+let setup() =
     LSP.Log.diagnosticsLog := stdout
 
-let binaryWriter() = 
+let binaryWriter() =
     let stream = new MemoryStream()
     let writer = new BinaryWriter(stream)
-    let toString() = 
-        let bytes = stream.ToArray() 
+    let toString() =
+        let bytes = stream.ToArray()
         Encoding.UTF8.GetString(bytes)
     writer, toString
 
 [<Test>]
-let ``write text``() = 
-    let writer, toString = binaryWriter() 
+let ``write text``() =
+    let writer, toString = binaryWriter()
     writer.Write(Encoding.UTF8.GetBytes "foo")
     let found = toString()
     Assert.AreEqual("foo", found)
 
 [<Test>]
-let ``write response``() = 
-    let writer, toString = binaryWriter() 
+let ``write response``() =
+    let writer, toString = binaryWriter()
     LanguageServer.respond(writer, 1, "2")
     let expected = "Content-Length: 35\r\n\r\n\
                     {\"id\":1,\"jsonrpc\":\"2.0\",\"result\":2}"
@@ -36,8 +36,8 @@ let ``write response``() =
     Assert.AreEqual(expected, found)
 
 [<Test>]
-let ``write multibyte characters``() = 
-    let writer, toString = binaryWriter() 
+let ``write multibyte characters``() =
+    let writer, toString = binaryWriter()
     LanguageServer.respond(writer, 1, "🔥")
     let expected = "Content-Length: 38\r\n\r\n\
                     {\"id\":1,\"jsonrpc\":\"2.0\",\"result\":🔥}"
@@ -46,14 +46,14 @@ let ``write multibyte characters``() =
 
 let TODO() = raise (Exception "TODO")
 
-type MockServer() = 
-    interface ILanguageServer with 
-        member this.Initialize(p: InitializeParams): Async<InitializeResult> = 
+type MockServer() =
+    interface ILanguageServer with
+        member this.Initialize(p: InitializeParams): Async<InitializeResult> =
             async {
                 return { capabilities = defaultServerCapabilities }
             }
-        member this.Initialized(): Async<unit> = TODO() 
-        member this.Shutdown(): Async<unit> = TODO() 
+        member this.Initialized(): Async<unit> = TODO()
+        member this.Shutdown(): Async<unit> = TODO()
         member this.DidChangeConfiguration(p: DidChangeConfigurationParams): Async<unit>  = TODO()
         member this.DidOpenTextDocument(p: DidOpenTextDocumentParams): Async<unit>  = TODO()
         member this.DidChangeTextDocument(p: DidChangeTextDocumentParams): Async<unit>  = TODO()
@@ -83,13 +83,13 @@ type MockServer() =
         member this.ExecuteCommand(p: ExecuteCommandParams): Async<unit> = TODO()
         member this.DidChangeWorkspaceFolders(p: DidChangeWorkspaceFoldersParams): Async<unit> = TODO()
 
-let messageStream(messages: string list): BinaryReader = 
+let messageStream(messages: string list): BinaryReader =
     let stdin = new MemoryStream()
-    for m in messages do 
+    for m in messages do
         let trim = m.Trim()
         let length = Encoding.UTF8.GetByteCount(trim)
         let wrapper = sprintf "Content-Length: %d\r\n\r\n%s" length trim
-        let bytes = Encoding.UTF8.GetBytes(wrapper) 
+        let bytes = Encoding.UTF8.GetBytes(wrapper)
         stdin.Write(bytes, 0, bytes.Length)
     stdin.Seek(int64 0, SeekOrigin.Begin) |> ignore
     new BinaryReader(stdin)
@@ -104,7 +104,7 @@ let initializeMessage = """
 """
 
 [<Test>]
-let ``read messages from a stream``() = 
+let ``read messages from a stream``() =
     let stdin = messageStream [initializeMessage]
     let messages = LanguageServer.readMessages(stdin)
     let found = Seq.toList(messages)
@@ -116,22 +116,22 @@ let exitMessage = """
     "method": "exit"
 }
 """
-    
+
 [<Test>]
-let ``exit message terminates stream``() = 
+let ``exit message terminates stream``() =
     let stdin = messageStream [initializeMessage; exitMessage; initializeMessage]
     let messages = LanguageServer.readMessages(stdin)
     let found = Seq.toList messages
     Assert.AreEqual([Parser.RequestMessage(1, "initialize", JsonValue.Parse "{}")], found)
-    
+
 [<Test>]
-let ``end of bytes terminates stream``() = 
+let ``end of bytes terminates stream``() =
     let stdin = messageStream [initializeMessage]
     let messages = LanguageServer.readMessages(stdin)
     let found = Seq.toList messages
     Assert.AreEqual([Parser.RequestMessage(1, "initialize", JsonValue.Parse "{}")], found)
 
-let mock(server: ILanguageServer) (messages: string list): string = 
+let mock(server: ILanguageServer) (messages: string list): string =
     let stdout = new MemoryStream()
     let writeOut = new BinaryWriter(stdout)
     let readIn = messageStream(messages)
@@ -140,7 +140,7 @@ let mock(server: ILanguageServer) (messages: string list): string =
     Encoding.UTF8.GetString(stdout.ToArray())
 
 [<Test>]
-let ``send Initialize``() = 
+let ``send Initialize``() =
     let message = """
     {
         "jsonrpc": "2.0",

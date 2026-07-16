@@ -4,9 +4,10 @@ module LibClient.Components.Tab
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Tab =
@@ -15,7 +16,7 @@ module LC =
         | Unselected of OnPress: (ReactEvent.Action -> unit)
 
         type Theme = {
-            SelectedColor: Color
+            SelectedColor:   Color
             UnselectedColor: Color
         }
 
@@ -32,6 +33,7 @@ module private Styles =
         ViewStyles.Memoize(
             fun (theme: Theme) (state: State) ->
                 makeViewStyles {
+                    Position.Relative
                     FlexDirection.Row
                     AlignItems.Stretch
                     borderBottomWidth 3
@@ -55,7 +57,7 @@ module private Styles =
 
                     color
                         (match state with
-                        | Selected -> theme.SelectedColor
+                        | Selected     -> theme.SelectedColor
                         | Unselected _ -> theme.UnselectedColor)
                 }
         )
@@ -63,25 +65,39 @@ module private Styles =
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Tab(
-            label: string,
-            state: State,
+            label:   string,
+            state:   State,
+            ?testId: string,
             ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?theme:  Theme -> Theme,
+            ?key:    string
         ) : ReactElement =
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
+        let theTestId = testId |> Option.defaultValue (A11ySlug.testId "tab" label)
 
-        RX.View(
+        let isSelected =
+            match state with
+            | Selected     -> true
+            | Unselected _ -> false
+
+        let tabState =
+            { AccessibilityStateRecord.empty with Selected = Some isSelected }
+
+        Rn.View(
             styles =
                 [|
                     Styles.viewTheme theTheme state
                     yield! styles |> Option.defaultValue [||]
                 |],
+            accessibilityLabel = label,
+            accessibilityRole  = AccessibilityRole.Tab,
+            accessibilityState = AccessibilityStateRecord.toJs tabState,
+            testId             = theTestId,
             children =
                 elements {
-                    RX.View(
+                    Rn.View(
                         styles = [| Styles.label |],
                         children =
                             elements {
@@ -97,8 +113,14 @@ type LibClient.Components.Constructors.LC with
 
                     match state with
                     | Unselected onPress ->
-                        LC.TapCapture(
-                            onPress = onPress
+                        LC.Pressable(
+                            onPress       = onPress,
+                            label         = label,
+                            role          = AccessibilityRole.Tab,
+                            state         = tabState,
+                            testId        = theTestId,
+                            overlay       = true,
+                            componentName = "LC.Tab"
                         )
                     | _ ->
                         noElement

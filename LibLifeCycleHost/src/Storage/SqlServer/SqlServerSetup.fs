@@ -81,12 +81,12 @@ let private createApplyScriptIfNewOrChangedProc (connection: SqlConnection) (eco
     command.ExecuteNonQuery() |> ignore
 
 type private SetupContext = {
-    Connection: SqlConnection
-    SchemaName: string
-    LifeCycleAdapters: list<IHostedLifeCycleAdapter>
+    Connection:                 SqlConnection
+    SchemaName:                 string
+    LifeCycleAdapters:          list<IHostedLifeCycleAdapter>
     AlreadyAppliedScriptHashes: Map<string, byte[]>
-    HashAlgo1: HashAlgorithm
-    HashAlgo2: HashAlgorithm
+    HashAlgo1:                  HashAlgorithm
+    HashAlgo2:                  HashAlgorithm
 }
 
 let private applyScriptIfNewOrChanged (context: SetupContext) (scriptName: string) (sql: string) =
@@ -428,13 +428,14 @@ let doSetup
         createScriptHashTable connection ecosystemName
         createApplyScriptIfNewOrChangedProc connection ecosystemName
 
-        let context =
-            { Connection = connection
-              SchemaName = ecosystemName
-              LifeCycleAdapters = lifeCycles
-              AlreadyAppliedScriptHashes = readAlreadyAppliedScriptHashes connection ecosystemName
-              HashAlgo1 = SHA256.Create()
-              HashAlgo2 = MD5.Create() }
+        let context = {
+            Connection                 = connection
+            SchemaName                 = ecosystemName
+            LifeCycleAdapters          = lifeCycles
+            AlreadyAppliedScriptHashes = readAlreadyAppliedScriptHashes connection ecosystemName
+            HashAlgo1                  = SHA256.Create()
+            HashAlgo2                  = MD5.Create()
+        }
 
         createTypes context
         createTransferBlobTable context

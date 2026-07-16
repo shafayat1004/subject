@@ -24,7 +24,7 @@ let private hasSimulationAttribute (method: MethodInfo) (includeNonSeedingSimula
     let att = method.GetCustomAttribute<SimulationAttribute>()
     match box att with
     | null -> false
-    | _ -> includeNonSeedingSimulations || att.IsForDataSeedingOnly
+    | _    -> includeNonSeedingSimulations || att.IsForDataSeedingOnly
 
 let private hasZeroParameterCount (method: MethodInfo) =
     method.GetParameters()
@@ -56,7 +56,7 @@ let discoverSimulations (filter: DiscoveryFilter): List<Simulation> =
                     | None -> Some info
                     | Some regex ->
                         match regex.IsMatch(info.Module.FullName) with
-                        | true -> Some info
+                        | true  -> Some info
                         | false -> None
             )
     let methods =
@@ -76,7 +76,7 @@ let discoverSimulations (filter: DiscoveryFilter): List<Simulation> =
                     | None -> Some info
                     | Some regex ->
                         match regex.IsMatch(info.Method.Name) with
-                        | true -> Some info
+                        | true  -> Some info
                         | false -> None
             )
     let simulations =

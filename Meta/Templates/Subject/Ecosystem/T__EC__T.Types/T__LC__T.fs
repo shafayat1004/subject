@@ -48,4 +48,3 @@ type T__LC__TSearchIndex = NoSearchIndex
 type T__LC__TGeographyIndex = NoGeographyIndex
 
 type T__LC__TIndex() = inherit SubjectIndex<T__LC__TIndex, T__LC__TNumericIndex, T__LC__TStringIndex, T__LC__TSearchIndex, T__LC__TGeographyIndex, T__LC__TOpError>()
-

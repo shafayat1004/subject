@@ -61,8 +61,8 @@ type SqlServerTransferBlobHandler (config: SqlServerConnectionStrings, ecosystem
             backgroundTask {
                 let table = new DataTable()
                 let! now = clock.Query Now
-                table.Columns.Add("Id", typeof<Guid>) |> ignore
-                table.Columns.Add("Bytes", typeof<SqlBinary>) |> ignore
+                table.Columns.Add("Id", typeof<Guid>)                  |> ignore
+                table.Columns.Add("Bytes", typeof<SqlBinary>)          |> ignore
                 table.Columns.Add("CreatedOn", typeof<DateTimeOffset>) |> ignore
 
                 transferBlobsByIds
@@ -77,9 +77,9 @@ type SqlServerTransferBlobHandler (config: SqlServerConnectionStrings, ecosystem
                 use connection = new SqlConnection(sqlConnectionString)
                 use bulkCopy = new SqlBulkCopy(connection)
                 bulkCopy.DestinationTableName <- sprintf "[%s].TransferBlob" ecosystemName
-                bulkCopy.ColumnMappings.Add("Id", "Id") |> ignore
-                bulkCopy.ColumnMappings.Add("Bytes", "Bytes")  |> ignore
-                bulkCopy.ColumnMappings.Add("CreatedOn", "CreatedOn")  |> ignore
+                bulkCopy.ColumnMappings.Add("Id", "Id")               |> ignore
+                bulkCopy.ColumnMappings.Add("Bytes", "Bytes")         |> ignore
+                bulkCopy.ColumnMappings.Add("CreatedOn", "CreatedOn") |> ignore
                 do! connection.OpenAsync()
                 do! bulkCopy.WriteToServerAsync(table)
             }

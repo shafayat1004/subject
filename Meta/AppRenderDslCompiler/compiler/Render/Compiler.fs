@@ -39,7 +39,7 @@ let rec getUsedComponents (node: ReactTemplateNode): Set<string> =
 
     | DomNode (_, maybeChildren, _, _) ->
         match maybeChildren with
-        | None -> Set.empty
+        | None          -> Set.empty
         | Some children -> getUsedComponentsPlural children
 
     | Component (_libraryAlias, nameSpace, name, _, children, _) ->
@@ -87,9 +87,9 @@ type RenderDslCompiler(inputParams: InputParams) =
         let bodyCodeAdjusted =
             match inputParams.WithStyles with
             | false -> bodyCodeWithTypeConversion
-            | true -> Codes [
-                (Line "let __class = (ReactXP.Helpers.extractProp \"ClassName\" props) |> Option.defaultValue \"\"")
-                (Line "let __mergedStyles = ReactXP.LegacyStyles.Runtime.mergeComponentAndPropsStyles __componentStyles props")
+            | true  -> Codes [
+                (Line "let __class = (Rn.Helpers.extractProp \"ClassName\" props) |> Option.defaultValue \"\"")
+                (Line "let __mergedStyles = Rn.LegacyStyles.Runtime.mergeComponentAndPropsStyles __componentStyles props")
                 bodyCodeWithTypeConversion
             ]
 
@@ -140,7 +140,7 @@ type RenderDslCompiler(inputParams: InputParams) =
         let renderDeclaration =
             match inputParams.WithStyles with
             | false -> sprintf "let render(children: array<ReactElement>, props: %s.Props%s, estate: %s.Estate%s, pstate: %s.Pstate, actions: %s.Actions%s) : Fable.React.ReactElement = element {" typesNameSpace propsTypeParametersString typesNameSpace estateTypeParametersString typesNameSpace typesNameSpace actionsTypeParametersString
-            | true  -> sprintf "let render(children: array<ReactElement>, props: %s.Props%s, estate: %s.Estate%s, pstate: %s.Pstate, actions: %s.Actions%s, __componentStyles: ReactXP.LegacyStyles.RuntimeStyles) : Fable.React.ReactElement =" typesNameSpace propsTypeParametersString typesNameSpace estateTypeParametersString typesNameSpace typesNameSpace actionsTypeParametersString
+            | true  -> sprintf "let render(children: array<ReactElement>, props: %s.Props%s, estate: %s.Estate%s, pstate: %s.Pstate, actions: %s.Actions%s, __componentStyles: Rn.LegacyStyles.RuntimeStyles) : Fable.React.ReactElement =" typesNameSpace propsTypeParametersString typesNameSpace estateTypeParametersString typesNameSpace typesNameSpace actionsTypeParametersString
 
         let renderHead = sprintf "%s\n    // sadly #nowarn has file scope, so we have to emulate it manually\n    (children, props, estate, pstate, actions) |> ignore" renderDeclaration
 
@@ -213,7 +213,7 @@ type RenderDslConverter(inputParams: InputParams) =
         let renderDeclaration =
             match inputParams.WithStyles with
             | false -> sprintf "let render(props: %s.Props%s, estate: %s.Estate%s, pstate: %s.Pstate, actions: %s.Actions%s) : Fable.React.ReactElement =" typesNameSpace propsTypeParametersString typesNameSpace estateTypeParametersString typesNameSpace typesNameSpace actionsTypeParametersString
-            | true  -> sprintf "let render(props: %s.Props%s, estate: %s.Estate%s, pstate: %s.Pstate, actions: %s.Actions%s, __componentStyles: ReactXP.LegacyStyles.RuntimeStyles) : Fable.React.ReactElement =" typesNameSpace propsTypeParametersString typesNameSpace estateTypeParametersString typesNameSpace typesNameSpace actionsTypeParametersString
+            | true  -> sprintf "let render(props: %s.Props%s, estate: %s.Estate%s, pstate: %s.Pstate, actions: %s.Actions%s, __componentStyles: Rn.LegacyStyles.RuntimeStyles) : Fable.React.ReactElement =" typesNameSpace propsTypeParametersString typesNameSpace estateTypeParametersString typesNameSpace typesNameSpace actionsTypeParametersString
 
         let source = sprintf "%s\n\n%s\n\n%s\n\n%s\n\n%s\n%s\n%s\n\n%s\n%s" moduleDeclaration openFable openComponentLibraries openAdditionalFromCommandLineArgs openThisComponent openFromRootRtOpen moduleAliasesFromRootRtOpen renderDeclaration bodyCodeString
 

@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module PieTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member Pie(?children: ReactChildrenProp, ?cx: Offset, ?cy: Offset, ?innerRadius: Radius, ?outerRadius: Radius, ?startAngle: float, ?endAngle: float, ?minAngle: float, ?paddingAngle: float, ?nameKey: string, ?dataKey: string, ?fill: Color, ?legendType: LegendType, ?data: obj array, ?isAnimationActive: bool, ?animationEasing: AnimationEasing, ?onAnimationStart: (unit -> unit), ?onAnimationEnd: (unit -> unit), ?onClick: (unit -> unit), ?onMouseDown: (unit -> unit), ?onMouseUp: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseOver: (unit -> unit), ?onMouseOut: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Pie(?children: ReactChildrenProp, ?cx: Offset, ?cy: Offset, ?innerRadius: Radius, ?outerRadius: Radius, ?startAngle: float, ?endAngle: float, ?minAngle: float, ?paddingAngle: float, ?nameKey: string, ?dataKey: string, ?fill: Color, ?legendType: LegendType, ?data: obj array, ?isAnimationActive: bool, ?animationEasing: AnimationEasing, ?onAnimationStart: (unit -> unit), ?onAnimationEnd: (unit -> unit), ?onClick: (unit -> unit), ?onMouseDown: (unit -> unit), ?onMouseUp: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseOver: (unit -> unit), ?onMouseOut: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Cx = cx |> Option.orElse (Some (Offset.Percentage 50.))

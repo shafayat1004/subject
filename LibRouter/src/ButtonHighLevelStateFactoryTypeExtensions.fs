@@ -32,10 +32,10 @@ type LibClient.Input.ButtonHighLevelStateFactory with
 
 type ButtonHighLevelState with
     static member DoWithConfirm<'Route, 'ResultlessDialog, 'ResultfulDialog when 'Route: equality and 'Route :> NavigationRoute and 'ResultlessDialog :> NavigationResultlessDialog and 'ResultfulDialog :> NavigationResultfulDialog> (
-        action: UDAction,
-        nav:    Navigation<'Route, 'ResultlessDialog, 'ResultfulDialog>,
-        ?message: string,
-        ?cancelButtonLabel: string,
+        action:              UDAction,
+        nav:                 Navigation<'Route, 'ResultlessDialog, 'ResultfulDialog>,
+        ?message:            string,
+        ?cancelButtonLabel:  string,
         ?confirmButtonLabel: string
     ) : ButtonHighLevelState =
         Input.ButtonHighLevelStateFactory.MakeGo (

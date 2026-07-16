@@ -4,13 +4,19 @@ module LibClient.Components.AppleAppStoreButton
 open Fable.React
 
 open LibClient
+open LibClient.Accessibility
 open LibClient.LocalImages
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 [<RequireQualifiedAccess>]
 module private Styles =
+    let imageContainer =
+        makeViewStyles {
+            Position.Relative
+        }
+
     let desktopImage =
         makeViewStyles {
             size 145 47
@@ -28,11 +34,15 @@ type LibClient.Components.Constructors.LC with
 
         LC.With.ScreenSize(
             fun screenSize ->
-                RX.View(
-                    styles = (styles |> Option.defaultValue [||]),
+                Rn.View(
+                    styles =
+                        [|
+                            Styles.imageContainer
+                            yield! (styles |> Option.defaultValue [||])
+                        |],
                     children =
                         elements {
-                            RX.Image(
+                            Rn.Image(
                                 styles =
                                     [|
                                         if screenSize = Responsive.ScreenSize.Desktop then
@@ -40,13 +50,18 @@ type LibClient.Components.Constructors.LC with
                                         else
                                             Styles.handheldImage
                                     |],
-                                source = localImage "/libs/LibClient/images/app-store.png",
+                                source     = localImage "/libs/LibClient/images/app-store.png",
                                 resizeMode = Image.ResizeMode.Contain,
-                                size = Size.FromStyles
+                                size       = Size.FromStyles
                             )
 
-                            LC.TapCapture(
-                                onPress = onPress
+                            LC.Pressable(
+                                onPress       = onPress,
+                                label         = "Download on the App Store",
+                                testId        = "apple-app-store-button",
+                                role          = AccessibilityRole.Link,
+                                overlay       = true,
+                                componentName = "LC.AppleAppStoreButton"
                             )
                         }
                 )

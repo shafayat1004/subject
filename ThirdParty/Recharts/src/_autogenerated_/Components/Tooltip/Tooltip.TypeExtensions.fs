@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module TooltipTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member Tooltip(?children: ReactChildrenProp, ?separator: string, ?offset: int, ?filterNull: bool, ?viewBox: ViewBox, ?active: bool, ?position: Position, ?coordinate: Position, ?content: (ContentInput -> ReactElement), ?isAnimationActive: bool, ?animationEasing: AnimationEasing, ?animationBeginMs: int, ?animationDurationMs: int, ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member Tooltip(?children: ReactChildrenProp, ?separator: string, ?offset: int, ?filterNull: bool, ?viewBox: ViewBox, ?active: bool, ?position: Position, ?coordinate: Position, ?content: (ContentInput -> ReactElement), ?isAnimationActive: bool, ?animationEasing: AnimationEasing, ?animationBeginMs: int, ?animationDurationMs: int, ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Separator = separator |> Option.orElse (Some ":")

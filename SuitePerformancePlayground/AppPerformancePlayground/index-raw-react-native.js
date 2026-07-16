@@ -154,4 +154,4 @@ const App = () => {
   );
 };
 
-AppRegistry.registerComponent("RXApp", () => App);
+AppRegistry.registerComponent("RnApp", () => App);

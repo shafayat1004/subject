@@ -4,7 +4,7 @@ module LibLifeCycleTest.GenStrings
 open System
 open FsCheck
 
-let private digitChars  = [0 .. 9] |> List.map (fun d -> (int '0') + d |> char)
+let private digitChars = [0 .. 9] |> List.map (fun d -> (int '0') + d |> char)
 let genDigits =
     Gen.elements digitChars
 

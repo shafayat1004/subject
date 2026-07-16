@@ -8,7 +8,7 @@ open LibLifeCycle.LifeCycleAccessBuilder
 open type AccessTo<BatchAction, BatchConstructor>
 
 type BatchEnvironment = {
-    Clock: Service<Clock>
+    Clock:    Service<Clock>
     Sequence: Service<Sequence>
 } with interface Env
 
@@ -44,7 +44,7 @@ let private transitionBatchBody (env: BatchEnvironment) (body: BatchBody) (actio
                     body.JobsProgress.Values
                     |> Seq.choose (function
                         | JobProgress.Unfinished jobId -> jobsDef.LifeCycles.job.Act jobId JobAction.Delete |> Some
-                        | JobProgress.Finished _ -> None)
+                        | JobProgress.Finished _       -> None)
                 let! now = env.Clock.Query Now
                 return { body with CancelRequestedOn = Some now }
 
@@ -86,8 +86,8 @@ let private constructBatchBody
 
         let initialBatchBody (jobIds: List<JobId>) =
             let initialJobsProgress = jobIds |> Seq.map JobProgress.Unfinished |> KeyedSet.ofSeq
-            { Description = properBatchCtor.Description
-              JobsProgress = initialJobsProgress
+            { Description       = properBatchCtor.Description
+              JobsProgress      = initialJobsProgress
               CancelRequestedOn = cancelRequestedOn
               ActivationStatus =
                   match properBatchCtor.Parent with
@@ -95,7 +95,7 @@ let private constructBatchBody
                       BatchActivationStatus.Activated (now, None)
                   | Some parent ->
                       BatchActivationStatus.Awaiting parent
-              SentOn = properBatchCtor.SentOn
+              SentOn              = properBatchCtor.SentOn
               PlaceholderFilledOn = if isFillPlaceholder then Some now else None }
 
         match properBatchCtor.Parent with
@@ -300,7 +300,7 @@ let private timers (batch: Batch) =
                 |> Seq.max
                 |> fun lastJobFinishedOn ->
                     { TimerAction = TimerAction.DeleteSelf
-                      Schedule = Schedule.On (lastJobFinishedOn.AddDays 2) }
+                      Schedule    = Schedule.On (lastJobFinishedOn.AddDays 2) }
             | BatchActivationStatus.Awaiting _ , _
             | _, BatchStatus.Unfinished _ ->
                 ()
@@ -364,7 +364,7 @@ let private shouldSendTelemetry =
         | BatchAction.OnParentBatchUpdate status ->
             match status with
             | BatchStatus.Unfinished | BatchStatus.Finished false -> true
-            | BatchStatus.Finished true -> false
+            | BatchStatus.Finished true                           -> false
         | BatchAction.OnJobStatusChanged _
         | BatchAction.OnNewSubscriber _
         | BatchAction.FillPlaceholder _ -> false

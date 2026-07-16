@@ -7,9 +7,8 @@ open Fable.React
 open LibClient
 open LibClient.Icons
 
-open ReactXP.Components
-open ReactXP.Styles
-open ReactXP.Styles.Animation
+open Rn.Components
+open Rn.Styles
 
 module LC =
     module Carousel =
@@ -40,13 +39,11 @@ module private Styles =
             Position.Relative
         }
 
-    let animatableView (translateX: AnimatableValue) =
-        makeAnimatableViewStyles {
+    // translateX is applied via a Reanimated animated style, not here.
+    let slideView =
+        makeViewStyles {
             Position.Absolute
             trbl 0 0 0 0
-            animatedTransform [
-                [ animatedTranslateX translateX ]
-            ]
         }
 
     let iconButton =
@@ -67,7 +64,7 @@ module private Styles =
             Actionable =
                 { theme.Actionable with
                     IconColor = theTheme.NavigationButtonColor
-                    IconSize = theTheme.ButtonIconSize
+                    IconSize  = theTheme.ButtonIconSize
                 }
         }
 
@@ -126,16 +123,16 @@ let private slideDuration = TimeSpan.FromMilliseconds(200)
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member Carousel(
-            count: PositiveInteger,
-            slide: int -> ReactElement,
-            ?initialIndex: uint32,
-            ?tabIndex: int,
-            ?continuousLoop: bool,
+            count:                 PositiveInteger,
+            slide:                 int -> ReactElement,
+            ?initialIndex:         uint32,
+            ?tabIndex:             int,
+            ?continuousLoop:       bool,
             ?autoScrollAtInterval: TimeSpan,
-            ?requestFocusOnMount: bool,
-            ?styles: array<ViewStyles>,
-            ?theme: Theme -> Theme,
-            ?key: string
+            ?requestFocusOnMount:  bool,
+            ?styles:               array<ViewStyles>,
+            ?theme:                Theme -> Theme,
+            ?key:                  string
         ) : ReactElement =
         key |> ignore
 
@@ -150,67 +147,42 @@ type LibClient.Components.Constructors.LC with
         let currentPageX                   = Hooks.useState 0
         let panThreshold                   = 20
 
-        let maybeWidthRef            = Hooks.useRef None
-        let maybeCurrentAnimationRef = Hooks.useRef None
+        let maybeWidthRef = Hooks.useRef None
+        let isSlidingRef  = Hooks.useRef false
 
-        let currentImageTranslateX =
-            Hooks.useMemo(
-                (fun () -> AnimatedValue.Create(0.0)),
-                [||]
-            )
-        let targetImageTranslateX =
-            Hooks.useMemo(
-                (fun () -> AnimatedValue.Create(0.0)),
-                [||]
-            )
+        // Reanimated shared values drive the two slides' translateX; the animated styles are hooked
+        // at the top level (hook rule) and reused in the render below.
+        let currentImageTranslateX = Reanimated.useSharedValue 0.0
+        let targetImageTranslateX  = Reanimated.useSharedValue 0.0
+        let currentSlideStyle      = Reanimated.useAnimatedTranslateX currentImageTranslateX
+        let targetSlideStyle       = Reanimated.useAnimatedTranslateX targetImageTranslateX
+
+        let slideDurationMs = slideDuration.TotalMilliseconds
 
         Hooks.useEffect(
             (fun () ->
-                match maybeWidthRef.current, maybeCurrentAnimationRef.current, currentMaybeTargetIndexesState.current with
-                | Some width, None, (currentIndex, Some targetIndex) ->
-                    let animation =
-                        if targetIndex > currentIndex then
-                            // Sliding from right to left
-                            0. |> currentImageTranslateX.SetValue
-                            width |> double |> targetImageTranslateX.SetValue
+                match maybeWidthRef.current, isSlidingRef.current, currentMaybeTargetIndexesState.current with
+                | Some (width: float), false, (currentIndex, Some targetIndex) ->
+                    isSlidingRef.current <- true
 
-                            Animation.Parallel(
-                                Animation.Timing(
-                                    currentImageTranslateX,
-                                    toValue = -width,
-                                    duration = slideDuration
-                                ),
-                                Animation.Timing(
-                                    targetImageTranslateX,
-                                    toValue = 0.,
-                                    duration = slideDuration
-                                )
-                            )
-                        else
-                            // Sliding from left to right
-                            0. |> currentImageTranslateX.SetValue
-                            -width |> double |> targetImageTranslateX.SetValue
+                    if targetIndex > currentIndex then
+                        // Sliding from right to left
+                        currentImageTranslateX.SetValue 0.0
+                        targetImageTranslateX.SetValue width
+                        currentImageTranslateX.AnimateTiming(-width, durationMs = slideDurationMs)
+                    else
+                        // Sliding from left to right
+                        currentImageTranslateX.SetValue 0.0
+                        targetImageTranslateX.SetValue -width
+                        currentImageTranslateX.AnimateTiming(width, durationMs = slideDurationMs)
 
-                            Animation.Parallel(
-                                Animation.Timing(
-                                    currentImageTranslateX,
-                                    toValue = width,
-                                    duration = slideDuration
-                                ),
-                                Animation.Timing(
-                                    targetImageTranslateX,
-                                    toValue = 0.,
-                                    duration = slideDuration
-                                )
-                            )
-
-                    maybeCurrentAnimationRef.current <- Some animation
-
-                    animation.Start(
-                        fun () ->
-                            maybeCurrentAnimationRef.current <- None
-                            currentMaybeTargetIndexesState.update ((targetIndex, None))
-                    )
+                    targetImageTranslateX.AnimateTiming(
+                        0.0,
+                        durationMs = slideDurationMs,
+                        onComplete =
+                            (fun () ->
+                                isSlidingRef.current <- false
+                                currentMaybeTargetIndexesState.update ((targetIndex, None))))
                 | _ ->
                     Noop
             ),
@@ -252,7 +224,7 @@ type LibClient.Components.Constructors.LC with
             | _ ->
                 Noop
 
-        let onPanHorizontal (rawGestureState: ReactXP.Components.GestureView.PanGestureState) : unit =
+        let onPanHorizontal (rawGestureState: Rn.Components.GestureView.PanGestureState) : unit =
             if rawGestureState.isComplete && rawGestureState.isTouch then
                 let initialX = int rawGestureState.initialPageX
                 let distance = currentPageX.current - initialX
@@ -298,25 +270,26 @@ type LibClient.Components.Constructors.LC with
                 |> Option.map (fun l -> double l.Width)
                 |> (fun maybeWidth -> maybeWidthRef.current <- maybeWidth)
 
-                RX.View(
+                Rn.View(
                     styles =
                         [|
                             Styles.view
                             yield! (styles |> Option.defaultValue [||])
                         |],
-                    tabIndex = tabIndex,
-                    autoFocus = requestFocusOnMount,
+                    tabIndex   = tabIndex,
+                    autoFocus  = requestFocusOnMount,
                     onKeyPress = onKeyPress,
-                    ?onLayout = onLayoutOption,
+                    ?onLayout  = onLayoutOption,
                     children =
                         elements {
-                            RX.GestureView(
+                            Rn.GestureView(
                                 onPanHorizontal = onPanHorizontal,
                                 styles          = [| Styles.gestureView |],
                                 children        = [|
-                                    RX.AnimatableView(
-                                        styles = [| currentImageTranslateX |> AnimatableValue.Value |> Styles.animatableView |],
-                                        key = $"current_slide",
+                                    Rn.ReanimatedView(
+                                        styles        = [| Styles.slideView |],
+                                        animatedStyle = currentSlideStyle,
+                                        key           = $"current_slide",
                                         children =
                                             elements {
                                                 currentIndex |> int |> slide
@@ -325,9 +298,10 @@ type LibClient.Components.Constructors.LC with
 
                                     match maybeTargetIndex with
                                     | Some targetIndex ->
-                                        RX.AnimatableView(
-                                            styles = [| targetImageTranslateX |> AnimatableValue.Value |> Styles.animatableView |],
-                                            key = $"target_slide",
+                                        Rn.ReanimatedView(
+                                            styles        = [| Styles.slideView |],
+                                            animatedStyle = targetSlideStyle,
+                                            key           = $"target_slide",
                                             children =
                                                 elements {
                                                     targetIndex |> int |> slide
@@ -339,7 +313,7 @@ type LibClient.Components.Constructors.LC with
                                         // in the end animation handler is not sufficient because
                                         // there are occasionally frames rendered with the old
                                         // value.
-                                        0. |> currentImageTranslateX.SetValue
+                                        currentImageTranslateX.SetValue 0.0
                                         noElement
 
                                     if count.Value > 1 then
@@ -366,7 +340,7 @@ type LibClient.Components.Constructors.LC with
                                                 |> Option.defaultValue [||]
                                         |]
 
-                                        RX.View(
+                                        Rn.View(
                                             styles =
                                                 [|
                                                     Styles.side
@@ -377,6 +351,7 @@ type LibClient.Components.Constructors.LC with
                                                     match maybePreviousIndex with
                                                     | Some previousIndex ->
                                                         LC.IconButton(
+                                                            label  = "Previous",
                                                             styles = iconStyles,
                                                             theme  = Styles.iconButtonTheme theTheme,
                                                             icon   = Icon.ChevronLeft,
@@ -392,11 +367,11 @@ type LibClient.Components.Constructors.LC with
                                                 }
                                         )
 
-                                        RX.View(
+                                        Rn.View(
                                             styles = [| Styles.dotsContainer |],
                                             children =
                                                 elements {
-                                                    RX.View(
+                                                    Rn.View(
                                                         styles = [|
                                                             Styles.dots
                                                             yield!
@@ -416,7 +391,7 @@ type LibClient.Components.Constructors.LC with
                                                                         else
                                                                             theTheme.InactiveDotStyle
 
-                                                                    RX.View(
+                                                                    Rn.View(
                                                                         styles = [|
                                                                             Styles.dot theTheme isCurrent
                                                                             yield!
@@ -431,7 +406,7 @@ type LibClient.Components.Constructors.LC with
                                                 }
                                         )
 
-                                        RX.View(
+                                        Rn.View(
                                             styles =
                                                 [|
                                                     Styles.side
@@ -442,6 +417,7 @@ type LibClient.Components.Constructors.LC with
                                                     match maybeNextIndex with
                                                     | Some nextIndex ->
                                                         LC.IconButton(
+                                                            label  = "Next",
                                                             styles = iconStyles,
                                                             theme  = Styles.iconButtonTheme theTheme,
                                                             icon   = Icon.ChevronRight,

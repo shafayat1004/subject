@@ -14,7 +14,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module LineChartTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member LineChart(?children: ReactChildrenProp, ?layout: Layout, ?width: int, ?height: int, ?data: obj array, ?margin: EdgeInsets, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member LineChart(?children: ReactChildrenProp, ?layout: Layout, ?width: int, ?height: int, ?data: obj array, ?margin: EdgeInsets, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseMove: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Layout = layout |> Option.orElse (JsUndefined)

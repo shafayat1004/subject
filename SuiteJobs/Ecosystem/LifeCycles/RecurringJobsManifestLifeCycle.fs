@@ -8,7 +8,7 @@ open LibLifeCycle.LifeCycleAccessBuilder
 open type AccessTo<RecurringJobsManifestAction, RecurringJobsManifestConstructor>
 
 type RecurringJobsManifestEnvironment = {
-    Clock: Service<Clock>
+    Clock:            Service<Clock>
     AllRecurringJobs: Service<All<RecurringJob, RecurringJobId, RecurringJobIndex, RecurringJobOpError>>
 } with interface Env
 

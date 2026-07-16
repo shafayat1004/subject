@@ -105,7 +105,7 @@ with
         if not <| typeof<'a>.IsValueType then // perf optimization, only non-value types can implement the interface
             match (box value) with
             | :? IRedactable as redactable -> redactable.Redact() |> unbox
-            | _ -> value
+            | _                            -> value
         else
             value
 

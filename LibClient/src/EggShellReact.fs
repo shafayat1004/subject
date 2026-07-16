@@ -18,7 +18,7 @@ let (|NoElement|Element|) (candidate: ReactElement) =
     else
         Element candidate
 
-type RenderFunction<'Props, 'EState, 'PState, 'Actions> = array<ReactElement> * 'Props * 'EState * 'PState * 'Actions * ReactXP.LegacyStyles.RuntimeStyles -> Fable.React.ReactElement
+type RenderFunction<'Props, 'EState, 'PState, 'Actions> = array<ReactElement> * 'Props * 'EState * 'PState * 'Actions * Rn.LegacyStyles.RuntimeStyles -> Fable.React.ReactElement
 
 type NoEstate = unit
 type NoEstate1<'T>                                                       = NoEstate1 of unit
@@ -37,10 +37,10 @@ type NoPstate = unit
 let getRenderFunction<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string) : RenderFunction<'Props, 'EState, 'PState, 'Actions> =
     ComponentRegistry.GetRender fullyQualifiedComponentName
 
-let getStyles<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string) (hasStyles: bool) : ReactXP.LegacyStyles.RuntimeStyles =
+let getStyles<'Props, 'EState, 'PState, 'Actions> (fullyQualifiedComponentName: string) (hasStyles: bool) : Rn.LegacyStyles.RuntimeStyles =
     match hasStyles with
     | true  -> ComponentRegistry.GetStyles fullyQualifiedComponentName
-    | false -> ReactXP.LegacyStyles.RuntimeStyles.None
+    | false -> Rn.LegacyStyles.RuntimeStyles.None
 
 type PersistentStore private () =
     static let mutable maybeInstance: Option<PersistentStore> = None
@@ -65,7 +65,7 @@ type PersistentStore private () =
     member _.Get<'V> (key: string) : Option<'V> =
         match store.TryGetValue key with
         | (true, data) -> Some (data :?> 'V)
-        | _ -> None
+        | _            -> None
 
     member _.Remove (key: string) : unit =
         store.Remove key
@@ -165,7 +165,7 @@ type PstatefulComponent<'Props, 'Estate, 'Pstate, 'Actions, 'Self>(fullyQualifie
     inherit Component<'Props, PstatefulState<'Estate, 'Pstate>>(initialProps)
 
     let actions: 'Actions = actionsConstructor ((this :> obj) :?> 'Self)
-    let styles: ReactXP.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
+    let styles: Rn.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
 
     do
         match PersistentStore.MaybeInstance with
@@ -194,7 +194,7 @@ type PstatefulComponent<'Props, 'Estate, 'Pstate, 'Actions, 'Self>(fullyQualifie
             let updatedPstate = updater state.pstate state.estate props
 
             match PersistentStore.MaybeInstance with
-            | None -> failwith "Persistent store was never initialized"
+            | None                 -> failwith "Persistent store was never initialized"
             | Some persistentStore -> persistentStore.Put pstoreKey updatedPstate
 
             {state with pstate = updatedPstate}
@@ -205,7 +205,7 @@ type EstatefulComponent<'Props, 'Estate, 'Actions, 'Self>(fullyQualifiedName: st
     inherit Component<'Props, 'Estate>(initialProps)
 
     let actions: 'Actions = actionsConstructor ((this :> obj) :?> 'Self)
-    let styles: ReactXP.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
+    let styles: Rn.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
 
     do
         this.setInitState(this.GetInitialEstate initialProps)
@@ -225,7 +225,7 @@ type PureStatelessComponent<'Props, 'Actions, 'Self>(fullyQualifiedName: string,
     inherit Component<'Props, obj>(initialProps)
 
     let actions: 'Actions = actionsConstructor ((this :> obj) :?> 'Self)
-    let styles: ReactXP.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
+    let styles: Rn.LegacyStyles.RuntimeStyles = getStyles fullyQualifiedName hasStyles
 
     member _.Actions : 'Actions = actions
 
@@ -295,6 +295,23 @@ let unpackIfFragment<'T> (el: ReactElement) : 'T =
         el :> obj :?> 'T
 
 type CEAccumulator = seq<ReactElement>
+
+// React.Children.toArray flattens nested arrays and assigns stable positional keys
+// (`.$0`, `.$1`, ...). Defined here, before the element/elements CEs, so the CEs and the
+// fragment helpers can bake key-safety into the primitive instead of forcing every call
+// site to remember castAsElementAckingKeysWarning. Without this, a multi-yield
+// `element { a; b }` returns a Fragment with unkeyed children and React logs
+// "Each child in a list should have a unique key prop". The children yielded by these
+// CEs are positional/stable per render, so toArray's `.$N` keys are the right tool here
+// (this is the static-array case, NOT a dynamic mapped list -- those still need stable
+// id keys at the call site, see runbooks/troubleshooting.md).
+[<Import("Children", "react")>]
+let ReactChildren: obj = jsNative
+
+let tellReactArrayKeysAreOkay (els: array<ReactElement>) : array<ReactElement> =
+    ReactChildren?toArray els
+
+type ReactChildrenProp = array<ReactElement>
 
 type ElementsBuilder() =
     member _.Zero () : CEAccumulator =
@@ -404,7 +421,9 @@ type ElementBuilder() =
 
     member _.Run (f: unit -> CEAccumulator) : ReactElement =
         let elements = Array.ofSeq (f())
-        Fable.React.Helpers.fragment [] elements
+        // Key the fragment's children so multi-yield `element { a; b }` expressions
+        // don't log React key warnings (positional/stable children -- static-array case).
+        Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay elements)
 
 let element = ElementBuilder()
 
@@ -412,13 +431,13 @@ let asFragment (els: seq<ReactElement>) : ReactElement =
     match Seq.length els with
     | 0 -> noElement
     | 1 -> Seq.head els
-    | _ -> Fable.React.Helpers.fragment [] els
+    | _ -> Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay (Array.ofSeq els))
 
 let fragmentOfList (els: list<ReactElement>) : ReactElement =
     match els with
-    | [] -> noElement
+    | []     -> noElement
     | [head] -> head
-    | _ -> Fable.React.Helpers.fragment [] els
+    | _      -> Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay (Array.ofList els))
 
 type Fable.React.IHooks with
     member this.useDisposableFn (dispose: unit -> unit, dependencies: array<obj>) : unit =
@@ -436,14 +455,6 @@ type Fable.React.IHooks with
             dependencies
         )
 
-[<Import("Children", "react")>]
-let ReactChildren: obj = jsNative
-
-let tellReactArrayKeysAreOkay (els: array<ReactElement>) : array<ReactElement> =
-    ReactChildren?toArray els
-
-type ReactChildrenProp = array<ReactElement>
-
 // because react doesn't differentiate between single and multiple elements,
 // but in F# we have no way of orchestrating the same setup without casts
 let castAsElement (elements: array<ReactElement>) : ReactElement =
@@ -453,4 +464,11 @@ let castAsElements (element: ReactElement) : array<ReactElement> =
     !!element
 
 let castAsElementAckingKeysWarning (elements: array<ReactElement>) : ReactElement =
-    !!(tellReactArrayKeysAreOkay elements)
+    // Wrap in a Fragment rather than a bare `!!`-cast array. Returning a bare (even
+    // Children.toArray-keyed) array from a [<Component>]/memo'd function component trips
+    // React 19's "Each child in a list should have a unique key prop" warning, because the
+    // array is reconciled as the FC's own output. A Fragment is a single element whose
+    // children are the keyed array, which reconciles cleanly. Same shape as ElementBuilder.Run
+    // / asFragment / fragmentOfList. (This is the static-array case; dynamic mapped lists still
+    // need stable id keys at the call site -- see runbooks/troubleshooting.md.)
+    Fable.React.Helpers.fragment [] (tellReactArrayKeysAreOkay elements)

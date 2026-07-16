@@ -161,8 +161,8 @@ let getEcosystemDefUnderTest () =
         failwith "Test Cluster hasn't been initialized yet"
 
 type BadLogCounters = {
-    Warning : Ref<int>
-    Error   : Ref<int>
+    Warning:  Ref<int>
+    Error:    Ref<int>
     Critical: Ref<int>
 } with
     member this.Reset() =
@@ -233,9 +233,9 @@ type private TestLogger(categoryName: string) =
                 |> Option.iter (fun (partitionId, testOutputHelper, badLogCouters) ->
                     match logLevel with
                     | LogLevel.Warning ->
-                        Interlocked.Increment badLogCouters.Warning  |> ignore
+                        Interlocked.Increment badLogCouters.Warning |> ignore
                     | LogLevel.Error ->
-                        Interlocked.Increment badLogCouters.Error    |> ignore
+                        Interlocked.Increment badLogCouters.Error |> ignore
                     | LogLevel.Critical ->
                         Interlocked.Increment badLogCouters.Critical |> ignore
                     | _ -> ()
@@ -289,7 +289,7 @@ let mutable private maybeTestDataSeeding:
 
 let private storageSetup() =
     match maybeTestDataSeeding with
-    | None -> EcosystemStorageSetup.Test
+    | None   -> EcosystemStorageSetup.Test
     | Some _ -> EcosystemStorageSetup.TestDataSeeding
 
 let internal enableTestDataSeedingMode
@@ -332,7 +332,7 @@ type private TestHostConfigurator() =
                                 .AddJsonFile ("appsettings.json", (* optional *) true, (* reloadOnChange *) false)
                         match maybeTestDataSeeding with
                         | Some _ -> "appsettings.TestDataSeeding.json"
-                        | None -> "appsettings.Tests.json"
+                        | None   -> "appsettings.Tests.json"
                         |> fun testConfigFile -> config.AddJsonFile (testConfigFile, (* optional *) true, (* reloadOnChange *) false) |> ignore
                 )
 
@@ -428,7 +428,7 @@ type private TestSiloConfigurator() =
                     ecosystemUnderTest.Value,
                     typeof<LibLifeCycleHostBuild.Build>.Assembly,
                         match maybeTestDataSeeding with
-                        | None -> EcosystemSiloSetup.Test
+                        | None   -> EcosystemSiloSetup.Test
                         | Some _ -> EcosystemSiloSetup.TestDataSeeding)
 
 type private TestSiloClientConfigurator() =
@@ -440,7 +440,7 @@ type private TestSiloClientConfigurator() =
                     ecosystem,
                     typeof<LibLifeCycleHostBuild.Build>.Assembly,
                         match maybeTestDataSeeding with
-                        | None -> EcosystemSiloClientSetup.TestCluster
+                        | None   -> EcosystemSiloClientSetup.TestCluster
                         | Some _ -> EcosystemSiloClientSetup.TestClusterDataSeeding)
                 |> ignore
 

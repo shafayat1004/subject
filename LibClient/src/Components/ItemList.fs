@@ -5,10 +5,11 @@ open Fable.React
 
 open LibClient
 open LibClient.Icons
+open LibClient.Accessibility
 open LibClient.Components
 
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 type WhenEmpty =
 | Children of ReactElement
@@ -42,20 +43,28 @@ type private Helpers =
     static member SeeAll (seeAll: SeeAll, theme: SeeAllTheme) : ReactElement =
         match seeAll with
         | SeeAll.Default handler ->
-            RX.View (styles = [|HelperStyles.SeeAllContainer; theme.SeeAll|], children = (elements {
-                RX.View (styles = [|HelperStyles.SeeAllIconContainer|], children = (elements {
+            Rn.View (styles = [|HelperStyles.SeeAllContainer; theme.SeeAll|], children = (elements {
+                Rn.View (styles = [|HelperStyles.SeeAllIconContainer|], children = (elements {
                     LC.Icon (styles = [|HelperStyles.SeeAllIcon|], icon = Icon.ChevronRight)
                 }))
-                RX.View (styles = [|HelperStyles.Label|], children = (elements {
+                Rn.View (styles = [|HelperStyles.Label|], children = (elements {
                     LC.Text "See All"
                 }))
-                LC.TapCapture (onPress = handler)
+                LC.Pressable (
+                    onPress       = handler,
+                    label         = "See All",
+                    testId        = A11ySlug.testId "item-list" "See All",
+                    role          = AccessibilityRole.Button,
+                    overlay       = true,
+                    componentName = "LC.ItemList"
+                )
             }))
         | SeeAll.Children children ->
             children
 
 and private HelperStyles() =
     static member val SeeAllContainer = makeViewStyles {
+        Position.Relative
         AlignItems.Center
         FlexDirection.Column
         JustifyContent.Center
@@ -101,7 +110,7 @@ type LibClient.Components.Constructors.LC with
             styles
             |> Option.getOrElse Array.empty
 
-        RX.View (styles = externalStyles,  children = (elements {
+        Rn.View (styles = externalStyles,  children = (elements {
             if items |> Seq.isEmpty then
                 match whenEmpty with
                 | Message message ->
@@ -120,14 +129,14 @@ type LibClient.Components.Constructors.LC with
                         | HorizontalAlignment.Right  -> Styles.AlignRight
                         | HorizontalAlignment.Left   -> Styles.AlignLeft
 
-                    RX.View (styles = [|Styles.ItemsBlock; alignmentStyle|], children = (elements {
+                    Rn.View (styles = [|Styles.ItemsBlock; alignmentStyle|], children = (elements {
                         whenNonempty items
                         seeAll |> Option.map (fun seeAll -> Helpers.SeeAll (seeAll, theTheme.SeeAll))
                     }))
                 | Horizontal ->
-                    RX.ScrollView (styles = [|Styles.ScrollView|], horizontal = true, children = elements {
-                        RX.View (styles = [|Styles.Reel|], children = (elements {
-                            RX.View (styles = [|Styles.Reel|], children = (elements {
+                    Rn.ScrollView (styles = [|Styles.ScrollView|], horizontal = true, children = elements {
+                        Rn.View (styles = [|Styles.Reel|], children = (elements {
+                            Rn.View (styles = [|Styles.Reel|], children = (elements {
                                 whenNonempty items
                                 seeAll |> Option.map (fun seeAll -> Helpers.SeeAll (seeAll, theTheme.SeeAll))
                             }))

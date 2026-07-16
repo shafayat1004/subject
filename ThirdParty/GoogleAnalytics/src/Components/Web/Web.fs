@@ -2,12 +2,13 @@ module ThirdParty.GoogleAnalytics.Web
 
 open Fable.Core.JsInterop
 open LibClient
+open ThirdParty.GoogleAnalytics.Types
 
-let private initializeApp: obj -> obj  = import "initializeApp" "firebase/app"
-let private getAnalytics:  obj -> obj  = import "getAnalytics" "firebase/analytics"
+let private initializeApp: obj -> obj = import "initializeApp" "firebase/app"
+let private getAnalytics:  obj -> obj = import "getAnalytics" "firebase/analytics"
 
-let private logEvent  (_analytics: obj, _eventName: string, _properties: obj): unit  = import "logEvent" "firebase/analytics"
-let private setUserId (_analytics: obj, _userId: string): unit                       = import "setUserId" "firebase/analytics"
+let private logEvent  (_analytics: obj, _eventName: string, _properties: obj): unit = import "logEvent" "firebase/analytics"
+let private setUserId (_analytics: obj, _userId: string): unit                      = import "setUserId" "firebase/analytics"
 
 let mutable private maybeAnalytics : Option<obj> = None
 
@@ -17,33 +18,24 @@ let private initialize (app: obj)=
 let TrackViewItem (itemId: string) (itemName: string) (price: decimal) (currency: string) =
     maybeAnalytics
     |> Option.sideEffect (fun analytics ->
-        let item = createObj [
-            "item_id"   ==> itemId
-            "item_name" ==> itemName
-            "price"     ==> price
-        ]
-        let viewParam = createObj [
-            "currency" ==> currency
-            "value"    ==> price
-            "items"    ==> [| item |]
-        ]
+        let item =
+            (FirebaseCommerceItemJs(itemId, itemName, float price))
+            |> box
+        let viewParam =
+            (FirebaseCommerceEventJs(currency, float price, [| item |]))
+            |> box
         logEvent(analytics, "view_item", viewParam)
     )
 
 let TrackAddToCart (itemId: string) (itemName: string) (quantity: int) (price: decimal) (currency: string) =
     maybeAnalytics
     |> Option.sideEffect (fun analytics ->
-        let item = createObj [
-            "item_id"   ==> itemId
-            "item_name" ==> itemName
-            "price"     ==> price
-            "quantity"  ==> quantity
-        ]
-        let cartParam = createObj [
-            "currency" ==> currency
-            "value"    ==> price * decimal quantity
-            "items"    ==> [| item |]
-        ]
+        let item =
+            (FirebaseCommerceItemJs(itemId, itemName, float price, ?quantity = Some quantity))
+            |> box
+        let cartParam =
+            (FirebaseCommerceEventJs(currency, float price * float quantity, [| item |]))
+            |> box
         logEvent(analytics, "add_to_cart", cartParam)
     )
 
@@ -51,11 +43,9 @@ let TrackBeginCheckout (items: List<Types.FirebaseItem>) (orderTotal: decimal) (
     maybeAnalytics
     |> Option.sideEffect (fun analytics ->
         let itemsInLibraryFormat : obj[] = items |> List.map (fun item -> item.toLibraryObj()) |> Array.ofList
-        let beginCheckoutParam = createObj [
-            "currency"       ==> currency
-            "value"          ==> orderTotal
-            "items"          ==> itemsInLibraryFormat
-        ]
+        let beginCheckoutParam =
+            (FirebaseBeginCheckoutJs(currency, float orderTotal, itemsInLibraryFormat))
+            |> box
         logEvent(analytics, "begin_checkout", beginCheckoutParam)
     )
 
@@ -63,24 +53,16 @@ let TrackPurchase (orderId: string) (items: List<Types.FirebaseItem>) (orderTota
     maybeAnalytics
     |> Option.sideEffect (fun analytics ->
         let itemsInLibraryFormat : obj[] = items |> List.map (fun item -> item.toLibraryObj()) |> Array.ofList
-        let purchaseParam = createObj [
-            "transaction_id" ==> orderId
-            "currency"       ==> currency
-            "value"          ==> orderTotal
-            "shipping"       ==> shippingCost
-            "items"          ==> itemsInLibraryFormat
-        ]
+        let purchaseParam =
+            (FirebasePurchaseJs(orderId, currency, float orderTotal, float shippingCost, itemsInLibraryFormat))
+            |> box
         logEvent(analytics, "purchase", purchaseParam)
     )
 
 type GoogleAnalyticsTelemetrySink (config: Types.FirebaseConfig) =
-    do (initializeApp (createObj [
-        "apiKey"        ==> config.ApiKey
-        "appId"         ==> config.AppId
-        "measurementId" ==> config.MeasurementId
-        "projectId"     ==> config.ProjectId
-    ])
-    |> initialize)
+    do (FirebaseConfigJs(config.ApiKey, config.AppId, config.MeasurementId, config.ProjectId)
+        |> initializeApp
+        |> initialize)
 
     interface ITelemetrySink with
         override _.TrackEvent (_: string) (_: TelemetryUser) (_: TelemetryProperties) : unit = ()
@@ -94,7 +76,5 @@ type GoogleAnalyticsTelemetrySink (config: Types.FirebaseConfig) =
                 | TelemetryUser.Anonymous ->
                     setUserId (analytics, null)
 
-                logEvent (analytics, "screen_view", (createObj [
-                        "firebase_screen" ==> url
-                    ]))
+                logEvent (analytics, "screen_view", (FirebaseScreenViewJs(?firebase_screen = Some url) |> box))
             )

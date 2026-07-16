@@ -9,7 +9,7 @@ open LibClient
 type LibClient.Components.Constructors.LC with
     [<Component>]
     static member TimeSpan(
-            value: TimeSpan,
+            value:                 TimeSpan,
             ?shouldTruncateMillis: bool) : ReactElement =
         let shouldTruncateMillis = defaultArg shouldTruncateMillis true
         let value =

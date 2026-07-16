@@ -1,0 +1,63 @@
+[<AutoOpen>]
+module AppEggShellGallery.Components.ComponentContentHeading
+
+open Fable.React
+open LibClient
+open LibClient.Accessibility
+open LibClient.Components
+open LibClient.Responsive
+open Rn.Components
+open Rn.Styles
+
+[<RequireQualifiedAccess>]
+module private Styles =
+    let view = makeViewStyles {
+        FlexDirection.Row
+        AlignItems.Center
+    }
+
+    let text =
+        TextStyles.Memoize(
+            fun (screenSize: ScreenSize) ->
+                makeTextStyles {
+                    color (Color.Grey "45")
+                    match screenSize with
+                    | ScreenSize.Desktop  -> fontSize 36
+                    | ScreenSize.Handheld -> fontSize 18
+                }
+        )
+
+type AppEggShellGallery.Components.Constructors.Ui with
+    [<Component>]
+    static member ComponentContentHeading(
+            displayName:    string,
+            isResponsive:   bool,
+            ?children:      ReactChildrenProp,
+            ?key:           string,
+            ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>
+        ) : ReactElement =
+        key           |> ignore
+        children      |> ignore
+        xLegacyStyles |> ignore
+
+        LC.With.ScreenSize(
+            ``with`` =
+                (fun screenSize ->
+                    Rn.View(
+                        styles = [| Styles.view |],
+                        children =
+                            [|
+                                LC.LegacyText(
+                                    accessibilityRole = AccessibilityRole.Header,
+                                    styles            = [| Styles.text screenSize |],
+                                    children          = [| Fable.React.Helpers.str displayName |]
+                                )
+
+                                if isResponsive then
+                                    LC.Tag(text = "Responsive")
+                                else
+                                    noElement
+                            |]
+                    )
+                )
+        )

@@ -8,8 +8,8 @@ open <%= appName %>
 open <%= appName %>.Components
 open <%= appName %>.Navigation
 open Sidebar.Item
-open ReactXP.Styles
-open ReactXP.Components
+open Rn.Styles
+open Rn.Components
 
 type Ui with
     [<Component>]
@@ -34,7 +34,7 @@ type Ui with
                         LC.Sidebar.Item(label = i18n.t.Mangoes, state = Actionable(closeAndGo Mangoes))
                     }),
                     fixedBottom = element {
-                        RX.View (styles = [|Styles.LoggedInAs|], children = [|
+                        Rn.View (styles = [|Styles.LoggedInAs|], children = [|
                             LC.Text $"Logged in as {authenticated.Who.Name.Value}"
                         |])
                         LC.Sidebar.Item(label = "Logout", state = Actionable logOut)

@@ -41,10 +41,10 @@ with
     member this.Type : AccessEventType<'LifeAction, 'Constructor> =
         match this with
         | AccessEvent.Read (_, projection) -> AccessEventType.Read projection
-        | AccessEvent.ReadBlob _ -> AccessEventType.ReadBlob
-        | AccessEvent.ReadHistory _ -> AccessEventType.ReadHistory
-        | AccessEvent.Act (_, action) -> action |> UnionCase.ofCase |> AccessEventType.ActCase
-        | AccessEvent.Construct ctor -> ctor |> UnionCase.ofCase |> AccessEventType.ConstructCase
+        | AccessEvent.ReadBlob _           -> AccessEventType.ReadBlob
+        | AccessEvent.ReadHistory _        -> AccessEventType.ReadHistory
+        | AccessEvent.Act (_, action)      -> action |> UnionCase.ofCase |> AccessEventType.ActCase
+        | AccessEvent.Construct ctor       -> ctor |> UnionCase.ofCase |> AccessEventType.ConstructCase
 
 let (|OnExistingSubject|_|) =
     function
@@ -59,7 +59,7 @@ let (|OnExistingSubject|_|) =
 let (|OnNewSubject|_|) =
     function
     | AccessEvent.Construct ctor -> Some ctor
-    | _ -> None
+    | _                          -> None
 
 
 [<RequireQualifiedAccess>]

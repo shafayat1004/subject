@@ -71,7 +71,7 @@ let private getScrapeResult (directoryPaths: seq<string>) : ScrapeResult =
             resultful {
                 return {
                     Results = Map.merge acc.Results currResult.Results
-                    Errors = acc.Errors @ currResult.Errors
+                    Errors  = acc.Errors @ currResult.Errors
                 }
             }
             |> Result.recover acc.AddError

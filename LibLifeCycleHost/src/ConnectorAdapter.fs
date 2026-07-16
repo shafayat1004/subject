@@ -8,9 +8,9 @@ open System
 open System.Reflection
 
 type IConnectorAdapter =
-    abstract member RequestOnGrain: hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> buildRequest: obj (* ResponseChannel<'Response> -> Request  *) -> buildAction: (obj (* Request *) -> LifeAction) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
+    abstract member RequestOnGrain:              hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> buildRequest: obj (* ResponseChannel<'Response> -> Request  *) -> buildAction: (obj (* Request *) -> LifeAction) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
     abstract member RequestMultiResponseOnGrain: hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> buildRequest: obj (* MultiResponseChannel<'Response> -> Request  *) -> buildAction: (obj (* Request *) -> LifeAction) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
-    abstract member ShouldSendTelemetry: bool
+    abstract member ShouldSendTelemetry:         bool
 
 // Modules can't be typeof<>'ed. But we can get their type via an actual type contained within in
 type private AnchorTypeForModule = private AnchorTypeForModule of unit
@@ -23,8 +23,8 @@ let private sendTypedRequest<'Request, 'Env, 'Response>
         (requestor: SubjectPKeyReference)
         (sideEffectId: GrainSideEffectId) : unit =
     let typedBuildRequest = buildRequest :?> (ResponseChannel<'Response> -> 'Request)
-    let typedAction  = fun (resp: 'Response) -> resp |> box |> buildAction
-    let connectorGrain = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
+    let typedAction       = fun (resp: 'Response) -> resp |> box |> buildAction
+    let connectorGrain    = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
     // Connector grains by their very nature are interacted with a fire-and-forget mechanism, so we don't need to wait for a response
     connectorGrain.InvokeOneWay(
         fun oneWayGrain ->
@@ -39,8 +39,8 @@ let private sendTypedRequestMultiResponse<'Request, 'Env, 'Response>
         (requestor: SubjectPKeyReference)
         (sideEffectId: GrainSideEffectId) : unit =
     let typedBuildRequest = buildRequest :?> (MultiResponseChannel<'Response> -> 'Request)
-    let typedAction  = fun (resp: 'Response) -> resp |> box |> buildAction
-    let connectorGrain = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
+    let typedAction       = fun (resp: 'Response) -> resp |> box |> buildAction
+    let connectorGrain    = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
     // Connector grains by their very nature are interacted with a fire-and-forget mechanism, so we don't need to wait for a response
     connectorGrain.InvokeOneWay(
         fun oneWayGrain ->
@@ -100,7 +100,7 @@ with
         | ConnectorAdapterCollection dictionary ->
             match dictionary.TryGetValue name with
             | true, adapter -> Some adapter
-            | false, _ -> None
+            | false, _      -> None
 
 let makeConnectorAdapter (connector: Connector) =
     connector.Invoke

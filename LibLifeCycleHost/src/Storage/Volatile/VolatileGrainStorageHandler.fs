@@ -39,8 +39,8 @@ type VolatileGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent
         member _.InitializeSubject (_pKey: string) (_dedupInfo: Option<SideEffectDedupInfo>) (insertData: SubjectInsertData<'Subject, 'Constructor, 'SubjectId, 'LifeAction, 'LifeEvent, 'OpError>) : Task<Result<InitializeSubjectSuccessResult, 'OpError>> =
             assertNoBlobs insertData.DataToInsert
 
-            { ETag = System.Guid.NewGuid().ToString()
-              Version = 0UL
+            { ETag                = System.Guid.NewGuid().ToString()
+              Version             = 0UL
               SkipHistoryOnNextOp = false }
 
             |> Ok
@@ -78,8 +78,8 @@ type VolatileGrainStorageHandler<'Subject, 'LifeAction, 'Constructor, 'LifeEvent
             Task.FromResult ReEncodeSubjectsHistoryBatchResult.CompletedBatchNoMoreBatchesPending
 
         member this.UpdateSubject _pKey _dedupData updateData =
-            { NewETag = System.Guid.NewGuid().ToString()
-              NewVersion = updateData.CurrentVersion + 1UL
+            { NewETag             = System.Guid.NewGuid().ToString()
+              NewVersion          = updateData.CurrentVersion + 1UL
               SkipHistoryOnNextOp = false }
             |> Ok
             |> Task.FromResult

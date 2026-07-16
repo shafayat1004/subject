@@ -5,7 +5,7 @@ open LibLangFsharp
 open LSP.Types
 type Session       = Session.Session
 type DocumentStore = LSP.DocumentStore
-let dprintfn       = LSP.Log.dprintfn
+let dprintfn = LSP.Log.dprintfn
 type TaggedRecordField = LibRenderDSL.RecordsWithDefaults.TaggedRecordField
 open StringFormatting
 

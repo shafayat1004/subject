@@ -21,7 +21,7 @@ module private Helpers =
     let inline tryCoerce<'T> (value: obj) : Option<'T> =
         match value with
         | :? 'T as coerced -> Some coerced
-        | _ -> None
+        | _                -> None
 
     // Fable is incapable of type testing a generic type, so in those situations (as well as when we expect the underlying IndexedDB API
     // to provide a specific type) we force coercion.
@@ -42,7 +42,7 @@ module private Helpers =
             | Some domException ->
                 match tryMapDOMError domException.name domException.message with
                 | Some mappedError -> mappedError |> Error
-                | _ -> failwith $"DOM error with name '{domException.name}' is not currently handled"
+                | _                -> failwith $"DOM error with name '{domException.name}' is not currently handled"
             | None ->
                 reraise ()
 
@@ -91,113 +91,113 @@ module private Helpers =
 [<RequireQualifiedAccess>]
 type AdvanceError =
 | TransactionInactive of Message: string
-| InvalidState of Message: string
+| InvalidState        of Message: string
 
 [<RequireQualifiedAccess>]
 type ContinueError =
 | TransactionInactive of Message: string
-| InvalidKey of Message: string
-| InvalidState of Message: string
+| InvalidKey          of Message: string
+| InvalidState        of Message: string
 
 [<RequireQualifiedAccess>]
 type ContinueWithPrimaryKeyError =
 | TransactionInactive of Message: string
-| InvalidKey of Message: string
-| InvalidState of Message: string
-| InvalidAccess of Message: string
+| InvalidKey          of Message: string
+| InvalidState        of Message: string
+| InvalidAccess       of Message: string
 
 [<RequireQualifiedAccess>]
 type UpdateError =
-| TransactionInactive of Message: string
-| ReadOnly of Message: string
-| InvalidState of Message: string
-| InvalidKey of Message: string
+| TransactionInactive  of Message: string
+| ReadOnly             of Message: string
+| InvalidState         of Message: string
+| InvalidKey           of Message: string
 | DataCouldNotBeCloned of Message: string
 
 [<RequireQualifiedAccess>]
 type AddError =
-| TransactionInactive of Message: string
+| TransactionInactive   of Message: string
 | TransactionIsReadOnly of Message: string
-| ConstraintError of Message: string
+| ConstraintError       of Message: string
 
 [<RequireQualifiedAccess>]
 type GetError =
 | TransactionInactive of Message: string
-| InvalidKeyRange of Message: string
-| InvalidState of Message: string
+| InvalidKeyRange     of Message: string
+| InvalidState        of Message: string
 
 [<RequireQualifiedAccess>]
 type GetAllError =
 | TransactionInactive of Message: string
-| InvalidKeyRange of Message: string
-| InvalidState of Message: string
+| InvalidKeyRange     of Message: string
+| InvalidState        of Message: string
 
 [<RequireQualifiedAccess>]
 type GetAllKeysError =
 | TransactionInactive of Message: string
-| InvalidKeyRange of Message: string
-| InvalidState of Message: string
+| InvalidKeyRange     of Message: string
+| InvalidState        of Message: string
 
 [<RequireQualifiedAccess>]
 type PutError =
 | TransactionIsReadOnly of Message: string
-| TransactionInactive of Message: string
-| InvalidKey of Message: string
-| InvalidState of Message: string
-| DataCouldNotBeCloned of Message: string
+| TransactionInactive   of Message: string
+| InvalidKey            of Message: string
+| InvalidState          of Message: string
+| DataCouldNotBeCloned  of Message: string
 
 [<RequireQualifiedAccess>]
 type GetKeyError =
 | TransactionInactive of Message: string
-| InvalidState of Message: string
-| InvalidKeyRange of Message: string
+| InvalidState        of Message: string
+| InvalidKeyRange     of Message: string
 
 [<RequireQualifiedAccess>]
 type DeleteError =
 | TransactionIsReadOnly of Message: string
-| TransactionInactive of Message: string
-| InvalidState of Message: string
-| InvalidKeyRange of Message: string
+| TransactionInactive   of Message: string
+| InvalidState          of Message: string
+| InvalidKeyRange       of Message: string
 
 [<RequireQualifiedAccess>]
 type CountError =
-| InvalidState of Message: string
+| InvalidState        of Message: string
 | TransactionInactive of Message: string
-| InvalidKeyRange of Message: string
+| InvalidKeyRange     of Message: string
 
 [<RequireQualifiedAccess>]
 type ClearError =
 | TransactionIsReadOnly of Message: string
-| TransactionInactive of Message: string
+| TransactionInactive   of Message: string
 
 [<RequireQualifiedAccess>]
 type IterateCursorError =
-| InvalidState of Message: string
+| InvalidState        of Message: string
 | TransactionInactive of Message: string
-| InvalidKey of Message: string
-| InvalidDirection of Message: string
+| InvalidKey          of Message: string
+| InvalidDirection    of Message: string
 
 [<RequireQualifiedAccess>]
 type GetIndexError =
 | InvalidState of Message: string
-| NotFound of Message: string
+| NotFound     of Message: string
 
 [<RequireQualifiedAccess>]
 type CreateObjectStoreError =
 | InvalidTransactionType of Message: string
-| TransactionInactive of Message: string
-| AlreadyExists of Message: string
-| InvalidKeyPath of Message: string
+| TransactionInactive    of Message: string
+| AlreadyExists          of Message: string
+| InvalidKeyPath         of Message: string
 
 [<RequireQualifiedAccess>]
 type GetObjectStoreError =
 | InvalidState of Message: string
-| NotFound of Message: string
+| NotFound     of Message: string
 
 [<RequireQualifiedAccess>]
 type BeginTransactionError =
-| InvalidState of Message: string
-| NotFound of Message: string
+| InvalidState  of Message: string
+| NotFound      of Message: string
 | InvalidAccess of Message: string
 
 [<RequireQualifiedAccess>]
@@ -209,31 +209,31 @@ type Version = uint64
 // NOTE: no binary blob/array support until we need it
 type Key =
 | String of string
-| Date of DateTimeOffset
-| Float of float
+| Date   of DateTimeOffset
+| Float  of float
 with
     member internal this.ToRaw(): obj =
         match this with
         | String value -> value
-        | Date value -> value
-        | Float value -> value
+        | Date value   -> value
+        | Float value  -> value
 
     static member internal FromRaw(raw: obj): Key =
         match raw with
-        | :? string as value -> String value
+        | :? string as value         -> String value
         | :? DateTimeOffset as value -> Date value
-        | :? float as value -> Float value
-        | _ -> failwith $"Unsupported key: {raw}"
+        | :? float as value          -> Float value
+        | _                          -> failwith $"Unsupported key: {raw}"
 
 [<RequireQualifiedAccess>]
 type KeyPath =
 | String of string
-| Array of array<string>
+| Array  of array<string>
 with
     member internal this.ToRaw(): U2<string, ResizeArray<string>> =
         match this with
         | String value -> value |> U2.Case1
-        | Array value -> value |> ResizeArray |> U2.Case2
+        | Array value  -> value |> ResizeArray |> U2.Case2
 
     static member internal FromRaw(raw: U2<string, ResizeArray<string>>): KeyPath =
         match raw with
@@ -244,25 +244,25 @@ type AutoIncrement = bool
 
 [<RequireQualifiedAccess>]
 type KeyRange =
-| Equal of Key
-| LessThan of Key
-| LessThanOrEqual of Key
-| GreaterThan of Key
+| Equal              of Key
+| LessThan           of Key
+| LessThanOrEqual    of Key
+| GreaterThan        of Key
 | GreaterThanOrEqual of Key
-| BetweenExclusive of Key * Key
-| BetweenInclusive of Key * Key
+| BetweenExclusive   of Key * Key
+| BetweenInclusive   of Key * Key
 | BetweenExclusiveOfLowerInclusiveOfUpper of Key * Key
 | BetweenInclusiveOfLowerExclusiveOfUpper of Key * Key
 with
     member internal this.ToRaw(): IDBKeyRange =
         match this with
-        | Equal key -> IDBKeyRange.only(key.ToRaw())
-        | LessThan key -> IDBKeyRange.upperBound(key.ToRaw(), true)
-        | LessThanOrEqual key -> IDBKeyRange.upperBound(key.ToRaw(), false)
-        | GreaterThan key -> IDBKeyRange.lowerBound(key.ToRaw(), true)
-        | GreaterThanOrEqual key -> IDBKeyRange.lowerBound(key.ToRaw(), false)
-        | BetweenExclusive (lower, upper) -> IDBKeyRange.bound(lower.ToRaw(), upper.ToRaw(), true, true)
-        | BetweenInclusive (lower, upper) -> IDBKeyRange.bound(lower.ToRaw(), upper.ToRaw(), false, false)
+        | Equal key                                              -> IDBKeyRange.only(key.ToRaw())
+        | LessThan key                                           -> IDBKeyRange.upperBound(key.ToRaw(), true)
+        | LessThanOrEqual key                                    -> IDBKeyRange.upperBound(key.ToRaw(), false)
+        | GreaterThan key                                        -> IDBKeyRange.lowerBound(key.ToRaw(), true)
+        | GreaterThanOrEqual key                                 -> IDBKeyRange.lowerBound(key.ToRaw(), false)
+        | BetweenExclusive (lower, upper)                        -> IDBKeyRange.bound(lower.ToRaw(), upper.ToRaw(), true, true)
+        | BetweenInclusive (lower, upper)                        -> IDBKeyRange.bound(lower.ToRaw(), upper.ToRaw(), false, false)
         | BetweenExclusiveOfLowerInclusiveOfUpper (lower, upper) -> IDBKeyRange.bound(lower.ToRaw(), upper.ToRaw(), true, false)
         | BetweenInclusiveOfLowerExclusiveOfUpper (lower, upper) -> IDBKeyRange.bound(lower.ToRaw(), upper.ToRaw(), false, true)
 
@@ -274,9 +274,9 @@ type CursorDirection =
 with
     member internal this.ToRaw(): IDBCursorDirection =
         match this with
-        | Next -> IDBCursorDirection.Next
-        | Previous -> IDBCursorDirection.Prev
-        | NextUnique -> IDBCursorDirection.Nextunique
+        | Next           -> IDBCursorDirection.Next
+        | Previous       -> IDBCursorDirection.Prev
+        | NextUnique     -> IDBCursorDirection.Nextunique
         | PreviousUnique -> IDBCursorDirection.Prevunique
 
     static member internal FromRaw(raw: IDBCursorDirection): CursorDirection =
@@ -287,12 +287,12 @@ with
         | IDBCursorDirection.Prevunique ->PreviousUnique
 
 type ICursor<'T> =
-    abstract member Direction: CursorDirection
-    abstract member Key: Option<Key>
+    abstract member Direction:  CursorDirection
+    abstract member Key:        Option<Key>
     abstract member PrimaryKey: Option<Key>
 
-    abstract member Advance: uint -> Result<unit, AdvanceError>
-    abstract member Continue: Option<Key> -> Result<unit, ContinueError>
+    abstract member Advance:                uint -> Result<unit, AdvanceError>
+    abstract member Continue:               Option<Key> -> Result<unit, ContinueError>
     abstract member ContinueWithPrimaryKey: Key -> Key -> Result<unit, ContinueWithPrimaryKeyError>
 
 type ICursorWithValue<'T> =
@@ -306,19 +306,19 @@ type ICursorWithValue<'T> =
     abstract member Update: 'T -> Async<Result<Key, UpdateError>>
 
 type IndexOptions = {
-    IsUnique: bool
+    IsUnique:     bool
     IsMultiEntry: bool
 }
 with
     static member Default: IndexOptions =
         {
-            IsUnique = false
+            IsUnique     = false
             IsMultiEntry = false
         }
 
     static member FromRawIndex(rawIndex: IDBIndex): IndexOptions =
         {
-            IsUnique = rawIndex.unique
+            IsUnique     = rawIndex.unique
             IsMultiEntry = rawIndex.multiEntry
         }
 
@@ -329,24 +329,24 @@ with
         options
 
 type IIndex<'T> =
-    abstract member Name: string
+    abstract member Name:        string
     abstract member ObjectStore: IObjectStore<'T>
-    abstract member KeyPath: KeyPath
-    abstract member Options: IndexOptions
+    abstract member KeyPath:     KeyPath
+    abstract member Options:     IndexOptions
 
-    abstract member Get: KeyRange -> Async<Result<Option<'T>, GetError>>
-    abstract member GetKey: KeyRange -> Async<Result<Option<Key>, GetKeyError>>
-    abstract member GetAll: Option<KeyRange> -> Option<uint> -> Async<Result<seq<'T>, GetAllError>>
-    abstract member GetAllKeys: Option<KeyRange> -> Option<uint> -> Async<Result<seq<Key>, GetAllKeysError>>
-    abstract member Count: Option<KeyRange> -> Async<Result<uint, CountError>>
-    abstract member IterateCursor: (Option<ICursor<'T>> -> unit) -> Option<KeyRange> -> Option<CursorDirection> -> Result<unit, IterateCursorError>
+    abstract member Get:                    KeyRange -> Async<Result<Option<'T>, GetError>>
+    abstract member GetKey:                 KeyRange -> Async<Result<Option<Key>, GetKeyError>>
+    abstract member GetAll:                 Option<KeyRange> -> Option<uint> -> Async<Result<seq<'T>, GetAllError>>
+    abstract member GetAllKeys:             Option<KeyRange> -> Option<uint> -> Async<Result<seq<Key>, GetAllKeysError>>
+    abstract member Count:                  Option<KeyRange> -> Async<Result<uint, CountError>>
+    abstract member IterateCursor:          (Option<ICursor<'T>> -> unit) -> Option<KeyRange> -> Option<CursorDirection> -> Result<unit, IterateCursorError>
     abstract member IterateCursorWithValue: (Option<ICursorWithValue<'T>> -> unit) -> Option<KeyRange> -> Option<CursorDirection> -> Result<unit, IterateCursorError>
 
 type IObjectStoreBase =
-    abstract member Name: string
-    abstract member KeyPath: KeyPath
+    abstract member Name:          string
+    abstract member KeyPath:       KeyPath
     abstract member AutoIncrement: AutoIncrement
-    abstract member IndexNames: seq<string>
+    abstract member IndexNames:    seq<string>
 
 type IObjectStoreUpgrader =
     inherit IObjectStoreBase
@@ -359,16 +359,16 @@ type IObjectStore<'T> =
 
     abstract member GetIndex: string -> Result<IIndex<'T>, GetIndexError>
 
-    abstract member Add: 'T -> Option<Key> -> Async<Result<unit, AddError>>
-    abstract member Put: 'T -> Option<Key> -> Async<Result<unit, PutError>>
-    abstract member Get: KeyRange -> Async<Result<Option<'T>, GetError>>
-    abstract member GetKey: KeyRange -> Async<Result<Option<Key>, GetKeyError>>
-    abstract member GetAll: Option<KeyRange> -> Option<uint> -> Async<Result<seq<'T>, GetAllError>>
-    abstract member GetAllKeys: Option<KeyRange> -> Option<uint> -> Async<Result<seq<Key>, GetAllKeysError>>
-    abstract member Delete: KeyRange -> Async<Result<unit, DeleteError>>
-    abstract member Count: Option<KeyRange> -> Async<Result<uint, CountError>>
-    abstract member Clear: unit -> Async<Result<unit, ClearError>>
-    abstract member IterateCursor: (Option<ICursor<'T>> -> unit) -> Option<KeyRange> -> Option<CursorDirection> -> Result<unit, IterateCursorError>
+    abstract member Add:                    'T -> Option<Key> -> Async<Result<unit, AddError>>
+    abstract member Put:                    'T -> Option<Key> -> Async<Result<unit, PutError>>
+    abstract member Get:                    KeyRange -> Async<Result<Option<'T>, GetError>>
+    abstract member GetKey:                 KeyRange -> Async<Result<Option<Key>, GetKeyError>>
+    abstract member GetAll:                 Option<KeyRange> -> Option<uint> -> Async<Result<seq<'T>, GetAllError>>
+    abstract member GetAllKeys:             Option<KeyRange> -> Option<uint> -> Async<Result<seq<Key>, GetAllKeysError>>
+    abstract member Delete:                 KeyRange -> Async<Result<unit, DeleteError>>
+    abstract member Count:                  Option<KeyRange> -> Async<Result<uint, CountError>>
+    abstract member Clear:                  unit -> Async<Result<unit, ClearError>>
+    abstract member IterateCursor:          (Option<ICursor<'T>> -> unit) -> Option<KeyRange> -> Option<CursorDirection> -> Result<unit, IterateCursorError>
     abstract member IterateCursorWithValue: (Option<ICursorWithValue<'T>> -> unit) -> Option<KeyRange> -> Option<CursorDirection> -> Result<unit, IterateCursorError>
 
 type IDatabaseUpgrader =
@@ -397,7 +397,7 @@ with
 
     member internal this.ToRaw(): IDBTransactionMode =
         match this with
-        | ReadOnly -> IDBTransactionMode.Readonly
+        | ReadOnly  -> IDBTransactionMode.Readonly
         | ReadWrite -> IDBTransactionMode.Readwrite
 
 [<RequireQualifiedAccess>]
@@ -409,13 +409,13 @@ with
     static member internal FromRaw(raw: IDBTransactionDuarability): TransactionDurability =
         match raw with
         | IDBTransactionDuarability.Default -> TransactionDurability.Default
-        | IDBTransactionDuarability.Strict -> TransactionDurability.Strict
+        | IDBTransactionDuarability.Strict  -> TransactionDurability.Strict
         | IDBTransactionDuarability.Relaxed -> TransactionDurability.Relaxed
 
     member internal this.ToRaw(): IDBTransactionDuarability =
         match this with
         | Default -> IDBTransactionDuarability.Default
-        | Strict -> IDBTransactionDuarability.Strict
+        | Strict  -> IDBTransactionDuarability.Strict
         | Relaxed -> IDBTransactionDuarability.Relaxed
 
 [<RequireQualifiedAccess>]
@@ -439,25 +439,25 @@ with
         options
 
 type ITransaction =
-    abstract member Database: IDatabase
-    abstract member Mode: TransactionMode
+    abstract member Database:         IDatabase
+    abstract member Mode:             TransactionMode
     abstract member ObjectStoreNames: seq<string>
 
     abstract member GetObjectStore: string -> Result<IObjectStore<'T>, GetObjectStoreError>
 
-    abstract member Abort: unit -> unit
+    abstract member Abort:  unit -> unit
     abstract member Commit: unit -> unit
 
 type IDatabase =
-    abstract member Name: string
-    abstract member Version: Version
+    abstract member Name:             string
+    abstract member Version:          Version
     abstract member ObjectStoreNames: seq<string>
 
     abstract member BeginTransaction: #seq<string> -> TransactionMode -> Option<TransactionOptions> -> Result<ITransaction, BeginTransactionError>
 
 [<RequireQualifiedAccess>]
 type OpenedOrUpgradedDb =
-| Opened of IDatabase
+| Opened   of IDatabase
 | Upgraded of IDatabase * (* OldVersion *)Version * (* NewVersion *)Version
 with
     member this.Db: IDatabase =
@@ -467,20 +467,20 @@ with
             db
 
 type DatabaseInfo = {
-    Name: string
+    Name:    string
     Version: Version
 }
 with
     static member internal FromRaw(raw: DatabasesType) : DatabaseInfo =
         {
-            Name = raw.name
+            Name    = raw.name
             Version = uint64 raw.version
         }
 
 type IIndexedDbService =
     abstract member IsSupported: bool
 
-    abstract member GetDatabases: unit -> Async<Result<seq<DatabaseInfo>, GetDatabasesError>>
+    abstract member GetDatabases:          unit -> Async<Result<seq<DatabaseInfo>, GetDatabasesError>>
     abstract member OpenOrUpgradeDatabase: string -> Option<Version> -> UpgradeHandler -> Async<Result<OpenedOrUpgradedDb, unit>>
 
 let private log = Log.WithCategory("IndexedDbService")
@@ -499,8 +499,8 @@ type Cursor<'T> internal(raw: IDBCursor) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> AdvanceError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> AdvanceError.InvalidState |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> AdvanceError.InvalidState |> Some
+                    | _                          -> None
                 )
 
         member _.Continue (maybeKey: Option<Key>) : Result<unit, ContinueError> =
@@ -513,9 +513,9 @@ type Cursor<'T> internal(raw: IDBCursor) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> ContinueError.TransactionInactive |> Some
-                    | "DataError" -> message |> ContinueError.InvalidKey |> Some
-                    | "InvalidStateError" -> message |> ContinueError.InvalidState |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> ContinueError.InvalidKey |> Some
+                    | "InvalidStateError"        -> message |> ContinueError.InvalidState |> Some
+                    | _                          -> None
                 )
 
         member _.ContinueWithPrimaryKey (key: Key) (primaryKey: Key) : Result<unit, ContinueWithPrimaryKeyError> =
@@ -524,10 +524,10 @@ type Cursor<'T> internal(raw: IDBCursor) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> ContinueWithPrimaryKeyError.TransactionInactive |> Some
-                    | "DataError" -> message |> ContinueWithPrimaryKeyError.InvalidKey |> Some
-                    | "InvalidStateError" -> message |> ContinueWithPrimaryKeyError.InvalidState |> Some
-                    | "InvalidAccessError" -> message |> ContinueWithPrimaryKeyError.InvalidAccess |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> ContinueWithPrimaryKeyError.InvalidKey |> Some
+                    | "InvalidStateError"        -> message |> ContinueWithPrimaryKeyError.InvalidState |> Some
+                    | "InvalidAccessError"       -> message |> ContinueWithPrimaryKeyError.InvalidAccess |> Some
+                    | _                          -> None
                 )
 
 type CursorWithValue<'T> internal(raw: IDBCursorWithValue) =
@@ -549,9 +549,9 @@ type CursorWithValue<'T> internal(raw: IDBCursorWithValue) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> DeleteError.TransactionInactive |> Some
-                    | "ReadOnlyError" -> message |> DeleteError.TransactionIsReadOnly |> Some
-                    | "InvalidStateError" -> message |> DeleteError.InvalidState |> Some
-                    | _ -> None
+                    | "ReadOnlyError"            -> message |> DeleteError.TransactionIsReadOnly |> Some
+                    | "InvalidStateError"        -> message |> DeleteError.InvalidState |> Some
+                    | _                          -> None
                 )
 
         member _.Update (value: 'T) : Async<Result<Key, UpdateError>> =
@@ -560,16 +560,16 @@ type CursorWithValue<'T> internal(raw: IDBCursorWithValue) =
                 (fun r ->
                     match r |> Option.map Key.FromRaw with
                     | Some key -> key
-                    | None -> failwith "Invalid key returned during udpate"
+                    | None     -> failwith "Invalid key returned during udpate"
                 )
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> UpdateError.TransactionInactive |> Some
-                    | "ReadOnlyError" -> message |> UpdateError.ReadOnly |> Some
-                    | "InvalidStateError" -> message |> UpdateError.InvalidState |> Some
-                    | "DataError" -> message |> UpdateError.InvalidKey |> Some
-                    | "DataCloneError" -> message |> UpdateError.DataCouldNotBeCloned |> Some
-                    | _ -> None
+                    | "ReadOnlyError"            -> message |> UpdateError.ReadOnly |> Some
+                    | "InvalidStateError"        -> message |> UpdateError.InvalidState |> Some
+                    | "DataError"                -> message |> UpdateError.InvalidKey |> Some
+                    | "DataCloneError"           -> message |> UpdateError.DataCouldNotBeCloned |> Some
+                    | _                          -> None
                 )
 
 type Index<'T> internal(raw: IDBIndex) =
@@ -591,9 +591,9 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetError.TransactionInactive |> Some
-                    | "DataError" -> message |> GetError.InvalidKeyRange |> Some
-                    | "InvalidStateError" -> message |> GetError.InvalidState |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> GetError.InvalidKeyRange |> Some
+                    | "InvalidStateError"        -> message |> GetError.InvalidState |> Some
+                    | _                          -> None
                 )
 
         member _.GetKey (keyRange: KeyRange) : Async<Result<Option<Key>, GetKeyError>> =
@@ -603,9 +603,9 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetKeyError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> GetKeyError.InvalidState |> Some
-                    | "DataError" -> message |> GetKeyError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> GetKeyError.InvalidState |> Some
+                    | "DataError"                -> message |> GetKeyError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.GetAll (maybeKeyRange: Option<KeyRange>) (maybeCount: Option<uint>) : Async<Result<seq<'T>, GetAllError>> =
@@ -624,9 +624,9 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetAllError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> GetAllError.InvalidState |> Some
-                    | "DataError" -> message |> GetAllError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> GetAllError.InvalidState |> Some
+                    | "DataError"                -> message |> GetAllError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.GetAllKeys (maybeKeyRange: Option<KeyRange>) (maybeCount: Option<uint>) : Async<Result<seq<Key>, GetAllKeysError>> =
@@ -645,9 +645,9 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetAllKeysError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> GetAllKeysError.InvalidState |> Some
-                    | "DataError" -> message |> GetAllKeysError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> GetAllKeysError.InvalidState |> Some
+                    | "DataError"                -> message |> GetAllKeysError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.Count (maybeKeyRange: Option<KeyRange>) : Async<Result<uint, CountError>> =
@@ -660,14 +660,14 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun r ->
                     match r |> Option.bind tryCoerce<uint> with
                     | Some count -> count
-                    | None -> failwith $"Internal failure when resolving count. Result was {r}"
+                    | None       -> failwith $"Internal failure when resolving count. Result was {r}"
                 )
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> CountError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> CountError.InvalidState |> Some
-                    | "DataError" -> message |> CountError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> CountError.InvalidState |> Some
+                    | "DataError"                -> message |> CountError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.IterateCursor (handler: Option<ICursor<'T>> -> unit) (maybeKeyRange: Option<KeyRange>) (maybeDirection: Option<CursorDirection>) : Result<unit, IterateCursorError> =
@@ -675,7 +675,7 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun () ->
                     let request =
                         raw.openKeyCursor(
-                            ?range = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
+                            ?range     = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
                             ?direction = (maybeDirection |> Option.map (fun v -> v.ToRaw()))
                         )
 
@@ -693,10 +693,10 @@ type Index<'T> internal(raw: IDBIndex) =
                 )
                 (fun name message ->
                     match name with
-                    | "InvalidStateError" -> message |> IterateCursorError.InvalidState |> Some
+                    | "InvalidStateError"        -> message |> IterateCursorError.InvalidState |> Some
                     | "TransactionInactiveError" -> message |> IterateCursorError.TransactionInactive |> Some
-                    | "DataError" -> message |> IterateCursorError.InvalidKey |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> IterateCursorError.InvalidKey |> Some
+                    | _                          -> None
                 )
 
         member _.IterateCursorWithValue (handler: Option<ICursorWithValue<'T>> -> unit) (maybeKeyRange: Option<KeyRange>) (maybeDirection: Option<CursorDirection>) : Result<unit, IterateCursorError> =
@@ -704,7 +704,7 @@ type Index<'T> internal(raw: IDBIndex) =
                 (fun () ->
                     let request =
                         raw.openCursor(
-                            ?range = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
+                            ?range     = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
                             ?direction = (maybeDirection |> Option.map (fun v -> v.ToRaw()))
                         )
 
@@ -722,10 +722,10 @@ type Index<'T> internal(raw: IDBIndex) =
                 )
                 (fun name message ->
                     match name with
-                    | "InvalidStateError" -> message |> IterateCursorError.InvalidState |> Some
+                    | "InvalidStateError"        -> message |> IterateCursorError.InvalidState |> Some
                     | "TransactionInactiveError" -> message |> IterateCursorError.TransactionInactive |> Some
-                    | "DataError" -> message |> IterateCursorError.InvalidKey |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> IterateCursorError.InvalidKey |> Some
+                    | _                          -> None
                 )
 
 type ObjectStore<'T> internal(raw: IDBObjectStore) =
@@ -762,8 +762,8 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "InvalidStateError" -> message |> GetIndexError.InvalidState |> Some
-                    | "NotFoundError" -> message |> GetIndexError.NotFound |> Some
-                    | _ -> None
+                    | "NotFoundError"     -> message |> GetIndexError.NotFound |> Some
+                    | _                   -> None
                 )
 
         member _.Add (value: 'T) (maybeKey: Option<Key>) : Async<Result<unit, AddError>> =
@@ -772,10 +772,10 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun _ -> ())
                 (fun name message ->
                     match name with
-                    | "ReadOnlyError" -> message |> AddError.TransactionIsReadOnly |> Some
+                    | "ReadOnlyError"            -> message |> AddError.TransactionIsReadOnly |> Some
                     | "TransactionInactiveError" -> message |> AddError.TransactionInactive |> Some
-                    | "ConstraintError" -> message |> AddError.ConstraintError |> Some
-                    | _ -> None
+                    | "ConstraintError"          -> message |> AddError.ConstraintError |> Some
+                    | _                          -> None
                 )
 
         member _.Put (value: 'T) (maybeKey: Option<Key>) : Async<Result<unit, PutError>> =
@@ -784,12 +784,12 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun _ -> ())
                 (fun name message ->
                     match name with
-                    | "ReadOnlyError" -> message |> PutError.TransactionIsReadOnly |> Some
+                    | "ReadOnlyError"            -> message |> PutError.TransactionIsReadOnly |> Some
                     | "TransactionInactiveError" -> message |> PutError.TransactionInactive |> Some
-                    | "DataError" -> message |> PutError.InvalidKey |> Some
-                    | "InvalidStateError" -> message |> PutError.InvalidState |> Some
-                    | "DataCloneError" -> message |> PutError.DataCouldNotBeCloned |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> PutError.InvalidKey |> Some
+                    | "InvalidStateError"        -> message |> PutError.InvalidState |> Some
+                    | "DataCloneError"           -> message |> PutError.DataCouldNotBeCloned |> Some
+                    | _                          -> None
                 )
 
         member _.Get (keyRange: KeyRange) : Async<Result<Option<'T>, GetError>> =
@@ -799,9 +799,9 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetError.TransactionInactive |> Some
-                    | "DataError" -> message |> GetError.InvalidKeyRange |> Some
-                    | "InvalidStateError" -> message |> GetError.InvalidState |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> GetError.InvalidKeyRange |> Some
+                    | "InvalidStateError"        -> message |> GetError.InvalidState |> Some
+                    | _                          -> None
                 )
 
         member _.GetKey (keyRange: KeyRange) : Async<Result<Option<Key>, GetKeyError>> =
@@ -811,9 +811,9 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetKeyError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> GetKeyError.InvalidState |> Some
-                    | "DataError" -> message |> GetKeyError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> GetKeyError.InvalidState |> Some
+                    | "DataError"                -> message |> GetKeyError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.GetAll (maybeKeyRange: Option<KeyRange>) (maybeCount: Option<uint>) : Async<Result<seq<'T>, GetAllError>> =
@@ -832,9 +832,9 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetAllError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> GetAllError.InvalidState |> Some
-                    | "DataError" -> message |> GetAllError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> GetAllError.InvalidState |> Some
+                    | "DataError"                -> message |> GetAllError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.GetAllKeys (maybeKeyRange: Option<KeyRange>) (maybeCount: Option<uint>) : Async<Result<seq<Key>, GetAllKeysError>> =
@@ -853,9 +853,9 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> GetAllKeysError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> GetAllKeysError.InvalidState |> Some
-                    | "DataError" -> message |> GetAllKeysError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> GetAllKeysError.InvalidState |> Some
+                    | "DataError"                -> message |> GetAllKeysError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.Delete (keyRange: KeyRange) : Async<Result<unit, DeleteError>> =
@@ -865,10 +865,10 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> DeleteError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> DeleteError.InvalidState |> Some
-                    | "DataError" -> message |> DeleteError.InvalidKeyRange |> Some
-                    | "ReadOnlyError" -> message |> DeleteError.TransactionIsReadOnly |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> DeleteError.InvalidState |> Some
+                    | "DataError"                -> message |> DeleteError.InvalidKeyRange |> Some
+                    | "ReadOnlyError"            -> message |> DeleteError.TransactionIsReadOnly |> Some
+                    | _                          -> None
                 )
 
         member _.Count (maybeKeyRange: Option<KeyRange>) : Async<Result<uint, CountError>> =
@@ -881,14 +881,14 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun r ->
                     match r |> Option.bind tryCoerce<uint> with
                     | Some count -> count
-                    | None -> failwith $"Internal failure when resolving count. Result was {r}"
+                    | None       -> failwith $"Internal failure when resolving count. Result was {r}"
                 )
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> CountError.TransactionInactive |> Some
-                    | "InvalidStateError" -> message |> CountError.InvalidState |> Some
-                    | "DataError" -> message |> CountError.InvalidKeyRange |> Some
-                    | _ -> None
+                    | "InvalidStateError"        -> message |> CountError.InvalidState |> Some
+                    | "DataError"                -> message |> CountError.InvalidKeyRange |> Some
+                    | _                          -> None
                 )
 
         member _.Clear () : Async<Result<unit, ClearError>> =
@@ -898,8 +898,8 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun name message ->
                     match name with
                     | "TransactionInactiveError" -> message |> ClearError.TransactionInactive |> Some
-                    | "ReadOnlyError" -> message |> ClearError.TransactionIsReadOnly |> Some
-                    | _ -> None
+                    | "ReadOnlyError"            -> message |> ClearError.TransactionIsReadOnly |> Some
+                    | _                          -> None
                 )
 
         member _.IterateCursor (handler: Option<ICursor<'T>> -> unit) (maybeKeyRange: Option<KeyRange>) (maybeDirection: Option<CursorDirection>) : Result<unit, IterateCursorError> =
@@ -907,7 +907,7 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun () ->
                     let request =
                         raw.openKeyCursor(
-                            ?range = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
+                            ?range     = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
                             ?direction = (maybeDirection |> Option.map (fun v -> v.ToRaw()))
                         )
 
@@ -925,10 +925,10 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 )
                 (fun name message ->
                     match name with
-                    | "InvalidStateError" -> message |> IterateCursorError.InvalidState |> Some
+                    | "InvalidStateError"        -> message |> IterateCursorError.InvalidState |> Some
                     | "TransactionInactiveError" -> message |> IterateCursorError.TransactionInactive |> Some
-                    | "DataError" -> message |> IterateCursorError.InvalidKey |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> IterateCursorError.InvalidKey |> Some
+                    | _                          -> None
                 )
 
         member _.IterateCursorWithValue (handler: Option<ICursorWithValue<'T>> -> unit) (maybeKeyRange: Option<KeyRange>) (maybeDirection: Option<CursorDirection>) : Result<unit, IterateCursorError> =
@@ -936,7 +936,7 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 (fun () ->
                     let request =
                         raw.openCursor(
-                            ?range = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
+                            ?range     = (maybeKeyRange |> Option.map (fun v -> v.ToRaw())),
                             ?direction = (maybeDirection |> Option.map (fun v -> v.ToRaw()))
                         )
 
@@ -954,10 +954,10 @@ type ObjectStore<'T> internal(raw: IDBObjectStore) =
                 )
                 (fun name message ->
                     match name with
-                    | "InvalidStateError" -> message |> IterateCursorError.InvalidState |> Some
+                    | "InvalidStateError"        -> message |> IterateCursorError.InvalidState |> Some
                     | "TransactionInactiveError" -> message |> IterateCursorError.TransactionInactive |> Some
-                    | "DataError" -> message |> IterateCursorError.InvalidKey |> Some
-                    | _ -> None
+                    | "DataError"                -> message |> IterateCursorError.InvalidKey |> Some
+                    | _                          -> None
                 )
 
 type DatabaseUpgrader internal(raw: IDBDatabase) =
@@ -981,11 +981,11 @@ type DatabaseUpgrader internal(raw: IDBDatabase) =
                 )
                 (fun name message ->
                     match name with
-                    | "InvalidStateError" -> message |> CreateObjectStoreError.InvalidTransactionType |> Some
+                    | "InvalidStateError"        -> message |> CreateObjectStoreError.InvalidTransactionType |> Some
                     | "TransactionInactiveError" -> message |> CreateObjectStoreError.TransactionInactive |> Some
-                    | "ConstraintError" -> message |> CreateObjectStoreError.AlreadyExists |> Some
-                    | "InvalidAccessError" -> message |> CreateObjectStoreError.InvalidKeyPath |> Some
-                    | _ -> None
+                    | "ConstraintError"          -> message |> CreateObjectStoreError.AlreadyExists |> Some
+                    | "InvalidAccessError"       -> message |> CreateObjectStoreError.InvalidKeyPath |> Some
+                    | _                          -> None
                 )
 
         member _.DeleteObjectStore (name: string) : unit =
@@ -1013,8 +1013,8 @@ type Transaction internal(raw: IDBTransaction) =
                 (fun name message ->
                     match name with
                     | "InvalidStateError" -> message |> GetObjectStoreError.InvalidState |> Some
-                    | "NotFoundError" -> message |> GetObjectStoreError.NotFound |> Some
-                    | _ -> None
+                    | "NotFoundError"     -> message |> GetObjectStoreError.NotFound |> Some
+                    | _                   -> None
                 )
 
         member _.Abort() : unit =
@@ -1039,18 +1039,18 @@ type Database internal(raw: IDBDatabase) =
                     let rawTransaction =
                         raw.transaction(
                             storeNames = objectStoreNames,
-                            mode = mode.ToRaw(),
-                            ?options = (maybeOptions |> Option.map (fun o -> o.ToRaw()))
+                            mode       = mode.ToRaw(),
+                            ?options   = (maybeOptions |> Option.map (fun o -> o.ToRaw()))
                         )
                     let transaction = Transaction(rawTransaction)
                     transaction
                 )
                 (fun name message ->
                     match name with
-                    | "InvalidStateError" -> message |> BeginTransactionError.InvalidState |> Some
-                    | "NotFoundError" -> message |> BeginTransactionError.NotFound |> Some
+                    | "InvalidStateError"  -> message |> BeginTransactionError.InvalidState |> Some
+                    | "NotFoundError"      -> message |> BeginTransactionError.NotFound |> Some
                     | "InvalidAccessError" -> message |> BeginTransactionError.InvalidAccess |> Some
-                    | _ -> None
+                    | _                    -> None
                 )
 
 type IndexedDbService() =
@@ -1072,8 +1072,8 @@ type IndexedDbService() =
                         match exn |> tryCoerce<DOMException> with
                         | Some domException ->
                             match domException.name with
-                            | "SecurityError" ->  domException.message |> GetDatabasesError.SecurityViolation |> Error
-                            | _ -> failwith $"DOM error with name '{domException.name}' is not currently handled"
+                            | "SecurityError" -> domException.message |> GetDatabasesError.SecurityViolation |> Error
+                            | _               -> failwith $"DOM error with name '{domException.name}' is not currently handled"
                         | None ->
                             failwith $"Unhandled exception when getting databases: {exn}"
             }
@@ -1085,7 +1085,7 @@ type IndexedDbService() =
                 (fun () ->
                     let request =
                         indexedDB.``open``(
-                            name  = name,
+                            name     = name,
                             ?version = (maybeVersion |> Option.map int)
                         )
 

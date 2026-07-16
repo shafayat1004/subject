@@ -17,6 +17,6 @@
     <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fable.AST" Version="4.5.0" />
+    <PackageReference Include="Fable.AST" Version="5.0.0" />
   </ItemGroup>
 </Project>

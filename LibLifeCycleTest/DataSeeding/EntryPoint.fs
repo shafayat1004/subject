@@ -9,9 +9,9 @@ open Microsoft.Extensions.DependencyInjection
 
 let private filterSimulations testAssembly filter flags =
     {
-        Assembly = testAssembly
-        Module = None
-        Simulation = Some (Regex filter)
+        Assembly                     = testAssembly
+        Module                       = None
+        Simulation                   = Some (Regex filter)
         IncludeNonSeedingSimulations = flags |> List.contains "--all"
     }
     |> discoverSimulations

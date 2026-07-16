@@ -180,8 +180,8 @@ let startSubjectHost
                             | null -> IPAddress.Loopback
                             | s    -> IPAddress.Parse s
 
-                    let siloEndpointPort           = context.Configuration.GetValue<int>("Orleans.Clustering:SiloPort")
-                    let gatewayEndpointPort        = context.Configuration.GetValue<int>("Orleans.Clustering:GatewayPort")
+                    let siloEndpointPort    = context.Configuration.GetValue<int>("Orleans.Clustering:SiloPort")
+                    let gatewayEndpointPort = context.Configuration.GetValue<int>("Orleans.Clustering:GatewayPort")
                     let maybeDashboardEndpointPort =
                         match context.Configuration["Orleans.Clustering:DashboardPort"] with
                         | null -> None

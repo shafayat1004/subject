@@ -5,49 +5,84 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibClient.Icons
-open ReactXP.Styles
-open LibClient.Components.Nav.Top.ItemStyles
+open LibClient.Components.Nav.Top.Item
+open Rn.Styles
+open Rn.LegacyStyles
+
+type LegacyFontWeight = RulesRestricted.FontWeight
 
 module LR =
     module Nav =
         module Top =
             module BackButtonTypes =
+                type Colors = {
+                    Label:                Color
+                    LabelWeight:          LegacyFontWeight
+                    Background:           Color
+                    Border:               Color
+                    Icon:                 Color
+                    BadgeFontWeight:      LegacyFontWeight
+                    BadgeFontColor:       Color
+                    BadgeBackgroundColor: Color
+                }
+
                 type StateTheme = {
-                    BaseColors: Colors
-                    HoveredColors: Colors
+                    BaseColors:      Colors
+                    HoveredColors:   Colors
                     DepressedColors: Colors
                 }
 
                 type Theme = {
-                    Actionable: StateTheme
-                    InProgress: StateTheme
-                    Disabled: StateTheme
-                    Selected: StateTheme
+                    Actionable:         StateTheme
+                    InProgress:         StateTheme
+                    Disabled:           StateTheme
+                    Selected:           StateTheme
                     SelectedActionable: StateTheme
                 }
 
 open LR.Nav.Top.BackButtonTypes
 
-[<RequireQualifiedAccess>]
-module private Styles =
-    let viewThemeLegacy (theTheme: Theme) =
-        [
-            LibClient.Components.Nav.Top.ItemStyles.Theme.Part(State.Actionable ignore, theTheme.Actionable.BaseColors, theTheme.Actionable.HoveredColors, theTheme.Actionable.DepressedColors)
-            LibClient.Components.Nav.Top.ItemStyles.Theme.Part(State.InProgress, theTheme.InProgress.BaseColors, theTheme.InProgress.HoveredColors, theTheme.InProgress.DepressedColors)
-            LibClient.Components.Nav.Top.ItemStyles.Theme.Part(State.Disabled, theTheme.Disabled.BaseColors, theTheme.Disabled.HoveredColors, theTheme.Disabled.DepressedColors)
-            LibClient.Components.Nav.Top.ItemStyles.Theme.Part(State.Selected, theTheme.Selected.BaseColors, theTheme.Selected.HoveredColors, theTheme.Selected.DepressedColors)
-            LibClient.Components.Nav.Top.ItemStyles.Theme.Part(State.SelectedActionable ignore, theTheme.SelectedActionable.BaseColors, theTheme.SelectedActionable.HoveredColors, theTheme.SelectedActionable.DepressedColors)
-        ]
-        |> List.concat
-        |> ReactXP.LegacyStyles.Designtime.makeSheet
-        |> legacyTheme
+let private mapFontWeight (weight: LegacyFontWeight) : Rn.Styles.RulesRestricted.FontWeight =
+    match weight with
+    | LegacyFontWeight.Normal -> Rn.Styles.RulesRestricted.FontWeight.Normal
+    | LegacyFontWeight.Bold   -> Rn.Styles.RulesRestricted.FontWeight.Bold
+    | _                       -> Rn.Styles.RulesRestricted.FontWeight.Normal
+
+let private mapColors (colors: Colors) : LC.Nav.Top.Item.AppearanceColors =
+    {
+        Label                = colors.Label
+        LabelWeight          = mapFontWeight colors.LabelWeight
+        Background           = colors.Background
+        Border               = colors.Border
+        Icon                 = colors.Icon
+        BadgeFontColor       = colors.BadgeFontColor
+        BadgeFontWeight      = mapFontWeight colors.BadgeFontWeight
+        BadgeBackgroundColor = colors.BadgeBackgroundColor
+    }
+
+let private mapInteraction (stateTheme: StateTheme) : LC.Nav.Top.Item.InteractionColors =
+    {
+        Base      = mapColors stateTheme.BaseColors
+        Hovered   = mapColors stateTheme.HoveredColors
+        Depressed = mapColors stateTheme.DepressedColors
+    }
+
+let private toItemTheme (backTheme: Theme) (itemTheme: LC.Nav.Top.Item.Theme) : LC.Nav.Top.Item.Theme =
+    {
+        itemTheme with
+            Actionable         = mapInteraction backTheme.Actionable
+            InProgress         = mapInteraction backTheme.InProgress
+            Disabled           = mapInteraction backTheme.Disabled
+            Selected           = mapInteraction backTheme.Selected
+            SelectedActionable = mapInteraction backTheme.SelectedActionable
+    }
 
 type LibRouter.Components.Constructors.LR.Nav.Top with
     [<Component>]
     static member BackButton(
-            ?theme: Theme -> Theme,
+            ?theme:  Theme -> Theme,
             ?styles: array<ViewStyles>,
-            ?key: string) : ReactElement =
+            ?key:    string) : ReactElement =
         key |> ignore
 
         let theTheme = Themes.GetMaybeUpdatedWith theme
@@ -58,7 +93,7 @@ type LibRouter.Components.Constructors.LR.Nav.Top with
 
         LC.Nav.Top.Item(
             styles = (styles |> Option.defaultValue [||]),
-            style = Nav.Top.Item.iconOnly Icon.Back,
-            state = Nav.Top.Item.State.Actionable goBack,
-            xLegacyStyles = Styles.viewThemeLegacy theTheme
+            style  = Nav.Top.Item.iconOnly Icon.Back,
+            state  = Nav.Top.Item.State.Actionable goBack,
+            theme  = toItemTheme theTheme
         )

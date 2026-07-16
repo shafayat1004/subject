@@ -12,19 +12,19 @@ open LibClient.Services.HttpService.Types
 open LibClient.MessageTemplates
 
 type SeqConfig = {
-    Endpoint: string
-    MaybeApiKey: Option<string>
-    MaxBufferCapacity: int
-    MaxFlushDelay: TimeSpan
+    Endpoint:               string
+    MaybeApiKey:            Option<string>
+    MaxBufferCapacity:      int
+    MaxFlushDelay:          TimeSpan
     MaxFlushBufferCapacity: int
 }
 
 type private LogEvent = {
-    Timestamp: DateTimeOffset
+    Timestamp:     DateTimeOffset
     MaybeCategory: Option<string>
-    Level: LogLevel
-    Properties: LogProperties
-    Event: Event
+    Level:         LogLevel
+    Properties:    LogProperties
+    Event:         Event
 }
 
 [<RequireQualifiedAccess>]
@@ -39,8 +39,8 @@ module private LogEvent =
                 "@l",
                 match logEvent.Level with
                 | LogLevel.Debug -> "Debug"
-                | LogLevel.Info -> "Info"
-                | LogLevel.Warn -> "Warn"
+                | LogLevel.Info  -> "Info"
+                | LogLevel.Warn  -> "Warn"
                 | LogLevel.Error -> "Error"
                 |> box
             )
@@ -56,7 +56,7 @@ module private LogEvent =
                 Seq.concat
                     [
                         logEvent.Event.GetProperties() |> Seq.map (fun property -> (property.NamedHole.Name, property.Value))
-                        logEvent.Properties |> Map.toSeq
+                        logEvent.Properties            |> Map.toSeq
                     ]
                 |> Seq.map (fun (name, value) ->
                     (
@@ -148,11 +148,11 @@ type SeqLogSink (config: SeqConfig, getHttpService: unit -> HttpService) =
         override _.Log (level: LogLevel, maybeCategory: Option<string>, properties: LogProperties, event: Event) : Unit =
             recordLogEvent
                 {
-                    Timestamp = DateTimeOffset.UtcNow
+                    Timestamp     = DateTimeOffset.UtcNow
                     MaybeCategory = maybeCategory
-                    Level = level
-                    Properties = properties
-                    Event = event
+                    Level         = level
+                    Properties    = properties
+                    Event         = event
                 }
 
     interface IDisposable with

@@ -21,7 +21,7 @@ type SubjectReflectionGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'Life
                 and  'SubjectId            :  comparison>
         (
             lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
-            logger: Microsoft.Extensions.Logging.ILogger<SubjectReflectionGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>
+            logger:           Microsoft.Extensions.Logging.ILogger<SubjectReflectionGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>
         ) =
 
     inherit Grain()

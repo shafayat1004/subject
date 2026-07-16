@@ -1,6 +1,14 @@
 const path      = require("path")
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
+// Keep the bundled docs (src/DocsContent.generated.js) fresh on every native bundle. Web fetches
+// docs over HTTP; native has no server, so the markdown is inlined and rendered via
+// MarkdownViewer.Code. Running the generator here means editing a .md and reloading is enough --
+// no separate build step. (Wrapped so a generator failure never blocks Metro.)
+try { require("./scripts/gen-docs-bundle.js") } catch (e) { console.warn("[docs-bundle] gen skipped:", e.message) }
+
+const defaultConfig = getDefaultConfig(__dirname);
+
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -8,21 +16,26 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
 let externalLibraries = {
   "react":                                         path.resolve(__dirname, "../LibClient/node_modules/react"),
-  "@chaldal/reactxp":                              path.resolve(__dirname, "../LibClient/node_modules/@chaldal/reactxp"),
   "react-is":                                      path.resolve(__dirname, "../LibClient/node_modules/react-is"),
   "react-native":                                  path.resolve(__dirname, "./node_modules/react-native"),
   "@babel/runtime":                                path.resolve(__dirname, "./node_modules/@babel/runtime"),
   "simplerestclients":                             path.resolve(__dirname, "../LibClient/node_modules/simplerestclients"),
-  "@chaldal/reactxp-imagesvg":                     path.resolve(__dirname, "../LibClient/node_modules/@chaldal/reactxp-imagesvg"),
   "@microsoft/applicationinsights-web":            path.resolve(__dirname, "../LibClient/node_modules/@microsoft/applicationinsights-web"),
   "@microsoft/applicationinsights-react-native":   path.resolve(__dirname, "../LibClient/node_modules/@microsoft/applicationinsights-react-native"),
-  "@chaldal/reactxp-webview":                      path.resolve(__dirname, "../LibClient/node_modules/@chaldal/reactxp-webview"),
-  "@chaldal/reactxp-virtuallistview":              path.resolve(__dirname, "../LibClient/node_modules/@chaldal/reactxp-virtuallistview"),
   "tslib":                                         path.resolve(__dirname, "../LibClient/node_modules/tslib"),
   "base-64":                                       path.resolve(__dirname, "../LibClient/node_modules/base-64"),
   "platform-detect":                               path.resolve(__dirname, "../LibClient/node_modules/platform-detect"),
   "pako":                                          path.resolve(__dirname, "../LibClient/node_modules/pako"),
-  "@chaldal/reactxp-netinfo":                      path.resolve(__dirname, "../LibClient/node_modules/@chaldal/reactxp-netinfo"),
+  "@react-native-community/netinfo":               path.resolve(__dirname, "../LibClient/node_modules/@react-native-community/netinfo"),
+  "react-native-svg":                              path.resolve(__dirname, "../LibClient/node_modules/react-native-svg"),
+  "react-native-webview":                          path.resolve(__dirname, "../LibClient/node_modules/react-native-webview"),
+  "@react-native-picker/picker":                   path.resolve(__dirname, "../LibClient/node_modules/@react-native-picker/picker"),
+  "@react-native-async-storage/async-storage":     path.resolve(__dirname, "../LibClient/node_modules/@react-native-async-storage/async-storage"),
+  // reanimated + worklets are direct gallery deps now (co-located with @babel/core for the babel
+  // plugin, and autolinked natively), so metro resolves them from the gallery's own node_modules —
+  // no alias here (aliasing to LibClient's copy would split JS vs native into two instances).
+  "buffer":                                        path.resolve(__dirname, "../ThirdParty/ReactNativeCodePush/node_modules/buffer"),
+  "@react-native-firebase/app":                    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules/@react-native-firebase/app"),
   "react-router":                                  path.resolve(__dirname, "../LibRouter/node_modules/react-router"),
   "react-router-native":                           path.resolve(__dirname, "../LibRouter/node_modules/react-router-native"),
   "@googlemaps/js-api-loader":                     path.resolve(__dirname, "../ThirdParty/Map/node_modules/@googlemaps/js-api-loader"),
@@ -34,8 +47,11 @@ let externalLibraries = {
   "react-native-device-info":                      path.resolve(__dirname, "../ThirdParty/ReactNativeDeviceInfo/node_modules/react-native-device-info"),
   "@react-native-community/push-notification-ios": path.resolve(__dirname, "../LibPushNotification/Client/node_modules/@react-native-community/push-notification-ios"),
   "react-native-push-notification":                path.resolve(__dirname, "../LibPushNotification/Client/node_modules/react-native-push-notification"),
-  "react-native-fbsdk":                            path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk"),
+  "react-native-fbsdk-next":                       path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules/react-native-fbsdk-next"),
   "@react-native-firebase/analytics":              path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules/@react-native-firebase/analytics"),
+  "react-native-render-html":                      path.resolve(__dirname, "../ThirdParty/Showdown/node_modules/react-native-render-html"),
+  "showdown":                                      path.resolve(__dirname, "../ThirdParty/Showdown/node_modules/showdown"),
+  "showdown-highlight":                            path.resolve(__dirname, "../AppEggShellGallery/node_modules/showdown-highlight"),
   "fast-memoize":                                  path.resolve(__dirname, "../LibClient/node_modules/fast-memoize")
 }
 
@@ -76,6 +92,7 @@ const config = {
    */
   watchFolders: [
     path.resolve(__dirname, "./.build"),
+    path.resolve(__dirname, "./public-dev"),
     path.resolve(__dirname, "./images"),
     path.resolve(__dirname, "../LibClient/src"),
     path.resolve(__dirname, "../LibClient/node_modules"),
@@ -90,8 +107,9 @@ const config = {
     path.resolve(__dirname, "../ThirdParty/ReactNativeDeviceInfo/node_modules"),
     path.resolve(__dirname, "../LibPushNotification/Client/node_modules"),
     path.resolve(__dirname, "../ThirdParty/FacebookPixel/node_modules"),
-    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules")
+    path.resolve(__dirname, "../ThirdParty/GoogleAnalytics/node_modules"),
+    path.resolve(__dirname, "../ThirdParty/Showdown/node_modules")
   ]
 }
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(defaultConfig, config);

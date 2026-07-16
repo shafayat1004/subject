@@ -10,9 +10,9 @@ open LibLifeCycle.LifeCycleAccessBuilder
 open type AccessTo<DispatcherAction, DispatcherConstructor>
 
 type DispatcherEnvironment = {
-    Clock: Service<Clock>
-    Random: Service<Random>
-    AllJobs: Service<All<Job, JobId, JobIndex, JobOpError>>
+    Clock:         Service<Clock>
+    Random:        Service<Random>
+    AllJobs:       Service<All<Job, JobId, JobIndex, JobOpError>>
     Configuration: IConfiguration
 } with interface Env
 
@@ -71,8 +71,8 @@ let private transition (env: DispatcherEnvironment) (dispatcher: Dispatcher) (ac
                     { dispatcher with
                         PollInfo =
                             { dispatcher.PollInfo with
-                                StreakCount = streakCount
-                                LastPolledOn = now
+                                StreakCount    = streakCount
+                                LastPolledOn   = now
                                 LastJobAddedOn = lastJobAddedOn
                                 ScheduledTrigger =
                                     if newJobIds.IsEmpty then
@@ -159,12 +159,12 @@ let private construction (env: DispatcherEnvironment) (_id: DispatcherId) (ctor:
             yield DispatcherAction.Poll (0u, hotTrigger)
 
             return {
-                Name = name
-                CreatedOn = now
-                Settings = settings
-                PollInfo = { ScheduledTrigger = Some hotTrigger; StreakCount = 0u; LastPolledOn = now; LastJobAddedOn = now }
+                Name           = name
+                CreatedOn      = now
+                Settings       = settings
+                PollInfo       = { ScheduledTrigger = Some hotTrigger; StreakCount = 0u; LastPolledOn = now; LastJobAddedOn = now }
                 ProcessingJobs = Set.empty
-                HardDelete = false
+                HardDelete     = false
             }
     }
 

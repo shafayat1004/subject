@@ -101,7 +101,7 @@ let buildInputForm (plugin: InputRendererPlugin) (name: string) (forType: Type) 
         | t when t = typeof<SByte>               -> InputForm.Make path name t (InputFormType.Primitive (NumericInput (true,  Decimal.MinValue,        Decimal.MaxValue       )))
         | t when t = typeof<Unit>                -> InputForm.Make path name t (InputFormType.Primitive UnitInput)
         // | t when t = typeof<Unsigned<_>>    -> InputForm.Value(name,path,NumericInput(true,Decimal.Zero,Decimal.MaxValue))
-        | t                                      -> InputForm.Make path name t (InputFormType.Primitive UnsupportedInput)
+        | t -> InputForm.Make path name t (InputFormType.Primitive UnsupportedInput)
 
 
     let rec getInput (path: Path) (name: string) (forType: Type) =

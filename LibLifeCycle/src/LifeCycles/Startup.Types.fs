@@ -11,8 +11,8 @@ with
             id.Value
 
 type Startup = {
-    Id: StartupId
-    CreatedOn: DateTimeOffset
+    Id:            StartupId
+    CreatedOn:     DateTimeOffset
     LastStartupOn: DateTimeOffset
 } with
     interface Subject<StartupId> with

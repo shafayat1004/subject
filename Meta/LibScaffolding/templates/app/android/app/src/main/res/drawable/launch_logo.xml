@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <path
+        android:fillColor="@color/eggshell_card"
+        android:pathData="M24,36h112a12,12 0,0 1,12 12v64a12,12 0,0 1,-12 12H24a12,12 0,0 1,-12 -12V48a12,12 0,0 1,12 -12z" />
+    <path
+        android:fillColor="@color/eggshell_accent"
+        android:pathData="M52,62a14,14 0,1 1,0 28a14,14 0,1 1,0 -28z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M45,74l6,6l14,-14l6,6l-20,20l-12,-12z" />
+    <path
+        android:fillColor="@color/eggshell_text_muted"
+        android:pathData="M84,68h44v8H84z" />
+    <path
+        android:fillColor="@color/eggshell_text_muted"
+        android:pathData="M84,86h32v8H84z" />
+</vector>

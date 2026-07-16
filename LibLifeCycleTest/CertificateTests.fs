@@ -19,7 +19,7 @@ let ``Expiried Certificates should be filtered``() =
     let certificate = createCertificate (now.AddDays(-2.0)) (now.AddDays(-1.0))
     match filterAndSortCertificates now [certificate] with
     | [] -> ``👍``
-    | _ -> ``💣``
+    | _  -> ``💣``
 
 [<Fact>]
 let ``Not yet valid certificates should be filtered``() =
@@ -28,7 +28,7 @@ let ``Not yet valid certificates should be filtered``() =
     let certificate = createCertificate (now.AddDays(1.0)) (now.AddDays(2.0))
     match filterAndSortCertificates now [certificate] with
     | [] -> ``👍``
-    | _ -> ``💣``
+    | _  -> ``💣``
 
 [<Fact>]
 let ``Given two valid certificates, the first certificate in the returned list must be the one with the later expiry date``() =
@@ -39,4 +39,4 @@ let ``Given two valid certificates, the first certificate in the returned list m
 
     match filterAndSortCertificates now [certificate1; certificate2] with
     | l when l = [certificate2; certificate1] -> ``👍``
-    | _ -> ``💣``
+    | _                                       -> ``💣``

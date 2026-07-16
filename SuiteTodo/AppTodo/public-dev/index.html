@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Todo</title>
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+  <meta name="description" content="Plan, prioritize, and track todos across devices.">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body class="page page--basic">
+    <div id="app-pre-bootstrap-loader">
+      <div class="app-pre-bootstrap-loader__brand">Todo</div>
+      <div class="app-pre-bootstrap-loader__hint">Loading…</div>
+    </div>
+    <div class="app-container"></div>
+    <script>
+      eggshell = window.eggshell || {};
+      eggshell.AppTodo = {}
+      eggshell.AppTodo.configSourceOverrides = {}
+    </script>
+    <script src="/configSourceOverrides.dev.js"></script>
+    <script src="/bundle.js"></script>
+</body>
+</html>

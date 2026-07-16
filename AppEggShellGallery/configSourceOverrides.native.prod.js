@@ -5,8 +5,8 @@ global.eggshell.AppEggShellGallery.configSourceOverrides = {}
 global.eggshell.AppEggShellGallery.configSourceOverrides.AppUrlBase                         = "http://eggshell.app";
 global.eggshell.AppEggShellGallery.configSourceOverrides.BackendUrl                         = "https://api.eggshell.app";
 global.eggshell.AppEggShellGallery.configSourceOverrides.OtpResendTimeoutSeconds            = "30";
-global.eggshell.AppEggShellGallery.configSourceOverrides.InitializeReactXPInDevMode         = "false";
-global.eggshell.AppEggShellGallery.configSourceOverrides.InitializeReactXPInDebugMode       = "false";
+global.eggshell.AppEggShellGallery.configSourceOverrides.InitializeRnInDevMode         = "false";
+global.eggshell.AppEggShellGallery.configSourceOverrides.InitializeRnInDebugMode       = "false";
 
 // Google Maps
 global.eggshell.AppEggShellGallery.configSourceOverrides.GoogleMapsApiKey                   = "YOUR_KEY_HERE";

@@ -2,11 +2,11 @@
 module LibClient.Components.Card
 
 open Fable.React
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 open LibClient.Components
 open LibClient
-open ReactXP.Styles.RulesRestricted
+open LibClient.Accessibility
 
 module LC =
     module Card =
@@ -23,7 +23,7 @@ module LC =
         }
 
         type CardType =
-        | Flat of FlatCardProperties
+        | Flat     of FlatCardProperties
         | Shadowed of ShadowedCardProperties
 
         type Theme = {
@@ -59,46 +59,73 @@ open LC.Card
 [<RequireQualifiedAccess>]
 module private Styles =
     let outerContainerDefaults = makeViewStyles {
+        Position.Relative
         backgroundColor Color.White
         margin 8
     }
 
-    let outerContainer = ViewStyles.Memoize (
-        fun (theme: Theme) -> makeViewStyles {
+    let outerContainerFlat = ViewStyles.Memoize (
+        fun (cornerRadius: int) (borderWidth: int) (outlineColor: Color) -> makeViewStyles {
             padding 0
-            overflow Overflow.Visible
-            borderRadius theme.BorderRadius
-
-            match theme.CardType with
-            | Flat flatTheme ->
-                border flatTheme.BorderWidth flatTheme.BorderColor
-            | Shadowed shadowedTheme ->
-                shadow
-                    shadowedTheme.ShadowColor
-                    shadowedTheme.ShadowRadius
-                    shadowedTheme.ShadowOffset
-                elevation shadowedTheme.Elevation
+            Overflow.Visible
+            borderRadius cornerRadius
+            border borderWidth outlineColor
         }
+    )
+
+    let outerContainerShadowed = ViewStyles.Memoize (
+        fun (cornerRadius: int) (shadowColor: Color) (cardElevation: int) (shadowRadius: int) (offsetX: int) (offsetY: int) ->
+            makeViewStyles {
+                padding 0
+                Overflow.Visible
+                borderRadius cornerRadius
+                shadow shadowColor shadowRadius (offsetX, offsetY)
+                elevation cardElevation
+            }
     )
 
     let contentContainer = ViewStyles.Memoize (
-        fun (theme: Theme) -> makeViewStyles {
-            borderRadius theme.BorderRadius
-            overflow Overflow.Hidden
-            padding theme.Padding
+        fun (cornerRadius: int) (contentPadding: int) -> makeViewStyles {
+            borderRadius cornerRadius
+            Overflow.Hidden
+            padding contentPadding
         }
     )
 
-    let outerContainerWithOnPress = ViewStyles.Memoize (
-        fun (isHovered, isActive) -> makeViewStyles {
-            if isHovered then
-                backgroundColor MaterialDesignColors.grey.B050
+    let outerContainerFor (theme: Theme) =
+        match theme.CardType with
+        | Flat flatTheme ->
+            outerContainerFlat theme.BorderRadius flatTheme.BorderWidth flatTheme.BorderColor
+        | Shadowed shadowedTheme ->
+            let (offsetX, offsetY) = shadowedTheme.ShadowOffset
+            outerContainerShadowed
+                theme.BorderRadius
+                shadowedTheme.ShadowColor
+                shadowedTheme.Elevation
+                shadowedTheme.ShadowRadius
+                offsetX
+                offsetY
 
-            if isActive then
-                opacity 0.4
-                backgroundColor MaterialDesignColors.grey.B100
+    let outerContainerWithOnPressIdle = makeViewStyles { Noop }
+
+    let outerContainerWithOnPressHovered =
+        makeViewStyles {
+            backgroundColor MaterialDesignColors.grey.B050
         }
-    )
+
+    let outerContainerWithOnPressActive =
+        makeViewStyles {
+            opacity 0.4
+            backgroundColor MaterialDesignColors.grey.B100
+        }
+
+    let outerContainerWithOnPressFor (isHovered: bool) (isActive: bool) =
+        if isActive then
+            outerContainerWithOnPressActive
+        elif isHovered then
+            outerContainerWithOnPressHovered
+        else
+            outerContainerWithOnPressIdle
 
 type LC with
     [<Component>]
@@ -111,6 +138,8 @@ type LC with
     static member Card (
         children:     array<ReactElement>,
         ?onPress:     (ReactEvent.Action -> unit),
+        ?label:       string,
+        ?testId:      string,
         ?theme:       Theme -> Theme,
         ?outerStyles: array<ViewStyles>,
         ?key:         string
@@ -122,36 +151,45 @@ type LC with
 
         match onPress with
         | None ->
-            RX.View (
+            Rn.View (
                 styles = [|
                     Styles.outerContainerDefaults
                     yield! outerStyles
-                    Styles.outerContainer theTheme
+                    Styles.outerContainerFor theTheme
                 |],
                 children = [|
-                    RX.View (
+                    Rn.View (
                         children = children,
-                        styles   = [| Styles.contentContainer theTheme |]
+                        styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                     )
                 |]
             )
         | Some onPress ->
+            let a11yLabel = defaultArg label "Open"
+            let resolvedTestId =
+                testId |> Option.orElse (Some (A11ySlug.testId "card" a11yLabel))
+
             LC.Pointer.State (fun pointerState ->
-                RX.View (
+                Rn.View (
                     styles = [|
                         Styles.outerContainerDefaults
                         yield! outerStyles
-                        Styles.outerContainer theTheme
-                        Styles.outerContainerWithOnPress (pointerState.IsHovered, pointerState.IsDepressed)
+                        Styles.outerContainerFor theTheme
+                        Styles.outerContainerWithOnPressFor pointerState.IsHovered pointerState.IsDepressed
                     |],
                     children = [|
-                        RX.View (
+                        Rn.View (
                             children = children,
-                            styles   = [| Styles.contentContainer theTheme |]
+                            styles   = [| Styles.contentContainer theTheme.BorderRadius theTheme.Padding |]
                         )
-                        LC.TapCapture (
-                            onPress      = onPress,
-                            pointerState = pointerState
+                        LC.Pressable (
+                            onPress       = onPress,
+                            label         = a11yLabel,
+                            testId        = resolvedTestId.Value,
+                            role          = AccessibilityRole.Button,
+                            overlay       = true,
+                            pointerState  = pointerState,
+                            componentName = "LC.Card"
                         )
                     |]
                 )

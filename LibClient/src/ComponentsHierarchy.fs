@@ -25,6 +25,10 @@ module LC =
 
     module Input =
         type PickerInternals = class end
+        type File = class end
+        type NamedFile = class end
+        type Checkbox = class end
+        type WeeklyCalendar = class end
 
     type Form = class end
 

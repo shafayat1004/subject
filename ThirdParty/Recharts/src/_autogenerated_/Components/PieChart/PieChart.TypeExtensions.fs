@@ -13,7 +13,7 @@ open Fable.Core.JsInterop
 [<AutoOpen>]
 module PieChartTypeExtensions =
     type ThirdParty.Recharts.Components.Constructors.Recharts with
-        static member PieChart(?children: ReactChildrenProp, ?width: int, ?height: int, ?margin: EdgeInsets, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<ReactXP.LegacyStyles.RuntimeStyles>) =
+        static member PieChart(?children: ReactChildrenProp, ?width: int, ?height: int, ?margin: EdgeInsets, ?onClick: (unit -> unit), ?onMouseEnter: (unit -> unit), ?onMouseLeave: (unit -> unit), ?xLegacyStyles: List<Rn.LegacyStyles.RuntimeStyles>) =
             let __props =
                 {
                     Width = width |> Option.orElse (JsUndefined)

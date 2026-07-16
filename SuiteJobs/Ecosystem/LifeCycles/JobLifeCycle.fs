@@ -10,11 +10,11 @@ open SuiteJobs.LifeCycles.Services
 open type AccessTo<JobAction, JobConstructor>
 
 type JobEnvironment = {
-    Clock: Service<Clock>
-    Unique: Service<Unique>
+    Clock:    Service<Clock>
+    Unique:   Service<Unique>
     Sequence: Service<Sequence>
-    Random: Service<Random>
-    AllJobs: Service<All<Job, JobId, JobIndex, JobOpError>>
+    Random:   Service<Random>
+    AllJobs:  Service<All<Job, JobId, JobIndex, JobOpError>>
 }
 with
     interface Env
@@ -110,7 +110,7 @@ let private transitionJobBody
                 continuations |> Seq.tryFind (fun continuationJob ->
                     match continuationJob.Body with
                     | JobBodyVariant.Proper { State = JobState.Awaiting (JobParent.Job _) } -> true
-                    | _ -> false)
+                    | _                                                                     -> false)
             match maybeContinuation with
             | Some continuation ->
                 // this job is not last continuation, keep looking
@@ -137,10 +137,10 @@ let private transitionJobBody
             yield
                 jobRunnerConnector.Request
                     JobRunnerRequest.RunJob
-                        { Ticket = ticket
-                          JobId = jobId
+                        { Ticket       = ticket
+                          JobId        = jobId
                           IsAtMostOnce = body.FailurePolicy.IsAtMostOnce
-                          Payload = body.Payload; }
+                          Payload      = body.Payload; }
                     (fun (ticket, update) ->
                         match update with
                         | ProcessingJobUpdate.Heartbeat ->
@@ -173,11 +173,11 @@ let private transitionJobBody
             if requestTicket = responseTicket then
                 let! now = env.Clock.Query Now
                 let finishedRun: FinishedJobRun = {
-                        FinishedOn = now
-                        StartedBy = unfinishedRun.StartedBy
-                        Latency = unfinishedRun.Latency
+                        FinishedOn    = now
+                        StartedBy     = unfinishedRun.StartedBy
+                        Latency       = unfinishedRun.Latency
                         TotalDuration = result.TotalDuration
-                        PureDuration = result.PureDuration
+                        PureDuration  = result.PureDuration
                     }
 
                 match result.Result with
@@ -191,8 +191,8 @@ let private transitionJobBody
                     let autoRetriesPolicy =
                         body.FailurePolicy.MaybeAutoRetries
                         |> Option.defaultValue
-                               { MaxAutoRetries = 0uy
-                                 DelayPolicy = JobAutoRetryDelayPolicy.Hangfire
+                               { MaxAutoRetries   = 0uy
+                                 DelayPolicy      = JobAutoRetryDelayPolicy.Hangfire
                                  DeleteIfExceeded = false }
 
                     let attempt =
@@ -219,12 +219,13 @@ let private transitionJobBody
 
                         yield JobAction.Schedule (now.Add scheduleRetryAfter)
 
-                        let retry =
-                            { Attempt = attempt
-                              LastFailureMessage =
-                              match failedReason with
-                              | JobFailedReason.Exception (message, _, _) -> message
-                              | JobFailedReason.ConnectorTimeout -> "Connector Timeout" }
+                        let retry = {
+                            Attempt = attempt
+                            LastFailureMessage =
+                            match failedReason with
+                            | JobFailedReason.Exception (message, _, _) -> message
+                            | JobFailedReason.ConnectorTimeout          -> "Connector Timeout"
+                        }
                         return { body with State = failedState; Retry = Some retry }
                     else
                         if autoRetriesPolicy.DeleteIfExceeded then
@@ -301,17 +302,17 @@ let private constructJobBody (env: JobEnvironment) (jobId: JobId) (ctor: ProperJ
             operation {
                 do! incrementJobCounter env.Sequence JobStatsCounter.Created common.QueueName
                 return
-                    { Scope = scope
-                      Parent = parent
-                      Payload = common.Payload
-                      QueueName = common.QueueName
-                      QueueSortOrder = common.QueueSortOrder
-                      FailurePolicy = common.FailurePolicy
-                      SentOn = common.SentOn
-                      CorrelationId = common.CorrelationId
+                    { Scope               = scope
+                      Parent              = parent
+                      Payload             = common.Payload
+                      QueueName           = common.QueueName
+                      QueueSortOrder      = common.QueueSortOrder
+                      FailurePolicy       = common.FailurePolicy
+                      SentOn              = common.SentOn
+                      CorrelationId       = common.CorrelationId
                       PlaceholderFilledOn = placeholderFilledOn
-                      Retry = None
-                      State = JobState.Deleted System.DateTimeOffset.UnixEpoch }
+                      Retry               = None
+                      State               = JobState.Deleted System.DateTimeOffset.UnixEpoch }
             }
 
         match ctor with
@@ -423,7 +424,7 @@ let private transition
             | JobBodyVariant.Placeholder _ -> false
             | JobBodyVariant.Proper body ->
                 match body.State with
-                | JobState.Processing _ -> true
+                | JobState.Processing _                                                                                                            -> true
                 | JobState.Awaiting _ | JobState.Deleted _ | JobState.Enqueued _ | JobState.Failed _ | JobState.Scheduled _ | JobState.Succeeded _ -> false
         if isProcessingState job && not (isProcessingState jobAfter) then
             yield JobLifeEvent.OnProcessingCompleted
@@ -467,7 +468,7 @@ let private timers (job: Job) =
             match body.State with
             | JobState.Scheduled scheduledOn ->
                 { TimerAction = TimerAction.RunAction JobAction.Enqueue
-                  Schedule = Schedule.On scheduledOn }
+                  Schedule    = Schedule.On scheduledOn }
 
             | JobState.Processing (ticket, unfinishedRun) ->
                 let timeoutOn = (unfinishedRun.LastHeartbeatOn |> Option.defaultValue unfinishedRun.StartedOn).AddMinutes 1.
@@ -481,15 +482,15 @@ let private timers (job: Job) =
             | JobState.Succeeded finishedRun ->
                 let finishedJobSelfDeletesAfter =
                     match body.Scope with
-                    | JobScope.Batch _ -> System.TimeSpan.FromDays 2. // in sync with Batch self-deletion
+                    | JobScope.Batch _                      -> System.TimeSpan.FromDays 2. // in sync with Batch self-deletion
                     | JobScope.Other | JobScope.Recurring _ -> System.TimeSpan.FromDays 1.
                 { TimerAction = TimerAction.DeleteSelf
-                  Schedule = Schedule.On (finishedRun.FinishedOn.Add finishedJobSelfDeletesAfter) }
+                  Schedule    = Schedule.On (finishedRun.FinishedOn.Add finishedJobSelfDeletesAfter) }
 
             | JobState.Deleted finishedOn ->
                 // delete jobs are rare and often were deleted manually, keep them around for longer
                 { TimerAction = TimerAction.DeleteSelf
-                  Schedule = Schedule.On (finishedOn.AddDays 4) }
+                  Schedule    = Schedule.On (finishedOn.AddDays 4) }
 
             | JobState.Awaiting _
             | JobState.Enqueued _
@@ -550,16 +551,16 @@ let private shouldSendTelemetry =
             | Error ((* retryForFree *) false, reason) ->
                 match reason with
                 | JobFailedReason.ConnectorTimeout _ -> false
-                | JobFailedReason.Exception _ -> true
+                | JobFailedReason.Exception _        -> true
             | Ok _ -> false
         | JobAction.OnParentJobUpdate status ->
             match status with
             | JobStatus.Finished false | JobStatus.Unfinished -> true
-            | JobStatus.Finished true -> false
+            | JobStatus.Finished true                         -> false
         | JobAction.OnParentBatchUpdate status ->
             match status with
             | BatchStatus.Finished false | BatchStatus.Unfinished -> true
-            | BatchStatus.Finished true -> false
+            | BatchStatus.Finished true                           -> false
         | JobAction.OnNewSubscriber _
         | JobAction.FillPlaceholder _
         | JobAction.Enqueue
@@ -585,7 +586,7 @@ let private indices (job: Job) : seq<JobIndex> =
 
         | JobBodyVariant.Proper body ->
             JobNumericIndex.SentOn body.SentOn
-            body.CorrelationId |> Option.map JobStringIndex.CorrelationId
+            body.CorrelationId       |> Option.map JobStringIndex.CorrelationId
             body.PlaceholderFilledOn |> Option.map JobNumericIndex.PlaceholderFilledOn
             JobStringIndex.Queue body.QueueName
             // state specific-indices
@@ -622,21 +623,21 @@ let private indices (job: Job) : seq<JobIndex> =
                 JobNumericIndex.DeletedOn on
 
             match body.State with
-            | JobState.Awaiting (JobParent.Job _) -> IndexJobState.AwaitingJob
+            | JobState.Awaiting (JobParent.Job _)   -> IndexJobState.AwaitingJob
             | JobState.Awaiting (JobParent.Batch _) -> IndexJobState.AwaitingBatch
-            | JobState.Deleted _ -> IndexJobState.Deleted
-            | JobState.Enqueued _ -> IndexJobState.Enqueued
-            | JobState.Failed _ -> IndexJobState.Failed
-            | JobState.Processing _ -> IndexJobState.Processing
-            | JobState.Scheduled _ -> IndexJobState.Scheduled
-            | JobState.Succeeded _ -> IndexJobState.Succeeded
+            | JobState.Deleted _                    -> IndexJobState.Deleted
+            | JobState.Enqueued _                   -> IndexJobState.Enqueued
+            | JobState.Failed _                     -> IndexJobState.Failed
+            | JobState.Processing _                 -> IndexJobState.Processing
+            | JobState.Scheduled _                  -> IndexJobState.Scheduled
+            | JobState.Succeeded _                  -> IndexJobState.Succeeded
             |> JobNumericIndex.State
 
             match body.Retry, job.Status with
             | Some _, JobStatus.Unfinished ->
                 match body.State with
                 | JobState.Failed  _ -> () // hide failed jobs  from Retries tab, it's highlighted separately
-                | _ -> JobNumericIndex.Retry
+                | _                  -> JobNumericIndex.Retry
             | None, _
             | _, JobStatus.Finished _ ->
                     ()
@@ -650,7 +651,7 @@ let private indices (job: Job) : seq<JobIndex> =
                 ()
 
             body.Parent |> Option.map (function
-                | JobParent.Job (parentId, _) -> JobStringIndex.ParentJob parentId
+                | JobParent.Job (parentId, _)   -> JobStringIndex.ParentJob parentId
                 | JobParent.Batch (parentId, _) -> JobStringIndex.ParentBatch parentId)
 
             let truncateTo500Chars (s: string) =

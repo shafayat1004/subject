@@ -5,8 +5,8 @@ open Fable.React
 open LibClient
 open LibClient.Components
 open LibLangFsharp
-open ReactXP.Components
-open ReactXP.Styles
+open Rn.Components
+open Rn.Styles
 
 [<RequireQualifiedAccess>]
 module private Styles =
@@ -105,7 +105,7 @@ module private Helpers =
 type LibClient.Components.Constructors.LC.Executor with
     [<Component>]
     static member DisplayErrorsManually(
-            content: (MakeExecutor * ExecutorErrorsLazy) -> ReactElement,
+            content:                     (MakeExecutor * ExecutorErrorsLazy) -> ReactElement,
             ?showTopLevelSpinnerForKeys: LC.Executor.ShowTopLevelSpinnerForKeys,
             ?shouldBeActionableWhenDisplayingErrors: bool
         ) : ReactElement =
@@ -126,29 +126,34 @@ type LibClient.Components.Constructors.LC.Executor with
                         Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
                     )
             | Some keys ->
-                RX.View(
-                    styles = [| Styles.everything |],
-                    children =
-                        elements {
-                            content
-                                (
-                                    Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
-                                    Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
-                                )
+                let pageContent =
+                    content
+                        (
+                            Actions.makeExecutor executorsHook errorsHook shouldBeActionableWhenDisplayingErrors,
+                            Actions.executorErrorsLazy errorsHook errorsExaminedOnLastRenderHook
+                        )
 
-                            if Helpers.shouldShowSpinner keys executorsHook.current then
-                                RX.View(
-                                    styles = [| Styles.spinnerOverlay |],
-                                    children =
-                                        elements {
-                                            RX.ActivityIndicator(
-                                                size = Size.Medium,
-                                                color = "#cccccc"
-                                            )
-                                        }
-                                )
-                        }
-                )
+                // Keep pageContent as the stable first child whether or not the spinner shows.
+                // Previously this returned a bare `pageContent` when idle and a two-element array
+                // when a spinner showed; React treats those as structurally different children and
+                // REMOUNTS the entire page on every executor action (start -> InProgress -> done),
+                // losing scroll position and re-subscribing all data (the list reloads through a
+                // loader). Always wrapping in the same array keeps pageContent mounted; the spinner
+                // is just an optional trailing sibling.
+                castAsElementAckingKeysWarning [|
+                    pageContent
+                    if Helpers.shouldShowSpinner keys executorsHook.current then
+                        Rn.View(
+                            styles = [| Styles.spinnerOverlay |],
+                            children =
+                                elements {
+                                    Rn.ActivityIndicator(
+                                        size  = Size.Medium,
+                                        color = "#cccccc"
+                                    )
+                                }
+                        )
+                |]
 
         if not errorsExaminedOnLastRenderHook.current then
             Log.Error "Using Executor.Base but not displaying errors. Make sure to call getErrors() and display the result, or use Executor.AlertOnError instead."
