@@ -201,12 +201,16 @@ already-signed app from the archive directly (no re-signing, no App Store / "rel
 .claude/skills/release-build/scripts/release-build.sh ios <appdir>
 ```
 
-The script picks the newest `.xcarchive` for the app, verifies it is signed + has `main.jsbundle` +
-`embedded.mobileprovision`, and writes `<bundleid>.ipa` to `<appdir>/dist/ios/`.
+The script picks the newest `.xcarchive` for the app (matched by bundle id, ordered by file mtime so
+several same-day archives resolve to the true latest -- the archive filename's 12h clock time sorts
+wrong lexically), verifies it is signed + has `main.jsbundle` + `embedded.mobileprovision`, and writes
+`<bundleid>.ipa` to `<appdir>/dist/ios/`.
 
-Install: drag the `.ipa` into Xcode -> Window -> Devices and Simulators -> the iPhone, or
-`xcrun devicectl device install app --device <UDID> <ipa>`, then on the phone trust the team under
-Settings -> General -> VPN & Device Management.
+Install from `<appdir>/dist/ios/` -- **never** from a scratch/`/tmp` copy: tmp is reaped on reboot or
+by the next build, and a sideloader (SideStore, LiveContainer) that imported it by path then reports
+"IPA does not exist." Drag the `dist/ios/*.ipa` into Xcode -> Window -> Devices and Simulators -> the
+iPhone, or `xcrun devicectl device install app --device <UDID> <ipa>`, then on the phone trust the team
+under Settings -> General -> VPN & Device Management.
 
 ### Why not the simulator build?
 
