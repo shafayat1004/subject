@@ -355,7 +355,7 @@ let scrapeDocsAndGenerateContentFilesForLibrary (lossyNameMappings: Map<string, 
 
 
 let libraries = [
-    ("LC", "../../LibClient/src/bin/Debug/net7.0/LibClient.xml")
+    ("LC", "../../LibClient/src/bin/Debug/net10.0/LibClient.xml")
 ]
 
 let lossyNameMappings = Map.ofList <| [

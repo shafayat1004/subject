@@ -110,7 +110,7 @@ export async function run() : Promise<void> {
 
                 // FIXME, remove this after we have established that all other direct callers
                 // to this script have been updated to call via FAKE.
-                const renderDslCompilerCmdFallback = `${closestUptreeProject.rootPath}/node_modules/react-templates-fable/compiler/bin/Release/net7.0/AppRenderDslCompiler${process.platform === 'win32' ? ".exe" : ""}`;
+                const renderDslCompilerCmdFallback = `${closestUptreeProject.rootPath}/node_modules/react-templates-fable/compiler/bin/Release/net10.0/AppRenderDslCompiler${process.platform === 'win32' ? ".exe" : ""}`;
 
                 const renderDslCompilerCmd = argv.compiler ?
                     `${closestUptreeProject.rootPath}/${argv.compiler}` : renderDslCompilerCmdFallback;

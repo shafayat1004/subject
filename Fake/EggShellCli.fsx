@@ -48,7 +48,7 @@ module EggShellCli =
     //     | PackageWeb -> "package-web"
 
     let private compilerRelativePath =
-        sprintf "node_modules/react-templates-fable/compiler/bin/Release/net7.0/%s/AppRenderDslCompiler%s"
+        sprintf "node_modules/react-templates-fable/compiler/bin/Release/net10.0/%s/AppRenderDslCompiler%s"
             currentDotNetRuntimeIdentifier (if currentDotNetRuntimeIdentifier = "win-x64" then ".exe" else "")
 
     let private executeEggshell workingDirectory command (maybeAdditionalParams: list<string>) =

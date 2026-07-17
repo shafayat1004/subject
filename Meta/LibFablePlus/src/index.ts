@@ -78,6 +78,32 @@ function patchFSharpPlusComonadForFable5(): void {
     }
 }
 
+/** FSharpPlus Extensions.fs declares a GetSlice type extension on IEnumerable<'T>. .NET 9 gave the BCL
+ *  IEnumerable<'T> type parameter an `allows ref struct` constraint, and F# has no syntax to declare that
+ *  constraint on a type extension, so the extension fails to compile (FS0957/FS0341) once Fable compiles
+ *  FSharpPlus source against net9+ reference assemblies (Fable uses the running SDK's refs regardless of
+ *  the project TFM). The extension is unused here, so drop it. See dotnet/fsharp#18001. */
+function patchFSharpPlusExtensionsForNet9(): void {
+    const home = process.env.HOME || process.env.USERPROFILE || "";
+    if (!home) return;
+    const filePath = path.join(home, ".nuget/packages/fsharpplus/1.6.1/fable/Extensions/Extensions.fs");
+    if (!fs.existsSync(filePath)) return;
+    const src = fs.readFileSync(filePath, "utf8");
+    if (src.includes("EGGSHELL_NET9_IENUMERABLE_SLICE_PATCH")) return;
+    const block =
+        "    type Collections.Generic.IEnumerable<'T> with\n" +
+        "        member this.GetSlice = function\n" +
+        "            | None  , None   -> this\n" +
+        "            | Some a, None   -> this |> Seq.skip a\n" +
+        "            | None  , Some b -> this |> Seq.take b\n" +
+        "            | Some a, Some b -> this |> Seq.skip a |> Seq.take (b-a+1)";
+    const marker = "    // EGGSHELL_NET9_IENUMERABLE_SLICE_PATCH removed IEnumerable GetSlice extension (FS0957 vs net9 allows ref struct)";
+    if (src.includes(block)) {
+        fs.writeFileSync(filePath, src.replace(block, marker));
+        console.log(`Patched FSharpPlus Extensions for net9+: ${filePath}`);
+    }
+}
+
 function getNodeModulesBin(exeFile: string): string {
     return path.join(TOOL_PATH, "node_modules", ".bin", exeFile);
 }
@@ -175,6 +201,7 @@ function getFableArgs(project: AppProject, target: BuildTarget, config: BuildCon
 
 async function precompileLibStandard(target: BuildTarget): Promise<string> {
     patchFSharpPlusComonadForFable5();
+    patchFSharpPlusExtensionsForNet9();
     const precompiledLib = LIB_STANDARD_BUILD_PATH(target);
     const args = getFableDotnetCommand()
         .concat([
@@ -207,6 +234,7 @@ async function precompileLibStandard(target: BuildTarget): Promise<string> {
 
 export default async function runFable(project: AppProject, target: BuildTarget = "web", config: BuildConfig = "dev", noPrecompile: boolean, noCache: boolean, callBack?: (stdout: string)=>void) : Promise<void> {
     patchFSharpPlusComonadForFable5();
+    patchFSharpPlusExtensionsForNet9();
     // There are issues with Fable precompilation and Metro bundler, disable the feature for now
     // in native platform until further investigation.
     noPrecompile = target === "web" ? noPrecompile : true;
