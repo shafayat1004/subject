@@ -116,7 +116,7 @@ Rn.AnimatableImage(
     } |]
 )
 
-Animation.Timing(animatedValue.current, 0.1, TimeSpan.FromSeconds 1).Start(...)
+Animation.Timing(animatedValue.current, 0.1, TimeSpan.FromSeconds 1.0).Start(...)
 """)
                                 )
                             }

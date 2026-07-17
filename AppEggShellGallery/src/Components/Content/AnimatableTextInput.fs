@@ -124,7 +124,7 @@ Rn.AnimatableTextInput(
     } |]
 )
 
-Animation.Timing(animatedValue.current, 8.0, TimeSpan.FromSeconds 1).Start(...)
+Animation.Timing(animatedValue.current, 8.0, TimeSpan.FromSeconds 1.0).Start(...)
 """)
                                 )
                             }

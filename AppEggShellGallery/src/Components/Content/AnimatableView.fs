@@ -434,7 +434,7 @@ Rn.AnimatableView(
     } |]
 )
 
-Animation.Timing(animatedValue.current, 0.1, TimeSpan.FromSeconds 1).Start(...)
+Animation.Timing(animatedValue.current, 0.1, TimeSpan.FromSeconds 1.0).Start(...)
 """)
                                 )
 
@@ -493,7 +493,7 @@ Rn.AnimatableView(
 // Multi-stop interpolation uses Animation.Sequence on web
 Animation.Sequence(
     Animation.Timing(animatedValue.current, 0.5, TimeSpan.FromSeconds 0.5),
-    Animation.Timing(animatedValue.current, target, TimeSpan.FromSeconds 1)
+    Animation.Timing(animatedValue.current, target, TimeSpan.FromSeconds 1.0)
 ).Start(...)
 """)
                                 )
@@ -524,7 +524,7 @@ let easings = [ Easing.Linear; Easing.Out; Easing.InOut; Easing.CubicBezier ((0.
 
 easings
 |> List.map (fun easing ->
-    Animation.Timing(animatedValue, targetOpacity, TimeSpan.FromSeconds 1, easing = easing))
+    Animation.Timing(animatedValue, targetOpacity, TimeSpan.FromSeconds 1.0, easing = easing))
 |> Animation.Parallel
 |> fun animation -> animation.Start(...)
 """)
