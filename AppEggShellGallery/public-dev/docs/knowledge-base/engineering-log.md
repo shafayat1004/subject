@@ -4,6 +4,46 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-17 (session 35 -- repo-wide net7.0 -> net10.0 TFM sweep; whole repo on net10, sims + Fable frontend green)
+
+Executed the real S0: bumped **every** project `net7.0` -> `net10.0` (frontend + backend) and drove the
+whole repo green. Backend SuiteTodo + SuiteJobs build; **SuiteTodo sims 5/5** (native net10.0); **AppTodo
+Fable frontend builds on net10** (test-build: Fable + webpack). Branch `chore/net10-tfm-sweep`, draft PR #22.
+
+Four break classes the bump surfaced:
+
+- **`TimeSpan.FromSeconds/Minutes/Milliseconds` FS0041.** net8+ added `int64` overloads, so passing an `int`
+  is now ambiguous (int64 vs float). Fixed int args -> float (literals `1` -> `1.0`, variables -> `float x`)
+  across 40 F# files. Did it with a **fan-out Workflow (one agent per file)** since it was 214 call sites /
+  70 files (only ~40 were int-arg). Plus a point-free method group: `Gen.map TimeSpan.FromMinutes` ->
+  `Gen.map (fun m -> TimeSpan.FromMinutes (float m))` in JobTests.
+- **NU1510 package pruning.** net10 flags framework-provided packages; dropped a redundant, unused
+  `System.Text.Json` PackageReference from LibLangFsharp.
+- **FSharpPlus FS0957 (the hard one).** .NET 9 gave the BCL `IEnumerable<'T>` type parameter an
+  `allows ref struct` constraint. FSharpPlus's `GetSlice` **type extension** on `IEnumerable<'T>` can't
+  compile against net9+ refs, and **F# has no syntax to declare `allows ref struct` on a type extension**
+  (upstream dotnet/fsharp#18001, open; the construct is identical in every FSharpPlus version incl 1.9.1, so
+  no version bump helps). The backend is fine (it uses the compiled FSharpPlus **.dll**); only **Fable
+  source-compiles** the fable/ variant and hits it -- and only at *app* build time (lib `build-lib` doesn't
+  precompile `fable_modules`). Key discovery: **Fable compiles against the running SDK's BCL refs (net10)
+  regardless of the project's TargetFramework** -- proved by setting AppTodo to net8 and still getting the
+  net10-refs FS0957. So a "frontend net8 / shared multi-target" TFM split does **not** help and was reverted;
+  everything stays net10. Fix = patch FSharpPlus's fable source to drop the unused extension, via a new
+  `patchFSharpPlusExtensionsForNet9()` in `Meta/LibFablePlus/src/index.ts` (mirrors the existing
+  `patchFSharpPlusComonadForFable5`; auto-applied on every Fable run; `dist/` is gitignored and rebuilt from
+  `src` by `./initialize`). Only one covariant-BCL extension breaks; the frontend doesn't use seq slicing.
+  Verified the committed tooling re-patches a clean nuget cache and AppTodo builds green.
+- **Hardcoded `net7.0` tooling paths.** The render-dsl-compiler invocation, `CodecGen.Common.fs`
+  `commonDenominatorTypesTargetFramework`, `Scraping/XmlDocs.fs`, `Fake/EggShellCli.fsx`, `dev-stack.sh`,
+  `AppEggshellCli/src/index.ts`, and the thirdPartyWrapper template all referenced `bin/Release/net7.0`
+  outputs -> net10.
+
+**Learnings/gotchas (also in troubleshooting):** (1) Fable uses the SDK's BCL refs, not the project TFM, so
+pre-net9 FSharpPlus / type-extension incompatibilities cannot be dodged by lowering a project's TFM -- patch
+the fable source instead. (2) `eggshell test-build` **false-greens**: the wrapper exits 0; grep the log for
+`error!`/`error FS`/`code 957`, never trust the exit code. (3) The net10 TFM value doesn't reach Fable, so
+"everything net10" is the right end state even for the transpiled frontend, provided FSharpPlus is patched.
+
 ## 2026-07-16 (session 34 -- ran the backend simulation suite on the net10 SDK; net10 build blockers fixed; S0 premise corrected)
 
 Goal: "can we run the subject simulations locally?" Turned into the first real proof that the **net10 SDK
