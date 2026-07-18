@@ -137,6 +137,35 @@ Meta/<spike-name>/
   Host/Program.fs
 ```
 
+**4-project variant** (needed when grain impls are F# AND the host is F#, e.g. the
+S15b production-shape pattern). Add a `Grains/` subdir between Types and Codegen:
+
+```
+Meta/<spike-name>/
+  Types/...                                 # F# interfaces + types
+  Grains/<spike-name>Grains.fsproj          # F# grain impls (references Types)
+  Grains/Grains.fs
+  Codegen/...                                # C# -- scans BOTH Types AND Grains (TWO attributes)
+  Host/...                                   # F# host (references Types + Grains + Codegen)
+```
+
+Without the 4-project layout, the F# Host cannot host F# grain impls because the C#
+source generator (C#-only) cannot scan the F# Host project. The 4-project layout has no
+project-reference cycle: Codegen (C#) references Types + Grains (F#); Host (F#) references
+Types + Grains + Codegen; the F# Grains project does NOT reference the C# Codegen project
+(the runtime wiring is via `[<assembly: Orleans.ApplicationPartAttribute("Codegen")>]`
+on the F# Host, which is a string-name, not a project ref). Lesson from S15b (codemem 1895).
+
+**Multiple `GenerateCodeForDeclaringAssembly` attributes**: when grain interfaces and grain
+classes live in separate assemblies (e.g. interfaces in Types, impls in Grains), the C# Codegen
+project must carry TWO `[assembly: GenerateCodeForDeclaringAssembly(...)]` attributes -- one
+pointing at a type from the F# Types assembly (for interface invoker codegen), one at a type
+from the F# Grains assembly (for grain-class metadata + activator codegen). Each attribute
+scans only the DECLARING assembly of the given type; there is no transitive scan of referenced
+assemblies. S15b confirmed empirically: single attribute emitted 23 lines (empty
+TypeManifestProviderBase); two attributes emitted 666 lines (full invokers + activators).
+Lesson from S15b (codemem 1895).
+
 Every subdirectory has its own `.fsproj` / `.csproj` — do NOT share `obj/` across projects (MSBuild
 MSB3540 error: `MSBuildProjectExtensionsPath` modified after use). Lesson from S15.
 
@@ -166,6 +195,14 @@ MSB3540 error: `MSBuildProjectExtensionsPath` modified after use). Lesson from S
 `Version`) so the repo's `Directory.Build.targets` translates it to a `Version` that beats the
 pinned 9.0.201. Without the override, NU1605 downgrade warning fires and `Microsoft.Orleans.
 Serialization.FSharp` may not bind correctly. Lesson from S10 (codemem 1889).
+
+**F# vs C# project syntax** (both use `VersionOverride` but different reference kinds):
+- F# projects: `<PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />` (uses
+  `Update` because `Directory.Build.props`'s `Update` matches the F# project's implicit
+  FSharp.Core reference).
+- C# projects that need to interop with F# types: `<PackageReference Include="FSharp.Core" VersionOverride="10.0.103" />` (uses `Include` because C# projects have no implicit FSharp.Core
+  reference to `Update`). The `VersionOverride` still gets translated by `Directory.Build.targets`
+  into a winning `Version`. Lesson from S15b (codemem 1895).
 
 ### Step 4 — Build + run + capture per-shape PASS/FAIL
 
@@ -291,6 +328,9 @@ Concrete update triggers from prior spikes:
 | S10's FSharp.Core NU1605 downgrade | step 3 documents `VersionOverride` |
 | S15's websearch-first miss | step 1 mandates `gh issue` before code; codemem 1893 |
 | S15's `obj/` collision across sibling projects | step 3 mandates one-subdir-per-project |
+| S15b's 4-project layout for F# host + F# grain impls | step 3 documents 4-project variant |
+| S15b's two-attribute GenerateCodeForDeclaringAssembly | step 3 documents multi-attribute case |
+| S15b's C# project uses `Include`, F# uses `Update` for FSharp.Core | step 3 documents the split |
 | Codemem 1888 (squash-merge breaks rebase) | step 7 warns against squash-merge of spike branches |
 | Codemem 1851 (dev-web watch misses lib edits) | not a spike-specific gotcha — lives in runbooks only |
 
