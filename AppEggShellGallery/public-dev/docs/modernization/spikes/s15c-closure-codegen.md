@@ -168,15 +168,41 @@ Both are follow-up **production-port** edits (not this throwaway spike).
   as the skill predicted. The FS0909 misdiagnosis also validates the skill's "uncomment + build for
   ground truth" instinct.
 
-## Next spikes (worklist)
+## S15c-production-port -- LANDED
 
-- **S15c-production-port (follow-up work item, NOT a spike).** Apply the two decisions above to
-  production: lift the `GrainConnector.fs:117` + `Web/RealTime.fs:103` observer object expressions to
-  named classes; re-enable both `GenerateCodeForDeclaringAssembly` attributes in
-  `LibLifeCycleCodeGenHost/CodegenAssemblyInfo.cs`; uncomment + typo-fix `ConnectorGrain.fs`. Rebuild
-  all 5 backend projects green, then run a real grain round-trip.
-- **S1 (PG18 baseline)** -- UNBLOCKED once S15c-production-port lands. Boots a real Orleans 10 silo on
-  PG18 with ADO.NET persistence + reminders; the grain-dispatch path is now proven to codegen + run.
+Applied all three decisions to production and re-enabled codegen:
+
+- `GrainConnector.fs` -- the `ILifeEventAwaiter` object expression is now a named top-level
+  `LifeEventAwaiter<..>` class.
+- `Web/RealTime.fs` -- the `ISubjectGrainObserver` object expression is now a named top-level
+  `SubjectGrainObserver<..>` class.
+- `ConnectorGrain.fs` -- interface block uncommented, `=>` -> `->` typo fixed; `IConnectorGrain` wired.
+- `LibLifeCycleCodeGenHost/CodegenAssemblyInfo.cs` -- both `GenerateCodeForDeclaringAssembly` attributes
+  re-enabled.
+- `LibLifeCycleHost/src/AssemblyInfo.fs` -- added `[<assembly: InternalsVisibleTo("LibLifeCycleCodeGenHost")>]`
+  (the generated code registers the named `SubjectGrainObserver` in the internal `Web.RealTime` module).
+
+Result: `LibLifeCycleCodeGenHost` builds green with valid invokers (`typeof(global::LibLifeCycleCore.LifeEventAwaiter<..>)`,
+`typeof(global::LibLifeCycleHost.Web.RealTime.SubjectGrainObserver<..>)`, `ConnectorGrain<,>` registered).
+The 93-test `LibLifeCycleTest` unit suite passes.
+
+Booting the real silo in the simulation harness then surfaced two further Orleans-10 runtime blockers
+that the codegen gate had been hiding:
+
+1. **Autofac keyed services** -- `Autofac.Extensions.DependencyInjection` 6.0.0 predates .NET 8 keyed
+   services (which Orleans 10 registers), crashing silo boot with `RegisterInstance(null) ->
+   ArgumentNullException`. Fixed by bumping to ADI 10.0.0 + Autofac 8.3.0 across the test projects
+   (autofac/Autofac.Extensions.DependencyInjection #112/#116). `TestCluster.fs` needed an explicit
+   `Register<T>` type arg (Autofac 8 added an overload).
+2. **F# wrapper serialization** -- Orleans 10 decomposes `Option`/`ValueOption`/`Choice`/`Result`
+   natively and needs bare-leaf codecs. Split out as spike **S15d**
+   ([s15d-fsharp-wrapper-codecs.md](./s15d-fsharp-wrapper-codecs.md)).
+
+## Next work item
+
+- **S15d-production-port** -- rework the S15b custom serializer to register bare leaves (see the S15d
+  catalog). This is the remaining gate before the grain simulations run green.
+- **S1 (PG18 baseline)** -- gated by S15d-production-port.
 - **File upstream** dotnet/orleans issue: source generator should skip compiler-generated types when
   collecting `InvokableInterfaceImplementations` (one-line `!symbol.IsCompilerGenerated()` guard at
   `CodeGenerator.cs:224`). Attach `Meta/s15c-closure-codegen/` as the minimal repro.

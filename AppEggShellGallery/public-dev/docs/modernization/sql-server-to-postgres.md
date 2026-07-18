@@ -8,7 +8,7 @@ modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven exe
 seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
-**Workstream status: S15 spike FAILED (1/10 round-trip -- custom serializer can't be deleted); S15b spike PASSED (7/7 -- production codegen-host pattern proven); S15b-production-port COMPILE GREEN (all 5 affected projects 0 err 0 warn); S15c spike PASSED (1/1 -- runtime blocker SOLVED). The F# closure misclassification is fixed by lifting grain-observer object expressions to named F# classes (valid C# `typeof`); the "FS0909" ConnectorGrain blocker was a MISDIAGNOSIS (a `=>` typo hidden inside a commented block). Next: S15c-production-port (apply the fixes to production) -> S1 (PG18 baseline, now unblocked).**
+**Workstream status: S15 spike FAILED (1/10); S15b spike PASSED (7/7); S15b-production-port COMPILE GREEN; S15c spike PASSED + S15c-production-port LANDED (session 44 -- codegen re-enabled, ConnectorGrain wired, 93/93 unit tests pass); S15d spike PASSED (3/3, session 44). Booting the real silo post-S15c revealed two Orleans-10 runtime blockers: (1) Autofac keyed services (fixed -- ADI 6.0.0 -> 10.0.0); (2) Orleans 10 decomposes F# Option/ValueOption/Choice/Result natively and needs bare-leaf codecs (S15d -- the S15b whole-wrapper registrations are wrong). Next: S15d-production-port (rework `Serializer.fs` to bare leaves + run the simulation suites green) -> S1 (PG18 baseline).**
 
 Version numbers and upstream script paths carry source URLs in [References](#references). All versions below
 were confirmed against nuget.org / upstream release pages on **2026-07-15**.
@@ -492,7 +492,7 @@ maps to the original phase arc (P0–P6) for continuity. **Every refactor commit
 state is committed (lesson from an earlier Postgres spike branch: duplicate members left in
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
-Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S15c-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
+Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S15c-production-port → S15d → S15d-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
 S0+S10+S15+S15b+S15b-production-port+S15c+S15c-production-port+S1 first (~7–9 days) prove the foundation before the big storage work. S15 ran right after the package
 bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S15b confirmed the
 production codegen-host pattern; **S15b-production-port** is the actual LibLifeCycleCore rewrite (not a spike — applies the
@@ -641,6 +641,30 @@ covers dev/CI.
   (c) uncomment `ConnectorGrain.fs`'s interface block + fix the `=>` typo; (d) rebuild all 5 backend
   projects green + run a real grain round-trip; (e) file the upstream orleans issue (one-line
   `!symbol.IsCompilerGenerated()` guard) with `Meta/s15c-closure-codegen/` as the minimal repro.
+
+- **S15c-production-port · LANDED (session 44).** Applied (a)-(c) above: `GrainConnector.fs` +
+  `Web/RealTime.fs` object expressions lifted to named classes; `ConnectorGrain.fs` typo fixed + wired;
+  both `GenerateCodeForDeclaringAssembly` attributes re-enabled; `InternalsVisibleTo` added to
+  LibLifeCycleHost. `LibLifeCycleCodeGenHost` builds green with valid invokers; the 93-test
+  `LibLifeCycleTest` unit suite passes. Booting the real silo then surfaced two further Orleans-10 runtime
+  blockers the codegen gate had hidden: **(1) Autofac keyed services** (ADI 6.0.0 predates .NET 8 keyed
+  services -> `RegisterInstance(null)`; fixed by bumping ADI 6.0.0 -> 10.0.0 + Autofac 6.1.0 -> 8.3.0 in
+  the test projects, autofac ADI #112/#116); **(2) F# wrapper serialization** -> spike **S15d**.
+
+- **S15d · Orleans 10 decomposes F# Option/ValueOption/Choice/Result natively. SPIKE PASSED (session 44).**
+  *(gates S1.)* Throwaway spike `Meta/s15d-fsharp-wrapper-codecs/`; catalog
+  [`spikes/s15d-fsharp-wrapper-codecs.md`](spikes/s15d-fsharp-wrapper-codecs.md). The
+  `Microsoft.Orleans.Serialization.FSharp` 10.2.1 package ships `FSharpOption`/`ValueOption`/`Choice`/`Result`
+  codecs (Result is NEW vs S15 finding #2) that decompose the wrapper and delegate to inner leaf codecs; an
+  `IGeneralizedCodec` (fallback) never wins over them, so the S15b custom codec's whole-wrapper
+  registrations (`Option<BlobData>`, `Result<unit, GrainRefreshTimersAndSubsError>`, ...) leave the bare
+  inner leaf uncovered -> `CodecNotFoundException` at silo boot. **Fix (verified PASS, 3/3 real 2-silo
+  round-trip): register the bare LEAF types, not the wrappers.** **Follow-up production-port worklist
+  (S15d-production-port):** rework `LibLifeCycleCore/src/OrleansEx/Serializer.fs` (~30 wrapper registrations
+  -> bare leaves; make the two in-file validation guards decomposition-aware; drop native-only-inner and
+  already-bare-inner wrappers; keep `FSharpList`/`Map`/`Set` wholesale; never reuse typeIds), then run the
+  full `LibLifeCycleTest` + `SuiteTodo` + `SuiteJobs` simulation suites green. **S1 is gated by
+  S15d-production-port.**
 
 ### Tier 2 — core storage (the hard part)
 

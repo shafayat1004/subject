@@ -9,12 +9,15 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="Autofac" Version="6.1.0" />
+    <PackageReference Include="Autofac" Version="8.3.0" />
     <PackageReference Include="xunit" Version="2.9.0" />
     <PackageReference Include="FsUnit.xUnit" Version="6.0.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
+    <!-- ADI >= 9.0.0 is required for .NET 8 keyed-services support; Orleans 10 registers keyed
+         services, and the old 6.0.0 crashed silo boot with RegisterInstance(null) -> ArgumentNullException
+         (autofac/Autofac.Extensions.DependencyInjection #112/#116). See modernization/spikes/s15c-closure-codegen.md. -->
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />
     <PackageReference Include="Microsoft.Orleans.TestingHost" Version="10.2.1" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="10.2.1" />

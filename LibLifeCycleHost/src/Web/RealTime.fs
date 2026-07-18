@@ -65,6 +65,27 @@ type MaybeSessionWithIsValidObservableCache<'Session>() =
             )
         result
 
+/// Named-class form of the subject grain observer. It MUST be a top-level named type rather than an
+/// F# object expression: the Orleans 10 C# source generator flags every type implementing an
+/// IGrainObserver-derived interface as an InterfaceImplementation and emits `typeof(...)` for it. An
+/// object expression compiles to a closure class named `grainObserver@NN`, whose `@` is not a valid C#
+/// identifier and breaks the generated code (S15c; see modernization/spikes/s15c-closure-codegen.md).
+type private SubjectGrainObserver<'Subject, 'SubjectId
+        when 'Subject   :> Subject<'SubjectId>
+        and  'SubjectId :> SubjectId
+        and 'SubjectId : comparison>
+        (maybeCurrentVersion: System.Reactive.Subjects.BehaviorSubject<Option<ComparableVersion>>,
+         observer: IObserver<SubjectChange<'Subject, 'SubjectId>>) =
+    interface ISubjectGrainObserver<'Subject, 'SubjectId> with
+        member _.OnUpdate (subjectUpdate: LibLifeCycleCore.SubjectChange<'Subject, 'SubjectId>) =
+            // Keep a record of what version we have locally so we can use it during sync with grain.
+            subjectUpdate.MaybeComparableVersion
+            |> maybeCurrentVersion.OnNext
+
+            // Update the observer.
+            subjectUpdate
+            |> observer.OnNext
+
 /// Create an observable to monitor a given subject for changes. As long as the observable remains active, a grain observer will be kept alive against
 /// the specific subject.
 let createObservableForSubject<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId
@@ -100,16 +121,8 @@ let createObservableForSubject<'Subject, 'LifeAction, 'OpError, 'Constructor, 'L
                                     let grain = grainFactory.GetGrain<ISubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>(grainPartition, idStr)
 
                                     let grainObserver =
-                                        { new ISubjectGrainObserver<'Subject, 'SubjectId> with
-                                            member _.OnUpdate (subjectUpdate: LibLifeCycleCore.SubjectChange<'Subject, 'SubjectId>) =
-                                                // Keep a record of what version we have locally so we can use it during sync with grain.
-                                                subjectUpdate.MaybeComparableVersion
-                                                |> maybeCurrentVersion.OnNext
-
-                                                // Update the observer.
-                                                subjectUpdate
-                                                |> observer.OnNext
-                                        }
+                                        SubjectGrainObserver<'Subject, 'SubjectId>(maybeCurrentVersion, observer)
+                                        :> ISubjectGrainObserver<'Subject, 'SubjectId>
                                     let observerRef = grainFactory.CreateObjectReference<ISubjectGrainObserver<'Subject, 'SubjectId>> grainObserver
 
                                     // We need to sync with the backing grain for two reasons:

@@ -4,6 +4,54 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 44 -- S15c-production-port LANDED + Autofac keyed-services fix + S15d spike)
+
+Applied the S15c fixes to production, re-enabled codegen, and ran the tests to prove no regression -- which
+peeled back two more Orleans-10 runtime blockers the codegen gate had been hiding.
+
+**S15c-production-port (production, LANDED).** Lifted the two grain-observer object expressions to named
+top-level F# classes -- `GrainConnector.fs` `ILifeEventAwaiter` -> `LifeEventAwaiter<..>`,
+`Web/RealTime.fs` `ISubjectGrainObserver` -> `SubjectGrainObserver<..>`. Fixed `ConnectorGrain.fs` (`=>`
+-> `->` typo, uncommented the `IConnectorGrain` interface block). Re-enabled both
+`GenerateCodeForDeclaringAssembly` attributes in `CodegenAssemblyInfo.cs`. Added
+`[<assembly: InternalsVisibleTo("LibLifeCycleCodeGenHost")>]` to `LibLifeCycleHost/src/AssemblyInfo.fs`
+(the generated code registers the named `SubjectGrainObserver`, which lives in the *internal*
+`Web.RealTime` module -- CS0122 without it). `LibLifeCycleCodeGenHost` builds green with valid invokers;
+93/93 `LibLifeCycleTest` unit tests pass.
+
+**Runtime blocker 1 -- Autofac keyed services (FIXED).** Booting the silo in the sim harness crashed with
+`Autofac.RegisterInstance(null) -> ArgumentNullException (Parameter 'instance')` during `HostBuilder.Build`.
+Cause: `Autofac.Extensions.DependencyInjection` 6.0.0 predates .NET 8 keyed-services support (ADI 9.0.0),
+and Orleans 10 registers keyed services (autofac ADI #112/#116). Fix: bump ADI 6.0.0 -> 10.0.0 + Autofac
+6.1.0 -> 8.3.0 across the 4 test projects (LibLifeCycleTest, SuiteTodo/SuiteJobs Ecosystem tests, Meta
+template). Autofac is test-harness-only (`TestCluster.fs` uses `AutofacServiceProviderFactory` for
+child-scope registration override), not production hosting. Autofac 8 added a `Register<'TDependency1,'TComponent>`
+overload that made a bare `fun _ -> ...` ambiguous in `TestCluster.fs` -- fixed with an explicit
+`Register<T>` type arg.
+
+**Runtime blocker 2 -- F# wrapper serialization (S15d spike, PASSED, deferred to production-port).** Silo
+boot then threw `CodecNotFoundException` for bare F# leaves (`BlobData`, `GrainRefreshTimersAndSubsError`).
+Root cause proven by the S15d spike (`Meta/s15d-fsharp-wrapper-codecs/`, catalog
+`spikes/s15d-fsharp-wrapper-codecs.md`, PASS 3/3): the `Microsoft.Orleans.Serialization.FSharp` 10.2.1
+package ships `FSharpOption`/`ValueOption`/`Choice`/`Result` codecs (`FSharpResultCodec` is NEW vs S15
+finding #2) that DECOMPOSE the wrapper and delegate each generic arg to that arg's own codec. An
+`IGeneralizedCodec` is a fallback and never wins over them, so the S15b custom codec's ~30 whole-wrapper
+registrations (`Option<BlobData>`, `Result<unit, GrainRefreshTimersAndSubsError>`, ...) leave the bare
+inner leaf uncovered. Fix: register the bare LEAF types (verified in the spike). The production rework of
+`LibLifeCycleCore/src/OrleansEx/Serializer.fs` (bare-leaf registrations + decomposition-aware validation
+guards; keep `FSharpList`/`Map`/`Set` wholesale; never reuse typeIds) is the **S15d-production-port** work
+item -- it gates the grain simulations running green and thus S1. F# collections (`FSharpList`, `Map`,
+`Set`) are NOT native and stay wholesale.
+
+Lesson: verify a third-party package's actual codec inventory (`strings`/XML doc over the DLL) before
+assuming a serialization strategy -- the S15 "only 4 built-in F# codecs" finding was already stale
+(`FSharpResultCodec` shipped). Also: re-enabling a codegen gate can unmask a cascade of runtime blockers
+that were previously unreachable; budget for iterative silo-boot debugging, not just a compile check.
+Catalogs: `spikes/s15c-closure-codegen.md` (production-port outcome), `spikes/s15d-fsharp-wrapper-codecs.md`.
+Next: S15d-production-port.
+
+---
+
 ## 2026-07-19 (session 43 -- S15c spike: F# closure misclassification blocker SOLVED + FS0909 debunked)
 
 Closes the HARD BLOCKER deferred from session 42. Throwaway 4-project spike at
