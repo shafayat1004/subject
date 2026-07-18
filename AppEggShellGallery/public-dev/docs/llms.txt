@@ -29,6 +29,7 @@ Orientation for machine readers:
 - [Render DSL Retirement](modernization/render-dsl-retirement.md): Goal A status, verbosity/structure, a11y and automation bar.
 - [Build Performance](modernization/build-performance.md): frontend build bottlenecks and levers.
 - [SQL Server to Postgres](modernization/sql-server-to-postgres.md): plan for the PostgreSQL (PG-only end-state) + Orleans 3.7 to 10.x storage migration (current storage layer, feature-by-feature port table, Durable Jobs evaluation, PG 18 native features, spike-driven execution). Goal G.
+- [S10 Orleans Bump Catalog](modernization/spikes/s10-orleans-bump-catalog.md): S10 spike output -- Orleans 3.7.2 -> 10.2.1 package bump and break catalog.
 - [Backend Interoperability](modernization/backend-interop.md): Goals J and K. Standalone backend (Y-shaped dependency), consumer tiers (Fable UI, .NET NuGet SDK = Goal J, OpenAPI-generated polyglot clients = Goal K), contract-vs-encoding, and easy wins.
 - [Scaffolding](modernization/scaffolding.md): why `eggshell create-app` is broken and the fix plan.
 - [Security Review](modernization/security-review.md): candidate auth/SQL/crypto findings (leads to verify).

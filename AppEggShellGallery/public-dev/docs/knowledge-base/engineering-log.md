@@ -4,6 +4,44 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-18 (session 39 -- S10 Orleans 3.7.2 -> 10.2.1 package-bump catalog)
+
+S10 spike executed on `shafayat/pgsql-initial-spikes`. Bumped Orleans 3.7.2 -> 10.2.1 across
+`LibLifeCycleCore`, `LibLifeCycleHost`, `LibLifeCycleTest`, `LibLifeCycleHostBuild`. Dropped
+`OrleansDashboard`, `Microsoft.Orleans.OrleansTelemetryConsumers.AI`,
+`Microsoft.Orleans.OrleansProviders`, `Microsoft.Orleans.OrleansCodeGenerator`,
+`Microsoft.Orleans.CodeGenerator.MSBuild`. Added `Npgsql` 10.0.3,
+`Microsoft.Orleans.Persistence.AdoNet` 10.2.1, `Microsoft.Orleans.Reminders.AdoNet` 10.2.1,
+`Microsoft.Orleans.Reminders` 10.2.1, `Microsoft.Orleans.Serialization.FSharp` 10.2.1,
+`Microsoft.Orleans.Sdk` 10.2.1.
+
+Set `TreatWarningsAsErrors=false` on the three fsproj files so Orleans 10 warnings do not mask
+errors. Also set it false on `LibLifeCycleHostBuild.csproj` and added `NoWarn` NU1605 because
+`Directory.Build.props` pins `FSharp.Core` 9.0.201 via `PackageReference Update`; Orleans 10
+`Serialization.FSharp` demands `FSharp.Core` >= 10.0.103. Added per-project
+`PackageReference Update="FSharp.Core" Version="10.0.103"` override.
+
+Build results: all four projects fail. Core reports 63 errors (50 distinct after dedup by
+file:line:code). The other three projects never reach their own sources -- they stop on the Core
+dependency.
+
+Top break surface:
+- `Orleans.ApplicationParts` namespace gone.
+- Old serialization context interfaces gone: `ICopyContext`, `IDeserializationContext`,
+  `ISerializationContext`, `IExternalSerializer`.
+- `ClientBuilder`/`IClientBuilder` moved/removed.
+- Custom serializer in `LibLifeCycleCore/src/OrleansEx/Serializer.fs` and `Serialization.fs` must be
+  rewritten or deleted in S15.
+- `GrainConnector.fs:126` has a Task CE `Bind` overload mismatch on `ILifeEventAwaiter`, possibly
+  from `FSharp.Core` 10 or .NET 10.
+
+Catalog doc: `modernization/spikes/s10-orleans-bump-catalog.md`.
+
+Next spikes: S15 (F# DU/record wire serializer round-trip), then S1 (Orleans-on-PG18 baseline),
+then S4 (`PostgresGrainStorageHandler`).
+
+---
+
 ## 2026-07-18 (session 38 -- added mssql-debug skill; diff-oracle inspector for the pgsql port)
 
 Added `.claude/skills/mssql-debug/` (SKILL.md + 7 F# scripts + 3 shell helpers). Read-only MSSQL

@@ -8,8 +8,7 @@ modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven exe
 seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
-**Workstream status: not started. Phase 0 (decisions) revised this session; execution begins with the spikes
-in [Spike-driven execution](#spike-driven-execution).**
+**Workstream status: S10 package bump + break catalog done; S15 (F# wire serializer round-trip) is next before the Core compiles.**
 
 Version numbers and upstream script paths carry source URLs in [References](#references). All versions below
 were confirmed against nuget.org / upstream release pages on **2026-07-15**.
