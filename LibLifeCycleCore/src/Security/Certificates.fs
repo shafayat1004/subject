@@ -41,7 +41,9 @@ let private generateSelfSignedDevCertificate () =
     use generated = request.CreateSelfSigned(now.AddDays -1.0, now.AddYears 10)
     // Round-trip through a PFX export so the private key is usable by the TLS stack.
     let exported = generated.Export(X509ContentType.Pfx, "efefefefef")
-    new X509Certificate2(exported, "efefefefef", X509KeyStorageFlags.Exportable)
+    // X509CertificateLoader.LoadPkcs12 replaces the obsolete new X509Certificate2(byte[], string, ...)
+    // ctor (SYSLIB0057 on net10). Exportable keeps the private key exportable downstream.
+    X509CertificateLoader.LoadPkcs12(exported, "efefefefef", X509KeyStorageFlags.Exportable)
 
 let starDotDevDotSubjectDotAppTlsCertificate =
     match Assembly.GetExecutingAssembly().GetManifestResourceStream("LibLifeCycleCore.Security.STAR_dev_subject_app.pfx") with
@@ -51,7 +53,7 @@ let starDotDevDotSubjectDotAppTlsCertificate =
         use stream = stream
         use ms = new MemoryStream()
         stream.CopyTo(ms)
-        new X509Certificate2(ms.ToArray(), "efefefefef")
+        X509CertificateLoader.LoadPkcs12(ms.ToArray(), "efefefefef")
 
 let filterAndSortCertificates (now: DateTimeOffset) (certificates: seq<X509Certificate2>) : list<X509Certificate2> =
     let nowLocalDateTime = now.ToLocalTime().DateTime
