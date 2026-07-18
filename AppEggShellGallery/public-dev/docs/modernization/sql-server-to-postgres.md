@@ -8,7 +8,7 @@ modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven exe
 seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
-**Workstream status: S15 spike FAILED (1/10 round-trip — custom serializer can't be deleted); S15b spike PASSED (7/7 — production codegen-host pattern proven). Next: S15b-production-port (the actual LibLifeCycleCore rewrite, NOT a spike) → S1 (PG18 baseline).**
+**Workstream status: S15 spike FAILED (1/10 round-trip -- custom serializer can't be deleted); S15b spike PASSED (7/7 -- production codegen-host pattern proven); S15b-production-port COMPILE GREEN (all 5 affected projects 0 err 0 warn) BUT runtime HARD BLOCKER (Orleans 10 source generator misclassifies F# Task-CE/object-expression closures as InterfaceImplementations, emitting broken C#; both `GenerateCodeForDeclaringAssembly` attributes commented out -> no source-gen invokers -> runtime grain dispatch will fail). Next: S15c spike (find workaround for the F# closure misclassification) -> S1 (PG18 baseline).**
 
 Version numbers and upstream script paths carry source URLs in [References](#references). All versions below
 were confirmed against nuget.org / upstream release pages on **2026-07-15**.
@@ -492,8 +492,8 @@ maps to the original phase arc (P0–P6) for continuity. **Every refactor commit
 state is committed (lesson from an earlier Postgres spike branch: duplicate members left in
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
-Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
-S0+S10+S15+S15b+S15b-production-port+S1 first (~6–7 days) prove the foundation before the big storage work. S15 ran right after the package
+Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
+S0+S10+S15+S15b+S15b-production-port+S15c+S1 first (~7–9 days) prove the foundation before the big storage work. S15 ran right after the package
 bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S15b confirmed the
 production codegen-host pattern; **S15b-production-port** is the actual LibLifeCycleCore rewrite (not a spike — applies the
 S15b pattern to the real codebase, ~1–2d). **S1 is gated by S15b-production-port** — LibLifeCycleCore must compile under
@@ -604,6 +604,45 @@ covers dev/CI.
   (`DevelopmentHost.fs` or equivalent). The 50 distinct S10 compiler errors all resolve through this
   work item. GATES S1 (the throwaway PG18 console can't boot a real Orleans 10 silo until
   `LibLifeCycleCore` compiles).
+
+  **STATUS (2026-07-19, session 42): COMPILE GREEN (0 errors 0 warnings on all 5 affected projects:
+  LibLifeCycleCore + LibLifeCycleHost + LibLifeCycleTest + LibLifeCycleHostBuild + new C#
+  LibLifeCycleCodeGenHost).** The serializer rewrite, client-builder ports, grain lifecycle port
+  (`IGrainActivationContext` → `IGrainContext`, `OnActivateAsync`/`OnDeactivateAsync` signatures,
+  `ReminderEntry.GrainId`, `IInvokable.GetArgument`), `UseDashboard` deferral (TODO S11),
+  `ApplicationPartAttribute` + `InternalsVisibleTo` wiring, and the new C# codegen-host project are
+  all in place. BUT: the Orleans 10 source generator emits BROKEN C# when scanning production-shape
+  F# assemblies (misclassifies F# Task-CE/object-expression closures as `InterfaceImplementations`,
+  emitting invalid C# referencing F# mangled names like `GrainConnector.RunAndWait@117-1<...>`).
+  Both `GenerateCodeForDeclaringAssembly` attributes are COMMENTED OUT -> no source-gen invokers ->
+  runtime grain dispatch will fail. The `ConnectorGrain.fs` `interface IConnectorGrain<...> with`
+  block is also commented out (F# 10 FS0909 on constraint-bearing generic interfaces). Both deferred
+  to **S15c spike** (find workaround). Engineering log session 42. S1 cannot proceed until S15c
+  unblocks runtime dispatch.
+
+- **S15c · Orleans 10 source-generator F# closure misclassification (NEW SPIKE).** *(~1-2d, gates S1.)*
+  The S15b-production-port surfaced a genuine Orleans 10 source-generator bug: scanning
+  production-shape F# assemblies via `GenerateCodeForDeclaringAssembly` makes the generator emit
+  broken C# referencing F# compiler-generated closure names (e.g.
+  `global::<StartupCode$LibLifeCycleCore>.$GrainConnector.RunAndWait@117-1<Subject,LifeEvent,SubjectId>`
+  and `global::LibLifeCycleHost.Web.RealTime.grainObserver@103<Subject,SubjectId>`). The `@` and `$`
+  characters are not valid C# identifiers -> CS1525/CS0103/CS1056 in the generated `.g.cs`. Root cause
+  (verified in `~/Code/orleans` v10.2.1): `CodeGenerator.cs:248-259` marks any public/internal
+  non-abstract class implementing an interface with `[GenerateMethodSerializers]` as an
+  `InvokableInterfaceImplementation`. F# closures generated by `backgroundTask { }` CEs and F#
+  object expressions (`{ new ISubjectGrainObserver<...> with ... }`) DO implement grain-observer
+  interfaces via F#'s compiler-emitted closure classes, so they get marked -- but the C# emission
+  can't handle the F# mangled names. The S15b spike didn't surface this (trivial grain impls).
+  **Worklist:** (a) file upstream orleans issue with `Web/RealTime.fs:103` + `GrainConnector.fs:117`
+  closures as repro; (b) workaround options: rewrite the F# closures as explicit classes-based grain
+  impls (massive refactor, behavior-risky), move grain observer interfaces to a separate F# assembly
+  with no closures, or wait for upstream fix; (c) also revisit `ConnectorGrain.fs` FS0909 (F# 10
+  constraint-bearing generic interface) -- workaround likely involves dropping the
+  `when 'Request :> Request` constraint from `ConnectorAdapter`/`Connector`/`ConnectorInterceptor`
+  in `LibLifeCycle/src/Services.fs` (cascades through LibLifeCycle's API surface); (d) once unblocked,
+  re-enable both `GenerateCodeForDeclaringAssembly` attributes in
+  `LibLifeCycleHost/LibLifeCycleCodeGenHost/CodegenAssemblyInfo.cs`, uncomment the
+  `ConnectorGrain.fs` interface block, and verify runtime grain round-trip via S1.
 
 ### Tier 2 — core storage (the hard part)
 

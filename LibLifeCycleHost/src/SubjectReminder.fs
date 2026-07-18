@@ -60,9 +60,9 @@ let liveSubjectReminderMinDelay = TimeSpan.FromSeconds 1.0
 // This will apply only for volatile subjects, persisted live reminder delay is cut off at liveReminderScheduleAheadLimit
 let liveSubjectReminderMaxDelay = TimeSpan.FromDays 21.0
 
-let newReminderEntry (reminderName: string) (grainRef: GrainReference) (startAt: DateTimeOffset) =
+let newReminderEntry (reminderName: string) (grainId: GrainId) (startAt: DateTimeOffset) =
     ReminderEntry(
-        GrainRef     = grainRef,
+        GrainId      = grainId,
         StartAt      = startAt.UtcDateTime,
         Period       = defaultReminderPeriod,
         ReminderName = reminderName,
@@ -71,7 +71,7 @@ let newReminderEntry (reminderName: string) (grainRef: GrainReference) (startAt:
 
 let getSubjectGrainReminderToUnregister (grain: Grain) : IGrainReminder =
     let arbitraryStartAt = DateTimeOffset.UnixEpoch // it's not passed to IGrainReminder anyway, can be anything
-    let reminderEntry = newReminderEntry SubjectReminderName grain.GrainReference arbitraryStartAt
+    let reminderEntry = newReminderEntry SubjectReminderName grain.GrainReference.GrainId arbitraryStartAt
     // This call to an internal orleans methods will allow us to avoid one DB lookup, each time we clear the timer
     // Of course, this makes us more brittle in case Orleans changes internals, that's manageable.
     // Worst case, we can always do grain.GetReminder from within the grain

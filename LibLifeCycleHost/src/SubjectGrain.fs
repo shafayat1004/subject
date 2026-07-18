@@ -2,6 +2,7 @@
 // Grains can't be in Modules, due to a bug in the way Orleans builds up Grain identity
 
 open System
+open System.Threading
 open System.Threading.Tasks
 open LibLifeCycle.LifeCycles.RequestRateCounter
 open LibLifeCycleHost
@@ -179,7 +180,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             grainScopedServiceProviderUnsafe: IServiceProvider,
             hostEcosystemGrainFactory: IGrainFactory,
             adapters:                  HostedOrReferencedLifeCycleAdapterRegistry,
-            ctx:                       IGrainActivationContext,
+            ctx:                       IGrainContext,
             valueSummarizers:          ValueSummarizers,
             clock:                     Service<Clock>,
             unscopedLogger:            Microsoft.Extensions.Logging.ILogger<'Subject>,
@@ -195,7 +196,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
     // Until then we'll pass this along via a mutable child-scoped property
     let prepareChildScope () : IServiceScope =
         let scope = grainScopedServiceProvider.CreateScope()
-        scope.ServiceProvider.GetRequiredService<ContainerForIGrainActivationContext>().Value <- Some ctx
+        scope.ServiceProvider.GetRequiredService<ContainerForIGrainContext>().Value <- Some ctx
         scope
 
     let shouldSendConstructorTelemetry (ctor: 'Constructor) =
@@ -214,7 +215,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
     let maxDedupCacheSize = lifeCycleAdapter.LifeCycle.Storage.MaxDedupCacheSize
 
     let (grainPartition, grainPKey) =
-        let (grainPartition, pKey) = ctx.GrainIdentity.GetPrimaryKey()
+        let (grainPartition, pKey) = ctx.GrainReference.GetPrimaryKey()
         ((grainPartition |> GrainPartition), pKey)
 
     let logger = newGrainScopedLogger valueSummarizers unscopedLogger lifeCycleAdapter.LifeCycle.Name grainPartition grainPKey
@@ -1172,13 +1173,13 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 ()
         }
 
-    member private _.CallBaseOnActivateAsync() =
-        base.OnActivateAsync()
+    member private _.CallBaseOnActivateAsync(cancellationToken: CancellationToken) =
+        base.OnActivateAsync(cancellationToken)
 
-    member private _.CallBaseOnDeactivateAsync() =
-        base.OnDeactivateAsync()
+    member private _.CallBaseOnDeactivateAsync(reason: DeactivationReason) (cancellationToken: CancellationToken) =
+        base.OnDeactivateAsync(reason, cancellationToken)
 
-    override this.OnActivateAsync() =
+    override this.OnActivateAsync(cancellationToken: CancellationToken) =
         orleansTaskScheduler <- TaskScheduler.Current
 
         task {
@@ -1225,10 +1226,10 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 | None ->
                     updatePrimaryStoreWithoutNotify None
 
-            do! this.CallBaseOnActivateAsync()
+            do! this.CallBaseOnActivateAsync(cancellationToken)
         } |> Task.Ignore
 
-    override _.OnDeactivateAsync() =
+    override _.OnDeactivateAsync(reason: DeactivationReason, cancellationToken: CancellationToken) =
         task {
             if observerManager.Count <> 0 then
                 logger.Error "Grain deactivating despite having %a observers" (logger.P "observerCount") observerManager.Count
@@ -1240,7 +1241,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
             | _ ->
                 logger.Warn "Grain is deactivating, but side-effect processor didn't shut down after waiting for 5 seconds"
 
-            do! this.CallBaseOnDeactivateAsync()
+            do! this.CallBaseOnDeactivateAsync reason cancellationToken
 
             isGrainDeactivated <- true
         } |> Task.Ignore

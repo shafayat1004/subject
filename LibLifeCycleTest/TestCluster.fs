@@ -426,7 +426,6 @@ type private TestSiloConfigurator() =
             siloBuilder
                 .ConfigureSiloForEcosystem(
                     ecosystemUnderTest.Value,
-                    typeof<LibLifeCycleHostBuild.Build>.Assembly,
                         match maybeTestDataSeeding with
                         | None   -> EcosystemSiloSetup.Test
                         | Some _ -> EcosystemSiloSetup.TestDataSeeding)
@@ -438,7 +437,6 @@ type private TestSiloClientConfigurator() =
             clientBuilder
                 .ConfigureSiloClientForEcosystem(
                     ecosystem,
-                    typeof<LibLifeCycleHostBuild.Build>.Assembly,
                         match maybeTestDataSeeding with
                         | None   -> EcosystemSiloClientSetup.TestCluster
                         | Some _ -> EcosystemSiloClientSetup.TestClusterDataSeeding)

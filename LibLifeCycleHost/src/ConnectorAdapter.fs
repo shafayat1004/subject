@@ -15,7 +15,7 @@ type IConnectorAdapter =
 // Modules can't be typeof<>'ed. But we can get their type via an actual type contained within in
 type private AnchorTypeForModule = private AnchorTypeForModule of unit
 
-let private sendTypedRequest<'Request, 'Env, 'Response>
+let private sendTypedRequest<'Request, 'Env, 'Response when 'Request :> Request and 'Env :> Env>
         (hostEcosystemGrainFactory: IGrainFactory)
         (buildRequest: obj (* ResponseChannel<'Response> -> 'Request  *))
         (buildAction: obj (* 'Request *) -> LifeAction)
@@ -26,12 +26,9 @@ let private sendTypedRequest<'Request, 'Env, 'Response>
     let typedAction       = fun (resp: 'Response) -> resp |> box |> buildAction
     let connectorGrain    = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
     // Connector grains by their very nature are interacted with a fire-and-forget mechanism, so we don't need to wait for a response
-    connectorGrain.InvokeOneWay(
-        fun oneWayGrain ->
-            oneWayGrain.SendRequest typedBuildRequest typedAction requestor sideEffectId
-    )
+    connectorGrain.SendRequest typedBuildRequest typedAction requestor sideEffectId |> ignore
 
-let private sendTypedRequestMultiResponse<'Request, 'Env, 'Response>
+let private sendTypedRequestMultiResponse<'Request, 'Env, 'Response when 'Request :> Request and 'Env :> Env>
         (hostEcosystemGrainFactory: IGrainFactory)
         (buildRequest: obj (* MultiResponseChannel<'Response> -> 'Request  *))
         (buildAction: obj (* 'Request *) -> LifeAction)
@@ -42,10 +39,7 @@ let private sendTypedRequestMultiResponse<'Request, 'Env, 'Response>
     let typedAction       = fun (resp: 'Response) -> resp |> box |> buildAction
     let connectorGrain    = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
     // Connector grains by their very nature are interacted with a fire-and-forget mechanism, so we don't need to wait for a response
-    connectorGrain.InvokeOneWay(
-        fun oneWayGrain ->
-            oneWayGrain.SendRequestMultiResponse typedBuildRequest typedAction requestor sideEffectId
-    )
+    connectorGrain.SendRequestMultiResponse typedBuildRequest typedAction requestor sideEffectId |> ignore
 
 type ConnectorAdapter<'Request, 'Env when 'Request :> Request and 'Env :> Env> = {
     Connector: Connector<'Request, 'Env>

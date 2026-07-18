@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="10.0.103" />
+    <PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="10.2.1" />
     <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="10.2.1" />
     <PackageReference Include="Microsoft.Orleans.Connections.Security" Version="10.2.1" />
@@ -30,6 +30,7 @@
 
   <ItemGroup>
 <!--    <EmbeddedResource Include="Security\STAR_dev_subject_app.pfx" />-->
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Security\Certificates.fs" />
     <Compile Include="Anchor.fs" />
     <Compile Include="StjCodecs.Extensions.fs" />

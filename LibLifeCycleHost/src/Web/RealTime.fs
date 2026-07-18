@@ -110,7 +110,7 @@ let createObservableForSubject<'Subject, 'LifeAction, 'OpError, 'Constructor, 'L
                                                 subjectUpdate
                                                 |> observer.OnNext
                                         }
-                                    let! observerRef = grainFactory.CreateObjectReference<ISubjectGrainObserver<'Subject, 'SubjectId>> grainObserver
+                                    let observerRef = grainFactory.CreateObjectReference<ISubjectGrainObserver<'Subject, 'SubjectId>> grainObserver
 
                                     // We need to sync with the backing grain for two reasons:
                                     //

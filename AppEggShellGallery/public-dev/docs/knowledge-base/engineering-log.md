@@ -4,6 +4,170 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 42 -- S15b-production-port: Orleans 10 backend port; COMPILE GREEN, runtime HARD BLOCKER)
+
+Production work item per `modernization/sql-server-to-postgres.md` S15b-production-port. Apply the
+S15b spike pattern to the real `LibLifeCycleCore` + `LibLifeCycleHost`. Goal: all four backend
+projects compile green under Orleans 10.2.1 + FSharp.Core 10.0.103 + .NET 10.
+
+RESULT: **All 5 affected projects build 0 errors 0 warnings** (Core + Host + Test + HostBuild +
+new C# CodegenHost). But the Orleans 10 source generator emits BROKEN C# when scanning
+production-shape F# assemblies, so both `GenerateCodeForDeclaringAssembly` attributes are
+commented out -- runtime grain dispatch will fail. This is a HARD BLOCKER deferred to a new
+spike S15c.
+
+WHAT GOT DONE (compile-green):
+- Serializer.fs: replaced `IExternalSerializer` (Orleans 3.x) with non-generic `EggShellSubjectGrainsCodec`
+  implementing `IGeneralizedCodec` + `IGeneralizedCopier` + `IFieldCodec` + `IDeepCopier`, registered
+  via DI singleton. Closure-built at host startup from `lifeCycleDefs`/`viewDefs` via the existing
+  `LifeCycleDef.Invoke`/`IViewDef.Invoke` reflection pattern. Wire format unchanged (1-byte version +
+  1-byte TypeId + gzip+Fleece JSON body). 83-entry TypeId table preserved verbatim. Sanity check
+  (assert all declared grain param/return types are covered) ported into the closure-building path.
+- Serialization.fs: replaced `registerSerializers` with DI registration of the codec singleton +
+  `TypeManifestOptions.AllowAllTypes = true`. Dropped `configureApplicationParts` + `getOrleansTypeString`
+  + `getTypeAndAllRecursivelyReferencedGenericTypes` + `getCaseInstanceTypesForUnionTypes` (restored as
+  public helper -- Host's ValueSummarizer still calls it). Dropped `IApplicationPartManager` /
+  `SerializerFeature` / `SerializerKnownTypeMetadata` / `RuntimeTypeNameFormatter` (all gone in
+  Orleans 10).
+- GrainConnectorProvider.fs: rewrote standalone client from `ClientBuilder().Build() + Connect()` to
+  `HostBuilder().UseOrleansClient(...).Build()` + `host.StartAsync()` + `host.Services.GetRequiredService<IClusterClient>()`.
+  `IClusterClient.Connect()` gone -- retry moved to host lifecycle (try/catch `StartAsync`, dispose +
+  rebuild). AdoNet gateway-suppression wrapper + dev-TLS cert gating + cluster-options wiring kept.
+- SiloBuilder.fs: dropped `ConfigureApplicationParts` (gone). `UseDashboard` commented out with
+  `// TODO S11` (Orleans 10 dashboard moved to `Microsoft.Orleans.Dashboard` 10.2.1 + ASP.NET Core
+  `MapOrleansDashboard`; `DashboardOptions.Port` gone -- S11 wires it). `AddApplicationInsightsTelemetryConsumer`
+  commented out with TODO S11 (Orleans 10 dropped it; S11 wires native `IMeterFactory` + OTel).
+  Dropped `buildAssembly` params from `configureSiloEcosystemDefSerializers` /
+  `configureSiloClientSerializers` + the public `ConfigureSiloForEcosystem` /
+  `ConfigureSiloClientForEcosystem` extension methods.
+- BiosphereGrainFactory.fs: rewrote per-ecosystem remote client creation from `ClientBuilder()` to
+  `HostBuilder().UseOrleansClient(...).Build()` + `host.StartAsync()`. Added parallel
+  `remoteHostsByEcosystemName` map for host disposal (host owns the `IClusterClient`).
+- Startup.fs (K8S Api): rewrote `ClientBuilder().Build() + client.Connect()` to
+  `HostBuilder().UseOrleansClient(...).Build()`. Added `ClusterClientHostHolder` singleton to expose
+  the `IHost` to `InitializeClusterClientService` for `StartAsync`/`StopAsync` via `IHostedService`
+  lifecycle. `AddGatewayCountChangedHandler` / `AddClusterConnectionLostHandler` still exist in
+  Orleans 10 (kept). Retry loop preserved as `tryStart()` recursive task.
+- SubjectHost.fs / DevelopmentHost.fs: dropped `buildAssembly` args from `BiosphereGrainProvider` +
+  `ConfigureSiloForEcosystem` calls.
+- TestCluster.fs: dropped `buildAssembly` args from `ConfigureSiloForEcosystem` /
+  `ConfigureSiloClientForEcosystem`. `IClientBuilderConfigurator` still valid in Orleans 10.
+- GrainConnector.fs:126: split `match!` into `let!` + `match` (FSharp.Core 10 / .NET 10 Bind overload
+  cascade fix). `CreateObjectReference<'T>` now returns `'T` directly (not `Task<'T>`) -- changed
+  `let!` to `let`.
+- Web/RealTime.fs:124: same `CreateObjectReference` `let!` -> `let` fix.
+- SubjectGrain / ViewGrain / SubjectIdGenerationGrain / DynamicSubscriptionDispatcherGrain /
+  ConnectorGrain: `IGrainActivationContext` -> `IGrainContext` (namespace `Orleans.Runtime`).
+  `ctx.GrainIdentity.GetPrimaryKey()` -> `ctx.GrainReference.GetPrimaryKey()` (extension on
+  `IAddressable`, file `GrainExtensions.cs:214`).
+- SubjectGrain: `OnActivateAsync()` -> `OnActivateAsync(CancellationToken)`, `OnDeactivateAsync()` ->
+  `OnDeactivateAsync(DeactivationReason, CancellationToken)`. Added `open System.Threading`.
+- SubjectReminderTable.fs: `IGrainReferenceConverter` ctor param dropped (gone). `Map<GrainType, _>` ->
+  `Dictionary<GrainType, _>` (GrainType in Orleans 10 doesn't support `comparison` constraint).
+  `ReminderEntry.GrainRef` -> `ReminderEntry.GrainId` (GrainId). Convert GrainReference -> GrainId via
+  `grainReference.GrainId`. Fixed `grainRef` -> `grainId` typo.
+- TraceContextGrainCallFilter.fs: `IIncomingGrainCallContext.Arguments` gone. Replaced with
+  `Array.init context.Request.GetArgumentCount() context.Request.GetArgument` (`IInvokable` in
+  `Orleans.Serialization.Invocation`).
+- HostExtensions.fs: `ILogger<_>.Info(...)` -> `ILogger<_>.LogInformation(...)` (the `Info` extension
+  was on `IFsLogger`, not `ILogger`; the old net7.0 obj DLL was older than the source so these calls
+  likely never compiled successfully). `ContainerForIGrainActivationContext` -> `ContainerForIGrainContext`.
+  `IGrainActivationContext` fallback -> `IGrainContextAccessor.GrainContext`.
+- New C# project `LibLifeCycleHost/LibLifeCycleCodeGenHost/` (sibling to `src/`, separate obj/):
+  `.csproj` references `LibLifeCycleCore` + `LibLifeCycleHost`, packages `Microsoft.Orleans.Sdk` +
+  `Microsoft.Orleans.Core.Abstractions` + `FSharp.Core VersionOverride=10.0.103`. `CodegenAssemblyInfo.cs`
+  carries two `GenerateCodeForDeclaringAssembly` attributes (CURRENTLY COMMENTED OUT -- see blocker
+  below).
+- New `LibLifeCycleCore/src/AssemblyInfo.fs`: `[<assembly: InternalsVisibleTo("LibLifeCycleCodeGenHost")>]`
+  (for nullary-case CS0122 workaround per S15b finding #1 / dotnet/orleans #8717).
+- New `LibLifeCycleHost/src/AssemblyInfo.fs`: `[<assembly: Orleans.ApplicationPartAttribute("LibLifeCycleCodeGenHost")>]`
+  + `[<assembly: Orleans.ApplicationPartAttribute("LibLifeCycleHost")>]` (per S15b finding #6 /
+  dotnet/orleans #8235).
+- `LibLifeCycleTypes/src/AssemblyInfo.fs`: added `[<assembly: InternalsVisibleTo("LibLifeCycleCodeGenHost")>]`.
+- All `LibLifeCycle*` fsproj/csproj: `<PackageReference Update="FSharp.Core" Version="10.0.103" />` ->
+  `VersionOverride="10.0.103"` (Directory.Build.targets translates VersionOverride).
+- `LibLifeCycleHostBuild/Build.cs`: `KnownAssembly` attributes + `using Orleans.CodeGeneration`
+  commented out (Orleans 10 dropped them; codegen now flows through `GenerateCodeForDeclaringAssembly`
+  in CodegenHost -- when re-enabled).
+
+HARD BLOCKER (deferred to S15c spike):
+- Orleans 10 source generator misclassifies F# compiler-generated closures as `InterfaceImplementations`,
+  emitting broken C# referencing F# mangled names like
+  `global::<StartupCode$LibLifeCycleCore>.$GrainConnector.RunAndWait@117-1<Subject,LifeEvent,SubjectId>`
+  and `global::LibLifeCycleHost.Web.RealTime.grainObserver@103<Subject,SubjectId>`. The `@` and `$`
+  characters are not valid C# identifiers, so the generated `.g.cs` has CS1525/CS0103/CS1056 errors.
+- Root cause (verified in `~/Code/orleans` v10.2.1 source): `CodeGenerator.cs:248-259` marks any
+  public/internal non-abstract class/struct implementing an interface with `[GenerateMethodSerializers]`
+  as an `InvokableInterfaceImplementation`. F# closures generated by `backgroundTask { }` CEs and F#
+  object expressions (`{ new ISubjectGrainObserver<...> with ... }`) DO implement grain-observer
+  interfaces (via F#'s compiler-emitted closure classes), so they get marked. The C# emission can't
+  handle the F# mangled names.
+- The S15b spike didn't surface this because its grain impls were trivial (no Task CEs, no object
+  expressions near grain interfaces).
+- WORKAROUND applied for now: both `GenerateCodeForDeclaringAssembly` attributes in
+  `CodegenAssemblyInfo.cs` commented out. NO source-gen invokers exist -> runtime grain dispatch
+  will fail. S1 (PG18 baseline) will catch it immediately. The custom `EggShellSubjectGrainsCodec`
+  handles serialization; only the invoker (method-dispatch) side is missing.
+- S15c worklist: (a) file upstream orleans issue with `Web/RealTime.fs:103` + `GrainConnector.fs:117`
+  closures as repro; (b) workaround options: rewrite the F# closures as explicit classes-based grain
+  impls (massive refactor, behavior-risky), move grain observer interfaces to a separate F# assembly
+  with no closures, or wait for upstream fix; (c) once unblocked, re-enable both attributes + remove
+  the `// TODO S15c` blocks; (d) verify runtime grain round-trip via S1.
+
+DEFERRED (not blocking compile):
+- `ConnectorGrain.fs` `interface IConnectorGrain<'Request, 'Env> with` block COMMENTED OUT. F# 10
+  FS0909 ("All implemented interfaces should be declared on the initial declaration of the type")
+  fires on constraint-bearing generic interfaces implemented via the late `interface ... with` block.
+  The constraint `when 'Request :> Request and 'Env :> Env` is required by F# 10 on both the interface
+  and the implementing type (the original net7.0/F# 9 only had it on the type). F# 10 requires the
+  interface declared at the type-level, but F# rejects split interface declarations (FS0888) and
+  rejects `let` bindings after `interface` (FS0960). S15c will revisit (workaround: remove the
+  constraint from `ConnectorAdapter` + `Connector` + `ConnectorInterceptor` in `LibLifeCycle/src/Services.fs`
+  -- cascades through LibLifeCycle's API surface -- OR restructure `ConnectorGrain` to declare the
+  interface at the type-level via a different pattern). Runtime: connector grain interface NOT wired.
+
+VERIFIED Orleans 10 API facts (against `~/Code/orleans` v10.2.1 source):
+- `ClientBuilder()` parameterless ctor GONE. Only `ClientBuilder(IServiceCollection, IConfiguration)`.
+  Namespace `Orleans.Hosting`. No `.Build()` on `IClientBuilder` returning `IClusterClient`.
+- Client construction: `Microsoft.Extensions.Hosting.HostBuilder().UseOrleansClient(...).Build()` +
+  `host.Services.GetRequiredService<IClusterClient>()`. `UseOrleansClient` extension in
+  `Microsoft.Extensions.Hosting` namespace (file `src/Orleans.Core/Hosting/OrleansClientGenericHostExtensions.cs`).
+  `IClusterClient : IHostedService` (`src/Orleans.Core/Core/ClusterClient.cs`) -- connection via
+  `host.StartAsync()`, no public `Connect()`.
+- `ConfigureApplicationParts` GONE from silo + client builders. Only assembly-level
+  `[<assembly: Orleans.ApplicationPartAttribute(...)>]` (file
+  `src/Orleans.Serialization.Abstractions/Annotations.cs`).
+- `UseDashboard` GONE. Orleans 10 dashboard = separate `Microsoft.Orleans.Dashboard` 10.2.1 package,
+  extension `AddDashboard` (NOT `UseDashboard`), `DashboardOptions` has NO `Port` (only `HideTrace`,
+  `CounterUpdateIntervalMs`, `HistoryLength`).
+- `IClientBuilderConfigurator` + `ISiloConfigurator` still exist in `Microsoft.Orleans.TestingHost`.
+- `IGrainActivationContext` GONE. Replacement: `IGrainContext` (namespace `Orleans.Runtime`, file
+  `src/Orleans.Core.Abstractions/Core/IGrainContext.cs`). `IGrainContext.GrainReference : GrainReference`
+  (which is `IAddressable`) -- use `ctx.GrainReference.GetPrimaryKey()` (extension on `IAddressable`,
+  file `src/Orleans.Core.Abstractions/Core/GrainExtensions.cs:214`).
+- `Grain.OnActivateAsync(CancellationToken)` + `Grain.OnDeactivateAsync(DeactivationReason, CancellationToken)`
+  (file `src/Orleans.Core.Abstractions/Core/Grain.cs:157,164`).
+- `IGrainContextAccessor` (file `src/Orleans.Runtime/Activation/GrainContextAccessor.cs`) provides
+  `.GrainContext` via DI.
+- `ReminderEntry.GrainRef` -> `ReminderEntry.GrainId` (GrainId, file
+  `src/Orleans.Reminders/SystemTargetInterfaces/IReminderTable.cs:165`).
+- `IGrainReferenceConverter` GONE. Use `grainReference.GrainId` property.
+- `GrainType` in Orleans 10 does NOT implement `IComparable` -- can't use in F# `Map<GrainType, _>`;
+  use `Dictionary<GrainType, _>`.
+- `IInvokable` (file `src/Orleans.Serialization/Invocation/IInvokable.cs`) has `GetArgumentCount()` +
+  `GetArgument(int)` (replaces `IIncomingGrainCallContext.Arguments`).
+- `IGrainFactory.CreateObjectReference<'T]` in Orleans 10 returns `'T` directly (NOT `Task<'T>`).
+- `IHost` does NOT implement `IAsyncDisposable` in net10 (only `IDisposable`); use `host.Dispose()`
+  + `Task.CompletedTask` for async-dispose pattern.
+
+Catalog: `modernization/spikes/s15b-production-codegen.md` (S15b spike, the template). A new
+S15c catalog doc will be needed once the spike runs.
+
+NEXT: S15c spike (find workaround for Orleans 10 source-generator F# closure misclassification).
+Then S1 (Orleans-on-PG18 baseline throwaway) once S15c unblocks runtime dispatch.
+
+---
+
 ## 2026-07-18 (session 41 -- S15b production codegen-host pattern spike)
 
 Spike per `modernization/sql-server-to-postgres.md` S15b. S15 found that

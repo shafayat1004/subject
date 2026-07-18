@@ -12,7 +12,7 @@ type DynamicSubscriptionDispatcherGrain
     (
         lifeCycleAdapters:         HostedLifeCycleAdapterCollection,
         hostEcosystemGrainFactory: IGrainFactory,
-        ctx:                       IGrainActivationContext
+        _ctx:                      IGrainContext
     ) =
 
     inherit Grain()
@@ -24,7 +24,7 @@ type DynamicSubscriptionDispatcherGrain
             member _.Close () = Task.CompletedTask }
 
     let grainPartition =
-        let (grainPartition, _pKey) = ctx.GrainIdentity.GetPrimaryKey()
+        let (grainPartition, _pKey) = _ctx.GrainReference.GetPrimaryKey()
         (grainPartition |> GrainPartition)
 
     interface IDynamicSubscriptionDispatcherGrain with

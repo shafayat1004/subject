@@ -122,8 +122,9 @@ type GrainConnector (grainFactory: IGrainFactory, grainPartition: GrainPartition
             use cancellationTokenSource = new CancellationTokenSource(timeout)
 
             use _disposable = cancellationTokenSource.Token.Register(fun _ -> taskCompletionSource.TrySetCanceled() |> ignore)
-            let! objRef = grainFactory.CreateObjectReference<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>> awaiter
-            match! runAndAwaitImpl grain objRef with
+            let objRef = grainFactory.CreateObjectReference<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>> awaiter
+            let! result = runAndAwaitImpl grain objRef
+            match result with
             | Ok versionedSubj ->
                 return! backgroundTask {
                     try

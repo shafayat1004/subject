@@ -7,6 +7,7 @@ open Orleans
 open System
 open System.Threading.Tasks
 open Orleans.Runtime
+open Orleans.Serialization.Invocation
 open LibLifeCycleCore.OrleansEx.TraceContextGrainCallFilter
 
 let private hostAssembly = typeof<LibLifeCycleHost.Config.AnchorTypeForProject>.Assembly
@@ -64,7 +65,11 @@ type TraceContextIncomingGrainCallFilter
                     context.Invoke()
                 else
                     task {
-                        match trackedGrain.GetTelemetryData context.InterfaceMethod context.Arguments with
+                        let args: obj[] =
+                            let count = context.Request.GetArgumentCount()
+                            if count = 0 then [||] else Array.init count context.Request.GetArgument
+
+                        match trackedGrain.GetTelemetryData context.InterfaceMethod args with
                         | Some telemetryData ->
                             let opName =
                                 if not (String.IsNullOrEmpty telemetryData.Name) then
@@ -88,7 +93,7 @@ type TraceContextIncomingGrainCallFilter
 
                                     // TODO: why don't we just track grain telemetry explicitly in methods? It'll be simpler and more reliable albeit verbose (or is it), and we'll lose auto-coverage of new members
 
-                                    let arguments = context.Arguments |> fun args -> if args = null then [||] else args
+                                    let arguments = args |> fun args -> if args = null then [||] else args
                                     yield!
                                         arguments
                                         |> Seq.filter (fun arg -> arg = null || arg.GetType() |> argTypesToSkip.ContainsKey |> not)

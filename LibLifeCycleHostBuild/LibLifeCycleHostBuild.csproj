@@ -8,11 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LibLifeCycleHost\LibLifeCycleCodeGenHost\LibLifeCycleCodeGenHost.csproj" />
     <ProjectReference Include="..\LibLifeCycleHost\src\LibLifeCycleHost.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="10.0.103" />
+    <PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="10.2.1" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="10.2.1" />

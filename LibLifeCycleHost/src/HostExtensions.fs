@@ -665,7 +665,7 @@ type SqlServerSetupStartupTask(
 
     interface IStartupTask with
         member _.Execute(_cancellationToken: CancellationToken): Task =
-            logger.Info("SqlServerSetupStartupTask Begin")
+            logger.LogInformation("SqlServerSetupStartupTask Begin")
 
             // FIXME -- this probably needs to be pulled out of the orleans lifecycle, as it looks
             // like all startup tasks are initiated in parallel (however initiatied one after another)
@@ -675,7 +675,7 @@ type SqlServerSetupStartupTask(
             // change in the future.
             try
                 SqlServerSetup.doSetup sqlServerConnections lifeCycleAdapterCollection timeSeriesAdapterCollection
-                logger.Info("SqlServerSetupStartupTask End")
+                logger.LogInformation("SqlServerSetupStartupTask End")
                 Task.CompletedTask
             with
             | ex ->
@@ -689,7 +689,7 @@ type LifeCycleHostStartupTask(serviceProvider: IServiceProvider, lifeCycleAdapte
     interface IStartupTask with
 
         member _.Execute(_cancellationToken: CancellationToken): Task =
-            logger.Info("LifeCycleHostStartupTask Begin")
+            logger.LogInformation("LifeCycleHostStartupTask Begin")
 
             task {
                 try
@@ -702,7 +702,7 @@ type LifeCycleHostStartupTask(serviceProvider: IServiceProvider, lifeCycleAdapte
                     let startupLifeCycleAdapter = lifeCycleAdapterCollection.GetLifeCycleAdapterByLocalName "_Startup" |> Option.get
                     let! res = startupLifeCycleAdapter.RunActionMaybeConstructOnGrain grainProvider defaultGrainPartition None (StartupId startupId) StartupAction.PerformStartup (StartupConstructor.NewForSilo startupId) None
 
-                    logger.Info("LifeCycleHostStartupTask End")
+                    logger.LogInformation("LifeCycleHostStartupTask End")
 
                     match res with
                     | Ok _ ->
@@ -722,7 +722,7 @@ type CustomStorageInitStartupTask(serviceProvider: IServiceProvider, logger: ILo
     interface IStartupTask with
 
         member _.Execute(cancellationToken: CancellationToken): Task =
-            logger.Info("CustomStorageInitStartupTask Begin")
+            logger.LogInformation("CustomStorageInitStartupTask Begin")
 
             backgroundTask {
                 try
@@ -731,7 +731,7 @@ type CustomStorageInitStartupTask(serviceProvider: IServiceProvider, logger: ILo
                         |> Seq.map (fun service -> service.Execute(cancellationToken))
                         |> Task.WhenAll
 
-                    logger.Info("CustomStorageInitStartupTask End")
+                    logger.LogInformation("CustomStorageInitStartupTask End")
                 with
                 | ex ->
                     logger.LogError (ex, "CustomStorageInitStartupTask Exception")
@@ -742,8 +742,8 @@ type CustomStorageInitStartupTask(serviceProvider: IServiceProvider, logger: ILo
 // Temporary hack, for child D.I scopes to be able to get the current IGrainActivationContext.
 // To get rid of this hack, we need to move to a more feature-rich D.I system like Autofac
 // that allows us to override registrations in child scopes
-type ContainerForIGrainActivationContext() =
-    member val Value : Option<IGrainActivationContext> = None with get, set
+type ContainerForIGrainContext() =
+    member val Value : Option<IGrainContext> = None with get, set
 
 [<Extension>]
 type ServiceCollectionExtensions =
@@ -752,17 +752,20 @@ type ServiceCollectionExtensions =
     static member AddEcosystem (services: IServiceCollection, ecosystem: Ecosystem, storageSetup: EcosystemStorageSetup) : IServiceCollection =
         services
             .AddSingleton(ecosystem)
-            .AddScoped<ContainerForIGrainActivationContext>(fun _ -> new ContainerForIGrainActivationContext())
+            .AddScoped<ContainerForIGrainContext>(fun _ -> new ContainerForIGrainContext())
             .AddScoped<GrainPartition>(
                 fun serviceProvider ->
                     // This will only work from within the context of a grain. All external callers need an override
                     // (e.g. in ASP.NET Core, or in testing framework)
 
                         let grainActivationContext =
-                            serviceProvider.GetRequiredService<ContainerForIGrainActivationContext>().Value
-                            |> Option.defaultWith (fun () -> serviceProvider.GetRequiredService<IGrainActivationContext>())
+                            serviceProvider.GetRequiredService<ContainerForIGrainContext>().Value
+                            |> Option.defaultWith (fun () ->
+                                serviceProvider.GetRequiredService<IGrainContextAccessor>().GrainContext
+                                |> Option.ofObj
+                                |> Option.defaultWith (fun () -> failwith "No IGrainContext available"))
 
-                        let (grainPartition, _) = grainActivationContext.GrainIdentity.GetPrimaryKey()
+                        let (grainPartition, _) = grainActivationContext.GrainId.GetGuidKey()
                         GrainPartition grainPartition
                 )
                 // Add System Services

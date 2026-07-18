@@ -1,11 +1,19 @@
-﻿module internal LibLifeCycleCore.OrleansEx.Serializer
+﻿[<AutoOpen>]
+module internal LibLifeCycleCore.OrleansEx.Serializer
 
 // couldn't make LibLifeCycleCore.Orleans namespace because it makes "open Orleans" ambiguous in a few places
 
 open System
+open System.Buffers
+open System.Collections.Generic
 open System.Text
 open System.Threading.Tasks
 open Orleans.Serialization
+open Orleans.Serialization.Buffers
+open Orleans.Serialization.Cloning
+open Orleans.Serialization.Codecs
+open Orleans.Serialization.Serializers
+open Orleans.Serialization.WireProtocol
 open LibLifeCycleCore
 open FSharpPlus
 open CodecLib.StjCodecs
@@ -16,7 +24,7 @@ let inline private summarizerForType (toCodecFriendly: 'T -> 'CodecFriendly) : (
     typeof<'T>, (fun (t: obj) -> t :?> 'T |> toCodecFriendly |> ValueSummaryCodecs.toSummaryValue |> ValueSummaryCodecs.getSummaryString 6)
 
 
-type private UntypedSerializer = {
+type internal UntypedSerializer = {
     To:     obj -> byte[]
     Fro:    byte[] -> obj
     Type:   Type
@@ -84,6 +92,66 @@ with
             Type   = typeof<'T>
             TypeId = typeId
         }
+
+type EggShellSubjectGrainsCodec (untypedSerializersByTypeId: IReadOnlyDictionary<byte, UntypedSerializer>,
+                                  untypedSerializersByType: IReadOnlyDictionary<Type, UntypedSerializer>) =
+
+    static let payloadVersion = 0uy
+
+    let tryGetSerializerForType (itemType: Type) =
+        match IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType with
+        | Some serializer -> Some serializer
+        | None ->
+            if isNull itemType.BaseType then None
+            else IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType
+
+    interface IFieldCodec with
+        member _.WriteField<'W when 'W :> IBufferWriter<byte>>
+            (writer: byref<Writer<'W>>, fieldIdDelta: uint32, expectedType: Type, value: obj) : unit =
+            if isNull value then () else
+                let runtimeType = value.GetType()
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, runtimeType, WireType.LengthPrefixed)
+                match tryGetSerializerForType runtimeType with
+                | None -> failwithf "Invalid type for serialization %s, item: %O" runtimeType.FullName value
+                | Some serializer ->
+                    writer.WriteVarUInt32(1u)
+                    writer.Write(System.ReadOnlySpan<byte>([| payloadVersion |]))
+                    writer.WriteVarUInt32(1u)
+                    writer.Write(System.ReadOnlySpan<byte>([| serializer.TypeId |]))
+                    let payload = serializer.To value
+                    writer.WriteVarUInt32(uint32 payload.Length)
+                    writer.Write(System.ReadOnlySpan<byte>(payload))
+
+        member _.ReadValue<'R>(reader: byref<Reader<'R>>, field: Field) : obj =
+            let _ = field
+            let versionLength = reader.ReadVarUInt32() |> int
+            let versionBytes = Array.zeroCreate<byte> versionLength
+            reader.ReadBytes(System.Span<byte>(versionBytes)) |> ignore
+            let _version = versionBytes.[0]
+            let typeIdLength = reader.ReadVarUInt32() |> int
+            let typeIdBytes = Array.zeroCreate<byte> typeIdLength
+            reader.ReadBytes(System.Span<byte>(typeIdBytes)) |> ignore
+            let serializedTypeId = typeIdBytes.[0]
+            let payloadLength = reader.ReadVarUInt32() |> int
+            let payload = Array.zeroCreate<byte> payloadLength
+            reader.ReadBytes(System.Span<byte>(payload)) |> ignore
+            match untypedSerializersByTypeId.TryGetValue serializedTypeId with
+            | true, serializer -> serializer.Fro payload
+            | false, _         -> failwithf "Invalid type header for deserialization %A" serializedTypeId
+
+    interface IGeneralizedCodec with
+        member _.IsSupportedType(itemType: Type) : bool =
+            untypedSerializersByType.ContainsKey itemType ||
+            (not (isNull itemType.BaseType) && untypedSerializersByType.ContainsKey itemType.BaseType)
+
+    interface IGeneralizedCopier with
+        member _.IsSupportedType(itemType: Type) : bool =
+            untypedSerializersByType.ContainsKey itemType ||
+            (not (isNull itemType.BaseType) && untypedSerializersByType.ContainsKey itemType.BaseType)
+
+    interface IDeepCopier with
+        member _.DeepCopy(source: obj, _context: CopyContext) : obj =
+            source
 
 let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
                                      when 'Subject              :> Subject<'SubjectId>
@@ -467,38 +535,37 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
         | Some duplicateTypeId ->
             failwithf "Duplicate typeId in subject serializers: %d" duplicateTypeId
 
-type private OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
-                                                     when 'Subject              :> Subject<'SubjectId>
-                                                     and  'LifeAction           :> LifeAction
-                                                     and  'OpError              :> OpError
-                                                     and  'Constructor          :> Constructor
-                                                     and  'LifeEvent            :> LifeEvent
-                                                     and  'LifeEvent            : comparison
-                                                     and  'SubjectIndex         :> SubjectIndex<'OpError>
-                                                     and  'SubjectId            :> SubjectId
-                                                     and  'SubjectId            : comparison> () =
+let private buildSubjectCodec<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
+                         when 'Subject              :> Subject<'SubjectId>
+                         and  'LifeAction           :> LifeAction
+                         and  'OpError              :> OpError
+                         and  'Constructor          :> Constructor
+                         and  'LifeEvent            :> LifeEvent
+                         and  'LifeEvent            : comparison
+                         and  'SubjectIndex         :> SubjectIndex<'OpError>
+                         and  'SubjectId            :> SubjectId
+                         and  'SubjectId            : comparison> () : EggShellSubjectGrainsCodec =
+
+    // assert all grains params and return value types are covered by serializers
+
+    // FIXME - awful hack to reflect ISubjectGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
+    let maybeLifeCycleHostAssembly =
+        AppDomain.CurrentDomain.GetAssemblies()
+        |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
+
+    let maybeISubjectGrainTypeDef =
+        maybeLifeCycleHostAssembly
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrain`6")) // 6 is number of params
+
+    let maybeISubjectGrainObserverTypeDef =
+        maybeLifeCycleHostAssembly
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrainObserver`2")) // 2 is number of params
+
+    let maybeIDynamicSubscriptionDispatcherGrainType =
+        maybeLifeCycleHostAssembly
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IDynamicSubscriptionDispatcherGrain"))
 
     let untypedSerializers =
-
-        // assert all grains params and return value types are covered by serializers
-
-        // FIXME - awful hack to reflect ISubjectGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
-        let maybeLifeCycleHostAssembly =
-            AppDomain.CurrentDomain.GetAssemblies()
-            |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
-
-        let maybeISubjectGrainTypeDef =
-            maybeLifeCycleHostAssembly
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrain`6")) // 6 is number of params
-
-        let maybeISubjectGrainObserverTypeDef =
-            maybeLifeCycleHostAssembly
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrainObserver`2")) // 2 is number of params
-
-        let maybeIDynamicSubscriptionDispatcherGrainType =
-            maybeLifeCycleHostAssembly
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IDynamicSubscriptionDispatcherGrain"))
-
         getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>()
         |> fun serializers ->
 
@@ -624,91 +691,17 @@ type private OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeActi
 
                     failwithf "Need to define serializers for following types on subject grain interfaces (if Orleans can serialize this type without the help of a custom serializer, add an exception to the above filter):\n%s" typesMessage
 
-    let untypedSerializersByTypeId = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict
-    let untypedSerializersByType   = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict
+    EggShellSubjectGrainsCodec(
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict,
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict)
 
-    static let singletonInstance: Lazy<OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>> =
-        lazy(OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>())
-
-    static member Singleton = singletonInstance.Force()
-
-    member _.DeepCopy(source: obj, _context: ICopyContext): obj =
-        // All types deserialized by Form are expected to be immutable
-        source
-
-    member _.Deserialize(_expectedType: Type, context: IDeserializationContext): obj =
-        let _version = context.DeserializeInner(typeof<byte>) :?> byte // Unused for now
-        let serializedTypeId = context.DeserializeInner(typeof<byte>) :?> byte
-        let serializedBytes = context.DeserializeInner(typeof<byte[]>) :?> byte[]
-
-        match untypedSerializersByTypeId.TryGetValue serializedTypeId with
-        | (true, serializer) ->
-            serializer.Fro serializedBytes
-        | (false, _) ->
-            failwithf "Invalid type header for deserialization %A" serializedTypeId
-
-    member _.IsSupportedType(itemType: Type): bool =
-        untypedSerializersByType.ContainsKey itemType ||
-        untypedSerializersByType.ContainsKey (itemType.BaseType) // for union case instance types that might be derived
-
-
-    member _.Serialize(item: obj, context: ISerializationContext, _expectedType: Type): unit =
-        if isNull item then
-            failwith "OrleansSerializer.Serialize got null; that's not expected"
-
-        let itemType = item.GetType()
-
-        let maybeSerializer =
-            IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType
-            // F# Union instances may be derived type
-            |> Option.orElseWith (fun _ -> IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType)
-
-        match maybeSerializer with
-        | Some serializer ->
-            context.SerializeInner<byte> 0uy // Version. Unused for now.
-            context.SerializeInner<byte> serializer.TypeId
-
-            item
-            |> serializer.To
-            |> context.SerializeInner<byte[]>
-
-        | None ->
-            failwithf "Invalid type for serialization %s, item: %O" itemType.FullName item
-
-type private OrleansSubjectGrainsContractSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
-                                                     when 'Subject              :> Subject<'SubjectId>
-                                                     and  'LifeAction           :> LifeAction
-                                                     and  'OpError              :> OpError
-                                                     and  'Constructor          :> Constructor
-                                                     and  'LifeEvent            :> LifeEvent
-                                                     and  'LifeEvent            : comparison
-                                                     and  'SubjectIndex         :> SubjectIndex<'OpError>
-                                                     and  'SubjectId            :> SubjectId
-                                                     and  'SubjectId            : comparison> () =
-
-    // reuse because it's expensive to create
-    let impl = OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>.Singleton
-
-    interface IExternalSerializer with
-        member _.DeepCopy(source: obj, context: ICopyContext): obj =
-            impl.DeepCopy(source, context)
-
-        member _.Deserialize(expectedType: Type, context: IDeserializationContext): obj =
-            impl.Deserialize (expectedType, context)
-
-        member _.IsSupportedType(itemType: Type): bool =
-            impl.IsSupportedType itemType
-
-        member _.Serialize(item: obj, context: ISerializationContext, expectedType: Type): unit =
-            impl.Serialize(item, context, expectedType)
-
-let getOrleansSerializerTypeLifeCycleAdapter (lifeCycle: LifeCycleDef) : Type =
-    lifeCycle.Invoke
-        { new FullyTypedLifeCycleDefFunction<_> with
-            member _.Invoke (lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>) =
-               // create dummy instance to validate types early and fail fast if invalid (tried static values too but it didn't work)
-               let serializer = OrleansSubjectGrainsContractSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>()
-               serializer.GetType() }
+let buildSubjectCodecs (lifeCycleDefs: LifeCycleDef list) : EggShellSubjectGrainsCodec list =
+    lifeCycleDefs
+    |> List.map (fun def ->
+        def.Invoke
+            { new FullyTypedLifeCycleDefFunction<_> with
+                member _.Invoke (_def: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>) =
+                    buildSubjectCodec<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>() })
 
 let getSummaryEncoders<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
                              when 'Subject              :> Subject<'SubjectId>
@@ -770,22 +763,21 @@ let private getUntypedViewSerializers<'Input, 'Output, 'OpError
         | Some duplicateTypeId ->
             failwithf "Duplicate typeId in view serializers: %d" duplicateTypeId
 
-type private OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError
-                                                  when 'Input :> ViewInput<'Input>
-                                                  and  'Output :> ViewOutput<'Output>
-                                                  and  'OpError :> ViewOpError<'OpError>
-                                                  and  'OpError :> OpError> () =
+let private buildViewCodec<'Input, 'Output, 'OpError
+                         when 'Input :> ViewInput<'Input>
+                         and  'Output :> ViewOutput<'Output>
+                         and  'OpError :> ViewOpError<'OpError>
+                         and  'OpError :> OpError> () : EggShellSubjectGrainsCodec =
+
+    // assert all grains params and return value types are covered by serializers
+
+    // FIXME - awful hack to reflect IViewGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
+    let maybeIViewGrainTypeDef =
+        AppDomain.CurrentDomain.GetAssemblies()
+        |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IViewGrain`3")) // 3 is number of params
 
     let untypedSerializers =
-
-        // assert all grains params and return value types are covered by serializers
-
-        // FIXME - awful hack to reflect IViewGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
-        let maybeIViewGrainTypeDef =
-            AppDomain.CurrentDomain.GetAssemblies()
-            |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IViewGrain`3")) // 3 is number of params
-
         getUntypedViewSerializers<'Input, 'Output, 'OpError>()
         |> fun serializers ->
 
@@ -872,86 +864,46 @@ type private OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError
 
                     failwithf "Need to define serializers for following types on view grain interfaces (if Orleans can serialize this type without the help of a custom serializer, add an exception to the above filter):\n%s" typesMessage
 
-    let untypedSerializersByTypeId = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict
-    let untypedSerializersByType   = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict
+    EggShellSubjectGrainsCodec(
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict,
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict)
 
-    interface IExternalSerializer with
+type private ViewCodecBuilder =
+    static member Build<'Input, 'Output, 'OpError
+        when 'Input :> ViewInput<'Input>
+        and  'Output :> ViewOutput<'Output>
+        and  'OpError :> ViewOpError<'OpError>
+        and  'OpError :> OpError>
+        () : EggShellSubjectGrainsCodec =
+        buildViewCodec<'Input, 'Output, 'OpError>()
 
-        member _.DeepCopy(source: obj, _context: ICopyContext): obj =
-            // All types deserialized by Form are expected to be immutable
-            source
-
-        member _.Deserialize(_expectedType: Type, context: IDeserializationContext): obj =
-            let _version = context.DeserializeInner(typeof<byte>) :?> byte // Unused for now
-            let serializedTypeId = context.DeserializeInner(typeof<byte>) :?> byte
-            let serializedBytes = context.DeserializeInner(typeof<byte[]>) :?> byte[]
-
-            match untypedSerializersByTypeId.TryGetValue serializedTypeId with
-            | (true, serializer) ->
-                serializer.Fro serializedBytes
-            | (false, _) ->
-                failwithf "Invalid type header for deserialization %A" serializedTypeId
-
-        member _.IsSupportedType(itemType: Type): bool =
-            untypedSerializersByType.ContainsKey itemType ||
-            untypedSerializersByType.ContainsKey (itemType.BaseType) // for union case instance types that might be derived
-
-
-        member _.Serialize(item: obj, context: ISerializationContext, _expectedType: Type): unit =
-            if isNull item then
-                failwith "OrleansSerializer.Serialize got null; that's not expected"
-
-            let itemType = item.GetType()
-
-            let maybeSerializer =
-                IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType
-                // F# Union instances may be derived type
-                |> Option.orElseWith (fun _ -> IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType)
-
-            match maybeSerializer with
-            | Some serializer ->
-                context.SerializeInner<byte> 0uy // Version. Unused for now.
-                context.SerializeInner<byte> serializer.TypeId
-
-                item
-                |> serializer.To
-                |> context.SerializeInner<byte[]>
-
-            | None ->
-                failwithf "Invalid type for serialization %s, item: %O" itemType.FullName item
-
-type private AnchorTypeForModule = private AnchorTypeForModule of unit
-
-let private getOrleansSerializerTypeViewAdapterTyped<'Input, 'Output, 'OpError
-      when 'Input :> ViewInput<'Input>
-      and  'Output :> ViewOutput<'Output>
-      and  'OpError :> ViewOpError<'OpError>
-      and  'OpError :> OpError>
-   (_view: ViewDef<'Input, 'Output, 'OpError>) =
-    // create dummy instance to validate types early and fail fast if invalid (tried static values too but it didn't work)
-   let serializer = OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError>()
-   serializer.GetType()
-
-let getOrleansSerializerTypeViewAdapter (view: IViewDef) : Option<Type> =
-    view.Invoke
-        { new FullyTypedViewDefFunction<_> with
-            member _.Invoke (viewDef: ViewDef<'Input, 'Output, 'OpError>) =
-                let viewDefType = viewDef.GetType()
-                let inputType = typeof<'Input>
-                let outputType = typeof<'Output>
-                let errorType = typeof<'OpError>
-                if // 'Input implements ViewInput<'Input>
-                    inputType.GetInterfaces() |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = typedefof<ViewInput<NoInput>> && it.GenericTypeArguments[0] = inputType) &&
-                    // 'Output implements ViewOutput<'Output>
-                    outputType.GetInterfaces() |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = typedefof<ViewOutput<NoOutput>> && it.GenericTypeArguments[0] = outputType) &&
-                    // 'OpError implements ViewOpError<'OpError>
-                    errorType.GetInterfaces() |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = typedefof<ViewOpError<NoViewError>> && it.GenericTypeArguments[0] = errorType)
-                    then
-                    typedefof<AnchorTypeForModule>.DeclaringType
-                        .GetMethod(nameof(getOrleansSerializerTypeViewAdapterTyped), System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.NonPublic)
-                        .MakeGenericMethod(viewDefType.GenericTypeArguments)
-                        .Invoke(null, [| view |])
-                        :?> Type
-                    |> Some
-                else
-                    None }
+let buildViewCodecs (viewDefs: IViewDef list) : EggShellSubjectGrainsCodec list =
+    let viewInputDef = typedefof<ViewInput<NoInput>>
+    let viewOutputDef = typedefof<ViewOutput<NoOutput>>
+    let buildMethod =
+        typeof<ViewCodecBuilder>.GetMethod(
+            "Build",
+            System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.Public ||| System.Reflection.BindingFlags.NonPublic)
+    viewDefs
+    |> List.choose (fun def ->
+        let viewDefType = def.GetType()
+        let typeArgs = viewDefType.GenericTypeArguments
+        if typeArgs.Length = 3 then
+            let inputType = typeArgs.[0]
+            let outputType = typeArgs.[1]
+            let _opErrorType = typeArgs.[2]
+            let inputOk =
+                inputType.GetInterfaces()
+                |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = viewInputDef && it.GenericTypeArguments.[0] = inputType)
+            let outputOk =
+                outputType.GetInterfaces()
+                |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = viewOutputDef && it.GenericTypeArguments.[0] = outputType)
+            if inputOk && outputOk then
+                buildMethod.MakeGenericMethod(typeArgs)
+                    .Invoke(null, [| |])
+                    :?> EggShellSubjectGrainsCodec
+                |> Some
+            else
+                None
+        else
+            None)
