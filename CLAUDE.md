@@ -124,6 +124,32 @@ Reanimated 4 + Moti are not yet added. See `modernization/phased-plan.md` +
    `.cursor/rules/framework-ui-first.mdc`). Extend `LibClient` / `LibRouter` for reusable behavior
    (segmented controls, picker/dialog lifecycle, gestures, a11y primitives); keep apps to palette,
    theme overrides, and domain composition. Add a gallery page for new/changed `LibClient` components.
+14. **Read upstream issues before building third-party-ecosystem spikes.** Before writing any spike
+   code that tests a third-party ecosystem question (Orleans, ASP.NET, Fable, Npgsql, React Native,
+   Postgres, etc.), read the upstream repo's issues + the official sample README + the API docs.
+   Most ecosystem gotchas have already been hit and documented by the maintainers or by outside
+   teams migrating. Use `gh issue` (NOT webfetch — it hits an auth wall on GitHub search and lacks
+   comments):
+   ```
+   # List recent issues matching a symptom
+   gh issue list --repo OWNER/REPO --search "<symptom keywords>" --state all \
+     --limit 30 --json number,title,url
+
+   # Read one issue with comments (accepts the URL directly too)
+   gh issue view 8717 --repo dotnet/orleans --comments
+   gh issue view https://github.com/dotnet/orleans/issues/8520 --comments
+
+   # Structured JSON for catalog docs
+   gh issue view 8520 -R dotnet/orleans --json title,body,comments --jq '
+     "# " + .title + "\n\n" + .body + "\n\n## Comments\n" +
+     ([.comments[].body] | join("\n\n---\n\n"))'
+   ```
+   `-R` works from inside any repo (no `cd` needed). For private repos verify `gh auth status`
+   first. Then read the official sample's README + source and the API docs for any option mentioned.
+   Only after those return no answer, build the spike. Cite the upstream issue numbers in the
+   spike catalog doc. Lesson from S15 (codemem 1893): 6 of 7 findings were upstream-documented
+   (dotnet/orleans #8520, #8717, SO Q77159202, official API docs); 4-5h of iteration could have
+   been ~1h if the issues had been read first.
 
 ## Component conventions (frontend)
 
