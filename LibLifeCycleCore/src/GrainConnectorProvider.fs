@@ -69,7 +69,11 @@ type AdoNetClusteringGrainConnectorProvider
                                 options.OnAuthenticateAsClient <-
                                     fun _connection sslOptions ->
                                         // Actual value doesn't matter, just required for SSL validation
-                                        sslOptions.TargetHost <- orleansHostName)
+                                        sslOptions.TargetHost <- orleansHostName
+                                // Dev uses a self-signed cert (see Certificates); trust it so the client can
+                                // validate the gateway. Production keeps default chain validation.
+                                if useDevelopmentCertificate then
+                                    options.AllowAnyRemoteCertificate() |> ignore)
                         .ConfigureServices(fun services ->
                             // decompiled UseAdoNetClustering with wrapped gateway lister
                             services.Configure(

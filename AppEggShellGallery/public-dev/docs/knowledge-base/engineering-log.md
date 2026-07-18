@@ -4,6 +4,45 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-18 (session 36 -- ran SuiteTodo full stack against an EXTERNAL SQL Server; fixed missing Orleans dev TLS cert)
+
+Brought up the whole SuiteTodo stack (DevelopmentHost backend + AppTodo dev-web frontend) pointed at an
+**external SQL Server** (`192.168.2.231,1433`, SQL Server 2022 Developer on Ubuntu, x64) instead of the local
+Docker SQL. Proven end-to-end: a todo added in the browser UI persists through Orleans to the external DB
+(`Todo.Todo` + `Todo.Todo_SearchIndex` rows; view API returns it). Four things had to be fixed/known:
+
+- **Orleans dev TLS cert is missing (the real blocker).** `LibLifeCycleCore/src/Security/Certificates.fs`
+  loads an embedded `STAR_dev_subject_app.pfx`, but the `.pfx` is not in the repo and the `EmbeddedResource`
+  is commented out in `LibLifeCycleCore.fsproj`. Result at startup: `TypeInitializationException: TLS
+  Certificate embedded resource was not found` -> `crit: Orleans.Networking Exception in AcceptAsync` ->
+  `Unable to connect to endpoint S127.0.0.1:20043` -> every grain op dead (HTTP negotiate still 200 because
+  it does not touch grains, which masks the failure). **Fix (dev-only):** `Certificates.fs` now synthesizes an
+  equivalent self-signed cert (CN=*.subject.app, SAN + server/client EKU) at runtime when the embedded
+  resource is absent; and `AllowAnyRemoteCertificate()` is set on the dev client-side TLS in
+  `DevelopmentHost.fs` and `GrainConnectorProvider.fs` (the latter gated on `useDevelopmentCertificate`).
+  Production cert-store path (`allSubjectDotAppTlsCertificates`) is untouched.
+- **DevelopmentHost binds Kestrel on :5000 by default, not :5001.** The `"Http": { "Urls": ... }` appsettings
+  key is only read into `HttpCookieConfiguration`; it is NOT wired to Kestrel. With nothing else set,
+  `CreateDefaultBuilder` binds `http://localhost:5000` -- which also collides with macOS Control Center /
+  AirPlay Receiver. Run the host with `ASPNETCORE_URLS=http://localhost:5001` to match the frontend
+  `BackendUrl` and dodge the collision.
+- **Frontend FS957 (FSharpPlus) means the LibFablePlus patch tool is stale.** The net10 FSharpPlus fix
+  (`patchFSharpPlusExtensionsForNet9`, session 35) lives in `Meta/LibFablePlus/src/index.ts`, but its built
+  `dist/` is gitignored, so a checkout can carry a stale `dist/index.js` that predates the patch and dev-web
+  dies on `FSharpPlus.1.6.1/.../Extensions.fs ... code 957`. Fix: rebuild it (`cd Meta/LibFablePlus &&
+  ./initialize`, i.e. `npm run build` -> `tsc`), then re-run dev-web; confirm the marker
+  `EGGSHELL_NET9_IENUMERABLE_SLICE_PATCH` is present in `~/.nuget/.../fsharpplus/1.6.1/fable/Extensions/Extensions.fs`.
+- **AppTodo has two `configSourceOverrides.dev.js` copies.** The one the browser loads is
+  `AppTodo/public-dev/configSourceOverrides.dev.js` (static root referenced by `public-dev/index.html`);
+  editing the AppTodo-root copy alone does not change what is served. Uncomment `BackendUrl =
+  "http://localhost:5001"` in the `public-dev/` copy to switch off the in-memory fake service. Loaded at
+  runtime, so a browser reload is enough (no rebuild).
+
+Note: `SuiteTodo/dev-stack.sh up` does NOT wire the frontend to the backend as-is -- it starts a local Docker
+SQL and its `write_backend_dev_config` rewrites `configSourceOverrides.dev.js` with `BackendUrl` commented
+(fake mode). For external-SQL + real backend, drive the three steps manually (appsettings -> host with
+`ASPNETCORE_URLS` -> uncomment `BackendUrl` in `public-dev/`).
+
 ## 2026-07-17 (session 35 -- repo-wide net7.0 -> net10.0 TFM sweep; whole repo on net10, sims + Fable frontend green)
 
 Executed the real S0: bumped **every** project `net7.0` -> `net10.0` (frontend + backend) and drove the

@@ -206,6 +206,9 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
                                         fun _connection sslOptions ->
                                             // Actual value doesn't matter, just required for SSL validation
                                             sslOptions.TargetHost <- hostName
+                                    // Dev silo/gateway use a self-signed cert (see LibLifeCycleCore.Certificates);
+                                    // trust it on the outbound (client) side so the in-process client can reach 20043.
+                                    options.AllowAnyRemoteCertificate() |> ignore
 
                                     options
                             )
