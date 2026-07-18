@@ -65,6 +65,23 @@ with cache reset: `npx react-native start --port 8081 --reset-cache`. Re-run Tie
   webpack makes the new start hit `EADDRINUSE :8082` and silently serve the STALE bundle — use the
   broad `pkill -9 -f webpack`. When verifying, check `LibStandard/.build/web/fable/...` freshness,
   NOT just `AppEggShellGallery/.build/web/fable/...` (the latter only holds the gallery's own files).
+- **dev-web watch does NOT see sibling-repo edits** (e.g. `eggshell-signalr` referenced via
+  `ProjectReference` from `LibUiSubject.fsproj` / `LibLifeCycleHost.fsproj`). The Fable watch is
+  rooted at `Code/subject`; edits in `Code/eggshell-signalr/src/LibSignalRClient/*.fs` do not
+  trigger a recompile of the referenced project, so the served bundle keeps the old behavior even
+  after a successful Fable run. Fix: restart `eggshell dev-web` (kill `:9080`/`webpack`/`fable` first).
+  Symptom that misled us for several minutes: `Compiled 18/62: eggshell-signalr/.../Protocols.fs`
+  appears in the log on a FRESH start (precompile), but no further recompile happens when you save
+  an edit in the sibling repo. Confirm via `grep <new-symbol> http://localhost:9080/bundle.js`
+  (or stat the emitted `.js` under `.build/web/fable/eggshell-signalr/...`) before trusting the fix.
+- **Clearing Fable cache for ONE referenced project leaves dangling references.** If you delete only
+  `.build/web/fable/eggshell-signalr/` (rather than the whole web fable tree) to force a clean
+  recompile of one sibling, webpack then fails with `ERROR in ... Module not found: Can't resolve
+  './eggshell-signalr/.../<file>.js'` for the deleted-but-unchanged-source files Fable's watch will
+  not re-emit (its up-to-date check is content-hash based; unchanged source = no re-emit). Fix:
+  `touch` each client `.fs` source (or make a trivial content change) so the watch re-emits the
+  missing `.js` files. Don't partially clear the Fable cache -- clear the whole platform fable dir
+  or restart the watch so every referenced project re-emits in sync.
 
 ## Doc refs
 

@@ -30,15 +30,38 @@ Prereqs to run `dotnet test SuiteTodo/Ecosystem/Tests` (or any backend sim) on a
 
 ## Running the SuiteTodo dev stack (backend + frontend against real SQL) {#suitetodo-devstack}
 
-Manual bring-up for real-backend mode (needed for external SQL; `dev-stack.sh up` starts local Docker SQL and forces fake mode). Order: appsettings -> host with `ASPNETCORE_URLS` -> uncomment `BackendUrl`. See [Engineering Log 2026-07-18 session 36](../knowledge-base/engineering-log.md).
+`SuiteTodo/dev-stack.sh` now drives both fake and real modes. `./dev-stack.sh up` (default) runs
+**fake** mode (in-memory todos, no SQL, no backend host -- fastest). `./dev-stack.sh up --real` runs
+the real backend on local Docker SQL. `./dev-stack.sh up --real --sql=external --sql-server=192.168.2.231,1433 --sa-password='…'`
+runs the real backend against an external SQL Server. The script writes the **served** `AppTodo/public-dev/configSourceOverrides.dev.js`
+(with `BackendUrl` uncommented for real mode, commented for fake) and exports `ASPNETCORE_URLS=:5001`.
+`./dev-stack.sh status` shows the active `BackendUrl`; `down` stops the host (+ Docker SQL if used).
+See [Engineering Log 2026-07-18 session 37](../knowledge-base/engineering-log.md).
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | Host log: `TypeInitializationException: TLS Certificate embedded resource was not found` -> `crit: Orleans.Networking Exception in AcceptAsync` -> `Unable to connect to endpoint S127.0.0.1:20043`; grain/view ops fail while HTTP `negotiate` still returns 200 | The embedded `STAR_dev_subject_app.pfx` is not in the repo (`EmbeddedResource` commented out in `LibLifeCycleCore.fsproj`), so `Certificates.starDotDevDotSubjectDotAppTlsCertificate` throws and the Orleans silo/gateway TLS handshake dies | `Certificates.fs` now generates an equivalent self-signed dev cert at runtime when the resource is absent, and the dev client TLS sets `AllowAnyRemoteCertificate()` (`DevelopmentHost.fs`; `GrainConnectorProvider.fs` gated on `useDevelopmentCertificate`). If you still hit it, confirm `LibLifeCycleCore` rebuilt. `negotiate`=200 alone does NOT prove the backend works -- verify a grain op (`GET /api/v1/ecosystem/Todo/subject/Todo/debug/all`). |
-| DevelopmentHost is reachable on `:5000`, not `:5001` (frontend can't reach `BackendUrl`); or `:5000` 404s to macOS AirPlay | The `"Http": { "Urls": ... }` appsettings key feeds only `HttpCookieConfiguration`, NOT Kestrel; with nothing else set, Kestrel binds the default `http://localhost:5000` (which macOS Control Center/AirPlay also holds) | Launch the host with `ASPNETCORE_URLS=http://localhost:5001` (env var) to bind the port the frontend expects and avoid the 5000 collision. |
-| Frontend shows todos but nothing lands in SQL (`Todo.Todo` stays 0 rows); browser never calls `:5001` | The served config is `AppTodo/public-dev/configSourceOverrides.dev.js` (static root for `public-dev/index.html`); the AppTodo-root copy is a separate file. Editing root alone leaves the fake in-memory service on | Uncomment `eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001"` in the **`public-dev/`** copy. Loaded at runtime -> just reload the browser. Confirm served value: `curl -s localhost:9080/configSourceOverrides.dev.js`. |
+| DevelopmentHost is reachable on `:5000`, not `:5001` (frontend can't reach `BackendUrl`); or `:5000` 404s to macOS AirPlay | The `"Http": { "Urls": ... }` appsettings key feeds only `HttpCookieConfiguration`, NOT Kestrel; with nothing else set, Kestrel binds the default `http://localhost:5000` (which macOS Control Center/AirPlay also holds) | Launch the host with `ASPNETCORE_URLS=http://localhost:5001` (env var) to bind the port the frontend expects and avoid the 5000 collision. `dev-stack.sh up --real` does this for you. |
+| Frontend shows todos but nothing lands in SQL (`Todo.Todo` stays 0 rows); browser never calls `:5001` | The served config is `AppTodo/public-dev/configSourceOverrides.dev.js` (static root for `public-dev/index.html`); the AppTodo-root copy is a separate file. Editing root alone leaves the fake in-memory service on | `dev-stack.sh up --real` writes the `public-dev/` copy for you. By hand: uncomment `eggshell.AppTodo.configSourceOverrides.BackendUrl = "http://localhost:5001"` in the **`public-dev/`** copy. Loaded at runtime -> just reload the browser. Confirm served value: `curl -s localhost:9080/configSourceOverrides.dev.js`. |
 | Host crashes at startup: `Unhandled exception ... Failed to bind to address http://127.0.0.1:5001: address already in use` | A prior DevelopmentHost still holds 5001 (slow shutdown) when you restart | `pkill -9 -f DevelopmentHost.dll`, then poll `lsof -iTCP:5001 -sTCP:LISTEN` until clear before relaunching. |
 | Host SQL provisioning succeeds but you worry about full-text search on a non-Docker SQL | Framework provisions a full-text catalog for `TodoSearchIndex.Title`; needs FTS installed on the server | Verify on the target server: `SELECT SERVERPROPERTY('IsFullTextInstalled')` must be `1`. SQL Server 2022 Developer on Linux (x64) has it; Apple-Silicon SQL containers historically did not. |
+
+---
+
+## Real-time / SignalR push (cross-window todo updates) {#realtime-signalr}
+
+The list uses `UiSubject.With.Subjects(By.Indexed …)` (`SuiteTodo/AppTodo/src/Components/Route/Todos.fs:450`),
+backed by the real-time `SubjectService` + SignalR (`/api/v1/realTime`). Server-side push is wired
+(`SubjectGrain.fs:519 observerManager.NotifyObservers(...)` on every change; observer expiry 5 min,
+refreshed every 60 s). Framework design limit: `ClientStreamApi` only supports `ObserveSubject` by id,
+so **new adds from another window can never push live** (no index/view-level push). Existing-item
+toggles/edits/deletes should push. See [Engineering Log 2026-07-18 session 37](../knowledge-base/engineering-log.md).
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Cross-window toggle/edit/delete of an **existing** todo never propagates live (not even after the 60 s resync); other window only reflects it on full reload. Browser console shows `Unknown message type: Could not find the required key 'headers' ... record type 'StreamItemMessage\`1` | Vendored `eggshell-signalr` client: `Json.tryConvertFromJsonAs<StreamItemMessage<…>>` (Fable.SimpleJson) treats the optional `headers: Map<string,string> option` field as **required**. ASP.NET Core SignalR omits `headers` from stream-item frames (optional in the protocol), so every pushed StreamItem fails to parse and is silently dropped (mislabeled "Unknown message type"). The initial list still renders because it comes from the HTTP query, not the stream | Fixed in `eggshell-signalr/src/LibSignalRClient/Protocols.fs` (branch `shafayat/fix-realtime-decoding`, commit 702e634): the StreamItem envelope is now parsed manually via `SimpleJson.readPath` (extract `invocationId` and `item` directly), bypassing Fable.SimpleJson's auto-decoder for option fields. After pulling that branch, restart `eggshell dev-web` (the sibling-repo edit is not seen by the watch). |
+| New todo added in window A does not appear live in window B (only after reload) | Framework design: `ClientStreamApi` only supports `ObserveSubject` by id; `SubscribeIndexed` opens a per-id observe stream for each id present **at subscribe time**. A brand-new id is not in any other window's observe set | Not a bug. Either periodic re-subscribe at the app level (cheap) or a new index-observe stream in the framework (big). The app hides this only for the local window via `bumpList()` re-keying after its own add (`Todos.fs:876`). |
+| Browser console shows `Cannot convert null to ['Union',null]` or `Case N was not valid for 'FSharpOption\`1'` while debugging a Fable.SimpleJson decode | Fable 5 SimpleJson reflects `option<'T>` as a generic Union (None/Some cases), NOT as `TypeInfo.Option`; the `JNull -> None` special-case (`Json.Converter.fs:339`) never fires. Injecting `JNull` / `JObject {}` / `JObject {"None":[]}` for a missing option key does not work -- present `Some` values also fail because the union decoder mis-decodes them | Bypass `Json.tryConvertFromJsonAs<T>` / `ofJson<T>` for any record that has `option<'T>` fields; extract fields manually via `SimpleJson.readPath ["field"] parsedRaw`. Generalized gotcha, not SignalR-specific. |
 
 ---
 
