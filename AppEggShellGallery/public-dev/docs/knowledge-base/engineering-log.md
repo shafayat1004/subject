@@ -4,6 +4,39 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-18 (session 38 -- added mssql-debug skill; diff-oracle inspector for the pgsql port)
+
+Added `.claude/skills/mssql-debug/` (SKILL.md + 7 F# scripts + 3 shell helpers). Read-only MSSQL
+debug toolkit targeting the dev DB (`Todo_Dev` @ `192.168.2.231,1433`). Doubles as the diff-oracle
+inspector called for in `modernization/sql-server-to-postgres.md` -- while the pgsql port runs, the
+SQL Server DB is kept as a transient diff oracle, and this skill is how an engineer inspects its
+state for parity diffs against the Postgres handler.
+
+Subcommands: `decode-subject` (gzip+UTF8 JSON subject blob via server-side `[eco].[decode]`),
+`subject-history` (version timeline with local times), `stalled-summary` (5-resultset healthcheck
+mirroring `MetaServices.PerformEcosystemHealthcheck`), `stalled-list` (one diag view, decoded
+blobs), `cluster-health` (`dbo.OrleansMembershipTable` status map), `failed-sideffects` (decoded +
+ack state), `to-local` (UTC -> local TZ).
+
+Runtime: `dotnet fsi` with `#r "nuget: Microsoft.Data.SqlClient, 5.2.3"` -- zero-install, matches
+the framework's ADO.NET stack. No `sqlcmd`/`mssql-cli` needed on the host.
+
+Safety: hard read-only rule. All scripts use `NOLOCK` + `SELECT`/views only; no `UPDATE`/`DELETE`/
+mutation-proc `EXEC`. Conn resolution: `MSSQL_CONN` env -> `appsettings.Development.json`
+(`Storage.SqlServer:ConnectionString`) -> fail.
+
+Gotchas baked into the SKILL.md: `AllStalledTimers` view requires the `_Meta` subject
+(`RebuildingTimersAndSubs` flag in `[eco].[_Meta_Index]`) -- TestDataSeeding co-hosted ecosystems
+without `_Meta` show an EMPTY view, not "no stalled timers"; the `stalled-summary` script warns
+when the key is missing. Cluster tables are `dbo` schema, not `[eco]`. `Subject` blob collation is
+`Latin1_General_100_CS_AS_KS_WS_SC_UTF8` -- rely on the server-side decode, not a client gzip.
+
+Branch: `shafayat/pgsql-initial-spikes`. Not committed yet (skill files live under the
+`!.claude/skills/` gitignore exception, so they are trackable). Next: S10 (Orleans 3.7.2 -> 10.2.1
++ Npgsql 10.0.3 package bump).
+
+---
+
 ## 2026-07-18 (session 37 -- real-time push silently dropped: Fable.SignalR client can't decode StreamItemMessage under Fable 5)
 
 Symptom: cross-window todo updates do not propagate live. Toggling/editing/deleting a todo in browser
