@@ -102,9 +102,16 @@ For a third-party-ecosystem question (Orleans, ASP.NET, Fable, Npgsql, React Nat
      -exec rg -n 'member name="T:' {} \;
    ```
 
-   Lesson from S15 finding #2: `Microsoft.Orleans.Serialization.FSharp`'s XML doc list shows it
-   only ships `FSharpUnit`, `FSharpOption`, `FSharpValueOption`, `FSharpChoice` — NO codecs for
-   user-defined F# records/DUs.
+   Lesson from S15 finding #2 + S15d: `Microsoft.Orleans.Serialization.FSharp` (10.2.1) ships
+   `FSharpUnit`, `FSharpOption`, `FSharpValueOption`, `FSharpChoice\`2..6`, **and `FSharpResult\`2`**
+   (Result was ADDED after S15's original look — re-verify the inventory per version, don't trust a
+   stale finding). It ships NO codecs for user-defined F# records/DUs or F# collections
+   (`FSharpList`/`Map`/`Set`). **These built-in codecs DECOMPOSE their wrapper** and delegate each
+   generic arg to that arg's own codec; an `IGeneralizedCodec` is a fallback and never wins over them.
+   So a custom codec must claim the bare INNER LEAF types (records/DUs), never the wrapper
+   (`Option<X>`/`Result<X,E>`) — registering the wrapper leaves the leaf uncovered and the silo throws
+   `CodecNotFoundException` for it at boot. Verify with `strings <dll> | rg Codec` too, not just the
+   XML doc. Lesson from S15d (`Meta/s15d-fsharp-wrapper-codecs/`).
 
 7. **Record the upstream citations in the catalog doc.** Per finding: which upstream issue/sample/
    API-doc/ package-XML documents it. If no upstream source is found for a finding, mark it as
