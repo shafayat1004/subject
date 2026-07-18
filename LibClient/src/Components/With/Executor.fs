@@ -33,7 +33,7 @@ type LC.With with
     ///     Setup code
     ///     <code setup="true">
     ///         let private action () : UDActionResult = async {
-    ///             do! Async.Sleep (System.TimeSpan.FromSeconds 1)
+    ///             do! Async.Sleep (System.TimeSpan.FromSeconds 1.0)
     ///             return Ok ()
     ///         }
     ///     </code>

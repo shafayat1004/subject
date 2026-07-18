@@ -139,7 +139,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
             if numRetriesSoFar > 30u then // avoid arithmetic overflow
                 maxDelayBeforeRetry
             else
-                min maxDelayBeforeRetry (pown 2 (int numRetriesSoFar) |> TimeSpan.FromSeconds)
+                min maxDelayBeforeRetry (pown 2 (int numRetriesSoFar) |> float |> TimeSpan.FromSeconds)
         | Some _ ->
             TimeSpan.Zero // don't wait before retry in test mode
 

@@ -2210,7 +2210,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                             let latency =
                                 let timeItShouldHaveFired = max scheduledNextTickOn currentStateContainer.CurrentSubjectState.LastUpdatedOn
                                 now - timeItShouldHaveFired
-                            if latency > TimeSpan.FromSeconds 10 then
+                            if latency > TimeSpan.FromSeconds 10.0 then
                                 logger.Warn "Tick fired later than it should, latency: %a seconds"
                                     (logger.P "seconds") (int64 latency.TotalSeconds)
                         // don't do in tests to not fail simulations

@@ -40,7 +40,7 @@ let private stringItemView = PropItemViewFactory.Make(fun (item: string) -> item
 
 let private fetchFruitsAllOnNoQuery (maybeQuery: Option<NonemptyString>) : Async<OrderedSet<Fruit>> =
     async {
-        do! Async.Sleep(TimeSpan.FromMilliseconds 3000)
+        do! Async.Sleep(TimeSpan.FromMilliseconds 3000.0)
 
         let filteredFruit =
             match maybeQuery with
@@ -56,7 +56,7 @@ let private fetchFruitsAllOnNoQuery (maybeQuery: Option<NonemptyString>) : Async
 
 let private fetchFruitsEmptyOnNoQuery (maybeQuery: Option<NonemptyString>) : Async<OrderedSet<Fruit>> =
     async {
-        do! Async.Sleep(TimeSpan.FromMilliseconds 3000)
+        do! Async.Sleep(TimeSpan.FromMilliseconds 3000.0)
 
         let filteredFruit =
             match maybeQuery with
@@ -333,7 +333,7 @@ LC.Input.Picker(
                                                                """
 let fetchFruitsAllOnNoQuery (maybeQuery: Option<NonemptyString>) : Async<OrderedSet<Fruit>> =
     async {
-        do! Async.Sleep (TimeSpan.FromMilliseconds 3000)
+        do! Async.Sleep (TimeSpan.FromMilliseconds 3000.0)
         let filteredFruit =
             match maybeQuery with
             | None -> fruits
@@ -374,7 +374,7 @@ LC.Input.Picker(
                                                                """
 let fetchFruitsEmptyOnNoQuery (maybeQuery: Option<NonemptyString>) : Async<OrderedSet<Fruit>> =
     async {
-        do! Async.Sleep (TimeSpan.FromMilliseconds 3000)
+        do! Async.Sleep (TimeSpan.FromMilliseconds 3000.0)
         let filteredFruit =
             match maybeQuery with
             | None -> OrderedSet.empty

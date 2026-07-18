@@ -58,7 +58,7 @@ type MaybeSessionWithIsValidObservableCache<'Session>() =
                             // many subscriptions, all of which depend on this session pipeline, and therefore at least one of which will keep this pipeline
                             // from expiring. However, technically clients could have a single subscription that is occasionally refreshed and that should
                             // be able to occur without the session pipeline being recreated.
-                            .RefCount(TimeSpan.FromSeconds(5))
+                            .RefCount(TimeSpan.FromSeconds(5.0))
 
                     maybeSessionWithIsValidated
                 )
@@ -133,7 +133,7 @@ let createObservableForSubject<'Subject, 'LifeAction, 'OpError, 'Constructor, 'L
                                                 forceSync
                                             )
                                             // Just in case there is spamming of forceSync, or it happens to trigger right about when the timer does.
-                                            .Throttle(TimeSpan.FromSeconds(1))
+                                            .Throttle(TimeSpan.FromSeconds(1.0))
 
                                     let sync =
                                         Observable

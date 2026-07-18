@@ -10,7 +10,7 @@ open Newtonsoft.Json
 open System.Threading.Tasks
 open LibPushNotification.Types
 
-let expiryTime = TimeSpan.FromMinutes(30)
+let expiryTime = TimeSpan.FromMinutes(30.0)
 let mutable globalTokenWithExpiry = NonemptyString.ofLiteral "N/A", DateTimeOffset.MinValue
 
 // NB: We're currently using a deprecated API, as we use Android notifications in other

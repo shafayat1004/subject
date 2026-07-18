@@ -35,7 +35,7 @@ type AsyncSerialExecutor(name: string) =
                     fun () ->
                         async {
                             try
-                                let timeoutBeforeWarning = TimeSpan.FromSeconds(30)
+                                let timeoutBeforeWarning = TimeSpan.FromSeconds(30.0)
                                 let warningDisposable =
                                     runLaterDisposable
                                         timeoutBeforeWarning

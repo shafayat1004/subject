@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Configurations>Debug;Release;Fable Debug;Fable Release</Configurations>
     <!-- Formatting check suppressed here (4 files use constructs the formatter must not touch) -->

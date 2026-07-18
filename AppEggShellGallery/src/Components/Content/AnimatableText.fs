@@ -32,7 +32,7 @@ type private Helpers =
                 else
                     min
 
-            let animation = Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1)
+            let animation = Animation.Timing(animatedValue.current, animateTo, TimeSpan.FromSeconds 1.0)
             animation.Start(fun () -> isAnimatedRef.current <- not isAnimatedRef.current)
 
         LC.Column(
@@ -108,7 +108,7 @@ Rn.AnimatableText(
     } |]
 )
 
-Animation.Timing(animatedValue.current, 8.0, TimeSpan.FromSeconds 1).Start(...)
+Animation.Timing(animatedValue.current, 8.0, TimeSpan.FromSeconds 1.0).Start(...)
 """)
                                 )
                             }

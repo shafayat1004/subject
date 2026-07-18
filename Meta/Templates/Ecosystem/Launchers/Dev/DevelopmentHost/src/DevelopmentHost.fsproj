@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <!-- this is a hack, necessary because some library has a transient executable dependency.
          https://stackoverflow.com/questions/51086655/publishing-a-self-contained-console-app-fails -->

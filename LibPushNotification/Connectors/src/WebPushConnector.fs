@@ -43,7 +43,7 @@ let createNotificationPayload notification =
             title          = notification.Title.Value
             body           = notification.Body.Value
             onClickUrl     = notification.MaybeOnClickUrl |> NonemptyString.optionToString
-            expirationTime = (DateTimeOffset.Now + (TimeSpan.FromDays 1)).ToUnixTimeMilliseconds()
+            expirationTime = (DateTimeOffset.Now + (TimeSpan.FromDays 1.0)).ToUnixTimeMilliseconds()
             tag            = Guid.NewGuid().ToString()
         |}
     )

@@ -64,7 +64,7 @@ stop_sql () {
 start_host () {
   ensure_appsettings
   echo "Starting DevelopmentHost on http://localhost:5001 ..."
-  local host_bin="$HOST_DIR/bin/Debug/net7.0"
+  local host_bin="$HOST_DIR/bin/Debug/net10.0"
   "$DOTNET" build "$HOST_DIR/DevelopmentHost.fsproj" -c Debug -v q
   if [[ ! -f "$host_bin/LibLifeCycleHost.dll" ]]; then
     echo "DevelopmentHost build output missing LibLifeCycleHost.dll at $host_bin" >&2

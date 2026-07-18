@@ -921,7 +921,7 @@ module private Module_InProgress =
 module private Module_With_Executor =
 
     let private action () : UDActionResult = async {
-        do! Async.Sleep (System.TimeSpan.FromSeconds 1)
+        do! Async.Sleep (System.TimeSpan.FromSeconds 1.0)
         return Ok ()
     }
 
@@ -996,7 +996,7 @@ module private Module_With_Executor =
                             Ui.Code (language = AppEggShellGallery.Components.Code.Fsharp, heading = "Setup Code", children = [| LC.Text """
 
          let private action () : UDActionResult = async {
-             do! Async.Sleep (System.TimeSpan.FromSeconds 1)
+             do! Async.Sleep (System.TimeSpan.FromSeconds 1.0)
              return Ok ()
          }
      """

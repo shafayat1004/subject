@@ -679,7 +679,7 @@ let generateCodecs (suiteInputs: SuiteInputs) =
         |> Array.map (
             fun x ->
                 let projFile = suiteInputs.TypesProjectPath +-+ x.Include
-                let commonDenominatorTypesTargetFramework = "net7.0"
+                let commonDenominatorTypesTargetFramework = "net10.0"
                 let p = Path.GetDirectoryName projFile +-+ @$"bin/Debug/{commonDenominatorTypesTargetFramework}" +-+ Path.GetFileName projFile
                 // note that FSharpCheck needs forward slashes in Linux
                 (p.[0..p.Length-7] + "dll").Replace("\\", "/")

@@ -35,7 +35,7 @@ let subjectReminderImplicitDelayToReduceEarlyTicks = TimeSpan.FromMilliseconds 5
 
 // Look ahead limit is set to be Orleans 3.x's hardcode of Orleans.Runtime.Constants.RefreshReminderList = TimeSpan.FromMinutes(5),
 // plus padding of 2 minutes to be safer in case if refresh is delayed for some reason.
-let subjectReminderTableLookAheadLimit = TimeSpan.FromMinutes 7
+let subjectReminderTableLookAheadLimit = TimeSpan.FromMinutes 7.0
 
 // When reading new due reminder from SubjectReminderTable we override it to be "Asap" to avoid being delayed by up to 60 seconds before it actually fires,
 // but it will be at least 2 sec into future so we don't stress Orleans too much and not miss the overridden tick too
@@ -48,7 +48,7 @@ let subjectReminderTableIsNewDueReminderBestGuess (initialBucketQuery: bool) (no
         // due reminder tolerance is higher for refresh bucket query, chances are this reminder is already live / not new and will fire in a moment, no need to delay it further
         // however if its time passed or nearly passed then it's actually did not / may not fire on time, so assume it's new
         // TODO: review 100ms padding based on actual "tick latency" traces in telemetry. Previous was 0ms and it did result in one 60 sec delay in 24h for a timer-heavy system
-        nextTickOn < now + TimeSpan.FromMilliseconds 100
+        nextTickOn < now + TimeSpan.FromMilliseconds 100.0
 
 // Reminder table can overlook a reminder set for up to look ahead limit + Orleans.Runtime.Constants.RefreshReminderList = TimeSpan.FromMinutes(5) into the future.
 // It's not clear why look ahead alone is not enough since it is already greater than refresh interval, but tick latency telemetry fits the theory

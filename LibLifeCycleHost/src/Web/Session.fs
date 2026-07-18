@@ -59,7 +59,7 @@ let private getRevalidationActions
         // revalidation using Observable.Timer, and that may tick just prior to the timestamp provided to it (presumably due to rounding errors). This
         // means that immediately after the timer fires, DateTimeOffset.UtcNow could actually be greater than the timestamp rather than equal to or
         // less than it. Without a grace period, that would cause revalidation to be skipped below, since the revalidation timestamp is in the future.
-        let gracePeriod = TimeSpan.FromSeconds(1)
+        let gracePeriod = TimeSpan.FromSeconds(1.0)
 
         match maybeSessionHandler|> Option.bind (fun h -> h.MaybeRevalidator |> Option.map (fun r  -> h, r)) with
         | Some (sessionHandler, revalidator) ->

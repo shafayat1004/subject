@@ -138,7 +138,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                         // its current observer with another, which means the current observer is disposed and then the new one created to replace it.
                         // Without a grace period, this pipeline would be removed from the cache and the replacement would cause the pipeline to be
                         // recreated, thereby negating the benefit of the cache in the first place.
-                        .RefCount(TimeSpan.FromSeconds(5))
+                        .RefCount(TimeSpan.FromSeconds(5.0))
 
                 {
                     Pipeline  = autoCleanUpSubjectObservable
@@ -264,7 +264,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                                                                     .Do(fun _ -> sharedSubjectPipelineCacheItem.ForceSync.OnNext(()))
                                                                     // Wait a bit to allow the sync to occur (we can't know how long to wait, since it may not even
                                                                     // complete due to network issues)
-                                                                    .Delay(TimeSpan.FromSeconds(2))
+                                                                    .Delay(TimeSpan.FromSeconds(2.0))
                                                                     // Now fail so that the outer retry is instigated. If we fail even after the retries,
                                                                     // the entire pipeline will fail and that's exactly what we want. This pipeline is
                                                                     // specific to the client claiming to be ahead of the web node, so it failing is
@@ -362,7 +362,7 @@ type private RealTimeSubjectData<'Subject, 'LifeAction, 'OpError, 'Constructor, 
                                 subjectId
                             subjectPipelineCache.TryRemove(cacheKey) |> ignore
                         )
-                        .RefCount(TimeSpan.FromSeconds(5))
+                        .RefCount(TimeSpan.FromSeconds(5.0))
 
                 {
                     SubjectChange      = publishedSubjectChangePipeline

@@ -323,7 +323,7 @@ type SubjectReminderTable
                             | reminderName, grainRef, nextTickOn ->
                                 let startAt, newDueRemindersCount =
                                     if (subjectReminderTableIsNewDueReminderBestGuess initialBucketQuery nowAfterQuery nextTickOn) then
-                                        earliestNewDueReminderStartAt + ((spreadMilliseconds * int newDueRemindersCount) |> TimeSpan.FromMilliseconds),
+                                        earliestNewDueReminderStartAt + ((spreadMilliseconds * int newDueRemindersCount) |> float |> TimeSpan.FromMilliseconds),
                                         (newDueRemindersCount + 1u)
                                     else
                                         nextTickOn + subjectReminderImplicitDelayToReduceEarlyTicks, newDueRemindersCount

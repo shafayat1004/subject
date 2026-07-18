@@ -591,7 +591,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
                     // Re-establish the stream observer every 1 minute to force a sync between client and server. This will ensure the client's cached
                     // data is updated if the server has something newer (due to package loss or whatever).
                     let periodicReObserveDisposable =
-                        LibClient.JsInterop.runEvery (TimeSpan.FromMinutes(1)) createAndReplaceNewStreamObserver
+                        LibClient.JsInterop.runEvery (TimeSpan.FromMinutes(1.0)) createAndReplaceNewStreamObserver
 
                     // Immediately create the initial stream observer.
                     createAndReplaceNewStreamObserver ()
