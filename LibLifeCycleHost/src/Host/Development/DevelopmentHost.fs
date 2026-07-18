@@ -182,6 +182,11 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
                             .GetAndValidate<SqlServerConfiguration>()
                     let connStrings = { ByEcosystemName = NonemptyMap.ofOneItem (ecosystem.Name, sqlServerConfig.ConnectionString) }
 
+                    // DevelopmentHost always uses the dev self-signed cert path; the flag is named for
+                    // symmetry with GrainConnectorProvider so the AllowAnyRemoteCertificate gate below
+                    // (and any future prod-vs-dev branching) reads the same way across both hosts.
+                    let useDevelopmentCertificate = true
+
                     // We need to setup the schema here, as a lot of other processes are
                     // dependent on the schema having been already created
                     SqlServerSetup.createSchema connStrings
@@ -199,13 +204,18 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
                         .AddSingleton<TlsOptions>(
                                 fun serviceProvider ->
                                     let (tlsCertificate, hostName) =
-                                        getOrleansTlsCertificateAndHostName ecosystem.Name (* useDevelopmentCertificate *) true
+                                        getOrleansTlsCertificateAndHostName ecosystem.Name useDevelopmentCertificate
 
                                     let options = TlsOptions(LocalCertificate = tlsCertificate)
                                     options.OnAuthenticateAsClient <-
                                         fun _connection sslOptions ->
                                             // Actual value doesn't matter, just required for SSL validation
                                             sslOptions.TargetHost <- hostName
+                                    // Dev silo/gateway use a self-signed cert (see LibLifeCycleCore.Certificates);
+                                    // trust it on the outbound (client) side so the in-process client can reach 20043.
+                                    // Gated on useDevelopmentCertificate for symmetry with GrainConnectorProvider.
+                                    if useDevelopmentCertificate then
+                                        options.AllowAnyRemoteCertificate() |> ignore
 
                                     options
                             )
@@ -213,7 +223,7 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
                         .AddSingleton<IBiosphereGrainProvider, BiosphereGrainProvider>(fun serviceProvider ->
                             let hostEcosystemGrainFactory = serviceProvider.GetRequiredService<IGrainFactory>()
                             let operationTracker = serviceProvider.GetRequiredService<OperationTracker>()
-                            BiosphereGrainProvider(ecosystem, hostEcosystemGrainFactory, orleansClusteringConfig.MembershipConnectionString, operationTracker, (* useDevelopmentCertificate *) true, buildAssembly))
+                            BiosphereGrainProvider(ecosystem, hostEcosystemGrainFactory, orleansClusteringConfig.MembershipConnectionString, operationTracker, useDevelopmentCertificate, buildAssembly))
                         .AddRealTimeEndpoints(ecosystem)
                         .AddSingleton<ApiSessionCryptographer>(fun serviceProvider ->
                             let dataProtectionProvider = serviceProvider.GetRequiredService<IDataProtectionProvider>()

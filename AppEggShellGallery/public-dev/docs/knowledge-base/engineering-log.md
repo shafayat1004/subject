@@ -4,6 +4,118 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-18 (session 37 -- real-time push silently dropped: Fable.SignalR client can't decode StreamItemMessage under Fable 5)
+
+Symptom: cross-window todo updates do not propagate live. Toggling/editing/deleting a todo in browser
+window A never reaches window B (B only reflects the change on full reload, not even after the 60s
+grain-observer resync). User asked "are we not using `Ui.With`?".
+
+Wiring is correct. `UiSubject.With.Subjects(By.Indexed …)` is used (`SuiteTodo/AppTodo/src/Components/Route/Todos.fs:450`),
+backed by the real-time `SubjectService` + SignalR, and the backend log shows the WebSocket is live
+(`GET /api/v1/realTime -> 101`). Server-side push is also wired: `SubjectGrain.fs:519 observerManager.NotifyObservers(...)`
+fires on every change, and `Observe` returns current state on subscribe plus every 60s. Framework
+design limitation (not the bug): `ClientStreamApi` only supports `ObserveSubject` by id, so **new
+adds from another window can never push** (no index/view-level push). But that does not explain why
+**existing-item** toggles also do not propagate.
+
+Root cause was found by capturing window B's browser console during a toggle: B receives the
+WebSocket frame, but the vendored Fable.SignalR client throws and drops it:
+
+```
+Unknown message type: Could not find the required key 'headers' ...
+record type 'StreamItemMessage`1'
+```
+
+At `eggshell-signalr/src/LibSignalRClient/Protocols.fs:180`, `Json.tryConvertFromJsonAs<StreamItemMessage<…>>`
+(Fable.SimpleJson 3.24.0) treats the optional `headers: Map<string,string> option` field as
+**required**. ASP.NET Core SignalR omits `headers` from stream-item frames (optional in the protocol),
+so every pushed StreamItem fails to parse and is silently dropped (mislabeled "Unknown message type",
+Protocols.fs:221). The initial list still renders because it comes from the HTTP query, not the stream.
+
+Fix attempts (the key learning — iterative, "whack-a-mole"):
+
+1. Inject `JNull` for the missing `headers` key. Failed: "Cannot convert null to ['Union',null]".
+   Fable-5 SimpleJson reflects `Map<string,string> option` as a **generic Union** (None/Some cases),
+   NOT as `TypeInfo.Option`, so the `JNull -> None` special-case (`Json.Converter.fs:339`) never fires.
+2. Inject an empty `JObject {}`. Failed: same Union-decode path rejects it.
+3. Inject `{ "None": [] }` (SimpleJson's union None-case shape). Failed for **present-value** options:
+   `invocationId: string option` now fails with "Case 7 was not valid for FSharpOption`1". Fable-5
+   SimpleJson reflects *every* `option<'T>` as a generic union, so it mis-decodes both absent AND
+   present option values.
+4. **Final fix:** stop auto-decoding the StreamItem envelope via `tryConvertFromJsonAs<StreamItemMessage<…>>`.
+   Manually parse the envelope — extract `invocationId` and `item` from the raw JSON via
+   `SimpleJson.readPath ["invocationId"] parsedRaw` and `SimpleJson.readPath ["item"] parsedRaw`,
+   construct the `HubRecords.StreamItemMessage` record directly, and run `StreamItemMessage.validate`
+   + `unbox` to inject it into the typed pipeline. No auto-decode of option fields. Committed in
+   `eggshell-signalr` repo branch `shafayat/fix-realtime-decoding` (commit 702e634).
+
+General gotcha (distilled to [troubleshooting](../runbooks/troubleshooting.md)): Fable.SimpleJson
+3.24.0 under Fable 5 reflects `option<'T>` as a generic Union, NOT as `TypeInfo.Option`. The
+`JNull -> None` decode special-case therefore never fires for `option<'T>` fields. The union decoder
+needs `{ "CaseName": [fields] }` shape, and present `Some` values also fail because the union decoder
+mis-decodes them. **Implication:** any record with `option<'T>` fields that is auto-decoded by
+Fable.SimpleJson (`Json.tryConvertFromJsonAs<T>` / `ofJson<T>`) is fragile. Bypass auto-decoding for
+such envelopes; extract fields manually via `SimpleJson.readPath`. File:
+`~/.nuget/packages/fable.simplejson/3.24.0/fable/Json.Converter.fs`.
+
+Tangential friction hit during the fix (already in the `fable-rebuild-verify` skill gotchas): the
+`dev-web` watch is rooted at `Code/subject` and does not see edits in the sibling `Code/eggshell-signalr`
+repo (referenced via `ProjectReference`), so the referenced project does not recompile on save — dev-web
+must be restarted. After clearing `.build/web/fable/eggshell-signalr/`, webpack served a STALE bundle
+(seven errors: the deleted `.js` files Fable's watch did not re-emit because the source was unchanged).
+Fix: `touch` the client `.fs` sources so the watch re-emits them. This generalizes the existing
+"stale webpack bundle" gotcha: clearing the Fable cache for ONE referenced project leaves dangling
+references unless you force-recompile that project's sources.
+
+Verification: cross-window toggle propagates live in ~0.5s with zero parse errors; served bundle
+contains the fix (`grep readPath` on `http://localhost:9080/bundle.js`); clean Fable compile (7/7,
+0 FS errors).
+
+Also in this session: `SuiteTodo/dev-stack.sh` rewritten as a clean fake/real + docker/external-SQL
+toggle (`up` = fake; `up --real` = local Docker SQL; `up --real --sql=external --sql-server=… --sa-password=…`
+= external SQL). It now writes the **served** `public-dev/configSourceOverrides.dev.js` (not the root
+copy) and sets `ASPNETCORE_URLS=:5001`. Supersedes the session-36 note that `dev-stack.sh up` does
+not wire frontend to backend.
+
+## 2026-07-18 (session 36 -- ran SuiteTodo full stack against an EXTERNAL SQL Server; fixed missing Orleans dev TLS cert)
+
+Brought up the whole SuiteTodo stack (DevelopmentHost backend + AppTodo dev-web frontend) pointed at an
+**external SQL Server** (`192.168.2.231,1433`, SQL Server 2022 Developer on Ubuntu, x64) instead of the local
+Docker SQL. Proven end-to-end: a todo added in the browser UI persists through Orleans to the external DB
+(`Todo.Todo` + `Todo.Todo_SearchIndex` rows; view API returns it). Four things had to be fixed/known:
+
+- **Orleans dev TLS cert is missing (the real blocker).** `LibLifeCycleCore/src/Security/Certificates.fs`
+  loads an embedded `STAR_dev_subject_app.pfx`, but the `.pfx` is not in the repo and the `EmbeddedResource`
+  is commented out in `LibLifeCycleCore.fsproj`. Result at startup: `TypeInitializationException: TLS
+  Certificate embedded resource was not found` -> `crit: Orleans.Networking Exception in AcceptAsync` ->
+  `Unable to connect to endpoint S127.0.0.1:20043` -> every grain op dead (HTTP negotiate still 200 because
+  it does not touch grains, which masks the failure). **Fix (dev-only):** `Certificates.fs` now synthesizes an
+  equivalent self-signed cert (CN=*.subject.app, SAN + server/client EKU) at runtime when the embedded
+  resource is absent; and `AllowAnyRemoteCertificate()` is set on the dev client-side TLS in
+  `DevelopmentHost.fs` and `GrainConnectorProvider.fs` (the latter gated on `useDevelopmentCertificate`).
+  Production cert-store path (`allSubjectDotAppTlsCertificates`) is untouched.
+- **DevelopmentHost binds Kestrel on :5000 by default, not :5001.** The `"Http": { "Urls": ... }` appsettings
+  key is only read into `HttpCookieConfiguration`; it is NOT wired to Kestrel. With nothing else set,
+  `CreateDefaultBuilder` binds `http://localhost:5000` -- which also collides with macOS Control Center /
+  AirPlay Receiver. Run the host with `ASPNETCORE_URLS=http://localhost:5001` to match the frontend
+  `BackendUrl` and dodge the collision.
+- **Frontend FS957 (FSharpPlus) means the LibFablePlus patch tool is stale.** The net10 FSharpPlus fix
+  (`patchFSharpPlusExtensionsForNet9`, session 35) lives in `Meta/LibFablePlus/src/index.ts`, but its built
+  `dist/` is gitignored, so a checkout can carry a stale `dist/index.js` that predates the patch and dev-web
+  dies on `FSharpPlus.1.6.1/.../Extensions.fs ... code 957`. Fix: rebuild it (`cd Meta/LibFablePlus &&
+  ./initialize`, i.e. `npm run build` -> `tsc`), then re-run dev-web; confirm the marker
+  `EGGSHELL_NET9_IENUMERABLE_SLICE_PATCH` is present in `~/.nuget/.../fsharpplus/1.6.1/fable/Extensions/Extensions.fs`.
+- **AppTodo has two `configSourceOverrides.dev.js` copies.** The one the browser loads is
+  `AppTodo/public-dev/configSourceOverrides.dev.js` (static root referenced by `public-dev/index.html`);
+  editing the AppTodo-root copy alone does not change what is served. Uncomment `BackendUrl =
+  "http://localhost:5001"` in the `public-dev/` copy to switch off the in-memory fake service. Loaded at
+  runtime, so a browser reload is enough (no rebuild).
+
+Note: `SuiteTodo/dev-stack.sh up` does NOT wire the frontend to the backend as-is -- it starts a local Docker
+SQL and its `write_backend_dev_config` rewrites `configSourceOverrides.dev.js` with `BackendUrl` commented
+(fake mode). For external-SQL + real backend, drive the three steps manually (appsettings -> host with
+`ASPNETCORE_URLS` -> uncomment `BackendUrl` in `public-dev/`).
+
 ## 2026-07-17 (session 35 -- repo-wide net7.0 -> net10.0 TFM sweep; whole repo on net10, sims + Fable frontend green)
 
 Executed the real S0: bumped **every** project `net7.0` -> `net10.0` (frontend + backend) and drove the
