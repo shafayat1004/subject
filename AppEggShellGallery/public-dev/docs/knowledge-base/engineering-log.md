@@ -4,6 +4,64 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-18 (session 40 -- S15 F# Orleans 10 wire serializer round-trip spike)
+
+S15 spike executed on `shafayat/pgsql-initial-spikes` (commit `4b54d95`). Built throwaway 3-project
+spike at `Meta/S15SerializerRoundtrip/` to test whether `Microsoft.Orleans.Serialization.FSharp`
+10.2.1 covers F# DU/record wire serialization for grain calls.
+
+**Result: S15 FAILS the no-regression bar.** 1 of 10 representative shapes round-trips across a
+2-silo in-process `TestCluster`. The master plan's assumption that the FSharp package covers F#
+types is wrong.
+
+7 critical findings (cataloged in `modernization/spikes/s15-serializer-roundtrip.md`):
+
+1. **Orleans 10 source generator is C#-only.** `Microsoft.Orleans.CodeGenerator` exposes
+   `analyzers/dotnet/cs/` and no F# analyzer. Pure F# Orleans projects emit zero generated
+   code; runtime fails with `Could not find an implementation for interface ...` on the first
+   `GetGrain`.
+2. **`Microsoft.Orleans.Serialization.FSharp` ships only built-in codecs** (`FSharpUnit`,
+   `FSharpOption`, `FSharpValueOption`, `FSharpChoice`). It does NOT cover user-defined F#
+   records/DUs.
+3. **C# source generator does not scan referenced assemblies by default.** A C# project that
+   references an F# types assembly gets invokers for its own C# grain interfaces but not
+   serializers for the F# types referenced as method parameters: `Could not find a codec for
+   type S15SerializerRoundtrip.Annotated+Todo` at silo boot.
+4. **The fix that emits codecs: `[assembly: GenerateCodeForDeclaringAssembly(typeof(SomeTypeInTargetAssembly))]`**
+   in the C# project. After adding this attribute, the generated file grew from 21 lines
+   (empty TypeManifest) to 5034 lines including codecs/copiers/activators for every
+   `[<GenerateSerializer>]` F# type in the referenced F# assembly.
+5. **F# nullary union cases are inaccessible to the C# source generator.** A nullary case
+   compiles to a private nested class (e.g. `Annotated.TodoError._EmptyTitle`); the generator's
+   references fail with `error CS0122`. Spike workaround: change nullary cases to `of unit`.
+   This cascades through every caller in production and is an ergonomics tax, not a spike-only
+   detail.
+6. **`TypeManifestOptions.AllowAllTypes = true` is mandatory** on both silo and client (via
+   `ISiloConfigurator` + `IClientBuilderConfigurator`); without it, Orleans 10's type-allow-list
+   rejects every user type.
+7. **The `[<Id(n)>]` per-case attribute on F# union cases is accepted by the F# compiler but
+   the emitted C# codec does not honor it.** Multi-case-shape DUs round-trip with structural
+   mismatch; `Set<Category>` round-trip throws `Unable to cast object of type 'Personal' to
+   type 'Work'` (the generator emits one codec for the base type and mis-routes cases). Likely
+   a bug in `Microsoft.Orleans.CodeGenerator` 10.2.1's `FSharpUtilities` -- worth filing
+   against dotnet/orleans with the spike as the repro.
+
+Decision: the existing custom wire serializer in
+`LibLifeCycleCore/src/OrleansEx/Serializer.fs` CANNOT simply be deleted. Either rewrite it
+against Orleans 10's new `IFieldCodec`/`IBaseCopier` interfaces (replacing the removed
+`IExternalSerializer`/`ICopyContext`/`IDeserializationContext`/`ISerializationContext`), or
+replace it with another hand-written codec layer. The bigger blocker is grain-interface codegen:
+`LibLifeCycleCore/src/GrainClientInterface.fs`'s F#-defined grain interfaces need a C# codegen-
+host project carrying `[GenerateCodeForDeclaringAssembly(typeof(...))]`.
+
+New spike **S15b** is added: production codegen-host pattern for `LibLifeCycleCore` (gate on S1
+now). S1 (Orleans-on-PG18 baseline) is no longer storage-blocked but is gated by S15b in
+compilation terms (LibLifeCycleCore does not compile under Orleans 10 yet).
+
+Catalog: `modernization/spikes/s15-serializer-roundtrip.md`.
+
+---
+
 ## 2026-07-18 (session 39 -- S10 Orleans 3.7.2 -> 10.2.1 package-bump catalog)
 
 S10 spike executed on `shafayat/pgsql-initial-spikes`. Bumped Orleans 3.7.2 -> 10.2.1 across
