@@ -1,0 +1,309 @@
+---
+name: spike-driven
+description: Run a time-boxed spike to de-risk a third-party-ecosystem or unfamiliar-territory question (Orleans, ASP.NET, Fable, Npgsql, React Native, Postgres, etc.) before committing to production code. Use when the master plan has a "spike Sx" entry, when a library/stack version jump is being evaluated, when a single change touches many consumers, or when you need to prove an unknown before doing the real work. Produces a catalog doc + engineering log entry + codemem entry + green build evidence (or empirical FAIL evidence). NOT for routine feature work.
+user-invocable: true
+argument-hint: "<spike-name> [query=<symptom keywords>] [upstream=<OWNER/REPO>]"
+---
+
+# spike-driven
+
+Spikes de-risk the unknowns before committing to production code. A spike is **throwaway** code +
+**durable** documentation: catalog doc + engineering log entry + codemem entry + green build
+evidence (or empirical FAIL evidence). The production codebase never carries half-stabilized state.
+
+The four rules every spike enforces (lessons from S0, S10, S15, mssql-debug):
+
+1. **Upstream research BEFORE code.** Read the upstream repo's issues + official sample README + API
+   docs BEFORE writing the `.fsproj`. Most ecosystem gotchas are already documented.
+   Lesson from S15 (codemem 1893): 6 of 7 findings were upstream-documented (dotnet/orleans #8520,
+   #8717, SO Q77159202, official API docs); 4-5h iteration could have been ~1h.
+2. **Throwaway project under `Meta/`** — never touch production code (rule 8). If a 3-project
+   layout is needed (Types / Codegen / Host), put each in its own subdirectory so `obj/` doesn't
+   collide across projects.
+3. **Catalog doc under
+   `AppEggShellGallery/public-dev/docs/modernization/spikes/<spike-name>.md`** — durable artifact
+   with verbatim errors + per-shape PASS/FAIL + decision + next-spike worklist. Follow the
+   format of an existing catalog (`spikes/s10-orleans-bump-catalog.md`,
+   `spikes/s15-serializer-roundtrip.md`).
+4. **Mirror to codemem + engineering log** in the same commit. codemem captures the durable lesson;
+   the engineering-log captures the narrative; the catalog doc captures the full evidence. All
+   three live in the spike's closing commit.
+
+## When to use
+
+- A version jump (major upgrade of Orleans / Npgsql / Fable / RN / etc.).
+- A "spike Sx" entry in `modernization/sql-server-to-postgres.md` or any other spike plan doc.
+- An unfamiliar third-party API surface that gates a refactor.
+- A single change touches many consumers and you need to size the break surface before doing the
+  real work (TIER 0 catalog spike).
+- A new pattern (e.g. codegen-host, surrogate serializer) you have not used before.
+
+## When NOT to use
+
+- Routine feature work in known territory (use `verify-feature`, `a11y-check`, etc.).
+- Bug fixes in code you own (use the regular edit + build + test flow).
+- Doc edits (use `docs-sync`).
+- Perf work that doesn't introduce unknowns (use `verify-feature` for evidence).
+
+## Flow
+
+### Step 0 — Inventory prior work (cheap, fast)
+
+- `codemem_memory_search query="<spike topic>"` — surface prior codemem entries.
+- `grep -r "<spike topic>" AppEggShellGallery/public-dev/docs/` — find existing catalog docs.
+- `git log --oneline --grep="<spike topic>"` — find prior commits.
+- If a prior catalog exists for the SAME question, **cite it and proceed only if the prior result
+  is stale** (different versions, different shapes). Otherwise close the spike as already-done.
+
+### Step 1 — Upstream research (MANDATORY before code)
+
+For a third-party-ecosystem question (Orleans, ASP.NET, Fable, Npgsql, React Native, Postgres, etc.):
+
+1. **List upstream issues matching the symptom** via `gh issue` (NOT webfetch — auth wall, no
+   comments):
+
+   ```sh
+   scripts/upstream-research.sh "<symptom keywords>" dotnet/orleans dotnet/aspnetcore
+   ```
+
+   The script runs `gh issue list --repo OWNER/REPO --search "<symptom>" --state all --limit 30
+   --json number,title,state,url` for each repo and prints a one-row-per-match table.
+
+2. **Read each match with comments:**
+
+   ```sh
+   gh issue view 8717 --repo dotnet/orleans --comments
+   gh issue view https://github.com/dotnet/orleans/issues/8520 --comments
+   ```
+
+3. **Search SO + answeroverflow.com** for the product + symptom. Webfetch is fine for SO (no auth
+   wall). For answeroverflow.com use webfetch directly.
+
+4. **Read the official sample's README + source.** Microsoft samples live under
+   `learn.microsoft.com/en-us/samples/dotnet/samples/<sample-name>/` and on GitHub under
+   `dotnet/samples` — the README often contains non-obvious setup notes (e.g. the Orleans F#
+   sample README says verbatim "Microsoft.Orleans.Sdk does not support emitting F# code, however,
+   it supports analyzing F# assemblies and emitting C# code").
+
+5. **Read the API docs for any option mentioned** (e.g. `TypeManifestOptions.AllowAllTypes` —
+   `learn.microsoft.com/en-us/dotnet/api/<namespace>.<type>`).
+
+6. **Check the package XML docs locally** for a referenced package — they often list every public
+   type the package exposes, which tells you what the package actually does:
+
+   ```sh
+   find ~/.nuget/packages/<package-id>/<version>/lib/net10.0/ -name '*.xml' \
+     -exec rg -n 'member name="T:' {} \;
+   ```
+
+   Lesson from S15 finding #2: `Microsoft.Orleans.Serialization.FSharp`'s XML doc list shows it
+   only ships `FSharpUnit`, `FSharpOption`, `FSharpValueOption`, `FSharpChoice` — NO codecs for
+   user-defined F# records/DUs.
+
+7. **Record the upstream citations in the catalog doc.** Per finding: which upstream issue/sample/
+   API-doc/ package-XML documents it. If no upstream source is found for a finding, mark it as
+   "genuinely novel" — that's the spike's real contribution.
+
+### Step 2 — Decide: spike still needed?
+
+After step 1, you may find the question is fully answered upstream. In that case:
+
+- Record the answer in a SHORT catalog doc (cite the upstream sources verbatim, no throwaway
+  code).
+- Append a one-line engineering-log entry: "Sx spike skipped — upstream-documented (see catalog
+  for citations)."
+- Run codemem-update with the upstream sources as the durable lesson.
+- Commit. Done. No code required.
+
+If the upstream answer is incomplete for the repo's specific shapes (e.g. the docs cover F#
+`Option` but the repo uses `Result<'T, 'E>` on grain interfaces), the spike narrows to the
+uncovered shapes. Document the narrowing.
+
+### Step 3 — Scaffold the throwaway project
+
+```sh
+scripts/new-spike.sh <spike-name>          # e.g. s16-result-codec
+```
+
+Creates `Meta/<spike-name>/` with this layout (3-project pattern; drop subdirs you don't need):
+
+```
+Meta/<spike-name>/
+  Types/<spike-name>Types.fsproj           # F# types with [<GenerateSerializer>] etc.
+  Types/Shapes.fs
+  Codegen/<spike-name>Codegen.csproj       # C# helper that triggers source generators
+  Codegen/CodegenAssemblyInfo.cs            # [assembly: GenerateCodeForDeclaringAssembly(typeof(...))]
+  Host/<spike-name>.fsproj                 # F# console that boots a TestCluster + asserts
+  Host/Program.fs
+```
+
+Every subdirectory has its own `.fsproj` / `.csproj` — do NOT share `obj/` across projects (MSBuild
+MSB3540 error: `MSBuildProjectExtensionsPath` modified after use). Lesson from S15.
+
+`.fsproj` / `.csproj` template (copy from an existing spike like
+`Meta/S15SerializerRoundtrip/`):
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>            <!-- 13.0 for C# projects -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>   <!-- spike: surface real errors past new warnings -->
+    <Configurations>Debug;Release</Configurations>
+    <EggShellFmtSeverity>none</EggShellFmtSeverity>        <!-- skip repo format check on throwaway code -->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />
+    <!-- ... -->
+  </ItemGroup>
+</Project>
+```
+
+**FSharp.Core version pinning (mandatory when an Orleans package is referenced).**
+`Directory.Build.props` pins `FSharp.Core` 9.0.201 via `PackageReference Update`. Orleans 10's
+`Microsoft.Orleans.Serialization.FSharp` requires >= 10.0.103. Use `VersionOverride` (NOT
+`Version`) so the repo's `Directory.Build.targets` translates it to a `Version` that beats the
+pinned 9.0.201. Without the override, NU1605 downgrade warning fires and `Microsoft.Orleans.
+Serialization.FSharp` may not bind correctly. Lesson from S10 (codemem 1889).
+
+### Step 4 — Build + run + capture per-shape PASS/FAIL
+
+- `dotnet build Meta/<spike-name>/Host/<spike-name>.fsproj -c Debug` — confirm green.
+- `dotnet Meta/<spike-name>/Host/bin/Debug/net10.0/<spike-name>.dll` — capture full output.
+- If a shape fails, capture the verbatim error message. Orleans serializer diagnostics usually
+  say "No codec found for type ..." or "Could not find an implementation for interface ...".
+- Iterate: try the documented workaround first (cite the upstream issue/sample for each fix).
+  Only invent a new workaround if the documented ones fail; mark that as a "genuinely novel"
+  finding.
+- Do NOT propagate fixes back to production code. The spike is throwaway. Production fixes happen
+  in a follow-up spike (e.g. S15 -> S15b).
+
+### Step 5 — Write the catalog doc
+
+Template: `scripts/spike-catalog-template.md`. Render at
+`AppEggShellGallery/public-dev/docs/modernization/spikes/<spike-name>.md`. Sections:
+
+1. **Branch + spike goal** (one paragraph; cite the master plan section).
+2. **Setup** — project layout, package refs, any non-obvious config (`GenerateCodeForDeclaringAssembly`,
+   `AllowAllTypes`, `VersionOverride` etc).
+3. **Critical findings** — each finding with: verbatim error/symptom, root cause, fix, upstream
+   citation (issue number / sample URL / API doc URL / package XML).
+4. **Per-shape result table** — shape × annotation × result × note.
+5. **Decision** — answer to the spike's gating question (e.g. "delete custom serializer" vs
+   "rewrite as `IFieldCodec`"). Cite which findings drove the decision.
+6. **Open questions / surprises** — including any process miss (e.g. "websearch not done first")
+   with a citation to the codemem entry that captures the rule.
+7. **Next spikes (worklist)** — gated follow-ups, with the gating reason explicit (e.g. "S1 is
+   gated by S15b because LibLifeCycleCore does not compile under Orleans 10 yet").
+
+### Step 6 — Mirror to engineering log + codemem
+
+- Append a session entry to `AppEggShellGallery/public-dev/docs/knowledge-base/engineering-log.md`
+  (newest at top). Format:
+
+  ```
+  ## YYYY-MM-DD (session N -- <spike-name> <one-line summary>)
+
+  <spike goal, one paragraph>
+  <results, one paragraph>
+  <key findings, bulleted with upstream citations>
+  Decision: <one paragraph>
+  Catalog: modernization/spikes/<spike-name>.md.
+  Next: <next-spike name + gating reason>.
+  ```
+
+- Run the **codemem-update** skill (`codemem_memory_remember`) with: kind=`discovery` (or
+  `decision`/`change`/`bugfix` as fits), title symptom-first (≤120 chars), body = symptom → root
+  cause → fix → verification → non-obvious technique + upstream citations. Confidence 0.95 if
+  verified by build, 0.7 if inferred.
+
+### Step 7 — Commit (single coherent changeset)
+
+Stage ONLY the spike's files:
+
+- `Meta/<spike-name>/` (entire new directory: Types/, Codegen/, Host/, bin/obj ignored).
+- `AppEggShellGallery/public-dev/docs/modernization/spikes/<spike-name>.md`
+- `AppEggShellGallery/public-dev/docs/knowledge-base/engineering-log.md` (the new session entry)
+
+Commit message subject ≤50 chars, Conventional Commits style. Body explains the why + points at
+the catalog doc + cites upstream issue numbers. Example:
+
+```
+S15 spike: F# Orleans 10 serializer via C# codegen host
+
+Throwaway 3-project spike (Meta/S15SerializerRoundtrip/) proves the F# +
+Orleans 10 interop question the master plan gated on. Result: S15 FAILS
+the no-regression bar -- 1 of 10 shapes round-trips. The 7 critical
+findings are cataloged in spikes/s15-serializer-roundtrip.md. 6 of 7
+were upstream-documented (dotnet/orleans #8520, #8717, SO Q77159202,
+official API docs); finding #7 is genuinely novel.
+```
+
+Push the branch (do not squash-merge — squash-merge breaks rebase of pre-merge branch tips;
+codemem 1888). The branch stays open for follow-up work.
+
+## Validation gates (before claiming done)
+
+1. `dotnet build Meta/<spike-name>/Host/<spike-name>.fsproj -c Debug` — green.
+2. `dotnet run --project Meta/<spike-name>/Host/<spike-name>.fsproj -c Debug` — prints per-shape
+   PASS/FAIL, exit code 0 (all pass) or 1 (any fail). Capture full output verbatim.
+3. Catalog doc exists at the right path, follows the template, has upstream citations per
+   finding.
+4. Engineering log has the new session entry at the top.
+5. codemem has the new entry (run `codemem_memory_search query="<spike name>"` to verify).
+6. Git commit message body points at the catalog doc.
+7. If the spike discovered a process miss (e.g. upstream research not done first), the rule is
+   added to CLAUDE.md (see rule 14 for the S15 lesson) OR codemem-only if the rule is
+   spike-specific.
+
+## Doc refs
+
+- `AppEggShellGallery/public-dev/docs/modernization/sql-server-to-postgres.md` — master spike
+  plan, the canonical spike order (S0 → S10 → S15 → S1 → ...).
+- `AppEggShellGallery/public-dev/docs/modernization/spikes/s10-orleans-bump-catalog.md` — format
+  precedent for a TIER 0 catalog spike (break surface only, no fixes).
+- `AppEggShellGallery/public-dev/docs/modernization/spikes/s15-serializer-roundtrip.md` — format
+  precedent for a TIER 1 spike (per-shape PASS/FAIL + decision + upstream citations).
+- `AppEggShellGallery/public-dev/docs/knowledge-base/engineering-log.md` — append-only log,
+  newest at top.
+- `CLAUDE.md` rule 14 — the upstream-research rule, distilled from S15.
+
+## How to improve this skill (mandatory post-spike review)
+
+At the end of every spike that used this skill, evaluate whether the skill should be updated
+(CLAUDE.md rule 1's post-session skill review, applied to spikes):
+
+- Did the spike hit a gotcha the skill doesn't mention? Add it as a finding-pattern entry.
+- Did the spike discover a better upstream-research path (new repo, new sample, new search
+  technique)? Add it to step 1.
+- Did the spike discover a new project-layout pattern (e.g. a 4th subproject for surrogate
+  codecs)? Update step 3.
+- Did the spike reveal that one of the validation gates is insufficient? Strengthen it.
+- If a spike completes without any new learning beyond what the skill already says, say so
+  explicitly ("nothing generalizable; skill is current") and skip — do not pad the skill with
+  one-off details.
+
+Concrete update triggers from prior spikes:
+
+| Trigger | Update |
+|---|---|
+| S10's FSharp.Core NU1605 downgrade | step 3 documents `VersionOverride` |
+| S15's websearch-first miss | step 1 mandates `gh issue` before code; codemem 1893 |
+| S15's `obj/` collision across sibling projects | step 3 mandates one-subdir-per-project |
+| Codemem 1888 (squash-merge breaks rebase) | step 7 warns against squash-merge of spike branches |
+| Codemem 1851 (dev-web watch misses lib edits) | not a spike-specific gotcha — lives in runbooks only |
+
+When in doubt, add the learning to codemem (which is search-targetable) rather than padding this
+skill. This skill stays a concise procedure; codemem carries the long tail.
+
+## Doc-refs (anti-pattern: do not duplicate)
+
+This skill does NOT duplicate:
+- The master spike plan (`sql-server-to-postgres.md`) — it points at it.
+- The catalog doc format precedent (existing `spikes/s*.md`) — it points at it.
+- The codemem-update skill — it invokes it (step 6).
+- The docs-sync skill — it complements it (catalog doc lives under the docs site).
+- The runbooks — for dev-loop / device gotchas, use the runbook skill, not this one.
+
+If this skill ever grows to >200 lines, split a helper script out.
