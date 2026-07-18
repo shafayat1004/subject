@@ -40,3 +40,28 @@ done
 ```
 
 (For the UNFILED S15 finding #7, file a new issue with the S15 spike as repro before re-checking here.)
+
+## Orleans source clone (for the production-port phase)
+
+The `dotnet/orleans` repo is cloned shallow at the `v10.2.1` tag (matches our package pin) at
+`~/Code/orleans` (sibling to `~/Code/subject`). 34M. Use it for the S15b-production-port work
+item (the actual LibLifeCycleCore rewrite). Key files to reference:
+
+- `src/Orleans.Serialization/Codecs/IFieldCodec.cs` -- the IFieldCodec interface (WriteField / ReadValue).
+- `src/Orleans.Serialization/Serializers/IGeneralizedCodec.cs` -- IGeneralizedCodec : IFieldCodec (+ IsSupportedType).
+- `src/Orleans.Serialization/Cloning/IDeepCopier.cs` -- IDeepCopier + IGeneralizedCopier + IBaseCopier + CopyContext (all in one file).
+- `src/Orleans.Serialization.FSharp/FSharpCodecs.cs` -- the built-in F# codecs (FSharpUnitCodec, FSharpOptionCodec<T>, FSharpValueOptionCodec<T>, FSharpChoiceCodec<T1,T2>). Confirms S15 finding #2: only those 4 are built-in, no user-defined F# DU/record codecs.
+- `src/Orleans.CodeGenerator/ApplicationPartAttributeGenerator.cs` -- emits the `[assembly: Orleans.ApplicationPartAttribute("...")]` lines into generated code.
+- `src/Orleans.CodeGenerator/Diagnostics/GenerateCodeForDeclaringAssemblyAttribute_NoDeclaringAssembly_Diagnostic.cs` -- the source generator's diagnostic for when `GenerateCodeForDeclaringAssembly` is given a type with no declaring assembly.
+
+The clone is shallow (depth 1) at the v10.2.1 tag. To refresh or upgrade to a newer tag:
+
+```sh
+cd ~/Code/orleans
+git fetch --depth 1 origin tag v10.2.2-rc.2
+git checkout v10.2.2-rc.2
+```
+
+The `dotnet/samples` repo (for the official F# HelloWorld sample) is NOT cloned locally; it is
+~3GB. Fetch specific files on-demand via raw.githubusercontent.com URLs (e.g. the README was
+read via `https://raw.githubusercontent.com/dotnet/samples/main/orleans/FSharpHelloWorld/README.md`).
