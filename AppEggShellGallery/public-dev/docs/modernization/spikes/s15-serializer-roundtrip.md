@@ -30,11 +30,21 @@ not allowed."
 
 ## Critical findings
 
+Most of these were discoverable by websearch *before* building the spike -- the spike ended up
+being mostly empirical confirmation of upstream-documented behavior. That websearch was not done
+first is a process miss; the citations are included below so the next person does not have to
+re-derive them. Finding #7 (per-case `[<Id(n)>]` not honored on multi-case DUs) appears to be
+genuinely novel -- no upstream report found.
+
 1. **Orleans 10 source generator is C#-only.** The `Microsoft.Orleans.CodeGenerator` package
    exposes `analyzers/dotnet/cs/` and nothing else. There is no F# analyzer. A pure F# project
    referencing `Microsoft.Orleans.Server` + `Microsoft.Orleans.Serialization.FSharp` builds cleanly
    but emits zero source-generated code. Runtime: `Could not find an implementation for interface
    S15SerializerRoundtrip.IAnnotatedSpikeGrain` on the first `GetGrain<...>` call.
+   **Upstream**: the official Orleans F# sample
+   (https://learn.microsoft.com/en-us/samples/dotnet/samples/orleans-fsharp-sample/) README
+   states verbatim: "The Microsoft.Orleans.Sdk package does not support emitting F# code,
+   however, it supports analyzing F# assemblies and emitting C# code."
 2. **`Microsoft.Orleans.Serialization.FSharp` provides only built-in F# codecs.** Its public API
    (from the XML doc list) is `FSharpUnitCodec`, `FSharpOptionCodec<'T>`, `FSharpValueOptionCodec<'T>`,
    `FSharpChoiceCodec<'T1,'T2>` and matching copiers. **There is no codec for user-defined F#
@@ -44,6 +54,9 @@ not allowed."
    the F# types referenced as method parameters get `Could not find a codec for type
    S15SerializerRoundtrip.Annotated+Todo` at silo boot. `[assembly: ApplicationPartAttribute
    ("S15Types")]` is a runtime-only marker; it does not trigger compile-time codegen.
+   **Upstream**: dotnet/orleans issue #8520 "GenerateCodeForDeclaringAssembly is critical and
+   undocumented" (https://github.com/dotnet/orleans/issues/8520) -- a C# dev with .NET since 1.1
+   also could not find this in the docs.
 4. **The fix that works: `[assembly: GenerateCodeForDeclaringAssembly(typeof(SomeTypeInTargetAssembly))]`**
    in the C# project. This attribute tells the Orleans source generator to scan the declaring
    assembly of the given type for `[GenerateSerializer]` types and emit codecs/copiers/activators
@@ -52,6 +65,7 @@ not allowed."
    to `CodegenAssemblyInfo.cs`, the generated file grew from 21 lines (empty TypeManifest) to 5034
    lines including codecs/copiers/activators for every `[<GenerateSerializer>]` F# type in
    `S15Types.dll`.
+   **Upstream**: documented in the Orleans F# sample + dotnet/orleans issue #8520.
 5. **F# nullary union cases are inaccessible to the C# source generator.** A nullary case like
    `| EmptyTitle` compiles to a private nested class `Annotated.TodoError._EmptyTitle`. The source
    generator emits references to that nested type (`global::S15SerializerRoundtrip.Annotated.TodoError._EmptyTitle`)
@@ -63,14 +77,31 @@ not allowed."
    (`TodoAction.ToggleDone`, `TodoAction.Archive`, `TodoAction.Delete`, `TodoLifeEvent.Created`,
    `TodoLifeEvent.Archived`, `TodoOpError.EmptyTitle`, etc.) would have to change, and the cascade
    touches every caller. Worth a separate evaluation in S15b.
+   **Upstream**: dotnet/orleans issue #8717 "F# discriminated unions, where some cases has no
+   associated values, fails to compile with error CS0122"
+   (https://github.com/dotnet/orleans/issues/8717) -- exact same symptom and same workaround
+   proposed by an outside F# team migrating 3.x -> 7.0. SO Q77159202 "What is required to make F#
+   discriminated unions work with Orleans 7" -- answer: "DU cases must carry some data."
 6. **`TypeManifestOptions.AllowAllTypes = true` is mandatory** for both silo and client. Without
    it, Orleans 10's type-allow-list rejects every user type with "Type is not allowed. To allow
    it, add it to TypeManifestOptions.AllowedTypes or register an ITypeNameFilter or ITypeFilter
    instance which allows it." Set via `ISiloConfigurator` and `IClientBuilderConfigurator` in
    `Program.fs`.
+   **Upstream**: official API docs
+   (https://learn.microsoft.com/en-us/dotnet/api/orleans.serialization.configuration.typemanifestoptions.allowalltypes)
+   -- "Gets or sets a value indicating whether to allow all types by default. Default: false."
+   Also discussed in dotnet/orleans issue #10227 (10.2.0 tightened type allow-listing).
 7. **The `[<Id(n)>]` per-case attribute is honored by the source generator.** Without it, the
    generator refuses to emit codecs for F# union types (silent skip -- the codec simply does not
    appear, leading to a runtime "no codec" error). With it, codecs are emitted.
+   **Genuinely novel finding (no upstream report located)**: even WITH `[<Id(n)>]` per case,
+   multi-case-shape F# DUs fail round-trip with "structural mismatch" (see per-shape table below).
+   The `CollectionsRecord` round-trip throws `Unable to cast object of type 'Personal' to type
+   'Work'` -- the generated codec emits a single codec for the base `Category` type and mis-routes
+   cases. Possibly an interaction with the `of unit` workaround (finding #5), or a real bug in
+   `Microsoft.Orleans.CodeGenerator` 10.2.1's `FSharpUtilities`. Worth filing against
+   dotnet/orleans with the spike as the repro. This is the only finding the websearch did not
+   surface -- every other finding was upstream-documented.
 
 ## Per-shape round-trip result (Annotated module)
 
@@ -126,6 +157,15 @@ risk part of the Orleans jump" is **not proven**. The spike instead proves:
 
 ## Open questions / surprises
 
+- **Process miss: websearch was not done before building the spike.** 6 of 7 findings were
+  upstream-documented (Orleans F# sample, dotnet/orleans issues #8520 and #8717, official
+  TypeManifestOptions API docs, SO Q77159202). The spike still contributed empirical confirmation
+  that the documented behavior holds on 10.2.1 for the repo's actual shapes, plus the genuinely
+  novel finding #7, plus a per-shape round-trip table the upstream issues do not provide. But the
+  4-5 hours of build/iterate work could have been compressed to ~1 hour if the upstream issues had
+  been read first. Lesson for future spikes: websearch upstream issues + the official sample's
+  README *before* writing code, especially for an Orleans/Microsoft-ecosystem question -- the
+  Orleans team and outside F# teams have hit and documented most of these.
 - The `[<Id(n)>]` attribute on F# union cases is accepted by the F# compiler but the emitted C#
   codec does not appear to honor it: the `CollectionsRecord` round-trip fails with a cast error
   that points to a single codec for the base `Category` type routing all cases through one
@@ -139,7 +179,8 @@ risk part of the Orleans jump" is **not proven**. The spike instead proves:
   extensively on grain interfaces. A custom `Result` codec or a wrapper-record pattern is needed.
 - The Orleans README example for `Microsoft.Orleans.Serialization.FSharp` shows pure-F# grain
   interfaces and grain impls and silently omits that they only work if a separate C# project
-  carries `[GenerateCodeForDeclaringAssembly]`. The README is misleading; raise a doc PR.
+  carries `[GenerateCodeForDeclaringAssembly]`. The README is misleading; raise a doc PR
+  against dotnet/orleans referencing issue #8520.
 
 ## Next spikes (worklist update)
 
