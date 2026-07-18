@@ -4,6 +4,71 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-18 (session 41 -- S15b production codegen-host pattern spike)
+
+Spike per `modernization/sql-server-to-postgres.md` S15b. S15 found that
+`Microsoft.Orleans.Serialization.FSharp` 10.2.1 does not cover the repo's F# DU/record
+shapes (1 of 10 round-tripped via source-gen). S15b proves the production porting pattern:
+4-project layout (Types / Grains / Codegen / Host) where the C# Codegen project carries two
+`GenerateCodeForDeclaringAssembly` attributes (one pointing at the F# Types assembly for
+interface invoker codegen, one at the F# Grains assembly for grain-class metadata +
+activator codegen), `[<assembly: InternalsVisibleTo("Codegen")>]` on the F# Types project
+exposes nullary-case internal classes (sidesteps S15 finding #5's `of unit` cascade tax --
+no caller changes needed), a custom `IGeneralizedCodec`/`IGeneralizedCopier` (registered
+via DI) wraps the existing Fleece/STJ wire serializer (sidesteps S15 finding #7's
+source-gen DU mis-routing), and `[<assembly: Orleans.ApplicationPartAttribute(...)]` on
+the F# Host wires the C#-generated metadata + the F# grain impls into the silo's runtime.
+
+Result: **S15b PASSES the no-regression bar -- 7 of 7 representative shapes round-trip
+through the production-shape pattern.** Per-shape: BlobData via Option<BlobData> PASS;
+TodoAction.SetTitle/ToggleDone/Archive PASS (nullary cases via InternalsVisibleTo);
+TodoOpError.EmptyTitle (nullary error case) PASS; Result<GetTodoOutput, TodoOpError>
+with Todo list PASS; Priority.High inside Todo PASS.
+
+Key findings:
+- `[<assembly: InternalsVisibleTo("Codegen")>]` on the F# Types project IS the workaround
+  for nullary-case CS0122 -- upstream dotnet/orleans #8717 (gfix confirmed verbatim).
+  OVERRIDES S15's "of unit cascade tax is unavoidable" decision.
+- C# source generator needs TWO `GenerateCodeForDeclaringAssembly` attributes when grain
+  interfaces and grain impls live in separate assemblies -- one per assembly. Single
+  attribute emitted 23 lines (no invokers); two attributes emitted 666 lines (full
+  invokers + activators). Upstream dotnet/orleans #8520 covers single-assembly; the
+  multi-assembly case is the spike's empirical extension.
+- Custom `IGeneralizedCodec`/`IGeneralizedCopier` (Orleans 10) replaces removed
+  `IExternalSerializer` (Orleans 3.x). Upstream: official docs
+  `learn.microsoft.com/en-us/dotnet/orleans/host/configuration-guide/serialization-customization`.
+- Custom codec's wire format MUST include a type-name prefix (or TypeId byte) -- the naive
+  "try each registered type" heuristic mis-routes inner payloads when called by typed
+  codecs like FSharpResultCodec. Production's `Serializer.fs` already has this design
+  (TypeId byte prefix); the port is straightforward.
+- F# grain impls CAN live in an F# project -- they just need a sibling C# project to scan
+  them. 4-project layout has no project-reference cycle. Upstream: dotnet/orleans #8235
+  (F# host workaround by fwaris).
+- STJ doesn't natively handle F# DUs/Options/FSharpList -- production uses Fleece+STJ
+  (already covers all F# shapes). STJ convention gotcha: `JsonConverter.Read` must leave
+  reader at the END of the value (at the closing quote/brace/bracket), NOT past it.
+
+Decision: the custom wire serializer in `LibLifeCycleCore/src/OrleansEx/Serializer.fs`
+must be REWRITTEN as a custom `IGeneralizedCodec`+`IGeneralizedCopier`+`IFieldCodec`+
+`IDeepCopier` registered via DI; a new C# `LibLifeCycleCodeGenHost.csproj` sibling
+project must be added to LibLifeCycleCore, carrying the two
+`GenerateCodeForDeclaringAssembly` attributes; `[<assembly: InternalsVisibleTo(...)]` on
+LibLifeCycleCore; `[<assembly: Orleans.ApplicationPartAttribute(...)]` on the F# Host.
+
+Process win: upstream research via `gh issue` BEFORE writing the .fsproj surfaced the
+InternalsVisibleTo workaround (#8717), the IGeneralizedCodec pattern (official docs), and
+the F# host ApplicationPartAttribute workaround (#8235) -- all before any code. Total
+spike time ~2.5h including iteration. S15 (which skipped upstream research) took 4-5h and
+missed 6 of 7 documented findings. The spike-driven skill's step-1 mandate paid off.
+
+Catalog: modernization/spikes/s15b-production-codegen.md.
+Next: S1 (Orleans-on-PG18 baseline) UNBLOCKED -- the S15b pattern proves LibLifeCycleCore
+can compile under Orleans 10. S1 is a throwaway console booting a real Orleans 10 silo
+against PG18 with UseLocalhostClustering + ADO.NET persistence + reminders. The actual
+LibLifeCycleCore rewrite (S15b-production-port) is a follow-up work item, NOT a spike.
+
+---
+
 ## 2026-07-18 (session 40 -- S15 F# Orleans 10 wire serializer round-trip spike)
 
 S15 spike executed on `shafayat/pgsql-initial-spikes` (commit `4b54d95`). Built throwaway 3-project
