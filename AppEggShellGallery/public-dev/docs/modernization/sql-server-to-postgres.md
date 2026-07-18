@@ -8,7 +8,7 @@ modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven exe
 seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
-**Workstream status: S15 spike FAILED (1/10); S15b spike PASSED (7/7); S15b-production-port COMPILE GREEN; S15c spike PASSED + S15c-production-port LANDED (session 44 -- codegen re-enabled, ConnectorGrain wired, 93/93 unit tests pass); S15d spike PASSED (3/3, session 44). Booting the real silo post-S15c revealed two Orleans-10 runtime blockers: (1) Autofac keyed services (fixed -- ADI 6.0.0 -> 10.0.0); (2) Orleans 10 decomposes F# Option/ValueOption/Choice/Result natively and needs bare-leaf codecs (S15d -- the S15b whole-wrapper registrations are wrong). Next: S15d-production-port (rework `Serializer.fs` to bare leaves + run the simulation suites green) -> S1 (PG18 baseline).**
+**Workstream status: S15 spike FAILED (1/10); S15b spike PASSED (7/7); S15b-production-port COMPILE GREEN; S15c spike PASSED + S15c-production-port LANDED (session 44); S15d spike PASSED (3/3, session 44) + S15d-production-port LANDED (session 45 -- bare-leaf serializer rework + TestCluster client codec-registration fix; LibLifeCycleTest 93/93 + SuiteTodo 5/5 green; SuiteJobs 18/47 with `Stasis not reached` follow-up, separate work item). Next: S1 (PG18 baseline throwaway silo).**
 
 Version numbers and upstream script paths carry source URLs in [References](#references). All versions below
 were confirmed against nuget.org / upstream release pages on **2026-07-15**.
@@ -656,15 +656,37 @@ covers dev/CI.
   [`spikes/s15d-fsharp-wrapper-codecs.md`](spikes/s15d-fsharp-wrapper-codecs.md). The
   `Microsoft.Orleans.Serialization.FSharp` 10.2.1 package ships `FSharpOption`/`ValueOption`/`Choice`/`Result`
   codecs (Result is NEW vs S15 finding #2) that decompose the wrapper and delegate to inner leaf codecs; an
-  `IGeneralizedCodec` (fallback) never wins over them, so the S15b custom codec's whole-wrapper
+  `IGeneralizedCodec` (fallback) never wins over them, so the S15b custom codec's whole wrapper
   registrations (`Option<BlobData>`, `Result<unit, GrainRefreshTimersAndSubsError>`, ...) leave the bare
   inner leaf uncovered -> `CodecNotFoundException` at silo boot. **Fix (verified PASS, 3/3 real 2-silo
-  round-trip): register the bare LEAF types, not the wrappers.** **Follow-up production-port worklist
-  (S15d-production-port):** rework `LibLifeCycleCore/src/OrleansEx/Serializer.fs` (~30 wrapper registrations
-  -> bare leaves; make the two in-file validation guards decomposition-aware; drop native-only-inner and
-  already-bare-inner wrappers; keep `FSharpList`/`Map`/`Set` wholesale; never reuse typeIds), then run the
-  full `LibLifeCycleTest` + `SuiteTodo` + `SuiteJobs` simulation suites green. **S1 is gated by
-  S15d-production-port.**
+  round-trip): register the bare LEAF types, not the wrappers.**
+
+- **S15d-production-port · LANDED (session 45).** Applied the spike decision to production:
+  - `Serializer.fs`: new `decomposeToNativeLeaves` + `orleansNativeLeafTypes`; retired 23 whole-wrapper
+    TypeIds (8/15/17-19/21-22/32/36-39/45-46/53-55/59/62-66/68/71/73/77/79-83) with leaf-migration comments;
+    added 20 new bare-leaf registrations at TypeIds 84-103 (subject) + 4/5 (view, retiring old TypeId 3).
+  - Both in-file coverage guards (redundancy check + "must define serializers" check) made
+    decomposition-aware -- peel declared grain param/return types via `decomposeToNativeLeaves` before
+    testing; `isOrleansHandledLeaf` predicate covers native primitives + grain-observer interfaces.
+  - **Second bug (NOT from the spike):** `SiloBuilder.ConfigureSiloClientForEcosystem`'s
+    `TestCluster`/`TestClusterDataSeeding` branch never called `configureSiloClientSerializers`, so the
+    test-client DI never registered `EggShellSubjectGrainsCodec`. Orleans 3.x's lazy codec resolution
+    masked this for years; Orleans 10's eager `AnalyzeSerializerAvailability` at `ClusterClient..ctor`
+    makes it fatal. Fixed: added the call. **Lesson:** an Orleans 3.x -> 10 migration must audit EVERY
+    `IClientBuilder` path for codec registration, not just the silo -- the in-process TestCluster does NOT
+    inherit the silo's DI container.
+  - **Verification:** build 0 err 0 warn on all 5 affected + 2 Ecosystem test projects; `LibLifeCycleTest`
+    **93/93 PASS**; `SuiteTodo/Ecosystem/Tests` **5/5 PASS** (real 2-silo grain round-trips).
+  - **SuiteJobs follow-up (separate, NOT gating S1):** SuiteJobs test project had a stale Test SDK
+    (16.8.3) that could not discover `SimulationTestFramework`-attributed tests under .NET 10 -- `dotnet
+    test` exited 0 with zero tests run. Bumped Test.Sdk to 17.12.0 + added `xunit.runner.visualstudio`
+    (needed because `SimulationTestFramework` extends `XunitTestFramework`); removed dangling
+    `<RunSettingsFilePath>`. SuiteJobs tests now run for the first time under .NET 10 / Orleans 10:
+    **18/47 PASS, 29 FAIL** with a uniform `Stasis not reached, 1 side effects not processed within
+    00:00:15 : [Transient ...` failure pattern. Not a regression from S15d (LibLifeCycleTest's
+    `SideEffectTracking.fs` + `ClockSimulation.fs` pass 93/93; basic side-effect tracking works). Likely
+    an Orleans 3.7 -> 10 timing/dispatch difference in the SuiteJobs-specific job lifecycle. Tracked as a
+    separate follow-up work item.
 
 ### Tier 2 — core storage (the hard part)
 

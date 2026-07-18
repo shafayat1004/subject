@@ -200,9 +200,15 @@ that the codegen gate had been hiding:
 
 ## Next work item
 
-- **S15d-production-port** -- rework the S15b custom serializer to register bare leaves (see the S15d
-  catalog). This is the remaining gate before the grain simulations run green.
-- **S1 (PG18 baseline)** -- gated by S15d-production-port.
+- **S15d-production-port -- LANDED (session 45).** See the S15d catalog's "Production-port outcome"
+  section. `Serializer.fs` reworked to bare leaves (TypeIds 84-103 + view 4/5); both validation guards
+  made decomposition-aware; plus a real bug-fix -- `SiloBuilder.ConfigureSiloClientForEcosystem`'s
+  TestCluster branch now calls `configureSiloClientSerializers` (Orleans 3.x lazy codec resolution had
+  masked the missing client codec for years; Orleans 10's eager `AnalyzeSerializerAvailability` makes
+  it fatal at `ClusterClient..ctor`). **LibLifeCycleTest 93/93 + SuiteTodo/Ecosystem 5/5 green.**
+  SuiteJobs tests runnable for the first time under .NET 10 (stale Test SDK 16.8.3 -> 17.12.0); 18/47
+  PASS, 29 FAIL with `Stasis not reached` -- separate follow-up, NOT a regression.
+- **S1 (PG18 baseline)** -- unblocked.
 - **File upstream** dotnet/orleans issue: source generator should skip compiler-generated types when
   collecting `InvokableInterfaceImplementations` (one-line `!symbol.IsCompilerGenerated()` guard at
   `CodeGenerator.cs:224`). Attach `Meta/s15c-closure-codegen/` as the minimal repro.

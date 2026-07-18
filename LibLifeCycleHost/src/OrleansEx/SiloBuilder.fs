@@ -257,15 +257,22 @@ type SiloConfigurationExtensions =
             match clientSetup with
             | EcosystemSiloClientSetup.TestCluster
             | EcosystemSiloClientSetup.TestClusterDataSeeding ->
-                clientBuilder
-                    // Sadly ClientBuilder and the host container don't share the service container
-                    // so we have to explicitly bind services that we expect the Orleans client
-                    // to use
-                    // https://github.com/dotnet/orleans/issues/4744
+                // Orleans 10's client-startup AnalyzeSerializerAvailability eagerly decomposes declared
+                // grain param/return types (Option/Result/tuples) and asks the DI for an IFieldCodec<T>
+                // for each bare leaf. Without registering EggShellSubjectGrainsCodec on the client the
+                // validator throws CodecNotFoundException for any user F# leaf (BlobData,
+                // GrainRefreshTimersAndSubsError, ...). Under Orleans 3.7 codec resolution was lazy, so
+                // this registration was silently skipped for the in-process TestCluster; Orleans 10 makes
+                // the absence fatal. See spikes/s15d-fsharp-wrapper-codecs.md.
+                (configureSiloClientSerializers clientBuilder hostEcosystem.LifeCycleDefs hostEcosystem.ViewDefs)
+                // Sadly ClientBuilder and the host container don't share the service container
+                // so we have to explicitly bind services that we expect the Orleans client
+                // to use
+                // https://github.com/dotnet/orleans/issues/4744
                     .ConfigureServices(fun services ->
                         services
                             .AddSingleton<OperationTracker>(noopOperationTracker)
-                        |> ignore
+                            |> ignore
                     )
 
             | EcosystemSiloClientSetup.ApiToHost x ->

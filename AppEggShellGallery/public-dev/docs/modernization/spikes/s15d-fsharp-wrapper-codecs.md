@@ -102,10 +102,46 @@ An in-progress runtime enumeration (during the S15c-production-port session) con
 way and need the same bare-leaf treatment; a complete list must be gathered from a clean run since the
 framework's reflection-based declared-type scan is assembly-load-order sensitive.
 
+## Production-port outcome (session 45, LANDED)
+
+**S15d-production-port landed.** Reworked `LibLifeCycleCore/src/OrleansEx/Serializer.fs` per the spike
+decision: 23 whole-wrapper entries retired (TypeIds 8/15/17-19/21-22/32/36-39/45-46/53-55/59/62-66/68/
+71/73/77/79-83), 20 new bare-leaf registrations added at TypeIds 84-103 (subject) + 4/5 (view), and both
+in-file coverage guards made decomposition-aware via `decomposeToNativeLeaves`. Catalog's "must be gathered
+from a clean run" caveat turned out to be unnecessary -- the guards' reflection-based declared-type scan
+finds the leaves deterministically once `AllowAllTypes = true` is set.
+
+**Second bug found and fixed (not part of the spike).** `SiloBuilder.ConfigureSiloClientForEcosystem`'s
+`TestCluster`/`TestClusterDataSeeding` branch never called `configureSiloClientSerializers`, so the test
+client DI never registered `EggShellSubjectGrainsCodec` at all. Orleans 3.x's lazy codec resolution masked
+this for years; Orleans 10's eager `AnalyzeSerializerAvailability` makes it fatal at
+`ClusterClient..ctor`. Fix: added the call. Same audit applies to ANY `IClientBuilder` path -- every
+client configurator must register the codec, not just the silo.
+
+**Verification.**
+- `dotnet build` 0 errors / 0 warnings across `LibLifeCycleCore` + `LibLifeCycleHost` +
+  `LibLifeCycleCodeGenHost` + `LibLifeCycleTest` + `SuiteTodo/Ecosystem/Tests` + `SuiteJobs/Ecosystem/Tests`.
+- `dotnet test LibLifeCycleTest/LibLifeCycleTest.fsproj`: **93/93 PASS**.
+- `dotnet test SuiteTodo/Ecosystem/Tests/Tests.fsproj`: **5/5 PASS** (real 2-silo grain round-trips:
+  construct/act/get/snapshot/subscribe + blob + reminders).
+- `dotnet test SuiteJobs/Ecosystem/Tests/Tests.fsproj`: **18/47 PASS, 29 FAIL** with a uniform
+  `Stasis not reached, 1 side effects not processed within 00:00:15 : [Transient ...` failure. This is a
+  pre-existing issue surfaced for the first time because the SuiteJobs test project had a stale Test SDK
+  (16.8.3) that prevented any test from running under .NET 10. Bumped Test.Sdk to 17.12.0 + added
+  `xunit.runner.visualstudio` (needed because `SimulationTestFramework` extends `XunitTestFramework`).
+  Tracked as a separate follow-up work item; does NOT block S15d-production-port or S1.
+
+**Next.** S1 (Orleans 10 silo against Postgres 18, throwaway) is unblocked. SuiteJobs `Stasis not reached`
+follow-up is its own work item.
+
 ## Next work item
 
-- **S15d-production-port** (follow-up, NOT a spike). Rework `LibLifeCycleCore/src/OrleansEx/Serializer.fs`
-  to register bare leaves + make both validation guards decomposition-aware, then run the full
-  `LibLifeCycleTest` + `SuiteTodo` + `SuiteJobs` simulation suites green (real grain round-trips). This
-  is the remaining half of "prove no regression" for the Orleans 3.7 -> 10 upgrade.
-- **S1 (PG18 baseline)** -- gated by S15d-production-port.
+- **S1 (PG18 baseline)** -- no longer gated. Throwaway console booting a real Orleans 10 silo against
+  Postgres 18 with `UseLocalhostClustering` + ADO.NET persistence + reminders (Npgsql invariant).
+- **SuiteJobs `Stasis not reached` follow-up** (separate, NOT gating S1). 29/47 SuiteJobs simulation
+  tests fail with a uniform 1-`GrainSideEffect.Transient` unprocessed within the 15s
+  `defaultStasisWaitFor`. Likely an Orleans 3.7 -> 10 timing/dispatch difference in the SuiteJobs-specific
+  job lifecycle (scheduling + retries + connector heartbeat + reminders). The basic side-effect tracking
+  path works (LibLifeCycleTest's `SideEffectTracking.fs` + `ClockSimulation.fs` pass 93/93); the stall is
+  in SuiteJobs's higher-level job-state machine.
+

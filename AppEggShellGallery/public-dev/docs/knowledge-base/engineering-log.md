@@ -4,7 +4,88 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
-## 2026-07-19 (session 44 -- S15c-production-port LANDED + Autofac keyed-services fix + S15d spike)
+## 2026-07-19 (session 45 -- S15d-production-port LANDED: bare-leaf serializer rework + TestCluster client codec-registration bug)
+
+Closes the runtime blocker deferred from session 44. Applies the S15d spike decision (catalog
+`spikes/s15d-fsharp-wrapper-codecs.md`, PASS 3/3) to the production serializer and proves no regression
+across the simulation suites. Two bugs surfaced; the second is the real one and was masked by Orleans 3.7
+for years.
+
+**S15d-production-port (production, LANDED).** Reworked `LibLifeCycleCore/src/OrleansEx/Serializer.fs`:
+- New `decomposeToNativeLeaves` peels `Option`/`ValueOption`/`Choice`/`Result`/tuples to their bare leaves,
+  and `orleansNativeLeafTypes` enumerates the primitives Orleans 10 serializes unaided (string, Guid,
+  DateTime(Offset), TimeSpan, decimal, unit, ...).
+- Retired 23 whole-wrapper `UntypedSerializer.ForIsomorphicType` entries whose inner is now decomposed by
+  Orleans 10 natively: TypeIds 8/15/17-19/21-22/32/36-39/45-46/53-55/59/62-66/68/71/73/77/79-83. Each is
+  left as a commented placeholder with the leaf TypeId(s) it migrated to, so the 83-entry table stays
+  honest and no TypeId is ever reused.
+- Added 20 new bare-leaf registrations at TypeIds 84-103 for the error/ok leaves the retired wrappers
+  carried (`GrainConstructionError<OpError>`, `GrainIdGenerationError<OpError>`,
+  `GrainRefreshTimersAndSubsError`, `BlobData`, `ConstructSubscriptions`, `TemporalSnapshot<..>`,
+  `SubjectFailure<Grain*Error>`, ...). Subject side: TypeIds 84-103. View side: retired TypeId 3
+  (`Result<'Output, GrainExecutionError<'OpError>>`) and re-registered the two bare leaves at TypeIds 4 + 5.
+- Made both in-file coverage guards decomposition-aware: the redundancy check + the "must define
+  serializers" check now peel declared grain param/return types via `decomposeToNativeLeaves` before
+  testing, and the Orleans-handled leaf check is hoisted into a single `isOrleansHandledLeaf` predicate
+  (native primitives + grain-observer interfaces). Without the peel the guards fire false positives on
+  every retired wrapper entry.
+
+**Runtime blocker -- TestCluster client never registered the codec (FIXED).** First time running
+`SuiteTodo/Ecosystem/Tests` after the bare-leaf rework threw
+`CodecNotFoundException: LibLifeCycleTypes.SubjectTypes+BlobData` at Orleans client construction
+(`CodecProvider.GetCodec<BlobData>` via `FSharpOptionCodec<BlobData>`'s constructor, which needs an
+`IFieldCodec<BlobData>` injected). Root cause: `SiloBuilder.ConfigureSiloClientForEcosystem`'s
+`TestCluster` / `TestClusterDataSeeding` branch in `LibLifeCycleHost/src/OrleansEx/SiloBuilder.fs`
+only added `OperationTracker` to the client's `IServiceCollection` -- it NEVER called
+`configureSiloClientSerializers` (which wires `EggShellSubjectGrainsCodec` as `IGeneralizedCodec` +
+`IFieldCodec` + `IGeneralizedCopier` + `IDeepCopier`). The `ApiToHost` and `HostToRemoteHost` branches
+did. Under Orleans 3.7 codec resolution was lazy (resolved on first grain call), so the in-process
+TestCluster's missing client-side codec was silently masked -- a real grain round-trip happened to never
+hit an `Option<BlobData>` shape on the wire in the LibLifeCycleTest 93/93 path. Orleans 10's
+`AnalyzeSerializerAvailability` runs eagerly at `ClusterClient..ctor` and decomposes every declared grain
+param/return type, asking the DI for an `IFieldCodec<T>` for each bare leaf -- so the absence is now fatal
+at startup. Fix: added `configureSiloClientSerializers` to the TestCluster branch. Lesson: an Orleans
+3.7 -> 10 migration must audit every IClientBuilder path for codec registration, not just the silo path;
+lazy resolution made the test-client omission invisible for years.
+
+**SuiteTodo sims green, LibLifeCycleTest green.** `dotnet test SuiteTodo/Ecosystem/Tests/Tests.fsproj`:
+5/5 PASS. `dotnet test LibLifeCycleTest/LibLifeCycleTest.fsproj`: 93/93 PASS. Together with the 0/0
+errors build across `LibLifeCycleCore` + `LibLifeCycleHost` + `LibLifeCycleCodeGenHost` + the two Ecosystem
+test projects, this is the S15d no-regression bar.
+
+**SuiteJobs infra unblocked + new follow-up.** `SuiteJobs/Ecosystem/Tests/Tests.fsproj` was using a stale
+test SDK (`Microsoft.NET.Test.Sdk` 16.8.3, `coverlet.collector` 1.0.1) that could not discover
+`SimulationTestFramework`-attributed tests under .NET 10 -- `dotnet test` exited 0 with zero tests run
+plus a `The Settings file '.runsettings' could not be found` warning that killed the session. Aligned
+SuiteJobs with SuiteTodo's package versions (Test.Sdk 17.12.0, coverlet 6.0.2, added `xunit` 2.9.0 +
+`xunit.runner.visualstudio` 2.8.2 -- needed because `SimulationTestFramework` extends `XunitTestFramework`),
+and removed the dangling `<RunSettingsFilePath>` pointing at a non-existent file. SuiteJobs tests now run
+for the first time under .NET 10 / Orleans 10. **Result: 18/47 PASS, 29/47 FAIL** with a uniform
+`Stasis not reached, 1 side effects not processed within 00:00:15 : [Transient ...` failure pattern
+(`Ecosystem.fs:727`). The 15-second `defaultStasisWaitFor` (`Cluster.fs:66`) is hit consistently across
+job/recurring-job/batch/dispatcher tests -- 1 `GrainSideEffect.Transient` stays unprocessed in the
+`TestSideEffectTrackerHook` queue. Because SuiteJobs has never run on .NET 10 before (the stale SDK
+prevented it), these failures pre-date S15d-production-port and are NOT regressions from the bare-leaf
+rework (LibLifeCycleTest's `SideEffectTracking.fs` + `ClockSimulation.fs` pass 93/93; the basic
+side-effect tracking path works). Likely cause is an Orleans 3.7 -> 10 timing/dispatch difference in
+the SuiteJobs-specific job lifecycle (scheduling + retries + connector heartbeat + reminders). Tracked
+as a separate follow-up work item below; does not block S15d-production-port landing or S1.
+
+**Next.** S15d-production-port LANDED. S1 (PG18 baseline throwaway silo) is now unblocked: a real
+Orleans 10 silo against Postgres 18 with `UseLocalhostClustering` + ADO.NET persistence + reminders
+(Npgsql invariant). Follow-up: SuiteJobs `Stasis not reached` 29/47 -- separate work item.
+
+Lesson (durable, also goes to `runbooks/troubleshooting.md`): when porting a custom
+`IGeneralizedCodec`-based serializer from Orleans 3.x to 10, audit EVERY `IClientBuilder` path for codec
+registration -- not just the silo. Orleans 3.x resolved codecs lazily on first use; Orleans 10's
+`AnalyzeSerializerAvailability` runs eagerly at `ClusterClient..ctor` and decomposes declared grain
+param/return types, asking the DI for an `IFieldCodec<T>` for every bare leaf. A missing client-side
+codec registration that was silent for years becomes a startup-time `CodecNotFoundException` for any user
+F# leaf (BlobData, GrainRefreshTimersAndSubsError, ...). Same audit applies to every test-cluster client
+configurator (`TestSiloClientConfigurator` here) -- the in-process TestCluster does NOT inherit the silo's
+DI container.
+
+
 
 Applied the S15c fixes to production, re-enabled codegen, and ran the tests to prove no regression -- which
 peeled back two more Orleans-10 runtime blockers the codegen gate had been hiding.
