@@ -4,6 +4,40 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 43 -- S15c spike: F# closure misclassification blocker SOLVED + FS0909 debunked)
+
+Closes the HARD BLOCKER deferred from session 42. Throwaway 4-project spike at
+`Meta/s15c-closure-codegen/` mirroring production's F# construct shapes (`backgroundTask { }` CE + an
+F# object expression implementing a grain-observer interface, via `CreateObjectReference`) -- the shapes
+S15b's trivial impls omitted.
+
+Result: SPIKE PASS 1/1, Host exit 0, real 2-silo grain-observer round-trip. Both S15c questions answered.
+
+- **Primary (gates runtime), genuinely novel.** The Orleans 10 C# source generator
+  (`CodeGenerator.cs:224-259`, v10.2.1) adds ANY non-abstract public/internal class implementing an
+  `[GenerateMethodSerializers]`-annotated (inherited) interface to `InvokableInterfaceImplementations`,
+  with **no `IsCompilerGenerated()` filter**. `IGrainObserver : IAddressable` (which carries the
+  attribute), so F#'s compiler-emitted object-expression closure classes get flagged, and
+  `MetadataGenerator.cs:79-84` emits `config.InterfaceImplementations.Add(typeof(...Subscriber.observer @ 33))`
+  -- the `@` is invalid C# (CS1646/CS1026/CS0426). **Fix:** lift the object expression to a **named
+  top-level F# class** (valid `typeof`); the extra manifest registration is benign at runtime (round-trip
+  PASSES). No upstream issue reports this; the upstream fix is a one-line `!symbol.IsCompilerGenerated()`
+  guard. Cf. S15 finding #7.
+- **Secondary -- the FS0909 diagnosis (session 42) was WRONG.** Uncommenting the real
+  `ConnectorGrain.fs` `interface IConnectorGrain<...> with` block + building `LibLifeCycleHost` gave
+  `FS0010` on a stray `=>` (C#-style lambda arrow) at line 133 -- **inside the commented block**, so
+  never type-checked. Fixing `=>` -> `->` compiles `LibLifeCycleHost` with 0 errors, interface fully
+  wired. No FS0909, no constraint drop, no LibLifeCycle API cascade. Lesson: a compiler error reported
+  from inside a `(* ... *)` block is not evidence about that block -- uncomment + build for ground truth.
+
+Decision: re-enable both `GenerateCodeForDeclaringAssembly` attributes in production once the two grain-
+observer object expressions (`GrainConnector.fs:117` awaiter, `Web/RealTime.fs:103` subject observer) are
+lifted to named classes; uncomment + typo-fix `ConnectorGrain.fs`. All follow-up production-port edits;
+production left pristine by this spike.
+
+Catalog: `modernization/spikes/s15c-closure-codegen.md`. Codemem 1899 (closure fix) + 1900 (FS0909 debunk).
+Next: S15c-production-port (apply the two decisions) -> S1 (PG18 baseline), now unblocked.
+
 ## 2026-07-19 (session 42 -- S15b-production-port: Orleans 10 backend port; COMPILE GREEN, runtime HARD BLOCKER)
 
 Production work item per `modernization/sql-server-to-postgres.md` S15b-production-port. Apply the

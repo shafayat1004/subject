@@ -333,7 +333,9 @@ semi-spike that reuses the spike's proven pattern. Before starting the productio
    - `backgroundTask {`, `task {` — CEs that emit closure classes,
    - `{ new I.*GrainObserver`, `{ new I.*Observer` — object expressions on grain-observer
      interfaces,
-   - `when '.* :>` — constraint-bearing generic interfaces (F# 10 FS0909 cascade risk),
+   - `{ new I.*Observer`, `{ new I.*Awaiter` — object expressions on grain-observer interfaces
+     (F# closure classes the Orleans 10 source generator misclassifies -> broken C#; see S15c /
+     codemem 1899. Lift to named top-level F# classes before re-enabling GenerateCodeForDeclaringAssembly),
    - `IGrainActivationContext`, `IGrainReferenceConverter`, `IExternalSerializer` — APIs the
      version jump may have dropped.
 
@@ -345,14 +347,17 @@ semi-spike that reuses the spike's proven pattern. Before starting the productio
    spike (e.g. S15c) when the port surfaces a novel construct-related blocker. Do NOT assume
    the spike's PASS means the port will be smooth.
 
-4. **F# 10 FS0909 cascade check.** F# 10 (`FSharp.Core` 10.0.103) tightened the
-   `This constructor is provided for FSharp.Core only` constraint. Generic interfaces with
-   `when 'T :> Foo` constraints (e.g. `IConnectorGrain<'Request, 'Env when 'Request :> Request>`)
-   may trigger FS0909 when implemented via `interface ... with` blocks. If production uses
-   constraint-bearing generic grain interfaces, search for FS0909 in F# compiler release notes
-   BEFORE the port. Lesson from S15b-production-port: `ConnectorGrain.fs`'s
-   `interface IConnectorGrain<...> with` block had to be commented out, unwiring the connector
-   grain at runtime.
+4. **Errors reported from inside a commented block are NOT ground truth -- uncomment + build
+   first.** S15b-production-port (session 42) commented out `ConnectorGrain.fs`'s
+   `interface IConnectorGrain<'Request, 'Env when 'Request :> Request> with` block and attributed
+   the failure to F# 10 FS0909 on a constraint-bearing generic interface, planning a constraint-drop
+   cascade through `LibLifeCycle/src/Services.fs`. S15c (session 43) proved this was a
+   **MISDIAGNOSIS**: constraint-bearing generic grain interfaces compile fine under F# 10 /
+   FSharp.Core 10.0.103; the real error was a stray `=>` (C#-style lambda arrow) at
+   `ConnectorGrain.fs:133` *inside the commented block*, so never type-checked. `(* ... *)` code is
+   not compiled -- any "diagnosis" of a commented block is a guess. **Uncomment + build for the real
+   error before theorizing a language-level cause.** (codemem 1900). Constraint-bearing generic F#
+   grain interfaces are NOT a known FS0909 risk.
 
 ## Validation gates (before claiming done)
 
@@ -422,7 +427,8 @@ Concrete update triggers from prior spikes:
 | Codemem 1888 (squash-merge breaks rebase) | step 7 warns against squash-merge of spike branches |
 | Codemem 1851 (dev-web watch misses lib edits) | not a spike-specific gotcha — lives in runbooks only |
 | S15b-production-port (codemem 1898): spike PASSED 7/7 with trivial impls but production port hit HARD BLOCKER late because spike never exercised `backgroundTask { }` CEs + F# object expressions (Orleans 10 C# source generator misclassifies F# closure classes as InterfaceImplementations) | step 3 mandates mirroring production's F# construct shapes; step 4 mandates a real grain round-trip; new "Reusing a spike pattern in production" section mandates re-running upstream issue search with production-specific construct keywords + inventorying production's F# constructs before the port |
-| S15b-production-port (codemem 1898): F# 10 FS0909 on `interface IConnectorGrain<'Request, 'Env when 'Request :> Request> with` — constraint-bearing generic grain interface blocks implementation | "Reusing a spike pattern in production" section step 4 documents the FS0909 cascade risk |
+| S15b-production-port (codemem 1898): claimed F# 10 FS0909 on `interface IConnectorGrain<...> with` blocks implementation | **Superseded by S15c (codemem 1900): this was a MISDIAGNOSIS** — the block was commented out (never compiled); the real error was a `=>` typo inside it. "Reusing a spike pattern in production" step 4 now says: uncomment + build before theorizing a language-level cause |
+| S15c (codemem 1899): Orleans 10 source generator misclassifies F# object-expression grain-observer closures (`observer@33`) as InterfaceImplementations -> invalid C# `typeof(...@33)` | step 3 mandates mirroring `{ new I.*Observer/Awaiter }` object expressions; fix = lift to named top-level F# class (valid `typeof`); root cause = no `IsCompilerGenerated()` guard at `CodeGenerator.cs:224` |
 | S15b-production-port (codemem 1898): spike's PASS bar was serializer round-trip only; production port needed invoker (method-dispatch) round-trip too — the source-gen invoker path is what broke | step 4 mandates an actual grain method invocation via the cluster client, not just grain construction |
 
 When in doubt, add the learning to codemem (which is search-targetable) rather than padding this
