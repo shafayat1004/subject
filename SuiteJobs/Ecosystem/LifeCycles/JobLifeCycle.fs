@@ -135,18 +135,13 @@ let private transitionJobBody
             let! now = env.Clock.Query Now
             let latency = now - enqueuedOn
             yield
-                jobRunnerConnector.Request
-                    JobRunnerRequest.RunJob
+                jobRunnerConnector.RequestMultiResponse(
+                    JobRunnerRequestBuilder
                         { Ticket       = ticket
                           JobId        = jobId
                           IsAtMostOnce = body.FailurePolicy.IsAtMostOnce
-                          Payload      = body.Payload; }
-                    (fun (ticket, update) ->
-                        match update with
-                        | ProcessingJobUpdate.Heartbeat ->
-                            JobAction.OnHeartbeat ticket
-                        | ProcessingJobUpdate.Completed result ->
-                            JobAction.OnProcessingComplete (ticket, result))
+                          Payload      = body.Payload },
+                    JobRunnerResponseMapper())
             return { body with State = JobState.Processing (ticket, { StartedBy = dequeuedBy; StartedOn = now; Latency = latency; LastHeartbeatOn = None }) }
 
         | JobState.Enqueued _, JobAction.Delete ->

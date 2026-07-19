@@ -8,8 +8,7 @@ modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven exe
 seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
-**Workstream status: not started. Phase 0 (decisions) revised this session; execution begins with the spikes
-in [Spike-driven execution](#spike-driven-execution).**
+**Workstream status: S15 spike FAILED (1/10); S15b spike PASSED (7/7); S15b-production-port COMPILE GREEN; S15c spike PASSED + S15c-production-port LANDED (session 44); S15d spike PASSED (3/3, session 44) + S15d-production-port LANDED (session 45 -- bare-leaf serializer rework + TestCluster client codec-registration fix; LibLifeCycleTest 93/93 + SuiteTodo 5/5 green); S15e-production-port LANDED (session 46 -- IConnectorGrain command-object rewrite; SuiteJobs 47/47 PASS, zero Stasis/CodecNotFoundException). Next: S1 (PG18 baseline throwaway silo).**
 
 Version numbers and upstream script paths carry source URLs in [References](#references). All versions below
 were confirmed against nuget.org / upstream release pages on **2026-07-15**.
@@ -493,9 +492,13 @@ maps to the original phase arc (P0–P6) for continuity. **Every refactor commit
 state is committed (lesson from an earlier Postgres spike branch: duplicate members left in
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
-Recommended order: **S0 → S10 → S15 → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
-S0+S10+S15+S1 first (~5 days) prove the foundation before the big storage work. S15 runs right after the package
-bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S6 is
+Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S15c-production-port → S15d → S15d-production-port → S15e → S15e-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
+S16 (Orleans-jump parity verification) is independent of storage and runs any time after S15e-production-port compiles green. It uses the current SQL Server clustering, so it does not wait on the Postgres tiers.
+S0+S10+S15+S15b+S15b-production-port+S15c+S15c-production-port+S1 first (~7–9 days) prove the foundation before the big storage work. S15 ran right after the package
+bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S15b confirmed the
+production codegen-host pattern; **S15b-production-port** is the actual LibLifeCycleCore rewrite (not a spike — applies the
+S15b pattern to the real codebase, ~1–2d). **S1 is gated by S15b-production-port** — LibLifeCycleCore must compile under
+Orleans 10 before the throwaway PG18 console can boot a real silo. S2/S3 are independent and parallel; S4 is
 gated after S4. S14 (K8s membership) is last — it depends on the silo being otherwise complete, and the localhost path (S1) already
 covers dev/CI.
 
@@ -553,6 +556,165 @@ covers dev/CI.
   7.x (issue #8255) and fixed via PR #9095 in `Microsoft.Orleans.Serialization.FSharp`; this spike confirms it
   holds on 10.2.1 for the repo's actual shapes. Pass/fail: every representative F# type round-trips across a real
   grain call; a failure escalates before any storage work begins.
+
+  **STATUS (2026-07-18, session 40): S15 FAILED the no-regression bar — 1 of 10 shapes round-tripped.**
+  Catalog: `spikes/s15-serializer-roundtrip.md`. 7 critical findings: source-gen is C#-only;
+  `Microsoft.Orleans.Serialization.FSharp` ships only built-in codecs (Unit/Option/ValueOption/Choice —
+  NOT user records/DUs/Result); source-gen does NOT scan referenced assemblies by default; the seam is
+  `[assembly: GenerateCodeForDeclaringAssembly(typeof(SomeTypeInFsharpAssembly))]` in a C# project;
+  F# nullary union cases compile to private nested classes the C# generator can't access (CS0122); the
+  per-case `[<Id(n)>]` attribute is NOT honored by the emitted C# codec (genuinely novel finding, no
+  upstream report). 6 of 7 findings were upstream-documented (dotnet/orleans #8520, #8717, official API
+  docs). Process miss: upstream research was not done BEFORE writing the .fsproj — added as CLAUDE.md rule 14
+  + codemem 1893, codemem 1894 (spike-driven skill). The custom wire serializer in
+  `LibLifeCycleCore/src/OrleansEx/Serializer.fs` CANNOT simply be deleted — must be rewritten.
+
+- **S15b · Production codegen-host pattern for F# grain interfaces + custom IGeneralizedCodec.** *(~1d,
+  maps to P0 spike; supersedes S15's pessimistic verdict.)*
+  Throwaway 4-project spike (Types / Grains / Codegen / Host) validating the production porting pattern:
+  C# Codegen project carries two `GenerateCodeForDeclaringAssembly` attributes (one per F# assembly —
+  interfaces in Types, grain impls in Grains); `[<assembly: InternalsVisibleTo("Codegen")>]` on the F#
+  Types project exposes nullary-case internal classes (sidesteps S15 finding #5's `of unit` cascade tax —
+  NO caller changes); custom `IGeneralizedCodec`+`IGeneralizedCopier`+`IFieldCodec`+`IDeepCopier`
+  (registered via DI) wraps the existing Fleece/STJ wire serializer (sidesteps S15 finding #7's source-gen
+  DU mis-routing); `[<assembly: Orleans.ApplicationPartAttribute("...")>]` on the F# Host wires in the
+  C#-generated invokers + the F# grain impls (dotnet/orleans #8235 workaround).
+
+  **STATUS (2026-07-18, session 41): S15b PASSED — 7 of 7 representative shapes round-trip through the
+  production-shape codegen-host pattern via a 2-silo in-process TestCluster.** Catalog:
+  `spikes/s15b-production-codegen.md`. Codemem 1895. 7 critical findings (5 of 7 upstream-documented:
+  #8717 InternalsVisibleTo, #8520 GenerateCodeForDeclaringAssembly, official IGeneralizedCodec docs, #8235
+  F# host ApplicationPartAttribute). Decision: the custom wire serializer MUST be rewritten as
+  IGeneralizedCodec+IGeneralizedCopier+IFieldCodec+IDeepCopier; a new C#
+  `LibLifeCycleCodeGenHost.csproj` sibling project must be added to LibLifeCycleCore; `[InternalsVisibleTo]`
+  on LibLifeCycleCore; `[Orleans.ApplicationPartAttribute(...)]` on the F# Host.
+
+- **S15b-production-port · (NOT a spike — production work item).** Apply the S15b spike pattern to the
+  real `LibLifeCycleCore`. Files: rewrite `LibLifeCycleCore/src/OrleansEx/Serializer.fs` against the 4
+  new interfaces (port the 83 TypeId entries from the existing `UntypedSerializer.ForIsomorphicType`
+  table — the byte TypeId scheme stays, JSON body serialization reuses Fleece+gzip); rewrite
+  `OrleansEx/Serialization.fs` to register the new codec via DI (replace removed
+  `SerializationProviderOptions`/`IApplicationPartManager`/`SerializerFeature`); rewrite
+  `GrainConnectorProvider.fs` for the new `UseOrleansClient` generic-host pattern (replaces removed
+  `ClientBuilder`/`IClientBuilder`); fix the `GrainConnector.fs:126` Task CE Bind overload mismatch
+  (FSharp.Core 10 / .NET 10 effect); add a new C# `LibLifeCycleCodeGenHost/LibLifeCycleCodeGenHost.csproj`
+  sibling project carrying the two `GenerateCodeForDeclaringAssembly` attributes; add
+  `[<assembly: InternalsVisibleTo("LibLifeCycleCodeGenHost")>]` to `LibLifeCycleCore`; add
+  `[<assembly: Orleans.ApplicationPartAttribute("LibLifeCycleCodeGenHost")>]` +
+  `[<assembly: Orleans.ApplicationPartAttribute("LibLifeCycleHost")>]` to the F# Host's startup
+  (`DevelopmentHost.fs` or equivalent). The 50 distinct S10 compiler errors all resolve through this
+  work item. GATES S1 (the throwaway PG18 console can't boot a real Orleans 10 silo until
+  `LibLifeCycleCore` compiles).
+
+  **STATUS (2026-07-19, session 42): COMPILE GREEN (0 errors 0 warnings on all 5 affected projects:
+  LibLifeCycleCore + LibLifeCycleHost + LibLifeCycleTest + LibLifeCycleHostBuild + new C#
+  LibLifeCycleCodeGenHost).** The serializer rewrite, client-builder ports, grain lifecycle port
+  (`IGrainActivationContext` → `IGrainContext`, `OnActivateAsync`/`OnDeactivateAsync` signatures,
+  `ReminderEntry.GrainId`, `IInvokable.GetArgument`), `UseDashboard` deferral (TODO S11),
+  `ApplicationPartAttribute` + `InternalsVisibleTo` wiring, and the new C# codegen-host project are
+  all in place. BUT: the Orleans 10 source generator emits BROKEN C# when scanning production-shape
+  F# assemblies (misclassifies F# Task-CE/object-expression closures as `InterfaceImplementations`,
+  emitting invalid C# referencing F# mangled names like `GrainConnector.RunAndWait@117-1<...>`).
+  Both `GenerateCodeForDeclaringAssembly` attributes are COMMENTED OUT -> no source-gen invokers ->
+  runtime grain dispatch will fail. The `ConnectorGrain.fs` `interface IConnectorGrain<...> with`
+  block is also commented out (F# 10 FS0909 on constraint-bearing generic interfaces). Both deferred
+  to **S15c spike** (find workaround). Engineering log session 42. S1 cannot proceed until S15c
+  unblocks runtime dispatch.
+
+- **S15c · Orleans 10 source-generator F# closure misclassification. SPIKE PASSED (session 43).**
+  *(gated S1; now resolved.)* Throwaway spike `Meta/s15c-closure-codegen/`; catalog
+  [`spikes/s15c-closure-codegen.md`](spikes/s15c-closure-codegen.md). Root cause (verified in
+  `~/Code/orleans` v10.2.1, `CodeGenerator.cs:224-259`): the generator adds any non-abstract
+  public/internal class implementing a `[GenerateMethodSerializers]`-annotated (inherited) interface to
+  `InvokableInterfaceImplementations` with **no `IsCompilerGenerated()` filter**. `IGrainObserver :
+  IAddressable` (carries the attribute), so F#'s compiler-emitted object-expression closures get flagged,
+  and `MetadataGenerator.cs:79-84` emits an invalid `config.InterfaceImplementations.Add(typeof(...observer @ 33))`
+  (`@` is not a valid C# identifier -> CS1646/CS1026/CS0426). **Fix (verified PASS, real 2-silo
+  grain-observer round-trip): lift the grain-observer object expressions to named top-level F# classes**
+  (valid `typeof`); the extra manifest registration is benign at runtime. Genuinely novel (no upstream
+  issue). **The "FS0909" ConnectorGrain sub-blocker was a MISDIAGNOSIS** -- uncommenting the real block +
+  building surfaced `FS0010` on a stray `=>` typo at `ConnectorGrain.fs:133` *inside the commented block*
+  (never type-checked). Fixing `=>` -> `->` compiles green; no FS0909, no constraint drop, no LibLifeCycle
+  cascade. **Follow-up production-port worklist (S15c-production-port):** (a) lift `GrainConnector.fs:117`
+  (`ILifeEventAwaiter` awaiter) + `Web/RealTime.fs:103` (`ISubjectGrainObserver`) object expressions to
+  named F# classes (grep production for `{ new I.*Observer` / `{ new I.*Awaiter`); (b) re-enable both
+  `GenerateCodeForDeclaringAssembly` attributes in `LibLifeCycleCodeGenHost/CodegenAssemblyInfo.cs`;
+  (c) uncomment `ConnectorGrain.fs`'s interface block + fix the `=>` typo; (d) rebuild all 5 backend
+  projects green + run a real grain round-trip; (e) file the upstream orleans issue (one-line
+  `!symbol.IsCompilerGenerated()` guard) with `Meta/s15c-closure-codegen/` as the minimal repro.
+
+- **S15c-production-port · LANDED (session 44).** Applied (a)-(c) above: `GrainConnector.fs` +
+  `Web/RealTime.fs` object expressions lifted to named classes; `ConnectorGrain.fs` typo fixed + wired;
+  both `GenerateCodeForDeclaringAssembly` attributes re-enabled; `InternalsVisibleTo` added to
+  LibLifeCycleHost. `LibLifeCycleCodeGenHost` builds green with valid invokers; the 93-test
+  `LibLifeCycleTest` unit suite passes. Booting the real silo then surfaced two further Orleans-10 runtime
+  blockers the codegen gate had hidden: **(1) Autofac keyed services** (ADI 6.0.0 predates .NET 8 keyed
+  services -> `RegisterInstance(null)`; fixed by bumping ADI 6.0.0 -> 10.0.0 + Autofac 6.1.0 -> 8.3.0 in
+  the test projects, autofac ADI #112/#116); **(2) F# wrapper serialization** -> spike **S15d**.
+
+- **S15d · Orleans 10 decomposes F# Option/ValueOption/Choice/Result natively. SPIKE PASSED (session 44).**
+  *(gates S1.)* Throwaway spike `Meta/s15d-fsharp-wrapper-codecs/`; catalog
+  [`spikes/s15d-fsharp-wrapper-codecs.md`](spikes/s15d-fsharp-wrapper-codecs.md). The
+  `Microsoft.Orleans.Serialization.FSharp` 10.2.1 package ships `FSharpOption`/`ValueOption`/`Choice`/`Result`
+  codecs (Result is NEW vs S15 finding #2) that decompose the wrapper and delegate to inner leaf codecs; an
+  `IGeneralizedCodec` (fallback) never wins over them, so the S15b custom codec's whole wrapper
+  registrations (`Option<BlobData>`, `Result<unit, GrainRefreshTimersAndSubsError>`, ...) leave the bare
+  inner leaf uncovered -> `CodecNotFoundException` at silo boot. **Fix (verified PASS, 3/3 real 2-silo
+  round-trip): register the bare LEAF types, not the wrappers.**
+
+- **S15d-production-port · LANDED (session 45).** Applied the spike decision to production:
+  - `Serializer.fs`: new `decomposeToNativeLeaves` + `orleansNativeLeafTypes`; retired 23 whole-wrapper
+    TypeIds (8/15/17-19/21-22/32/36-39/45-46/53-55/59/62-66/68/71/73/77/79-83) with leaf-migration comments;
+    added 20 new bare-leaf registrations at TypeIds 84-103 (subject) + 4/5 (view, retiring old TypeId 3).
+  - Both in-file coverage guards (redundancy check + "must define serializers" check) made
+    decomposition-aware -- peel declared grain param/return types via `decomposeToNativeLeaves` before
+    testing; `isOrleansHandledLeaf` predicate covers native primitives + grain-observer interfaces.
+  - **Second bug (NOT from the spike):** `SiloBuilder.ConfigureSiloClientForEcosystem`'s
+    `TestCluster`/`TestClusterDataSeeding` branch never called `configureSiloClientSerializers`, so the
+    test-client DI never registered `EggShellSubjectGrainsCodec`. Orleans 3.x's lazy codec resolution
+    masked this for years; Orleans 10's eager `AnalyzeSerializerAvailability` at `ClusterClient..ctor`
+    makes it fatal. Fixed: added the call. **Lesson:** an Orleans 3.x -> 10 migration must audit EVERY
+    `IClientBuilder` path for codec registration, not just the silo -- the in-process TestCluster does NOT
+    inherit the silo's DI container.
+  - **Verification:** build 0 err 0 warn on all 5 affected + 2 Ecosystem test projects; `LibLifeCycleTest`
+    **93/93 PASS**; `SuiteTodo/Ecosystem/Tests` **5/5 PASS** (real 2-silo grain round-trips).
+  - **SuiteJobs follow-up (resolved by S15e-production-port, session 46; see below):** at the time of
+    S15d, SuiteJobs tests ran for the first time under .NET 10 / Orleans 10 and showed **18/47 PASS,
+    29 FAIL** with a uniform `Stasis not reached` failure pattern. Root cause identified and fixed in
+    S15e; final result **47/47 PASS**.
+
+- **S15e · `IConnectorGrain` command objects: replace F# closures with serializable value-like
+  builder/mapper interfaces. LANDED (session 46).** *(closed the SuiteJobs Stasis blocker; gates S1.)*
+  Catalog [`spikes/s15e-connector-command-objects.md`](spikes/s15e-connector-command-objects.md).
+  The Orleans 10 source-generated invoker deep-copies every grain method argument before dispatch.
+  `IConnectorGrain` previously accepted request-builder and response-mapper arguments as F# closures
+  (`ResponseChannel<'Reply> -> 'Request` and `'Reply -> 'Action`), which compile to F#-compiler-generated
+  closure classes not supported by `Microsoft.Orleans.Serialization.FSharp`. `CopyContext.DeepCopy` threw
+  `CodecNotFoundException: Could not find a copier`, the connector transient side effect never completed,
+  and the 15-second stasis wait timed out.
+
+  **Fix:** add generic command-object interfaces in `LibLifeCycle.Services`
+  (`IConnectorRequestBuilder`, `IConnectorRequestBuilderSingleReply`, `IConnectorResponseMapper`), change
+  `IConnectorGrain` to tupled methods that take these interfaces, and implement named carrier classes
+  per connector (`JobRunnerRequestBuilder`, `JobRunnerResponseMapper`). The grain implementation calls
+  `.Build(channel)` and `.Map(response)`; the codec's `IGeneralizedCopier.IsSupportedType` recognizes any
+  concrete implementation of the interfaces and returns the same instance during deep-copy. Builds on the
+  S15b tupled-method lesson and the S15c named-class lesson.
+
+  **Is the identity-copier production-grade? Yes.** `IConnectorGrain` is a `StatelessWorker` and always
+  activates on the calling silo (`ConnectorGrain.fs:15`; the serializer file notes "no need to cover
+  IConnectorGrain because it's always executed locally"), so the builder/mapper carriers are never
+  serialized over the wire -- the only copy that runs is local-call isolation, where identity-copy of an
+  immutable read-only carrier is correct. The catalog's follow-up is a **conditional invariant to guard,
+  not a pending deficiency**: it applies only if connector grains ever stop being local (remote
+  activation) or a carrier gains mutable state. See catalog Finding 5.
+
+  **Verification:** build 0 errors across `LibLifeCycleCore`, `LibLifeCycleHost`,
+  `LibLifeCycleCodeGenHost`, `LibLifeCycleTest`, `SuiteTodo/Ecosystem/Tests`, `SuiteJobs/Ecosystem/Tests`;
+  `LibLifeCycleTest` **93/93 PASS**; `SuiteTodo/Ecosystem/Tests` **5/5 PASS**; `SuiteJobs/Ecosystem/Tests`
+  **47/47 PASS** with zero "Stasis not reached", zero `CodecNotFoundException`, and zero
+  "Could not find a copier". Generated `LibLifeCycleCodeGenHost.orleans.g.cs`: zero
+  `typeof(global::...@...)` patterns.
 
 ### Tier 2 — core storage (the hard part)
 
@@ -622,6 +784,18 @@ covers dev/CI.
   the provider uses (CRD/ConfigMap/pods), unverified at plan time. **Proves:** the K8s membership decision
   (decision 4) holds in the target environment. The PG `UseAdoNetClustering` fallback (decision 4) is the escape
   hatch if this spike fails; the localhost path (S1) is the dev/CI equivalent.
+
+- **S16 · Multi-silo reliability + throughput A/B (Orleans 3.7 vs 10 parity).** *(planned; maps to P4/P5.)*
+  Head-to-head Docker Compose A/B: two structurally identical stacks (old net7 + Orleans 3.7 from git
+  history, new net10 + Orleans 10.2.1), 3 silos + SQL Server + load client each, run sequentially under
+  identical resource caps. Reliability catalog (cluster formation, placement/single-activation, reminders
+  across silos, failover under load, membership hygiene) asserted via `IManagementGrain` + the SQL
+  membership table + `docker kill`/`network disconnect`. Throughput measured on a concurrency ladder with
+  synthetic (`EchoGrain`/`ComputeGrain`) plus real subject-op mixes, so the custom
+  `EggShellSubjectGrainsCodec` is measured on the wire rather than trusting published serializer numbers.
+  Independent of the Postgres tiers (uses current SQL Server clustering); complements S14 (K8s membership
+  on PG). Full design + acceptance bar in [Cluster Verification](./cluster-verification.md). **Proves:**
+  the Orleans 3.7 to 10 upgrade is as good or better on cross-silo reliability and throughput/latency.
 
 ### Phase correspondence (for continuity)
 
@@ -736,6 +910,8 @@ Internal:
 - [Phased Plan — Phase 6](./phased-plan.md)
 - [Hosting & Persistence](../architecture/backend-hosting-persistence.md)
 - [Testing framework](../architecture/testing-framework.md)
+- [Tracked upstream Orleans issues](./tracked-orleans-issues.md) — re-check before each Orleans work item; resolution may let us simplify the codebase.
+- Spike catalogs: [S10 (pkg-bump break)](./spikes/s10-orleans-bump-catalog.md), [S15 (FAILED — wire serializer)](./spikes/s15-serializer-roundtrip.md), [S15b (PASSED — production codegen-host pattern)](./spikes/s15b-production-codegen.md), [S15e (LANDED — connector command objects)](./spikes/s15e-connector-command-objects.md)
 
 Upstream (confirmed 2026-07-15):
 - Orleans releases: https://github.com/dotnet/orleans/releases (10.2.1 stable 2026-06-24; 10.2.2-rc.1 2026-07-10; 10.0 multi-targets net8+net10)

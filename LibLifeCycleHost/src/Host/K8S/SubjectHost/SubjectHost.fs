@@ -34,7 +34,7 @@ open System.Threading.Tasks
 let startSubjectHost
         (hostConfiguration: HostConfiguration)
         (ecosystem':         Ecosystem)
-        (buildAssembly:     Assembly)
+        (_buildAssembly:    Assembly)
         (args:              array<string>)
         : int =
     try
@@ -116,7 +116,7 @@ let startSubjectHost
                         .AddSingleton<IBiosphereGrainProvider, BiosphereGrainProvider>(fun serviceProvider ->
                             let hostEcosystemGrainFactory = serviceProvider.GetRequiredService<IGrainFactory>()
                             let operationTracker = serviceProvider.GetRequiredService<OperationTracker>()
-                            BiosphereGrainProvider(ecosystem, hostEcosystemGrainFactory, orleansClusteringConfig.MembershipConnectionString, operationTracker, certificateConfig.UseDevelopmentCertificate, buildAssembly))
+                            BiosphereGrainProvider(ecosystem, hostEcosystemGrainFactory, orleansClusteringConfig.MembershipConnectionString, operationTracker, certificateConfig.UseDevelopmentCertificate))
                         .AddDataProtection()
                         .SetApplicationName(null)
                     |> fun dataProtectionBuilder ->
@@ -192,7 +192,6 @@ let startSubjectHost
                     siloBuilder
                         .ConfigureSiloForEcosystem(
                             ecosystem,
-                            buildAssembly,
                             EcosystemSiloSetup.Proper (
                                 properSiloSetup,
                                 orleansClusteringConfig.MembershipConnectionString,

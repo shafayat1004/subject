@@ -3,6 +3,8 @@
 open System.Runtime.CompilerServices
 
 [<assembly: InternalsVisibleTo("LibLifeCycle")>]
+[<assembly: InternalsVisibleTo("LibLifeCycleCodeGenHost")>]
+
 
 // Using globally-namespaced modules (such as "module LibLifeCycleTypes_SubjectTypes") results in Orleans generating faulty code.
 // See https://github.com/dotnet/orleans/issues/8213. Therefore, we use non-global modules and auto-open at the assembly level

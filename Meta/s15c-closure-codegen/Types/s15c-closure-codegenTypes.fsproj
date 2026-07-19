@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>8.0</LangVersion>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <Configurations>Debug;Release</Configurations>
+        <EggShellFmtSeverity>none</EggShellFmtSeverity>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />
+        <PackageReference Include="Microsoft.Orleans.Core" Version="10.2.1" />
+        <PackageReference Include="Microsoft.Orleans.Serialization.FSharp" Version="10.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="Shapes.fs" />
+    </ItemGroup>
+
+</Project>

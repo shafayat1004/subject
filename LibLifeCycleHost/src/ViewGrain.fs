@@ -22,7 +22,7 @@ type ViewGrain<'Input, 'Output, 'OpError
         viewAdapterCollection:   ViewAdapterCollection,
         autoResolvedViewAdapter: ViewAdapter<'Input, 'Output, 'OpError>,
         serviceProvider:         IServiceProvider,
-        ctx:                     IGrainActivationContext
+        ctx:                     IGrainContext
     ) =
     inherit Grain()
 
@@ -30,7 +30,7 @@ type ViewGrain<'Input, 'Output, 'OpError
 
     // views have higher risk of ambiguity by 'Input+'Output type combination, allow to specify view name explicitly
     let (grainPartition, explicitViewName) =
-        let (grainPartition, pKey) = ctx.GrainIdentity.GetPrimaryKey()
+        let (grainPartition, pKey) = ctx.GrainReference.GetPrimaryKey()
         ((grainPartition |> GrainPartition), pKey)
 
     let viewAdapter: ViewAdapter<'Input, 'Output, 'OpError> =

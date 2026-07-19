@@ -25,7 +25,7 @@ type SubjectReminderTable
     (
         config:                     SqlServerConnectionStrings,
         ecosystem:                  Ecosystem,
-        grainReferenceConverter:    IGrainReferenceConverter,
+        grainFactory:               IGrainFactory,
         lifeCycleAdapterCollection: HostedLifeCycleAdapterCollection,
         logger:                     ILogger<SubjectReminderTable>,
         clock:                      Service<Clock>,
@@ -35,96 +35,16 @@ type SubjectReminderTable
 
     let connectionString = config.ForEcosystem ecosystem.Name
 
-    // We need access to some internals to map grain reference to the underlying lifecycle
-
-    // TODO: FIXME-ORLEANS
-    // The type is in assembly Orleans.Core, incidentally ReminderEntry is in the same assembly. If that changes
-    // in a future version of Orleans, the way we get the assembly needs to be updated.
-    let orleansTypeUtilsType, orleansGrainInterfaceUtilsType, orleansGrainClassDataType, orleansGrainIdType =
-        let assembly = typeof<ReminderEntry>.Assembly
-        assembly.GetType("Orleans.Runtime.TypeUtils"),
-        assembly.GetType("Orleans.CodeGeneration.GrainInterfaceUtils"),
-        assembly.GetType("Orleans.Runtime.GrainClassData"),
-        typeof<Orleans.Core.IGrainIdentity>.Assembly (* Orleans.Core.Abstractions.dll *) .GetType("Orleans.Runtime.GrainId")
-
-    let getGenericArgumentsStringFromInterfaceType (interfaceType: Type) =
-        orleansTypeUtilsType
-            .GetMethod("GenericTypeArgsString", Reflection.BindingFlags.Static ||| Reflection.BindingFlags.Public)
-            .Invoke(null, [| interfaceType.UnderlyingSystemType.FullName |])
-            :?> string
-
-    let genericArgsStrToLifeCycleAdapter =
-        lifeCycleAdapterCollection
-        |> Seq.map (fun adapter ->
-            let genericArgsStr =
-                adapter.SubjectGrainType
-                |> getGenericArgumentsStringFromInterfaceType
-
-            (genericArgsStr, adapter)
-        )
-        |> dict
-
-    let lifeCycleNameToGenericArgsStr =
-        genericArgsStrToLifeCycleAdapter
-        |> Seq.map (fun kv -> (kv.Value.LifeCycleName, kv.Key))
-        |> dict
-
-    // TODO: FIXME-ORLEANS
-    // We could've persisted type code in the db upon grain creation, but this is vulnerable to small changes
-    // in ecosystem types such as renames or even assembly version change. Also it's the same for all subjects of a type.
-    // Unfortunately functions that calculate GrainTypeCode is not a part of public Orleans Api,
-    // and reflection-based approach is a bit involved.
-    let getGrainTypeCodeFromSubjectGrainType (interfaceType: Type) =
-
-        // Step one: get generic type code based on the implementation type and the interface
-        let typeCodeObj =
-            // generic impl type def
-            let subjectGrainTypeDef: Type = typedefof<SubjectGrain<_, _, _, _, _, _>>
-            let typeFullName =
-                orleansTypeUtilsType
-                    .GetMethod("GetFullName", BindingFlags.Static ||| BindingFlags.Public)
-                    .Invoke(null, [| subjectGrainTypeDef |])
-                    :?> string
-            let grainClassTypeCode =
-                orleansGrainInterfaceUtilsType
-                    .GetMethod("GetGrainClassTypeCode", BindingFlags.Static ||| BindingFlags.Public)
-                    .Invoke(null, [| subjectGrainTypeDef |])
-                    :?> int
-
-            let grainClassDataObj =
-                orleansGrainClassDataType
-                    .GetConstructors(BindingFlags.NonPublic ||| BindingFlags.Instance).[0]
-                    .Invoke([|
-                        grainClassTypeCode |> box;
-                        typeFullName       |> box;
-                        // "LibLifeCycleHost.SubjectGrain`8" |> box;
-                        subjectGrainTypeDef.ContainsGenericParameters |> box |])
-            orleansGrainClassDataType
-                .GetMethod("GetTypeCode", BindingFlags.NonPublic ||| BindingFlags.Instance)
-                .Invoke(grainClassDataObj, [| interfaceType |])
-
-        // Step two: get the final type code data from type code and grain category (key with extension),
-        //     it doesn't depend on specific GrainId but it's still the easiest way to obtain it
-        let struct(_, _, grainTypeCodeData) =
-            let (GrainPartition defaultGrainPartitionGuid) = defaultGrainPartition
-            let grainIdObj =
-                orleansGrainIdType.GetMethods(BindingFlags.Static ||| BindingFlags.NonPublic)
-                    |> Seq.filter (fun m -> m.Name = "GetGrainId" && m.GetParameters().Length = 3 && m.GetParameters().[1].ParameterType = typeof<Guid>)
-                    |> Seq.exactlyOne
-                    |> fun m ->
-                        m.Invoke(null,
-                                 [| typeCodeObj
-                                    defaultGrainPartitionGuid |> box
-                                    "Any SubjectId. TypeCode_DoesNot_DependOnIt" |> box |])
-            let grainIdKeyInfo = orleansGrainIdType.GetMethod("ToKeyInfo", BindingFlags.NonPublic ||| BindingFlags.Instance).Invoke(grainIdObj, [||]) :?> _
-            let keyInfo = Orleans.Serialization.GrainReferenceKeyInfo(grainIdKeyInfo, getGenericArgumentsStringFromInterfaceType interfaceType)
-            keyInfo.KeyAsGuidWithExt()
-        grainTypeCodeData
-
-    let lifeCycleNameToGrainTypeCode : Map<string, uint64> =
-        lifeCycleAdapterCollection
-        |> Seq.map (fun adapter -> adapter.LifeCycleName, getGrainTypeCodeFromSubjectGrainType adapter.SubjectGrainType)
-        |> Map.ofSeq
+    // Map from the Orleans grain type to our adapter so we can resolve a GrainId back to the lifecycle that owns the subject table.
+    // GrainType in Orleans 10 does not implement IComparable, so a Map<GrainType,_> cannot be used; use a Dictionary instead.
+    let grainTypeToLifeCycleAdapter : System.Collections.Generic.Dictionary<GrainType, IHostedLifeCycleAdapter> =
+        let (GrainPartition defaultGrainPartitionGuid) = defaultGrainPartition
+        let dict = System.Collections.Generic.Dictionary<GrainType, IHostedLifeCycleAdapter>()
+        for adapter in lifeCycleAdapterCollection do
+            let grainId =
+                (grainFactory.GetGrain(adapter.SubjectGrainType, defaultGrainPartitionGuid, "subject") :?> GrainReference).GrainId
+            dict.[grainId.Type] <- adapter
+        dict
 
     let readAllRowsSql =
         let persistentAdapters =
@@ -164,14 +84,6 @@ type SubjectReminderTable
         readAllRowsSql
         |> Option.map (sprintf "SELECT Id, LifeCycleName, NextTickOn FROM (%s) a WHERE GrainIdHash > @begin OR GrainIdHash <= @end")
 
-    let ensureGrainReferenceIsSubject (grainRef: GrainReference) =
-        let keyInfo = grainRef.ToKeyInfo()
-        if keyInfo.HasGenericArgument && genericArgsStrToLifeCycleAdapter.ContainsKey keyInfo.GenericArgument then
-            Noop
-        else
-            failwithf "Grain %A isn't supported by this implementation of Reminder Table, only subject grains are supported"
-                grainRef
-
     // arbitrary date in the past i.e. due immediately, ticks every minute, random second start to avoid spikes of Meta reminders
     let rnd = Random()
     let metaKeepAliveReminderStartAt () = DateTimeOffset(2010, 1, 1, 0, 0, rnd.Next(0, 59), TimeSpan.Zero)
@@ -180,14 +92,12 @@ type SubjectReminderTable
         member this.Init() : Task =
             Task.CompletedTask
 
-        member this.ReadRow(grainRef: GrainReference, reminderName: string): Task<ReminderEntry> =
+        member this.ReadRow(grainId: GrainId, reminderName: string): Task<ReminderEntry> =
             // TODO -- if we use multiple perisistent providers, we need to move this into the provider's interface
             if reminderName = SubjectReminderName then
-                ensureGrainReferenceIsSubject grainRef
-
-                let adapter = genericArgsStrToLifeCycleAdapter.[grainRef.ToKeyInfo().GenericArgument]
+                let adapter = grainTypeToLifeCycleAdapter.[grainId.Type]
                 let sql = sprintf "SELECT (CASE WHEN NextTickFired = 0 THEN NextTickOn ELSE NULL END) FROM [%s].[%s] WHERE Id = @id" ecosystem.Name adapter.LifeCycleName
-                let (_grainPartition, pKey) = grainRef.GetPrimaryKey()
+                let (_, pKey) = grainId.GetGuidKey()
 
                 backgroundTask {
                     use connection = new SqlConnection(connectionString)
@@ -200,22 +110,22 @@ type SubjectReminderTable
                     | :? DBNull ->
                         return null
                     | nextTickOn ->
-                        return newReminderEntry SubjectReminderName grainRef (nextTickOn :?> DateTimeOffset)
+                        return newReminderEntry SubjectReminderName grainId (nextTickOn :?> DateTimeOffset)
                 }
             elif reminderName = MetaKeepAliveReminderName then
-                let adapter = genericArgsStrToLifeCycleAdapter.[grainRef.ToKeyInfo().GenericArgument]
+                let adapter = grainTypeToLifeCycleAdapter.[grainId.Type]
                 if adapter.LifeCycleName <> MetaLifeCycleName then
                     null
                 else
-                    newReminderEntry MetaKeepAliveReminderName grainRef (metaKeepAliveReminderStartAt ())
+                    newReminderEntry MetaKeepAliveReminderName grainId (metaKeepAliveReminderStartAt ())
                 |> Task.FromResult
             else
                 failwithf "Reminder with name %s is not supported by this implementation of Reminder Table" reminderName
 
-        member this.ReadRows(grainRef: GrainReference): Task<ReminderTableData> =
+        member this.ReadRows(grainId: GrainId): Task<ReminderTableData> =
             backgroundTask {
-                let! reminder1 = (this :> IReminderTable).ReadRow(grainRef, SubjectReminderName)
-                let! reminder2 = (this :> IReminderTable).ReadRow(grainRef, MetaKeepAliveReminderName)
+                let! reminder1 = (this :> IReminderTable).ReadRow(grainId, SubjectReminderName)
+                let! reminder2 = (this :> IReminderTable).ReadRow(grainId, MetaKeepAliveReminderName)
                 return ReminderTableData([reminder1; reminder2] |> Seq.filter (fun r -> r <> null))
             }
 
@@ -251,26 +161,25 @@ type SubjectReminderTable
                                     | true ->
                                         let pKey = reader.GetString(0)
                                         let lifeCycleName = reader.GetString(1)
-                                        let grainTypeCode = lifeCycleNameToGrainTypeCode.[lifeCycleName]
-                                        let genericArgs = lifeCycleNameToGenericArgsStr.[lifeCycleName]
+                                        let adapter =
+                                            lifeCycleAdapterCollection
+                                            |> Seq.find (fun a -> a.LifeCycleName = lifeCycleName)
                                         let (GrainPartition defaultGrainPartitionGuid) = defaultGrainPartition
-                                        let grainReference =
-                                            GrainReferenceKeyInfo.KeyFromGuidWithExt(defaultGrainPartitionGuid, pKey, grainTypeCode)
-                                            |> fun key -> GrainReferenceKeyInfo(key, genericArgs)
-                                            |> grainReferenceConverter.GetGrainFromKeyInfo
+                                        let grainId =
+                                            (grainFactory.GetGrain(adapter.SubjectGrainType, defaultGrainPartitionGuid, pKey) :?> GrainReference).GrainId
                                         let maybeSubjectReminder =
                                             if (not <| reader.IsDBNull 2) then
                                                 let nextTickOn = reader.GetDateTimeOffset(2)
                                                  // double check maxNextTickOn because Meta LC SQL query is not controlled for it
                                                 if nextTickOn <= maxNextTickOn then
-                                                    Some (SubjectReminderName, grainReference, nextTickOn)
+                                                    Some (SubjectReminderName, grainId, nextTickOn)
                                                 else
                                                     None
                                             else
                                                 None
                                         let maybeMetaKeepAliveReminder =
                                             if lifeCycleName = MetaLifeCycleName then
-                                                Some (MetaKeepAliveReminderName, grainReference, metaKeepAliveReminderStartAt())
+                                                Some (MetaKeepAliveReminderName, grainId, metaKeepAliveReminderStartAt())
                                             else
                                                 None
                                         return Some([maybeSubjectReminder; maybeMetaKeepAliveReminder] |> List.choose id, Nothing)
@@ -288,7 +197,7 @@ type SubjectReminderTable
                     if listLength > 1000 then // warn if many ticks
                         logger.LogWarning("Loaded {0} ticks for bucket {1}/{2}", listLength, begin', end')
                     else
-                        logger.Info("Loaded {0} ticks for bucket {1}/{2}", listOfRawReminderEntryArgsSortedByNextTickOn.Length, begin', end')
+                        logger.LogInformation("Loaded {0} ticks for bucket {1}/{2}", listOfRawReminderEntryArgsSortedByNextTickOn.Length, begin', end')
 
                     // Overdue reminders need to be overridden to fire "asap": if unchanged they will get delayed, here's how:
                     // for example a timer that was due 7 seconds ago will skip that tick and will fire in -7 sec + 1 minute period = 53 seconds from now.
@@ -320,14 +229,14 @@ type SubjectReminderTable
                             match args with
                             | reminderName, _, _ when reminderName = MetaKeepAliveReminderName ->
                                 args :: acc, newDueRemindersCount
-                            | reminderName, grainRef, nextTickOn ->
+                            | reminderName, grainId, nextTickOn ->
                                 let startAt, newDueRemindersCount =
                                     if (subjectReminderTableIsNewDueReminderBestGuess initialBucketQuery nowAfterQuery nextTickOn) then
                                         earliestNewDueReminderStartAt + ((spreadMilliseconds * int newDueRemindersCount) |> float |> TimeSpan.FromMilliseconds),
                                         (newDueRemindersCount + 1u)
                                     else
                                         nextTickOn + subjectReminderImplicitDelayToReduceEarlyTicks, newDueRemindersCount
-                                (reminderName, grainRef, startAt) :: acc, newDueRemindersCount)
+                                (reminderName, grainId, startAt) :: acc, newDueRemindersCount)
                             ([], 0u)
                         |> fst
                         |> List.rev
@@ -336,15 +245,13 @@ type SubjectReminderTable
 
                     return
                         listOfAmendedReminderEntryArgs
-                        |> Seq.map (fun (reminderName, grainRef, startAt) -> newReminderEntry reminderName grainRef startAt)
+                        |> Seq.map (fun (reminderName, grainId, startAt) -> newReminderEntry reminderName grainId startAt)
                         |> ReminderTableData
                 }
             | None -> Task.FromResult(new ReminderTableData())
 
 
-        member this.RemoveRow(grainRef: Runtime.GrainReference, _reminderName: string, _eTag: string): Task<bool> =
-            ensureGrainReferenceIsSubject grainRef
-
+        member this.RemoveRow(_grainId: GrainId, _reminderName: string, _eTag: string): Task<bool> =
             // NO-OP. We will never do any writes from the Reminder system; all reminder peristence
             // is handled by SubjectGrain when it configures the nextTick as part of subject upgrade
             Task.FromResult true
@@ -352,9 +259,7 @@ type SubjectReminderTable
         member this.TestOnlyClearTable(): Task =
             Task.CompletedTask
 
-        member this.UpsertRow(entry: ReminderEntry): Task<string> =
-            ensureGrainReferenceIsSubject entry.GrainRef
-
+        member this.UpsertRow(_entry: ReminderEntry): Task<string> =
             // NO-OP. We will never do any writes from the Reminder system; all reminder peristence
             // is handled by SubjectGrain when it configures the nextTick as part of subject upgrade
             Guid.NewGuid()

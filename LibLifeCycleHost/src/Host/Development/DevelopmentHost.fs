@@ -110,7 +110,7 @@ let private applyDevHostConfigToEcosystem (ecosystem: Ecosystem) (config: IConfi
                                                 |> Some }
                                         :> IReferencedView }) }) }
 
-let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Ecosystem) (buildAssembly: Assembly) args =
+let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Ecosystem) (_buildAssembly: Assembly) args =
 
     Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development")
     try
@@ -223,7 +223,7 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
                         .AddSingleton<IBiosphereGrainProvider, BiosphereGrainProvider>(fun serviceProvider ->
                             let hostEcosystemGrainFactory = serviceProvider.GetRequiredService<IGrainFactory>()
                             let operationTracker = serviceProvider.GetRequiredService<OperationTracker>()
-                            BiosphereGrainProvider(ecosystem, hostEcosystemGrainFactory, orleansClusteringConfig.MembershipConnectionString, operationTracker, useDevelopmentCertificate, buildAssembly))
+                            BiosphereGrainProvider(ecosystem, hostEcosystemGrainFactory, orleansClusteringConfig.MembershipConnectionString, operationTracker, useDevelopmentCertificate))
                         .AddRealTimeEndpoints(ecosystem)
                         .AddSingleton<ApiSessionCryptographer>(fun serviceProvider ->
                             let dataProtectionProvider = serviceProvider.GetRequiredService<IDataProtectionProvider>()
@@ -256,7 +256,6 @@ let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Eco
                     siloBuilder
                         .ConfigureSiloForEcosystem(
                             ecosystem,
-                            buildAssembly,
                             EcosystemSiloSetup.Proper (
                                 ProperSiloDev (* ShouldResetMembershipTable *) true,
                                 orleansClusteringConfig.MembershipConnectionString,

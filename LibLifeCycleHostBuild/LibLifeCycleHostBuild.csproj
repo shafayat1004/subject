@@ -2,26 +2,23 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-	<NoWarn>ORL1001</NoWarn>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<NoWarn>ORL1001;NU1605;FS0044</NoWarn>
 	<Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LibLifeCycleHost\LibLifeCycleCodeGenHost\LibLifeCycleCodeGenHost.csproj" />
     <ProjectReference Include="..\LibLifeCycleHost\src\LibLifeCycleHost.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.Orleans.Core" Version="3.7.2" />
-    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="3.7.2" />
-    <PackageReference Include="Microsoft.Orleans.OrleansProviders" Version="3.7.2" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="3.7.2" />
-    <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="3.7.2" />
-    <PackageReference Include="Microsoft.Orleans.Connections.Security" Version="3.7.2" />
-    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.7.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Orleans.Server" Version="10.2.1" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="10.2.1" />
+    <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="10.2.1" />
+    <PackageReference Include="Microsoft.Orleans.Connections.Security" Version="10.2.1" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 ﻿namespace LibLifeCycleHost
 
 open Orleans
+open Orleans.Concurrency
 open System.Threading.Tasks
 open LibLifeCycle
 open LibLifeCycleCore
@@ -78,10 +79,20 @@ type IDynamicSubscriptionDispatcherGrain =
     inherit IGrainWithGuidCompoundKey
     abstract member TriggerSubscription: maybeDedupInfo: Option<SideEffectDedupInfo> -> target: LocalSubjectPKeyReference -> SubscriptionTriggerType -> LifeEvent -> Task<Result<unit, SubjectFailure<GrainTriggerDynamicSubscriptionError>>>
 
-type IConnectorGrain<'Request, 'Env> =
+type IConnectorGrain<'Request, 'Env when 'Request :> Request and 'Env :> Env> =
     inherit IGrainWithGuidKey
-    abstract member SendRequest:              buildRequest: (ResponseChannel<'Reply> -> 'Request) -> buildAction: ('Reply -> LifeAction) -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> Task
-    abstract member SendRequestMultiResponse: buildRequest: (MultiResponseChannel<'Reply> -> 'Request) -> buildAction: ('Reply -> LifeAction) -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> Task
+
+    abstract member SendRequest<'Reply, 'Action when 'Action :> LifeAction>:
+        requestBuilder: IConnectorRequestBuilderSingleReply<'Request, 'Reply> *
+        responseMapper: IConnectorResponseMapper<'Reply, 'Action> *
+        requestor:      SubjectPKeyReference *
+        sideEffectId:   GrainSideEffectId -> Task
+
+    abstract member SendRequestMultiResponse<'Reply, 'Action when 'Action :> LifeAction>:
+        requestBuilder: IConnectorRequestBuilder<'Request, 'Reply> *
+        responseMapper: IConnectorResponseMapper<'Reply, 'Action> *
+        requestor:      SubjectPKeyReference *
+        sideEffectId:   GrainSideEffectId -> Task
 
 // grains should implement this interface to report telemetry
 type ITrackedGrain =

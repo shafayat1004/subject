@@ -515,7 +515,7 @@ module Subjects =
             (accessRule: AccessRule<'AccessPredicateInput, 'Role, 'LifeAction, 'Constructor>)
             (accessPredicate: 'AccessPredicateInput -> AccessEvent<'Subject, 'LifeAction, 'Constructor, 'SubjectId> -> ExternalCallOrigin -> Option<'Session> -> bool)
             (externalCallOrigin: ExternalCallOrigin)
-            (maybeAuditor: Option<Auditor>): bool =
+            (_maybeAuditor: Option<Auditor>): bool =
         let rolesIsMatch =
             match accessRule.Roles with
             | MatchAny ->

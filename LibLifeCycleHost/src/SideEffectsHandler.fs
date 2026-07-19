@@ -173,14 +173,14 @@ let private processExternalActionsAndSelfConstructorsOnGrains
                                                     GrainPersistedSideEffect.IngestTimeSeries (op.TimeSeriesKey, box op.Points, traceContext)
                                                     |> GrainSideEffect.Persisted }
 
-                                | ExternalOperation.ExternalConnectorOperation (connectorName, buildRequest, buildResponse, responseType) ->
+                                | ExternalOperation.ExternalConnectorOperation (connectorName, requestBuilder, responseMapper, responseType) ->
                                     return
-                                        GrainTransientSideEffect.ConnectorRequest(traceContext, responseType, connectorName, buildRequest, buildResponse)
+                                        GrainTransientSideEffect.ConnectorRequest(traceContext, responseType, connectorName, requestBuilder, responseMapper)
                                         |> GrainSideEffect.Transient
 
-                                | ExternalOperation.ExternalConnectorMultiResponseOperation (connectorName, buildRequest, buildResponse, responseType) ->
+                                | ExternalOperation.ExternalConnectorMultiResponseOperation (connectorName, requestBuilder, responseMapper, responseType) ->
                                     return
-                                        GrainTransientSideEffect.ConnectorRequestMultiResponse(traceContext, responseType, connectorName, buildRequest, buildResponse)
+                                        GrainTransientSideEffect.ConnectorRequestMultiResponse(traceContext, responseType, connectorName, requestBuilder, responseMapper)
                                         |> GrainSideEffect.Transient
                             }
                     )

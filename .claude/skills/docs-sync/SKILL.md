@@ -41,6 +41,11 @@ in the SAME commit as code; engineering log is append-only, newest at top; statu
    (global.json SDK, package.json versions)
 4. Component changes: also run style-leak-audit + a11y-check skills.
 5. Docs build: gallery compiles and the page renders (debug-web skill).
+6. No em-dash (org rule + maintaining-docs.md style): the scans above do NOT catch it, and existing
+   pages already contain em-dashes, so surrounding-convention is not a reliable guide. Check only the
+   lines you added: `git diff -U0 | grep '^+' | grep '—'` must be empty. To strip them UTF-8-correctly
+   use `perl -CSD -i -pe 's/ \x{2014} /: /g' <file>` (plain `perl -pe` without `-CSD` matches bytes
+   and silently no-ops on the em-dash codepoint). Rewrite mid-sentence em-dashes as `.`/`,`/`;` by hand.
 
 ## Doc refs
 

@@ -7,6 +7,21 @@ open LibLifeCycleTypes
 open Microsoft.FSharp.Core
 open Orleans
 
+/// Named-class form of the life-event awaiter. It MUST be a top-level named type rather than an F#
+/// object expression: the Orleans 10 C# source generator flags every type implementing an
+/// IGrainObserver-derived interface as an InterfaceImplementation and emits `typeof(...)` for it. An
+/// object expression compiles to a closure class named `awaiter@NN`, whose `@` is not a valid C#
+/// identifier and breaks the generated code (S15c; see modernization/spikes/s15c-closure-codegen.md).
+type private LifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId
+                                when 'Subject   :> Subject<'SubjectId>
+                                and  'LifeEvent :> LifeEvent
+                                and  'SubjectId :> SubjectId
+                                and  'SubjectId : comparison>
+        (taskCompletionSource: TaskCompletionSource<ActOrConstructAndWaitOnLifeEventResult<'Subject, 'SubjectId, 'LifeEvent>>) =
+    interface ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> with
+        member _.EventTriggered (versionedSubject: VersionedSubject<'Subject, 'SubjectId>) (lifeEvent: 'LifeEvent) =
+            LifeEventTriggered(versionedSubject, lifeEvent) |> taskCompletionSource.TrySetResult |> ignore
+
 type GrainConnector (grainFactory: IGrainFactory, grainPartition: GrainPartition, sessionHandle: SessionHandle, callOrigin: CallOrigin) =
     let (GrainPartition partitionGuid) = grainPartition
 
@@ -114,16 +129,15 @@ type GrainConnector (grainFactory: IGrainFactory, grainPartition: GrainPartition
             // Now this is just a guess, but so far my observations have corroborated this theory.
             // Workaround, see the addition of `ignore awaiter` below.
             let awaiter =
-                { new ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId> with
-                    member this.EventTriggered (versionedSubject: VersionedSubject<'Subject, 'SubjectId>) (lifeEvent: 'LifeEvent) =
-                        LifeEventTriggered(versionedSubject, lifeEvent) |> taskCompletionSource.TrySetResult |> ignore
-                }
+                LifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>(taskCompletionSource)
+                :> ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>
 
             use cancellationTokenSource = new CancellationTokenSource(timeout)
 
             use _disposable = cancellationTokenSource.Token.Register(fun _ -> taskCompletionSource.TrySetCanceled() |> ignore)
-            let! objRef = grainFactory.CreateObjectReference<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>> awaiter
-            match! runAndAwaitImpl grain objRef with
+            let objRef = grainFactory.CreateObjectReference<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>> awaiter
+            let! result = runAndAwaitImpl grain objRef
+            match result with
             | Ok versionedSubj ->
                 return! backgroundTask {
                     try

@@ -31,6 +31,19 @@ type JobRunnerRequest =
 | RunJob of RunJobRequestData * MultiResponseChannel<Guid * ProcessingJobUpdate>
 with interface Request
 
+type JobRunnerRequestBuilder(data: RunJobRequestData) =
+    interface IConnectorRequestBuilder<JobRunnerRequest, Guid * ProcessingJobUpdate> with
+        member _.Build(channel) = JobRunnerRequest.RunJob(data, channel)
+
+type JobRunnerResponseMapper() =
+    interface IConnectorResponseMapper<Guid * ProcessingJobUpdate, JobAction> with
+        member _.Map((ticket, update)) =
+            match update with
+            | ProcessingJobUpdate.Heartbeat ->
+                JobAction.OnHeartbeat ticket
+            | ProcessingJobUpdate.Completed result ->
+                JobAction.OnProcessingComplete(ticket, result)
+
 type RunJobDelegate = JobRunnerConnectorEnvironment -> RunJobRequestData -> Task<JobProcessingResult>
 
 let private requestProcessor

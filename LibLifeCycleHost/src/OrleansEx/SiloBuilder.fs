@@ -28,21 +28,17 @@ let private configureSiloEcosystemDefSerializers
     (siloBuilder: ISiloBuilder)
     (lifeCycleDefs: List<LifeCycleDef>)
     (viewDefs: List<IViewDef>)
-    (buildAssembly: Assembly)
     : ISiloBuilder =
         siloBuilder
             .ConfigureServices(Serialization.registerSerializers lifeCycleDefs viewDefs)
-            .ConfigureApplicationParts(fun parts -> Serialization.configureApplicationParts lifeCycleDefs viewDefs parts buildAssembly)
 
 let private configureSiloClientSerializers
     (clientBuilder: IClientBuilder)
     (lifeCycleDefs: List<LifeCycleDef>)
     (viewDefs: List<IViewDef>)
-    (buildAssembly: Assembly)
     : IClientBuilder =
         clientBuilder
             .ConfigureServices(Serialization.registerSerializers lifeCycleDefs viewDefs)
-            .ConfigureApplicationParts(fun parts -> Serialization.configureApplicationParts lifeCycleDefs viewDefs parts buildAssembly)
 
 type EcosystemProperSiloSetup =
 | ProperSiloProd
@@ -92,10 +88,9 @@ and EcosystemSiloClientSetupHostToRemoteHostPayload =
 type SiloConfigurationExtensions =
     [<Extension>]
     static member ConfigureSiloForEcosystem (
-        siloBuilder:   ISiloBuilder,
-        ecosystem:     Ecosystem,
-        buildAssembly: Assembly,
-        siloSetup:     EcosystemSiloSetup)
+        siloBuilder: ISiloBuilder,
+        ecosystem:   Ecosystem,
+        siloSetup:   EcosystemSiloSetup)
         : unit =
 
         siloBuilder
@@ -103,10 +98,6 @@ type SiloConfigurationExtensions =
                 fun (opts: ClusterOptions) ->
                     opts.ClusterId <- ecosystem.Name
                     opts.ServiceId <- ecosystem.Name
-            )
-            .Configure<SchedulingOptions>(
-                fun (opts: SchedulingOptions) ->
-                    opts.AllowCallChainReentrancy <- false // TODO: maybe set true, to allow _Meta of _Meta stuff?
             )
             .AddOutgoingGrainCallFilter<TraceContextOutgoingGrainCallFilter>()
             .AddIncomingGrainCallFilter<TraceContextIncomingGrainCallFilter>()
@@ -123,8 +114,8 @@ type SiloConfigurationExtensions =
                     let referencedViewDefs =
                         referencedEcosystem.Views
                         |> List.map (fun rv -> rv.Def)
-                    configureSiloEcosystemDefSerializers siloBuilder referencedLifeCycleDefs referencedViewDefs buildAssembly)
-                (configureSiloEcosystemDefSerializers siloBuilder ecosystem.LifeCycleDefs ecosystem.ViewDefs buildAssembly)
+                    configureSiloEcosystemDefSerializers siloBuilder referencedLifeCycleDefs referencedViewDefs)
+                (configureSiloEcosystemDefSerializers siloBuilder ecosystem.LifeCycleDefs ecosystem.ViewDefs)
                 ecosystem.ReferencedEcosystems.Values
 
         |> fun siloBuilder ->
@@ -132,11 +123,12 @@ type SiloConfigurationExtensions =
             | EcosystemSiloSetup.Test ->
                 siloBuilder
                     .UseInMemoryReminderService()
-                    .ConfigureLogging(fun context logging ->
-                        let config = context.Configuration.GetSection("Logging")
+                    // Orleans 10: ISiloBuilder.ConfigureLogging only takes Action<ILoggingBuilder>
+                    // (no HostBuilderContext), so we cannot wire the Logging config section here.
+                    // Config-based log levels for tests should be set at the host builder level.
+                    .ConfigureLogging(fun logging ->
                         logging
                             .ClearProviders()
-                            .AddConfiguration(config)
                             .AddConsole() |> ignore)
 
                     .Configure<ClientMessagingOptions>(
@@ -156,11 +148,11 @@ type SiloConfigurationExtensions =
                     .AddStartupTask<SqlServerSetupStartupTask>(ServiceLifecycleStage.First)
                     .AddStartupTask<CustomStorageInitStartupTask>(ServiceLifecycleStage.First)
                     .UseInMemoryReminderService()
-                    .ConfigureLogging(fun context logging ->
-                        let config = context.Configuration.GetSection("Logging")
+                    // Orleans 10: same limitation as Test branch above -- no HostBuilderContext in
+                    // ConfigureLogging, so config-based log levels must be set at host builder level.
+                    .ConfigureLogging(fun logging ->
                         logging
                             .ClearProviders()
-                            .AddConfiguration(config)
                             .AddConsole() |> ignore)
 
                     .Configure<ClientMessagingOptions>(
@@ -209,15 +201,20 @@ type SiloConfigurationExtensions =
                     .AddStartupTask<SqlServerSetupStartupTask>(ServiceLifecycleStage.First)
                     .AddStartupTask<CustomStorageInitStartupTask>(ServiceLifecycleStage.First)
                     .AddStartupTask<LifeCycleHostStartupTask>(ServiceLifecycleStage.Active)
-                    .Configure<ConnectionOptions>(fun (options: ConnectionOptions) ->
-                        options.ProtocolVersion <- Orleans.Runtime.Messaging.NetworkProtocolVersion.Version2)
+                    // Orleans 7+ split reminders into Microsoft.Orleans.Reminders; the reminder service
+                    // (IReminderRegistry) is no longer auto-registered by core. Registering a custom
+                    // IReminderTable alone is not enough -- without AddReminders(), SubjectGrain.SetTickReminder
+                    // throws "No service for type 'Orleans.Timers.IReminderRegistry'". The Test/TestDataSeeding
+                    // branches get this implicitly via UseInMemoryReminderService(); the Proper branch must
+                    // register the service explicitly, then supply the custom table below.
+                    .AddReminders()
                     .ConfigureServices(fun services ->
                         services.AddSingleton<IReminderTable, SubjectReminderTable>(fun serviceProvider ->
                             let isDevHost = match properSiloSetup with | ProperSiloDev _ -> true | ProperSiloProd -> false
                             SubjectReminderTable(
                                 serviceProvider.GetRequiredService<SqlServerConnectionStrings>(),
                                 serviceProvider.GetRequiredService<Ecosystem>(),
-                                serviceProvider.GetRequiredService<IGrainReferenceConverter>(),
+                                serviceProvider.GetRequiredService<IGrainFactory>(),
                                 serviceProvider.GetRequiredService<HostedLifeCycleAdapterCollection>(),
                                 serviceProvider.GetRequiredService<ILogger<SubjectReminderTable>>(),
                                 serviceProvider.GetRequiredService<Service<Clock>>(),
@@ -236,12 +233,10 @@ type SiloConfigurationExtensions =
                     )
                     |> fun siloBuilder ->
                             match maybeDashboardPort with
-                            | Some dashboardEndpointPort ->
+                            | Some _dashboardEndpointPort ->
+                                // TODO S11: Orleans 10 dashboard moved to Microsoft.Orleans.Dashboard 10.2.1 + ASP.NET Core MapOrleansDashboard;
+                                // DashboardOptions has no Port. Wire during S11 observability spike.
                                 siloBuilder
-                                    .UseDashboard(
-                                        fun dashboardOptions ->
-                                            dashboardOptions.Port <- dashboardEndpointPort
-                                    )
                             | None ->
                                 siloBuilder
         |> ignore
@@ -250,7 +245,6 @@ type SiloConfigurationExtensions =
     static member ConfigureSiloClientForEcosystem (
         clientBuilder: IClientBuilder,
         hostEcosystem: Ecosystem,
-        buildAssembly: Assembly,
         clientSetup:   EcosystemSiloClientSetup)
         : IClientBuilder =
 
@@ -275,19 +269,26 @@ type SiloConfigurationExtensions =
             match clientSetup with
             | EcosystemSiloClientSetup.TestCluster
             | EcosystemSiloClientSetup.TestClusterDataSeeding ->
-                clientBuilder
-                    // Sadly ClientBuilder and the host container don't share the service container
-                    // so we have to explicitly bind services that we expect the Orleans client
-                    // to use
-                    // https://github.com/dotnet/orleans/issues/4744
+                // Orleans 10's client-startup AnalyzeSerializerAvailability eagerly decomposes declared
+                // grain param/return types (Option/Result/tuples) and asks the DI for an IFieldCodec<T>
+                // for each bare leaf. Without registering EggShellSubjectGrainsCodec on the client the
+                // validator throws CodecNotFoundException for any user F# leaf (BlobData,
+                // GrainRefreshTimersAndSubsError, ...). Under Orleans 3.7 codec resolution was lazy, so
+                // this registration was silently skipped for the in-process TestCluster; Orleans 10 makes
+                // the absence fatal. See spikes/s15d-fsharp-wrapper-codecs.md.
+                (configureSiloClientSerializers clientBuilder hostEcosystem.LifeCycleDefs hostEcosystem.ViewDefs)
+                // Sadly ClientBuilder and the host container don't share the service container
+                // so we have to explicitly bind services that we expect the Orleans client
+                // to use
+                // https://github.com/dotnet/orleans/issues/4744
                     .ConfigureServices(fun services ->
                         services
                             .AddSingleton<OperationTracker>(noopOperationTracker)
-                        |> ignore
+                            |> ignore
                     )
 
             | EcosystemSiloClientSetup.ApiToHost x ->
-                (configureSiloClientSerializers clientBuilder hostEcosystem.LifeCycleDefs hostEcosystem.ViewDefs buildAssembly)
+                (configureSiloClientSerializers clientBuilder hostEcosystem.LifeCycleDefs hostEcosystem.ViewDefs)
                     // Sadly ClientBuilder and ASP.NET Core don't share the service container
                     // so we have to explicitly bind services that we expect the Orleans client
                     // to use
@@ -311,18 +312,12 @@ type SiloConfigurationExtensions =
                             adoNetOptions.ConnectionString <- x.MembershipConnectionString
                             adoNetOptions.Invariant        <- "Microsoft.Data.SqlClient"
                     )
-                    |> fun clientBuilder ->
-                        match x.MaybeAppInsightsConfig with
-                        | Some appInsightsConfig ->
-                            clientBuilder.AddApplicationInsightsTelemetryConsumer(appInsightsConfig.InstrumentationKey)
-                        | None ->
-                            clientBuilder
 
             | EcosystemSiloClientSetup.HostToRemoteHost x ->
                 match hostEcosystem.ReferencedEcosystems.TryFind x.RemoteEcosystemName with
                 | None ->
                     // technically for dynamic ecosystems we need only subscription dispatcher interface, but registering whole ecosystem will do anyway
-                    configureSiloClientSerializers clientBuilder hostEcosystem.LifeCycleDefs hostEcosystem.ViewDefs buildAssembly
+                    configureSiloClientSerializers clientBuilder hostEcosystem.LifeCycleDefs hostEcosystem.ViewDefs
                 | Some referencedEcosystem ->
                     let referencedLifeCyclesDefs =
                         referencedEcosystem.LifeCycles
@@ -330,7 +325,7 @@ type SiloConfigurationExtensions =
                     let referencedViewDefs =
                         referencedEcosystem.Views
                         |> List.map (fun rv -> rv.Def)
-                    configureSiloClientSerializers clientBuilder referencedLifeCyclesDefs referencedViewDefs buildAssembly
+                    configureSiloClientSerializers clientBuilder referencedLifeCyclesDefs referencedViewDefs
 
                 |> fun clientBuilder ->
                     clientBuilder

@@ -29,6 +29,18 @@ type MultiResponseChannel<'Response> =
     abstract member RespondNext: value: 'Response -> unit
     abstract member Complete:    unit -> ResponseVerificationToken
 
+[<AllowNullLiteral>]
+type IConnectorRequestBuilder<'Request, 'Reply when 'Request :> Request> =
+    abstract Build: MultiResponseChannel<'Reply> -> 'Request
+
+[<AllowNullLiteral>]
+type IConnectorRequestBuilderSingleReply<'Request, 'Reply when 'Request :> Request> =
+    abstract Build: ResponseChannel<'Reply> -> 'Request
+
+[<AllowNullLiteral>]
+type IConnectorResponseMapper<'Reply, 'Action when 'Action :> LifeAction> =
+    abstract Map: 'Reply -> 'Action
+
 type Service<'Request when 'Request :> Request> =
     abstract member Name:  string
     abstract member Query: buildRequest: (ResponseChannel<'Response> -> 'Request) -> Task<'Response>
@@ -58,12 +70,12 @@ and
     ShouldSendTelemetry: bool
 } with
     member this.Request<'Response, 'SourceAction when 'SourceAction :> LifeAction>
-        (buildRequest: (ResponseChannel<'Response> -> 'Request), buildAction: ('Response -> 'SourceAction)) : ExternalOperation<'SourceAction> =
-        ExternalOperation.ExternalConnectorOperation(this.Name, (box buildRequest), (fun obj -> obj :?> 'Response |> buildAction), typeof<'Response>)
+        (requestBuilder: IConnectorRequestBuilderSingleReply<'Request, 'Response>, responseMapper: IConnectorResponseMapper<'Response, 'SourceAction>) : ExternalOperation<'SourceAction> =
+        ExternalOperation.ExternalConnectorOperation(this.Name, box requestBuilder, box responseMapper, typeof<'Response>)
 
     member this.RequestMultiResponse<'Response, 'SourceAction when 'SourceAction :> LifeAction>
-        (buildRequest: (MultiResponseChannel<'Response> -> 'Request), buildAction: ('Response -> 'SourceAction)) : ExternalOperation<'SourceAction> =
-        ExternalOperation.ExternalConnectorMultiResponseOperation(this.Name, (box buildRequest), (fun obj -> obj :?> 'Response |> buildAction), typeof<'Response>)
+        (requestBuilder: IConnectorRequestBuilder<'Request, 'Response>, responseMapper: IConnectorResponseMapper<'Response, 'SourceAction>) : ExternalOperation<'SourceAction> =
+        ExternalOperation.ExternalConnectorMultiResponseOperation(this.Name, box requestBuilder, box responseMapper, typeof<'Response>)
 
     interface Connector with
         member this.Name = this.Name
@@ -231,34 +243,11 @@ with
     member internal this.Task = let (BlockingTask t) = this in t
 
 
-let private runConnectorDirectly (connector: Connector<'Request, 'Env>) (env: 'Env) (requestBuilder: ResponseChannel<'Output> -> 'Request) : BlockingTask<'Output>  =
-    let serviceHandler = connector.RequestProcessor env
-    backgroundTask {
-        let _, resTask = queryAndReturnRequestResponse connector.Name requestBuilder serviceHandler
-        let! res = resTask
-        return res
-    } |> BlockingTask
-
-// Allows slightly better handling of the response channel requirement
-// Service.Query (fun reply -> Message(param1, param2, reply) now becomes
-// Service.Query Message param1 param2 :=)
+// Curried fluent helpers for Service.Query only. Connector.Request now requires typed
+// IConnectorRequestBuilder/IConnectorResponseMapper command objects, so the old connector Request/BlockingRequest
+// overloads (which produced F# closures incompatible with Orleans 10 grain dispatch) have been removed.
 [<System.Runtime.CompilerServices.Extension>]
 type ServiceQueryExtensions() =
-    // 0 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: (ResponseChannel<'Response> -> 'Request)) =
-        fun (env: 'Env) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request responseChannel
-            |> runConnectorDirectly connector env
-
-    // 0 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: (ResponseChannel<'Response> -> 'Request)) =
-        fun (responseChannel: ResponseChannel<'Response>) ->
-            request(responseChannel)
-        |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
     // 1 Param
     [<System.Runtime.CompilerServices.Extension>]
     static member Query (service: Service<'Request>, query: ('Param1 * ResponseChannel<'Response> -> 'Request)) =
@@ -266,30 +255,6 @@ type ServiceQueryExtensions() =
             fun (responseChannel: ResponseChannel<'Response>) ->
                 query(param, responseChannel)
             |> service.Query
-
-    // 1 Param
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * ResponseChannel<'Response> -> 'Request)) =
-        fun (param: 'Param1) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param, responseChannel)
-            |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
-    // 1 Param
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * MultiResponseChannel<'Response> -> 'Request)) =
-        fun (param: 'Param1) ->
-            fun (responseChannel: MultiResponseChannel<'Response>) ->
-                request(param, responseChannel)
-            |> fun buildRequest buildAction -> connector.RequestMultiResponse(buildRequest, buildAction)
-
-    // 1 Param
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: ('Param1 * ResponseChannel<'Response> -> 'Request)) =
-        fun (env: 'Env) (param: 'Param1) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param, responseChannel)
-            |> runConnectorDirectly connector env
 
     // 2 Params
     [<System.Runtime.CompilerServices.Extension>]
@@ -299,30 +264,6 @@ type ServiceQueryExtensions() =
                 query(param1, param2, responseChannel)
             |> service.Query
 
-    // 2 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * ResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, responseChannel)
-            |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
-    // 2 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * MultiResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) ->
-            fun (responseChannel: MultiResponseChannel<'Response>) ->
-                request(param1, param2, responseChannel)
-            |> fun buildRequest buildAction -> connector.RequestMultiResponse(buildRequest, buildAction)
-
-    // 2 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * ResponseChannel<'Response> -> 'Request)) =
-        fun (env: 'Env) (param1: 'Param1) (param2: 'Param2) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, responseChannel)
-            |> runConnectorDirectly connector env
-
     // 3 Params
     [<System.Runtime.CompilerServices.Extension>]
     static member Query (service: Service<'Request>, query: ('Param1 * 'Param2 * 'Param3 * ResponseChannel<'Response> -> 'Request)) =
@@ -330,30 +271,6 @@ type ServiceQueryExtensions() =
             fun (responseChannel: ResponseChannel<'Response>) ->
                 query(param1, param2, param3, responseChannel)
             |> service.Query
-
-    // 3 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * ResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, responseChannel)
-            |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
-    // 3 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * MultiResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) ->
-            fun (responseChannel: MultiResponseChannel<'Response>) ->
-                request(param1, param2, param3, responseChannel)
-            |> fun buildRequest buildAction -> connector.RequestMultiResponse(buildRequest, buildAction)
-
-    // 3 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * ResponseChannel<'Response> -> 'Request)) =
-        fun (env: 'Env) (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, responseChannel)
-            |> runConnectorDirectly connector env
 
     // 4 Params
     [<System.Runtime.CompilerServices.Extension>]
@@ -363,30 +280,6 @@ type ServiceQueryExtensions() =
                 query(param1, param2, param3, param4, responseChannel)
             |> service.Query
 
-    // 4 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * ResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, responseChannel)
-            |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
-    // 4 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * MultiResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) ->
-            fun (responseChannel: MultiResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, responseChannel)
-            |> fun buildRequest buildAction -> connector.RequestMultiResponse(buildRequest, buildAction)
-
-    // 4 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * ResponseChannel<'Response> -> 'Request)) =
-        fun ( env: 'Env) (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, responseChannel)
-            |> runConnectorDirectly connector env
-
     // 5 Params
     [<System.Runtime.CompilerServices.Extension>]
     static member Query (service: Service<'Request>, query: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * ResponseChannel<'Response> -> 'Request)) =
@@ -395,30 +288,6 @@ type ServiceQueryExtensions() =
                 query(param1, param2, param3, param4, param5, responseChannel)
             |> service.Query
 
-    // 5 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * ResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) (param5: 'Param5) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, param5, responseChannel)
-            |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
-    // 5 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * MultiResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) (param5: 'Param5) ->
-            fun (responseChannel: MultiResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, param5, responseChannel)
-            |> fun buildRequest buildAction -> connector.RequestMultiResponse(buildRequest, buildAction)
-
-    // 5 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * ResponseChannel<'Response> -> 'Request)) =
-        fun (env: 'Env) (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) (param5: 'Param5) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, param5, responseChannel)
-            |> runConnectorDirectly connector env
-
     // 6 Params
     [<System.Runtime.CompilerServices.Extension>]
     static member Query (service: Service<'Request>, query: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * 'Param6 * ResponseChannel<'Response> -> 'Request)) =
@@ -426,27 +295,3 @@ type ServiceQueryExtensions() =
             fun (responseChannel: ResponseChannel<'Response>) ->
                 query(param1, param2, param3, param4, param5, param6, responseChannel)
             |> service.Query
-
-    // 6 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * 'Param6 * ResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) (param5: 'Param5) (param6: 'Param6) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, param5, param6, responseChannel)
-            |> fun buildRequest buildAction -> connector.Request(buildRequest, buildAction)
-
-    // 6 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member Request (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * 'Param6 * MultiResponseChannel<'Response> -> 'Request)) =
-        fun (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) (param5: 'Param5) (param6: 'Param6) ->
-            fun (responseChannel: MultiResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, param5, param6, responseChannel)
-            |> fun buildRequest buildAction -> connector.RequestMultiResponse(buildRequest, buildAction)
-
-    // 6 Params
-    [<System.Runtime.CompilerServices.Extension>]
-    static member BlockingRequest (connector: Connector<'Request, 'Env>, request: ('Param1 * 'Param2 * 'Param3 * 'Param4 * 'Param5 * 'Param6 * ResponseChannel<'Response> -> 'Request)) =
-        fun (env: 'Env) (param1: 'Param1) (param2: 'Param2) (param3: 'Param3) (param4: 'Param4) (param5: 'Param5) (param6: 'Param6) ->
-            fun (responseChannel: ResponseChannel<'Response>) ->
-                request(param1, param2, param3, param4, param5, param6, responseChannel)
-            |> runConnectorDirectly connector env

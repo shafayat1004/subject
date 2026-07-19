@@ -1,15 +1,14 @@
-﻿using Orleans.CodeGeneration;
-
-// We need a C# project so we can include the Microsoft.Orleans.CodeGenerator.MSBuild nuget package
-// and link the LibLifeCycleHost and LibLifeCycleCore projects, which will make Orleans generate necessary stubs for grains
-// and types at compile time instead of runtime, considerably reducing initialization time of Dev Host
-// and unit tests. Unfortunately a C# project is needed, as the MSBuild CodeGen uses Rosyln, which only
-// supports C#.
-
-// Make the Orleans CodeGen follow into these projects
-[assembly: KnownAssembly(typeof(LibLifeCycleHost.Config.AnchorTypeForProject))]
-[assembly: KnownAssembly(typeof(LibLifeCycleCore.Anchor.AnchorTypeForProject))]
-[assembly: KnownAssembly(typeof(LibLifeCycleTypes.SubjectTypes.SubjectReference))]
+﻿// TODO S15c: Orleans 10 dropped KnownAssembly + Orleans.CodeGeneration namespace. Codegen now
+// flows through GenerateCodeForDeclaringAssembly in LibLifeCycleCodeGenHost (currently disabled
+// due to the F# closure misclassification HARD BLOCKER -- see
+// LibLifeCycleHost/LibLifeCycleCodeGenHost/CodegenAssemblyInfo.cs for details). Once S15c
+// re-enables source-gen, this Build.cs may be obsolete or may need to reference the CodegenHost
+// project for transitive loading. For now, no codegen attributes here.
+//
+// using Orleans.CodeGeneration;
+// [assembly: KnownAssembly(typeof(LibLifeCycleHost.Config.AnchorTypeForProject))]
+// [assembly: KnownAssembly(typeof(LibLifeCycleCore.Anchor.AnchorTypeForProject))]
+// [assembly: KnownAssembly(typeof(LibLifeCycleTypes.SubjectTypes.SubjectReference))]
 
 namespace LibLifeCycleHostBuild
 {

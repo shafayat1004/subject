@@ -426,7 +426,6 @@ type private TestSiloConfigurator() =
             siloBuilder
                 .ConfigureSiloForEcosystem(
                     ecosystemUnderTest.Value,
-                    typeof<LibLifeCycleHostBuild.Build>.Assembly,
                         match maybeTestDataSeeding with
                         | None   -> EcosystemSiloSetup.Test
                         | Some _ -> EcosystemSiloSetup.TestDataSeeding)
@@ -438,7 +437,6 @@ type private TestSiloClientConfigurator() =
             clientBuilder
                 .ConfigureSiloClientForEcosystem(
                     ecosystem,
-                    typeof<LibLifeCycleHostBuild.Build>.Assembly,
                         match maybeTestDataSeeding with
                         | None   -> EcosystemSiloClientSetup.TestCluster
                         | Some _ -> EcosystemSiloClientSetup.TestClusterDataSeeding)
@@ -543,11 +541,14 @@ type TestCluster(ecosystem: Ecosystem, configureServices: IServiceCollection -> 
                     failwith "TestCluster.Init has not been called"
                 let lifetimeScope = (siloHostServices cluster).GetRequiredService<ILifetimeScope>()
                 let childScope = lifetimeScope.BeginLifetimeScope(fun builder ->
-                    builder.Register(fun _ -> new RequestContextData(testPartition.ConfigOverrides, testPartition.UserId))
+                    // Explicit single type arg forces the 1-arg Register<'T>(Func<IComponentContext,'T>)
+                    // overload: Autofac 8's ContainerBuilder added Register<'TDependency1,'TComponent>,
+                    // which otherwise makes a bare `fun _ ->` ambiguous.
+                    builder.Register<RequestContextData>(fun _ -> new RequestContextData(testPartition.ConfigOverrides, testPartition.UserId))
                         .As<RequestContextData>()
                         .InstancePerLifetimeScope()
                         .AutoActivate() |> ignore
-                    builder.Register(fun _ -> testPartition.GrainPartition).As<GrainPartition>().InstancePerLifetimeScope() |> ignore
+                    builder.Register<GrainPartition>(fun _ -> testPartition.GrainPartition).As<GrainPartition>().InstancePerLifetimeScope() |> ignore
                 )
 
                 new TestClusterScope(new AutofacServiceProvider(childScope))

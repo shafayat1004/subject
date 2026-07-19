@@ -1,22 +1,61 @@
-﻿module internal LibLifeCycleCore.OrleansEx.Serializer
+﻿[<AutoOpen>]
+module internal LibLifeCycleCore.OrleansEx.Serializer
 
 // couldn't make LibLifeCycleCore.Orleans namespace because it makes "open Orleans" ambiguous in a few places
 
 open System
+open System.Buffers
+open System.Collections.Generic
 open System.Text
 open System.Threading.Tasks
 open Orleans.Serialization
+open Orleans.Serialization.Buffers
+open Orleans.Serialization.Cloning
+open Orleans.Serialization.Codecs
+open Orleans.Serialization.Serializers
+open Orleans.Serialization.WireProtocol
 open LibLifeCycleCore
 open FSharpPlus
 open CodecLib.StjCodecs
+open Microsoft.FSharp.Reflection
 
 #nowarn "0686"  // Allow exceptionally here to have explicit parameters for codec related functions
+
+// Orleans 10 natively serializes these leaf types (primitives + well-known BCL types) AND natively
+// DECOMPOSES Option/ValueOption/Choice/Result/tuples, delegating each generic arg to that arg's own
+// codec (a generic codec always beats our IGeneralizedCodec fallback). So the custom codec registers
+// bare LEAF types (user records/DUs), never the native wrappers, and the coverage guards must peel the
+// native wrappers to leaves before checking. See spikes/s15d-fsharp-wrapper-codecs.md.
+let private orleansNativeLeafTypes : HashSet<Type> =
+    HashSet<Type> [
+        typeof<string>; typeof<bool>; typeof<char>; typeof<Guid>
+        typeof<byte>; typeof<int16>; typeof<uint16>; typeof<int>; typeof<uint32>
+        typeof<int64>; typeof<uint64>; typeof<decimal>; typeof<double>; typeof<single>
+        typeof<DateTime>; typeof<DateTimeOffset>; typeof<DateOnly>; typeof<TimeOnly>; typeof<TimeSpan>
+        typeof<unit>; typeof<Void>; typeof<Task>
+    ]
+
+let rec private decomposeToNativeLeaves (t: Type) : Type list =
+    if FSharpType.IsTuple t then
+        FSharpType.GetTupleElements t |> Array.toList |> List.collect decomposeToNativeLeaves
+    elif t.IsGenericType then
+        let gtd = t.GetGenericTypeDefinition()
+        if gtd = typedefof<option<_>> || gtd = typedefof<ValueOption<_>> then
+            decomposeToNativeLeaves (t.GetGenericArguments().[0])
+        elif gtd = typedefof<Result<_, _>> then
+            t.GetGenericArguments() |> Array.toList |> List.collect decomposeToNativeLeaves
+        elif gtd.FullName.StartsWith "Microsoft.FSharp.Core.FSharpChoice`" then
+            t.GetGenericArguments() |> Array.toList |> List.collect decomposeToNativeLeaves
+        else
+            [ t ]
+    else
+        [ t ]
 
 let inline private summarizerForType (toCodecFriendly: 'T -> 'CodecFriendly) : (Type * (obj -> string)) =
     typeof<'T>, (fun (t: obj) -> t :?> 'T |> toCodecFriendly |> ValueSummaryCodecs.toSummaryValue |> ValueSummaryCodecs.getSummaryString 6)
 
 
-type private UntypedSerializer = {
+type internal UntypedSerializer = {
     To:     obj -> byte[]
     Fro:    byte[] -> obj
     Type:   Type
@@ -85,6 +124,94 @@ with
             TypeId = typeId
         }
 
+// Command-object interfaces from LibLifeCycle.Services are used in place of F# closures on
+// IConnectorGrain grain methods. Their concrete implementations carry only immutable captured
+// state (e.g. RunJobRequestData), so returning the same instance during a deep-copy is safe.
+// This unblocks the Orleans 10 invoker's CopyContext.DeepCopy of builder/mapper arguments.
+let rec private isConnectorCommandType (itemType: Type) =
+    if isNull itemType then false
+    else
+        let interfaces = if itemType.IsInterface then [| itemType |] else itemType.GetInterfaces()
+        interfaces
+        |> Array.exists (fun i ->
+            i.IsGenericType &&
+            let gtd = i.GetGenericTypeDefinition()
+            let fullName =
+                match gtd.FullName with
+                | null -> ""
+                | name -> name.Replace('+', '.')
+            fullName.StartsWith "LibLifeCycle.Services.IConnectorRequestBuilder`"
+            || fullName.StartsWith "LibLifeCycle.Services.IConnectorRequestBuilderSingleReply`"
+            || fullName.StartsWith "LibLifeCycle.Services.IConnectorResponseMapper`")
+
+type EggShellSubjectGrainsCodec (untypedSerializersByTypeId: IReadOnlyDictionary<byte, UntypedSerializer>,
+                                  untypedSerializersByType: IReadOnlyDictionary<Type, UntypedSerializer>) =
+
+    static let payloadVersion = 0uy
+
+    let tryGetSerializerForType (itemType: Type) =
+        match IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType with
+        | Some serializer -> Some serializer
+        | None ->
+            if not (isNull itemType.BaseType) then
+                match IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType with
+                | Some serializer -> Some serializer
+                | None ->
+                    itemType.GetInterfaces()
+                    |> Array.tryPick (fun i -> IReadOnlyDictionary.tryGetValue i untypedSerializersByType)
+            else
+                itemType.GetInterfaces()
+                |> Array.tryPick (fun i -> IReadOnlyDictionary.tryGetValue i untypedSerializersByType)
+
+    interface IFieldCodec with
+        member _.WriteField<'W when 'W :> IBufferWriter<byte>>
+            (writer: byref<Writer<'W>>, fieldIdDelta: uint32, expectedType: Type, value: obj) : unit =
+            if isNull value then
+                failwith "OrleansSerializer.WriteField got null; that's not expected"
+            else
+                let runtimeType = value.GetType()
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, runtimeType, WireType.LengthPrefixed)
+                match tryGetSerializerForType runtimeType with
+                | None -> failwithf "Invalid type for serialization %s, item: %O" runtimeType.FullName value
+                | Some serializer ->
+                    writer.WriteVarUInt32(1u)
+                    writer.Write(System.ReadOnlySpan<byte>([| payloadVersion |]))
+                    writer.WriteVarUInt32(1u)
+                    writer.Write(System.ReadOnlySpan<byte>([| serializer.TypeId |]))
+                    let payload = serializer.To value
+                    writer.WriteVarUInt32(uint32 payload.Length)
+                    writer.Write(System.ReadOnlySpan<byte>(payload))
+
+        member _.ReadValue<'R>(reader: byref<Reader<'R>>, field: Field) : obj =
+            let _ = field
+            let versionLength = reader.ReadVarUInt32() |> int
+            let versionBytes = Array.zeroCreate<byte> versionLength
+            reader.ReadBytes(System.Span<byte>(versionBytes)) |> ignore
+            let _version = versionBytes.[0]
+            let typeIdLength = reader.ReadVarUInt32() |> int
+            let typeIdBytes = Array.zeroCreate<byte> typeIdLength
+            reader.ReadBytes(System.Span<byte>(typeIdBytes)) |> ignore
+            let serializedTypeId = typeIdBytes.[0]
+            let payloadLength = reader.ReadVarUInt32() |> int
+            let payload = Array.zeroCreate<byte> payloadLength
+            reader.ReadBytes(System.Span<byte>(payload)) |> ignore
+            match untypedSerializersByTypeId.TryGetValue serializedTypeId with
+            | true, serializer -> serializer.Fro payload
+            | false, _         -> failwithf "Invalid type header for deserialization %A" serializedTypeId
+
+    interface IGeneralizedCodec with
+        member _.IsSupportedType(itemType: Type) : bool =
+            tryGetSerializerForType itemType |> Option.isSome
+
+    interface IGeneralizedCopier with
+        member _.IsSupportedType(itemType: Type) : bool =
+            tryGetSerializerForType itemType |> Option.isSome ||
+            isConnectorCommandType itemType
+
+    interface IDeepCopier with
+        member _.DeepCopy(source: obj, _context: CopyContext) : obj =
+            source
+
 let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
                                      when 'Subject              :> Subject<'SubjectId>
                                      and  'LifeAction           :> LifeAction
@@ -101,6 +228,11 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
     // * no need to cover IConnectorGrain because it's always executed locally
     // * the type ID mapping can *never* change. Do not re-use. If you ever remove a serializer
     //   simply comment out that line, so others don't accidentally re-use
+    // * Orleans 10 natively DECOMPOSES Option/ValueOption/Choice/Result/tuples and delegates each
+    //   generic arg to that arg's own codec, so we register bare LEAF types, never those wrappers.
+    //   TypeIds 8/15/17-19/21-22/32/36-39/45-46/53-55/59/62-66/68/71/73/77/79-83 were native wrappers
+    //   under Orleans 3.7; they are retired here and their non-native leaves re-registered at 84+.
+    //   See spikes/s15d-fsharp-wrapper-codecs.md.
 
     [
         UntypedSerializer.ForIsomorphicType   1uy
@@ -132,10 +264,7 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
 
 //        UntypedSerializer.ForIsomorphicType   7uy
 
-        UntypedSerializer.ForIsomorphicType   8uy
-            (Result.mapBoth (fun x -> x :> Subject<'SubjectId>) GrainConstructionError<OpError>.CastUnsafe)
-            (Result.mapBoth (fun x -> x :?> 'Subject)           GrainConstructionError<'OpError>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType   8uy  // was Result<Subject, GrainConstructionError<OpError>>; leaves: Subject (1) + GrainConstructionError<OpError> (84)
 
 //        UntypedSerializer.ForIsomorphicType  9uy
 
@@ -152,42 +281,24 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
 
 //        UntypedSerializer.ForIsomorphicType  14uy
 
-        UntypedSerializer.ForIsomorphicType  15uy
-            id<Result<unit, SubjectFailure<GrainSubscriptionError>>>
-            id<Result<unit, SubjectFailure<GrainSubscriptionError>>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  15uy  // was Result<unit, SubjectFailure<GrainSubscriptionError>>; leaf: SubjectFailure<GrainSubscriptionError> (95)
 
         UntypedSerializer.ForIsomorphicType  16uy
             id<SubscriptionTriggerType>
             id<SubscriptionTriggerType>
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  17uy
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainTriggerSubscriptionError<OpError>.CastUnsafe))
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainTriggerSubscriptionError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  17uy  // was Result<unit, SubjectFailure<GrainTriggerSubscriptionError<OpError>>>; leaf: (96)
 
-        UntypedSerializer.ForIsomorphicType  18uy
-            id<Option<ConstructSubscriptions>>
-            id<Option<ConstructSubscriptions>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  18uy  // was Option<ConstructSubscriptions>; leaf: ConstructSubscriptions (92)
 
-        UntypedSerializer.ForIsomorphicType  19uy
-            (Result.mapBoth (fun x -> x :> SubjectId)           GrainIdGenerationError<OpError>.CastUnsafe)
-            (Result.mapBoth (fun x -> x :?> 'SubjectId)         GrainIdGenerationError<'OpError>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  19uy  // was Result<SubjectId, GrainIdGenerationError<OpError>>; leaves: SubjectId (2) + GrainIdGenerationError<OpError> (85)
 
 //        UntypedSerializer.ForIsomorphicType  20uy
 
-        UntypedSerializer.ForIsomorphicType  21uy
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainPrepareConstructionError<OpError>.CastUnsafe))
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainPrepareConstructionError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  21uy  // was Result<unit, SubjectFailure<GrainPrepareConstructionError<OpError>>>; leaf: (97)
 
-        UntypedSerializer.ForIsomorphicType  22uy
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainPrepareTransitionError<OpError>.CastUnsafe))
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainPrepareTransitionError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  22uy  // was Result<unit, SubjectFailure<GrainPrepareTransitionError<OpError>>>; leaf: (98)
 
 //        UntypedSerializer.ForIsomorphicType  23uy
 
@@ -225,10 +336,7 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
             (List.map TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>.CastUnsafe)
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  32uy
-            (Option.map TemporalSnapshot<Subject<'SubjectId>, LifeAction, Constructor, 'SubjectId>.CastUnsafe)
-            (Option.map TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  32uy  // was Option<TemporalSnapshot<..>>; leaf: TemporalSnapshot<..> (93)
 
         UntypedSerializer.ForIsomorphicType  33uy
             id<PreparedIndexPredicate<'SubjectIndex>>
@@ -239,25 +347,13 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
 
 //        UntypedSerializer.ForIsomorphicType  35uy
 
-        UntypedSerializer.ForIsomorphicType  36uy
-            (Result.mapBoth (Option.map (fun x -> x :> Subject<'SubjectId>)) id<GrainGetError>)
-            (Result.mapBoth (Option.map (fun x -> x :?> 'Subject))           id<GrainGetError>)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  36uy  // was Result<Option<Subject>, GrainGetError>; leaves: Subject (1) + GrainGetError (89)
 
-        UntypedSerializer.ForIsomorphicType  37uy
-            (Result.mapBoth (Option.map (fun x -> x :> Subject<'SubjectId>)) (SubjectFailure.CastUnsafe GrainConstructionError<OpError>.CastUnsafe))
-            (Result.mapBoth (Option.map (fun x -> x :?> 'Subject))           (SubjectFailure.CastUnsafe GrainConstructionError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  37uy  // was Result<Option<Subject>, SubjectFailure<GrainConstructionError<OpError>>>; leaf: (99)
 
-        UntypedSerializer.ForIsomorphicType  38uy
-            (Result.mapBoth (Option.map (fun x -> x :> Subject<'SubjectId>)) (SubjectFailure.CastUnsafe GrainTransitionError<OpError>.CastUnsafe))
-            (Result.mapBoth (Option.map (fun x -> x :?> 'Subject))           (SubjectFailure.CastUnsafe GrainTransitionError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  38uy  // was Result<Option<Subject>, SubjectFailure<GrainTransitionError<OpError>>>; leaf: (100)
 
-        UntypedSerializer.ForIsomorphicType  39uy
-            (Result.mapBoth (Option.map (fun x -> x :> Subject<'SubjectId>)) (SubjectFailure.CastUnsafe GrainOperationError<OpError>.CastUnsafe))
-            (Result.mapBoth (Option.map (fun x -> x :?> 'Subject))           (SubjectFailure.CastUnsafe GrainOperationError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  39uy  // was Result<Option<Subject>, SubjectFailure<GrainOperationError<OpError>>>; leaf: (101)
 
         // UntypedSerializer.ForIsomorphicType  40uy
 
@@ -281,15 +377,9 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
             id<SideEffectDedupInfo>
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  45uy
-            id<Option<SideEffectDedupInfo>>
-            id<Option<SideEffectDedupInfo>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  45uy  // was Option<SideEffectDedupInfo>; leaf already bare at typeId 44
 
-        UntypedSerializer.ForIsomorphicType  46uy
-            id<Result<unit, GrainRefreshTimersAndSubsError>>
-            id<Result<unit, GrainRefreshTimersAndSubsError>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  46uy  // was Result<unit, GrainRefreshTimersAndSubsError>; leaf: GrainRefreshTimersAndSubsError (90)
 
         UntypedSerializer.ForIsomorphicType  47uy
             id<SubjectPKeyReference>
@@ -309,20 +399,11 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
 
         //UntypedSerializer.ForIsomorphicType  52uy
 
-        UntypedSerializer.ForIsomorphicType  53uy
-            id<Option<DateTimeOffset>>
-            id<Option<DateTimeOffset>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  53uy  // was Option<DateTimeOffset>; inner is Orleans-native, no registration needed
 
-        UntypedSerializer.ForIsomorphicType  54uy
-            id<Result<unit, SubjectFailure<GrainEnqueueActionError>>>
-            id<Result<unit, SubjectFailure<GrainEnqueueActionError>>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  54uy  // was Result<unit, SubjectFailure<GrainEnqueueActionError>>; leaf: (102)
 
-        UntypedSerializer.ForIsomorphicType  55uy
-            (fun (s, x: uint64) -> (s |> List.map (fun v -> v :> Subject<'SubjectId>)), x)
-            (fun (s, x: uint64) -> (s |> List.map (fun v -> v :?> 'Subject)), x)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  55uy  // was (List<Subject>, uint64) tuple; leaves: List<Subject> (30) + uint64 (native)
 
         UntypedSerializer.ForIsomorphicType  56uy
             id<GetSnapshotOfVersion>
@@ -336,10 +417,7 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
             id<LocalSubjectPKeyReference>
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  59uy
-            id<Result<unit, SubjectFailure<GrainTriggerDynamicSubscriptionError>>>
-            id<Result<unit, SubjectFailure<GrainTriggerDynamicSubscriptionError>>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  59uy  // was Result<unit, SubjectFailure<GrainTriggerDynamicSubscriptionError>>; leaf: (103)
 
         UntypedSerializer.ForIsomorphicType  60uy
             id<ClientGrainCallContext>
@@ -351,40 +429,22 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
             VersionedSubject<'Subject, 'SubjectId>.CastUnsafe
             id<_>
 
-        UntypedSerializer.ForIsomorphicType   62uy
-            (Result.mapBoth VersionedSubject<Subject<'SubjectId>, 'SubjectId>.CastUnsafe GrainConstructionError<OpError>.CastUnsafe)
-            (Result.mapBoth VersionedSubject<'Subject, 'SubjectId>.CastUnsafe            GrainConstructionError<'OpError>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  62uy  // was Result<VersionedSubject, GrainConstructionError<OpError>>; leaves: VersionedSubject (61) + GrainConstructionError<OpError> (84)
 
-        UntypedSerializer.ForIsomorphicType   63uy
-            (Result.mapBoth VersionedSubject<Subject<'SubjectId>, 'SubjectId>.CastUnsafe GrainTransitionError<OpError>.CastUnsafe)
-            (Result.mapBoth VersionedSubject<'Subject, 'SubjectId>.CastUnsafe            GrainTransitionError<'OpError>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  63uy  // was Result<VersionedSubject, GrainTransitionError<OpError>>; leaves: VersionedSubject (61) + GrainTransitionError<OpError> (86)
 
-        UntypedSerializer.ForIsomorphicType   64uy
-            (Result.mapBoth VersionedSubject<Subject<'SubjectId>, 'SubjectId>.CastUnsafe GrainOperationError<OpError>.CastUnsafe)
-            (Result.mapBoth VersionedSubject<'Subject, 'SubjectId>.CastUnsafe            GrainOperationError<'OpError>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  64uy  // was Result<VersionedSubject, GrainOperationError<OpError>>; leaves: VersionedSubject (61) + GrainOperationError<OpError> (87)
 
-        UntypedSerializer.ForIsomorphicType   65uy
-            (Result.mapBoth VersionedSubject<Subject<'SubjectId>, 'SubjectId>.CastUnsafe GrainMaybeConstructionError<OpError>.CastUnsafe)
-            (Result.mapBoth VersionedSubject<'Subject, 'SubjectId>.CastUnsafe            GrainMaybeConstructionError<'OpError>.CastUnsafe)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  65uy  // was Result<VersionedSubject, GrainMaybeConstructionError<OpError>>; leaves: VersionedSubject (61) + GrainMaybeConstructionError<OpError> (88)
 
-        UntypedSerializer.ForIsomorphicType   66uy
-            (Result.mapBoth (Option.map VersionedSubject<Subject<'SubjectId>, 'SubjectId>.CastUnsafe) id<GrainGetError>)
-            (Result.mapBoth (Option.map VersionedSubject<'Subject, 'SubjectId>.CastUnsafe)            id<GrainGetError>)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  66uy  // was Result<Option<VersionedSubject>, GrainGetError>; leaves: VersionedSubject (61) + GrainGetError (89)
 
         UntypedSerializer.ForIsomorphicType   67uy
             LibLifeCycleCore.SubjectChange<Subject<'SubjectId>, 'SubjectId>.CastUnsafe
             LibLifeCycleCore.SubjectChange<'Subject, 'SubjectId>.CastUnsafe
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  68uy
-            id<Option<Tuple<int64, uint64>>>
-            id<Option<Tuple<int64, uint64>>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  68uy  // was Option<Tuple<int64, uint64>>; inner is Orleans-native, no registration needed
 
         UntypedSerializer.ForIsomorphicType  69uy
             id<list<string>>
@@ -396,20 +456,14 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
             (List.map VersionedSubject<'Subject, 'SubjectId>.CastUnsafe)
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  71uy
-            (Tuple.Map (List.map VersionedSubject<Subject<'SubjectId>, 'SubjectId>.CastUnsafe) id<uint64>)
-            (Tuple.Map (List.map VersionedSubject<'Subject, 'SubjectId>.CastUnsafe) id<uint64>)
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  71uy  // was (List<VersionedSubject>, uint64) tuple; leaves: List<VersionedSubject> (70) + uint64 (native)
 
         UntypedSerializer.ForIsomorphicType 72uy
             id<CallOrigin>
             id<CallOrigin>
             id<_>
 
-        UntypedSerializer.ForIsomorphicType 73uy
-            id<Option<BlobData>>
-            id<Option<BlobData>>
-            id<_>
+//        UntypedSerializer.ForIsomorphicType 73uy  // was Option<BlobData>; leaf: BlobData (94)
 
         UntypedSerializer.ForIsomorphicType  74uy
             (List.map (fun (id: 'SubjectId) -> id :> SubjectId))
@@ -423,40 +477,123 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
 
         // UntypedSerializer.ForIsomorphicType  76uy
 
-        UntypedSerializer.ForIsomorphicType  77uy
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainTransitionError<OpError>.CastUnsafe))
-            (Result.mapBoth id<unit> (SubjectFailure.CastUnsafe GrainTransitionError<'OpError>.CastUnsafe))
-            id<_>
+//        UntypedSerializer.ForIsomorphicType  77uy  // was Result<unit, SubjectFailure<GrainTransitionError<OpError>>>; leaf: (100)
 
         UntypedSerializer.ForIsomorphicType  78uy
             (NonemptyList.map (fun (id: 'LifeAction) -> id :> LifeAction))
             (NonemptyList.map (fun (id: LifeAction) -> id :?> 'LifeAction))
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  79uy
-            // Result<Option<'LifeAction>, GrainTriggerTimerError<'OpError, 'LifeAction>>
-            (Result.mapBoth (fun (id: Option<'LifeAction>) -> id |> Option.map (fun action -> action :> LifeAction)) GrainTriggerTimerError<OpError, LifeAction>.CastUnsafe)
-            (Result.mapBoth (fun (id: Option<LifeAction>) -> id  |> Option.map (fun action -> action :?> 'LifeAction)) GrainTriggerTimerError<'OpError, 'LifeAction>.CastUnsafe)
+//        UntypedSerializer.ForIsomorphicType  79uy  // was Result<Option<'LifeAction>, GrainTriggerTimerError<'OpError, 'LifeAction>>; leaves: 'LifeAction (3) + GrainTriggerTimerError<OpError, LifeAction> (91)
+
+//        UntypedSerializer.ForIsomorphicType  80uy  // was Result<unit, GrainConstructionError<OpError>>; leaf: GrainConstructionError<OpError> (84)
+
+//        UntypedSerializer.ForIsomorphicType  81uy  // was Result<unit, GrainTransitionError<OpError>>; leaf: GrainTransitionError<OpError> (86)
+
+//        UntypedSerializer.ForIsomorphicType  82uy  // was Result<unit, GrainOperationError<OpError>>; leaf: GrainOperationError<OpError> (87)
+
+//        UntypedSerializer.ForIsomorphicType  83uy  // was Result<unit, GrainMaybeConstructionError<OpError>>; leaf: GrainMaybeConstructionError<OpError> (88)
+
+        // --- bare leaves for Orleans-10-decomposed wrappers (S15d-production-port) ---
+
+        UntypedSerializer.ForIsomorphicType  84uy // error leaf of retired 8, 62, 80
+            GrainConstructionError<OpError>.CastUnsafe
+            GrainConstructionError<'OpError>.CastUnsafe
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  80uy
-            (Result.mapBoth id<unit> GrainConstructionError<OpError>.CastUnsafe)
-            (Result.mapBoth id<unit> GrainConstructionError<'OpError>.CastUnsafe)
+        UntypedSerializer.ForIsomorphicType  85uy // error leaf of retired 19
+            GrainIdGenerationError<OpError>.CastUnsafe
+            GrainIdGenerationError<'OpError>.CastUnsafe
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  81uy
-            (Result.mapBoth id<unit> GrainTransitionError<OpError>.CastUnsafe)
-            (Result.mapBoth id<unit> GrainTransitionError<'OpError>.CastUnsafe)
+        UntypedSerializer.ForIsomorphicType  86uy // error leaf of retired 63, 81
+            GrainTransitionError<OpError>.CastUnsafe
+            GrainTransitionError<'OpError>.CastUnsafe
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  82uy
-            (Result.mapBoth id<unit> GrainOperationError<OpError>.CastUnsafe)
-            (Result.mapBoth id<unit> GrainOperationError<'OpError>.CastUnsafe)
+        UntypedSerializer.ForIsomorphicType  87uy // error leaf of retired 64, 82
+            GrainOperationError<OpError>.CastUnsafe
+            GrainOperationError<'OpError>.CastUnsafe
             id<_>
 
-        UntypedSerializer.ForIsomorphicType  83uy
-            (Result.mapBoth id<unit> GrainMaybeConstructionError<OpError>.CastUnsafe)
-            (Result.mapBoth id<unit> GrainMaybeConstructionError<'OpError>.CastUnsafe)
+        UntypedSerializer.ForIsomorphicType  88uy // error leaf of retired 65, 83
+            GrainMaybeConstructionError<OpError>.CastUnsafe
+            GrainMaybeConstructionError<'OpError>.CastUnsafe
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  89uy // error leaf of retired 36, 66
+            id<GrainGetError>
+            id<GrainGetError>
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  90uy // error leaf of retired 46
+            id<GrainRefreshTimersAndSubsError>
+            id<GrainRefreshTimersAndSubsError>
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  91uy // error leaf of retired 79
+            GrainTriggerTimerError<OpError, LifeAction>.CastUnsafe
+            GrainTriggerTimerError<'OpError, 'LifeAction>.CastUnsafe
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  92uy // ok leaf of retired 18
+            id<ConstructSubscriptions>
+            id<ConstructSubscriptions>
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  93uy // ok leaf of retired 32
+            TemporalSnapshot<Subject<'SubjectId>, LifeAction, Constructor, 'SubjectId>.CastUnsafe
+            TemporalSnapshot<'Subject, 'LifeAction, 'Constructor, 'SubjectId>.CastUnsafe
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  94uy // ok leaf of retired 73
+            id<BlobData>
+            id<BlobData>
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  95uy // error leaf of retired 15
+            id<SubjectFailure<GrainSubscriptionError>>
+            id<SubjectFailure<GrainSubscriptionError>>
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  96uy // error leaf of retired 17
+            (SubjectFailure.CastUnsafe GrainTriggerSubscriptionError<OpError>.CastUnsafe)
+            (SubjectFailure.CastUnsafe GrainTriggerSubscriptionError<'OpError>.CastUnsafe)
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  97uy // error leaf of retired 21
+            (SubjectFailure.CastUnsafe GrainPrepareConstructionError<OpError>.CastUnsafe)
+            (SubjectFailure.CastUnsafe GrainPrepareConstructionError<'OpError>.CastUnsafe)
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  98uy // error leaf of retired 22
+            (SubjectFailure.CastUnsafe GrainPrepareTransitionError<OpError>.CastUnsafe)
+            (SubjectFailure.CastUnsafe GrainPrepareTransitionError<'OpError>.CastUnsafe)
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType  99uy // error leaf of retired 37
+            (SubjectFailure.CastUnsafe GrainConstructionError<OpError>.CastUnsafe)
+            (SubjectFailure.CastUnsafe GrainConstructionError<'OpError>.CastUnsafe)
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType 100uy // error leaf of retired 38, 77
+            (SubjectFailure.CastUnsafe GrainTransitionError<OpError>.CastUnsafe)
+            (SubjectFailure.CastUnsafe GrainTransitionError<'OpError>.CastUnsafe)
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType 101uy // error leaf of retired 39
+            (SubjectFailure.CastUnsafe GrainOperationError<OpError>.CastUnsafe)
+            (SubjectFailure.CastUnsafe GrainOperationError<'OpError>.CastUnsafe)
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType 102uy // error leaf of retired 54
+            id<SubjectFailure<GrainEnqueueActionError>>
+            id<SubjectFailure<GrainEnqueueActionError>>
+            id<_>
+
+        UntypedSerializer.ForIsomorphicType 103uy // error leaf of retired 59
+            id<SubjectFailure<GrainTriggerDynamicSubscriptionError>>
+            id<SubjectFailure<GrainTriggerDynamicSubscriptionError>>
             id<_>
     ]
     |> fun untypedSerializers ->
@@ -467,38 +604,37 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
         | Some duplicateTypeId ->
             failwithf "Duplicate typeId in subject serializers: %d" duplicateTypeId
 
-type private OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
-                                                     when 'Subject              :> Subject<'SubjectId>
-                                                     and  'LifeAction           :> LifeAction
-                                                     and  'OpError              :> OpError
-                                                     and  'Constructor          :> Constructor
-                                                     and  'LifeEvent            :> LifeEvent
-                                                     and  'LifeEvent            : comparison
-                                                     and  'SubjectIndex         :> SubjectIndex<'OpError>
-                                                     and  'SubjectId            :> SubjectId
-                                                     and  'SubjectId            : comparison> () =
+let private buildSubjectCodec<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
+                         when 'Subject              :> Subject<'SubjectId>
+                         and  'LifeAction           :> LifeAction
+                         and  'OpError              :> OpError
+                         and  'Constructor          :> Constructor
+                         and  'LifeEvent            :> LifeEvent
+                         and  'LifeEvent            : comparison
+                         and  'SubjectIndex         :> SubjectIndex<'OpError>
+                         and  'SubjectId            :> SubjectId
+                         and  'SubjectId            : comparison> () : EggShellSubjectGrainsCodec =
+
+    // assert all grains params and return value types are covered by serializers
+
+    // FIXME - awful hack to reflect ISubjectGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
+    let maybeLifeCycleHostAssembly =
+        AppDomain.CurrentDomain.GetAssemblies()
+        |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
+
+    let maybeISubjectGrainTypeDef =
+        maybeLifeCycleHostAssembly
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrain`6")) // 6 is number of params
+
+    let maybeISubjectGrainObserverTypeDef =
+        maybeLifeCycleHostAssembly
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrainObserver`2")) // 2 is number of params
+
+    let maybeIDynamicSubscriptionDispatcherGrainType =
+        maybeLifeCycleHostAssembly
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IDynamicSubscriptionDispatcherGrain"))
 
     let untypedSerializers =
-
-        // assert all grains params and return value types are covered by serializers
-
-        // FIXME - awful hack to reflect ISubjectGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
-        let maybeLifeCycleHostAssembly =
-            AppDomain.CurrentDomain.GetAssemblies()
-            |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
-
-        let maybeISubjectGrainTypeDef =
-            maybeLifeCycleHostAssembly
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrain`6")) // 6 is number of params
-
-        let maybeISubjectGrainObserverTypeDef =
-            maybeLifeCycleHostAssembly
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.ISubjectGrainObserver`2")) // 2 is number of params
-
-        let maybeIDynamicSubscriptionDispatcherGrainType =
-            maybeLifeCycleHostAssembly
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IDynamicSubscriptionDispatcherGrain"))
-
         getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>()
         |> fun serializers ->
 
@@ -548,12 +684,30 @@ type private OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeActi
                 |> Seq.map (fun t -> t, ())
                 |> readOnlyDict
 
+            // Orleans 10 decomposes Option/ValueOption/Choice/Result/tuples natively, so the declared
+            // grain param/return types must be peeled to their bare leaves before checking coverage.
+            let declaredLeafTypes =
+                declaredGrainParamAndRetValTypes.Keys
+                |> Seq.collect decomposeToNativeLeaves
+                |> Seq.map (fun t -> t, ())
+                |> readOnlyDict
+
+            // types Orleans serializes without our help: native leaf types + the grain-observer
+            // interfaces (which implement Orleans.IGrainObserver)
+            let isOrleansHandledLeaf (typ: Type) =
+                orleansNativeLeafTypes.Contains typ
+                || typ = typeof<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>>
+                || (match maybeISubjectGrainObserverTypeDef with
+                    | None -> false
+                    | Some iSubjectGrainObserverTypeDef ->
+                        typ = iSubjectGrainObserverTypeDef.MakeGenericType([| typeof<'Subject>; typeof<'SubjectId> |]))
+
             // also assert that no redundant serializers (only inside host, because client will have a few)
             match maybeISubjectGrainTypeDef with
             | None -> ()
             | Some _ ->
                 supportedTypes
-                |> Seq.filter (fun kvp -> kvp.Key |> declaredGrainParamAndRetValTypes.ContainsKey |> not)
+                |> Seq.filter (fun kvp -> kvp.Key |> declaredLeafTypes.ContainsKey |> not)
                 |> List.ofSeq
                 |>
                     function
@@ -576,35 +730,10 @@ type private OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeActi
 
                         failwithf "Remove redundant subject serializers for following types:\n%s" typesMessage
 
-            declaredGrainParamAndRetValTypes
+            declaredLeafTypes
             |> fun dict -> dict.Keys
             |> Seq.filter (not << supportedTypes.ContainsKey)
-            |> Seq.filter (
-                // excuse some of declared types that Orleans knows about
-                fun typ ->
-                    [
-                        yield typeof<string>
-                        yield typeof<bool>
-                        yield typeof<byte>
-                        yield typeof<uint64>
-                        yield typeof<TimeSpan>
-                        yield typeof<Guid>
-                        yield typeof<unit>
-                        yield typeof<Void>
-                        yield typeof<Task>
-
-                        // these implement Orleans.IGrainObserver i.e. OK
-                        yield typeof<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>>
-
-                        match maybeISubjectGrainObserverTypeDef with
-                        | None -> ()
-                        | Some iSubjectGrainObserverTypeDef ->
-                            yield iSubjectGrainObserverTypeDef.MakeGenericType(
-                                [| typeof<'Subject>; typeof<'SubjectId> |])
-                    ]
-                    |> List.contains typ
-                    |> not
-                )
+            |> Seq.filter (not << isOrleansHandledLeaf)
             |> List.ofSeq
             |>
                 function
@@ -624,91 +753,17 @@ type private OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeActi
 
                     failwithf "Need to define serializers for following types on subject grain interfaces (if Orleans can serialize this type without the help of a custom serializer, add an exception to the above filter):\n%s" typesMessage
 
-    let untypedSerializersByTypeId = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict
-    let untypedSerializersByType   = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict
+    EggShellSubjectGrainsCodec(
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict,
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict)
 
-    static let singletonInstance: Lazy<OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>> =
-        lazy(OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>())
-
-    static member Singleton = singletonInstance.Force()
-
-    member _.DeepCopy(source: obj, _context: ICopyContext): obj =
-        // All types deserialized by Form are expected to be immutable
-        source
-
-    member _.Deserialize(_expectedType: Type, context: IDeserializationContext): obj =
-        let _version = context.DeserializeInner(typeof<byte>) :?> byte // Unused for now
-        let serializedTypeId = context.DeserializeInner(typeof<byte>) :?> byte
-        let serializedBytes = context.DeserializeInner(typeof<byte[]>) :?> byte[]
-
-        match untypedSerializersByTypeId.TryGetValue serializedTypeId with
-        | (true, serializer) ->
-            serializer.Fro serializedBytes
-        | (false, _) ->
-            failwithf "Invalid type header for deserialization %A" serializedTypeId
-
-    member _.IsSupportedType(itemType: Type): bool =
-        untypedSerializersByType.ContainsKey itemType ||
-        untypedSerializersByType.ContainsKey (itemType.BaseType) // for union case instance types that might be derived
-
-
-    member _.Serialize(item: obj, context: ISerializationContext, _expectedType: Type): unit =
-        if isNull item then
-            failwith "OrleansSerializer.Serialize got null; that's not expected"
-
-        let itemType = item.GetType()
-
-        let maybeSerializer =
-            IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType
-            // F# Union instances may be derived type
-            |> Option.orElseWith (fun _ -> IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType)
-
-        match maybeSerializer with
-        | Some serializer ->
-            context.SerializeInner<byte> 0uy // Version. Unused for now.
-            context.SerializeInner<byte> serializer.TypeId
-
-            item
-            |> serializer.To
-            |> context.SerializeInner<byte[]>
-
-        | None ->
-            failwithf "Invalid type for serialization %s, item: %O" itemType.FullName item
-
-type private OrleansSubjectGrainsContractSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
-                                                     when 'Subject              :> Subject<'SubjectId>
-                                                     and  'LifeAction           :> LifeAction
-                                                     and  'OpError              :> OpError
-                                                     and  'Constructor          :> Constructor
-                                                     and  'LifeEvent            :> LifeEvent
-                                                     and  'LifeEvent            : comparison
-                                                     and  'SubjectIndex         :> SubjectIndex<'OpError>
-                                                     and  'SubjectId            :> SubjectId
-                                                     and  'SubjectId            : comparison> () =
-
-    // reuse because it's expensive to create
-    let impl = OrleansSubjectGrainsContractSingletonSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>.Singleton
-
-    interface IExternalSerializer with
-        member _.DeepCopy(source: obj, context: ICopyContext): obj =
-            impl.DeepCopy(source, context)
-
-        member _.Deserialize(expectedType: Type, context: IDeserializationContext): obj =
-            impl.Deserialize (expectedType, context)
-
-        member _.IsSupportedType(itemType: Type): bool =
-            impl.IsSupportedType itemType
-
-        member _.Serialize(item: obj, context: ISerializationContext, expectedType: Type): unit =
-            impl.Serialize(item, context, expectedType)
-
-let getOrleansSerializerTypeLifeCycleAdapter (lifeCycle: LifeCycleDef) : Type =
-    lifeCycle.Invoke
-        { new FullyTypedLifeCycleDefFunction<_> with
-            member _.Invoke (lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>) =
-               // create dummy instance to validate types early and fail fast if invalid (tried static values too but it didn't work)
-               let serializer = OrleansSubjectGrainsContractSerializer<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>()
-               serializer.GetType() }
+let buildSubjectCodecs (lifeCycleDefs: LifeCycleDef list) : EggShellSubjectGrainsCodec list =
+    lifeCycleDefs
+    |> List.map (fun def ->
+        def.Invoke
+            { new FullyTypedLifeCycleDefFunction<_> with
+                member _.Invoke (_def: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>) =
+                    buildSubjectCodec<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>() })
 
 let getSummaryEncoders<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId
                              when 'Subject              :> Subject<'SubjectId>
@@ -759,8 +814,13 @@ let private getUntypedViewSerializers<'Input, 'Output, 'OpError
         UntypedSerializer.ForConcreteTypeWithExplicitCodec 2uy
             ('Input.Codec())
 
-        UntypedSerializer.ForConcreteTypeWithExplicitCodec 3uy
-            (CodecLib.Codecs.result ('Output.Codec()) (GrainExecutionError<'OpError>.CodecWithExplicitOpError ('OpError.Codec())))
+//      UntypedSerializer.ForConcreteTypeWithExplicitCodec 3uy  // was Result<'Output, GrainExecutionError<'OpError>>; Orleans 10 decomposes Result, leaves re-registered at 4 + 5
+
+        UntypedSerializer.ForConcreteTypeWithExplicitCodec 4uy
+            ('Output.Codec())
+
+        UntypedSerializer.ForConcreteTypeWithExplicitCodec 5uy
+            (GrainExecutionError<'OpError>.CodecWithExplicitOpError ('OpError.Codec()))
     ]
     |> fun untypedSerializers ->
         // assert no duplicate Ids before return
@@ -770,22 +830,21 @@ let private getUntypedViewSerializers<'Input, 'Output, 'OpError
         | Some duplicateTypeId ->
             failwithf "Duplicate typeId in view serializers: %d" duplicateTypeId
 
-type private OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError
-                                                  when 'Input :> ViewInput<'Input>
-                                                  and  'Output :> ViewOutput<'Output>
-                                                  and  'OpError :> ViewOpError<'OpError>
-                                                  and  'OpError :> OpError> () =
+let private buildViewCodec<'Input, 'Output, 'OpError
+                         when 'Input :> ViewInput<'Input>
+                         and  'Output :> ViewOutput<'Output>
+                         and  'OpError :> ViewOpError<'OpError>
+                         and  'OpError :> OpError> () : EggShellSubjectGrainsCodec =
+
+    // assert all grains params and return value types are covered by serializers
+
+    // FIXME - awful hack to reflect IViewGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
+    let maybeIViewGrainTypeDef =
+        AppDomain.CurrentDomain.GetAssemblies()
+        |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
+        |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IViewGrain`3")) // 3 is number of params
 
     let untypedSerializers =
-
-        // assert all grains params and return value types are covered by serializers
-
-        // FIXME - awful hack to reflect IViewGrain & other types defined in LibLifeCycleHost (will be skipped on client side)
-        let maybeIViewGrainTypeDef =
-            AppDomain.CurrentDomain.GetAssemblies()
-            |> Seq.tryFind (fun a -> a.GetName().Name = "LibLifeCycleHost")
-            |> Option.map (fun a -> a.GetType("LibLifeCycleHost.IViewGrain`3")) // 3 is number of params
-
         getUntypedViewSerializers<'Input, 'Output, 'OpError>()
         |> fun serializers ->
 
@@ -818,12 +877,20 @@ type private OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError
                 |> Seq.map (fun t -> t, ())
                 |> readOnlyDict
 
+            // Orleans 10 decomposes Option/ValueOption/Choice/Result/tuples natively, so peel the
+            // declared grain param/return types to their bare leaves before checking coverage.
+            let declaredLeafTypes =
+                declaredGrainParamAndRetValTypes.Keys
+                |> Seq.collect decomposeToNativeLeaves
+                |> Seq.map (fun t -> t, ())
+                |> readOnlyDict
+
             // also assert that no redundant serializers (only inside host, because client will have a few)
             match maybeIViewGrainTypeDef with
             | None -> ()
             | Some _ ->
                 supportedTypes
-                |> Seq.filter (fun kvp -> kvp.Key |> declaredGrainParamAndRetValTypes.ContainsKey |> not)
+                |> Seq.filter (fun kvp -> kvp.Key |> declaredLeafTypes.ContainsKey |> not)
                 |> List.ofSeq
                 |>
                     function
@@ -846,13 +913,10 @@ type private OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError
 
                         failwithf "Remove redundant view serializers for following types:\n%s" typesMessage
 
-            declaredGrainParamAndRetValTypes
+            declaredLeafTypes
             |> fun dict -> dict.Keys
             |> Seq.filter (not << supportedTypes.ContainsKey)
-            |> Seq.filter (
-                // excuse some of declared types that Orleans knows about
-                fun _typ ->
-                    true)
+            |> Seq.filter (not << orleansNativeLeafTypes.Contains)
             |> List.ofSeq
             |>
                 function
@@ -872,86 +936,46 @@ type private OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError
 
                     failwithf "Need to define serializers for following types on view grain interfaces (if Orleans can serialize this type without the help of a custom serializer, add an exception to the above filter):\n%s" typesMessage
 
-    let untypedSerializersByTypeId = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict
-    let untypedSerializersByType   = untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict
+    EggShellSubjectGrainsCodec(
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.TypeId, untypedSer)) |> readOnlyDict,
+        untypedSerializers |> Seq.map (fun untypedSer -> (untypedSer.Type,   untypedSer)) |> readOnlyDict)
 
-    interface IExternalSerializer with
+type private ViewCodecBuilder =
+    static member Build<'Input, 'Output, 'OpError
+        when 'Input :> ViewInput<'Input>
+        and  'Output :> ViewOutput<'Output>
+        and  'OpError :> ViewOpError<'OpError>
+        and  'OpError :> OpError>
+        () : EggShellSubjectGrainsCodec =
+        buildViewCodec<'Input, 'Output, 'OpError>()
 
-        member _.DeepCopy(source: obj, _context: ICopyContext): obj =
-            // All types deserialized by Form are expected to be immutable
-            source
-
-        member _.Deserialize(_expectedType: Type, context: IDeserializationContext): obj =
-            let _version = context.DeserializeInner(typeof<byte>) :?> byte // Unused for now
-            let serializedTypeId = context.DeserializeInner(typeof<byte>) :?> byte
-            let serializedBytes = context.DeserializeInner(typeof<byte[]>) :?> byte[]
-
-            match untypedSerializersByTypeId.TryGetValue serializedTypeId with
-            | (true, serializer) ->
-                serializer.Fro serializedBytes
-            | (false, _) ->
-                failwithf "Invalid type header for deserialization %A" serializedTypeId
-
-        member _.IsSupportedType(itemType: Type): bool =
-            untypedSerializersByType.ContainsKey itemType ||
-            untypedSerializersByType.ContainsKey (itemType.BaseType) // for union case instance types that might be derived
-
-
-        member _.Serialize(item: obj, context: ISerializationContext, _expectedType: Type): unit =
-            if isNull item then
-                failwith "OrleansSerializer.Serialize got null; that's not expected"
-
-            let itemType = item.GetType()
-
-            let maybeSerializer =
-                IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType
-                // F# Union instances may be derived type
-                |> Option.orElseWith (fun _ -> IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType)
-
-            match maybeSerializer with
-            | Some serializer ->
-                context.SerializeInner<byte> 0uy // Version. Unused for now.
-                context.SerializeInner<byte> serializer.TypeId
-
-                item
-                |> serializer.To
-                |> context.SerializeInner<byte[]>
-
-            | None ->
-                failwithf "Invalid type for serialization %s, item: %O" itemType.FullName item
-
-type private AnchorTypeForModule = private AnchorTypeForModule of unit
-
-let private getOrleansSerializerTypeViewAdapterTyped<'Input, 'Output, 'OpError
-      when 'Input :> ViewInput<'Input>
-      and  'Output :> ViewOutput<'Output>
-      and  'OpError :> ViewOpError<'OpError>
-      and  'OpError :> OpError>
-   (_view: ViewDef<'Input, 'Output, 'OpError>) =
-    // create dummy instance to validate types early and fail fast if invalid (tried static values too but it didn't work)
-   let serializer = OrleansViewGrainsContractSerializer<'Input, 'Output, 'OpError>()
-   serializer.GetType()
-
-let getOrleansSerializerTypeViewAdapter (view: IViewDef) : Option<Type> =
-    view.Invoke
-        { new FullyTypedViewDefFunction<_> with
-            member _.Invoke (viewDef: ViewDef<'Input, 'Output, 'OpError>) =
-                let viewDefType = viewDef.GetType()
-                let inputType = typeof<'Input>
-                let outputType = typeof<'Output>
-                let errorType = typeof<'OpError>
-                if // 'Input implements ViewInput<'Input>
-                    inputType.GetInterfaces() |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = typedefof<ViewInput<NoInput>> && it.GenericTypeArguments[0] = inputType) &&
-                    // 'Output implements ViewOutput<'Output>
-                    outputType.GetInterfaces() |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = typedefof<ViewOutput<NoOutput>> && it.GenericTypeArguments[0] = outputType) &&
-                    // 'OpError implements ViewOpError<'OpError>
-                    errorType.GetInterfaces() |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = typedefof<ViewOpError<NoViewError>> && it.GenericTypeArguments[0] = errorType)
-                    then
-                    typedefof<AnchorTypeForModule>.DeclaringType
-                        .GetMethod(nameof(getOrleansSerializerTypeViewAdapterTyped), System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.NonPublic)
-                        .MakeGenericMethod(viewDefType.GenericTypeArguments)
-                        .Invoke(null, [| view |])
-                        :?> Type
-                    |> Some
-                else
-                    None }
+let buildViewCodecs (viewDefs: IViewDef list) : EggShellSubjectGrainsCodec list =
+    let viewInputDef = typedefof<ViewInput<NoInput>>
+    let viewOutputDef = typedefof<ViewOutput<NoOutput>>
+    let buildMethod =
+        typeof<ViewCodecBuilder>.GetMethod(
+            "Build",
+            System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.Public ||| System.Reflection.BindingFlags.NonPublic)
+    viewDefs
+    |> List.choose (fun def ->
+        let viewDefType = def.GetType()
+        let typeArgs = viewDefType.GenericTypeArguments
+        if typeArgs.Length = 3 then
+            let inputType = typeArgs.[0]
+            let outputType = typeArgs.[1]
+            let _opErrorType = typeArgs.[2]
+            let inputOk =
+                inputType.GetInterfaces()
+                |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = viewInputDef && it.GenericTypeArguments.[0] = inputType)
+            let outputOk =
+                outputType.GetInterfaces()
+                |> Seq.exists (fun it -> it.IsGenericType && it.GetGenericTypeDefinition() = viewOutputDef && it.GenericTypeArguments.[0] = outputType)
+            if inputOk && outputOk then
+                buildMethod.MakeGenericMethod(typeArgs)
+                    .Invoke(null, [| |])
+                    :?> EggShellSubjectGrainsCodec
+                |> Some
+            else
+                None
+        else
+            None)

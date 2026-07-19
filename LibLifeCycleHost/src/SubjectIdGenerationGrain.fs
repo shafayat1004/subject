@@ -22,13 +22,13 @@ type SubjectIdGenerationGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'Li
                 and  'SubjectId            :> SubjectId
                 and  'SubjectId            :  comparison>
         (lifeCycleAdapter: HostedLifeCycleAdapter<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>,
-         ctx:            IGrainActivationContext, valueSummarizers: ValueSummarizers, serviceProvider: IServiceProvider,
+         _ctx:           IGrainContext, valueSummarizers: ValueSummarizers, serviceProvider: IServiceProvider,
          unscopedLogger: Microsoft.Extensions.Logging.ILogger<SubjectIdGenerationGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>) =
 
     inherit Grain()
 
     let (grainPartition, grainPKey) =
-        let (grainPartition, pKey) = ctx.GrainIdentity.GetPrimaryKey()
+        let (grainPartition, pKey) = _ctx.GrainReference.GetPrimaryKey()
         ((grainPartition |> GrainPartition), pKey)
 
     let logger = newGrainScopedLogger valueSummarizers unscopedLogger lifeCycleAdapter.LifeCycle.Name grainPartition grainPKey

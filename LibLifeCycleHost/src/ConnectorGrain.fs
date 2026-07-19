@@ -14,15 +14,15 @@ open Microsoft.Extensions.DependencyInjection
 
 [<StatelessWorker(maxLocalWorkers = Int32.MaxValue)>]
 [<Reentrant>]
-type ConnectorGrain<'Request, 'Env when 'Request :> Request and 'Env :> Env>
+type ConnectorGrain<'Request, 'Env when 'Request :> LibLifeCycle.Services.Request and 'Env :> LibLifeCycle.LifeCycle.Env>
         (serviceProvider: IServiceProvider, envFactory: EnvironmentFactory<'Env>, connectorAdapter: ConnectorAdapter<'Request, 'Env>, lifeCycleAdapterCollection: HostedLifeCycleAdapterCollection,
-          valueSummarizers: ValueSummarizers, grainProvider: IBiosphereGrainProvider, unscopedLogger: Microsoft.Extensions.Logging.ILogger<'Request>, ctx: IGrainActivationContext) =
+          valueSummarizers: ValueSummarizers, grainProvider: IBiosphereGrainProvider, unscopedLogger: Microsoft.Extensions.Logging.ILogger<'Request>, _ctx: IGrainContext) =
 
     inherit Grain()
 
     let env            = envFactory.Invoke { CallOrigin = CallOrigin.Internal; LocalSubjectRef = None }
     let connector      = connectorAdapter.Connector
-    let grainPartition = ctx.GrainIdentity.GetPrimaryKey() |> fst |> GrainPartition
+    let grainPartition = _ctx.GrainReference.GetPrimaryKey() |> GrainPartition
     let logger         = newConnectorScopedLogger valueSummarizers unscopedLogger connector.Name grainPartition
     let trackerHook    = serviceProvider.GetService<ISideEffectTrackerHook>() |> Option.ofObj
 
@@ -78,16 +78,20 @@ type ConnectorGrain<'Request, 'Env when 'Request :> Request and 'Env :> Env>
 
     interface IConnectorGrain<'Request, 'Env> with
 
-        member this.SendRequest<'Response> (buildRequest: ResponseChannel<'Response> -> 'Request) (buildAction: 'Response -> LifeAction) (requestor: SubjectPKeyReference) (sideEffectId: GrainSideEffectId) : Task =
+        member this.SendRequest<'Response, 'Action when 'Action :> LifeAction>
+                (requestBuilder: IConnectorRequestBuilderSingleReply<'Request, 'Response>,
+                 responseMapper: IConnectorResponseMapper<'Response, 'Action>,
+                 requestor:      SubjectPKeyReference,
+                 sideEffectId:   GrainSideEffectId) : Task =
             task {
                 try
                     logger.Info "Received Request from REQUESTOR %a" (logger.P "requestor") requestor
 
-
-                    let request, responseTask = connectorService.QueryAndReturnRequestResponse buildRequest
+                    let request, responseTask = connectorService.QueryAndReturnRequestResponse requestBuilder.Build
                     let! response = responseTask
-                    let sourceAction = buildAction response
+                    let sourceAction = responseMapper.Map response :> LifeAction
                     do! this.RespondToSubjectGrain requestor sourceAction request response
+
 
                     trackerHook |> Option.iter (fun hook -> hook.OnSideEffectProcessed sideEffectId)
                     return ()
@@ -98,18 +102,22 @@ type ConnectorGrain<'Request, 'Env when 'Request :> Request and 'Env :> Env>
                     trackerHook |> Option.iter (fun hook -> hook.OnSideEffectProcessed sideEffectId)
             } |> Task.Ignore
 
-        member this.SendRequestMultiResponse<'Response> (buildRequest: MultiResponseChannel<'Response> -> 'Request) (buildAction: 'Response -> LifeAction) (requestor: SubjectPKeyReference) (sideEffectId: GrainSideEffectId) : Task =
+        member this.SendRequestMultiResponse<'Response, 'Action when 'Action :> LifeAction>
+                (requestBuilder: IConnectorRequestBuilder<'Request, 'Response>,
+                 responseMapper: IConnectorResponseMapper<'Response, 'Action>,
+                 requestor:      SubjectPKeyReference,
+                 sideEffectId:   GrainSideEffectId) : Task =
             task {
                 try
                     logger.Info "Received Request from REQUESTOR %a" (logger.P "requestor") requestor
 
-                    let request, enumerable = connectorMultiResponseService.Force().QueryAndReturnRequestResponse buildRequest
+                    let request, enumerable = connectorMultiResponseService.Force().QueryAndReturnRequestResponse requestBuilder.Build
                     // TODO: use while! keyword in F# 8 or later
                     do!
                         AsyncSeq.ofAsyncEnum enumerable
                         |> AsyncSeq.iterAsync (fun response ->
                             async {
-                                let sourceAction = buildAction response
+                                let sourceAction = responseMapper.Map response :> LifeAction
                                 do! this.RespondToSubjectGrain requestor sourceAction request response |> Async.AwaitTask
                             }
                         )

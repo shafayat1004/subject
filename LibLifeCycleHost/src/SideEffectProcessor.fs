@@ -1224,7 +1224,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
             : SideEffectTracing * (GrainSideEffectId -> Task) =
 
         match grainSideEffect with
-        | GrainTransientSideEffect.ConnectorRequest(traceContext, responseType, connectorName, buildRequest, buildAction) ->
+        | GrainTransientSideEffect.ConnectorRequest(traceContext, responseType, connectorName, requestBuilder, responseMapper) ->
             connectorAdapterCollection.GetConnectorAdapterByName connectorName
             |> Option.map (fun connectorAdapter -> connectorAdapter.ShouldSendTelemetry)
             |> Option.filter id
@@ -1234,9 +1234,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 backgroundTask {
                     match connectorAdapterCollection.GetConnectorAdapterByName connectorName with
                     | Some connector ->
-                        let untypedBuildAction = buildAction >> (fun action -> action :> LifeAction)
                         try
-                            connector.RequestOnGrain hostEcosystemGrainFactory responseType buildRequest untypedBuildAction grainPartition thisSubjectPKeyRef sideEffectId
+                            connector.RequestOnGrain hostEcosystemGrainFactory responseType requestBuilder responseMapper grainPartition thisSubjectPKeyRef sideEffectId
                         with
                         | ex ->
                             logger.WarnExn ex "Connector %a threw exception"
@@ -1245,7 +1244,7 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         logger.Error "Connector %a not found"
                             (logger.P "connector") connectorName
                 } |> Task.Ignore)
-        | GrainTransientSideEffect.ConnectorRequestMultiResponse(traceContext, responseType, connectorName, buildRequest, buildAction) ->
+        | GrainTransientSideEffect.ConnectorRequestMultiResponse(traceContext, responseType, connectorName, requestBuilder, responseMapper) ->
             connectorAdapterCollection.GetConnectorAdapterByName connectorName
             |> Option.map (fun connectorAdapter -> connectorAdapter.ShouldSendTelemetry)
             |> Option.filter id
@@ -1255,9 +1254,8 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 backgroundTask {
                     match connectorAdapterCollection.GetConnectorAdapterByName connectorName with
                     | Some connector ->
-                        let untypedBuildAction = buildAction >> (fun action -> action :> LifeAction)
                         try
-                            connector.RequestMultiResponseOnGrain hostEcosystemGrainFactory responseType buildRequest untypedBuildAction grainPartition thisSubjectPKeyRef sideEffectId
+                            connector.RequestMultiResponseOnGrain hostEcosystemGrainFactory responseType requestBuilder responseMapper grainPartition thisSubjectPKeyRef sideEffectId
                         with
                         | ex ->
                             logger.WarnExn ex "Connector %a threw exception"
