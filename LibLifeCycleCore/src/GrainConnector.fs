@@ -377,26 +377,6 @@ type GrainConnector (grainFactory: IGrainFactory, grainPartition: GrainPartition
         let grain = this.GetRepoGrainForLifeCycle lifeCycleDef
         grain.CountAllSubjects ()
 
-    member this.GetReflectionGrainForLifeCycle
-        (_lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>) =
-        let idStr = "Reflection" // idStr is a constant, combination of generic param must point to correct grain unambiguously
-        grainFactory.GetGrain<ISubjectReflectionGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>(partitionGuid, idStr)
-
-    member this.IsActionAllowedForSubject
-            (lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>)
-            (subject: 'Subject)
-            (action: 'LifeAction)
-        : Task<bool>=
-        let grain = this.GetReflectionGrainForLifeCycle lifeCycleDef
-        grain.IsActionAllowed subject action
-
-    member this.AllowedActionsForSubject
-            (lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>)
-            (subject: 'Subject)
-        : Task<list<string>>=
-        let grain = this.GetReflectionGrainForLifeCycle lifeCycleDef
-        grain.GetAllowedActionCaseNames subject
-
     member this.GetBlobRepoGrain () =
         let idStr = "BlobRepo"
         grainFactory.GetGrain<IBlobRepoGrain>(partitionGuid, idStr)

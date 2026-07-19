@@ -9,7 +9,6 @@ open LibLifeCycleHost.GrainStorageModel
 open LibLifeCycleHost.SideEffectsHandler
 
 exception IdStabilityViolatedException of BadKey: string
-exception TransitionIgnoreWithSideEffectsException of SideEffectsDump: string
 exception TransientSideEffectsNotAllowedInTransaction
 
 type private CombinedSubscribeCandidate =
@@ -370,7 +369,7 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                         Choice<
                             // TransitionOk - full update
                             SubjectState<'Subject, 'SubjectId> * Option<ReminderUpdate> * List<BlobAction> * Option<SideEffectGroup<'LifeAction, 'OpError>> * List<IndexAction<'OpError>> * List<'LifeEvent>,
-                            // TransitionIgnored - only new tick state and runtime update e.g. to reschedule TickState.Fired after successful Noop timer action
+                            // auto-ignored no-op transition - only new tick state and runtime update e.g. to reschedule TickState.Fired after successful Noop timer action
                             Option<TickState * ReminderUpdate>>,
                         TransitionBuilderError<'OpError>>> =
         backgroundTask {
@@ -390,13 +389,6 @@ let getGrainFunctions<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent,
                         let! res = createOrUpdateSubject now traceContext transitionedSubject blobActions (Choice2Of2 (currentState, sideEffectSeqNumber)) othersSubscribing sideEffects
                         return res |> Choice1Of2 |> Ok
 
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    if (ignoredBlobActions.IsEmpty && ignoredSideEffects.IsEmpty) then
-                        return
-                            calculateUpdatedTickStateAndReminderUpdate lifeCycleAdapter.LifeCycle traceContext currentState.TickState currentState.LastUpdatedOn currentState.Subject (* hasActiveSubscriptions *) currentState.OurSubscriptions.IsNonempty
-                            |> Choice2Of2 |> Ok
-                    else
-                        return raise (TransitionIgnoreWithSideEffectsException <| sprintf "Blob actions: %A; Side effects: %A" ignoredBlobActions ignoredSideEffects)
                 | Error err ->
                     return Error err
             with

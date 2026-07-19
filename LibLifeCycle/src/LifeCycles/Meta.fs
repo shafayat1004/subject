@@ -40,7 +40,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | RunNextIndexRebuildBatch ->
             match meta.IndexRebuildOp with
             | None ->
-                return Transition.Ignore
+                return meta
 
             | Some rebuildOp ->
                 let (MetaId lifeCycleName) = meta.Id
@@ -97,7 +97,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | ForceStopIndexRebuild ->
             match meta.IndexRebuildOp with
             | None ->
-                return Transition.Ignore
+                return meta
             | Some _ ->
                 return { meta with IndexRebuildOp = None }
 
@@ -127,7 +127,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | RunNextTimersSubsRebuildBatch ->
             match meta.TimersSubsRebuildOp with
             | None ->
-                return Transition.Ignore
+                return meta
 
             | Some rebuildOp ->
                 let (MetaId lifeCycleName) = meta.Id
@@ -169,7 +169,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | ForceStopTimersSubsRebuild ->
             match meta.TimersSubsRebuildOp with
             | None ->
-                return Transition.Ignore
+                return meta
             | Some _ ->
                 return { meta with TimersSubsRebuildOp = None }
 
@@ -197,7 +197,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | RunNextReEncodeSubjectsBatch ->
             match meta.ReEncodeSubjectsOp with
             | None ->
-                return Transition.Ignore
+                return meta
 
             | Some reEncodeOp ->
                 let (MetaId lifeCycleName) = meta.Id
@@ -227,7 +227,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | ForceStopReEncodeSubjects ->
             match meta.ReEncodeSubjectsOp with
             | None ->
-                return Transition.Ignore
+                return meta
             | Some _ ->
                 return { meta with ReEncodeSubjectsOp = None }
 
@@ -255,7 +255,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | RunNextReEncodeSubjectsHistoryBatch ->
             match meta.ReEncodeSubjectsHistoryOp with
             | None ->
-                return Transition.Ignore
+                return meta
 
             | Some reEncodeOp ->
                 let (MetaId lifeCycleName) = meta.Id
@@ -283,7 +283,7 @@ let private transition (env: MetaEnvironment) (meta: Meta) (action: MetaAction) 
         | ForceStopReEncodeSubjectsHistory ->
             match meta.ReEncodeSubjectsHistoryOp with
             | None ->
-                return Transition.Ignore
+                return meta
             | Some _ ->
                 return { meta with ReEncodeSubjectsHistoryOp = None }
 

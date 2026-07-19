@@ -41,8 +41,9 @@ with interface LifeAction
 
 [<RequireQualifiedAccess>]
 type RecurringJobOpError =
-| ScheduleError       of Message: string
-| NameAlreadyReserved of Name: NonemptyString
+| ScheduleError           of Message: string
+| NameAlreadyReserved     of Name: NonemptyString
+| ActionNotAllowedInState of Action: string * State: string
 with interface OpError
 
 [<RequireQualifiedAccess>]
@@ -205,6 +206,12 @@ type RecurringJobOpError with
                 let! _version = reqWith Codecs.int "__v1" (function NameAlreadyReserved _ -> Some 0 | _ -> None)
                 and! payload = reqWith codecFor<_, NonemptyString> "NameAlreadyReserved" (function NameAlreadyReserved x -> Some x | _ -> None)
                 return NameAlreadyReserved payload
+            }
+        | ActionNotAllowedInState _ ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function ActionNotAllowedInState _ -> Some 0 | _ -> None)
+                and! payload = reqWith (Codecs.tuple2 Codecs.string Codecs.string) "ActionNotAllowedInState" (function ActionNotAllowedInState (a, s) -> Some (a, s) | _ -> None)
+                return ActionNotAllowedInState payload
             }
         |> mergeUnionCases
 

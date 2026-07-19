@@ -42,7 +42,7 @@ let private transition (env: TodoEnvironment) (todo: Todo) (action: TodoAction)
 
         | TodoAction.Archive ->
             if todo.ArchivedOn.IsSome then
-                return Transition.Ignore
+                return todo
             else
                 let! now = env.Clock.Query Now
                 yield TodoLifeEvent.Archived

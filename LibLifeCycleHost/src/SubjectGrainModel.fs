@@ -43,10 +43,9 @@ and GrainRpc = {
 }
 
 and [<RequireQualifiedAccess>] TriggerSubscriptionResponse<'LifeAction, 'OpError when 'OpError :> OpError and 'LifeAction :> LifeAction> =
-| ActOk         of 'LifeAction
-| ActError      of 'OpError * 'LifeAction
-| ActNotAllowed of 'LifeAction
-| Exn           of ExceptionDetails: string * Option<'LifeAction>
+| ActOk    of 'LifeAction
+| ActError of 'OpError * 'LifeAction
+| Exn      of ExceptionDetails: string * Option<'LifeAction>
 
 and GrainRpcTransactionStep = {
     SubjectReference: SubjectReference
@@ -453,11 +452,6 @@ with
                 let! payload = reqWith (Codecs.tuple2 defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'opError> defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'lifeAction>) "ActError" (function ActError (x1, x2) -> Some (x1, x2) | _ -> None)
                 return ActError payload
             }
-        | ActNotAllowed _ ->
-            codec {
-                let! payload = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'lifeAction> "ActNotAllowed" (function ActNotAllowed x -> Some x | _ -> None)
-                return ActNotAllowed payload
-            }
         | Exn _ ->
             codec {
                 let! payload = reqWith (Codecs.tuple2 Codecs.string (Codecs.option defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'lifeAction>)) "Exn" (function Exn (x1, x2) -> Some (x1, x2) | _ -> None)
@@ -472,8 +466,6 @@ with
             ActOk (x |> box :?> 'LifeAction)
         | ActError (x1, x2) ->
             ActError (x1 |> box :?> 'OpError, x2 |> box :?> 'LifeAction)
-        | ActNotAllowed x ->
-            ActNotAllowed (x |> box :?> 'LifeAction)
         | Exn (x1, x2) ->
             Exn (x1, x2 |> Option.map (fun a -> a |> box :?> 'LifeAction))
 

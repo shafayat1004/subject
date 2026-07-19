@@ -52,7 +52,7 @@ let private transitionJobBody
         match body.State, action with
         | JobState.Scheduled scheduledOn, JobAction.Schedule on ->
             if (scheduledOn = on) then
-                return Transition.Ignore
+                return body
             else
                 return makeState.Scheduled body on
 
@@ -60,7 +60,7 @@ let private transitionJobBody
             return! makeState.Enqueued body
 
         | JobState.Scheduled _, JobAction.Start _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Scheduled _, JobAction.Delete ->
             return! makeState.Deleted body
@@ -68,7 +68,7 @@ let private transitionJobBody
         | JobState.Awaiting _, JobAction.Schedule _
         | JobState.Awaiting _, JobAction.Enqueue
         | JobState.Awaiting _, JobAction.Start _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Awaiting (JobParent.Job (_, condition)), JobAction.OnParentJobUpdate status ->
             match condition, status with
@@ -79,13 +79,13 @@ let private transitionJobBody
                 // Hangfire deletes awaiting job if finish condition not met, so do we
                 return! makeState.Deleted body
             | _, JobStatus.Unfinished ->
-                return Transition.Ignore
+                return body
 
         | JobState.Awaiting (JobParent.Job _), JobAction.OnParentBatchUpdate _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Awaiting (JobParent.Batch _), JobAction.OnParentJobUpdate _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Awaiting (JobParent.Batch (_, condition)), JobAction.OnParentBatchUpdate status ->
             match condition, status with
@@ -96,7 +96,7 @@ let private transitionJobBody
                 // Hangfire deletes awaiting job if finish condition not met, so do we
                 return! makeState.Deleted body
             | _, BatchStatus.Unfinished ->
-                return Transition.Ignore
+                return body
 
         | JobState.Awaiting _, JobAction.Delete ->
             return! makeState.Deleted body
@@ -128,7 +128,7 @@ let private transitionJobBody
             return makeState.Scheduled body on
 
         | JobState.Enqueued _, JobAction.Enqueue ->
-            return Transition.Ignore
+            return body
 
         | JobState.Enqueued (_, enqueuedOn), JobAction.Start dequeuedBy ->
             let! ticket = env.Unique.Query NewUuid
@@ -149,20 +149,20 @@ let private transitionJobBody
 
         | JobState.Processing _, JobAction.Schedule _
         | JobState.Processing _, JobAction.Enqueue ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Processing _, JobAction.Delete ->
             return! makeState.Deleted body
 
         | JobState.Processing _, JobAction.Start _ ->
-            return Transition.Ignore
+            return body
 
         | JobState.Processing (requestTicket, unfinishedRun), JobAction.OnHeartbeat responseTicket ->
             if requestTicket = responseTicket then
                 let! now = env.Clock.Query Now
                 return { body with State = JobState.Processing (requestTicket, { unfinishedRun with LastHeartbeatOn = Some now }) }
             else
-                return Transition.Ignore
+                return body
 
         | JobState.Processing (requestTicket, unfinishedRun), JobAction.OnProcessingComplete (responseTicket, result) ->
             if requestTicket = responseTicket then
@@ -227,7 +227,7 @@ let private transitionJobBody
                             yield JobAction.Delete
                         return  { body with State = failedState }
             else
-                return Transition.Ignore // phantom
+                return body // phantom
 
         | JobState.Succeeded _, JobAction.Schedule on ->
             return makeState.Scheduled body on
@@ -236,7 +236,7 @@ let private transitionJobBody
             return! makeState.Enqueued body
 
         | JobState.Succeeded _, JobAction.Start _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         // Beware if you decide to allow delete from Succeeded state, it has many implications
         // at very least must capture whether previous state was a Success and make it Finished true status
@@ -252,7 +252,7 @@ let private transitionJobBody
             return! makeState.Enqueued body
 
         | JobState.Failed _, JobAction.Start _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Failed _, JobAction.Delete ->
             return! makeState.Deleted body
@@ -264,19 +264,19 @@ let private transitionJobBody
             return! makeState.Enqueued body
 
         | JobState.Deleted _, JobAction.Start _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         | JobState.Deleted _, JobAction.Delete ->
-            return Transition.Ignore
+            return body
 
         | _, JobAction.OnNewSubscriber _ ->
             shouldNotReachHereBecause "OnNewSubscriber must be handled in outer transition"
-            return Transition.NotAllowed
+            return body
 
         // parent update expected strictly in Awaiting state
         | _, JobAction.OnParentJobUpdate _
         | _, JobAction.OnParentBatchUpdate _ ->
-            return Transition.NotAllowed
+            return JobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.State)
 
         // phantom connector call
         | _, JobAction.OnHeartbeat _
@@ -285,7 +285,7 @@ let private transitionJobBody
         | _, JobAction.FillPlaceholder _
         // ignore, probably root af awaiting chain, should be deleted manually
         | _, JobAction.DeleteAwaitingJobsBackwards ->
-            return Transition.Ignore
+            return body
     }
 
 let private constructJobBody (env: JobEnvironment) (jobId: JobId) (ctor: ProperJobConstructor) (placeholderFilledOn: Option<System.DateTimeOffset>) : OperationResult<JobBody, JobAction, JobOpError, JobLifeEvent> =
@@ -369,7 +369,7 @@ let private transition'
             | JobAction.Delete ->
                 match placeholder.DeleteRequestedOn with
                 | Some _ ->
-                    return Transition.Ignore
+                    return job
                 | None ->
                     let! now = env.Clock.Query Now
                     return { job with Body = JobBodyVariant.Placeholder { placeholder with DeleteRequestedOn = Some now } }
@@ -386,7 +386,7 @@ let private transition'
                     | PlacedBy.Job _, _ -> false
 
                 if placedAndSubscribedBySameThing then
-                    return Transition.Ignore
+                    return job
                 else
                     yield JobLifeEvent.OnJobStatusChanged (job.Status, Some subscriber)
                     return job
@@ -398,10 +398,10 @@ let private transition'
             | JobAction.OnProcessingComplete _
             | JobAction.OnParentJobUpdate _
             | JobAction.OnParentBatchUpdate _ ->
-                return Transition.NotAllowed
+                return JobOpError.ActionNotAllowedInState (sprintf "%A" action, "Placeholder")
 
             | JobAction.DeleteAwaitingJobsBackwards ->
-                return Transition.Ignore
+                return job
     }
 
 let private transition

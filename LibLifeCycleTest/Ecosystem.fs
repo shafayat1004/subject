@@ -491,17 +491,6 @@ module Ecosystem =
                         return! refresh lifeCycleDef subject cluster
                     }
 
-        let allowedActionsForSubject
-            (lifeCycleDef: LifeCycleDef<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId>)
-            (subject: 'Subject)
-            : ClusterOperation<list<string>> =
-            fun cluster ->
-                backgroundTask {
-                    use scope = cluster.NewScope()
-                    let! grainConnector = biosphereGrainConnector scope lifeCycleDef cluster
-                    return! grainConnector.AllowedActionsForSubject lifeCycleDef subject
-                }
-
     let generateId
             (lifeCycle: LifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, _, _, _, _>)
             (ctor: 'Constructor)
@@ -1103,12 +1092,6 @@ module Ecosystem =
                 return logger
             }
 
-    let allowedActionsForSubject
-        (lifeCycle: LifeCycle<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectIndex, 'SubjectId, _, _, _, _>)
-        (subject: 'Subject)
-        : ClusterOperation<list<string>> =
-            Biosphere.allowedActionsForSubject lifeCycle.Definition subject
-
     // This is an interim measure to handle cases where either the testing framework or
     // the subject stack itself has some race conditions that need to be addressed.
     // Ideally we should remove all calls to this function, and this function itself, as the
@@ -1282,29 +1265,6 @@ with
                     return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with OK: %A{t}"
                 | Error(GrainTransitionError.TransitionError err) ->
                     return err
-                | Error(GrainTransitionError.TransitionNotAllowed) ->
-                    return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with TransitionNotAllowed"
-                | Error(GrainTransitionError.SubjectNotInitialized pKey) ->
-                    return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with SubjectNotInitialized for pKey: %s{pKey}"
-                | Error(GrainTransitionError.AccessDenied) ->
-                    return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with AccessDenied"
-                | Error(GrainTransitionError.LockedInTransaction) ->
-                    return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with LockedInTransaction"
-            }
-
-    static member private thenAssertTransitionNotAllowedWithCaller
-            (callerInfo: CallerInfo)
-            (res: ClusterOperation<Result<'T, GrainTransitionError<'Err>>>) : ClusterOperation<unit> =
-        fun cluster ->
-            backgroundTask {
-                let! r = res cluster
-                match r with
-                | Ok t ->
-                    return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with OK: %A{t}"
-                | Error(GrainTransitionError.TransitionNotAllowed) ->
-                    return ()
-                | Error(GrainTransitionError.TransitionError err) ->
-                    return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with TransitionError: %A{err}"
                 | Error(GrainTransitionError.SubjectNotInitialized pKey) ->
                     return failwithf $"%s{callerInfo.Context}: %i{callerInfo.Line} - Transition OpError-Assertion Failed with SubjectNotInitialized for pKey: %s{pKey}"
                 | Error(GrainTransitionError.AccessDenied) ->
@@ -1476,9 +1436,6 @@ with
 
     static member thenAssertTransitionOpError (res, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.thenAssertTransitionOpErrorWithCaller { Context = context.Value; Line = line.Value } res
-
-    static member thenAssertTransitionNotAllowed (res, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
-        Ecosystem.thenAssertTransitionNotAllowedWithCaller { Context = context.Value; Line = line.Value } res
 
     static member thenAssert (predicate, [<CallerMemberName>] ?context: string, [<CallerLineNumber>] ?line: int) =
         Ecosystem.thenAssertWithCaller { Context = context.Value; Line = line.Value } predicate

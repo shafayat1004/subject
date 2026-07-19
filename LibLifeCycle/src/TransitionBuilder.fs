@@ -22,12 +22,8 @@ module TransitionBuilder =
                     match! binderTask with
                     | Ok (TransitionOk (subj2, blobActions2, sideEffects2)) ->
                         return (subj2, blobActions1 @ blobActions2, sideEffects1 + sideEffects2) |> TransitionOk |> Ok
-                    | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects))->
-                        return (blobActions1 @ ignoredBlobActions, sideEffects1 + ignoredSideEffects) |> TransitionIgnored |> Ok
                     | Error err ->
                         return Error err
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSidEffects))->
-                    return (ignoredBlobActions, ignoredSidEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -67,15 +63,6 @@ module TransitionBuilder =
                          and  'LifeEvent   :> LifeEvent> (error: 'OpError): TransitionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor> =
             LifeCycleError error
             |> Error
-            |> Task.FromResult
-            |> TransitionResult
-
-        member _.Return(transition: Transition): TransitionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor> =
-            match transition with
-            | Transition.Ignore ->
-                (noBlobActions, noTransitionSideEffects) |> TransitionIgnored |> Ok
-            | Transition.NotAllowed ->
-                TransitionNotAllowed |> Error
             |> Task.FromResult
             |> TransitionResult
 
@@ -211,8 +198,6 @@ module TransitionBuilder =
                 match! resTask with
                 | Ok (TransitionOk (subj, okBlobActions, okSideEffects)) ->
                     return (subj, okBlobActions, sideEffects + okSideEffects) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (ignoredBlobActions, sideEffects + ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -299,8 +284,6 @@ module TransitionBuilderExtensions =
                 match! binderTask with
                 | Ok (TransitionOk (subj2, blobActions2, sideEffects2)) ->
                     return (subj2, blobActions1 @ blobActions2, sideEffects1 + sideEffects2) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (blobActions1 @ ignoredBlobActions, sideEffects1 + ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -314,8 +297,6 @@ module TransitionBuilderExtensions =
                     match! binderTask with
                     | Ok (TransitionOk (subj2, blobActions2, sideEffects2)) ->
                         return (subj2, blobActions1 @ blobActions2, sideEffects1 + sideEffects2) |> TransitionOk |> Ok
-                    | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                        return (blobActions1 @ ignoredBlobActions, sideEffects1 + ignoredSideEffects) |> TransitionIgnored |> Ok
                     | Error err ->
                         return Error err
                 | Error (OperationBuilderError.LifeCycleOperationError err) ->
@@ -344,8 +325,7 @@ module TransitionBuilderExtensions =
                             | Ok (subjects, actions, sideEffects) ->
                                 match taskResult with
                                 | Ok (TransitionOk (currSubject, currActions, currSideEffects)) -> Ok (currSubject :: subjects, currActions :: actions, currSideEffects + sideEffects)
-                                | Ok (TransitionIgnored (blobActions, sideEffects))             -> Error (Choice1Of2 (blobActions, sideEffects))
-                                | Error error                                                   -> Error (Choice2Of2 error)
+                                | Error error                                                   -> Error error
                             | Error err ->
                                 Error err
                         )
@@ -358,11 +338,8 @@ module TransitionBuilderExtensions =
                     match! binderTask with
                     | Ok (TransitionOk (nextSubject, nextActions, nextSideEffects)) ->
                         return (nextSubject, nextActions @ (List.flatten blobActions), nextSideEffects + sideEffects) |> TransitionOk |> Ok
-                    | Ok (TransitionIgnored (ignoredActions, ignoredSideEffects)) ->
-                        return (ignoredActions @ (List.flatten blobActions), ignoredSideEffects + sideEffects) |> TransitionIgnored |> Ok
                     | Error error -> return Error error
-                | Error (Choice1Of2 (blobActions, sideEffects)) -> return Ok (TransitionIgnored (blobActions, sideEffects))
-                | Error (Choice2Of2 error)                      -> return Error error
+                | Error error -> return Error error
             }
             |> TransitionResult
 
@@ -374,8 +351,6 @@ module TransitionBuilderExtensions =
                 match! binderTask with
                 | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                     return (subject, blobActions @ blobAction, sideEffects) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (ignoredBlobActions @ blobAction, ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -403,8 +378,6 @@ module TransitionBuilderExtensions =
                 match! binderTask with
                 | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                     return (subject, blobActions @ actions, sideEffects) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (ignoredBlobActions @ actions, ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -434,8 +407,6 @@ module TransitionBuilderExtensions =
                     match! binderTask with
                     | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                         return (subject, blobActions @ [deleteAction; createAction], sideEffects) |> TransitionOk |> Ok
-                    | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                        return (ignoredBlobActions @ [deleteAction; createAction], ignoredSideEffects) |> TransitionIgnored |> Ok
                     | Error err ->
                         return Error err
                 }
@@ -458,8 +429,6 @@ module TransitionBuilderExtensions =
                 match! binderTask with
                 | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                     return (subject, blobActions @ [ (BlobAction.Append (originalBlobId, updatedBlobId, bytesToAppend)) ], sideEffects) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (ignoredBlobActions @ [ (BlobAction.Append (originalBlobId, updatedBlobId, bytesToAppend)) ], ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -474,8 +443,6 @@ module TransitionBuilderExtensions =
                 match! binderTask with
                 | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                     return (subject,  blobActions @ [ (BlobAction.Delete blobId) ], sideEffects) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (ignoredBlobActions @ [ (BlobAction.Delete blobId) ], ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }
@@ -491,8 +458,6 @@ module TransitionBuilderExtensions =
                     match! binderTask with
                     | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                         return (subject, blobActions, sideEffects) |> TransitionOk |> Ok
-                    | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                        return (ignoredBlobActions, ignoredSideEffects) |> TransitionIgnored |> Ok
                     | Error err ->
                         return Error err
                 }
@@ -508,8 +473,6 @@ module TransitionBuilderExtensions =
                 match! binderTask with
                 | Ok (TransitionOk (subject, blobActions, sideEffects)) ->
                     return (subject, blobActions @ deleteActions, sideEffects) |> TransitionOk |> Ok
-                | Ok (TransitionIgnored (ignoredBlobActions, ignoredSideEffects)) ->
-                    return (ignoredBlobActions @ deleteActions, ignoredSideEffects) |> TransitionIgnored |> Ok
                 | Error err ->
                     return Error err
             }

@@ -55,8 +55,6 @@ type DynamicSubscriptionDispatcherGrain
                                 GrainTriggerDynamicSubscriptionError.SubjectNotInitialized primaryKey
                             | GrainTriggerSubscriptionError.TransitionError opError ->
                                 GrainTriggerDynamicSubscriptionError.TransitionError (sprintf "%A" opError)
-                            | GrainTriggerSubscriptionError.TransitionNotAllowed ->
-                                GrainTriggerDynamicSubscriptionError.TransitionNotAllowed
                             | GrainTriggerSubscriptionError.LockedInTransaction ->
                                 GrainTriggerDynamicSubscriptionError.LockedInTransaction
                             |> SubjectFailure.Err

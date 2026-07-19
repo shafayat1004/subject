@@ -58,14 +58,14 @@ let private transition (env: RecurringJobEnvironment) (recurringJob: RecurringJo
 
         | RecurringJobState.Scheduled _, RecurringJobAction.OnFiredJobTimeout _
         | RecurringJobState.Scheduled _, RecurringJobAction.OnJobStatusChanged _ ->
-            return Transition.NotAllowed
+            return RecurringJobOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" recurringJob.State)
 
         | RecurringJobState.Scheduled (_, maybeLastExecution), RecurringJobAction.Update (cronExpression, timeZoneId, jobInstanceData) ->
             if recurringJob.CronExpression = cronExpression &&
                recurringJob.TimeZoneId      = timeZoneId &&
                recurringJob.JobInstanceData = jobInstanceData &&
                recurringJob.HardDelete      = false then
-                return Transition.Ignore
+                return recurringJob
             else
                 let! now = env.Clock.Query Now
                 let! dueOn = nextDueBdt cronExpression timeZoneId now
@@ -81,12 +81,12 @@ let private transition (env: RecurringJobEnvironment) (recurringJob: RecurringJo
             return { recurringJob with HardDelete = true }
 
         | RecurringJobState.Fired _, RecurringJobAction.TriggerJob ->
-            return Transition.Ignore
+            return recurringJob
 
         | RecurringJobState.Fired (nextDueOn, execution), RecurringJobAction.OnJobStatusChanged jobStatus ->
             match jobStatus with
             | JobStatus.Unfinished _ ->
-                return Transition.Ignore
+                return recurringJob
             | JobStatus.Finished _ ->
                 return { recurringJob with State = RecurringJobState.Scheduled (nextDueOn, Some execution) }
 
@@ -98,7 +98,7 @@ let private transition (env: RecurringJobEnvironment) (recurringJob: RecurringJo
                recurringJob.TimeZoneId      = timeZoneId &&
                recurringJob.JobInstanceData = jobInstanceData &&
                recurringJob.HardDelete      = false then
-                return Transition.Ignore
+                return recurringJob
             else
                 let! nextDueOn = nextDueBdt cronExpression timeZoneId execution.FiredOn
                 return

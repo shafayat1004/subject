@@ -335,8 +335,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         return! handleSideEffectFailure (SideEffectFailure.ActNotInitialized (subjectRef, action))
                     | GrainTransitionError.TransitionError terr ->
                         return! handleSideEffectFailure (SideEffectFailure.ActError (subjectRef, action, terr))
-                    | GrainTransitionError.TransitionNotAllowed ->
-                        return! handleSideEffectFailure (SideEffectFailure.ActNotAllowed (subjectRef, action))
                     | GrainTransitionError.LockedInTransaction ->
                         return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
                     | GrainTransitionError.AccessDenied ->
@@ -356,8 +354,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     return DispatchPermanentFailure (message, SideEffectFailureSeverity.Error)
                 | Error (GrainTriggerTimerError.TransitionError (terr, timerAction)) ->
                     return! handleSideEffectFailure (SideEffectFailure.ActError (subjectRef, timerAction, terr))
-                | Error (GrainTriggerTimerError.TransitionNotAllowed timerAction) ->
-                    return! handleSideEffectFailure (SideEffectFailure.ActNotAllowed (subjectRef, timerAction))
                 | Error GrainTriggerTimerError.LockedInTransaction ->
                     return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
                 | Error (GrainTriggerTimerError.Exn (exnDetails, _)) ->
@@ -385,12 +381,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                             SideEffectFailure.ActError (subjectRef, action, terr)     |> SideEffectResponse.Failure
                         ]
                         return! handleSideEffectResponses responses
-                    | GrainTransitionError.TransitionNotAllowed ->
-                        let responses = [
-                            SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                            SideEffectFailure.ActNotAllowed (subjectRef, action)      |> SideEffectResponse.Failure
-                        ]
-                        return! handleSideEffectResponses responses
                     | GrainTransitionError.LockedInTransaction ->
                         return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
                     | GrainTransitionError.AccessDenied ->
@@ -409,8 +399,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                         return! handleSideEffectFailure (SideEffectFailure.ActError (subjectRef, action, terr))
                     | GrainOperationError.ConstructionError cerr ->
                         return! handleSideEffectFailure (SideEffectFailure.ConstructError (subjectRef, ctor, cerr))
-                    | GrainOperationError.TransitionNotAllowed ->
-                        return! handleSideEffectFailure (SideEffectFailure.ActNotAllowed (subjectRef, action))
                     | GrainOperationError.LockedInTransaction ->
                         return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
                     | GrainOperationError.AccessDenied ->
@@ -438,12 +426,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                     | GrainOperationError.ConstructionError cerr ->
                         // subscriptions not created, do we need to send SubscribeNotInitialized?
                         return! handleSideEffectFailure (SideEffectFailure.ConstructError (subjectRef, ctor, cerr))
-                    | GrainOperationError.TransitionNotAllowed ->
-                        let responses = [
-                            SideEffectSuccess.SubscribeOk (subjectRef, subscriptions) |> SideEffectResponse.Success
-                            SideEffectFailure.ActNotAllowed (subjectRef, action)      |> SideEffectResponse.Failure
-                        ]
-                        return! handleSideEffectResponses responses
                     | GrainOperationError.LockedInTransaction ->
                         return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
                     | GrainOperationError.AccessDenied ->
@@ -652,12 +634,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                                  SideEffectFailureSeverity.Error)
                                 |> DispatchPermanentFailure
 
-                        | GrainTriggerSubscriptionError.TransitionNotAllowed ->
-                            return
-                                (sprintf "[RPC to %s Error] Not Allowed transition, triggering subscription %A for LifeEvent %A" targetRefStr subscriptionTriggerType lifeEvent,
-                                 SideEffectFailureSeverity.Error)
-                                |> DispatchPermanentFailure
-
                         | GrainTriggerSubscriptionError.LockedInTransaction ->
                             return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
 
@@ -693,12 +669,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                                     SideEffectFailureSeverity.Warning)
                                 |> DispatchPermanentFailure
 
-                        | GrainTriggerDynamicSubscriptionError.TransitionNotAllowed ->
-                            return
-                                (sprintf "[RPC to %s Error] Not Allowed transition, triggering subscription %A for LifeEvent %A" targetRefStr subscriptionTriggerType lifeEvent,
-                                 SideEffectFailureSeverity.Warning)
-                                |> DispatchPermanentFailure
-
                         | GrainTriggerDynamicSubscriptionError.LockedInTransaction ->
                             return DispatchTransientFailure ("Target grain locked in transaction", TimeSpan.FromSeconds 15.)
 
@@ -724,8 +694,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                 handleRpcGrainCallResult sideEffectId thisSubjectRef (RpcArgsAndRetValToHandle.Act (triggeredAction, Ok ()))
             | TriggerSubscriptionResponse.ActError (err, triggeredAction) ->
                 handleRpcGrainCallResult sideEffectId thisSubjectRef (RpcArgsAndRetValToHandle.Act (triggeredAction, GrainTransitionError.TransitionError (err :> OpError) |> SubjectFailure.Err |> Error))
-            | TriggerSubscriptionResponse.ActNotAllowed triggeredAction ->
-                handleRpcGrainCallResult sideEffectId thisSubjectRef (RpcArgsAndRetValToHandle.Act (triggeredAction, GrainTransitionError.TransitionNotAllowed |> SubjectFailure.Err |> Error))
             | TriggerSubscriptionResponse.Exn (details, Some triggeredAction) ->
                 handleRpcGrainCallResult sideEffectId thisSubjectRef (RpcArgsAndRetValToHandle.Act (triggeredAction, details |> SubjectFailure.Exn |> Error))
             | TriggerSubscriptionResponse.Exn (details, None) ->
@@ -773,9 +741,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
                                 // apply max length
                                 |> fun s -> if s.Length > 100 then s.Substring (0, 100) else s
                                 |> permanentFailure
-
-                            | GrainPrepareTransitionError.TransitionNotAllowed ->
-                                permanentFailure "Transition not allowed"
 
                             | GrainPrepareTransitionError.SubjectNotInitialized primaryKey ->
                                 sprintf "Subject not initialized: %s" primaryKey |> permanentFailure
@@ -910,7 +875,6 @@ let getSideEffectMailboxProcessor<'Subject, 'LifeAction, 'OpError, 'Constructor,
             (
                 match response with
                 | TriggerSubscriptionResponse.ActOk triggeredAction
-                | TriggerSubscriptionResponse.ActNotAllowed triggeredAction
                 | TriggerSubscriptionResponse.ActError (_, triggeredAction)
                 | TriggerSubscriptionResponse.Exn (_, Some triggeredAction) ->
                     if (thisLifeCycleAdapter :> IHostedOrReferencedLifeCycleAdapter).ShouldSendTelemetry (ShouldSendTelemetryFor.LifeAction triggeredAction) then

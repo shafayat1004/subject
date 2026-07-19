@@ -153,7 +153,7 @@ let transition<'Op when 'Op : comparison>
                     return! selectTransactionStateBasedOnOpStatuses maybePendingRollbackReason (runningOps.AddOrUpdate { Op = op; No = no; Finished = true })
                 | Some ((* finished *) true, _, _) ->
                     // already prepared
-                    return Transition.Ignore
+                    return subjectTransaction
                 | None ->
                     return SubjectTransactionOpError.InvalidTransition (subjectTransaction.State, action)
 
@@ -164,7 +164,7 @@ let transition<'Op when 'Op : comparison>
                     return! selectTransactionStateBasedOnOpStatuses (error |> TransactionRollbackReason.Failure |> Some) (runningOps.AddOrUpdate { Op = op; No = no; Finished = true })
                 | Some ((* finished *) true, _, _) ->
                     // already failed
-                    return Transition.Ignore
+                    return subjectTransaction
                 | None ->
                     // subject not found in this transaction - too bad
                     return SubjectTransactionOpError.InvalidTransition (subjectTransaction.State, action)
@@ -180,7 +180,7 @@ let transition<'Op when 'Op : comparison>
             | SubjectTransactionAction.Continue extraOps ->
                 if Set.isSubset extraOps.ToSet runningOps.Keys.ToSet then
                     // idempotent continue
-                    return Transition.Ignore
+                    return subjectTransaction
                 else
                     return SubjectTransactionOpError.InvalidTransition (subjectTransaction.State, action)
 
@@ -197,7 +197,7 @@ let transition<'Op when 'Op : comparison>
                     let (SubjectTransactionId txnId) = subjectTransaction.TransactionId
                     env.Logger.LogWarning("Idempotent prepare in Running State, OpNo {opNo}, txn Id {txnId}", preparedOpNo, txnId)
                     // idempotent prepare
-                    return Transition.Ignore
+                    return subjectTransaction
                 else
                     // unknown prepare
                     return SubjectTransactionOpError.InvalidTransition (subjectTransaction.State, action)
@@ -232,7 +232,7 @@ let transition<'Op when 'Op : comparison>
 
                 // ... or be a subset of prepared ops (idempotent retry)
                 elif sameOps.Count = extraOps.Count.Value then
-                    return Transition.Ignore
+                    return subjectTransaction
 
                 // ... partial subset is the error
                 else
@@ -271,7 +271,7 @@ let transition<'Op when 'Op : comparison>
             | SubjectTransactionAction.Commit, TransactionOutcome.Committed
             | SubjectTransactionAction.Rollback _, TransactionOutcome.RolledBack _ ->
                 // idempotent commit or rollback
-                return Transition.Ignore
+                return subjectTransaction
 
             | SubjectTransactionAction.OnOperationFinalized finalizedOpNo, _ ->
                 let newFinalizingOps =
@@ -295,7 +295,7 @@ let transition<'Op when 'Op : comparison>
                     let (SubjectTransactionId txnId) = subjectTransaction.TransactionId
                     env.Logger.LogWarning("Phantom prepare in Finalizing (Commit), OpNo {opNo}, txn Id {txnId}", preparedOpNo, txnId)
                     // state prepared for something that is already committed or being committed, must be idempotent retry
-                    return Transition.Ignore
+                    return subjectTransaction
 
                 | Some op, TransactionOutcome.RolledBack _ ->
                     let (SubjectTransactionId txnId) = subjectTransaction.TransactionId
@@ -312,7 +312,7 @@ let transition<'Op when 'Op : comparison>
                 match finalizingOps.Values |> Seq.tryFind (fun { No = (_, opNo) } -> opNo = failedOpNo), outcome with
                 | Some _, TransactionOutcome.RolledBack _ ->
                     // state failed for something that is already rolling back, must be idempotent retry
-                    return Transition.Ignore
+                    return subjectTransaction
                 | Some _, TransactionOutcome.Committed
                 | None, _ ->
                     // suspicious failed
@@ -329,13 +329,13 @@ let transition<'Op when 'Op : comparison>
             | SubjectTransactionAction.Commit, TransactionOutcome.Committed
             | SubjectTransactionAction.Rollback _, TransactionOutcome.RolledBack _ ->
                 // idempotent commit or rollback
-                return Transition.Ignore
+                return subjectTransaction
 
             | SubjectTransactionAction.OnOperationFinalized finalizedOpNo, _ ->
                 match finalizedOps.Values |> Seq.tryFind (fun { No = (_, opNo) } -> opNo = finalizedOpNo) with
                 | Some _ ->
                     // idempotent finalize
-                    return Transition.Ignore
+                    return subjectTransaction
                 | None ->
                     // suspicious finalize
                     return SubjectTransactionOpError.InvalidTransition (subjectTransaction.State, action)
@@ -368,7 +368,7 @@ let transition<'Op when 'Op : comparison>
                 match finalizedOps.Values |> Seq.tryFind (fun { No = (_, opNo) } -> opNo = failedOpNo) with
                 | Some _ ->
                     // idempotent failed
-                    return Transition.Ignore
+                    return subjectTransaction
                 | None ->
                     // suspicious failed
                     return SubjectTransactionOpError.InvalidTransition (subjectTransaction.State, action)
@@ -376,10 +376,10 @@ let transition<'Op when 'Op : comparison>
             | SubjectTransactionAction.CheckForPhantoms, _ ->
                 if checkedPhantoms then
                     env.Logger.LogWarning("Check for phantom prepares already done. Ignore")
-                    return Transition.Ignore
+                    return subjectTransaction
                 elif finalizedOps.IsEmpty then
                     env.Logger.LogWarning("Check for phantom prepares invoked for empty finalized transaction. Ignore")
-                    return Transition.Ignore
+                    return subjectTransaction
                 else
                     yield! finalizedOps.Values |> Seq.map (fun op -> operationMapping op.Op subjectTransaction.TransactionId SubjectTransactionStep.CheckPhantom op.No)
                     return { subjectTransaction with State = SubjectTransactionState.Finalized (outcome, finalizedOps, finalizedOn, (* checkedPhantoms *) true) }

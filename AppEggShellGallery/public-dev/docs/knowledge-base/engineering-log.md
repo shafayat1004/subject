@@ -796,6 +796,64 @@ Branch: `shafayat/pgsql-initial-spikes`. Not committed yet (skill files live und
 
 ---
 
+## 2026-07-19 (session 38 -- retire transition-only `Transition.Ignore` / `Transition.NotAllowed`; align `TransitionResult` with Construction/Operation; issue #26)
+
+Retired the two constructs that made `transition { }` a special snowflake among the lifecycle CEs, so
+`TransitionOk`/`TransitionBuilderError` now mirror the Construction/Operation shapes.
+
+**Phase 1 (`Transition.Ignore` / `TransitionIgnored`) -- no wire impact.**
+- Replaced ~48 author `return Transition.Ignore` sites with `return <unchanged subject>`. This is
+  behaviorally identical because `AutoIgnoreNoOpTransitions` defaults to `true`
+  (`LibLifeCycle/src/LifeCycleBuilder.fs`) and `GrainFunctions` already treats a `TransitionOk` whose
+  subject is unchanged + no blobs + no side-effects as ignored (suppresses `LastUpdated` bump + storage
+  write). Precondition verified: no lifecycle calls `withAutoIgnoreNoOpTransitionsDisabled`.
+- Collapsed `TransitionOk<...>` to a single case (dropped `TransitionIgnored`); removed every
+  `TransitionIgnored` propagation arm in `TransitionBuilder.fs` (incl. the `seq<TransitionResult>`
+  `Choice1Of2` ignore-folding), the `Ignore` half of `Return(Transition)`, and the dead
+  `TransitionIgnoreWithSideEffectsException` + ignored arm in `GrainFunctions.fs`.
+
+**Phase 2 (`Transition.NotAllowed` / `TransitionNotAllowed`) -- breaking at Orleans RPC wire; done as one
+biosphere-wide diff since this repo owns the whole biosphere.**
+- Authors: 16 sites. 13 genuine "wrong action for state" rejections now return a domain OpError
+  `ActionNotAllowedInState of Action: string * State: string` (added to `JobOpError`/`BatchOpError`/
+  `RecurringJobOpError` + their hand-written codecs). Chose `string * string` payload to avoid pulling
+  action/state codecs (and their init-order risk) into the error; the distinct case is the structure,
+  and it decodes cleanly client-side (strictly better than the old anonymous 422 `"Transition not
+  allowed"` that failed `DecodeError`). The 2 `shouldNotReachHereBecause` guards (Batch/Job
+  `OnNewSubscriber`) keep throwing; their now-dead `return` yields the subject.
+- Deleted the `TransitionNotAllowed` case (+ codec encode/decode + `CastUnsafe` arms) from 8 framework
+  DUs across `GrainClientInterface.fs` / `AccessControl.fs` (`TransitionBuilderError`,
+  `GrainTransitionError`, `GrainTriggerTimerError`, `GrainOperationError`, `GrainPrepareTransitionError`,
+  `GrainTriggerSubscriptionError`, `GrainTriggerDynamicSubscriptionError`, `InternalRevalidateError`),
+  plus all producers (`SubjectGrain.fs`), consumers (`SideEffectProcessor.fs`,
+  `DynamicSubscriptionDispatcherGrain.fs`) and the HTTP 422 arms (Generic/Legacy handlers -- the domain
+  OpError still returns 422 via the `TransitionError` arm, so client status is unchanged).
+- **§2.2 design decision (reachability):** `isActionAllowedForSubject` / `allowedActionsForSubject`
+  (`LifeCycleReflection.fs`) were built entirely on the `TransitionNotAllowed` sentinel and, once it is
+  gone, degenerate to constant-`true`. The feature had **no live callers** (the `SubjectReflectionGrain`
+  Orleans grain + `GrainConnector.IsActionAllowedForSubject/AllowedActionsForSubject` were referenced
+  only by their own wiring + tests). Removed the whole feature: both reflection files, the grain +
+  `ISubjectReflectionGrain` interface, the connector methods, the `Serializer.fs` registration, and the
+  test helpers.
+- **`ActNotAllowed` chain (issue said "decide separately"):** kept app-facing
+  `SideEffectFailure.ActNotAllowed` + the `(|ActNotAllowed|_|)` active pattern (Dispatcher's response
+  handler still compiles; "Start in wrong state" now flows through its existing `ActError (…, Start _, _)`
+  arm, so behavior is preserved). Retired the purely-internal `TriggerSubscriptionResponse.ActNotAllowed`
+  (case + codec + `CastUnsafe` + all consumers) since both its ends were now dead.
+
+**Gotcha -- stale Orleans codegen:** after removing DU cases, `LibLifeCycleTest` failed to build with
+`CS0426 The type name 'TransitionNotAllowed'/'ActNotAllowed' does not exist` coming from
+`LibLifeCycleHostBuild/obj/.../LibLifeCycleHostBuild.orleans.g.cs`. The Orleans source-generator output
+was stale/incremental. Fix: `rm -rf LibLifeCycleHostBuild/obj LibLifeCycleHostBuild/bin` then rebuild so
+the generator regenerates against the new types. (Added to troubleshooting.)
+
+Validation: `dotnet build` green for LibLifeCycle -> Core -> Host -> Jobs.Types -> SuiteJobs/SuiteTodo
+LifeCycles + Tests -> LibUiSubject -> LibLifeCycleTest; `LibLifeCycleTest` 93/93 passing; `eggshell-fmt`
+clean. `SuiteJobs.sln` has a pre-existing GUID parse error (unrelated) so ecosystem `.fsproj`s were built
+directly.
+
+---
+
 ## 2026-07-18 (session 37 -- real-time push silently dropped: Fable.SignalR client can't decode StreamItemMessage under Fable 5)
 
 Symptom: cross-window todo updates do not propagate live. Toggling/editing/deleting a todo in browser

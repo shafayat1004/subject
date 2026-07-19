@@ -8,17 +8,6 @@ module TransitionWorkflow =
 
     type TODO = TODO // Placeholder to "return TODO" that will throw an exception
 
-    /// Special predefined transition results
-    [<RequireQualifiedAccess>]
-    type Transition =
-    /// Short-circuits transition to a no-op. Unlike `return subject` with unchanged subject, it's a true no-op
-    /// that doesn't write subject or side effects to storage and keeps old LastUpdated timestamp.
-    /// Will fail with a domain error if attempted after some side-effects were yielded in TransitionBuilder.
-    | Ignore
-    | NotAllowed // for standard reflection of action not allowed for a given subject state
-    // TODO: add more transition short-circuits:
-    // | DeleteSelf - to supersede hacky TimerAction.DeleteSelf
-
     // BLOB actions (see also Bind extensions below)
     module Blob =
         type CreateAction =
