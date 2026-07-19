@@ -38,9 +38,14 @@ relative to repo root. Override with `scripts/lib/conn.sh <path>`.
 
 ## Ecosystem / lifecycle discovery
 
-- Ecosystems: scan `[eco].[__SchemaUpgrade]` rows in `Todo_Dev`. Each distinct `eco` = one ecosystem schema.
+- **Database vs ecosystem name -- do not confuse.** `Todo_Dev` is the **database** (InitialCatalog in
+  the connection string). The **ecosystem = the SQL schema**, named after `ecosystem.Name` -- for
+  SuiteTodo that is `Todo` (see `SuiteTodo/Ecosystem/Todo.Types/EcosystemDef.fs`, `newEcosystemDef "Todo"`).
+  Passing `Todo_Dev` as the `<eco>` arg yields `Invalid object name 'Todo_Dev._Meta_Index'`.
+- Ecosystems: scan `[eco].[__SchemaUpgrade]` (e.g. `[Todo].[__SchemaUpgrade]`); each distinct schema with
+  that table is one ecosystem. Enumerate via `SELECT name FROM sys.schemas WHERE schema_id > 4`.
 - Lifecycles: tables matching `[eco].[%_History]`; strip `_History` suffix.
-- Defaults: ecosystem `Todo_Dev`, lifecycle `Todo`.
+- Defaults: database `Todo_Dev`, ecosystem/schema `Todo`, lifecycle `Todo`.
 
 ## Subcommands
 

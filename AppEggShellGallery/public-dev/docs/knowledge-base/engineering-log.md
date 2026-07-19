@@ -4,6 +4,56 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 47 -- first live MSSQL silo boot on Orleans 10; two blockers fixed)
+
+After S15e landed green in-process (145/145 tests: LibLifeCycleTest 93, SuiteTodo 5, SuiteJobs 47,
+zero Stasis/CodecNotFound), verified the backend against a **live** MSSQL silo before starting the
+Postgres spikes. All prior test coverage runs on the in-process `TestCluster` with in-memory storage,
+so no live Orleans 10 + AdoNet silo had ever booted. Dropped and recreated the dev DB `Todo_Dev` from
+empty; the silo auto-provisions everything on boot (Orleans membership via embedded `SetupOrleans.sql`;
+ecosystem schema `Todo` via `createSchema` + `doSetup`). Two blockers surfaced, both fixed.
+
+**Blocker 1 -- launcher FSharp.Core downgrade (build).** `dotnet run` on
+`SuiteTodo/Launchers/Dev/DevelopmentHost/src/DevelopmentHost.fsproj` failed with
+`NU1605: Detected package downgrade: FSharp.Core from 10.0.103 to 9.0.201`. Root `Directory.Build.props`
+pins FSharp.Core `9.0.201` globally; every framework/spike project bumps to `10.0.103` via
+`<PackageReference Update="FSharp.Core" VersionOverride="10.0.103" />` (the `Directory.Build.targets`
+VersionOverride->Version rewrite). The SuiteTodo dev launcher never got that override during the .NET 10
+migration, while its transitive dep `LibLifeCycleCodeGenHost` requires >=10.0.103. **Fix:** add the same
+`VersionOverride` line to `DevelopmentHost.fsproj`. (Migration-tail gap; the SuiteJobs launcher likely
+needs the same when it is next booted.)
+
+**Blocker 2 -- reminder service not registered (runtime, Orleans 10).** Silo booted, provisioned the
+schema, and constructed the `_Meta`/`_Startup` subjects, then threw on every tick:
+`System.InvalidOperationException: No service for type 'Orleans.Timers.IReminderRegistry' has been
+registered.` at `SubjectGrain.SetTickReminder` (`SubjectGrain.fs:1146`). Orleans 7+ factored reminders
+into `Microsoft.Orleans.Reminders`; the reminder **service** (`IReminderRegistry`) is no longer
+auto-registered by core. `SiloBuilder.fs` `EcosystemSiloSetup.Proper` (the real dev/prod path)
+registered a custom `IReminderTable` (`SubjectReminderTable`) but never registered the service, so
+`RegisterOrUpdateReminder` had no `IReminderRegistry` to resolve. The `Test`/`TestDataSeeding` branches
+call `.UseInMemoryReminderService()`, which registers *both* the in-memory table and the service --
+which is exactly why the test suites were green while the live silo failed. **Fix:** add `.AddReminders()`
+to the `Proper` branch (registers `LocalReminderService`/`IReminderRegistry`; the custom `IReminderTable`
+still supplies storage). Same shape of Orleans-10 gotcha as S15e: a thing that was implicit under 3.7 now
+requires explicit registration.
+
+**Verification (live).** After both fixes: clean boot, `LifeCycleHostStartupTask End`, zero
+`IReminderRegistry` errors, reminders firing. DB proof: `dbo.OrleansMembershipTable` shows DeploymentId
+`Todo` with 1 active silo; schema `Todo` fully provisioned; `_Meta` subject decoded straight from MSSQL
+via `[Todo].[decode]` with timestamps advancing across ticks (write->persist->re-read->update->gzip
+decode all working). HTTP: read path `GET .../subject/Todo/debug/all` -> 200; the write pipeline reaches
+the codec layer. A hand-authored HTTP Todo create was **not** completed -- the construct endpoint uses
+`generateAutoDecoder` (deep type-tagged positional format: `Title` decodes as a `NonemptyString` union,
+options as tagged arrays); it is a machine-symmetric codec meant for the generated client, not hand JSON.
+Not a backend defect -- subject construction+persistence is proven via the silo's own startup subjects.
+
+**Two minor findings (not fixed).**
+- `appsettings.Development.json` `Http:Urls = http://localhost:5001` is **not honored** -- Kestrel binds
+  the ASP.NET default **5000**. Cosmetic; note it when cur/probing the dev host.
+- `mssql-debug` skill's stated default ecosystem `Todo_Dev` is wrong: `Todo_Dev` is the **database**;
+  the **schema/ecosystem** is `Todo`. Passing `Todo_Dev` as the eco caused `Invalid object name
+  'Todo_Dev._Meta_Index'`. Skill doc corrected this session.
+
 ## 2026-07-19 (session 46 -- S15e-production-port LANDED: IConnectorGrain command objects)
 
 Closes the runtime blocker left by session 45. Replaces F# `FSharpFunc` arguments on

@@ -196,6 +196,13 @@ type SiloConfigurationExtensions =
                     .AddStartupTask<SqlServerSetupStartupTask>(ServiceLifecycleStage.First)
                     .AddStartupTask<CustomStorageInitStartupTask>(ServiceLifecycleStage.First)
                     .AddStartupTask<LifeCycleHostStartupTask>(ServiceLifecycleStage.Active)
+                    // Orleans 7+ split reminders into Microsoft.Orleans.Reminders; the reminder service
+                    // (IReminderRegistry) is no longer auto-registered by core. Registering a custom
+                    // IReminderTable alone is not enough -- without AddReminders(), SubjectGrain.SetTickReminder
+                    // throws "No service for type 'Orleans.Timers.IReminderRegistry'". The Test/TestDataSeeding
+                    // branches get this implicitly via UseInMemoryReminderService(); the Proper branch must
+                    // register the service explicitly, then supply the custom table below.
+                    .AddReminders()
                     .ConfigureServices(fun services ->
                         services.AddSingleton<IReminderTable, SubjectReminderTable>(fun serviceProvider ->
                             let isDevHost = match properSiloSetup with | ProperSiloDev _ -> true | ProperSiloProd -> false
