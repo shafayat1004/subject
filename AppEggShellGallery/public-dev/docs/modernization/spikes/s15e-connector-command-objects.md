@@ -180,6 +180,14 @@ The command-object rewrite is the production fix for the Orleans 10 closure-copi
 - The unused connector-side `ServiceQueryExtensions.Request` / `BlockingRequest` overloads were
   removed. If any external consumer relies on the curried fluent form, it will need to construct a
   builder class instead; a repo-wide search showed no callers.
+- **Deferred ergonomics improvement (not scheduled).** Command objects cost a small amount of
+  per-connector boilerplate (a named builder + mapper class) versus the old inline lambdas. Capability
+  is unchanged -- the class method body is the former lambda body, and captured state is passed via the
+  constructor -- but the inline terseness is gone. A future framework helper could restore it without
+  reintroducing the closure-over-the-wire hazard: e.g. a generic `RequestBuilder.ofData data (fun data
+  channel -> ...)` factory (or DU-driven source-gen) that emits a real value-carrier object rather than
+  an `FSharpFunc`. The replaced fluent overloads must NOT come back as-is -- they produced exactly the
+  closures that Orleans 10 cannot copy. Deferred; app authors write the two small classes for now.
 - F# named classes implementing non-grain-observer interfaces are benign to the Orleans source generator,
   but the generated `LibLifeCycleCodeGenHost.orleans.g.cs` must still be inspected for any stray
   `typeof(global::...@...)` patterns after the build.
