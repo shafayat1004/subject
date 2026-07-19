@@ -493,6 +493,7 @@ state is committed (lesson from an earlier Postgres spike branch: duplicate memb
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
 Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S15c-production-port → S15d → S15d-production-port → S15e → S15e-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
+S16 (Orleans-jump parity verification) is independent of storage and runs any time after S15e-production-port compiles green. It uses the current SQL Server clustering, so it does not wait on the Postgres tiers.
 S0+S10+S15+S15b+S15b-production-port+S15c+S15c-production-port+S1 first (~7–9 days) prove the foundation before the big storage work. S15 ran right after the package
 bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S15b confirmed the
 production codegen-host pattern; **S15b-production-port** is the actual LibLifeCycleCore rewrite (not a spike — applies the
@@ -783,6 +784,18 @@ covers dev/CI.
   the provider uses (CRD/ConfigMap/pods), unverified at plan time. **Proves:** the K8s membership decision
   (decision 4) holds in the target environment. The PG `UseAdoNetClustering` fallback (decision 4) is the escape
   hatch if this spike fails; the localhost path (S1) is the dev/CI equivalent.
+
+- **S16 · Multi-silo reliability + throughput A/B (Orleans 3.7 vs 10 parity).** *(planned; maps to P4/P5.)*
+  Head-to-head Docker Compose A/B: two structurally identical stacks (old net7 + Orleans 3.7 from git
+  history, new net10 + Orleans 10.2.1), 3 silos + SQL Server + load client each, run sequentially under
+  identical resource caps. Reliability catalog (cluster formation, placement/single-activation, reminders
+  across silos, failover under load, membership hygiene) asserted via `IManagementGrain` + the SQL
+  membership table + `docker kill`/`network disconnect`. Throughput measured on a concurrency ladder with
+  synthetic (`EchoGrain`/`ComputeGrain`) plus real subject-op mixes, so the custom
+  `EggShellSubjectGrainsCodec` is measured on the wire rather than trusting published serializer numbers.
+  Independent of the Postgres tiers (uses current SQL Server clustering); complements S14 (K8s membership
+  on PG). Full design + acceptance bar in [Cluster Verification](./cluster-verification.md). **Proves:**
+  the Orleans 3.7 to 10 upgrade is as good or better on cross-silo reliability and throughput/latency.
 
 ### Phase correspondence (for continuity)
 

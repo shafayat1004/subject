@@ -4,6 +4,31 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 49 -- Orleans 10 cluster-verification plan: S16 added)
+
+Question raised: the Orleans 3.7 to 10 / net10 upgrade is only validated on the single-dev stack
+(one in-process `DevelopmentHost` silo, SQL Server, on one laptop). Cross-silo reliability and the
+claimed Orleans 7+ wire-protocol throughput gains are unverified because a single silo cannot
+exercise them, and there is no load harness anywhere in the repo.
+
+Two facts shaped the plan: (1) the simulation suite already boots a 2-silo in-process `TestCluster`
+(`LibLifeCycleTest/TestCluster.fs:485`), so in-process multi-silo correctness is covered but SQL
+clustering, real networking, and failover are not; (2) the payload path is a **custom codec**
+(`EggShellSubjectGrainsCodec`, `LibLifeCycleCore/src/OrleansEx/Serialization.fs`), not
+`[<GenerateSerializer>]`, so Orleans' published wire-protocol numbers do not transfer and the codec
+must be measured on the wire.
+
+Decided: a head-to-head Docker Compose A/B (old net7/Orleans 3.7 recovered from git history vs new
+net10/Orleans 10.2.1), 3 silos + SQL Server + load client per stack, synthetic + real-subject-op
+workload mix, reliability catalog asserted via `IManagementGrain` + membership table +
+`docker kill`. Registered as spike **S16** in `modernization/sql-server-to-postgres.md` and
+documented in the new `modernization/cluster-verification.md` (canonical). Detailed design record:
+`docs/superpowers/specs/2026-07-19-orleans10-cluster-verification-design.md`. The failover reminder
+scenario regression-guards the session-47 `IReminderRegistry` fix (codemem 1912). Not yet
+implemented; plan only.
+
+**Distilled:** not durable (planning entry, no symptom-to-fix).
+
 ## 2026-07-19 (session 48 -- real-backend AppTodo dev stack: stale build artifacts + reliable mode check)
 
 Ran `SuiteTodo/dev-stack.sh up --real --sql=external --sql-server=192.168.2.231,1433 ...` to bring up

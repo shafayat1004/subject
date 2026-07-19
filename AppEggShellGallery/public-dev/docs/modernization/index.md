@@ -66,6 +66,7 @@ See [Phased Plan](./phased-plan.md) for full per-phase detail.
 - [CLI reference](../tools/cli.md) — `eggshell` commands.
 - [Goals & Roadmap](./goals-and-roadmap.md) — Goals A through K + security, short-term vs long-term framing.
 - [Phased Plan](./phased-plan.md) — Phases 0 through 6, one clean table.
+- [Cluster Verification](./cluster-verification.md): S16, a head-to-head Docker Compose A/B proving Orleans 10 cross-silo reliability + throughput/latency is as good or better than Orleans 3.7.
 - [Tracked upstream Orleans issues](./tracked-orleans-issues.md) — Goal G's open/closed dotnet/orleans issues that affect our workarounds. Re-check before each Orleans work item; resolution may let us simplify the codebase.
 - [RN 0.86 Upgrade: Done and Remaining](./rn86-upgrade-status.md) — detailed done-vs-remaining tracker for the ReactXP-retirement + React 19 / RN 0.86 / Fabric upgrade.
 - [ReactXP to RNW](./reactxp-to-rnw.md) — the strategy and research narrative for the seam swap.

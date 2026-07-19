@@ -1,8 +1,11 @@
-# Orleans 10 / net10 Cluster Verification — Design
+# Orleans 10 / net10 Cluster Verification: Design
 
 **Date:** 2026-07-19
 **Branch context:** `shafayat/pgsql-initial-spikes`
 **Status:** Approved design, ready for implementation plan.
+**Canonical workstream doc:** `AppEggShellGallery/public-dev/docs/modernization/cluster-verification.md`
+(registered as spike **S16** in `modernization/sql-server-to-postgres.md`). This file is the detailed
+design record incl. rationale and rejected alternatives; the gallery page is the reference-voice plan.
 
 ## Problem
 
@@ -64,27 +67,27 @@ The deliverable is a single markdown verdict report plus the reusable harness.
 ## Approach (chosen: custom two-stack compose harness)
 
 Rejected alternatives: NBomber + xUnit TestCluster (HTTP-oriented, in-process TestCluster
-can't test SQL clustering/real-network failover — half-measure); adapting Orleans'
+can't test SQL clustering/real-network failover: half-measure); adapting Orleans'
 `test/Benchmarks` (built for the default serializer + generic grains, heavy surgery to fit the
 custom codec and the old stack).
 
-### Components — `Meta/ClusterVerify/`
+### Components: `Meta/ClusterVerify/`
 
-- **`old/` and `new/`** — parallel Docker Compose stacks: 3 silo containers + 1 SQL Server +
+- **`old/` and `new/`**: parallel Docker Compose stacks: 3 silo containers + 1 SQL Server +
   1 load client each. Identical silo count, ports, and resource limits (CPU/mem caps) so the
   comparison is fair. `old/` targets net7 + Orleans 3.7; `new/` targets net10 + Orleans 10.
   Run sequentially on the same host, never concurrently.
-- **`grains/`** — synthetic `EchoGrain` (identity call, raw framework+wire ceiling) and
+- **`grains/`**: synthetic `EchoGrain` (identity call, raw framework+wire ceiling) and
   `ComputeGrain` (fixed CPU work, placement/scheduling), plus a thin caller into the **real
   subject grains** for the codec + SQL persistence + reminders path. Two builds because the
   O3.7 and O10 grain/client APIs differ; both share a single op-mix definition file.
-- **`loadclient/`** — async load generator: concurrency ladder, warmup then fixed-duration
+- **`loadclient/`**: async load generator: concurrency ladder, warmup then fixed-duration
   steady-state per step, HdrHistogram percentiles written to `results.json` with an identical
   schema across both stacks. One build per stack (client APIs differ).
-- **`reliability/`** — scenario runner driving `docker kill` / `docker network disconnect` /
+- **`reliability/`**: scenario runner driving `docker kill` / `docker network disconnect` /
   restart, asserting via `IManagementGrain` (`GetDetailedHosts`, `GetSimpleGrainStatistics`),
   the SQL membership table, and log scrape.
-- **`compare.fsx`** — diffs old vs new `results.json` and emits the verdict table (markdown).
+- **`compare.fsx`**: diffs old vs new `results.json` and emits the verdict table (markdown).
 
 ### Metrics & observability
 
@@ -95,26 +98,26 @@ statuses, activation distribution) comes from `IManagementGrain`.
 
 ### Reliability scenario catalog (track A)
 
-1. **Cluster formation** — 3 silos join the SQL clustering table and all reach ACTIVE.
-2. **Placement / distribution** — activations spread across silos; single-activation guarantee
+1. **Cluster formation**: 3 silos join the SQL clustering table and all reach ACTIVE.
+2. **Placement / distribution**: activations spread across silos; single-activation guarantee
    holds under concurrent calls to the same key.
-3. **Reminders cross-silo** — a reminder fires; killing the owning silo migrates the reminder
+3. **Reminders cross-silo**: a reminder fires; killing the owning silo migrates the reminder
    and it keeps firing. Directly guards the `IReminderRegistry` regression (codemem 1912).
-4. **Failover under load** — kill one silo mid-load: in-flight calls retry, activations recover
+4. **Failover under load**: kill one silo mid-load: in-flight calls retry, activations recover
    on survivors, zero data loss, and cluster re-stabilization time is measured.
-5. **Membership hygiene** — a dead silo is evicted from the table and defunct entries cleaned.
-6. **Partition (optional)** — `network disconnect` one silo; verify detection and recovery.
+5. **Membership hygiene**: a dead silo is evicted from the table and defunct entries cleaned.
+6. **Partition (optional)**: `network disconnect` one silo; verify detection and recovery.
 
 ### Throughput benchmark (track B)
 
 Concurrency ladder (e.g. 1, 8, 32, 128, 512 outstanding requests). Per step: warmup, then a
 fixed steady-state measurement window. Op mix:
 
-- **echo-only** — framework + wire ceiling. The echo payload must carry a *representative
+- **echo-only**: framework + wire ceiling. The echo payload must carry a *representative
   subject-shaped payload* so the custom codec is actually exercised; an empty/primitive echo
   would make the wire numbers meaningless.
-- **compute-only** — placement and scheduling under CPU load.
-- **real subject ops** — the true end-to-end cost through `EggShellSubjectGrainsCodec` + SQL +
+- **compute-only**: placement and scheduling under CPU load.
+- **real subject ops**: the true end-to-end cost through `EggShellSubjectGrainsCodec` + SQL +
   reminders.
 
 Report req/s and p50/p99/p999 per op per step. Synthetic isolates Orleans overhead; real
@@ -128,14 +131,14 @@ dimension.
 
 ## Risks & nuances
 
-- **Custom codec representativeness** — echo payload must mirror real subject shape or wire
+- **Custom codec representativeness**: echo payload must mirror real subject shape or wire
   numbers are invalid.
-- **Old-stack revival is the long pole** — net7 / Orleans 3.7 build may need dependency
+- **Old-stack revival is the long pole**: net7 / Orleans 3.7 build may need dependency
   pinning and toolchain juggling; budget time for it up front.
-- **Container network ≠ real NIC** — compose reports the relative A/B honestly, but absolute
+- **Container network ≠ real NIC**: compose reports the relative A/B honestly, but absolute
   numbers understate real-network cost. State this caveat in the report.
-- **Fair comparison** — identical CPU/mem caps on both stacks, same host, sequential runs.
-- **SQL clustering setup** — reuse `SetupOrleans.sql` / `SqlServerSetup.fs`; give each stack
+- **Fair comparison**: identical CPU/mem caps on both stacks, same host, sequential runs.
+- **SQL clustering setup**: reuse `SetupOrleans.sql` / `SqlServerSetup.fs`; give each stack
   its own database.
 
 ## Pre-build reading (project rule 14)
