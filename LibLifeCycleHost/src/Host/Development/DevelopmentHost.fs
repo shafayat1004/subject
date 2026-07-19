@@ -110,7 +110,7 @@ let private applyDevHostConfigToEcosystem (ecosystem: Ecosystem) (config: IConfi
                                                 |> Some }
                                         :> IReferencedView }) }) }
 
-let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Ecosystem) (buildAssembly: Assembly) args =
+let startDevelopmentHost (hostConfiguration: HostConfiguration) (ecosystem': Ecosystem) (_buildAssembly: Assembly) args =
 
     Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development")
     try

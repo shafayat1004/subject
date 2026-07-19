@@ -84,10 +84,6 @@ type SubjectReminderTable
         readAllRowsSql
         |> Option.map (sprintf "SELECT Id, LifeCycleName, NextTickOn FROM (%s) a WHERE GrainIdHash > @begin OR GrainIdHash <= @end")
 
-    let readAllRowsSqlOutsideRange =
-        readAllRowsSql
-        |> Option.map (sprintf "SELECT Id, LifeCycleName, NextTickOn FROM (%s) a WHERE GrainIdHash > @begin OR GrainIdHash <= @end")
-
     // arbitrary date in the past i.e. due immediately, ticks every minute, random second start to avoid spikes of Meta reminders
     let rnd = Random()
     let metaKeepAliveReminderStartAt () = DateTimeOffset(2010, 1, 1, 0, 0, rnd.Next(0, 59), TimeSpan.Zero)
@@ -101,7 +97,7 @@ type SubjectReminderTable
             if reminderName = SubjectReminderName then
                 let adapter = grainTypeToLifeCycleAdapter.[grainId.Type]
                 let sql = sprintf "SELECT (CASE WHEN NextTickFired = 0 THEN NextTickOn ELSE NULL END) FROM [%s].[%s] WHERE Id = @id" ecosystem.Name adapter.LifeCycleName
-                let pKey = grainId.Key.ToString()
+                let (_, pKey) = grainId.GetGuidKey()
 
                 backgroundTask {
                     use connection = new SqlConnection(connectionString)
@@ -255,7 +251,7 @@ type SubjectReminderTable
             | None -> Task.FromResult(new ReminderTableData())
 
 
-        member this.RemoveRow(grainId: GrainId, _reminderName: string, _eTag: string): Task<bool> =
+        member this.RemoveRow(_grainId: GrainId, _reminderName: string, _eTag: string): Task<bool> =
             // NO-OP. We will never do any writes from the Reminder system; all reminder peristence
             // is handled by SubjectGrain when it configures the nextTick as part of subject upgrade
             Task.FromResult true
@@ -263,7 +259,7 @@ type SubjectReminderTable
         member this.TestOnlyClearTable(): Task =
             Task.CompletedTask
 
-        member this.UpsertRow(entry: ReminderEntry): Task<string> =
+        member this.UpsertRow(_entry: ReminderEntry): Task<string> =
             // NO-OP. We will never do any writes from the Reminder system; all reminder peristence
             // is handled by SubjectGrain when it configures the nextTick as part of subject upgrade
             Guid.NewGuid()

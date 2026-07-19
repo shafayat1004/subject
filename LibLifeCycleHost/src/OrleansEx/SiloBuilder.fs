@@ -123,6 +123,9 @@ type SiloConfigurationExtensions =
             | EcosystemSiloSetup.Test ->
                 siloBuilder
                     .UseInMemoryReminderService()
+                    // Orleans 10: ISiloBuilder.ConfigureLogging only takes Action<ILoggingBuilder>
+                    // (no HostBuilderContext), so we cannot wire the Logging config section here.
+                    // Config-based log levels for tests should be set at the host builder level.
                     .ConfigureLogging(fun logging ->
                         logging
                             .ClearProviders()
@@ -145,6 +148,8 @@ type SiloConfigurationExtensions =
                     .AddStartupTask<SqlServerSetupStartupTask>(ServiceLifecycleStage.First)
                     .AddStartupTask<CustomStorageInitStartupTask>(ServiceLifecycleStage.First)
                     .UseInMemoryReminderService()
+                    // Orleans 10: same limitation as Test branch above -- no HostBuilderContext in
+                    // ConfigureLogging, so config-based log levels must be set at host builder level.
                     .ConfigureLogging(fun logging ->
                         logging
                             .ClearProviders()

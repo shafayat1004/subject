@@ -1,2 +1,2 @@
 #!/bin/zsh
-to-local.sh "$@"
+exec "$(dirname "$0")/lib/to-local.sh" "$@"

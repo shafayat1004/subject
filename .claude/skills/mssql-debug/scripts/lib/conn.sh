@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Conn string resolver. Usage: conn.sh [appsettings_path]
 set -u
-REPO_ROOT="/Volumes/HomeX/shafayat/Code/subject"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "${HOME}/Code/subject")"
 DEFAULT_SETTINGS="$REPO_ROOT/SuiteTodo/Launchers/Dev/DevelopmentHost/src/appsettings.Development.json"
 SETTINGS="${1:-$DEFAULT_SETTINGS}"
 

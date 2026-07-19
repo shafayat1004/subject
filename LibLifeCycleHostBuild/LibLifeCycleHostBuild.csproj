@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-	<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-	<NoWarn>ORL1001;NU1605</NoWarn>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<NoWarn>ORL1001;NU1605;FS0044</NoWarn>
 	<Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 

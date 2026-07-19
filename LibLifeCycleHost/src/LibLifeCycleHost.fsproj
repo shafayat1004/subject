@@ -3,7 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- FS0044: pre-existing net10 obsolescence warnings (WebHost, IWebHost, InstrumentationKey,
+         X509Certificate2.PrivateKey, obsolete formatter serialization, ActInterGrain, RegisterGrainTimer).
+         Suppressed until each API is migrated; tracked as follow-up. -->
+    <NoWarn>FS0044</NoWarn>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
@@ -27,7 +31,8 @@
     <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="10.2.1" />
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="10.2.1" />
     <PackageReference Include="Microsoft.Orleans.Reminders" Version="10.2.1" />
-    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <!-- Npgsql added for upcoming pgsql workstream; not yet wired -->
+    <!-- <PackageReference Include="Npgsql" Version="10.0.3" /> -->
     <PackageReference Include="Giraffe" Version="6.2.0" />
     <PackageReference Include="Giraffe.TokenRouter" Version="3.0.0-alpha-1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.3" />

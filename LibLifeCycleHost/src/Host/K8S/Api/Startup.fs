@@ -48,7 +48,7 @@ type ClusterClientHostHolder() =
     member _.SetHost(h: Microsoft.Extensions.Hosting.IHost) = host <- Some h
     member _.Host = host |> Option.defaultWith (fun () -> failwith "ClusterClientHostHolder.Host accessed before SetHost")
 
-type Startup(ecosystem: Ecosystem, buildAssembly: BuildAssembly, hostConfiguration: HostConfiguration, configuration: IConfiguration) =
+type Startup(ecosystem: Ecosystem, _buildAssembly: BuildAssembly, hostConfiguration: HostConfiguration, configuration: IConfiguration) =
 
     // Please excuse the mutable. Unfortunately required due to the way orleans structures its APIs
     // (i.e. we have no direct access to a field that contains the connected gateway count, and instead
@@ -285,14 +285,13 @@ and InitializeClusterClientService(serviceProvider: IServiceProvider, _ecosystem
                 let clusterClientHost = serviceProvider.GetRequiredService<ClusterClientHostHolder>().Host
 
                 // Orleans 10: IClusterClient has no public Connect(). Retry is driven by host.StartAsync()
-                // in a loop. On failure, dispose the host and rebuild (the IGrainFactory singleton
-                // already built it; we just restart here). Connection lifecycle is now driven by
+                // in a loop on the same host instance. Connection lifecycle is now driven by
                 // IHostedService.
                 let rec tryStart () =
                     task {
                         try
                             do! clusterClientHost.StartAsync(anyCancellationToken)
-                        with exnBeforeRetry ->
+                        with _exnBeforeRetry ->
                             let _elapsed = DateTimeOffset.Now - startTime
                             // todo: report-health to dapr dashboard
                             //reportHealth ecosystem statelessService

@@ -34,7 +34,7 @@ open System.Threading.Tasks
 let startSubjectHost
         (hostConfiguration: HostConfiguration)
         (ecosystem':         Ecosystem)
-        (buildAssembly:     Assembly)
+        (_buildAssembly:    Assembly)
         (args:              array<string>)
         : int =
     try

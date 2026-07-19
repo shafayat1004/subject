@@ -3,7 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
-	<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<!-- FS0044: pre-existing net10 obsolescence warnings (obsolete formatter serialization).
+	     Suppressed until each API is migrated. -->
+	<NoWarn>FS0044</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

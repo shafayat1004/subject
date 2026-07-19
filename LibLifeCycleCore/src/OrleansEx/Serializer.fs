@@ -166,7 +166,9 @@ type EggShellSubjectGrainsCodec (untypedSerializersByTypeId: IReadOnlyDictionary
     interface IFieldCodec with
         member _.WriteField<'W when 'W :> IBufferWriter<byte>>
             (writer: byref<Writer<'W>>, fieldIdDelta: uint32, expectedType: Type, value: obj) : unit =
-            if isNull value then () else
+            if isNull value then
+                failwith "OrleansSerializer.WriteField got null; that's not expected"
+            else
                 let runtimeType = value.GetType()
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, runtimeType, WireType.LengthPrefixed)
                 match tryGetSerializerForType runtimeType with
