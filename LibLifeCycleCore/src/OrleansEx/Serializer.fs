@@ -124,6 +124,26 @@ with
             TypeId = typeId
         }
 
+// Command-object interfaces from LibLifeCycle.Services are used in place of F# closures on
+// IConnectorGrain grain methods. Their concrete implementations carry only immutable captured
+// state (e.g. RunJobRequestData), so returning the same instance during a deep-copy is safe.
+// This unblocks the Orleans 10 invoker's CopyContext.DeepCopy of builder/mapper arguments.
+let rec private isConnectorCommandType (itemType: Type) =
+    if isNull itemType then false
+    else
+        let interfaces = if itemType.IsInterface then [| itemType |] else itemType.GetInterfaces()
+        interfaces
+        |> Array.exists (fun i ->
+            i.IsGenericType &&
+            let gtd = i.GetGenericTypeDefinition()
+            let fullName =
+                match gtd.FullName with
+                | null -> ""
+                | name -> name.Replace('+', '.')
+            fullName.StartsWith "LibLifeCycle.Services.IConnectorRequestBuilder`"
+            || fullName.StartsWith "LibLifeCycle.Services.IConnectorRequestBuilderSingleReply`"
+            || fullName.StartsWith "LibLifeCycle.Services.IConnectorResponseMapper`")
+
 type EggShellSubjectGrainsCodec (untypedSerializersByTypeId: IReadOnlyDictionary<byte, UntypedSerializer>,
                                   untypedSerializersByType: IReadOnlyDictionary<Type, UntypedSerializer>) =
 
@@ -133,8 +153,15 @@ type EggShellSubjectGrainsCodec (untypedSerializersByTypeId: IReadOnlyDictionary
         match IReadOnlyDictionary.tryGetValue itemType untypedSerializersByType with
         | Some serializer -> Some serializer
         | None ->
-            if isNull itemType.BaseType then None
-            else IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType
+            if not (isNull itemType.BaseType) then
+                match IReadOnlyDictionary.tryGetValue itemType.BaseType untypedSerializersByType with
+                | Some serializer -> Some serializer
+                | None ->
+                    itemType.GetInterfaces()
+                    |> Array.tryPick (fun i -> IReadOnlyDictionary.tryGetValue i untypedSerializersByType)
+            else
+                itemType.GetInterfaces()
+                |> Array.tryPick (fun i -> IReadOnlyDictionary.tryGetValue i untypedSerializersByType)
 
     interface IFieldCodec with
         member _.WriteField<'W when 'W :> IBufferWriter<byte>>
@@ -172,13 +199,12 @@ type EggShellSubjectGrainsCodec (untypedSerializersByTypeId: IReadOnlyDictionary
 
     interface IGeneralizedCodec with
         member _.IsSupportedType(itemType: Type) : bool =
-            untypedSerializersByType.ContainsKey itemType ||
-            (not (isNull itemType.BaseType) && untypedSerializersByType.ContainsKey itemType.BaseType)
+            tryGetSerializerForType itemType |> Option.isSome
 
     interface IGeneralizedCopier with
         member _.IsSupportedType(itemType: Type) : bool =
-            untypedSerializersByType.ContainsKey itemType ||
-            (not (isNull itemType.BaseType) && untypedSerializersByType.ContainsKey itemType.BaseType)
+            tryGetSerializerForType itemType |> Option.isSome ||
+            isConnectorCommandType itemType
 
     interface IDeepCopier with
         member _.DeepCopy(source: obj, _context: CopyContext) : obj =

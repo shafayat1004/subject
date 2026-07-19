@@ -8,38 +8,73 @@ open System
 open System.Reflection
 
 type IConnectorAdapter =
-    abstract member RequestOnGrain:              hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> buildRequest: obj (* ResponseChannel<'Response> -> Request  *) -> buildAction: (obj (* Request *) -> LifeAction) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
-    abstract member RequestMultiResponseOnGrain: hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> buildRequest: obj (* MultiResponseChannel<'Response> -> Request  *) -> buildAction: (obj (* Request *) -> LifeAction) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
+    abstract member RequestOnGrain:              hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> requestBuilder: obj (* IConnectorRequestBuilderSingleReply<'Request, 'Response>  *) -> responseMapper: obj (* IConnectorResponseMapper<'Response, 'Action> *) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
+    abstract member RequestMultiResponseOnGrain: hostEcosystemGrainFactory: IGrainFactory -> responseType: Type -> requestBuilder: obj (* IConnectorRequestBuilder<'Request, 'Response>  *) -> responseMapper: obj (* IConnectorResponseMapper<'Response, 'Action> *) -> grainPartition: GrainPartition -> requestor: SubjectPKeyReference -> sideEffectId: GrainSideEffectId -> unit
     abstract member ShouldSendTelemetry:         bool
 
 // Modules can't be typeof<>'ed. But we can get their type via an actual type contained within in
 type private AnchorTypeForModule = private AnchorTypeForModule of unit
 
-let private sendTypedRequest<'Request, 'Env, 'Response when 'Request :> Request and 'Env :> Env>
-        (hostEcosystemGrainFactory: IGrainFactory)
-        (buildRequest: obj (* ResponseChannel<'Response> -> 'Request  *))
-        (buildAction: obj (* 'Request *) -> LifeAction)
-        (GrainPartition grainPartitionGuid)
-        (requestor: SubjectPKeyReference)
-        (sideEffectId: GrainSideEffectId) : unit =
-    let typedBuildRequest = buildRequest :?> (ResponseChannel<'Response> -> 'Request)
-    let typedAction       = fun (resp: 'Response) -> resp |> box |> buildAction
-    let connectorGrain    = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
-    // Connector grains by their very nature are interacted with a fire-and-forget mechanism, so we don't need to wait for a response
-    connectorGrain.SendRequest typedBuildRequest typedAction requestor sideEffectId |> ignore
+let private tryGetMapperActionType (responseMapper: obj) : Type =
+    let mapperInterface =
+        responseMapper.GetType().GetInterfaces()
+        |> Array.find (fun i -> i.IsGenericType && i.GetGenericTypeDefinition() = typedefof<IConnectorResponseMapper<_, _>>)
+    mapperInterface.GetGenericArguments().[1]
 
-let private sendTypedRequestMultiResponse<'Request, 'Env, 'Response when 'Request :> Request and 'Env :> Env>
+let private dispatchConnectorRequestTyped<'Request, 'Env, 'Reply, 'Action when 'Request :> Request and 'Env :> Env and 'Action :> LifeAction>
         (hostEcosystemGrainFactory: IGrainFactory)
-        (buildRequest: obj (* MultiResponseChannel<'Response> -> 'Request  *))
-        (buildAction: obj (* 'Request *) -> LifeAction)
+        (requestBuilder: obj)
+        (responseMapper: obj)
         (GrainPartition grainPartitionGuid)
         (requestor: SubjectPKeyReference)
         (sideEffectId: GrainSideEffectId) : unit =
-    let typedBuildRequest = buildRequest :?> (MultiResponseChannel<'Response> -> 'Request)
-    let typedAction       = fun (resp: 'Response) -> resp |> box |> buildAction
-    let connectorGrain    = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
+    let typedBuilder   = requestBuilder :?> IConnectorRequestBuilderSingleReply<'Request, 'Reply>
+    let typedMapper    = responseMapper  :?> IConnectorResponseMapper<'Reply, 'Action>
+    let connectorGrain = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
     // Connector grains by their very nature are interacted with a fire-and-forget mechanism, so we don't need to wait for a response
-    connectorGrain.SendRequestMultiResponse typedBuildRequest typedAction requestor sideEffectId |> ignore
+    connectorGrain.SendRequest(typedBuilder, typedMapper, requestor, sideEffectId) |> ignore
+
+let private dispatchConnectorRequest<'Request, 'Env, 'Reply when 'Request :> Request and 'Env :> Env>
+        (hostEcosystemGrainFactory: IGrainFactory)
+        (requestBuilder: obj)
+        (responseMapper: obj)
+        (grainPartition: GrainPartition)
+        (requestor: SubjectPKeyReference)
+        (sideEffectId: GrainSideEffectId) : unit =
+    let actionType = tryGetMapperActionType responseMapper
+    typeof<AnchorTypeForModule>
+        .DeclaringType // The Module
+        .GetMethod((nameof dispatchConnectorRequestTyped), BindingFlags.NonPublic ||| BindingFlags.Static)
+        .MakeGenericMethod([| typeof<'Request>; typeof<'Env>; typeof<'Reply>; actionType |])
+        .Invoke(null, [| hostEcosystemGrainFactory; requestBuilder; responseMapper; grainPartition; requestor; sideEffectId |])
+        :?> unit
+
+let private dispatchConnectorMultiResponseTyped<'Request, 'Env, 'Reply, 'Action when 'Request :> Request and 'Env :> Env and 'Action :> LifeAction>
+        (hostEcosystemGrainFactory: IGrainFactory)
+        (requestBuilder: obj)
+        (responseMapper: obj)
+        (GrainPartition grainPartitionGuid)
+        (requestor: SubjectPKeyReference)
+        (sideEffectId: GrainSideEffectId) : unit =
+    let typedBuilder   = requestBuilder :?> IConnectorRequestBuilder<'Request, 'Reply>
+    let typedMapper    = responseMapper  :?> IConnectorResponseMapper<'Reply, 'Action>
+    let connectorGrain = hostEcosystemGrainFactory.GetGrain<IConnectorGrain<'Request, 'Env>> grainPartitionGuid
+    connectorGrain.SendRequestMultiResponse(typedBuilder, typedMapper, requestor, sideEffectId) |> ignore
+
+let private dispatchConnectorMultiResponse<'Request, 'Env, 'Reply when 'Request :> Request and 'Env :> Env>
+        (hostEcosystemGrainFactory: IGrainFactory)
+        (requestBuilder: obj)
+        (responseMapper: obj)
+        (grainPartition: GrainPartition)
+        (requestor: SubjectPKeyReference)
+        (sideEffectId: GrainSideEffectId) : unit =
+    let actionType = tryGetMapperActionType responseMapper
+    typeof<AnchorTypeForModule>
+        .DeclaringType
+        .GetMethod((nameof dispatchConnectorMultiResponseTyped), BindingFlags.NonPublic ||| BindingFlags.Static)
+        .MakeGenericMethod([| typeof<'Request>; typeof<'Env>; typeof<'Reply>; actionType |])
+        .Invoke(null, [| hostEcosystemGrainFactory; requestBuilder; responseMapper; grainPartition; requestor; sideEffectId |])
+        :?> unit
 
 type ConnectorAdapter<'Request, 'Env when 'Request :> Request and 'Env :> Env> = {
     Connector: Connector<'Request, 'Env>
@@ -49,31 +84,31 @@ with
         member _.RequestOnGrain
                 (hostEcosystemGrainFactory: IGrainFactory)
                 (responseType: Type)
-                (buildRequest: obj (* ResponseChannel<'Response> -> 'Request  *))
-                (buildAction: obj (* 'Request *) -> LifeAction)
+                (requestBuilder: obj)
+                (responseMapper: obj)
                 (grainPartition: GrainPartition)
                 (requestor: SubjectPKeyReference)
                 (sideEffectId: GrainSideEffectId) : unit =
             typeof<AnchorTypeForModule>
                 .DeclaringType // The Module
-                .GetMethod((nameof sendTypedRequest), BindingFlags.NonPublic ||| BindingFlags.Static)
+                .GetMethod((nameof dispatchConnectorRequest), BindingFlags.NonPublic ||| BindingFlags.Static)
                 .MakeGenericMethod([| typeof<'Request>; typeof<'Env>; responseType |])
-                .Invoke(null, [| hostEcosystemGrainFactory; buildRequest; buildAction; grainPartition; requestor; sideEffectId |])
+                .Invoke(null, [| hostEcosystemGrainFactory; requestBuilder; responseMapper; grainPartition; requestor; sideEffectId |])
                 :?> unit
 
         member _.RequestMultiResponseOnGrain
                 (hostEcosystemGrainFactory: IGrainFactory)
                 (responseType: Type)
-                (buildRequest: obj (* MultiResponseChannel<'Response> -> 'Request  *))
-                (buildAction: obj (* 'Request *) -> LifeAction)
+                (requestBuilder: obj)
+                (responseMapper: obj)
                 (grainPartition: GrainPartition)
                 (requestor: SubjectPKeyReference)
                 (sideEffectId: GrainSideEffectId) : unit =
             typeof<AnchorTypeForModule>
-                .DeclaringType // The Module
-                .GetMethod((nameof sendTypedRequestMultiResponse), BindingFlags.NonPublic ||| BindingFlags.Static)
+                .DeclaringType
+                .GetMethod((nameof dispatchConnectorMultiResponse), BindingFlags.NonPublic ||| BindingFlags.Static)
                 .MakeGenericMethod([| typeof<'Request>; typeof<'Env>; responseType |])
-                .Invoke(null, [| hostEcosystemGrainFactory; buildRequest; buildAction; grainPartition; requestor; sideEffectId |])
+                .Invoke(null, [| hostEcosystemGrainFactory; requestBuilder; responseMapper; grainPartition; requestor; sideEffectId |])
                 :?> unit
 
         member this.ShouldSendTelemetry = this.Connector.ShouldSendTelemetry

@@ -4,6 +4,61 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 46 -- S15e-production-port LANDED: IConnectorGrain command objects)
+
+Closes the runtime blocker left by session 45. Replaces F# `FSharpFunc` arguments on
+`IConnectorGrain` with serializable command-object interfaces, eliminating the `CodecNotFoundException`
+for F# closure classes and unblocking SuiteJobs under Orleans 10.
+
+**Root cause (codemem 1908).** The Orleans 10 source-generated invoker calls `CopyContext.DeepCopy<T>`
+on every grain method argument. `IConnectorGrain` methods previously took the request builder and
+response mapper as F# functions (`ResponseChannel<'Reply> -> 'Request` and `'Reply -> 'Action`),
+which compile to compiler-generated closure classes like
+`LibLifeCycle.Services+buildRequest@282-2<JobRunnerRequest,RunJobRequestData,Guid*ProcessingJobUpdate>`.
+Those closure classes are not handled by `Microsoft.Orleans.Serialization.FSharp`, so deep-copy threw
+`CodecNotFoundException: Could not find a copier`. The failure was swallowed inside the dispatch loop,
+the connector transient side effect never completed, and the 15-second `Stasis not reached` wait timed
+out. This was the real cause of the 29/47 SuiteJobs stalls reported in session 45.
+
+**Design (codemem 1909 -- Option B).** Instead of passing closures across the grain boundary, pass
+immutable value-like command objects that implement new generic interfaces in `LibLifeCycle.Services`:
+
+- `IConnectorRequestBuilder<'Request,'Reply>` -- carries captured request data, builds the grain
+  request when given a `MultiResponseChannel<'Reply>`.
+- `IConnectorRequestBuilderSingleReply<'Request,'Reply>` -- same for single-response requests.
+- `IConnectorResponseMapper<'Reply,'Action>` -- carries no state, maps a raw reply to an `'Action`.
+
+The one production connector (`JobRunnerConnector`) got named classes `JobRunnerRequestBuilder` and
+`JobRunnerResponseMapper`; the `JobLifeCycle` call site now constructs those classes. `IConnectorGrain`
+method signatures are rewritten in tupled form (per S15b) taking the interfaces, and the grain
+implementation invokes `.Build(channel)` and `.Map(response)`. `ExternalOperation` and
+`GrainTransientSideEffect` DU cases now store the builder/mapper objects instead of functions.
+
+**Codec change.** `LibLifeCycleCore/src/OrleansEx/Serializer.fs` couldn't reference app-specific builder
+types (Core sits below `LibLifeCycle` and `SuiteJobs`). Instead, `EggShellSubjectGrainsCodec`
+`IGeneralizedCopier.IsSupportedType` now recognizes any concrete type that implements one of the three
+command-object interfaces by generic definition, and `IDeepCopier.DeepCopy` returns the same instance.
+These command objects are immutable, so identity-preserving copy is safe for the current in-process
+TestCluster path. Named classes implementing non-grain-observer interfaces are benign to the Orleans
+source generator.
+
+**Validation.**
+- Build 0 errors across `LibLifeCycleCore`, `LibLifeCycleHost`, `LibLifeCycleCodeGenHost`,
+  `LibLifeCycleTest`, `SuiteTodo/Ecosystem/Tests`, `SuiteJobs/Ecosystem/Tests`.
+- `LibLifeCycleTest`: 93/93 PASS.
+- `SuiteTodo/Ecosystem/Tests`: 5/5 PASS.
+- `SuiteJobs/Ecosystem/Tests`: **47/47 PASS** (was 18/47) -- zero "Stasis not reached", zero
+  `CodecNotFoundException`, zero "Could not find a copier".
+- Generated `LibLifeCycleCodeGenHost.orleans.g.cs`: zero `typeof(global::...@...)` patterns
+  (no closure-misclassification regression).
+
+**Next.** S1 (PG18 baseline throwaway silo) is now unblocked: connector-request dispatch works end-to-end
+under Orleans 10. The command-object identity-copier is a deliberate tactical simplification for the
+current TestCluster; a real cross-silo deployment may need to serialize the concrete builder state or
+transport raw payloads instead. Track that in the S15e catalog.
+
+Catalog: `modernization/spikes/s15e-connector-command-objects.md`.
+
 ## 2026-07-19 (session 45 -- S15d-production-port LANDED: bare-leaf serializer rework + TestCluster client codec-registration bug)
 
 Closes the runtime blocker deferred from session 44. Applies the S15d spike decision (catalog

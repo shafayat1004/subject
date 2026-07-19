@@ -8,7 +8,7 @@ modern-Orleans and PostgreSQL-18 features worth adopting, and a spike-driven exe
 seam list also appears in [Hosting & Persistence](../architecture/backend-hosting-persistence.md); this page
 is the detailed version.
 
-**Workstream status: S15 spike FAILED (1/10); S15b spike PASSED (7/7); S15b-production-port COMPILE GREEN; S15c spike PASSED + S15c-production-port LANDED (session 44); S15d spike PASSED (3/3, session 44) + S15d-production-port LANDED (session 45 -- bare-leaf serializer rework + TestCluster client codec-registration fix; LibLifeCycleTest 93/93 + SuiteTodo 5/5 green; SuiteJobs 18/47 with `Stasis not reached` follow-up, separate work item). Next: S1 (PG18 baseline throwaway silo).**
+**Workstream status: S15 spike FAILED (1/10); S15b spike PASSED (7/7); S15b-production-port COMPILE GREEN; S15c spike PASSED + S15c-production-port LANDED (session 44); S15d spike PASSED (3/3, session 44) + S15d-production-port LANDED (session 45 -- bare-leaf serializer rework + TestCluster client codec-registration fix; LibLifeCycleTest 93/93 + SuiteTodo 5/5 green); S15e-production-port LANDED (session 46 -- IConnectorGrain command-object rewrite; SuiteJobs 47/47 PASS, zero Stasis/CodecNotFoundException). Next: S1 (PG18 baseline throwaway silo).**
 
 Version numbers and upstream script paths carry source URLs in [References](#references). All versions below
 were confirmed against nuget.org / upstream release pages on **2026-07-15**.
@@ -492,7 +492,7 @@ maps to the original phase arc (P0–P6) for continuity. **Every refactor commit
 state is committed (lesson from an earlier Postgres spike branch: duplicate members left in
 `SqlServerGrainStorageHandler.fs`, resource leak from a removed `finally` in `SqlServerSetup.fs`).
 
-Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S15c-production-port → S15d → S15d-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
+Recommended order: **S0 → S10 → S15 → S15b → S15b-production-port → S15c → S15c-production-port → S15d → S15d-production-port → S15e → S15e-production-port → S1 → S9 → (S3 ‖ S2) → S4 → (S5 ‖ S7 ‖ S8) → S6 → S11 → S12 → S13 → S14.**
 S0+S10+S15+S15b+S15b-production-port+S15c+S15c-production-port+S1 first (~7–9 days) prove the foundation before the big storage work. S15 ran right after the package
 bump (S10) because the Orleans 7+ serializer change is discovered there and F# interop gates everything. S15b confirmed the
 production codegen-host pattern; **S15b-production-port** is the actual LibLifeCycleCore rewrite (not a spike — applies the
@@ -677,16 +677,35 @@ covers dev/CI.
     inherit the silo's DI container.
   - **Verification:** build 0 err 0 warn on all 5 affected + 2 Ecosystem test projects; `LibLifeCycleTest`
     **93/93 PASS**; `SuiteTodo/Ecosystem/Tests` **5/5 PASS** (real 2-silo grain round-trips).
-  - **SuiteJobs follow-up (separate, NOT gating S1):** SuiteJobs test project had a stale Test SDK
-    (16.8.3) that could not discover `SimulationTestFramework`-attributed tests under .NET 10 -- `dotnet
-    test` exited 0 with zero tests run. Bumped Test.Sdk to 17.12.0 + added `xunit.runner.visualstudio`
-    (needed because `SimulationTestFramework` extends `XunitTestFramework`); removed dangling
-    `<RunSettingsFilePath>`. SuiteJobs tests now run for the first time under .NET 10 / Orleans 10:
-    **18/47 PASS, 29 FAIL** with a uniform `Stasis not reached, 1 side effects not processed within
-    00:00:15 : [Transient ...` failure pattern. Not a regression from S15d (LibLifeCycleTest's
-    `SideEffectTracking.fs` + `ClockSimulation.fs` pass 93/93; basic side-effect tracking works). Likely
-    an Orleans 3.7 -> 10 timing/dispatch difference in the SuiteJobs-specific job lifecycle. Tracked as a
-    separate follow-up work item.
+  - **SuiteJobs follow-up (resolved by S15e-production-port, session 46; see below):** at the time of
+    S15d, SuiteJobs tests ran for the first time under .NET 10 / Orleans 10 and showed **18/47 PASS,
+    29 FAIL** with a uniform `Stasis not reached` failure pattern. Root cause identified and fixed in
+    S15e; final result **47/47 PASS**.
+
+- **S15e · `IConnectorGrain` command objects: replace F# closures with serializable value-like
+  builder/mapper interfaces. LANDED (session 46).** *(closed the SuiteJobs Stasis blocker; gates S1.)*
+  Catalog [`spikes/s15e-connector-command-objects.md`](spikes/s15e-connector-command-objects.md).
+  The Orleans 10 source-generated invoker deep-copies every grain method argument before dispatch.
+  `IConnectorGrain` previously accepted request-builder and response-mapper arguments as F# closures
+  (`ResponseChannel<'Reply> -> 'Request` and `'Reply -> 'Action`), which compile to F#-compiler-generated
+  closure classes not supported by `Microsoft.Orleans.Serialization.FSharp`. `CopyContext.DeepCopy` threw
+  `CodecNotFoundException: Could not find a copier`, the connector transient side effect never completed,
+  and the 15-second stasis wait timed out.
+
+  **Fix:** add generic command-object interfaces in `LibLifeCycle.Services`
+  (`IConnectorRequestBuilder`, `IConnectorRequestBuilderSingleReply`, `IConnectorResponseMapper`), change
+  `IConnectorGrain` to tupled methods that take these interfaces, and implement named carrier classes
+  per connector (`JobRunnerRequestBuilder`, `JobRunnerResponseMapper`). The grain implementation calls
+  `.Build(channel)` and `.Map(response)`; the codec's `IGeneralizedCopier.IsSupportedType` recognizes any
+  concrete implementation of the interfaces and returns the same instance during deep-copy. Builds on the
+  S15b tupled-method lesson and the S15c named-class lesson.
+
+  **Verification:** build 0 errors across `LibLifeCycleCore`, `LibLifeCycleHost`,
+  `LibLifeCycleCodeGenHost`, `LibLifeCycleTest`, `SuiteTodo/Ecosystem/Tests`, `SuiteJobs/Ecosystem/Tests`;
+  `LibLifeCycleTest` **93/93 PASS**; `SuiteTodo/Ecosystem/Tests` **5/5 PASS**; `SuiteJobs/Ecosystem/Tests`
+  **47/47 PASS** with zero "Stasis not reached", zero `CodecNotFoundException`, and zero
+  "Could not find a copier". Generated `LibLifeCycleCodeGenHost.orleans.g.cs`: zero
+  `typeof(global::...@...)` patterns.
 
 ### Tier 2 — core storage (the hard part)
 
@@ -871,7 +890,7 @@ Internal:
 - [Hosting & Persistence](../architecture/backend-hosting-persistence.md)
 - [Testing framework](../architecture/testing-framework.md)
 - [Tracked upstream Orleans issues](./tracked-orleans-issues.md) — re-check before each Orleans work item; resolution may let us simplify the codebase.
-- Spike catalogs: [S10 (pkg-bump break)](./spikes/s10-orleans-bump-catalog.md), [S15 (FAILED — wire serializer)](./spikes/s15-serializer-roundtrip.md), [S15b (PASSED — production codegen-host pattern)](./spikes/s15b-production-codegen.md)
+- Spike catalogs: [S10 (pkg-bump break)](./spikes/s10-orleans-bump-catalog.md), [S15 (FAILED — wire serializer)](./spikes/s15-serializer-roundtrip.md), [S15b (PASSED — production codegen-host pattern)](./spikes/s15b-production-codegen.md), [S15e (LANDED — connector command objects)](./spikes/s15e-connector-command-objects.md)
 
 Upstream (confirmed 2026-07-15):
 - Orleans releases: https://github.com/dotnet/orleans/releases (10.2.1 stable 2026-06-24; 10.2.2-rc.1 2026-07-10; 10.0 multi-targets net8+net10)

@@ -19,8 +19,8 @@ type GrainSideEffect<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'O
 | Transient of GrainTransientSideEffect<'LifeAction>
 
 and GrainTransientSideEffect<'LifeAction when 'LifeAction :> LifeAction> =
-| ConnectorRequest of TraceContext * ResponseType: Type * ConnectorName: string * BuildRequest: obj (* ResponseChannel<'Response> -> Request  *) * Action: (obj (* 'Request *) -> 'LifeAction)
-| ConnectorRequestMultiResponse of TraceContext * ResponseType: Type * ConnectorName: string * BuildRequest: obj (* MultiResponseChannel<'Response> -> Request  *) * Action: (obj (* 'Request *) -> 'LifeAction)
+| ConnectorRequest              of TraceContext * ResponseType: Type * ConnectorName: string * RequestBuilder: obj (* IConnectorRequestBuilderSingleReply<'Response, 'Request> *) * ResponseMapper: obj (* IConnectorResponseMapper<'Response, 'LifeAction> *)
+| ConnectorRequestMultiResponse of TraceContext * ResponseType: Type * ConnectorName: string * RequestBuilder: obj (* IConnectorRequestBuilder<'Response, 'Request> *) * ResponseMapper: obj (* IConnectorResponseMapper<'Response, 'LifeAction> *)
 
 and GrainPersistedSideEffect<'LifeAction, 'OpError when 'LifeAction :> LifeAction and 'OpError :> OpError> =
 | RunActionOnSelf          of 'LifeAction * Option<TraceContext>

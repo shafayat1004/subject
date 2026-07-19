@@ -640,11 +640,11 @@ with
         member this.Invoke fn = fn.Invoke this
 
 and [<RequireQualifiedAccess>] ExternalOperation<'LifeAction when 'LifeAction :> LifeAction> =
-| ExternalLifeCycleOperation          of IExternalLifeCycleOperation
-| ExternalSubjectTransactionOperation of IExternalLifeCycleTxnOperation * BatchNo: uint16 * OpNo: uint16
-| ExternalTimeSeriesOperation         of IIngestTimeSeriesDataPointsOperation
-| ExternalConnectorOperation          of ConnectorName: string * BuildRequest: obj (* ResponseChannel<'Response> -> Request  *) * BuildResponse: (obj (* Request *) -> 'LifeAction) * ResponseType: Type
-| ExternalConnectorMultiResponseOperation of ConnectorName: string * BuildRequest: obj (* MultiResponseChannel<'Response> -> Request  *) * BuildResponse: (obj (* Request *) -> 'LifeAction) * ResponseType: Type
+| ExternalLifeCycleOperation              of IExternalLifeCycleOperation
+| ExternalSubjectTransactionOperation     of IExternalLifeCycleTxnOperation * BatchNo: uint16 * OpNo: uint16
+| ExternalTimeSeriesOperation             of IIngestTimeSeriesDataPointsOperation
+| ExternalConnectorOperation              of ConnectorName: string * RequestBuilder: obj (* IConnectorRequestBuilderSingleReply<Response, Request>  *) * ResponseMapper: obj (* IConnectorResponseMapper<Response, 'LifeAction> *) * ResponseType: Type
+| ExternalConnectorMultiResponseOperation of ConnectorName: string * RequestBuilder: obj (* IConnectorRequestBuilder<Response, Request>  *) * ResponseMapper: obj (* IConnectorResponseMapper<Response, 'LifeAction> *) * ResponseType: Type
 
 and [<RequireQualifiedAccess>] SideEffectSuccessDecision<'LifeAction when 'LifeAction :> LifeAction> =
 | RogerThat
