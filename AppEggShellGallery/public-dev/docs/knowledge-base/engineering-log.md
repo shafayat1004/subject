@@ -4,6 +4,63 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 51 -- SuiteJobs/SuiteTodo sln build green + SuiteTodo.sln created)
+
+**Context:** User asked to make `SuiteJobs` fully `dotnet build` end to end, then do the same for
+`SuiteTodo`.
+
+**What was wrong:**
+- `dotnet build SuiteJobs/SuiteJobs.sln` failed at the parse stage with
+  `MSB5023 ... is listed as being nested under ... but does not exist in the solution` (3 orphan
+  `NestedProjects` GUIDs + 2 phantom `Shared.*` projects whose files were never tracked). This was
+  pre-existing, unrelated to any feature work.
+- After PR #27 (`fix-suitejobs-sln-codecgen`) was checked out and applied, the sln parsed but hit a
+  second failure: `NU1107 Microsoft.CodeAnalysis.Common` version conflict in
+  `LibLifeCycleCoreBuild/LibLifeCycleCoreBuild.csproj`. That project is the legacy Orleans 3.7
+  runtime-codegen helper (references `Microsoft.Orleans.OrleansCodeGenerator` 3.7.2, which pins
+  `Microsoft.CodeAnalysis.Common = 4.0.1`). Its `ProjectReference` to `LibLifeCycleCore` (now on
+  Orleans 10, transitive `Microsoft.Orleans.Serialization.FSharp 10.2.1` needing
+  `Microsoft.CodeAnalysis.Common >= 5.0.0`) makes the graph unsatisfiable.
+- `SuiteTodo` had no `.sln` at all; its 6 `.fsproj`s built green individually but there was no
+  one-shot command.
+
+**Fix:**
+- Applied PR #27's two changes (checked out from `origin/fix-suitejobs-sln-codecgen`):
+  `SuiteJobs/SuiteJobs.sln` (orphan NestedProjects + phantom Shared folder removed) and
+  `LibCodecGen/src/CodecGen.Common.fs` (XmlProvider reads an inline XML sample instead of a
+  trailing-space on-disk template path; the old path was fragile on Linux/net10 and inferred the
+  wrong singular `Compile` vs `.Compiles`).
+- Beyond PR #27: removed `LibLifeCycleCoreBuild` from `SuiteJobs.sln` (Project block +
+  `ProjectConfigurationPlatforms` + `NestedProjects`). It is unreferenced by any project and is
+  superseded by `LibLifeCycleCodeGenHost` (Orleans 10 source-gen, codemem 1898/1910). Did NOT
+  delete the project files on disk (kept for the `Meta/Templates/Ecosystem/T__SUITE__T.sln`
+  template reference; a separate cleanup if/when the template is regenerated).
+- Created `SuiteTodo/SuiteTodo.sln` mirroring `SuiteJobs.sln`: Todo.Types, LifeCycles, Tests,
+  TypesCodecGen, DevelopmentHost + the shared Lib* graph (LibLangFsharp, LibLifeCycle,
+  LibLifeCycleTypes, LibLifeCycleHost, LibLifeCycleHostBuild, LibLifeCycleTest,
+  LibLifeCycleCore, LibCodecGen, LibLifeCycleCodeGenHost, LibSignalRServer). Excluded AppTodo
+  (RN app, built via `eggshell dev-*`, not `dotnet build`; matches the SuiteJobs convention of no
+  App project in the sln). Generated via `dotnet new sln --format sln` + `dotnet sln add`, then
+  `dotnet sln remove` for the AppTodo + frontend-only transitives that auto-pulled.
+
+**Verification:**
+- `dotnet build SuiteJobs/SuiteJobs.sln --no-incremental` -> 0 errors, `verify-done.sh` PASS.
+- `dotnet build SuiteTodo/SuiteTodo.sln --no-incremental` -> 0 errors, `verify-done.sh` PASS.
+- No stray `.fs.js` emitted (AppTodo not in the sln; `dotnet build` of the ecosystem projects does
+  not invoke Fable).
+
+**Distilled:** added a "Backend suite solutions" section to `runbooks/build-rebuild.md` with the
+two one-shot commands + the two baked-in gotchas (do not re-add `LibLifeCycleCoreBuild`; do not
+re-point `LibCodecGen`'s `XmlProvider` at an on-disk path).
+
+**Open follow-ups:** delete `LibLifeCycleCoreBuild/` on disk + remove it from
+`Meta/Templates/Ecosystem/T__SUITE__T.sln` once the template is regenerated (low value; the
+Orleans 3.7 runtime-codegen path is dead with Orleans 10 source-gen). PR #27 is still OPEN on
+GitHub; this branch carries its diff plus the `LibLifeCycleCoreBuild` removal, so the eventual
+merge supersedes PR #27.
+
+---
+
 ## 2026-07-19 (session 50 -- enforcement overhaul: prose rules graduated to deterministic gates)
 
 Did a full gap analysis of this log + troubleshooting.md + skills (codemem 1919). Core finding: every

@@ -97,6 +97,23 @@ cd SuiteTodo/AppTodo && ../../eggshell dev-web   # port 9080
 
 ---
 
+## Backend suite solutions {#suite-slns}
+
+The two ecosystem suites have `.sln` files for a one-shot backend type-check (Orleans + Lib* + Tests + Launchers). They do NOT include the RN app projects (AppTodo/AppJobs are built via `eggshell dev-*`).
+
+```bash
+dotnet build SuiteJobs/SuiteJobs.sln
+dotnet build SuiteTodo/SuiteTodo.sln
+```
+
+`SuiteTodo.sln` is a mirror of `SuiteJobs.sln` (Todo.Types, LifeCycles, Tests, TypesCodecGen, DevelopmentHost + the shared Lib* graph). It was added 2026-07-19 because SuiteTodo had no `.sln`; the per-project builds were green but there was no one-shot command.
+
+Gotchas baked into these slns (do not re-add):
+- `LibLifeCycleCoreBuild` (legacy Orleans 3.7 runtime codegen helper) is NOT in `SuiteJobs.sln`. It is superseded by `LibLifeCycleCodeGenHost` (Orleans 10 source-gen) and its Orleans 3.7.2 `OrleansCodeGenerator` package collides (`NU1107` `Microsoft.CodeAnalysis.Common`) with the Orleans 10 transitive from `LibLifeCycleCore`.
+- `LibCodecGen`'s `XmlProvider` reads an inline XML sample, not an on-disk template `.fsproj` path (the trailing-space path was fragile on Linux/net10 and inferred the wrong singular `Compile` vs `.Compiles`).
+
+---
+
 ## Verify a vendor/node_modules patch actually reached the bundle {#verify-patch-reached-bundle}
 
 Metro bundles node_modules from each package's build entry (for example, `react-native-web` from its `dist/` directory). After patching a file and restarting Metro with `--reset-cache`:

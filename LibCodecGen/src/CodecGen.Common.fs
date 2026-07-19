@@ -23,9 +23,26 @@ type SuiteInputs = {
 [<Literal>]
 let SourceDir = __SOURCE_DIRECTORY__
 
-// template fsproj is incidental here - it's just any type project is good to use it as a sample for type provider
-// TODO: use a sample xml text instead
-type ProjSettings = XmlProvider<"../../Meta/Templates/Ecosystem/Ecosystem/T__EC__T.Types/T__EC__T.Types.fsproj ", Global=true, ResolutionFolder=SourceDir>
+// Inline schema sample for the type provider (was a path to a template fsproj, which was fragile:
+// depended on an exact on-disk path and needed >=2 <Compile>/<ProjectReference>/<ItemGroup> entries so
+// the provider infers array accessors -- ProjSettings.Load reads the real .fsproj at runtime regardless).
+[<Literal>]
+let private ProjSettingsSample = """<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="A.fsproj" />
+        <ProjectReference Include="B.fsproj" />
+        <Compile Include="A.fs" />
+        <Compile Include="B.fs" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="C.fsproj" />
+        <ProjectReference Include="D.fsproj" />
+        <Compile Include="C.fs" />
+        <Compile Include="D.fs" />
+    </ItemGroup>
+</Project>"""
+
+type ProjSettings = XmlProvider<ProjSettingsSample, Global=true>
 
 module Inputs =
 
