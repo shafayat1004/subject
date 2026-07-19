@@ -77,8 +77,9 @@ below `LibLifeCycle` and `SuiteJobs`). Instead, `EggShellSubjectGrainsCodec`'s
 `IGeneralizedCopier.IsSupportedType` is extended to recognize any type implementing one of the three
 command-object interfaces by generic definition. `IDeepCopier.DeepCopy` returns the same instance --
 these objects are immutable value-like carriers and are only being deep-copied by the invoker for
-process-isolation semantics. This unblocks the in-process `TestCluster` path where the actual failure
-occurred.
+local-call isolation, never serialized over the wire (see Finding 5). Identity-copy is therefore
+sound, not a shortcut: the carried state is immutable and the grain only reads it, so caller and
+worker activation sharing one reference cannot alias-mutate.
 
 ### Finding 4 -- tupled grain method form is required for Orleans dispatch
 
@@ -86,6 +87,28 @@ F# curried method signatures compile to `FSharpFunc` even when the arguments the
 functions. `IConnectorGrain.SendRequest` / `SendRequestMultiResponse` are rewritten in tupled form
 with explicit generic method parameters `'Reply` and `'Action`, per the S15b lesson that grain
 interface methods must be tupled for Orleans interop (codemem 1895).
+
+### Finding 5 -- the identity-copier is production-sound because IConnectorGrain is always local
+
+`ConnectorGrain` is declared `[<StatelessWorker(maxLocalWorkers = Int32.MaxValue)>]`
+(`LibLifeCycleHost/src/ConnectorGrain.fs:15`). Orleans always activates a StatelessWorker on the
+**calling silo**, so `IConnectorGrain` never dispatches cross-silo -- confirmed by the standing note in
+`Serializer.fs` (`getUntypedSubjectSerializers`): *"no need to cover IConnectorGrain because it's always
+executed locally."* The builder/mapper arguments are therefore **never serialized over the wire in any
+deployment**, single- or multi-silo. The only copy that ever runs is the invoker's local-call isolation
+`DeepCopy`, where returning the same immutable, read-only carrier is correct.
+
+This means the codec change is a genuine production fix, not a TestCluster-only patch. Two invariants
+keep it correct; revisit **only** if either breaks:
+
+1. **Placement stays local.** If `IConnectorGrain` ever stops being a `StatelessWorker` and can activate
+   on a remote silo, the carrier would need real wire serialization. Note the shortcut covers only the
+   **copy** path (`IGeneralizedCopier`); the **serializer** path (`IGeneralizedCodec.IsSupportedType`)
+   still routes through `tryGetSerializerForType`, which does *not* include these interfaces -- a
+   cross-silo call would `CodecNotFoundException` on `WriteField`. That is the correct failure mode: it
+   forces a real serializer rather than silently shipping a shared reference.
+2. **Carrier state stays immutable.** Identity-copy shares one instance between caller and worker; safe
+   only while the captured state (e.g. `RunJobRequestData`) is immutable and read-only.
 
 ## Per-file change list
 
@@ -144,10 +167,16 @@ The command-object rewrite is the production fix for the Orleans 10 closure-copi
 
 ## Risks and follow-up work
 
-- The `IGeneralizedCopier` extension returns the same instance rather than serializing state. This is
-  correct for the in-process `TestCluster` where the failure reproduced, but a real cross-silo
-  deployment will need a proper serializer for concrete command-object types or a change to the grain
-  contract that transports the raw request payload instead of the builder object.
+- The `IGeneralizedCopier` extension returns the same instance rather than copying state. This is
+  **not** a TestCluster-only shortcut: `IConnectorGrain` is a `StatelessWorker` and always activates
+  locally (Finding 5), so its arguments are never serialized over the wire and the only copy that runs
+  is local-call isolation, for which identity-copy of an immutable read-only carrier is correct. The
+  follow-up is a **conditional invariant to guard, not a pending deficiency**: if `IConnectorGrain`
+  ever stops being a `StatelessWorker` (remote activation becomes possible), add a real serializer for
+  the concrete carrier types (or change the grain contract to transport the raw request payload) --
+  the serializer path deliberately still throws `CodecNotFoundException` in that case rather than
+  shipping a shared reference. Likewise if a carrier ever gains mutable state, replace identity-copy
+  with a true deep copy.
 - The unused connector-side `ServiceQueryExtensions.Request` / `BlockingRequest` overloads were
   removed. If any external consumer relies on the curried fluent form, it will need to construct a
   builder class instead; a repo-wide search showed no callers.

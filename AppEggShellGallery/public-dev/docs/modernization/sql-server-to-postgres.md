@@ -700,6 +700,14 @@ covers dev/CI.
   concrete implementation of the interfaces and returns the same instance during deep-copy. Builds on the
   S15b tupled-method lesson and the S15c named-class lesson.
 
+  **Is the identity-copier production-grade? Yes.** `IConnectorGrain` is a `StatelessWorker` and always
+  activates on the calling silo (`ConnectorGrain.fs:15`; the serializer file notes "no need to cover
+  IConnectorGrain because it's always executed locally"), so the builder/mapper carriers are never
+  serialized over the wire -- the only copy that runs is local-call isolation, where identity-copy of an
+  immutable read-only carrier is correct. The catalog's follow-up is a **conditional invariant to guard,
+  not a pending deficiency**: it applies only if connector grains ever stop being local (remote
+  activation) or a carrier gains mutable state. See catalog Finding 5.
+
   **Verification:** build 0 errors across `LibLifeCycleCore`, `LibLifeCycleHost`,
   `LibLifeCycleCodeGenHost`, `LibLifeCycleTest`, `SuiteTodo/Ecosystem/Tests`, `SuiteJobs/Ecosystem/Tests`;
   `LibLifeCycleTest` **93/93 PASS**; `SuiteTodo/Ecosystem/Tests` **5/5 PASS**; `SuiteJobs/Ecosystem/Tests`
