@@ -35,6 +35,7 @@ same change**.
 | Codecs, the wire format, codec validation | [architecture/shared-types-codecs.md](./architecture/shared-types-codecs.md) |
 | The test harness (`simulation`, clock, connectors) | [architecture/testing-framework.md](./architecture/testing-framework.md), [subject/testing.md](./subject/testing.md) |
 | A frontend primitive / the `LibClient/src/Rn` (RNW) seam / react-native-web wiring | [architecture/frontend.md](./architecture/frontend.md), [modernization/reactxp-to-rnw.md](./modernization/reactxp-to-rnw.md); update the migration status in [modernization/index.md](./modernization/index.md) + [phased-plan.md](./modernization/phased-plan.md) |
+| F# interop invariants | [fsharp/interop-invariants.md](./fsharp/interop-invariants.md) |
 | A **LibClient/LibRouter component** (new, converted, or behavior/a11y change) | Its **gallery Content page** under `AppEggShellGallery/src/Components/Content/` (pure F#, per CLAUDE.md rule 10); [fsharp/component.md](./fsharp/component.md) if the authoring pattern changed; [accessibility/recipes.md](./accessibility/recipes.md) if a11y semantics changed |
 | Styling DSL, theming, style-leak rules | [fsharp/styling.md](./fsharp/styling.md), [fsharp/themeing.md](./fsharp/themeing.md) |
 | Accessibility behavior, OS-setting handling, contrast, backlog items | [accessibility/](./accessibility/index.md) (index principles, spectrum, recipes, platform-settings, backlog) |

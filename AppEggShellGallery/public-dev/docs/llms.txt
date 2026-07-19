@@ -66,7 +66,7 @@ Orientation for machine readers:
 - [Components](components/index.md): the frontend component catalog landing page.
 - [Design Introduction](design/index.md): design-system and visual-design orientation.
 - [Styling](fsharp/styling.md): the typed style DSL and avoiding style leaks.
-- [Theming](fsharp/themeing.md), [Formatting](fsharp/formatting.md) (canonical F# style reference), [Legacy Interop](fsharp/legacy.md), [Background](fsharp/background.md).
+- [Theming](fsharp/themeing.md), [Formatting](fsharp/formatting.md) (canonical F# style reference), [Interop Invariants](fsharp/interop-invariants.md) (F# at grain/JS/worklet/sourcegen boundaries), [Legacy Interop](fsharp/legacy.md), [Background](fsharp/background.md).
 - [Where to Find Examples](fsharp/examples.md): pointers to worked component examples in the codebase.
 
 ## Tools

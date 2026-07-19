@@ -23,6 +23,7 @@ Related docs: [Architecture: Frontend](../architecture/frontend.md) | [Moderniza
 | [Audit toolkit](./audit-toolkit.md) | The Tier 2 `audit/` toolkit: doctor, snapshot, add-todo, workflow, diff, logs; when to use it vs raw CLI. |
 | [Build and rebuild](./build-rebuild.md) | Targeted recompile, confirming rebuild output, when a restart is mandatory, verifying a vendor patch reached the bundle, killing stale processes. |
 | [Troubleshooting](./troubleshooting.md) | Symptom-to-fix catalog organized by theme (build/cache, styling, RNW/Rn bindings, layout, color, dark-mode inputs, picker, key warnings, gestures). |
+| [Backend](./backend.md) | Bringing up the backend stack, silo boot failures, Orleans test triage (stasis/timeout/CodecNotFound). |
 | [Migration execution](./migration-execution.md) | The executor manual for the .NET 10 + Fable 5 + RNW modernization: per-phase step recipes, exact version pins, per-primitive mapping table, pitfall checklist, escalation gates. |
 
 ---
