@@ -41,6 +41,8 @@ On startup, webpack prints every reachable URL (127.0.0.1, LAN IPs, etc.).
 
 This matters because the backend does not run everywhere — on **Apple Silicon** the SQL Server full-text-search container will not start, so fake service is the only way to exercise the web app there. If `BackendUrl` is **uncommented** and nothing answers on it, the app hangs on **"Loading…"** and `npm run audit:web` fails with *"Todo UI not ready (no heading or inputs)"*. Fix: comment `BackendUrl` back out and restart `dev-web`. (Gallery has no backend dependency at all.)
 
+**Checking which mode is actually active:** don't infer this from the on-disk `AppTodo/configSourceOverrides.dev.js` — webpack serves the separate `public-dev/` copy, and the two can disagree. Run `.claude/skills/debug-web/scripts/backend-mode-check.sh [port] [appdir]` (defaults `9080`, `SuiteTodo/AppTodo`): it reads the **served** config and, when it says REAL, also probes the backend's `negotiate` endpoint so a configured-but-not-running backend (which looks identical to fake mode until it hangs) is reported explicitly. To switch modes use `SuiteTodo/dev-stack.sh up [--real [--sql=docker|external --sql-server=<host>,<port> --sa-password=<pw>]]` — see [Troubleshooting #suitetodo-devstack](./troubleshooting.md#suitetodo-devstack).
+
 ---
 
 ## Observe {#observe}

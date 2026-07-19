@@ -34,6 +34,25 @@ Silicon, SQL Server full-text search will not start at all). If `BackendUrl` is 
 backend answers, the app hangs on **"Loading…"** and `audit:web` reports *"Todo UI not ready"* — comment
 `BackendUrl` back out. See `runbooks/web.md` #fake-service.
 
+**Don't guess which mode is active — check the served config.** Two files can disagree
+(`AppTodo/configSourceOverrides.dev.js` vs the `public-dev/` copy webpack actually serves), and a
+backend that's configured but not running looks identical to fake mode until you probe it. Run:
+
+```bash
+.claude/skills/debug-web/scripts/backend-mode-check.sh [port] [appdir]   # defaults: 9080, SuiteTodo/AppTodo
+```
+
+It reads the **served** `configSourceOverrides.dev.js` (not the on-disk file — that's what the
+browser bundle actually uses), reports FAKE vs REAL, and for REAL mode also curls the backend's
+`negotiate` endpoint so you know whether it's actually reachable (vs. configured-but-hanging).
+
+To switch modes: `SuiteTodo/dev-stack.sh up` (fake, default) or `up --real` (local Docker SQL) or
+`up --real --sql=external --sql-server=<host>,<port> --sa-password=<pw>` (external SQL Server) — it
+writes both `configSourceOverrides.dev.js` copies and starts/stops the host for you. See
+`runbooks/troubleshooting.md` #suitetodo-devstack. If `dev-web` was started by hand instead of via
+`dev-stack.sh` (e.g. because a build artifact needed rebuilding first), `dev-stack.sh down` won't
+know about it — `pkill -f "eggshell dev-web"` it yourself.
+
 ## Observe (Tier 2, preferred)
 
 From the app dir:

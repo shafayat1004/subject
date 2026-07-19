@@ -4,6 +4,45 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-19 (session 48 -- real-backend AppTodo dev stack: stale build artifacts + reliable mode check)
+
+Ran `SuiteTodo/dev-stack.sh up --real --sql=external --sql-server=192.168.2.231,1433 ...` to bring up
+AppTodo against the live MSSQL host proven in session 47. Backend booted clean (same silo/reminder
+fixes from session 47 already landed), but `dev-web` failed with `Module not found: ...Bootstrap.js`
+then, after that cleared, `Cannot run: ... webpack-dev-server ... No such file or directory`. Both were
+**pre-existing gaps on this checkout**, unrelated to the backend work, from the net10/Fable-5 migration
+leaving some build outputs stale or never-built:
+
+1. `Meta/AppRenderDslCompiler/compiler/bin/Release/net7.0/AppRenderDslCompiler` did not exist at all --
+   this checkout never built the render-DSL compiler. **Fix:** `dotnet build
+   Meta/AppRenderDslCompiler/compiler/AppRenderDslCompiler.fsproj -c Release` (matches the existing
+   troubleshooting.md RN-0.86 entry for a *stale* compiler dll, except here it was *missing*, not stale).
+2. It rebuilt to `net10.0`, but the invoking CLI (`Meta/AppEggshellCli/dist/index.js`, the **compiled**
+   JS the `eggshell` shell script runs) still hardcoded the old `.../bin/Release/net7.0/...` fallback
+   path -- `dist/` was never regenerated after `src/index.ts` was updated to `net10.0` during the
+   migration. **Fix:** `npx tsc -p src/tsconfig.json` from `Meta/AppEggshellCli` (needed `npm install
+   typescript@^5.7.3 --no-save` first -- declared in `package.json` but not actually installed).
+3. `Meta/LibFablePlus/node_modules/webpack-dev-server` was present but missing its `bin/` directory (a
+   partial/pruned install) -- `npm install webpack-dev-server@5.2.5 --no-save` from `Meta/LibFablePlus`
+   restored it.
+General lesson: on any checkout that has not yet run a given command path (here: real-backend web dev
+with a from-scratch render-DSL-compiler build), do not assume `.build`/`dist`/`node_modules` outputs
+referenced by a script are present or current -- verify the binary/file exists before trusting the error
+message's surface symptom.
+
+**Also corrected a stale assumption:** an earlier codemem note claimed `dev-stack.sh` does not support
+external SQL and always forces fake mode. That is no longer true -- the script now has
+`--sql=external --sql-server=<host>,<port> --sa-password=<pw>` (or `--sql-conn=<full conn string>`),
+verified working end-to-end this session (real backend, external MSSQL, `configSourceOverrides.dev.js`
+correctly wired to `BackendUrl`). Re-verify scripts/docs against their current on-disk state before
+trusting a prior memory note that contradicts what you read.
+
+**Reliability fix:** added `.claude/skills/debug-web/scripts/backend-mode-check.sh` -- reads the
+*served* `configSourceOverrides.dev.js` (not the on-disk file, which can disagree with what webpack
+actually serves) to report FAKE vs REAL mode, and for REAL mode also probes the backend's `negotiate`
+endpoint so "configured for real but backend down" (hangs on Loading) is distinguished from a genuinely
+working real backend. `debug-web` SKILL.md updated to point at it instead of assuming from the default.
+
 ## 2026-07-19 (session 47 -- first live MSSQL silo boot on Orleans 10; two blockers fixed)
 
 After S15e landed green in-process (145/145 tests: LibLifeCycleTest 93, SuiteTodo 5, SuiteJobs 47,
