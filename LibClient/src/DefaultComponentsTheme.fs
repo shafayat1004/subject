@@ -450,14 +450,15 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
     }
 
     Themes.Set<LibClient.Components.Input.PickerInternals.Popup.Theme> {
-        BackgroundColor         = Color.White
-        BorderColor             = neutral.B300
-        ItemTextColor           = neutral.B500
-        ItemTextHighlightColor  = neutral.Main
-        ItemHighlightBackground = neutral.B200
-        ItemBorderColor         = neutral.B300
-        SelectedIconColor       = neutral.B300
-        BorderRadius            = 4
+        BackgroundColor          = Color.White
+        BorderColor              = neutral.B300
+        ItemTextColor            = neutral.B500
+        ItemTextHighlightColor   = neutral.Main
+        ItemHighlightBackground  = neutral.B200
+        ItemBorderColor          = neutral.B300
+        ItemGrooveHighlightColor = Color.Transparent
+        SelectedIconColor        = neutral.B300
+        BorderRadius             = 4
     }
 
     Themes.Set<LC.Input.Checkbox.Theme>(

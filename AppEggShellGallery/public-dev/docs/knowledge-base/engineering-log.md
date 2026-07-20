@@ -4,6 +4,22 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-20 (session 48 — neumorphic engraved-groove + grip-dash detailing)
+
+Added the neumorphic "engraved groove / short-dash" language the reference kits use (carved hairlines, grip handles). A groove = a dark 1px hairline with a light 1px companion directly beneath it (the shadowed top wall + lit bottom wall of a cut channel); on web it is `backgroundColor SurfaceShadow` + `boxShadow "0px 1px 0px SurfaceHighlight"`. Three placements:
+
+1. **Dropdown item dividers (framework).** The picker inline Popup (`ScreenSize.Desktop` variant) drew a single `borderTop 1 ItemBorderColor` between items, which AppTodo's light theme left near-invisible (no dividers in light; only dark had them). Added an optional theme field `ItemGrooveHighlightColor` to `LC.Input.PickerInternals.Popup.Theme` and a web-only `boxShadow inset 0 1px 0 <that color>` beneath the border in the Popup `item` style, so the pair reads as an engraved groove. Default `Color.Transparent` in `DefaultComponentsTheme` (other apps unchanged — still a plain single line). AppTodo sets `ItemBorderColor = SurfaceShadow` + `ItemGrooveHighlightColor = SurfaceHighlight` so dividers are visible and consistent in both modes. NOTE: the `ScreenSize.Handheld` picker uses the bottom-sheet **Dialog** variant, a different renderer that does not use the Popup `item` style — the groove only applies to the inline Popup. On the near-white dropdown fill (`RowBackground`) the light companion is low-contrast, so it reads more as a clean divider than a deep bevel; that is inherent to a near-white surface.
+2. **Section-label grooves (app).** `Styles.labelGroove` — a short (24px) carved accent under each composer field label; wired into `Helpers.FieldLabel`. Sits on the mid-tone panel floor (`ThemeTrackBackground`), so both hairlines have contrast and it reads as a true engraved groove.
+3. **Grip dashes on swipe rows (app).** `Styles.gripDash` / `gripCluster` + `Helpers.GripDashes` — a stack of 3 short engraved dashes as a neumorphic drag-affordance handle, placed at the trailing edge of the row body in compact/swipe mode (`useCompactUI && not isEditing`). Decorative — `ImportantForAccessibility.NoHideDescendants` (hidden from the a11y tree).
+
+VERIFICATION: Playwright on :9080. Inline Popup at desktop width shows the item dividers (light + open state); section grooves visible under "Todo title"/"Priority" (light + dark); grip dashes visible left of each row's edit button. Framework LibClient recompiled clean via the dev-web precompile (0 `error FS`); ci-gate PASS on all five files. Framework diffs are web-guarded or a transparent-default record field (native low-risk; not separately `build-lib`'d).
+
+KEY LESSON: an engraved-groove pair (dark hairline + light companion) only reads on a MID-TONE surface where both halves have contrast; on a near-white fill the light half vanishes and it degrades to a single line. Put grooves on the recessed floor tone, not on the lightest surface. Also: the EggShell picker has two renderers (inline `Popup` on Desktop, bottom-sheet `Dialog` on Handheld) — theming one does not touch the other.
+
+FILES: `LibClient/src/Components/Input/PickerInternals/Popup/Popup.fs` (+`ItemGrooveHighlightColor` field, groove in `item` style), `LibClient/src/DefaultComponentsTheme.fs` (transparent default), `SuiteTodo/AppTodo/src/Theme/ComponentsTheme.fs` (groove colors), `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs` (`labelGroove`/`gripDash`/`gripCluster`), `SuiteTodo/AppTodo/src/Components/Route/Todos.fs` (`FieldLabel` groove, `GripDashes` helper + placement).
+
+---
+
 ## 2026-07-20 (session 47 — neumorphic cutout rim made scale-independent)
 
 SYMPTOM: The composer panel, title input well, priority dropdown, and search bar all showed a muddy brown GRADIENT wash bleeding inward from their edges, instead of the sharp metallic inset rim that the small Light/Dark theme-toggle track has. User wanted the toggle's crisp cutout rim on every container.

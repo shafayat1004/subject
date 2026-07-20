@@ -23,8 +23,12 @@ module LC =
                     ItemTextHighlightColor:  Color
                     ItemHighlightBackground: Color
                     ItemBorderColor:         Color
-                    SelectedIconColor:       Color
-                    BorderRadius:            int
+                    // Light companion line drawn just beneath ItemBorderColor so the two hairlines
+                    // read as an engraved GROOVE carved between items (neumorphic separator). Leave
+                    // Transparent for a plain single-line divider (the default).
+                    ItemGrooveHighlightColor: Color
+                    SelectedIconColor:        Color
+                    BorderRadius:             int
                 }
 
 type Theme = LC.Input.PickerInternals.Popup.Theme
@@ -75,10 +79,14 @@ module private Styles =
             paddingLeft 16
             paddingRight 8
             paddingVertical 9
-            borderTop 1 theTheme.ItemBorderColor
 
-            if isFirst then
-                borderTopWidth 0
+            if not isFirst then
+                borderTop 1 theTheme.ItemBorderColor
+                #if EGGSHELL_PLATFORM_IS_WEB
+                // Light hairline just below the dark item border → the pair reads as an engraved
+                // groove carved between items. No-op when ItemGrooveHighlightColor is Transparent.
+                boxShadow (sprintf "inset 0px 1px 0px %s" theTheme.ItemGrooveHighlightColor.ToCssString)
+                #endif
 
             if isHighlighted then
                 backgroundColor theTheme.ItemHighlightBackground

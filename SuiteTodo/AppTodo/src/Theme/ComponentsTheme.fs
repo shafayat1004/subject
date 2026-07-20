@@ -46,9 +46,12 @@ let applyInputThemes (palette: SemanticPalette) : unit =
         ItemTextColor           = palette.TextPrimary
         ItemTextHighlightColor  = palette.Accent
         ItemHighlightBackground = palette.AccentSoft
-        ItemBorderColor         = palette.InputBorder
-        SelectedIconColor       = palette.Accent
-        BorderRadius            = 16
+        // Engraved groove between dropdown items: dark line (SurfaceShadow) + light companion
+        // (SurfaceHighlight) so the separators read as carved, consistently in light and dark.
+        ItemBorderColor          = palette.SurfaceShadow
+        ItemGrooveHighlightColor = palette.SurfaceHighlight
+        SelectedIconColor        = palette.Accent
+        BorderRadius             = 16
     }
     Themes.Set<LC.Dialog.Shell.WhiteRounded.Raw.Theme> {
         Width                   = None

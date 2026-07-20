@@ -82,7 +82,30 @@ module private SwipeTapGuard =
 type private Helpers =
     [<Component>]
     static member FieldLabel(palette: SemanticPalette, text: string) : ReactElement =
-        LC.Text(styles = [| Styles.fieldLabel palette |], value = text)
+        Rn.View(
+            children =
+                tellReactArrayKeysAreOkay [|
+                    LC.Text(styles = [| Styles.fieldLabel palette |], value = text)
+                    // Short engraved groove accent under the label (decorative).
+                    Rn.View(
+                        importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+                        styles                    = [| Styles.labelGroove palette |]
+                    )
+                |]
+        )
+
+    // Neumorphic grip: a small stack of engraved dashes marking a swipeable row's drag handle.
+    static member GripDashes(palette: SemanticPalette) : ReactElement =
+        Rn.View(
+            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+            styles                    = [| Styles.gripCluster |],
+            children =
+                tellReactArrayKeysAreOkay [|
+                    Rn.View(styles = [| Styles.gripDash palette |])
+                    Rn.View(styles = [| Styles.gripDash palette |])
+                    Rn.View(styles = [| Styles.gripDash palette |])
+                |]
+        )
 
     [<Component>]
     static member FilterTabs(
@@ -772,6 +795,8 @@ type private Helpers =
                                                 styles   = [| Styles.todoContent |],
                                                 children = [| titleContent |]
                                             )
+                                            if useCompactUI && not isEditing then
+                                                Helpers.GripDashes(palette)
                                         |]
                                         rowActionButtons
                                 )

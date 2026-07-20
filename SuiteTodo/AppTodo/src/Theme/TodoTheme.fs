@@ -338,6 +338,51 @@ module Styles =
             AlignSelf.Stretch
         }
 
+    // Short engraved groove under a section label: a dark hairline with a light companion line
+    // directly beneath (the shadowed top wall + lit bottom wall of a cut channel). A small carved
+    // accent, the neumorphic separator language from the reference kits.
+    let labelGroove =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    width 24
+                    height 1
+                    borderRadius 1
+                    marginBottom 10
+                    backgroundColor palette.SurfaceShadow
+                    #if EGGSHELL_PLATFORM_IS_WEB
+                    boxShadow (sprintf "0px 1px 0px %s" palette.SurfaceHighlight.ToCssString)
+                    #endif
+                }
+        )
+
+    // One short engraved dash of a grip cluster (carved: dark hairline + light companion beneath).
+    let gripDash =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    width 12
+                    height 1
+                    borderRadius 1
+                    marginVertical 2
+                    backgroundColor palette.SurfaceShadow
+                    #if EGGSHELL_PLATFORM_IS_WEB
+                    boxShadow (sprintf "0px 1px 0px %s" palette.SurfaceHighlight.ToCssString)
+                    #endif
+                }
+        )
+
+    // Grip cluster: a stack of short engraved dashes used as a neumorphic drag-affordance handle
+    // (e.g. the leading edge of a swipeable row). Decorative — hide from the accessibility tree.
+    let gripCluster =
+        makeViewStyles {
+            AlignItems.Center
+            JustifyContent.Center
+            flexShrink 0
+            paddingRight 4
+            opacity 0.65
+        }
+
     let listHeader =
         makeViewStyles {
             FlexDirection.Row
