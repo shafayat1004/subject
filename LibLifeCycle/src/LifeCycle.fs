@@ -350,7 +350,6 @@ and [<RequireQualifiedAccess>] BlobAction =
 
 and TransitionBuilderError<'OpError when 'OpError :> OpError> =
 | LifeCycleError of 'OpError
-| TransitionNotAllowed
 // why not just let it bubble up? Because exceptions during transition most likely means bugs in the app,
 // in case if it's invoked via Side Effect it should be treated as permanent rather than transient failure.
 | LifeCycleException of Exception
@@ -360,8 +359,6 @@ and TransitionOk<'Subject, 'LifeAction, 'LifeEvent, 'Constructor // Don't constr
                       and  'LifeEvent  :> LifeEvent
                       and  'Constructor :> Constructor> =
 | TransitionOk of 'Subject * List<BlobAction> * TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>
-                    // TransitionIgnored collects side effects & blob actions only to assert that there's none
-| TransitionIgnored of List<BlobAction> * TransitionSideEffects<'Constructor, 'LifeEvent, 'LifeAction>
 
 // Operations can be asynchronous ..
 and TransitionResult<'Subject, 'LifeAction, 'OpError, 'LifeEvent, 'Constructor // Don't constrain Subjects, but constrain others (See foot-note ^1)

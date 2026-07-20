@@ -29,16 +29,16 @@ let private transitionBatchBody (env: BatchEnvironment) (body: BatchBody) (actio
                     // the jobs will receive their notification from Batch parent too, possibly even earlier
                     return { body with ActivationStatus = BatchActivationStatus.Activated (now, Some parent) }
                 | BatchStatus.Unfinished ->
-                    return Transition.Ignore
+                    return body
             | BatchActivationStatus.Activated _ ->
-                return Transition.NotAllowed
+                return BatchOpError.ActionNotAllowedInState (sprintf "%A" action, sprintf "%A" body.ActivationStatus)
 
         | BatchAction.Cancel ->
             // don't move to Activated state - yes batch can be Awaiting its parent yet Finished (by all jobs deleted) at the same time, it's fine
             // best effort cancellation: request to delete all jobs that can be deleted
             match body.CancelRequestedOn with
             | Some _ ->
-                return Transition.Ignore
+                return body
             | None ->
                 yield!
                     body.JobsProgress.Values
@@ -53,9 +53,9 @@ let private transitionBatchBody (env: BatchEnvironment) (body: BatchBody) (actio
             | Some jobProgress ->
                 match jobProgress, jobStatus with
                 | JobProgress.Unfinished _, JobStatus.Unfinished ->
-                    return Transition.Ignore
+                    return body
                 | JobProgress.Finished (_, progressSucceeded, _), JobStatus.Finished succeeded when progressSucceeded = succeeded ->
-                    return Transition.Ignore
+                    return body
                 | JobProgress.Unfinished _, JobStatus.Finished succeeded
                 | JobProgress.Finished _, JobStatus.Finished succeeded ->
                     let! now = env.Clock.Query Now
@@ -67,11 +67,11 @@ let private transitionBatchBody (env: BatchEnvironment) (body: BatchBody) (actio
 
         | BatchAction.OnNewSubscriber _ ->
             shouldNotReachHereBecause "OnNewSubscriber must be handled in outer transition"
-            return Transition.NotAllowed
+            return body
 
         // ignore because body already filled, likely coming from ActMaybeConstruct
         | BatchAction.FillPlaceholder _ ->
-            return Transition.Ignore
+            return body
     }
 
 let private constructBatchBody
@@ -158,7 +158,7 @@ let private transition' (env: BatchEnvironment) (batch: Batch) (action: BatchAct
             | BatchAction.Cancel ->
                 match placeholder.CancelRequestedOn with
                 | Some _ ->
-                    return Transition.Ignore
+                    return batch
                 | None ->
                     let! now = env.Clock.Query Now
                     return { batch with Body = BatchBodyVariant.Placeholder { placeholder with CancelRequestedOn = Some now } }
@@ -175,14 +175,14 @@ let private transition' (env: BatchEnvironment) (batch: Batch) (action: BatchAct
                     | PlacedBy.Job _, _ -> false
 
                 if placedAndSubscribedBySameThing then
-                    return Transition.Ignore
+                    return batch
                 else
                     yield BatchLifeEvent.OnBatchStatusChanged (batch.Status, Some subscriber)
                     return batch
 
             | BatchAction.OnJobStatusChanged _
             | BatchAction.OnParentBatchUpdate _ ->
-                return Transition.NotAllowed
+                return BatchOpError.ActionNotAllowedInState (sprintf "%A" action, "Placeholder")
     }
 
 let private transition (env: BatchEnvironment) (batch: Batch) (action: BatchAction) : TransitionResult<Batch, BatchAction, BatchOpError, BatchLifeEvent, BatchConstructor> =

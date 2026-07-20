@@ -41,7 +41,6 @@ type GrainMaybeConstructionError<'OpError when 'OpError :> OpError> =
 type GrainTransitionError<'OpError when 'OpError :> OpError> =
 | SubjectNotInitialized of PrimaryKey: string
 | TransitionError       of 'OpError
-| TransitionNotAllowed
 | LockedInTransaction
 | AccessDenied
 
@@ -49,7 +48,6 @@ type GrainTransitionError<'OpError when 'OpError :> OpError> =
 type GrainTriggerTimerError<'OpError, 'LifeAction when 'OpError :> OpError and 'LifeAction :> LifeAction> =
 | SubjectNotInitialized of PrimaryKey: string
 | TransitionError       of 'OpError * 'LifeAction
-| TransitionNotAllowed  of 'LifeAction
 | LockedInTransaction
 | Exn                   of ExceptionDetails: string * Option<'LifeAction>
 
@@ -57,7 +55,6 @@ type GrainTriggerTimerError<'OpError, 'LifeAction when 'OpError :> OpError and '
 type GrainOperationError<'OpError when 'OpError :> OpError> =
 | ConstructionError of 'OpError
 | TransitionError   of 'OpError
-| TransitionNotAllowed
 | LockedInTransaction
 | AccessDenied
 
@@ -240,25 +237,6 @@ type IBlobRepoGrain =
     [<Orleans.Concurrency.ReadOnly>]
     abstract member GetBlobData: subjectRef: LocalSubjectPKeyReference -> blobId: Guid -> Task<Option<BlobData>>
 
-// TODO: consider moving to ISubjectClientGrain and do it by 'SubjectId. Pros & Cons ?
-/// a stateless grain that can list actions allowed for a subject
-type ISubjectReflectionGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId
-                    when 'Subject              :> Subject<'SubjectId>
-                    and  'LifeAction           :> LifeAction
-                    and  'OpError              :> OpError
-                    and  'Constructor          :> Constructor
-                    and  'LifeEvent            :> LifeEvent
-                    and  'LifeEvent            :  comparison
-                    and  'SubjectId            :> SubjectId
-                    and  'SubjectId            :  comparison> =
-    inherit IGrainWithGuidCompoundKey
-    [<Orleans.Concurrency.ReadOnly>]
-    abstract member IsActionAllowed: subject: 'Subject -> action: 'LifeAction -> Task<bool>
-
-    [<Orleans.Concurrency.ReadOnly>]
-    abstract member GetAllowedActionCaseNames: subject: 'Subject -> Task<list<string>>
-
-
 // Below are the grain types that should really belong to the LibLifeCycleHost but they are still here to configure serialization in one place.
 // Deliberately put under the client grain interfaces to make sure they are not accidentally used there.
 
@@ -310,7 +288,6 @@ type GrainPrepareConstructionError<'OpError when 'OpError :> OpError> =
 [<RequireQualifiedAccess>]
 type GrainPrepareTransitionError<'OpError when 'OpError :> OpError> =
 | TransitionError       of 'OpError
-| TransitionNotAllowed
 | SubjectNotInitialized of PrimaryKey: string
 | ConflictingPrepare    of SubjectTransactionId
 
@@ -326,17 +303,15 @@ type GrainEnqueueActionError =
 [<RequireQualifiedAccess>]
 type GrainTriggerSubscriptionError<'OpError when 'OpError :> OpError> =
 | SubjectNotInitialized of PrimaryKey: string
-// TODO: retire TransitionError and TransitionNotAllowed when biosphere upgraded - they will be caught on Subscriber side and set aside for the subscriber's response handler
+// TODO: retire TransitionError when biosphere upgraded - it will be caught on Subscriber side and set aside for the subscriber's response handler
 | TransitionError of 'OpError
-| TransitionNotAllowed
 | LockedInTransaction
 
 [<RequireQualifiedAccess>]
 type GrainTriggerDynamicSubscriptionError =
 | SubjectNotInitialized of PrimaryKey: string
-// TODO: retire TransitionError and TransitionNotAllowed when biosphere upgraded - they will be caught on Subscriber side and set aside for the subscriber's response handler
+// TODO: retire TransitionError when biosphere upgraded - it will be caught on Subscriber side and set aside for the subscriber's response handler
 | TransitionError   of UntypedOpError: string
-| TransitionNotAllowed
 | LockedInTransaction
 | LifeCycleNotFound of LifeCycleName: string
 
@@ -467,11 +442,6 @@ with
                 let! payload = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'opError> "TransitionError" (function (TransitionError x) -> Some x | _ -> None)
                 return TransitionError payload
             }
-        | TransitionNotAllowed ->
-            codec {
-                let! _ = reqWith Codecs.unit "TransitionNotAllowed" (function TransitionNotAllowed -> Some () | _ -> None)
-                return TransitionNotAllowed
-            }
         | LockedInTransaction ->
             codec {
                 let! _ = reqWith Codecs.unit "LockedInTransaction" (function LockedInTransaction -> Some () | _ -> None)
@@ -491,8 +461,6 @@ with
             SubjectNotInitialized pk
         | TransitionError err ->
             TransitionError (err |> box :?> 'OpError)
-        | TransitionNotAllowed ->
-            TransitionNotAllowed
         | LockedInTransaction ->
             LockedInTransaction
         | AccessDenied ->
@@ -511,11 +479,6 @@ with
             codec {
                 let! payload = reqWith (Codecs.tuple2 defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'opError> defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'lifeAction>) "TransitionError" (function TransitionError (x1, x2) -> Some (x1, x2) | _ -> None)
                 return TransitionError payload
-            }
-        | TransitionNotAllowed _ ->
-            codec {
-                let! payload = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'lifeAction> "TransitionNotAllowed" (function TransitionNotAllowed x -> Some x | _ -> None)
-                return TransitionNotAllowed payload
             }
         | LockedInTransaction ->
             codec {
@@ -536,8 +499,6 @@ with
             SubjectNotInitialized pk
         | TransitionError (err, action) ->
             TransitionError (err |> box :?> 'OpError, action |> box :?> 'LifeAction)
-        | TransitionNotAllowed action ->
-            TransitionNotAllowed (action |> box :?> 'LifeAction)
         | LockedInTransaction ->
             LockedInTransaction
         | Exn (details, maybeAction) ->
@@ -556,11 +517,6 @@ with
             codec {
                 let! payload = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'opError> "TransitionError" (function (TransitionError x) -> Some x | _ -> None)
                 return TransitionError payload
-            }
-        | TransitionNotAllowed ->
-            codec {
-                let! _ = reqWith Codecs.unit "TransitionNotAllowed" (function TransitionNotAllowed -> Some () | _ -> None)
-                return TransitionNotAllowed
             }
         | LockedInTransaction ->
             codec {
@@ -581,8 +537,6 @@ with
             ConstructionError (err |> box :?> 'OpError)
         | TransitionError err ->
             TransitionError (err |> box :?> 'OpError)
-        | TransitionNotAllowed ->
-            TransitionNotAllowed
         | LockedInTransaction ->
             LockedInTransaction
         | AccessDenied ->
@@ -776,11 +730,6 @@ with
                 let! payload = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'opError> "TransitionError" (function (TransitionError x) -> Some x | _ -> None)
                 return TransitionError payload
             }
-        | TransitionNotAllowed ->
-            codec {
-                let! _ = reqWith Codecs.unit "TransitionNotAllowed" (function TransitionNotAllowed -> Some () | _ -> None)
-                return TransitionNotAllowed
-            }
         | SubjectNotInitialized _ ->
             codec {
                 let! payload = reqWith Codecs.string "SubjectNotInitialized" (function (SubjectNotInitialized x) -> Some x | _ -> None)
@@ -800,8 +749,6 @@ with
             SubjectNotInitialized pk
         | TransitionError err ->
             TransitionError (err |> box :?> 'OpError)
-        | TransitionNotAllowed ->
-            TransitionNotAllowed
         | ConflictingPrepare transactionId ->
             ConflictingPrepare transactionId
 
@@ -848,11 +795,6 @@ with
                 let! payload = reqWith defaultCodec_UNIVERSAL_BUT_SLOW_COMPILE_FOR_UNCONSTRAINED_TYPE<_, 'opError> "TransitionError" (function (TransitionError x) -> Some x | _ -> None)
                 return TransitionError payload
             }
-        | TransitionNotAllowed ->
-            codec {
-                let! _ = reqWith Codecs.unit "TransitionNotAllowed" (function TransitionNotAllowed -> Some () | _ -> None)
-                return TransitionNotAllowed
-            }
         | LockedInTransaction ->
             codec {
                 let! _ = reqWith Codecs.unit "LockedInTransaction" (function LockedInTransaction -> Some () | _ -> None)
@@ -867,8 +809,6 @@ with
             SubjectNotInitialized pk
         | TransitionError err ->
             TransitionError (err |> box :?> 'OpError)
-        | TransitionNotAllowed ->
-            TransitionNotAllowed
         | LockedInTransaction ->
             LockedInTransaction
 
@@ -885,11 +825,6 @@ with
             codec {
                 let! payload = reqWith Codecs.string "TransitionError" (function (TransitionError x) -> Some x | _ -> None)
                 return TransitionError payload
-            }
-        | TransitionNotAllowed ->
-            codec {
-                let! _ = reqWith Codecs.unit "TransitionNotAllowed" (function TransitionNotAllowed -> Some () | _ -> None)
-                return TransitionNotAllowed
             }
         | LockedInTransaction ->
             codec {

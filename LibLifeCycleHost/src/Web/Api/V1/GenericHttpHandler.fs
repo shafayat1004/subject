@@ -368,10 +368,6 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
             httpContext.SetHttpHeader ("X-Operation", "Construction")
             httpContext.SetStatusCode (int HttpStatusCode.UnprocessableEntity)
             respondJson opErrorEncoder err httpContext
-        | GrainOperationError.TransitionNotAllowed ->
-            httpContext.SetHttpHeader ("X-Operation", "Transition")
-            httpContext.SetStatusCode (int HttpStatusCode.UnprocessableEntity)
-            httpContext.WriteStringAsync "Transition not allowed"
         | GrainOperationError.LockedInTransaction ->
             httpContext.SetStatusCode (int HttpStatusCode.Locked)
             httpContext.WriteStringAsync "Subject is locked in transaction"
@@ -387,9 +383,6 @@ let getV1GenericSubjectHttpHandler<'Subject, 'LifeAction, 'OpError, 'Constructor
         | GrainTransitionError.TransitionError err ->
             httpContext.SetStatusCode (int HttpStatusCode.UnprocessableEntity)
             respondJson opErrorEncoder err httpContext
-        | GrainTransitionError.TransitionNotAllowed ->
-            httpContext.SetStatusCode (int HttpStatusCode.UnprocessableEntity)
-            httpContext.WriteStringAsync "Transition not allowed"
         | GrainTransitionError.LockedInTransaction ->
             httpContext.SetStatusCode (int HttpStatusCode.Locked)
             httpContext.WriteStringAsync "Subject is locked in transaction"

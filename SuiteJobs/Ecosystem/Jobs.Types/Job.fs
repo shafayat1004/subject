@@ -180,8 +180,9 @@ with interface LifeAction
 
 [<RequireQualifiedAccess>]
 type JobOpError =
-| UnableToConstructBody of Reason: string
+| UnableToConstructBody   of Reason: string
 | CannotDeleteSuccessfulJob
+| ActionNotAllowedInState of Action: string * State: string
 with interface OpError
 
 [<RequireQualifiedAccess>]
@@ -878,6 +879,12 @@ type JobOpError with
                 let! _version = reqWith Codecs.int "__v1" (function CannotDeleteSuccessfulJob -> Some 0 | _ -> None)
                 and! _ = reqWith Codecs.unit "CannotDeletedSuccessfulJob" (function CannotDeleteSuccessfulJob -> Some () | _ -> None)
                 return CannotDeleteSuccessfulJob
+            }
+        | ActionNotAllowedInState _ ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function ActionNotAllowedInState _ -> Some 0 | _ -> None)
+                and! payload = reqWith (Codecs.tuple2 Codecs.string Codecs.string) "ActionNotAllowedInState" (function ActionNotAllowedInState (a, s) -> Some (a, s) | _ -> None)
+                return ActionNotAllowedInState payload
             }
         |> mergeUnionCases
 

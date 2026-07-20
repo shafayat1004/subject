@@ -37,7 +37,6 @@
     <Compile Include="InMemoryCache.fs" />
     <Compile Include="Services.fs" />
     <Compile Include="DefaultServices.fs" />
-    <Compile Include="LifeCycleReflection.fs" />
     <Compile Include="ViewCE.fs" />
     <Compile Include="InfallibleOperationBuilder.fs" />
     <Compile Include="OperationBuilder.fs" />

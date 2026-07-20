@@ -323,7 +323,6 @@ type SessionSource =
 type InternalRevalidateError =
 | SubjectNotInitialized
 | TransitionError
-| TransitionNotAllowed
 | LockedInTransaction
 | AccessDenied
 | Timeout
@@ -459,7 +458,6 @@ module Sessions =
                             match transitionError with
                             | GrainTransitionError.SubjectNotInitialized _ -> InternalRevalidateError.SubjectNotInitialized
                             | GrainTransitionError.TransitionError _       -> InternalRevalidateError.TransitionError
-                            | GrainTransitionError.TransitionNotAllowed    -> InternalRevalidateError.TransitionNotAllowed
                             | GrainTransitionError.LockedInTransaction     -> InternalRevalidateError.LockedInTransaction
                             | GrainTransitionError.AccessDenied            -> InternalRevalidateError.AccessDenied
                             |> RevalidateError.Internal

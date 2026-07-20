@@ -1171,7 +1171,7 @@ and SubjectService<'Subject, 'Projection, 'Id, 'Index, 'NumericIndex, 'StringInd
 
         | Error e ->
             match e with
-            // TransitionError, ConstructionError, TransitionNotAllowed
+            // TransitionError, ConstructionError
             | Non200Code (422, webResponse) ->
                 match apiEndpoints.DecodeError (webResponse.body :?> string) with
                 | Ok decodedError     -> Error (OpError decodedError)

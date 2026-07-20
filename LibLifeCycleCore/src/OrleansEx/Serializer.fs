@@ -223,7 +223,7 @@ let private getUntypedSubjectSerializers<'Subject, 'LifeAction, 'OpError, 'Const
                                      and  'SubjectId            :> SubjectId
                                      and  'SubjectId            : comparison> () =
 
-    // List out all ISubjectGrain, ISubjectIdGenerationGrain, ISubjectRepoGrain, IBlobRepoGrain, ISubjectReflectionGrain parameters and response types
+    // List out all ISubjectGrain, ISubjectIdGenerationGrain, ISubjectRepoGrain, IBlobRepoGrain parameters and response types
     // NOTES:
     // * no need to cover IConnectorGrain because it's always executed locally
     // * the type ID mapping can *never* change. Do not re-use. If you ever remove a serializer
@@ -649,7 +649,6 @@ let private buildSubjectCodec<'Subject, 'LifeAction, 'OpError, 'Constructor, 'Li
                     yield typeof<ISubjectRepoGrain<'Subject, 'LifeAction, 'Constructor, 'SubjectId, 'SubjectIndex, 'OpError>>
                     yield typeof<IBlobRepoGrain>
                     yield typeof<ISubjectIdGenerationGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>
-                    yield typeof<ISubjectReflectionGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'SubjectId>>
                     yield typeof<ILifeEventAwaiter<'Subject, 'LifeEvent, 'SubjectId>>
 
                     match maybeISubjectGrainTypeDef with

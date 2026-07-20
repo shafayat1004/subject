@@ -42,7 +42,7 @@ let private transition (env: DispatcherEnvironment) (dispatcher: Dispatcher) (ac
                 ()
             else
                 failwith $"Unexpected poll. Is it a bug or legit race condition? Scheduled: %A{dispatcher.PollInfo.ScheduledTrigger}; Actual: %A{actualTrigger}"
-            return Transition.Ignore
+            return dispatcher
 
         | DispatcherAction.Poll (retryNo, _) ->
             if dispatcher.SpotsLeft <= 0 then
@@ -93,7 +93,7 @@ let private transition (env: DispatcherEnvironment) (dispatcher: Dispatcher) (ac
 
         | DispatcherAction.ChangeSettings newSettings ->
             if dispatcher.Settings = newSettings && dispatcher.HardDelete = false then
-                return Transition.Ignore
+                return dispatcher
             else
                 do! validateSettings newSettings
                 match dispatcher.PollInfo.ScheduledTrigger with
@@ -142,7 +142,7 @@ let private transition (env: DispatcherEnvironment) (dispatcher: Dispatcher) (ac
                     else
                         return dispatcherMinusJob
             else
-                return Transition.Ignore
+                return dispatcher
 
         | DispatcherAction.HardDelete ->
             return { dispatcher with HardDelete = true }

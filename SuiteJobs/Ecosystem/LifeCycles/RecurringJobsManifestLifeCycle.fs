@@ -49,7 +49,7 @@ let private transition (env: RecurringJobsManifestEnvironment) (recurringJobsMan
 
             match sideEffects with
             | [] ->
-                return Transition.Ignore // don't write no-op apply in history
+                return recurringJobsManifest // don't write no-op apply in history
             | _ ->
                 yield! sideEffects
                 return recurringJobsManifest

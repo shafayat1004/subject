@@ -154,7 +154,6 @@
     <Compile Include="SubjectRepoGrain.fs" />
     <Compile Include="SubjectBlobRepoGrain.fs" />
     <Compile Include="DynamicSubscriptionDispatcherGrain.fs" />
-    <Compile Include="SubjectReflectionGrain.fs" />
     <Compile Include="ConnectorGrain.fs" />
     <Compile Include="TraceContextGrainCallFilter.fs" />
     <Compile Include="ApplicationInsights.fs" />

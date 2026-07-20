@@ -180,7 +180,8 @@ with
 
 [<RequireQualifiedAccess>]
 type BatchOpError =
-| JobNotInBatch of JobId
+| JobNotInBatch           of JobId
+| ActionNotAllowedInState of Action: string * State: string
 with interface OpError
 
 [<RequireQualifiedAccess>]
@@ -568,9 +569,15 @@ type BatchOpError with
         function
         | JobNotInBatch _ ->
             codec {
-                let! _version = reqWith Codecs.int "__v1" (function JobNotInBatch _ -> Some 0)
-                and! payload = reqWith codecFor<_, JobId> "JobNotInBatch" (function JobNotInBatch x -> Some x)
+                let! _version = reqWith Codecs.int "__v1" (function JobNotInBatch _ -> Some 0 | _ -> None)
+                and! payload = reqWith codecFor<_, JobId> "JobNotInBatch" (function JobNotInBatch x -> Some x | _ -> None)
                 return JobNotInBatch payload
+            }
+        | ActionNotAllowedInState _ ->
+            codec {
+                let! _version = reqWith Codecs.int "__v1" (function ActionNotAllowedInState _ -> Some 0 | _ -> None)
+                and! payload = reqWith (Codecs.tuple2 Codecs.string Codecs.string) "ActionNotAllowedInState" (function ActionNotAllowedInState (a, s) -> Some (a, s) | _ -> None)
+                return ActionNotAllowedInState payload
             }
         |> mergeUnionCases
 

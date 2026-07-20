@@ -845,8 +845,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
         : Option<GrainSideEffect<'LifeAction, 'OpError>> =
         match response with
         | TriggerSubscriptionResponse.Exn _
-        | TriggerSubscriptionResponse.ActError _
-        | TriggerSubscriptionResponse.ActNotAllowed _ -> false
+        | TriggerSubscriptionResponse.ActError _ -> false
         | TriggerSubscriptionResponse.ActOk action ->
             match lifeCycleAdapter.LifeCycle.ResponseHandler
                       (SideEffectResponse.Success
@@ -1451,8 +1450,7 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                             match err with
                             | LifeCycleException actionExn ->
                                 return actionExn |> LifeCycleException |> Error
-                            | LifeCycleError _
-                            | TransitionNotAllowed _ ->
+                            | LifeCycleError _ ->
                                 return subscribeExn |> LifeCycleException |> Error
                         | Ok _ ->
                             return Error err
@@ -1533,7 +1531,6 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                 return
                     match err with
                     | LifeCycleError err     -> err |> GrainPrepareTransitionError.TransitionError |> Choice1Of2 |> Error
-                    | TransitionNotAllowed   -> GrainPrepareTransitionError.TransitionNotAllowed |> Choice1Of2 |> Error
                     | LifeCycleException exn -> exn |> Choice2Of2 |> Error
         }
 
@@ -1636,9 +1633,6 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                 | Error (LifeCycleError err) ->
                                     (if context.ShouldWarnOnOpError then logger.Warn else logger.Info) "ACT %a ==> ERROR %a" (logger.P "action") action (logger.P "error") err
                                     return err |> GrainTransitionError.TransitionError |> Choice1Of2 |> Error
-                                | Error TransitionNotAllowed ->
-                                    logger.Warn "ACT %a ==> ERROR TransitionNotAllowed" (logger.P "action") action
-                                    return GrainTransitionError.TransitionNotAllowed |> Choice1Of2 |> Error
                                 | Error (LifeCycleException ex) ->
                                     logger.ErrorExn ex "ACT %a ==> ERROR EXCEPTION" (logger.P "action") action
                                     return ex |> Choice2Of2 |> Error
@@ -1946,9 +1940,6 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                         | Error (LifeCycleError err) ->
                                             logger.Warn "ACT+CTOR ==> CTOR %a ==> OK ==> ACT %a ==> ERROR %a" (logger.P "ctor") ctor (logger.P "action") action (logger.P "error") err
                                             return err |> GrainOperationError.TransitionError |> Choice1Of2 |> Error
-                                        | Error TransitionNotAllowed ->
-                                            logger.Warn "ACT+CTOR ==> CTOR %a ==> OK ==> ACT %a ==> ERROR TransitionNotAllowed" (logger.P "ctor") ctor (logger.P "action") action
-                                            return GrainOperationError.TransitionNotAllowed |> Choice1Of2 |> Error
                                         | Error (LifeCycleException exn) ->
                                             logger.ErrorExn exn "ACT+CTOR ==> CTOR %a ==> OK ==> ACT %a ==> ERROR EXCEPTION" (logger.P "ctor") ctor (logger.P "action") action
                                             return exn |> Choice2Of2 |> Error
@@ -2004,9 +1995,6 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                 | Error (LifeCycleError err) ->
                                     logger.Warn "ACT+CTOR ==> ACT %a ==> ERROR %a" (logger.P "action") action (logger.P "error") err
                                     return err |> GrainOperationError.TransitionError |> Choice1Of2 |> Error
-                                | Error TransitionNotAllowed ->
-                                    logger.Warn "ACT+CTOR ==> ACT %a ==> ERROR TransitionNotAllowed" (logger.P "action") action
-                                    return GrainOperationError.TransitionNotAllowed |> Choice1Of2 |> Error
                                 | Error (LifeCycleException exn) ->
                                     logger.ErrorExn exn "ACT+CTOR ==> ACT %a ==> ERROR EXCEPTION" (logger.P "action") action
                                     return exn |> Choice2Of2 |> Error
@@ -2807,11 +2795,6 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                     do! enqueueResponse traceContext (TriggerSubscriptionResponse.ActError (err, action))
                                     return Ok ()
 
-                                | Error TransitionNotAllowed ->
-                                    logger.Warn "TRIGGER %a ==> ACT %a ==> ERROR TransitionNotAllowed" (logger.P "subscription") subscriptionTriggerType (logger.P "action") action
-                                    do! enqueueResponse traceContext (TriggerSubscriptionResponse.ActNotAllowed action)
-                                    return Ok ()
-
                                 | Error (LifeCycleException exn) ->
                                     logger.ErrorExn exn "TRIGGER %a ==> ACT %a ==> ERROR EXCEPTION" (logger.P "subscription") subscriptionTriggerType (logger.P "action") action
                                     do! enqueueResponse traceContext (TriggerSubscriptionResponse.Exn (exn.ToString(), Some action))
@@ -2937,10 +2920,6 @@ type SubjectGrain<'Subject, 'LifeAction, 'OpError, 'Constructor, 'LifeEvent, 'Su
                                 | Error (LifeCycleError err) ->
                                     logger.Warn "TRIGGER TIMER ACTION ==> ACT %a ==> ERROR %a" (logger.P "action") action (logger.P "error") err
                                     return GrainTriggerTimerError.TransitionError (err, action) |> Error
-
-                                | Error TransitionNotAllowed ->
-                                    logger.Warn "TRIGGER TIMER ACTION ==> ACT %a ==> ERROR TransitionNotAllowed" (logger.P "action") action
-                                    return GrainTriggerTimerError.TransitionNotAllowed action |> Error
 
                                 | Error (LifeCycleException exn) ->
                                     logger.ErrorExn exn "TRIGGER TIMER ACTION ==> ACT %a ==> ERROR EXCEPTION" (logger.P "action") action
