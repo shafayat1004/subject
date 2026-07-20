@@ -4,6 +4,122 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-20 (session 47 — neumorphic cutout rim made scale-independent)
+
+SYMPTOM: The composer panel, title input well, priority dropdown, and search bar all showed a muddy brown GRADIENT wash bleeding inward from their edges, instead of the sharp metallic inset rim that the small Light/Dark theme-toggle track has. User wanted the toggle's crisp cutout rim on every container.
+
+ROOT CAUSE: all of those containers used the same helper `Styles.neuInset palette 10 3` (SuiteTodo/AppTodo/src/Theme/TodoTheme.fs). `neuInset`'s web boxShadow has a WIDE soft middle layer `inset (offset*2)px (offset*2)px (blur*2)px SurfaceShadow` = `inset 6px 6px 20px`. On a SMALL element (the toggle) the shadows from all four edges overlap into a tight crisp rim; on a LARGE panel that 20px-blur / 6px-offset wall spreads tens of px into the interior = a gradient wash. It is a **scale-dependent** shadow — the same spec reads as a rim at 60px and as a gradient at 600px.
+
+FIX (part 1 — the rim): added a scale-independent helper `neuInsetRim (palette)` whose every layer hugs the border with a small blur so nothing reaches the interior at any size. Web: `inset 2px 2px 1px SurfaceShadowStrong, inset 3px 3px 4px SurfaceShadow, inset -2px -2px 1px SurfaceHighlight, inset -3px -3px 4px SurfaceHighlight` (hard dark lip top-left + shallow dark backing + bright specular catch bottom-right = the metallic glint). Native: `shadow SurfaceShadowStrong 4 (2,2)`. Pointed the OUTER cutout containers — `composerPanel`, `searchInputWrap`, `todoRowSurface`, `themeToggleWell` — at `neuInsetRim`.
+
+FIX (part 2 — one carve per container, per user correction "the rim should be part of the outer container not on the element inside"): the composer had NESTED carving — the panel was carved AND each field well inside it (`composerInputWell`, used by the title input + priority picker) was separately carved, so the form read as recesses inside a recess. Resolved by making the inner fields RAISED instead: `composerInputWell` now uses `backgroundColor CardBackground` + `neuRaised palette 10 3`, so each field protrudes from the carved panel floor like the theme-toggle thumb sits in its recessed track. One level of carving per container. `searchInputWrap` + `todoRowSurface` are themselves the outer container (no wrapping panel), so they keep the carved rim. Small pressed elements (`filterTabCellSelected`, selected `categoryPill`) stay on `neuInset`.
+
+FIX (part 3 — content must slide UNDER the rim, not over it): after part 2 the scrolling category pill row and the swipe-to-delete surface still slid OVER the panel/row rim — they looked like they floated above the lip. ROOT CAUSE: an `inset box-shadow` painted on a container renders BELOW that container's children, so any child that reaches the edge paints on top of the rim. FIX: paint the rim as a TOP overlay instead. Added `cutoutRimOverlay (palette) (radius)` — a transparent, absolutely-filling view carrying `neuInsetRim`, rendered as the LAST child of the outer container with `ignorePointerEvents = true` (→ `pointerEvents: none` so it never eats taps). Moved the rim off `composerPanel` (now `Position.Relative`, bg only) and off `todoRowSurface`/`swipeContentBase` (both now FLAT), and added a `cutoutRimOverlay` child to the composer panel (radius 28) and to `todoRowOuter` (radius 16, also `Position.Relative`). Now the pills and the swipe surface pass under the fixed lip; the revealed Danger slot sits inside the same cutout.
+
+VERIFICATION: Playwright on :9080, light + dark — plus scripted category-scroll and a mouse-drag swipe. Gradient bleed gone; composer shows one crisp rim with raised fields inside; pills tuck under the panel lip on both edges when scrolled; swiping a row reveals red under the fixed row rim. 0 page errors; ci-gate PASS (forbidden-path / eggshell-fmt / style-leak / a11y).
+
+KEY LESSONS: (1) a neumorphic inset/raised shadow's blur+offset is not size-portable — either scale it with the container or (better) use tight border-hugging layers, so a treatment tuned on a small element does not bleed into a gradient on a large one. (2) Carve ONE level per container: the recess belongs to the outer container; elements inside it should be raised (or flat), never a second nested cutout. (3) An `inset box-shadow` paints BELOW the element's children, so scrolling/sliding content covers it. To make content pass UNDER the rim, paint the rim on a transparent, pointer-events-none overlay rendered as the LAST child of the container.
+
+FILES: `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs` (added `neuInsetRim` + `cutoutRimOverlay`; outer cutouts get the rim via overlay; `composerInputWell` raised; `composerPanel`/`todoRowSurface`/`swipeContentBase` flattened; `todoRowOuter`/`composerPanel` `Position.Relative`). `SuiteTodo/AppTodo/src/Components/Route/Todos.fs` (rim-overlay child added to the composer panel and the todo row outer frame).
+
+---
+
+## 2026-07-20 (session 46 — Pressable scroll-fires-button fix on web + neumorphic swipe delete)
+
+Two distinct fixes this session: a real framework bug (touch-scroll firing buttons on web) + a neumorphism polish round.
+
+### Framework: Pressable scroll-fires-button on web (LibClient/src/Components/Pressable.fs)
+
+SYMPTOM: On mobile web (Android + iOS browsers), scrolling the todo list with a finger would fire the button under the finger — edit/archive/delete triggering on touch-scroll. Native (RN) was unaffected.
+
+ROOT CAUSE (RW8 defect 3, web half — never fixed): the press was driven from `onPressOut` on web, with a 5px movement guard comparing `onPressIn` coords to `onPressOut` coords. On touch-scroll, the browser claims the touch and fires `pointercancel` (NOT `pointerup`). RNW maps `pointercancel` → `onPressOut`. But `pointercancel`'s coords are empty/stale → `CrossPlatformPageXY` returns `None` → the 5px guard's match fell through to `| _ -> false` → `isDrag=false` → **press fired on every touch-scroll**. The native half was fixed in session 11 (drive from RN's scroll-cancel-aware `onPress`), but the web half kept the broken `onPressOut` + 5px-guard path "to preserve web click semantics."
+
+FIX: drive the press from RN's `onPress` on BOTH native and web. RNW's PressResponder terminates the press when a ScrollView becomes the responder — same scroll-cancel behavior as native. `onPressOut` now only resets the visual pressed/hover state; it never fires the press on either platform. Removed the dead `maybePressInCoords` field + 5px guard entirely.
+
+VERIFICATION (programmatic, no vision — `claude` CLI spend-blocked): Playwright CDP touch simulation — touch-down on a todo edit button, drag 120px down (scroll gesture), release. After scroll: edit mode NOT active (PASS — scroll did not fire button). Mouse click on same button: edit mode active (PASS — click still fires). Theme toggle click: bg color changes (PASS). dev-web bundle fresh, 0 errors, ci-gate PASS.
+
+KEY LESSON: `onPressOut` is NOT a reliable "tap happened" signal on web touch either — `pointercancel` fires `onPressOut` with empty coords. RN's `onPress` (scroll-cancel-aware via the responder system) is the correct single press driver on both platforms. The "preserve web click semantics" rationalization for the split path was wrong — RNW's `onPress` handles mouse clicks correctly too.
+
+FILES: `LibClient/src/Components/Pressable.fs` (onPress drives press on both platforms; onPressOut visual-only; maybePressInCoords + 5px guard removed).
+
+### AppTodo: neumorphic swipe delete + form section curves
+
+Five polish points from review:
+
+- **Flat red delete background → carved Danger recess.** The swipe-to-delete slot was a flat `#dc2626` block (hardcoded, out of character). Replaced with `palette.Danger` + 3-layer `neuInset` (carved recess): dark lip on the left edge (where the content slides past) + soft wall + light rim. Reads as "the content slid away from a carved red cutout" instead of "flat red appeared." Removed the separate `swipeGradientOverlay` full-bleed layer entirely — the slot IS the recess now.
+- **No space between draggable content + delete text.** Added `paddingRight 14` + `paddingLeft 8` to `swipeDeleteSlot` so the delete text has breathing room from the content's right edge as it slides away.
+- **"Going behind a cutout" feel.** The `neuInset` dark lip sits on the LEFT edge of the recess (positive offset = top-left biased), which is exactly where the content slides past — so the content appears to slide under the cutout lip. The content's own `borderRadius 16` rounded right edge sliding away + the carved recess appearing = the "behind a cutout" read. (Did NOT add a separate z-indexed lip overlay — the carved recess alone achieved the effect.)
+- **Form section cutouts beveled + curved.** `composerInputWell` radius 16→20, `composerPanel` radius 24→28. Already beveled via 3-layer `neuInset`; the larger radius makes them read as more curved.
+- **Inside shadow too dark.** Softened: `composerPanel` neuInset `18 4`→`12 3`; `composerInputWell` + `searchInputWrap` neuInset `10 3`→`8 2`. The blur values dropped (18→12, 10→8) so the dark wall is less heavy.
+
+VERIFICATION (programmatic): `getComputedStyle` on the delete slot → `bg=rgb(220,38,38)` (Danger), `boxShadow` = 3-layer inset (carved), `paddingRight=14px`. Zero flat (non-carved) `#dc2626` elements in the DOM. Composer panel: radius 28px, 3-layer inset, blur 11-13 (softer). Composer input wells: radius 20px, 3-layer inset. All on light + dark.
+
+FILES: `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs` (swipeDeleteSlot → carved recess; swipeReducedMotionDelete → Danger+neuInset; composerPanel/InputWell/searchInputWrap softened + larger radius; swipeGradientOverlay removed). `SuiteTodo/AppTodo/src/Components/Route/Todos.fs` (removed swipeGradientOverlay DOM node + gradientVisible; slot now takes palette).
+
+---
+
+## 2026-07-20 (session 45 — Radio aria-checked fix + pressed filter tab + beveled neuInset)
+
+Three follow-ups to the session-44 neumorphism round, plus one verification-method note.
+
+- **Radio a11y state bug (framework, LibClient/Accessibility.fs).** Screen readers announce a `role=radio` element from its `checked` (aria-checked) state, NOT `selected`. The `AccessibilityState` helpers had `selected` (sets `Selected` only) and `checked'` (sets `Checked` only), but every radio callsite used `selected`, so AT announced "unchecked" for the chosen option. Fix: added `radioSelected value = { empty with Selected = Some value; Checked = Some value }` (sets both — `selected` for the framework's internal state, `checked` for the AT-facing aria state) and updated the comment block. Verified programmatically: opened the AppTodo priority picker popup, found 8 `role=radio` elements, exactly 1 with `aria-checked="true"` (and 1 with `aria-selected="true"`). No vision model needed — `page.locator('[role="radio"][aria-checked="true"]')` is the exact proof.
+- **Filter tab polarity reversed.** Session 44 shipped the selected filter tab as a RAISED pill floating in a carved track. On review that reads as a slider thumb, not an active tab. Reversed: selected = PRESSED INTO the track (`filterTabCellSelected` now uses `neuInset palette 8 2`), unselected = raised (unchanged). A pressed-in key reads as "the active tab"; the floating pill read as "a draggable thumb." Verified: selected tab's parent div `boxShadow` = `2px 2px 11px inset (dark lip), 4px 4px 16px inset (soft wall), -2px -2px ... (light rim)` — 3-layer beveled inset; unselected = `4px 4px 12px outer dark, 1px 1px 2px inset light bevel` (raised, no dark inset).
+- **neuInset upgraded to 3-layer beveled carve.** The old 2-layer inset (dark lip + light rim) read as a hard step, not a chamfer. New `neuInset` emits 3 shadows: crisp dark lip top-left (offset, blur+3, `SurfaceShadowStrong`) + larger soft dark wall behind it (offset*2, blur*2, `SurfaceShadow`) + lit rim bottom-right (offset, blur+2, `SurfaceHighlight`). The soft wall is what turns a sharp edge into a beveled one. Confirmed on composer well, search well, and category slide wrap — all show `insets=3` in computed style.
+- **Picker popup shadow: deliberately left hardcoded in the framework.** The shared `LC.Input.Picker` popup draws its own (non-themeable) shadow. Neumorphism must NOT be baked into the shared framework popup — it would force every app's popups into one aesthetic. App-theming can't reach it, and that is the correct tradeoff; the popup remains a neutral shared surface.
+
+**Verification method note:** the `claude` CLI (vision model, used by the `screenshot-describe` skill) was blocked by an org spend limit this session. Fell back to **programmatic Playwright verification via `getComputedStyle().boxShadow` + aria-state attribute checks** — this is *better* than vision for a11y state and shadow structure (exact string values, not "looks inset-ish"), though vision is still needed for gestalt layout reads. The diagnostic script lives at `SuiteTodo/AppTodo/audit/out/diag2.mjs` (gitignored): walks the DOM to find the element actually carrying the `boxShadow` (it is on the grandparent `Rn.View` wrapper, never on the testId element itself — a recurring gotcha when verifying neu styles).
+
+Files: `LibClient/src/Accessibility.fs` (radioSelected helper), `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs` (`filterTabCellSelected` → neuInset; `neuInset` → 3-layer bevel). Build green, ci-gate PASS, 0 page/console errors.
+
+---
+
+## 2026-07-20 (session 44 — Neumorphism feedback round: framework input/checkbox/segmented fixes + pressed pills)
+
+Addressed nine review points on the AppTodo neumorphism restyle. Three needed framework fixes in LibClient (app-theming alone could not reach them):
+
+- **Input text was black in dark mode (real framework bug).** `LibClient/.../Input/Text/Text.fs` defined `Styles.textInputText` (a `color` rule) but **never applied it** to the `Rn.TextInput` — it was dropped during the render-DSL→pure-F# conversion. The input fell back to the browser/native default (black), so dark-mode typed text vanished. Fix: append the text color to the TextInput style array. Gotcha: `ViewStyles` can't carry `color`/`fontSize` (see the TODO in `Rn/Styles/New/FSharpDialect.fs` — TextInput reuses ViewStyles), so the `TextStyles` is Fable-interop cast (`!!(... : ViewStyles)`); both erase to the same JS style object, matching `TextInputRN.unboxStyles`. Repo-wide-safe: default `Input.Text` theme `TextColor = neutral.Main` (dark on white).
+- **Checkbox icon not centered in a fixed container.** Icon-only `LC.Input.Checkbox` (label `Children`, no children) still rendered the empty `flex 1` label block, pushing the icon left. Fix: skip the label block when there are no child elements so the icon centers.
+- **SegmentedControl thumb was flat.** Added optional `ThumbShadowColor`/`ThumbHighlightColor` to `LC.SegmentedControl.Theme` (default `Transparent` = flat, backward compatible) and emit a raised neu shadow on the thumb (web dual boxShadow / native single `shadow`). Both Theme construction sites updated (`DefaultComponentsTheme.fs`, AppTodo `ThemeToggle`). Limitation: the track has `Overflow.Hidden`, so the thumb's *outer* drop shadow is clipped to the ~TrackPadding gap; the inner top-left light bevel does most of the raised read.
+
+App-theming (`SuiteTodo/AppTodo/src/Theme/{Colors,TodoTheme}.fs`, `Components/Route/Todos.fs`):
+- **Category pills:** inverted the neu polarity — unselected = **raised**, selected = **inset/pressed** (accent border, `borderWidth 2`). A pressed button reads as "chosen"; raised-when-selected read backwards.
+- **Filter tab bar:** carved (inset) track (`filterTabsWell` neuInset over `FormBackground`) with the selected tab as a **raised pill** (`filterTabCellSelected`), instead of a flat underline-only bar.
+- **Contrast:** darkened the grayish light-mode inks — `TextSecondary #536174→#3f4a5b`, `TextMuted #94a3b8→#6b5c4b`, `HeadingText #9c7063→#7a4a3d`; filter-tab unselected now uses the themed secondary instead of hardcoded `Grey "66"`. PaletteLinter: 0 fails.
+- **Category pills slide under the panel edge:** wrapped the horizontal category scroller in `categorySlideWrap` (`marginHorizontal -16` + `Overflow.Hidden`) so the row reaches the inset panel's inner walls and clips there — pills disappear *under* the border instead of stopping short of it. NB: clip only the scroller, **not** the whole `composerPanel` (that would also clip the Add button's raised outer shadow). Kept vertical padding so the horizontal clip never flattens the raised-pill shadow tops.
+- **Restored the horizontal scrollbar** on the category row (`showsHorizontalScrollIndicatorOnNative = true`; session 43 had disabled it — the user wanted it back).
+
+Verification: full `dev-web` restart (LibClient is **precompiled** into `LibStandard/.build/web/fable`, so it only rebuilds on a fresh dev-web start, never on incremental lib edits). Fable + webpack green, 0 `error FS`, ci-gate PASS (path/fmt/style-leak/a11y), 0 page/console errors, PaletteLinter 0 contrast fails. Playwright screenshots (light + dark, phone chrome) confirmed all nine points.
+
+---
+
+## 2026-07-20 (session 43 — Neumorphism iteration: high-contrast soft-UI technique)
+
+- Iterated AppTodo toward high-contrast neumorphism across many screenshot-review rounds.
+- **Winning technique (web):** raised = outer dark drop shadow biased bottom-right + thin inner light bevel top-left (`boxShadow: "Npx Npx Bpx dark, inset 1px 1px 2px white"`). Inset wells = darker fill + inner dark shadow biased top-left + inner light bevel bottom-right. Pure outer white glow highlight is INVISIBLE on warm cream palettes — do not bother.
+- **Palette 4-level depth hierarchy (light):** canvas #b3a089 (darkest) → inset wells/inputs #d9c7ab → card #e6d5be → raised rows/chips #f6eedd (lightest). Shadows #7d6b4a / #6b5a3e (must be much darker than the surface or they don't read).
+- **Inputs:** framework inputs draw their own fill+border which covers an inset wrapper. Fix = make them transparent (LC.Input.Text per-instance `theme = fun t -> { t with EditableBackgroundColor=Transparent; BorderLabelBlurredColor=Transparent }`; Picker field via global applyInputThemes) and let a darker inset wrapper View (composerInputWell/searchInputWrap) be the visible boundary.
+- **Gotcha:** `showsHorizontalScrollIndicatorOnNative = true` renders a stray gray scrollbar bar under horizontal chip rows — set false.
+- **Gotcha:** shadow reach (offset+blur) must be < list gap or adjacent row shadows muddy.
+- **Known limitation:** only dark/accent fills (teal Add button) read as strongly 3D; near-white fills read as "soft card" not true extruded neumorphism because the white bevel is invisible on light fills. To go further would need darker mid-tone surfaces or stronger shadows.
+- **Files:** Theme/Colors.fs, Theme/TodoTheme.fs, Theme/ComponentsTheme.fs, Components/Route/Todos.fs. Build green, 0 errors, 0 style leaks, PaletteLinter 0 contrast fails.
+
+---
+
+## 2026-07-20 (session 42 — High-contrast neumorphism style for AppTodo)
+
+- Applied "high-contrast neumorphism" (protruded physical elements + more contrast than pure neumorphism) to AppTodo.
+- **Design:** dual box-shadow (white highlight top-left + warm-gray dark bottom-right) on raised elements; inset shadow on composer + search (pressed-in wells); 1px warm border on todo rows for crisp boundaries; darker cream canvas (#d4c4b0) for shadow contrast.
+- **Palette additions (Colors.fs SemanticPalette):** SurfaceHighlight (#ffffff light / #3a2820 dark), SurfaceShadow (#a89478 light / #000 dark), SurfaceShadowStrong (#8c7860 light / #000 dark).
+- **Shadow helpers (TodoTheme.fs):** `neuRaised`, `neuRaisedStrong`, `neuInset` — emit CSS multi box-shadow on web (`#if EGGSHELL_PLATFORM_IS_WEB`), single `shadow` fallback on native (RN's shadow* API only supports one shadow). Highlight blur = half the dark blur for a crisper light edge.
+- **Elements styled:** card, todo rows, composer panel (inset), search input (inset), Add button (strong raised), action icon buttons, category pills (selected=raised), stat chips, sub-filter pills, swipe delete button (strong raised). List gap increased 10→16px so shadows don't overlap/muddy.
+- **Gotcha:** pure white elements on cream make the white neumorphic highlight nearly invisible (white-on-white). Solved by: (a) adding 1px warm border for boundary definition, (b) tightening highlight blur (half of dark blur), (c) darkening canvas to #d4c4b0. The dark shadow does most of the protrusion work; the border provides the "more contrast" separation the user wanted (vs pure neumorphism where everything blends).
+- **Gotcha:** list gap must exceed shadow reach (offset + blur) or adjacent row shadows overlap and muddy. 16px gap handles 4px offset + 16px blur.
+- **Gotcha:** `boxShadow` CSS string supports comma-separated multi-shadow on web; RN native `shadow*` API only supports one shadow. Use `#if EGGSHELL_PLATFORM_IS_WEB` to emit dual boxShadow on web, single `shadow` on native.
+- **Verification:** eggshell test-build green (0 errors FS). dev-web on :9080, fake service (BackendUrl commented out). Playwright observe: 0 page errors, 0 style leaks, 0 actionable console errors. PaletteLinter: 0 contrast FAILs (all WCAG AA pairs pass). Vision-model screenshot review confirmed: "rows raised/protruded, Add button extruded, coherent neumorphic, physical layered impression, more contrast than pure neumorphism."
+- **Files:** SuiteTodo/AppTodo/src/Theme/Colors.fs, SuiteTodo/AppTodo/src/Theme/TodoTheme.fs, SuiteTodo/AppTodo/src/Components/Route/Todos.fs (CategoryPill + subFilterPill call sites updated for new palette param).
+
+---
+
 ## 2026-07-19 (session 51 -- SuiteJobs/SuiteTodo sln build green + SuiteTodo.sln created)
 
 **Context:** User asked to make `SuiteJobs` fully `dotnet build` end to end, then do the same for

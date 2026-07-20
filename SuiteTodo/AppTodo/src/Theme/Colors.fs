@@ -73,22 +73,27 @@ type SemanticPalette = {
     TabBorder:             Color
     SwipeHintColor:        Color
     RowShadowColor:        Color
+    // High-contrast neumorphism: dual-shadow pair (light top-left, dark bottom-right).
+    SurfaceHighlight:    Color
+    SurfaceShadow:       Color
+    SurfaceShadowStrong: Color
 }
 
 module SemanticPalette =
     let light =
         {
-            CanvasBackground      = Color.Grey "e5"
-            PageBackground        = Color.Hex "#fdf9f6"
-            CardBackground        = Color.White
-            CardBorder            = Color.Hex "#ede4dc"
-            FormBackground        = Color.Hex "#efe6df"
+            // Warm cream canvas — darkest level, so neumorphic shadows have contrast to bite into.
+            CanvasBackground      = Color.Hex "#b3a089"
+            PageBackground        = Color.Hex "#e6d5be"
+            CardBackground        = Color.Hex "#f0e4d0"
+            CardBorder            = Color.Transparent
+            FormBackground        = Color.Hex "#d9c7ab"
             TextPrimary           = Color.Hex "#1f2937"
-            TextSecondary         = Color.Hex "#536174"
-            TextMuted             = Color.Hex "#94a3b8"
-            HeadingText           = Color.Hex "#9c7063"
-            RowBackground         = Color.White
-            RowBorder             = Color.Hex "#ede4dc"
+            TextSecondary         = Color.Hex "#3f4a5b"
+            TextMuted             = Color.Hex "#6b5c4b"
+            HeadingText           = Color.Hex "#7a4a3d"
+            RowBackground         = Color.Hex "#f6eedd"
+            RowBorder             = Color.Transparent
             Accent                = Color.Hex "#458b8c"
             AccentSoft            = Color.Hex "#c2e2e9"
             Danger                = Color.Hex "#dc2626"
@@ -107,18 +112,23 @@ module SemanticPalette =
             ChipNeutralBackground = Color.Hex "#e5e7eb"
             ChipNeutralText       = Color.Hex "#4b5563"
             DueSoft               = Color.Hex "#f6e2d0"
-            ChipBackground        = Color.Hex "#f5f0ec"
-            ChipBorder            = Color.Hex "#ede4dc"
-            ThemeTrackBackground  = Color.Hex "#eae0d9"
+            ChipBackground        = Color.Hex "#e6d5be"
+            ChipBorder            = Color.Hex "#d0c0a8"
+            ThemeTrackBackground  = Color.Hex "#d9c7ab"
             ThemeToggleSelected   = Color.Hex "#2d4c4c"
-            InputBackground       = Color.WhiteAlpha 0.4
-            InputBorder           = Color.BlackAlpha (26.0 / 255.0)
-            SearchBackground      = Color.Hex "#efe6df"
+            InputBackground       = Color.Hex "#d9c7ab"
+            InputBorder           = Color.Transparent
+            SearchBackground      = Color.Hex "#efe4d6"
             StatBackground        = Color.Hex "#deecf0"
             StatText              = Color.Hex "#3b6b78"
             TabBorder             = Color.Hex "#eae0d9"
             SwipeHintColor        = Color.Hex "#dc2626"
             RowShadowColor        = Color.BlackAlpha 0.03
+            // Warm neumorphic shadows: pure-white highlight + dark warm-brown depth.
+            // Dark enough to read against the light cream surfaces.
+            SurfaceHighlight    = Color.Hex "#ffffff"
+            SurfaceShadow       = Color.Hex "#7d6b4a"
+            SurfaceShadowStrong = Color.Hex "#6b5a3e"
         }
 
     let dark =
@@ -164,6 +174,10 @@ module SemanticPalette =
             TabBorder             = Color.Hex "#3d2217"
             SwipeHintColor        = Color.Hex "#dc2626"
             RowShadowColor        = Color.BlackAlpha 0.0
+            // Dark-mode neumorphic shadows: warm-lit highlight + near-black dark.
+            SurfaceHighlight    = Color.Hex "#3a2820"
+            SurfaceShadow       = Color.Hex "#000000"
+            SurfaceShadowStrong = Color.Hex "#000000"
         }
 
     let forMode mode =

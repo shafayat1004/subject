@@ -94,6 +94,12 @@ module AccessibilityStateRecord =
     let disabled value = { empty with Disabled = Some value }
     let selected value = { empty with Selected = Some value }
     let checked' value = { empty with Checked = Some value }
+
+    /// Radio-button selection state. Screen readers (VoiceOver/TalkBack) announce a `role=radio`
+    /// element from its `checked` (aria-checked) state, NOT `selected`; setting only `selected`
+    /// makes them read "unchecked" even for the chosen option. Set both so listbox/tab and radio
+    /// semantics are all covered.
+    let radioSelected value = { empty with Selected = Some value; Checked = Some value }
     let expanded value = { empty with Expanded = Some value }
     let busy value = { empty with Busy = Some value }
 

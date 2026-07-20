@@ -157,6 +157,8 @@ let private applyTheme (primary: Variants) (secondary: Variants) (neutral: Varia
         UnselectedLabelColor = neutral.B500
         TrackWidth           = 152
         TrackPadding         = 4
+        ThumbShadowColor     = Color.Transparent
+        ThumbHighlightColor  = Color.Transparent
     }
 
     Themes.Set<LC.FloatingActionButton.Theme> {

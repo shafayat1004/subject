@@ -584,3 +584,27 @@ video {
 button {
   padding: 0;
 }
+
+/*
+ * Neumorphic horizontal scrollbar for the category chip row (web). The default Chrome/Edge
+ * scrollbar is a thick gray bar on a white strip that clashes with the warm soft-UI. Make it
+ * thin, rounded, and warm-translucent so it reads as part of the surface in both light and dark.
+ */
+[data-testid="todo-new-category-group"] * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 107, 74, 0.55) transparent;
+}
+[data-testid="todo-new-category-group"] *::-webkit-scrollbar {
+  height: 6px;
+  background: transparent;
+}
+[data-testid="todo-new-category-group"] *::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-testid="todo-new-category-group"] *::-webkit-scrollbar-thumb {
+  background: rgba(124, 107, 74, 0.55);
+  border-radius: 999px;
+}
+[data-testid="todo-new-category-group"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 107, 74, 0.8);
+}

@@ -22,6 +22,88 @@ type MetaChipKind =
 | Due
 
 module Styles =
+    // ── High-contrast neumorphism helpers ─────────────────────────────────────
+    // Raised physical surface = a DEFINED dark drop shadow falling bottom-right (the
+    // lift), biased to the bottom-right so it reads as cast by a top-left light. A thin
+    // inner light bevel on the top edge catches light on dark fills (e.g. the teal Add
+    // button); on near-white fills the outer dark shadow does all the lifting.
+    // On web: CSS box-shadow (outer dark + inset light). On native: single dark shadow
+    // (RN's shadow* API supports only one shadow, no inset).
+    let private neuRaised (palette: SemanticPalette) (blur: int) (offset: int) =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        [| boxShadow (sprintf "%dpx %dpx %dpx %s, inset 1px 1px 2px %s"
+                        offset offset blur palette.SurfaceShadow.ToCssString
+                        palette.SurfaceHighlight.ToCssString) |]
+        #else
+        shadow palette.SurfaceShadow blur (offset, offset)
+        #endif
+
+    let private neuRaisedStrong (palette: SemanticPalette) (blur: int) (offset: int) =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        [| boxShadow (sprintf "%dpx %dpx %dpx %s, inset 1px 1px 2px %s, inset -1px -1px 2px rgba(0,0,0,0.14)"
+                        offset offset blur palette.SurfaceShadowStrong.ToCssString
+                        palette.SurfaceHighlight.ToCssString) |]
+        #else
+        shadow palette.SurfaceShadowStrong blur (offset, offset)
+        #endif
+
+    // Inset (carved well): dark inner shadow biased to the top-left inner lip (the
+    // depth) + a lighter inner bevel on the bottom-right (the lit lower edge). The
+    // asymmetry (dark top-left, light bottom-right) is what reads as "carved in."
+    let private neuInset (palette: SemanticPalette) (blur: int) (offset: int) =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        // Beveled carve, not a hard step: a crisp dark lip top-left, a larger soft dark wall behind
+        // it (graduated chamfer), and a lit rim bottom-right. The soft wall is what turns a sharp
+        // edge into a beveled one.
+        [| boxShadow (sprintf "inset %dpx %dpx %dpx %s, inset %dpx %dpx %dpx %s, inset -%dpx -%dpx %dpx %s"
+                        offset offset (blur + 3) palette.SurfaceShadowStrong.ToCssString
+                        (offset * 2) (offset * 2) (blur * 2) palette.SurfaceShadow.ToCssString
+                        offset offset (blur + 2) palette.SurfaceHighlight.ToCssString) |]
+        #else
+        shadow palette.SurfaceShadowStrong blur (offset, offset)
+        #endif
+
+    // Carved rim (scale-independent): a SHARP metallic channel that reads identically at any
+    // container size. neuInset above works on the small theme-toggle track but breaks on large
+    // panels: its wide `offset*2 / blur*2` wall spreads a soft dark wash tens of px into the
+    // interior, so a big form reads as a blended gradient instead of a rim. This helper keeps
+    // every layer tight against the border — nothing reaches the interior — so the cutout edge
+    // stays crisp whether the surface is 60px or 600px wide:
+    //   • a hard dark inner lip top-left (blur 1, the shadowed wall of the cut),
+    //   • a soft-but-shallow dark backing just behind it (blur 4, still edge-bound, gives the
+    //     lip thickness without bleeding),
+    //   • a bright specular catch bottom-right (the lit opposite wall — the "metallic" glint).
+    let private neuInsetRim (palette: SemanticPalette) =
+        #if EGGSHELL_PLATFORM_IS_WEB
+        [| boxShadow (sprintf "inset 2px 2px 1px %s, inset 3px 3px 4px %s, inset -2px -2px 1px %s, inset -3px -3px 4px %s"
+                        palette.SurfaceShadowStrong.ToCssString
+                        palette.SurfaceShadow.ToCssString
+                        palette.SurfaceHighlight.ToCssString
+                        palette.SurfaceHighlight.ToCssString) |]
+        #else
+        shadow palette.SurfaceShadowStrong 4 (2, 2)
+        #endif
+
+    // Rim as a TOP overlay. An inset box-shadow painted on a container renders BELOW that
+    // container's children, so anything that scrolls or slides to the container edge (the category
+    // pill row, the swipe-to-delete surface) passes OVER the rim — it looks like it floats above
+    // the lip. To make content pass UNDER the lip instead, the rim must paint ABOVE the children:
+    // put it on a transparent, absolutely-filling sibling rendered LAST, with pointer-events off
+    // (set `ignorePointerEvents = true` on the Rn.View). `radius` must match the container's.
+    let cutoutRimOverlay =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) (radius: int) ->
+                makeViewStyles {
+                    Position.Absolute
+                    top 0
+                    left 0
+                    right 0
+                    bottom 0
+                    borderRadius radius
+                    neuInsetRim palette
+                }
+        )
+
     let page =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) (usePhoneChrome: bool) ->
@@ -48,7 +130,7 @@ module Styles =
                         AlignSelf.Center
                         borderRadius 40
                         backgroundColor palette.PageBackground
-                        shadow (Color.BlackAlpha 0.1) 20 (0, 10)
+                        shadow (Color.BlackAlpha 0.12) 28 (0, 14)
                         Overflow.Hidden
                     else
                         AlignSelf.Stretch
@@ -67,6 +149,7 @@ module Styles =
                         borderRadius 26
                         borderWidth 1
                         borderColor palette.CardBorder
+                        neuRaised palette 18 5
                 }
         )
 
@@ -104,15 +187,19 @@ module Styles =
             marginTop 4
         }
 
-    // Match the mockup's radius-md (16) on primary buttons; framework Button
-    // hardcodes 4, and caller styles win (appended last).
+    // Primary Add button: radius override + neumorphic raised shadow.
+    // Framework Button hardcodes radius 4; caller styles win (appended last).
     let addButton =
-        makeViewStyles {
-            borderRadius 16
-            AlignSelf.Stretch
-            minHeight 48
-            paddingVertical 14
-        }
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    borderRadius 16
+                    AlignSelf.Stretch
+                    minHeight 48
+                    paddingVertical 14
+                    neuRaisedStrong palette 16 5
+                }
+        )
 
     // Composer field cell: full-width stacked on handheld, equal flex columns when wide.
     let composerCell =
@@ -145,7 +232,24 @@ module Styles =
             minHeight 44
             AlignItems.Center
             JustifyContent.Center
+            borderRadius 12
         }
+
+    // Selected filter tab: PRESSED into the raised bar (inset), not a floating raised pill. A
+    // floating pill in a track reads as a slider thumb; a pressed-in key reads as the active tab.
+    let filterTabCellSelected =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    flex 1
+                    minHeight 44
+                    AlignItems.Center
+                    JustifyContent.Center
+                    borderRadius 12
+                    backgroundColor palette.FormBackground
+                    neuInset palette 8 2
+                }
+        )
 
     let categoryScroll =
         makeScrollViewStyles {
@@ -154,19 +258,32 @@ module Styles =
             AlignSelf.Stretch
         }
 
+    // Spans the composer panel's padding (marginHorizontal -16) so the pill row reaches the inner
+    // walls, then clips there: scrolled pills slide UNDER the panel edge instead of stopping short
+    // of it. Vertical padding leaves room for the raised-pill shadows so Overflow.Hidden (horizontal
+    // clip) never flattens their tops/bottoms.
+    let categorySlideWrap =
+        makeViewStyles {
+            marginHorizontal -16
+            Overflow.Hidden
+        }
+
     let categoryScrollContent =
         makeViewStyles {
             FlexDirection.Row
             FlexWrap.Nowrap
             gap 8
+            paddingTop 6
             paddingBottom 14
-            paddingRight 8
+            paddingHorizontal 16
             AlignItems.Center
         }
 
+    // Neumorphic category pill. Unselected = RAISED (protrudes from the surface). Selected =
+    // pressed/carved (INSET) with an accent border — a pressed button reads as "chosen", not raised.
     let categoryPill =
         ViewStyles.Memoize(
-            fun (bg: Color) (border: Color) (isSelected: bool) ->
+            fun (palette: SemanticPalette) (bg: Color) (border: Color) (isSelected: bool) ->
                 makeViewStyles {
                     minHeight 44
                     flexShrink 0
@@ -176,7 +293,11 @@ module Styles =
                     paddingHorizontal 10
                     JustifyContent.Center
                     backgroundColor bg
-                    borderColor border
+                    borderColor (if isSelected then palette.Accent else border)
+                    if isSelected then
+                        neuInset palette 8 3
+                    else
+                        neuRaised palette 10 3
                 }
         )
 
@@ -243,12 +364,13 @@ module Styles =
 
     let subFilterPill =
         ViewStyles.Memoize(
-            fun (bg: Color) ->
+            fun (palette: SemanticPalette) (bg: Color) ->
                 makeViewStyles {
                     paddingVertical 6
                     paddingHorizontal 12
                     borderRadius 999
                     backgroundColor bg
+                    neuRaised palette 12 4
                 }
         )
 
@@ -272,6 +394,7 @@ module Styles =
                     backgroundColor palette.StatBackground
                     borderWidth 1
                     borderColor (Color.BlackAlpha (13.0 / 255.0))
+                    neuRaised palette 12 4
                 }
         )
 
@@ -285,15 +408,77 @@ module Styles =
                 }
         )
 
+    // RAISED field for the composer text input + picker. The carved rim lives on the composer
+    // PANEL (the outer container); each field protrudes from that recess like the toggle thumb
+    // sits in its track — NOT a second carved cutout nested inside the first. Lighter fill +
+    // raised shadow so it reads as sitting up out of the panel floor.
+    let composerInputWell =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    AlignSelf.Stretch
+                    borderRadius 20
+                    backgroundColor palette.CardBackground
+                    neuRaised palette 10 3
+                }
+        )
+
+    // Inset well for the theme toggle segmented control (pressed-in track).
+    let themeToggleWell =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    borderRadius 999
+                    padding 3
+                    backgroundColor palette.ThemeTrackBackground
+                    neuInsetRim palette
+                }
+        )
+
+    // Raised bar for the filter tab bar — the selected tab is pressed INTO it (inset), giving the
+    // physical "this key is pushed in" tab read rather than a slider thumb on a track.
+    let filterTabsWell =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    FlexDirection.Row
+                    AlignSelf.Stretch
+                    borderRadius 16
+                    padding 4
+                    gap 4
+                    backgroundColor palette.CardBackground
+                    neuRaised palette 12 4
+                }
+        )
+
+    // Raised well for the todo row checkbox (physical press feel). Slightly darker
+    // than the row so it stands out, with a raised dual shadow.
+    let checkboxWell =
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    width 36
+                    height 36
+                    borderRadius 10
+                    backgroundColor palette.PageBackground
+                    JustifyContent.Center
+                    AlignItems.Center
+                    neuRaised palette 8 2
+                }
+        )
+
     let composerPanel =
         ViewStyles.Memoize(
             fun (palette: SemanticPalette) (isHandheld: bool) ->
                 makeViewStyles {
                     gap (if isHandheld then 12 else 14)
                     padding 16
-                    borderRadius 24
-                    backgroundColor palette.FormBackground
-                    borderWidth 0
+                    borderRadius 28
+                    // The carved rim is painted by a `cutoutRimOverlay` sibling on TOP (see Todos.fs)
+                    // so the scrolling category pill row slides UNDER the lip, not over it. Position
+                    // relative so that absolute overlay anchors to this panel.
+                    Position.Relative
+                    backgroundColor palette.ThemeTrackBackground
                 }
         )
 
@@ -333,9 +518,13 @@ module Styles =
 
     let searchInputWrap =
         ViewStyles.Memoize(
-            fun (_palette: SemanticPalette) ->
+            fun (palette: SemanticPalette) ->
                 makeViewStyles {
                     AlignSelf.Stretch
+                    borderRadius 999
+                    // Sharp carved rim (scale-independent) so the search well reads like the toggle cutout.
+                    backgroundColor palette.ThemeTrackBackground
+                    neuInsetRim palette
                 }
         )
 
@@ -349,7 +538,7 @@ module Styles =
 
     let list =
         makeViewStyles {
-            gap 10
+            gap 16
             marginTop 4
         }
 
@@ -359,6 +548,9 @@ module Styles =
                 makeViewStyles {
                     borderRadius 16
                     Overflow.Hidden
+                    // Anchor for the carved-rim overlay (see Todos.fs): the rim lives on this OUTER
+                    // frame and paints on top, so the sliding swipe surface passes under the lip.
+                    Position.Relative
                     if mode = AppearanceMode.Dark then
                         borderWidth 1
                         borderColor palette.RowBorder
@@ -374,11 +566,11 @@ module Styles =
                     gap 8
                     paddingVertical 10
                     paddingHorizontal 12
-                    backgroundColor palette.RowBackground
+                    // Flat recessed floor of the row cutout. The carved rim is painted by the
+                    // `cutoutRimOverlay` on the OUTER row frame (todoRowOuter) so the swipe surface
+                    // slides UNDER the lip — this inner surface must stay flat (no nested carve).
+                    backgroundColor palette.ThemeTrackBackground
                     borderRadius 16
-                    borderRight 3 palette.SwipeHintColor
-                    if mode = AppearanceMode.Light then
-                        shadow palette.RowShadowColor 8 (0, 2)
                 }
         )
 
@@ -418,13 +610,13 @@ module Styles =
                 makeViewStyles {
                     width 44
                     height 44
-                    borderRadius 8
-                    borderWidth 2
-                    borderColor Color.Transparent
+                    borderRadius 12
+                    borderWidth 0
                     JustifyContent.Center
                     AlignItems.Center
                     flexShrink 0
                     backgroundColor Color.Transparent
+                    neuRaised palette 10 3
                     // Hover/focus tint approximated via pressed state in RN; color encodes mockup intent.
                     opacity 1
                 }
@@ -439,27 +631,24 @@ module Styles =
             borderRadius 16
         }
 
-    let swipeGradientOverlay =
+    // FULL-WIDTH Danger background behind the sliding content. The entire row goes red — as the
+    // content slides left, red fills the whole card area behind it (not just an 80px slot on the
+    // right). The delete text sits right-aligned with padding so it stays in the revealed area.
+    let swipeDeleteSlot =
         ViewStyles.Memoize(
-            fun (isVisible: bool) ->
+            fun (palette: SemanticPalette) ->
                 makeViewStyles {
                     Position.Absolute
-                    trbl 0 0 0 0
-                    backgroundColor (Color.Hex "#dc2626")
-                    opacity (if isVisible then 1.0 else 0.0)
+                    top 0
+                    bottom 0
+                    left 0
+                    right 0
+                    paddingRight 14
+                    JustifyContent.Center
+                    AlignItems.FlexEnd
+                    backgroundColor palette.Danger
                 }
         )
-
-    let swipeDeleteSlot =
-        makeViewStyles {
-            Position.Absolute
-            top 0
-            bottom 0
-            right 0
-            width swipeDeleteWidth
-            JustifyContent.Center
-            AlignItems.Center
-        }
 
     let swipeDeleteButtonText =
         makeTextStyles {
@@ -468,10 +657,13 @@ module Styles =
             FontWeight.W600
         }
 
-    // translateX is applied via a Reanimated animated style, not here (see TodoSwipeShell).
+    // The sliding content surface. FLAT + opaque (recessed floor tone) so it slides UNDER the row's
+    // fixed carved rim (painted by cutoutRimOverlay on todoRowOuter) and cleanly occludes the red
+    // Danger slot behind it until swiped. No raised shadow here — the rim belongs to the outer frame,
+    // not the sliding element, so the surface reads as content sliding within the cutout.
     let swipeContentBase (palette: SemanticPalette) =
         makeViewStyles {
-            backgroundColor palette.RowBackground
+            backgroundColor palette.ThemeTrackBackground
             borderRadius 16
             Overflow.Hidden
         }
@@ -490,29 +682,32 @@ module Styles =
         }
 
     let swipeReducedMotionDelete =
-        makeViewStyles {
-            width 72
-            minHeight 44
-            paddingHorizontal 14
-            borderRadius 16
-            JustifyContent.Center
-            AlignItems.Center
-            backgroundColor (Color.Hex "#dc2626")
-            flexShrink 0
-            Overflow.Hidden
-        }
+        ViewStyles.Memoize(
+            fun (palette: SemanticPalette) ->
+                makeViewStyles {
+                    width 72
+                    minHeight 44
+                    paddingHorizontal 14
+                    borderRadius 16
+                    JustifyContent.Center
+                    AlignItems.Center
+                    backgroundColor palette.Danger
+                    flexShrink 0
+                }
+        )
 
     let metaChip =
         ViewStyles.Memoize(
-            fun (chipBg: Color) (chipBorder: Color) ->
+            fun (palette: SemanticPalette) (chipBg: Color) (chipBorder: Color) ->
                 makeViewStyles {
                     paddingVertical 2
                     paddingHorizontal 6
                     borderRadius 999
-                    borderWidth 0
+                    borderWidth 1
                     backgroundColor chipBg
                     borderColor chipBorder
                     AlignSelf.FlexStart
+                    neuRaised palette 8 3
                 }
         )
 
@@ -575,7 +770,7 @@ module Styles =
     let filterTabTheme (tabBase: TabTheme) : LC.Tab.Theme =
         {
             SelectedColor   = tabBase.SelectedColor
-            UnselectedColor = Color.Grey "66"
+            UnselectedColor = tabBase.UnselectedColor
         }
 
     let tabsScrollTheme (tabBase: TabTheme) : Theme =

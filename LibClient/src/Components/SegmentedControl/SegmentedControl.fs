@@ -21,6 +21,9 @@ module LC =
             UnselectedLabelColor: Color
             TrackWidth:           int
             TrackPadding:         int
+            // Neumorphic raised thumb: drop shadow + top-left light bevel. Default Transparent = flat thumb.
+            ThumbShadowColor:    Color
+            ThumbHighlightColor: Color
         }
 
         type Segment<'T when 'T : equality> = {
@@ -109,6 +112,14 @@ module private Styles =
             width (max 0 thumbWidth)
             borderRadius 999
             backgroundColor theme.ThumbBackground
+            // Raised neumorphic thumb: outer drop shadow + inner top-left light bevel (web);
+            // single drop shadow on native (RN shadow* API supports only one shadow).
+#if EGGSHELL_PLATFORM_IS_WEB
+            boxShadow (sprintf "2px 3px 6px %s, inset 1px 1px 2px %s"
+                        theme.ThumbShadowColor.ToCssString theme.ThumbHighlightColor.ToCssString)
+#else
+            shadow theme.ThumbShadowColor 6 (2, 3)
+#endif
         }
 
 type LibClient.Components.Constructors.LC with
@@ -281,7 +292,7 @@ type LibClient.Components.Constructors.LC with
             Rn.View(
                 styles                    = [| Styles.segmentCell cellWidth |],
                 accessibilityRole         = AccessibilityRole.Radio,
-                accessibilityState        = AccessibilityStateRecord.selected isActive,
+                accessibilityState        = AccessibilityStateRecord.radioSelected isActive,
                 accessibilityLabel        = segment.Label,
                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.Yes,
                 ?testId                   = segmentTestId,
@@ -306,7 +317,7 @@ type LibClient.Components.Constructors.LC with
                 onPress  = (fun _ -> selectIndex index),
                 label    = segment.Label,
                 role     = AccessibilityRole.Radio,
-                state    = AccessibilityStateRecord.selected isActive,
+                state    = AccessibilityStateRecord.radioSelected isActive,
                 ?testId  = segmentTestId,
                 styles   = [| Styles.segmentCell cellWidth |],
                 children = [|

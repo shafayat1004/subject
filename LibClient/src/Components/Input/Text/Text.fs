@@ -566,7 +566,12 @@ module Input_TextComponent =
                                           [| Styles.textInput
                                                  theTheme.NoneditableBackgroundColor
                                                  editable
-                                                 (not multiline) |],
+                                                 (not multiline)
+                                             // Text color must be applied to the input itself; without it the
+                                             // browser/native default (black) wins and dark-mode text vanishes.
+                                             // ViewStyles can't carry `color` (see FSharpDialect TODO), but
+                                             // both erase to the same JS style object, so cast the TextStyles.
+                                             (!!(Styles.textInputText theTheme.TextColor): ViewStyles) |],
                                       value               = draftValueHook.current,
                                       onChangeText        = handleChangeText,
                                       ?accessibilityLabel = inputA11yLabel,
@@ -599,7 +604,12 @@ module Input_TextComponent =
                                           [| Styles.textInput
                                                  theTheme.NoneditableBackgroundColor
                                                  editable
-                                                 (not multiline) |],
+                                                 (not multiline)
+                                             // Text color must be applied to the input itself; without it the
+                                             // browser/native default (black) wins and dark-mode text vanishes.
+                                             // ViewStyles can't carry `color` (see FSharpDialect TODO), but
+                                             // both erase to the same JS style object, so cast the TextStyles.
+                                             (!!(Styles.textInputText theTheme.TextColor): ViewStyles) |],
                                       value               = (value |> NonemptyString.optionToString),
                                       onChangeText        = handleChangeText,
                                       ?accessibilityLabel = inputA11yLabel,
