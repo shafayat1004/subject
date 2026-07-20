@@ -4,6 +4,36 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-20 (session 50 — native neumorphism parity: emit `boxShadow` (incl. inset) on native, not just web)
+
+SYMPTOM: side-by-side, web / iOS / Android looked completely different. Web showed the carved neumorphic cutouts + metallic rims; iOS and Android showed flat panels / raised cards with a soft drop shadow and NO carved rim (composer panel, todo rows).
+
+ROOT CAUSE: every neumorphism helper in `TodoTheme.fs` (`neuRaised`, `neuRaisedStrong`, `neuInset`, `neuInsetRim`) was `#if EGGSHELL_PLATFORM_IS_WEB` → full CSS `boxShadow` (outer + `inset` layers) `#else` → a single outer `shadow palette.SurfaceShadow ...`. The `#else` branch was written when RN's classic `shadow*` API was the only option (one outer shadow, no inset), so native could never render a carved/inset look — hence flat cards. Same for the groove/grip light-companion lines and the framework Popup groove (guarded web-only).
+
+FIX: emit ONE `boxShadow` string on BOTH platforms — dropped the `#if EGGSHELL_PLATFORM_IS_WEB` / `#else shadow` split in all those helpers (and the `labelGroove`/`gripDash`/Popup-groove companion lines). This is valid because **RN 0.86 (New Architecture / Fabric) supports the `boxShadow` style prop, including `inset` and multiple comma-separated layers** — in fact the New-arch `Rn.Styles.shadow` helper (`LibClient/src/Rn/Styles/New/RulesAdditional.fs`) is ALREADY a `boxShadow` under the hood, which is why the plain drop shadows were rendering on device all along. Emitting the full inset strings gives iOS/Android the exact carved look as web.
+
+VERIFICATION: rebuilt the native Fable bundle (0 `error FS`), ran on an **iPhone 16 Pro simulator** (`run-ios`) and a **Medium_Phone_API_35 Android emulator** (release APK installed) — both now render the carved composer panel + metallic rim, raised input fields, carved search well, carved toggle track, and the pressed filter-tab well, matching web. Screenshots captured for all three. (Row cutouts use the same `cutoutRimOverlay` + flat surface as the composer panel, which is proven carved.)
+
+KEY LESSON: on RN New Arch (0.76+, and 0.86 here) prefer the `boxShadow` style for shadows/insets over the legacy single `shadow*`; the classic API's "one outer shadow, no inset" limitation no longer applies. A `#if EGGSHELL_PLATFORM_IS_WEB … #else shadow` split for anything inset/multi-layer silently downgrades native to a flat look. Verify native visually — a green build hides a shadow-model mismatch.
+
+FILES: `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs` (all neu* helpers + labelGroove + gripDash now emit `boxShadow` unconditionally), `LibClient/src/Components/Input/PickerInternals/Popup/Popup.fs` (groove companion line unguarded).
+
+---
+
+## 2026-07-20 (session 49 — AppTodo release APK + IPA, fake service; release-build.sh fixes)
+
+Built the Android release APK and iOS Development IPA for AppTodo (fake in-memory service — the native config `configSourceOverrides.native.js` already omits `BackendUrl`, so a release ships `FakeTodoService`; no config change needed). Rebuilt the native Fable bundle first (`eggshell build-native`, 0 `error FS`) so both artifacts embed the session-47/48 neumorphism work. Artifacts: `SuiteTodo/AppTodo/android/app/build/outputs/apk/release/app-release.apk` (76M) and `SuiteTodo/AppTodo/dist/ios/com.eggshell.apptodo.ipa` (9.0M, signed, `main.jsbundle` embedded).
+
+TWO findings folded back into the `release-build` skill:
+
+1. **CLI iOS archive works once the cert is cached.** The skill said the first archive MUST be Xcode UI; the real constraint is only *cert generation* for a free personal team. Because a prior UI archive had already created the `Apple Development` identity + a cached provisioning profile (preflight checks 4 + 6 PASS) and the login keychain was unlocked, a headless `xcodebuild ... -allowProvisioningUpdates archive` succeeded — embedded-framework `codesign` did NOT hit `errSecInternalComponent`. Added the exact command to SKILL.md stage 2.
+
+2. **`release-build.sh` relative-appdir bug (fixed).** The ios wrap does `cd "$WORK"` before `zip ... "$OUT_IPA"`; `OUT_IPA` was built from the `<appdir>` arg, so a RELATIVE appdir made the zip fail ("zip I/O error: No such file or directory") — and the script then `du`-reported a STALE IPA left in `dist/ios/` from a prior build as if it were fresh (a Jul 16 IPA reported as the new artifact). Fix: resolve `$APP` to an absolute path at the top of the script. Always pass an absolute appdir; delete any stale `dist/ios/*.ipa` before trusting the reported size.
+
+FILES: `.claude/skills/release-build/scripts/release-build.sh` (absolute-appdir fix), `.claude/skills/release-build/SKILL.md` (CLI-archive note + absolute-path warning).
+
+---
+
 ## 2026-07-20 (session 48 — neumorphic engraved-groove + grip-dash detailing)
 
 Added the neumorphic "engraved groove / short-dash" language the reference kits use (carved hairlines, grip handles). A groove = a dark 1px hairline with a light 1px companion directly beneath it (the shadowed top wall + lit bottom wall of a cut channel); on web it is `backgroundColor SurfaceShadow` + `boxShadow "0px 1px 0px SurfaceHighlight"`. Three placements:

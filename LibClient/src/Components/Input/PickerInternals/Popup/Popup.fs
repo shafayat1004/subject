@@ -82,11 +82,10 @@ module private Styles =
 
             if not isFirst then
                 borderTop 1 theTheme.ItemBorderColor
-                #if EGGSHELL_PLATFORM_IS_WEB
                 // Light hairline just below the dark item border → the pair reads as an engraved
                 // groove carved between items. No-op when ItemGrooveHighlightColor is Transparent.
+                // boxShadow works on web AND native New-arch (RN 0.86), so no platform guard.
                 boxShadow (sprintf "inset 0px 1px 0px %s" theTheme.ItemGrooveHighlightColor.ToCssString)
-                #endif
 
             if isHighlighted then
                 backgroundColor theTheme.ItemHighlightBackground

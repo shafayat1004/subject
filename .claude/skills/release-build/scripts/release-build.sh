@@ -4,6 +4,10 @@
 set -u
 PLAT="${1:-}"; APP="${2:-}"; INSTALL="${3:-}"
 [[ -n "$PLAT" && -d "$APP" ]] || { echo "usage: release-build.sh {android|ios|web} <appdir> [--install]"; exit 2; }
+# Resolve appdir to an absolute path. The ios wrap `cd "$WORK"`s before zipping the IPA, so a
+# RELATIVE OUT_IPA would resolve against $WORK and fail ("zip I/O error: No such file or directory"),
+# while `du` then silently reports a STALE IPA left from a prior build. Absolute path fixes both.
+APP="$( cd "$APP" >/dev/null 2>&1 && pwd )"
 SCRIPT_DIR="$( cd "$( dirname "${(%):-%x}" )" >/dev/null 2>&1 && pwd )"
 REPO_ROOT="$( cd "$SCRIPT_DIR/../../../.." >/dev/null 2>&1 && pwd )"
 case "$PLAT" in

@@ -27,41 +27,31 @@ module Styles =
     // lift), biased to the bottom-right so it reads as cast by a top-left light. A thin
     // inner light bevel on the top edge catches light on dark fills (e.g. the teal Add
     // button); on near-white fills the outer dark shadow does all the lifting.
-    // On web: CSS box-shadow (outer dark + inset light). On native: single dark shadow
-    // (RN's shadow* API supports only one shadow, no inset).
+    // Emits ONE CSS `boxShadow` string on both web and native: RN 0.86 (New Arch / Fabric)
+    // supports `boxShadow` (incl. `inset` + multiple layers) — the New-arch `shadow` helper is
+    // itself a boxShadow underneath. Using boxShadow on native (not the single-outer `shadow`
+    // fallback) is what gives iOS/Android the same carved neumorphism as web.
     let private neuRaised (palette: SemanticPalette) (blur: int) (offset: int) =
-        #if EGGSHELL_PLATFORM_IS_WEB
         [| boxShadow (sprintf "%dpx %dpx %dpx %s, inset 1px 1px 2px %s"
                         offset offset blur palette.SurfaceShadow.ToCssString
                         palette.SurfaceHighlight.ToCssString) |]
-        #else
-        shadow palette.SurfaceShadow blur (offset, offset)
-        #endif
 
     let private neuRaisedStrong (palette: SemanticPalette) (blur: int) (offset: int) =
-        #if EGGSHELL_PLATFORM_IS_WEB
         [| boxShadow (sprintf "%dpx %dpx %dpx %s, inset 1px 1px 2px %s, inset -1px -1px 2px rgba(0,0,0,0.14)"
                         offset offset blur palette.SurfaceShadowStrong.ToCssString
                         palette.SurfaceHighlight.ToCssString) |]
-        #else
-        shadow palette.SurfaceShadowStrong blur (offset, offset)
-        #endif
 
     // Inset (carved well): dark inner shadow biased to the top-left inner lip (the
     // depth) + a lighter inner bevel on the bottom-right (the lit lower edge). The
     // asymmetry (dark top-left, light bottom-right) is what reads as "carved in."
+    // Beveled carve, not a hard step: a crisp dark lip top-left, a larger soft dark wall behind
+    // it (graduated chamfer), and a lit rim bottom-right. The soft wall is what turns a sharp
+    // edge into a beveled one. Emitted on web AND native (RN 0.86 boxShadow inset).
     let private neuInset (palette: SemanticPalette) (blur: int) (offset: int) =
-        #if EGGSHELL_PLATFORM_IS_WEB
-        // Beveled carve, not a hard step: a crisp dark lip top-left, a larger soft dark wall behind
-        // it (graduated chamfer), and a lit rim bottom-right. The soft wall is what turns a sharp
-        // edge into a beveled one.
         [| boxShadow (sprintf "inset %dpx %dpx %dpx %s, inset %dpx %dpx %dpx %s, inset -%dpx -%dpx %dpx %s"
                         offset offset (blur + 3) palette.SurfaceShadowStrong.ToCssString
                         (offset * 2) (offset * 2) (blur * 2) palette.SurfaceShadow.ToCssString
                         offset offset (blur + 2) palette.SurfaceHighlight.ToCssString) |]
-        #else
-        shadow palette.SurfaceShadowStrong blur (offset, offset)
-        #endif
 
     // Carved rim (scale-independent): a SHARP metallic channel that reads identically at any
     // container size. neuInset above works on the small theme-toggle track but breaks on large
@@ -74,15 +64,11 @@ module Styles =
     //     lip thickness without bleeding),
     //   • a bright specular catch bottom-right (the lit opposite wall — the "metallic" glint).
     let private neuInsetRim (palette: SemanticPalette) =
-        #if EGGSHELL_PLATFORM_IS_WEB
         [| boxShadow (sprintf "inset 2px 2px 1px %s, inset 3px 3px 4px %s, inset -2px -2px 1px %s, inset -3px -3px 4px %s"
                         palette.SurfaceShadowStrong.ToCssString
                         palette.SurfaceShadow.ToCssString
                         palette.SurfaceHighlight.ToCssString
                         palette.SurfaceHighlight.ToCssString) |]
-        #else
-        shadow palette.SurfaceShadowStrong 4 (2, 2)
-        #endif
 
     // Rim as a TOP overlay. An inset box-shadow painted on a container renders BELOW that
     // container's children, so anything that scrolls or slides to the container edge (the category
@@ -350,9 +336,7 @@ module Styles =
                     borderRadius 1
                     marginBottom 10
                     backgroundColor palette.SurfaceShadow
-                    #if EGGSHELL_PLATFORM_IS_WEB
                     boxShadow (sprintf "0px 1px 0px %s" palette.SurfaceHighlight.ToCssString)
-                    #endif
                 }
         )
 
@@ -366,9 +350,7 @@ module Styles =
                     borderRadius 1
                     marginVertical 2
                     backgroundColor palette.SurfaceShadow
-                    #if EGGSHELL_PLATFORM_IS_WEB
                     boxShadow (sprintf "0px 1px 0px %s" palette.SurfaceHighlight.ToCssString)
-                    #endif
                 }
         )
 
