@@ -112,14 +112,12 @@ module private Styles =
             width (max 0 thumbWidth)
             borderRadius 999
             backgroundColor theme.ThumbBackground
-            // Raised neumorphic thumb: outer drop shadow + inner top-left light bevel (web);
-            // single drop shadow on native (RN shadow* API supports only one shadow).
-#if EGGSHELL_PLATFORM_IS_WEB
+            // Raised neumorphic thumb: outer drop shadow + inner top-left light bevel. Emitted as one
+            // `boxShadow` on BOTH web and native — RN 0.86 New Arch / Fabric supports boxShadow incl.
+            // inset, so native gets the same 3D raised thumb (the old single-`shadow` fallback lacked
+            // the inner bevel and read flat).
             boxShadow (sprintf "2px 3px 6px %s, inset 1px 1px 2px %s"
                         theme.ThumbShadowColor.ToCssString theme.ThumbHighlightColor.ToCssString)
-#else
-            shadow theme.ThumbShadowColor 6 (2, 3)
-#endif
         }
 
 type LibClient.Components.Constructors.LC with

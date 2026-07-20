@@ -232,6 +232,10 @@ module Styles =
                     AlignItems.Center
                     JustifyContent.Center
                     borderRadius 12
+                    // Clip the inset shadow to the rounded corners. Android's inset boxShadow does
+                    // NOT respect borderRadius on its own (paints a square recess); Overflow.Hidden
+                    // forces a rounded clip layer so the cutout matches iOS/web.
+                    Overflow.Hidden
                     backgroundColor palette.FormBackground
                     neuInset palette 8 2
                 }
@@ -281,6 +285,10 @@ module Styles =
                     backgroundColor bg
                     borderColor (if isSelected then palette.Accent else border)
                     if isSelected then
+                        // Inset: clip to the pill radius so Android's inset shadow stays rounded.
+                        // (Only when selected — Overflow.Hidden on the RAISED state would clip the
+                        // OUTER drop shadow and kill the raised look.)
+                        Overflow.Hidden
                         neuInset palette 8 3
                     else
                         neuRaised palette 10 3
