@@ -4,6 +4,33 @@ This is the running engineering log for the EggShell modernization effort (forme
 
 ---
 
+## 2026-07-20 (session 51 — cross-platform polish fixes; haptics/audio BLOCKED by RN 0.86 pod fragility)
+
+Two parts: three shipped rendering-parity fixes, and an aborted haptics/audio feature that hit a hard native-build wall (documented so the next attempt starts informed).
+
+### Shipped (commit 2a552c3): iOS/Android rendering parity
+
+- **Android inset cutout rendered SQUARE** (filter-tab "All" recess, selected category pill): Android's inset `boxShadow` does not clip to `borderRadius` on its own. FIX: `Overflow.Hidden` on the inset elements (`filterTabCellSelected`, selected `categoryPill`) forces a rounded clip layer. Only on the inset/selected state — `Overflow.Hidden` on a RAISED element would clip its outer drop shadow.
+- **Android TextInput taller than iOS**: Android's native `TextInput` ships a large default internal padding (iOS ~none). FIX: `padding 0` + `margin 0` on the element in `LibClient` `Input.Text` for BOTH platforms, so height is driven by the border wrapper's `paddingVertical` + `minHeight`.
+- **Theme-toggle thumb read flat on native**: `SegmentedControl` `thumbStatic` used the single-`shadow` fallback on native. FIX: emit the raised `boxShadow` (outer + inner bevel) on native too (same RN 0.86 boxShadow story as session 50), giving the 3D raised green slider on device. Verified iPhone 16 Pro sim + Medium_Phone_API_35 emulator; both release artifacts rebuilt.
+
+### BLOCKED: high-quality haptics + old-school click sound
+
+Goal: `react-native-haptic-feedback` (Taptic/HapticFeedbackConstants) + a bundled `click.mp3` via `react-native-sound`, wired to the category pills + theme toggle. Both failed to LINK on this RN **0.86 New Architecture (Fabric, prebuilt React Native)** iOS build:
+
+1. `react-native-sound` 0.11.2 is a legacy bridge module — does not link on New Arch.
+2. **The real wall:** adding ANY native pod and running `pod install` RE-RESOLVED the Podspecs and broke the prebuilt-RN Fabric link — clean builds then fail with `Undefined symbols: facebook::react::Sealable / DebugStringConvertible / BaseViewProps::getDebugProps` (referenced from the EXISTING RNCPicker / RNGestureHandler Fabric component views) + `ld: warning: Could not find or use auto-linked framework 'UIUtilities'`. Removing the pod did NOT fix it — the damage was the `pod install` lock re-resolution itself.
+
+RECOVERY (works): `git checkout` the committed `ios/Podfile.lock` + `project.pbxproj`, `rm -rf ios/Pods`, `pod install` (reproduces from the committed lock), wipe DerivedData, rebuild → `BUILD SUCCEEDED`. The committed `Podfile.lock` is the source of truth for a working Fabric link on this machine's CocoaPods.
+
+OUTCOME: reverted the feedback plumbing (Feedback.fs + hooks) to keep the tree clean and the app building; rendering fixes stand. Haptics/audio deferred pending either (a) a fix for the prebuilt-RN pod re-resolution (pin/patch so `pod install` can't perturb Fabric), (b) a New-Arch-native haptics lib vetted to not disturb the lock, or (c) the built-in `Vibration` (no pod, no risk — but coarse on iOS; user rejected earlier).
+
+KEY LESSON: on RN 0.86 with **prebuilt React Native** (`React-Core-prebuilt` / `ReactNativeDependencies` / `hermes-engine` pods), `pod install` is NOT safely idempotent — re-resolving pods can drop the Fabric/`UIUtilities` link and break clean builds with undefined `facebook::react::*` symbols. Treat the committed `Podfile.lock` as load-bearing; adding a native module is a real spike, not a drop-in. Verify a CLEAN build (wiped DerivedData), not just incremental — incremental masks the break via cached objects.
+
+FILES (shipped): `SuiteTodo/AppTodo/src/Theme/TodoTheme.fs`, `LibClient/src/Components/Input/Text/Text.fs`, `LibClient/src/Components/SegmentedControl/SegmentedControl.fs`.
+
+---
+
 ## 2026-07-20 (session 50 — native neumorphism parity: emit `boxShadow` (incl. inset) on native, not just web)
 
 SYMPTOM: side-by-side, web / iOS / Android looked completely different. Web showed the carved neumorphic cutouts + metallic rims; iOS and Android showed flat panels / raised cards with a soft drop shadow and NO carved rim (composer panel, todo rows).
