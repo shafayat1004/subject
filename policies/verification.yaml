@@ -17,13 +17,19 @@ commands:
   # is slow and requires the tool to be installed. The custom check
   # fails open when the tool is missing.
   format: null
-  # Compile: force a fresh Fable build by clearing the web cache first,
-  # then run eggshell build-lib. The assert block catches the stale-
-  # cache false green (CLAUDE.md build section): "Started Fable
-  # compilation" must appear, and "error FS" plus the skip message must
-  # not. This is the #35 content-assert feature in action.
+  # Compile: force a fresh Fable build by clearing the AppEggShellGallery
+  # web cache, then run eggshell test-build (app project -> runFable ->
+  # the Fable CLI which emits "Started Fable compilation..."). The old
+  # command used build-lib from the repo root, which hit two walls: the
+  # root eggshell.json is type:repoRoot (buildLib rejects non-library),
+  # and buildLib never calls runFable at all, so the "Started Fable
+  # compilation" assert was structurally unsatisfiable. test-build is the
+  # app-project path that actually runs Fable. The assert block catches
+  # the stale-cache false green (AGENTS.md build invariant): "Started
+  # Fable compilation" must appear, "error FS" plus the skip message must
+  # not.
   compile:
-    command: "sh -c 'rm -rf .build/web/fable && ./eggshell build-lib'"
+    command: "sh -c 'cd AppEggShellGallery && rm -rf .build/web/fable && ../eggshell test-build'"
     assert:
       contains:
         - "Started Fable compilation"
