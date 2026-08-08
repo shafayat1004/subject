@@ -1,0 +1,6 @@
+#!/bin/sh
+# agent-os PreCompact wrapper (installed by `agentos init`).
+# Reminds the agent to refresh STATE.yaml. Never blocks.
+cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
+command -v python3 >/dev/null 2>&1 || exit 0
+exec ".agent-os/bin/agentos" hook-pre-compact

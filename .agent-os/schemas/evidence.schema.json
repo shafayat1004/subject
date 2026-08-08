@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "type": "object",
+  "required": ["claim", "status", "evidence_ref", "source_type", "ts"],
+  "additionalProperties": false,
+  "properties": {
+    "claim": {"type": "string"},
+    "status": {"enum": ["confirmed", "inferred", "unverified"]},
+    "evidence_ref": {"type": "string"},
+    "source_type": {"enum": ["tool", "file", "test", "policy", "human"]},
+    "verifier": {"type": "string"},
+    "hash": {"type": "string"},
+    "ts": {"type": "string"},
+    "version": {"type": "integer", "enum": [1]},
+    "id": {"type": "string"},
+    "criterion": {"type": "string"},
+    "supersedes": {"type": "string"}
+  }
+}

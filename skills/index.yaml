@@ -1,0 +1,102 @@
+# Skill manifest for the EggShell subject repo.
+# Lists the 19 procedure skills in .claude/skills/.
+skills:
+  - name: a11y-check
+    version: 1.0.0
+    owner: EggShell
+    purpose: Check F# components and app pages against the mandatory accessibility bar (label, role, state, testId, live regions, contrast).
+    when_to_use: After any UI component or page change, before claiming it works.
+    tests: [".claude/skills/a11y-check/scripts/scan-a11y.mjs"]
+  - name: codemem-update
+    version: 1.0.0
+    owner: EggShell
+    purpose: Persist a session learning (bugfix, decision, gotcha) to the codemem MCP store.
+    when_to_use: At the end of any session that fixed a bug, made a decision, or learned a gotcha.
+  - name: debug-android
+    version: 1.0.0
+    owner: EggShell
+    purpose: Drive the Android device/emulator loop: launch, screenshot, logcat, debug.
+    when_to_use: When debugging on Android (launch, render, runtime errors).
+  - name: debug-ios
+    version: 1.0.0
+    owner: EggShell
+    purpose: Drive the iOS simulator loop: boot, install, launch, screenshot, debug.
+    when_to_use: When debugging on iOS (launch, render, runtime errors).
+  - name: debug-web
+    version: 1.0.0
+    owner: EggShell
+    purpose: Drive the web dev loop: dev servers, Playwright observation, console, debug.
+    when_to_use: When debugging on web (dev server, browser console, runtime errors).
+  - name: docs-sync
+    version: 1.0.0
+    owner: EggShell
+    purpose: Keep the gallery docs site in sync after any code or doc change.
+    when_to_use: Before every commit that changes behavior, components, or architecture.
+  - name: fable-rebuild-verify
+    version: 1.0.0
+    owner: EggShell
+    purpose: Prove a Fable rebuild actually happened before claiming a change works.
+    when_to_use: When a code edit seems to have no effect or a stale cache is suspected.
+    tests: [".claude/skills/fable-rebuild-verify/scripts/clean-stray-fable-output.sh"]
+  - name: fsharp-format
+    version: 1.0.0
+    owner: EggShell
+    purpose: Apply and check F# formatting rules (4-space indent, column alignment via eggshell-fmt).
+    when_to_use: When writing or editing any F# file in this repo.
+  - name: gallery-page-add
+    version: 1.0.0
+    owner: EggShell
+    purpose: Add a new App Gallery content page in pure F# (never render DSL) with all four registrations wired.
+    when_to_use: When a LibClient component is new or changed and needs a gallery page.
+  - name: impeccable
+    version: 1.0.0
+    owner: EggShell
+    purpose: Design, redesign, critique, audit, polish, clarify, distill, harden, optimize, adapt, or stress-test a design or document.
+    when_to_use: When the user wants a deep design or documentation review.
+  - name: mssql-debug
+    version: 1.0.0
+    owner: EggShell
+    purpose: Debug the EggShell framework MSSQL storage layer using read-only queries.
+    when_to_use: When debugging storage, subjects, sideffects, or cluster queries.
+  - name: orleans-test-triage
+    version: 1.0.0
+    owner: EggShell
+    purpose: Triage Orleans test failures by matching symptoms against known issues.
+    when_to_use: When an Orleans test fails with an unfamiliar error.
+  - name: release-build
+    version: 1.0.0
+    owner: EggShell
+    purpose: Produce and smoke-check a RELEASE build for Android, iOS, or web.
+    when_to_use: When asked for a release or production build.
+  - name: scaffolding-validator
+    version: 1.0.0
+    owner: EggShell
+    purpose: Validate eggshell create-app by scaffolding a throwaway app and verifying build and boot.
+    when_to_use: After eggshell create-app changes.
+  - name: screenshot-describe
+    version: 1.0.0
+    owner: EggShell
+    purpose: Delegate screenshot or image understanding to a vision-capable model.
+    when_to_use: When the current model cannot see images and a screenshot needs analysis.
+  - name: spike-driven
+    version: 1.0.0
+    owner: EggShell
+    purpose: Run a time-boxed spike to de-risk a third-party-ecosystem or unfamiliar-territory question.
+    when_to_use: Before writing production code that depends on an unfamiliar upstream API.
+  - name: style-leak-audit
+    version: 1.0.0
+    owner: EggShell
+    purpose: Audit F# components and pages for style leaks (makeViewStyles or makeTextStyles calls during render).
+    when_to_use: After editing component code that uses styles.
+    tests: [".claude/skills/style-leak-audit/scripts/scan-style-leaks.mjs"]
+  - name: symptom-matcher
+    version: 1.0.0
+    owner: EggShell
+    purpose: Match an unfamiliar build or runtime error against troubleshooting.md before improvising root-cause analysis.
+    when_to_use: When an unfamiliar error appears, before debugging from scratch.
+    tests: ["scripts/symptom-match.sh"]
+  - name: verify-feature
+    version: 1.0.0
+    owner: EggShell
+    purpose: Prove a feature or page works end to end on Android, iOS, or web with fresh-bundle proof and driver-based navigation.
+    when_to_use: Before claiming a feature is done, to verify it works on all platforms.
