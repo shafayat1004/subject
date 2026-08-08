@@ -26,8 +26,8 @@ decisions:
     rationale: forces a fresh compile so the content assert for "Started Fable compilation" always has a chance to pass; prevents the stale-cache false green
   - decision: format check via custom-checks.yaml, not verification.yaml
     rationale: the format command needs staged or tracked files, not a blank run; the custom check fails open when the tool is missing
-  - decision: keep existing scripts/ as manual tools, not wired as hooks
-    rationale: the agentos policies replace the hook wiring; the scripts remain useful for manual one-shot checks and ci-gate.sh
+  - decision: keep surviving scripts/ as manual tools, not wired as hooks
+    rationale: the agentos policies replace the old hook wiring; obsolete scripts (hook-bash-guard, hook-edit-guard, install-git-hooks, forbidden-path-guard, ci-gate, verify-done) were deleted; em-dash-scan/run-scanner/symptom-match/status-dashboard remain
 failed_hypotheses: []
 open_questions: []
 changed_files: []
@@ -61,5 +61,5 @@ criteria:
   - id: c-suite-green
     statement: agentos all exits 0
 task_started: "2026-08-08T12:00:00Z"
-next_action: agent-os upgraded 0.7.0 -> 0.7.1 (upstream now has hook-pre-tool adapter-mode guard); reverted wrapper to upstream template, removed scripts/hook-pre-tool.py workaround; all enforcement tests pass; remaining real issues: 67 em-dash .md files, 7 fmt files, 2 broken doc links, SegmentedControl.fs compile error
+next_action: agent-os v0.7.1 upgraded, old-agentic-system artifacts swept (6 obsolete scripts + .cursor/ deleted, ~/.claude-mem 22MB db removed, stale ci-gate comments cleaned); all enforcement tests pass; remaining real issues: 67 em-dash .md files, 7 fmt files, 2 broken doc links, SegmentedControl.fs compile error
 stop_readiness: blocked

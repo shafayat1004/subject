@@ -3,9 +3,9 @@
 # A check with on_fail: error blocks `agentos done`.
 # A check with on_fail: warn reports but does not block.
 #
-# These checks enforce CLAUDE.md rules that have a script-based gate
+# These checks enforce AGENTS.md rules that have a script-based gate
 # but are not covered by the built-in path, command, or dependency
-# checks. They mirror the existing scripts/ ci-gate.sh gates.
+# checks.
 
 checks:
   # AGENTS.md rule: no em-dash (U+2014) in prose. Scans tracked .md
