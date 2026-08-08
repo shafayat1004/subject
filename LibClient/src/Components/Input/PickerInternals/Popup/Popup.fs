@@ -82,10 +82,12 @@ module private Styles =
 
             if not isFirst then
                 borderTop 1 theTheme.ItemBorderColor
-                // Light hairline just below the dark item border → the pair reads as an engraved
-                // groove carved between items. No-op when ItemGrooveHighlightColor is Transparent.
+                // Light hairline just below the dark item border, so the pair reads as an engraved
+                // groove carved between items. Skipped entirely when ItemGrooveHighlightColor is
+                // Transparent (the default) so plain-divider consumers composite no extra layer.
                 // boxShadow works on web AND native New-arch (RN 0.86), so no platform guard.
-                boxShadow (sprintf "inset 0px 1px 0px %s" theTheme.ItemGrooveHighlightColor.ToCssString)
+                if theTheme.ItemGrooveHighlightColor <> Color.Transparent then
+                    boxShadow (sprintf "inset 0px 1px 0px %s" theTheme.ItemGrooveHighlightColor.ToCssString)
 
             if isHighlighted then
                 backgroundColor theTheme.ItemHighlightBackground

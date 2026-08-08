@@ -113,11 +113,17 @@ module private Styles =
             borderRadius 999
             backgroundColor theme.ThumbBackground
             // Raised neumorphic thumb: outer drop shadow + inner top-left light bevel. Emitted as one
-            // `boxShadow` on BOTH web and native — RN 0.86 New Arch / Fabric supports boxShadow incl.
+            // `boxShadow` on BOTH web and native. RN 0.86 New Arch / Fabric supports boxShadow incl.
             // inset, so native gets the same 3D raised thumb (the old single-`shadow` fallback lacked
             // the inner bevel and read flat).
-            boxShadow (sprintf "2px 3px 6px %s, inset 1px 1px 2px %s"
-                        theme.ThumbShadowColor.ToCssString theme.ThumbHighlightColor.ToCssString)
+            //
+            // Only emitted when the theme actually opts in. Both colors default to Transparent, and
+            // emitting the rule unconditionally would hand every non-neumorphic consumer a
+            // fully-transparent shadow layer to composite for no visual gain.
+            if theme.ThumbShadowColor <> Color.Transparent
+               || theme.ThumbHighlightColor <> Color.Transparent then
+                boxShadow (sprintf "2px 3px 6px %s, inset 1px 1px 2px %s"
+                            theme.ThumbShadowColor.ToCssString theme.ThumbHighlightColor.ToCssString)
         }
 
 type LibClient.Components.Constructors.LC with

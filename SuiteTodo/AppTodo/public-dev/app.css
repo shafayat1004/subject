@@ -588,7 +588,13 @@ button {
 /*
  * Neumorphic horizontal scrollbar for the category chip row (web). The default Chrome/Edge
  * scrollbar is a thick gray bar on a white strip that clashes with the warm soft-UI. Make it
- * thin, rounded, and warm-translucent so it reads as part of the surface in both light and dark.
+ * thin, rounded, and warm so it reads as part of the surface.
+ *
+ * Themed off [data-appearance] on the document root, which AppearanceStorage.reflectToDom
+ * mirrors from the in-app theme toggle. Deliberately NOT prefers-color-scheme: the toggle is
+ * app state persisted to storage, not the OS setting, so the two desync as soon as a user
+ * picks dark in an app running under a light OS. The light thumb is far too pale to see on
+ * the dark composer panel, so one shared value is not an option.
  */
 [data-testid="todo-new-category-group"] * {
   scrollbar-width: thin;
@@ -607,4 +613,15 @@ button {
 }
 [data-testid="todo-new-category-group"] *::-webkit-scrollbar-thumb:hover {
   background: rgba(124, 107, 74, 0.8);
+}
+
+/* Dark mode: warm-lit thumb, since the dark panel (#251510) swallows the light-mode brown. */
+[data-appearance="dark"] [data-testid="todo-new-category-group"] * {
+  scrollbar-color: rgba(200, 172, 132, 0.5) transparent;
+}
+[data-appearance="dark"] [data-testid="todo-new-category-group"] *::-webkit-scrollbar-thumb {
+  background: rgba(200, 172, 132, 0.5);
+}
+[data-appearance="dark"] [data-testid="todo-new-category-group"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 172, 132, 0.78);
 }

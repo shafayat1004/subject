@@ -82,7 +82,12 @@ type SemanticPalette = {
 module SemanticPalette =
     let light =
         {
-            // Warm cream canvas — darkest level, so neumorphic shadows have contrast to bite into.
+            // Warm cream canvas -- darkest level, so neumorphic shadows have contrast to bite into.
+            //
+            // Danger is darkened from #dc2626: the cream PageBackground below is lighter than the
+            // old near-white, which dropped Danger/PageBg to 3.36:1 and tripped PaletteLinter.
+            // #b01818 restores AA (4.89:1) and also lifts white-on-Danger for the swipe Delete
+            // button from 4.83:1 to 7.02:1.
             CanvasBackground      = Color.Hex "#b3a089"
             PageBackground        = Color.Hex "#e6d5be"
             CardBackground        = Color.Hex "#f0e4d0"
@@ -96,7 +101,7 @@ module SemanticPalette =
             RowBorder             = Color.Transparent
             Accent                = Color.Hex "#458b8c"
             AccentSoft            = Color.Hex "#c2e2e9"
-            Danger                = Color.Hex "#dc2626"
+            Danger                = Color.Hex "#b01818"
             Success               = Color.Hex "#275c3c"
             Warning               = Color.Hex "#7a4e24"
             PriorityHigh          = Color.Hex "#7a2e2e"

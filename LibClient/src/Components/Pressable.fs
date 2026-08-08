@@ -96,7 +96,7 @@ type private PressableComponent(initialProps: Props) =
 
     // Press firing: drive from RN's `onPress` on BOTH native and web.
     //
-    // RN's `onPress` fires ONLY for a completed tap — when an ancestor ScrollView claims the
+    // RN's `onPress` fires ONLY for a completed tap -- when an ancestor ScrollView claims the
     // touch (a scroll), RN cancels the press and never calls `onPress`. This is the scroll-safe
     // path on both platforms: native (RNW's native responder) and web (RNW's PressResponder,
     // which terminates the press when a ScrollView becomes the responder).
@@ -104,9 +104,9 @@ type private PressableComponent(initialProps: Props) =
     // History (RW8 defect 3): the press used to fire from `onPressOut`, which RN/RNW calls even
     // on a scroll-cancelled press. On native, RN reports onPressOut coords at the press-DOWN
     // point, so the pressIn/pressOut movement guard saw ~0px and could not tell a scroll from a
-    // tap — scrolling a list fired the item under the finger. On web (touch), pointercancel fires
-    // with empty touches/stale coords → CrossPlatformPageXY returns None → the 5px guard fell
-    // through to isDrag=false → press fired on every touch-scroll. The `onPress` path is
+    // tap -- scrolling a list fired the item under the finger. On web (touch), pointercancel fires
+    // with empty touches/stale coords -> CrossPlatformPageXY returns None -> the 5px guard fell
+    // through to isDrag=false -> press fired on every touch-scroll. The `onPress` path is
     // scroll-cancel-aware on both platforms, so it is the correct single press driver.
     //
     // `onPressOut` (below) now only resets the visual pressed/hover state; it never fires the

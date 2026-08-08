@@ -43,13 +43,26 @@ module private AppearanceStorage =
                 | _           -> AppearanceMode.Light
         }
 
+    let private modeName (mode: AppearanceMode) =
+        match mode with
+        | AppearanceMode.Light -> "light"
+        | AppearanceMode.Dark  -> "dark"
+
+    /// Mirror the appearance onto the document root so plain CSS in app.css can theme the few
+    /// bits RN styles cannot reach (currently the category row's webkit scrollbar). Appearance is
+    /// an in-app toggle persisted to storage, NOT the OS setting, so `prefers-color-scheme` would
+    /// desync the moment the two disagree. Web only; a no-op everywhere else.
+    let reflectToDom (mode: AppearanceMode) : unit =
+#if EGGSHELL_PLATFORM_IS_WEB
+        Browser.Dom.document.documentElement.setAttribute ("data-appearance", modeName mode)
+#else
+        ignore mode
+#endif
+
     let save (mode: AppearanceMode) : unit =
-        let value =
-            match mode with
-            | AppearanceMode.Light -> "light"
-            | AppearanceMode.Dark  -> "dark"
+        reflectToDom mode
         async {
-            do! AppTodo.AppServices.services().LocalStorage.Put storageKey value Json.ToString<string>
+            do! AppTodo.AppServices.services().LocalStorage.Put storageKey (modeName mode) Json.ToString<string>
         }
         |> startSafely
 
@@ -828,9 +841,11 @@ type private Helpers =
                     rowBody
                     // Carved rim on the OUTER row frame, painted on top so the swipe surface slides
                     // UNDER the lip (and the revealed Danger slot sits inside the same cutout).
+                    // Purely decorative, so keep it out of the accessibility tree.
                     Rn.View(
-                        styles              = [| Styles.cutoutRimOverlay palette 16 |],
-                        ignorePointerEvents = true
+                        importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+                        styles                    = [| Styles.cutoutRimOverlay palette 16 |],
+                        ignorePointerEvents       = true
                     )
                 |]
         )
@@ -854,10 +869,14 @@ type Ui.Route with
 
         Hooks.useEffect(
             (fun () ->
+                // Reflect whatever we are rendering with right now, so the document root carries
+                // the mode on a remount (cache warm) as well as on the very first async resolve.
+                AppearanceStorage.reflectToDom appearanceHook.current
                 if not appearanceResolvedHook.current then
                     async {
                         let! mode = AppearanceStorage.loadAsync()
                         AppearanceStorage.cached <- Some mode
+                        AppearanceStorage.reflectToDom mode
                         appearanceHook.update mode
                         appearanceResolvedHook.update true
                     }
@@ -1084,9 +1103,11 @@ type Ui.Route with
                                                         )
                                                         // Carved rim painted ON TOP so the scrolling
                                                         // category pill row slides UNDER the lip.
+                                                        // Decorative, so keep it out of the a11y tree.
                                                         Rn.View(
-                                                            styles              = [| Styles.cutoutRimOverlay palette 28 |],
-                                                            ignorePointerEvents = true
+                                                            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+                                                            styles                    = [| Styles.cutoutRimOverlay palette 28 |],
+                                                            ignorePointerEvents       = true
                                                         )
                                                     |]
                                                 )
