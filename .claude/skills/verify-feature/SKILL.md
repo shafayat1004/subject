@@ -31,6 +31,29 @@ verified; a screenshot of the working feature is.
    fatals and the expected UI in screenshots = PASS. Anything else: report evidence, do not claim done.
 7. Repeat for landscape (`android-observe.sh rotate landscape`, or observe --orientation).
 
+## Style verification (web, programmatic)
+
+When verifying neu/shadow styles (boxShadow, shadows, bevels), do NOT query the testId element —
+`getComputedStyle(testIdEl).boxShadow` returns `"none"`. Rn.View wrappers carry the shadow styles, so
+the boxShadow lives on a **parent or grandparent** div of the testId element. Walk up:
+
+```js
+const bs = await page.evaluate(() => {
+  const el = document.querySelector('[data-testid="my-thing"]');
+  // try self, parent, grandparent
+  for (const node of [el, el?.parentElement, el?.parentElement?.parentElement]) {
+    if (!node) continue;
+    const b = window.getComputedStyle(node).boxShadow;
+    if (b && b !== 'none') return b;
+  }
+  return 'none';
+});
+```
+
+This is **better than vision** for shadow structure (exact layer count, inset vs outer, color
+values). Vision is still needed for gestalt/layout reads. If `claude` CLI (vision) is blocked by a
+spend limit, fall back to this programmatic approach — it's exact, not "looks inset-ish."
+
 ## Reporting
 
 State PASS/FAIL per platform x orientation with screenshot paths and the log summary. Failures go

@@ -76,6 +76,22 @@ In Xcode: open `<appdir>/ios/<App>.xcworkspace`, set the preflight's scheme, set
 **Any iOS Device (arm64)**, then **Product -> Archive**. The `.xcarchive` lands under
 `~/Library/Developer/Xcode/Archives/<date>/`.
 
+**CLI archive works AFTER the cert exists** (verified 2026-07-20, session 49). The UI-only
+requirement is specifically about *generating the signing certificate* on the first archive of a
+free personal team. Once preflight check 4 shows an `Apple Development` identity AND check 6 shows a
+cached profile (i.e. a prior UI archive already created them) AND the login keychain is unlocked (a
+GUI session is active), a headless archive succeeds:
+```
+xcodebuild -workspace <appdir>/ios/<App>.xcworkspace -scheme <App> -configuration Release \
+  -destination 'generic/platform=iOS' -archivePath <dir>/<App>.xcarchive \
+  -allowProvisioningUpdates archive
+```
+The embedded-framework `codesign` no longer hits `errSecInternalComponent` because the cert is
+present and the keychain is already unlocked. Stage 3 (wrap) then needs the archive under
+`~/Library/Developer/Xcode/Archives/<date>/` — if you archived elsewhere, copy it there first.
+**Pass `<appdir>` to `release-build.sh` as an ABSOLUTE path** (the wrap `cd`s into a temp dir before
+zipping; a relative appdir makes it fail the zip and then `du`-report a stale IPA as if fresh).
+
 ### Stage 3: export to IPA (wrap, do not exportArchive)
 
 `xcodebuild -exportArchive` re-signs embedded frameworks and hits `errSecInternalComponent` from the

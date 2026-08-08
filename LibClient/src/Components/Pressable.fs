@@ -49,7 +49,6 @@ type private PressableComponent(initialProps: Props) =
     inherit PureStatelessComponent<Props>(initialProps)
 
     let mutable maybeTimeoutReference: int option = None
-    let mutable maybePressInCoords: (float * float) option = None
 
     let registryKey (props: Props) =
         props.RegistryKey
@@ -72,7 +71,6 @@ type private PressableComponent(initialProps: Props) =
     let onPressIn
             (maybePointerState: LC.Pointer.State.PointerState option)
             (e: PointerEvent) =
-        maybePressInCoords <- e.CrossPlatformPageXY
         maybePointerState |> Option.iter (fun ps -> ps.SetIsDepressed true e)
 
     // The actual press effect: dismiss the keyboard, settle the hover/depressed state, log the
@@ -96,18 +94,28 @@ type private PressableComponent(initialProps: Props) =
         }
         props.OnPress action
 
-    // Native press path. RN's `onPress` fires ONLY for a completed tap -- when an ancestor
-    // ScrollView claims the touch (a scroll), RN cancels the press and never calls `onPress`. So we
-    // drive the press from here on native. The old path fired from `onPressOut`, which RN calls even
-    // on a scroll-cancelled press, and RN reports its coordinates at the press-DOWN point, so the
-    // pressIn/pressOut movement guard saw ~0px and could not tell a scroll from a tap -- scrolling a
-    // list fired the item under the finger (RW8 defect 3). `onPressOut` still resets the visual
-    // pressed state on native, but no longer fires the press.
+    // Press firing: drive from RN's `onPress` on BOTH native and web.
+    //
+    // RN's `onPress` fires ONLY for a completed tap -- when an ancestor ScrollView claims the
+    // touch (a scroll), RN cancels the press and never calls `onPress`. This is the scroll-safe
+    // path on both platforms: native (RNW's native responder) and web (RNW's PressResponder,
+    // which terminates the press when a ScrollView becomes the responder).
+    //
+    // History (RW8 defect 3): the press used to fire from `onPressOut`, which RN/RNW calls even
+    // on a scroll-cancelled press. On native, RN reports onPressOut coords at the press-DOWN
+    // point, so the pressIn/pressOut movement guard saw ~0px and could not tell a scroll from a
+    // tap -- scrolling a list fired the item under the finger. On web (touch), pointercancel fires
+    // with empty touches/stale coords -> CrossPlatformPageXY returns None -> the 5px guard fell
+    // through to isDrag=false -> press fired on every touch-scroll. The `onPress` path is
+    // scroll-cancel-aware on both platforms, so it is the correct single press driver.
+    //
+    // `onPressOut` (below) now only resets the visual pressed/hover state; it never fires the
+    // press on either platform.
     let onPress
             (source: ReactElement)
             (props: Props)
             (e: PointerEvent) =
-        if not props.Disabled && Rn.Runtime.isNative() then
+        if not props.Disabled then
             firePress source props e
 
     let onPressOut
@@ -117,23 +125,6 @@ type private PressableComponent(initialProps: Props) =
         if props.Disabled then ()
         else
             props.MaybePointerState |> Option.iter (fun ps -> ps.SetIsDepressed false e)
-
-            // Web keeps the historical onPressOut path with a small movement guard (react-native-web
-            // has no scroll-cancel on onPressOut, and this preserves web click semantics). Native
-            // fires from `onPress` above, so onPressOut only resets the pressed state there.
-            if Rn.Runtime.isWeb() then
-                let isDrag =
-                    match (maybePressInCoords, e.CrossPlatformPageXY) with
-                    | Some (px, py), Some (x, y) ->
-                        let dx = x - px
-                        let dy = y - py
-                        dx * dx + dy * dy |> sqrt > 5.
-                    | _ -> false
-                maybePressInCoords <- None
-                if not isDrag then
-                    firePress source props e
-            else
-                maybePressInCoords <- None
 
     let buttonStyles (props: Props) =
         [|

@@ -23,8 +23,12 @@ module LC =
                     ItemTextHighlightColor:  Color
                     ItemHighlightBackground: Color
                     ItemBorderColor:         Color
-                    SelectedIconColor:       Color
-                    BorderRadius:            int
+                    // Light companion line drawn just beneath ItemBorderColor so the two hairlines
+                    // read as an engraved GROOVE carved between items (neumorphic separator). Leave
+                    // Transparent for a plain single-line divider (the default).
+                    ItemGrooveHighlightColor: Color
+                    SelectedIconColor:        Color
+                    BorderRadius:             int
                 }
 
 type Theme = LC.Input.PickerInternals.Popup.Theme
@@ -75,10 +79,15 @@ module private Styles =
             paddingLeft 16
             paddingRight 8
             paddingVertical 9
-            borderTop 1 theTheme.ItemBorderColor
 
-            if isFirst then
-                borderTopWidth 0
+            if not isFirst then
+                borderTop 1 theTheme.ItemBorderColor
+                // Light hairline just below the dark item border, so the pair reads as an engraved
+                // groove carved between items. Skipped entirely when ItemGrooveHighlightColor is
+                // Transparent (the default) so plain-divider consumers composite no extra layer.
+                // boxShadow works on web AND native New-arch (RN 0.86), so no platform guard.
+                if theTheme.ItemGrooveHighlightColor <> Color.Transparent then
+                    boxShadow (sprintf "inset 0px 1px 0px %s" theTheme.ItemGrooveHighlightColor.ToCssString)
 
             if isHighlighted then
                 backgroundColor theTheme.ItemHighlightBackground

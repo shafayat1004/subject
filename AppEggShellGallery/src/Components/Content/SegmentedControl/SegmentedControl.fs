@@ -41,6 +41,8 @@ type private Helpers =
                         UnselectedLabelColor = Color.Hex "#536174"
                         TrackWidth           = 152
                         TrackPadding         = 4
+                        ThumbShadowColor     = Color.Transparent
+                        ThumbHighlightColor  = Color.Transparent
                     })
         )
 

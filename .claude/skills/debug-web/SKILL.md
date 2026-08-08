@@ -90,6 +90,38 @@ the app dir so `import { chromium } from 'playwright'` resolves):
 - Known open example: horizontal `LC.ScrollView` clips on first mount **in Safari only**
   (`modernization/rn86-upgrade-status.md` RW9) — not reproducible in tooling.
 
+## Touch-gesture simulation (scroll/swipe/tap on web)
+
+`page.touchscreen.tap()` is a single tap — useless for drag/swipe/scroll gestures. For multi-step touch
+(scroll, swipe-to-delete, drag), use **CDP `Input.dispatchTouchEvent`** on a Chromium page:
+
+```js
+const client = await page.context().newCDPSession(page);
+await client.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 10 });
+await client.send('Input.dispatchTouchEvent', {
+  type: 'touchStart',
+  touchPoints: [{ x: cx, y: cy, radiusX: 10, radiusY: 10, force: 1, id: 0 }],
+});
+for (let dy = 5; dy <= 120; dy += 5) {
+  await client.send('Input.dispatchTouchEvent', {
+    type: 'touchMove',
+    touchPoints: [{ x: cx, y: cy + dy, radiusX: 10, radiusY: 10, force: 1, id: 0 }],
+  });
+  await page.waitForTimeout(8); // ~60fps; browser needs real time between moves
+}
+await client.send('Input.dispatchTouchEvent', {
+  type: 'touchEnd',
+  touchPoints: [{ x: cx, y: cy + 120, id: 0 }],
+});
+```
+
+Page MUST be created with `hasTouch: true` and `viewport` matching a phone (e.g. `{ width: 420, height:
+900, hasTouch: true, deviceScaleFactor: 2 }`). This is how the `Pressable` scroll-fires-button fix
+(session 46) was verified: touch-down on a button, drag 120px down (scroll), release → assert the
+button's onPress did NOT fire (checked via DOM state change the press would have caused). Mouse click
+on the same button was then verified separately to still fire. Pattern: **simulate the gesture, then
+assert the side-effect (or absence of it) via a DOM/state probe, not via vision.**
+
 ## Console errors
 
 Playwright observe captures page errors. For manual checks, load the page and read the browser

@@ -1,0 +1,12 @@
+#!/bin/sh
+# agent-os PostToolUse wrapper (installed by `agentos init`).
+# Appends the tool call to the trace log. Never blocks.
+# After the built-in check, runs scripts in .agent-os/hooks/post-tool.d/.
+cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
+command -v python3 >/dev/null 2>&1 || exit 0
+".agent-os/bin/agentos" hook-post-tool
+for _script in .agent-os/hooks/post-tool.d/*; do
+  [ -x "$_script" ] || continue
+  "$_script"
+done
+exit 0

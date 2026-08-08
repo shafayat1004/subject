@@ -1,0 +1,22 @@
+# Dependency policy for the EggShell subject repo.
+# Enforces CLAUDE.md rule 9: no banned NuGet packages.
+banned:
+  - name: "Moq"
+    reason: "org rule: banned NuGet package"
+  - name: "AutoMapper"
+    reason: "org rule: banned NuGet package"
+required: []
+# ecosystems is informational. The scan reads .fsproj, .csproj,
+# package.json, and packages.config manifests.
+ecosystems: []
+# Extra directories to skip during the scan. Version control, vendored
+# dependencies, and build output (node_modules, .git, bin, obj, dist,
+# build, packages, and similar) are already skipped by default.
+# Add .build (Fable output), .buildTemp, ThirdParty (vendored source),
+# Fake (build scripts), and .metals (tool cache).
+ignore:
+  - ".build"
+  - ".buildTemp"
+  - "ThirdParty"
+  - "Fake"
+  - ".metals"

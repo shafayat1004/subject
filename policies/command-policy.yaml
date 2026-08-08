@@ -1,0 +1,12 @@
+# Command policy for the EggShell subject repo.
+# Gates shell tool invocations by command string before execution
+# (issue #34). The Bash command string is the first concrete instance.
+# See templates/policies/command-policy.yaml for the entry shape and
+# the deny/warn/allow contract.
+tools:
+  bash:
+    deny:
+      - pattern: 'dotnet\s+fable'
+        reason: "emits stray .fs.js beside source; use ./eggshell build-lib, eggshell dev-web, or eggshell dev-native"
+    warn: []
+    allow: []

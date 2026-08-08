@@ -1,0 +1,45 @@
+# Verification commands for the EggShell subject repo.
+# agentos verify executes these and writes the derived status into
+# STATE.yaml verification_status. Each is optional; a null or omitted
+# line marks that verifier unavailable (status n/a).
+#
+# Each verifier value can be a string (the command) or a mapping
+# with a command and an optional assert block. The assert block
+# checks the captured stdout plus stderr after a zero exit:
+#   contains: a list of strings that must all be present
+#   excludes: a list of strings that must all be absent
+# A failed assert marks the verifier fail and the ledger records
+# the specific pattern so the done gate refuses on a false green.
+commands:
+  # F# formatting is enforced via a custom check in custom-checks.yaml
+  # (eggshell-fmt --check on staged files), not here: a verification
+  # format command would need to scan all .fs files every run, which
+  # is slow and requires the tool to be installed. The custom check
+  # fails open when the tool is missing.
+  format: null
+  # Compile: force a fresh Fable build by clearing the AppEggShellGallery
+  # web cache, then run eggshell test-build (app project -> runFable ->
+  # the Fable CLI which emits "Started Fable compilation..."). The old
+  # command used build-lib from the repo root, which hit two walls: the
+  # root eggshell.json is type:repoRoot (buildLib rejects non-library),
+  # and buildLib never calls runFable at all, so the "Started Fable
+  # compilation" assert was structurally unsatisfiable. test-build is the
+  # app-project path that actually runs Fable. The assert block catches
+  # the stale-cache false green (AGENTS.md build invariant): "Started
+  # Fable compilation" must appear, "error FS" plus the skip message must
+  # not.
+  compile:
+    command: "sh -c 'cd AppEggShellGallery && rm -rf .build/web/fable && ../eggshell test-build'"
+    assert:
+      contains:
+        - "Started Fable compilation"
+      excludes:
+        - "error FS"
+        - "Skipped compilation because all generated files are up-to-date"
+  # The subject has no single test runner; the compile verifier (Fable
+  # build) is the primary gate. Add dotnet test for specific test
+  # projects as they become part of the done definition.
+  tests: null
+  policy: ".agent-os/bin/agentos all"
+  security: null
+timeout: 600

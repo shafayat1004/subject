@@ -184,10 +184,15 @@ module Input_CheckboxComponent =
                                                 }
                                         )
                                     | Children ->
-                                        Rn.View(
-                                            styles   = [| Styles.labelBlock |],
-                                            children = childElements
-                                        )
+                                        // Icon-only checkbox (no children): skip the flex-1 label block so the
+                                        // icon centers in its container instead of being pushed to the left.
+                                        if childElements.Length > 0 then
+                                            Rn.View(
+                                                styles   = [| Styles.labelBlock |],
+                                                children = childElements
+                                            )
+                                        else
+                                            noElement
 
                                     LC.Pressable(
                                         onPress       = onPress,

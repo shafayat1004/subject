@@ -333,11 +333,16 @@ module Input_TextComponent =
 
                     if singleLine then
                         minHeight 21
+                    // Zero the element's own padding/margin on BOTH platforms. Android's native
+                    // TextInput ships a large default internal padding (iOS ships ~none), which made
+                    // Android inputs render noticeably taller than iOS/web for the same field. With
+                    // padding 0 here, height is driven consistently by the border wrapper's
+                    // paddingVertical + minHeight across platforms.
+                    padding 0
+                    margin 0
 #if EGGSHELL_PLATFORM_IS_WEB
                     backgroundColor Color.Transparent
                     borderWidth 0
-                    padding 0
-                    margin 0
 #endif
                 })
 
@@ -566,7 +571,12 @@ module Input_TextComponent =
                                           [| Styles.textInput
                                                  theTheme.NoneditableBackgroundColor
                                                  editable
-                                                 (not multiline) |],
+                                                 (not multiline)
+                                             // Text color must be applied to the input itself; without it the
+                                             // browser/native default (black) wins and dark-mode text vanishes.
+                                             // ViewStyles can't carry `color` (see FSharpDialect TODO), but
+                                             // both erase to the same JS style object, so cast the TextStyles.
+                                             (!!(Styles.textInputText theTheme.TextColor): ViewStyles) |],
                                       value               = draftValueHook.current,
                                       onChangeText        = handleChangeText,
                                       ?accessibilityLabel = inputA11yLabel,
@@ -599,7 +609,12 @@ module Input_TextComponent =
                                           [| Styles.textInput
                                                  theTheme.NoneditableBackgroundColor
                                                  editable
-                                                 (not multiline) |],
+                                                 (not multiline)
+                                             // Text color must be applied to the input itself; without it the
+                                             // browser/native default (black) wins and dark-mode text vanishes.
+                                             // ViewStyles can't carry `color` (see FSharpDialect TODO), but
+                                             // both erase to the same JS style object, so cast the TextStyles.
+                                             (!!(Styles.textInputText theTheme.TextColor): ViewStyles) |],
                                       value               = (value |> NonemptyString.optionToString),
                                       onChangeText        = handleChangeText,
                                       ?accessibilityLabel = inputA11yLabel,

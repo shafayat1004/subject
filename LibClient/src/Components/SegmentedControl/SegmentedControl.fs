@@ -21,6 +21,9 @@ module LC =
             UnselectedLabelColor: Color
             TrackWidth:           int
             TrackPadding:         int
+            // Neumorphic raised thumb: drop shadow + top-left light bevel. Default Transparent = flat thumb.
+            ThumbShadowColor:    Color
+            ThumbHighlightColor: Color
         }
 
         type Segment<'T when 'T : equality> = {
@@ -109,6 +112,18 @@ module private Styles =
             width (max 0 thumbWidth)
             borderRadius 999
             backgroundColor theme.ThumbBackground
+            // Raised neumorphic thumb: outer drop shadow + inner top-left light bevel. Emitted as one
+            // `boxShadow` on BOTH web and native. RN 0.86 New Arch / Fabric supports boxShadow incl.
+            // inset, so native gets the same 3D raised thumb (the old single-`shadow` fallback lacked
+            // the inner bevel and read flat).
+            //
+            // Only emitted when the theme actually opts in. Both colors default to Transparent, and
+            // emitting the rule unconditionally would hand every non-neumorphic consumer a
+            // fully-transparent shadow layer to composite for no visual gain.
+            if theme.ThumbShadowColor <> Color.Transparent
+               || theme.ThumbHighlightColor <> Color.Transparent then
+                boxShadow (sprintf "2px 3px 6px %s, inset 1px 1px 2px %s"
+                            theme.ThumbShadowColor.ToCssString theme.ThumbHighlightColor.ToCssString)
         }
 
 type LibClient.Components.Constructors.LC with
@@ -281,7 +296,7 @@ type LibClient.Components.Constructors.LC with
             Rn.View(
                 styles                    = [| Styles.segmentCell cellWidth |],
                 accessibilityRole         = AccessibilityRole.Radio,
-                accessibilityState        = AccessibilityStateRecord.selected isActive,
+                accessibilityState        = AccessibilityStateRecord.radioSelected isActive,
                 accessibilityLabel        = segment.Label,
                 importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.Yes,
                 ?testId                   = segmentTestId,
@@ -306,7 +321,7 @@ type LibClient.Components.Constructors.LC with
                 onPress  = (fun _ -> selectIndex index),
                 label    = segment.Label,
                 role     = AccessibilityRole.Radio,
-                state    = AccessibilityStateRecord.selected isActive,
+                state    = AccessibilityStateRecord.radioSelected isActive,
                 ?testId  = segmentTestId,
                 styles   = [| Styles.segmentCell cellWidth |],
                 children = [|

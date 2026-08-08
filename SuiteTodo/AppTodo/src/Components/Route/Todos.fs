@@ -18,6 +18,7 @@ open LibClient.Services.Subscription
 open Rn.Components
 open Rn.Styles
 open AppTodo.Actions
+open AppTodo.Feedback
 open AppTodo.Colors
 open AppTodo.I18nGlobal
 open AppTodo.TodoDisplay
@@ -42,13 +43,26 @@ module private AppearanceStorage =
                 | _           -> AppearanceMode.Light
         }
 
+    let private modeName (mode: AppearanceMode) =
+        match mode with
+        | AppearanceMode.Light -> "light"
+        | AppearanceMode.Dark  -> "dark"
+
+    /// Mirror the appearance onto the document root so plain CSS in app.css can theme the few
+    /// bits RN styles cannot reach (currently the category row's webkit scrollbar). Appearance is
+    /// an in-app toggle persisted to storage, NOT the OS setting, so `prefers-color-scheme` would
+    /// desync the moment the two disagree. Web only; a no-op everywhere else.
+    let reflectToDom (mode: AppearanceMode) : unit =
+#if EGGSHELL_PLATFORM_IS_WEB
+        Browser.Dom.document.documentElement.setAttribute ("data-appearance", modeName mode)
+#else
+        ignore mode
+#endif
+
     let save (mode: AppearanceMode) : unit =
-        let value =
-            match mode with
-            | AppearanceMode.Light -> "light"
-            | AppearanceMode.Dark  -> "dark"
+        reflectToDom mode
         async {
-            do! AppTodo.AppServices.services().LocalStorage.Put storageKey value Json.ToString<string>
+            do! AppTodo.AppServices.services().LocalStorage.Put storageKey (modeName mode) Json.ToString<string>
         }
         |> startSafely
 
@@ -82,7 +96,30 @@ module private SwipeTapGuard =
 type private Helpers =
     [<Component>]
     static member FieldLabel(palette: SemanticPalette, text: string) : ReactElement =
-        LC.Text(styles = [| Styles.fieldLabel palette |], value = text)
+        Rn.View(
+            children =
+                tellReactArrayKeysAreOkay [|
+                    LC.Text(styles = [| Styles.fieldLabel palette |], value = text)
+                    // Short engraved groove accent under the label (decorative).
+                    Rn.View(
+                        importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+                        styles                    = [| Styles.labelGroove palette |]
+                    )
+                |]
+        )
+
+    // Neumorphic grip: a small stack of engraved dashes marking a swipeable row's drag handle.
+    static member GripDashes(palette: SemanticPalette) : ReactElement =
+        Rn.View(
+            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+            styles                    = [| Styles.gripCluster |],
+            children =
+                tellReactArrayKeysAreOkay [|
+                    Rn.View(styles = [| Styles.gripDash palette |])
+                    Rn.View(styles = [| Styles.gripDash palette |])
+                    Rn.View(styles = [| Styles.gripDash palette |])
+                |]
+        )
 
     [<Component>]
     static member FilterTabs(
@@ -95,11 +132,12 @@ type private Helpers =
         let mkTab (filter: TodoListFilter) (testSuffix: string) =
             let label = filterLabel filter
             let testId = A11ySlug.testId "todo-filter" testSuffix
+            let isSelected = current = filter
             let tab =
                 LC.Tab(
                     label = label,
                     state =
-                        (if current = filter then
+                        (if isSelected then
                             LC.Tab.Selected
                          else
                             LC.Tab.Unselected (fun _ -> onSelect filter)),
@@ -108,7 +146,9 @@ type private Helpers =
                 )
 
             if isHandheld then
-                Rn.View(styles = [| Styles.filterTabCell |], children = [| tab |])
+                let cellStyle =
+                    if isSelected then Styles.filterTabCellSelected palette else Styles.filterTabCell
+                Rn.View(styles = [| cellStyle |], children = [| tab |])
             else
                 tab
 
@@ -121,7 +161,7 @@ type private Helpers =
 
         if isHandheld then
             Rn.View(
-                styles             = [| Styles.filterTabsRow palette |],
+                styles             = [| Styles.filterTabsWell palette |],
                 accessibilityRole  = AccessibilityRole.TabList,
                 accessibilityLabel = i18n.t.FilterTabsLabel,
                 children =
@@ -138,6 +178,7 @@ type private Helpers =
 
     [<Component>]
     static member CategoryPill(
+            palette:    SemanticPalette,
             bg:         Color,
             border:     Color,
             label:      string,
@@ -146,13 +187,13 @@ type private Helpers =
             onPress:    ReactEvent.Action -> unit)
         : ReactElement =
         Rn.View(
-            styles   = [| Styles.categoryPill bg border isSelected |],
+            styles   = [| Styles.categoryPill palette bg border isSelected |],
             children = [|
                 LC.TextButton(
                     label              = label,
                     role               = AccessibilityRole.Radio,
-                    accessibilityState = AccessibilityStateRecord.selected isSelected,
-                    state              = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable onPress),
+                    accessibilityState = AccessibilityStateRecord.radioSelected isSelected,
+                    state              = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun e -> buttonTap (); onPress e)),
                     testId             = testId
                 )
             |]
@@ -186,7 +227,7 @@ type private Helpers =
             accessibilityGroupLabel = i18n.t.ThemeGroupLabel,
             testId                  = A11ySlug.testId "todo" "theme-toggle",
             selected                = current,
-            onSelect                = onSelect,
+            onSelect                = (fun mode -> toggleSwitch (); onSelect mode),
             segments =
                 [|
                     {
@@ -209,6 +250,8 @@ type private Helpers =
                         UnselectedLabelColor = palette.TextSecondary
                         TrackWidth           = 152
                         TrackPadding         = 4
+                        ThumbShadowColor     = palette.SurfaceShadow
+                        ThumbHighlightColor  = palette.SurfaceHighlight
                     })
         )
 
@@ -221,6 +264,7 @@ type private Helpers =
         let pill (noneOrCategory: Option<TodoCategory>) (label: string) (testId: string) (isSelected: bool) (onPress: ReactEvent.Action -> unit) =
             let bg, border, _ = Styles.categoryChipColorsByCategory palette noneOrCategory
             Helpers.CategoryPill(
+                palette    = palette,
                 bg         = bg,
                 border     = border,
                 label      = label,
@@ -247,12 +291,19 @@ type private Helpers =
             label    = sprintf "%s. %s" i18n.t.CategoryGroupLabel i18n.t.CategoryScrollHint,
             testId   = A11ySlug.testId "todo" "new-category-group",
             children = [|
-                LC.ScrollView(
-                    scroll        = LibClient.Components.ScrollView.Scroll.Horizontal,
-                    restoreScroll = LibClient.Components.ScrollView.RestoreScroll.No,
-                    showsHorizontalScrollIndicatorOnNative = true,
-                    styles        = [| Styles.categoryScrollContent |],
-                    children      = pills
+                Rn.View(
+                    styles   = [| Styles.categorySlideWrap |],
+                    children = [|
+                        LC.ScrollView(
+                            scroll        = LibClient.Components.ScrollView.Scroll.Horizontal,
+                            restoreScroll = LibClient.Components.ScrollView.RestoreScroll.No,
+                            // Visible horizontal scrollbar restored (it reads as an affordance that the
+                            // category row scrolls); keep the pills sliding under the panel edge.
+                            showsHorizontalScrollIndicatorOnNative = true,
+                            styles   = [| Styles.categoryScrollContent |],
+                            children = pills
+                        )
+                    |]
                 )
             |]
         )
@@ -352,7 +403,6 @@ type private Helpers =
                 SwipeGesture.clampOffset rowWidthRef.current (panStartBaseRef.current + int translationX)
             settleFromOffset offset
 
-        let gradientVisible = isOpen || isDraggingHook.current
         let deleteButtonState =
             ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun _ -> onDelete ()))
 
@@ -363,7 +413,7 @@ type private Helpers =
                     children = [|
                         Rn.View(styles = [| Styles.swipeReducedMotionContent |], children = [| rowContent |])
                         Rn.View(
-                            styles   = [| Styles.swipeReducedMotionDelete |],
+                            styles   = [| Styles.swipeReducedMotionDelete palette |],
                             children = [|
                                 LC.TextButton(
                                     label         = todoActionLabel todo i18n.t.DeleteActionFormat,
@@ -385,17 +435,12 @@ type private Helpers =
                         styles    = [| Styles.swipeRowHost |],
                         children  = [|
                             Rn.View(
-                                importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.No,
-                                styles                    = [| Styles.swipeGradientOverlay gradientVisible |],
-                                children                  = [||]
-                            )
-                            Rn.View(
                                 importantForAccessibility =
                                     (if isOpen then
                                         LibClient.Accessibility.ImportantForAccessibility.Auto
                                      else
                                         LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants),
-                                styles   = [| Styles.swipeDeleteSlot |],
+                                styles   = [| Styles.swipeDeleteSlot palette |],
                                 children = [|
                                     LC.TextButton(
                                         label  = todoActionLabel todo i18n.t.DeleteActionFormat,
@@ -601,7 +646,7 @@ type private Helpers =
         let metaChip chipBg chipBorder chipText (chipLabel: string) (spokenLabel: string) =
             Rn.View(
                 accessibilityLabel = spokenLabel,
-                styles             = [| Styles.metaChip chipBg chipBorder |],
+                styles             = [| Styles.metaChip palette chipBg chipBorder |],
                 children           = [|
                     LC.Text(
                         styles = [| Styles.metaChipText chipText |],
@@ -748,17 +793,24 @@ type private Helpers =
                                 tellReactArrayKeysAreOkay (
                                     Array.append
                                         [|
-                                            LC.Input.Checkbox(
-                                                value              = Some todo.Done,
-                                                onChange           = SwipeTapGuard.guard (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
-                                                validity           = Valid,
-                                                accessibilityLabel = toggleCheckboxLabel todo,
-                                                testId             = todoItemTestId todo "toggle"
+                                            Rn.View(
+                                                styles   = [| Styles.checkboxWell palette |],
+                                                children = [|
+                                                    LC.Input.Checkbox(
+                                                        value              = Some todo.Done,
+                                                        onChange           = SwipeTapGuard.guard (fun _ -> runAction (fun () -> toggleTodo todo.Id) |> ignore),
+                                                        validity           = Valid,
+                                                        accessibilityLabel = toggleCheckboxLabel todo,
+                                                        testId             = todoItemTestId todo "toggle"
+                                                    )
+                                                |]
                                             )
                                             Rn.View(
                                                 styles   = [| Styles.todoContent |],
                                                 children = [| titleContent |]
                                             )
+                                            if useCompactUI && not isEditing then
+                                                Helpers.GripDashes(palette)
                                         |]
                                         rowActionButtons
                                 )
@@ -784,7 +836,18 @@ type private Helpers =
             accessibilityRole  = AccessibilityRole.ListItem,
             accessibilityLabel = rowLabel,
             styles             = [| Styles.todoRowOuter palette appearance |],
-            children           = [| rowBody |]
+            children           =
+                tellReactArrayKeysAreOkay [|
+                    rowBody
+                    // Carved rim on the OUTER row frame, painted on top so the swipe surface slides
+                    // UNDER the lip (and the revealed Danger slot sits inside the same cutout).
+                    // Purely decorative, so keep it out of the accessibility tree.
+                    Rn.View(
+                        importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+                        styles                    = [| Styles.cutoutRimOverlay palette 16 |],
+                        ignorePointerEvents       = true
+                    )
+                |]
         )
 
 type Ui.Route with
@@ -806,10 +869,14 @@ type Ui.Route with
 
         Hooks.useEffect(
             (fun () ->
+                // Reflect whatever we are rendering with right now, so the document root carries
+                // the mode on a remount (cache warm) as well as on the very first async resolve.
+                AppearanceStorage.reflectToDom appearanceHook.current
                 if not appearanceResolvedHook.current then
                     async {
                         let! mode = AppearanceStorage.loadAsync()
                         AppearanceStorage.cached <- Some mode
+                        AppearanceStorage.reflectToDom mode
                         appearanceHook.update mode
                         appearanceResolvedHook.update true
                     }
@@ -915,10 +982,15 @@ type Ui.Route with
                                                         Rn.View(
                                                             styles   = [| Styles.headerActions |],
                                                             children = [|
-                                                                Helpers.ThemeToggle(
-                                                                    palette  = palette,
-                                                                    current  = appearanceHook.current,
-                                                                    onSelect = setAppearance
+                                                                Rn.View(
+                                                                    styles   = [| Styles.themeToggleWell palette |],
+                                                                    children = [|
+                                                                        Helpers.ThemeToggle(
+                                                                            palette  = palette,
+                                                                            current  = appearanceHook.current,
+                                                                            onSelect = setAppearance
+                                                                        )
+                                                                    |]
                                                                 )
                                                             |]
                                                         )
@@ -941,7 +1013,7 @@ type Ui.Route with
                                                     children =
                                                         tellReactArrayKeysAreOkay [|
                                                             Rn.View(
-                                                                styles   = [| Styles.subFilterPill palette.CategoryGreenSoft |],
+                                                                 styles = [| Styles.subFilterPill palette palette.CategoryGreenSoft |],
                                                                 children = [|
                                                                     LC.Text(
                                                                         styles = [| Styles.subFilterPillText palette.CategoryGreenText |],
@@ -951,7 +1023,7 @@ type Ui.Route with
                                                             )
                                                             if usePhoneChrome then
                                                                 Rn.View(
-                                                                    styles   = [| Styles.subFilterPill palette.CategoryBlueSoft |],
+                                                                     styles = [| Styles.subFilterPill palette palette.CategoryBlueSoft |],
                                                                     children = [|
                                                                         LC.Text(
                                                                             styles = [| Styles.subFilterPillText palette.CategoryBlueText |],
@@ -973,47 +1045,69 @@ type Ui.Route with
                                                             gap      = 12,
                                                             styles   = [| Styles.composerGrid useCompactTabs |],
                                                             children = [|
-                                                                Rn.View(
-                                                                    styles   = [| Styles.fieldStack |],
-                                                                    children = [|
-                                                                        Helpers.FieldLabel(palette, i18n.t.TitleLabel)
-                                                                        LC.Input.Text(
-                                                                            value              = titleInput.current,
-                                                                            onChange           = titleInput.update,
-                                                                            validity           = Valid,
-                                                                            placeholder        = i18n.t.TitlePlaceholder,
-                                                                            accessibilityLabel = i18n.t.TitleLabel,
-                                                                            testId             = A11ySlug.testId "todo" "new-title"
-                                                                        )
-                                                                    |]
-                                                                )
-                                                                Rn.View(
-                                                                    styles             = [| Styles.fieldStack |],
-                                                                    accessibilityLabel = i18n.t.PriorityFieldLabel,
-                                                                    children           = [|
-                                                                        Helpers.FieldLabel(palette, i18n.t.PriorityFieldLabel)
-                                                                        LC.Input.Picker(
-                                                                            items         = Static (OrderedSet.ofList allPriorities, priorityLabel),
-                                                                            itemView      = PropItemViewFactory.Make priorityLabel,
-                                                                            value         = SelectableValue.ExactlyOne (Some priorityHook.current, priorityHook.update),
-                                                                            validity      = Valid,
-                                                                            showSearchBar = false,
-                                                                            testId        = A11ySlug.testId "todo" "new-priority"
-                                                                        )
-                                                                    |]
-                                                                )
-                                                                Helpers.NewCategoryPicker(
-                                                                    palette  = palette,
-                                                                    selected = categoryHook.current,
-                                                                    onSelect = categoryHook.update
-                                                                )
-                                                                LC.Button(
-                                                                    label  = i18n.t.AddButtonMobile,
-                                                                    state  = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
-                                                                    styles = [| Styles.addButton |],
-                                                                    testId = A11ySlug.testId "todo" "add-mobile"
-                                                                )
+                                                                 Rn.View(
+                                                                     styles   = [| Styles.fieldStack |],
+                                                                     children = [|
+                                                                         Helpers.FieldLabel(palette, i18n.t.TitleLabel)
+                                                                         Rn.View(
+                                                                             styles   = [| Styles.composerInputWell palette |],
+                                                                             children = [|
+                                                                                 LC.Input.Text(
+                                                                                     value              = titleInput.current,
+                                                                                     onChange           = titleInput.update,
+                                                                                     validity           = Valid,
+                                                                                     placeholder        = i18n.t.TitlePlaceholder,
+                                                                                     accessibilityLabel = i18n.t.TitleLabel,
+                                                                                     // Transparent bg + border so the inset well is the visual boundary.
+                                                                                     theme = (fun t -> { t with
+                                                                                                                         EditableBackgroundColor = Color.Transparent
+                                                                                                                         BorderLabelBlurredColor = Color.Transparent }),
+                                                                                     testId = A11ySlug.testId "todo" "new-title"
+                                                                                 )
+                                                                             |]
+                                                                         )
+                                                                     |]
+                                                                 )
+                                                                 Rn.View(
+                                                                     styles             = [| Styles.fieldStack |],
+                                                                     accessibilityLabel = i18n.t.PriorityFieldLabel,
+                                                                     children           = [|
+                                                                         Helpers.FieldLabel(palette, i18n.t.PriorityFieldLabel)
+                                                                         Rn.View(
+                                                                             styles   = [| Styles.composerInputWell palette |],
+                                                                             children = [|
+                                                                                 LC.Input.Picker(
+                                                                                     items         = Static (OrderedSet.ofList allPriorities, priorityLabel),
+                                                                                     itemView      = PropItemViewFactory.Make priorityLabel,
+                                                                                     value         = SelectableValue.ExactlyOne (Some priorityHook.current, priorityHook.update),
+                                                                                     validity      = Valid,
+                                                                                     showSearchBar = false,
+                                                                                     testId        = A11ySlug.testId "todo" "new-priority"
+                                                                                 )
+                                                                             |]
+                                                                         )
+                                                                     |]
+                                                                 )
+                                                                 Helpers.NewCategoryPicker(
+                                                                     palette  = palette,
+                                                                     selected = categoryHook.current,
+                                                                     onSelect = categoryHook.update
+                                                                 )
+                                                                 LC.Button(
+                                                                     label  = i18n.t.AddButtonMobile,
+                                                                     state  = ButtonHighLevelStateFactory.Make (addAction, addExecutor),
+                                                                     styles = [| Styles.addButton palette |],
+                                                                     testId = A11ySlug.testId "todo" "add-mobile"
+                                                                 )
                                                             |]
+                                                        )
+                                                        // Carved rim painted ON TOP so the scrolling
+                                                        // category pill row slides UNDER the lip.
+                                                        // Decorative, so keep it out of the a11y tree.
+                                                        Rn.View(
+                                                            importantForAccessibility = LibClient.Accessibility.ImportantForAccessibility.NoHideDescendants,
+                                                            styles                    = [| Styles.cutoutRimOverlay palette 28 |],
+                                                            ignorePointerEvents       = true
                                                         )
                                                     |]
                                                 )
@@ -1042,7 +1136,8 @@ type Ui.Route with
                                                                         (fun t ->
                                                                             { t with
                                                                                 BorderRadius            = 999
-                                                                                EditableBackgroundColor = palette.SearchBackground
+                                                                                EditableBackgroundColor = Color.Transparent
+                                                                                BorderLabelBlurredColor = Color.Transparent
                                                                                 TheVerticalPadding      = 10
                                                                             }),
                                                                     styles = [| Styles.searchInput palette |],
