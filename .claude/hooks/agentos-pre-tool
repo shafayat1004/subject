@@ -1,25 +1,11 @@
 #!/bin/sh
-# agent-os PreToolUse wrapper (installed by `agentos init`, hardened).
+# agent-os PreToolUse wrapper (installed by `agentos init`).
 # Blocks (exit 2) on a never path match or a denied command.
 # Warns (exit 1) on ask_first, an undeclared path, or a warn rule.
 # After the built-in check, runs scripts in .agent-os/hooks/pre-tool.d/.
-#
-# STDIN-SAFE DESIGN: this wrapper pipes the Claude Code PreToolUse JSON
-# to scripts/hook-pre-tool.py, which parses it and calls the flag-based
-# `agentos check-path` / `agentos check-command` subcommands (no stdin
-# read). This avoids `agentos hook-pre-tool`'s unconditional
-# sys.stdin.read() (agent-os cli.py:171), which hangs if a harness
-# spawns this wrapper with a never-EOF inherited stdin -- the same
-# class of bug as codemem 1978's hook-post-tool freeze. Claude Code
-# pipes+closes stdin so the old path worked, but the flag-based path is
-# defensive and harness-agnostic. The opencode plugin already uses this
-# approach (.opencode/plugins/agentos.js calls check-path/check-command).
-# Survives `agentos init` (writes with _write_if_absent) and
-# `agentos upgrade` (refreshes .agent-os/ only, not .claude/hooks/).
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 command -v python3 >/dev/null 2>&1 || exit 0
-AGENTOS=".agent-os/bin/agentos"
-_result=$(python3 scripts/hook-pre-tool.py "$AGENTOS")
+".agent-os/bin/agentos" hook-pre-tool
 _result=$?
 if [ $_result -ne 0 ]; then exit $_result; fi
 for _script in .agent-os/hooks/pre-tool.d/*; do

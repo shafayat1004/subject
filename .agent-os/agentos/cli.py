@@ -99,6 +99,14 @@ def main(argv=None):
     command_parser.add_argument("--path-policy", default="policies/path-policy.yaml")
     command_parser.add_argument("--command-policy",
                                 default="policies/command-policy.yaml")
+    command_parser.add_argument("--tool", default=None,
+                               help="adapter mode: when --tool, --file-path, "
+                                    "or --command is given, the stdin payload "
+                                    "is not read")
+    command_parser.add_argument("--file-path", default=None,
+                               help="adapter mode: see --tool")
+    command_parser.add_argument("--command", default=None,
+                               help="adapter mode: see --tool")
     command_parser = subparsers.add_parser("hook-stop")
     command_parser.add_argument("--state-file", default="STATE.yaml")
     command_parser.add_argument("--ledger-file", default="evidence/ledger.ndjson")
@@ -168,8 +176,26 @@ def main(argv=None):
         parser.print_help()
         return 2
     if args.cmd == "hook-pre-tool":
-        return hook_commands.run_pre_tool(sys.stdin.read(), args.path_policy,
-                                          args.command_policy, os.getcwd())
+        # Flags mean adapter mode (a harness that calls check-path and
+        # check-command directly): never touch stdin. A harness that
+        # spawns hooks with an inherited, never-EOF stdin (opencode's
+        # Bun shell) blocks here forever otherwise, wedging the session
+        # after the first tool call. Stdin is read only on the flagless
+        # Claude Code path, which pipes the payload and closes stdin.
+        # Same guard hook-post-tool uses (see below).
+        # --command without --tool cannot classify (the command policy
+        # is per-tool); fail open with a warning, do not wedge the editor.
+        command = args.command
+        if command is not None and args.tool is None:
+            print("agent-os: --command given without --tool; "
+                  "command not classified, allowing", file=sys.stderr)
+            command = None
+        stdin_text = ("" if (args.tool is not None or args.file_path is not None
+                             or command is not None)
+                      else sys.stdin.read())
+        return hook_commands.run_pre_tool(
+            stdin_text, args.path_policy, args.command_policy, os.getcwd(),
+            tool=args.tool, file_path=args.file_path, command=command)
     if args.cmd == "hook-stop":
         return hook_commands.run_stop(args.state_file, args.ledger_file,
                                       run_tests=args.run_tests)

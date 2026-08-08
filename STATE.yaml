@@ -61,5 +61,5 @@ criteria:
   - id: c-suite-green
     statement: agentos all exits 0
 task_started: "2026-08-08T12:00:00Z"
-next_action: enforcement audit done; fixed 4 false-green custom checks + compile verifier + hook-pre-tool stdin hang (latent 1978 class); all 29 enforcement tests pass; remaining real issues: 67 em-dash .md files, 7 fmt files, 2 broken doc links, SegmentedControl.fs compile error
+next_action: agent-os upgraded 0.7.0 -> 0.7.1 (upstream now has hook-pre-tool adapter-mode guard); reverted wrapper to upstream template, removed scripts/hook-pre-tool.py workaround; all enforcement tests pass; remaining real issues: 67 em-dash .md files, 7 fmt files, 2 broken doc links, SegmentedControl.fs compile error
 stop_readiness: blocked

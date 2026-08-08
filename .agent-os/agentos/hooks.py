@@ -111,16 +111,20 @@ def run_check_command(tool, command, policy_path, err=None):
     return _classify_command(tool, command, policy_path, err or sys.stderr)
 
 
-def run_pre_tool(stdin_text, path_policy, command_policy, cwd, err=None):
-    """Check a Claude Code PreToolUse tool call against both policies.
+def run_pre_tool(stdin_text, path_policy, command_policy, cwd, err=None,
+                 tool=None, file_path=None, command=None):
+    """Check a PreToolUse tool call against both policies.
 
-    Reads the hook JSON from stdin. The path policy gates the
-    file_path or notebook_path argument of edit tools (exit 2 on a never
-    match). The command policy gates the command string of shell tools,
-    with the Bash command string as the first concrete instance (exit 2
-    on a deny match). The two checks are complementary: one tool call
-    can fire both, and the worst exit code wins. Missing or malformed
-    input fails open.
+    Reads the hook JSON from stdin on the flagless path (the Claude Code
+    PreToolUse wrapper, which pipes the payload and closes stdin). On
+    the adapter path, the tool, file_path, and command come from flags
+    and stdin is not read at all (see cli.py for the guard). The path
+    policy gates the file_path or notebook_path argument of edit tools
+    (exit 2 on a never match). The command policy gates the command
+    string of shell tools, with the Bash command string as the first
+    concrete instance (exit 2 on a deny match). The two checks are
+    complementary: one tool call can fire both, and the worst exit code
+    wins. Missing or malformed input fails open.
     """
     err = err or sys.stderr
     try:
@@ -128,13 +132,14 @@ def run_pre_tool(stdin_text, path_policy, command_policy, cwd, err=None):
     except ValueError:
         return 0  # input we cannot parse is not a violation: fail open
     tool_input = payload.get("tool_input") or {}
-    tool_name = payload.get("tool_name") or payload.get("tool") or ""
-    target = tool_input.get("file_path") or tool_input.get("notebook_path")
-    command = tool_input.get("command")
+    tool_name = tool or payload.get("tool_name") or payload.get("tool") or ""
+    target = (file_path or tool_input.get("file_path")
+              or tool_input.get("notebook_path"))
+    cmd = command or tool_input.get("command")
     path_code = (_classify_paths([target], path_policy, cwd, err)
                  if target is not None else 0)
-    command_code = (_classify_command(tool_name, command, command_policy, err)
-                    if command is not None else 0)
+    command_code = (_classify_command(tool_name, cmd, command_policy, err)
+                    if cmd is not None else 0)
     return max(path_code, command_code)
 
 
