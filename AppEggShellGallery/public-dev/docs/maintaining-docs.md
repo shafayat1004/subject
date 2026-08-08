@@ -49,8 +49,8 @@ same change**.
 | A goal's or phase's status changed | [modernization/index.md](./modernization/index.md), [goals-and-roadmap.md](./modernization/goals-and-roadmap.md), [phased-plan.md](./modernization/phased-plan.md) |
 | You added, renamed, moved, or deleted a **doc page** | See "Adding or changing a doc page" below, and **update [llms.txt](./llms.txt)** |
 
-Agent-facing rules that point here: `CLAUDE.md` (rules 1, 10, 11), `.cursor/rules/runbooks-first.mdc`,
-`.cursor/rules/accessibility-default.mdc`.
+Agent-facing rules that point here: `AGENTS.md` (Conventions section: runbooks-first,
+accessibility, maintaining-docs).
 
 ## Voice and content
 
