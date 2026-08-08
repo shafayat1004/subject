@@ -71,6 +71,7 @@
 
   <!-- Components: route screens and shared UI. -->
   <ItemGroup>
+    <Compile Include="Feedback.fs" />
     <Compile Include="Components/Route/Todos.fs" />
     <Compile Include="Components/AppContext.fs" />
     <Compile Include="Components/App.fs" />

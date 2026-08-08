@@ -18,6 +18,7 @@ open LibClient.Services.Subscription
 open Rn.Components
 open Rn.Styles
 open AppTodo.Actions
+open AppTodo.Feedback
 open AppTodo.Colors
 open AppTodo.I18nGlobal
 open AppTodo.TodoDisplay
@@ -179,7 +180,7 @@ type private Helpers =
                     label              = label,
                     role               = AccessibilityRole.Radio,
                     accessibilityState = AccessibilityStateRecord.radioSelected isSelected,
-                    state              = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable onPress),
+                    state              = ButtonHighLevelStateFactory.MakeLowLevel (ButtonLowLevelState.Actionable (fun e -> buttonTap (); onPress e)),
                     testId             = testId
                 )
             |]
@@ -213,7 +214,7 @@ type private Helpers =
             accessibilityGroupLabel = i18n.t.ThemeGroupLabel,
             testId                  = A11ySlug.testId "todo" "theme-toggle",
             selected                = current,
-            onSelect                = onSelect,
+            onSelect                = (fun mode -> toggleSwitch (); onSelect mode),
             segments =
                 [|
                     {
