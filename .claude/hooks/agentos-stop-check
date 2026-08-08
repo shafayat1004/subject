@@ -1,0 +1,17 @@
+#!/bin/sh
+# agent-os Stop wrapper (installed by `agentos init`).
+# Refuses the done claim (exit 2) when STATE or ledger is invalid.
+# Extra arguments pass through, for example --run-tests.
+# After the built-in check, runs scripts in .agent-os/hooks/stop.d/.
+cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
+command -v python3 >/dev/null 2>&1 || exit 0
+".agent-os/bin/agentos" hook-stop "$@"
+_result=$?
+if [ $_result -ne 0 ]; then exit $_result; fi
+for _script in .agent-os/hooks/stop.d/*; do
+  [ -x "$_script" ] || continue
+  "$_script"
+  _result=$?
+  if [ $_result -ne 0 ]; then exit $_result; fi
+done
+exit 0

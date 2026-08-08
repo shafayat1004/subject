@@ -1,0 +1,17 @@
+#!/bin/sh
+# agent-os PreToolUse wrapper (installed by `agentos init`).
+# Blocks (exit 2) on a never path match or a denied command.
+# Warns (exit 1) on ask_first, an undeclared path, or a warn rule.
+# After the built-in check, runs scripts in .agent-os/hooks/pre-tool.d/.
+cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
+command -v python3 >/dev/null 2>&1 || exit 0
+".agent-os/bin/agentos" hook-pre-tool
+_result=$?
+if [ $_result -ne 0 ]; then exit $_result; fi
+for _script in .agent-os/hooks/pre-tool.d/*; do
+  [ -x "$_script" ] || continue
+  "$_script"
+  _result=$?
+  if [ $_result -ne 0 ]; then exit $_result; fi
+done
+exit 0
